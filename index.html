@@ -2740,8 +2740,14 @@ Views.account = {
       if ($("#gg")) $("#gg").onclick = () => site.google();
       $("#af").onsubmit = async e => { e.preventDefault(); err(""); const em = $("#em").value.trim(), pw = $("#pw").value;
         const r = mode === "up" ? await site.signUp(em, pw) : await site.signIn(em, pw);
-        if (r.error) return err(r.error.message === "Invalid login credentials" ? "Wrong email or password." : r.error.message);
-        if (mode === "up" && !r.data.session) toast("Almost done: confirm the link we emailed you"); };
+        if (r.error){ const m = r.error.message || "";
+          if (m === "Invalid login credentials") return err("Wrong email or password. Forgot it? Use “Forgot password” below.");
+          if (m === "Email not confirmed") return err("Please click the confirmation link in your email first, then sign in here.");
+          if (/rate limit|only request this after|too many/i.test(m)) return err("Too many emails in a short time. Wait a minute and try again.");
+          return err(m); }
+        if (mode === "up" && r.data && r.data.user && Array.isArray(r.data.user.identities) && r.data.user.identities.length === 0){
+          mode = this.mode = "in"; render(); $("#em").value = em; return $("#aerr").textContent = "This email already has an account. Sign in with your password."; }
+        if (mode === "up" && !r.data.session){ err(""); $("#af").outerHTML = `<div class="msg ok" style="margin-top:12px"><div class="ic">✓</div><div><h4>Check your inbox</h4><p>We sent a confirmation link to ${esc(em)}. Open it on this device; you'll be signed in automatically.</p></div></div>`; } };
     };
     render();
   }
