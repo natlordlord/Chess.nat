@@ -51,6 +51,19 @@ a{color:var(--go-hi)}
 .rankchip .em{width:30px;height:30px;flex:0 0 auto}
 .rankchip .t{font-weight:800;font-size:13px;line-height:1.1}
 .rankchip .s{font-size:12px;color:var(--muted)}
+.rail .me{display:flex;align-items:center;gap:10px;padding:8px 10px;margin-top:6px;border-radius:6px;border:0;background:none;color:var(--fg);cursor:pointer;width:100%;text-align:left}
+.rail .me:hover,.rail .me.on{background:var(--panel-2)}
+.rail .me .av{position:relative;width:28px;height:28px;flex:0 0 auto;border-radius:4px;background:#e8e6e3;display:block}
+.rail .me .av .pc{position:absolute;inset:2px;width:auto;height:auto;transform:none;background-size:contain;background-repeat:no-repeat;background-position:center}
+.rail .me .av .dot{position:absolute;right:-3px;bottom:-3px;width:10px;height:10px;border-radius:50%;background:var(--muted);border:2px solid var(--rail)}
+.rail .me .nm{display:flex;flex-direction:column;min-width:0}
+.rail .me .nm b{font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rail .me .nm small{font-size:11.5px;color:var(--go-hi);font-weight:700}
+.rail .icons{display:flex;justify-content:space-between;padding:4px 6px 2px}
+.rail .ib{position:relative;display:grid;place-items:center;width:36px;height:34px;border-radius:6px;border:0;background:none;color:var(--muted);cursor:pointer}
+.rail .ib:hover,.rail .ib.on{background:var(--panel-2);color:var(--fg)}
+.rail .ib .badge{position:absolute;top:1px;right:1px;background:var(--bad);color:#fff;font-size:10px;font-weight:800;border-radius:8px;padding:0 5px;line-height:15px}
+.rail .mini{font-size:11.5px;padding:2px 10px 0}
 
 /* main */
 .main{min-width:0;padding:16px max(16px,env(safe-area-inset-right,0px)) 24px 20px}
@@ -473,7 +486,7 @@ async function connectCloud(){
 }
 function renderRailStatus(){ const el = $("#cloudStatus"); if (!el) return;
   const map = {on:["Synced to your account", "var(--go-hi)"], local:["Saved on this device", "var(--muted)"], viewonly:["Saved on this device (view-only access)", "var(--warn)"], error:["Sync problem", "var(--bad)"], connecting:["Connecting…", "var(--muted)"]};
-  const [t, c] = map[Cloud.status] || map.local; el.innerHTML = `<span style="width:8px;height:8px;border-radius:50%;background:${c};display:inline-block"></span>${t}`; }
+  const [t, c] = map[Cloud.status] || map.local; el.innerHTML = `<span style="width:8px;height:8px;border-radius:50%;background:${c};display:inline-block"></span>${t}`; const d = $("#cloudDot"); if (d){ d.style.background = c; d.title = t; } }
 
 /* ---------- sound ---------- */
 const Sound = {ac:null, buf:{}, loading:false,
@@ -2541,6 +2554,7 @@ const ICONS = {
   gear: '<circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
   board: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',
   menu: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
+  bell: '<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
   flame: '<path d="M12 22c4.4 0 7-2.9 7-6.6 0-3.9-3-6.4-4.4-9.4-.6 2.3-1.8 3.5-3 4.2.3-2.6-.7-5.4-3.1-8.2C8 6 5 9 5 14c0 4.3 2.9 8 7 8z"/>',
 };
 function icon(n, size = 22){ return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ""}</svg>`; }
@@ -2548,8 +2562,25 @@ const LOGO = `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="8"
 
 const NAV = [
   ["home", "Home", "home"], ["learn", "Learn", "book"], ["puzzles", "Puzzles", "puzzle"], ["rush", "Puzzle Rush", "bolt"], ["daily", "Daily Puzzle", "calendar"],
-  ["train", "Train", "target"], ["bots", "Play Bots", "bot"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"], ["settings", "Settings", "gear"], ["account", "Account", "users"],
+  ["train", "Train", "target"], ["bots", "Play Bots", "bot"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"],
 ];
+/* bottom of the rail, like chess.com: who you are, then a row of small icon buttons */
+function railAccount(){
+  const site = window.ChessSite, sess = site && site.getSession && site.getSession();
+  const acct = typeof Views.account === "object" ? "account" : "settings";
+  const email = sess && sess.user && sess.user.email || "";
+  const name = S.name && S.name !== "You" ? S.name : email ? email.split("@")[0] : "You";
+  const sub = site && site.ready && !sess ? "Sign in to save" : "";
+  const cur = App.route;
+  return `<button class="me ${cur === acct ? "on" : ""}" data-r="${acct}" title="${esc(email || "Your profile")}"><span class="av"><i class="pc wp"></i><i class="dot" id="cloudDot"></i></span><span class="nm"><b>${esc(name)}</b>${sub ? `<small>${sub}</small>` : ""}</span></button>
+    <div class="icons">
+      <button class="ib ${cur === "friend" ? "on" : ""}" data-r="friend" title="Play a friend" aria-label="Play a friend">${icon("users", 20)}</button>
+      <button class="ib ${cur === "daily" ? "on" : ""}" data-r="daily" title="Daily puzzle" aria-label="Daily puzzle">${icon("bell", 20)}${!S.daily.done[todayKey()] ? `<span class="badge">1</span>` : ""}</button>
+      <button class="ib ${cur === "stats" ? "on" : ""}" data-r="stats" title="Stats" aria-label="Stats">${icon("chart", 20)}</button>
+      <button class="ib ${cur === "settings" ? "on" : ""}" data-r="settings" title="Settings" aria-label="Settings">${icon("gear", 20)}</button>
+    </div>
+    <div class="mini" id="cloudStatus"></div>`;
+}
 function renderRail(){
   const rail = $("#rail"); if (!rail) return; const rk = rankOf(S.puzzle.r); const cur = App.route;
   const dailyOpen = !S.daily.done[todayKey()];
@@ -2557,7 +2588,7 @@ function renderRail(){
     ${NAV.map(([k, t, ic]) => `<button class="nav ${cur === k || (k === "friend" && (cur === "local" || cur === "linkgame")) ? "on" : ""}" data-r="${k}">${icon(ic)}<span>${t}</span>${k === "daily" && dailyOpen ? `<span class="badge">1</span>` : ""}</button>`).join("")}
     <div class="grow"></div>
     <button class="rankchip" data-r="stats" aria-label="Your rank">${emblem(rk, 30)}<span><div class="t">${esc(rk.label)}</div><div class="s">${S.puzzle.r} puzzle</div></span></button>
-    <div class="mini" id="cloudStatus"></div>`;
+    ${railAccount()}`;
   $$("[data-r]", rail).forEach(b => b.onclick = () => App.go(b.dataset.r));
   renderRailStatus();
 }
