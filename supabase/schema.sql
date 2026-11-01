@@ -12,9 +12,9 @@ alter table public.kv enable row level security;
 
 drop policy if exists "kv: own rows only" on public.kv;
 create policy "kv: own rows only" on public.kv
-  for all
-  using  (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
+  for all to authenticated
+  using  ((select auth.uid()) = user_id)
+  with check ((select auth.uid()) = user_id);
 
 -- keep a single document from growing without bound (profiles are ~20 KB, daily logs up to ~200 KB)
 alter table public.kv drop constraint if exists kv_size;
