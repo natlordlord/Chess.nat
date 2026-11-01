@@ -2714,10 +2714,8 @@ Views.account = {
       main.innerHTML = `<div class="page" style="max-width:520px"><h1 class="h-title">Account</h1>
         <div class="unit" style="margin-top:12px"><div class="row" style="gap:12px">${emblem(rankOf(S.puzzle.r), 48)}<div><div style="font:900 20px var(--display)">${esc(S.name)}</div><div class="muted">${esc(s.user.email || "")}</div></div></div>
         <p class="muted" style="margin:10px 0 0">Your progress is saved to this account and follows you to every device where you sign in.</p></div>
-        <div class="unit"><h3>Bring progress from the Claude version</h3><p class="muted" style="margin:4px 0 8px">In the Claude version open Settings → Copy my data, then paste it here.</p><textarea id="imp" rows="4" style="width:100%;background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:8px;font:500 12px var(--mono)" placeholder='{"v":2,...}'></textarea><button class="btn go" id="impb" style="margin-top:8px">Import</button></div>
         <button class="btn" id="out">Sign out</button></div>`;
       $("#out").onclick = () => site.signOut();
-      $("#impb").onclick = () => { try { const d = JSON.parse($("#imp").value); if (!d || !d.puzzle) throw 0; S = mergeDefaults(d); save(); toast("Progress imported"); App.go("home"); } catch(e){ toast("That doesn't look like Chess.nat data"); } };
       return;
     }
     let mode = this.mode || "in";
