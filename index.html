@@ -1447,7 +1447,7 @@ Views.lesson = {
       const m = g.move({from: f, to: t, promotion: pr || "q"}); if (!m) return;
       this.board.set(g, {from: f, to: t}); Sound.forMove(m, g);
       if (check(m)){ this.state.ok = true; this.board.mark({[f]: "good", [t]: "good"}); this.board.setArrows([]); Sound.right(); this.feedback("ok", s.okTitle || "Well done!", s.okText || ""); if (s.okText) Voice.say(s.okText); this.enableNext(); if (s.after) this.later(() => { const r = g.move(s.after); if (r){ this.board.set(g, {from: r.from, to: r.to}); Sound.forMove(r, g); } }, 700); }
-      else { tries++; Sound.wrong(); this.board.mark({[t]: "bad"}); this.stars = Math.max(1, this.stars - (tries === 1 ? 1 : 0)); this.feedback("no", "Not this one", (tries >= 2 && s.hint ? s.hint : s.noText || "Try a different move.")); this.later(() => { g.undo(); this.board.set(g, s.last || null); this.board.mark(s.marks || {}); }, 700); }
+      else { tries++; Sound.wrong(); this.board.mark({[t]: "bad"}); this.stars = Math.max(1, this.stars - (tries === 1 ? 1 : 0)); const why = s.why && s.why[m.from + m.to]; this.feedback(why && why.ok ? "hint" : "no", why && why.ok ? "Good idea, but…" : "Not this one", why ? (why.text || why) : (tries >= 2 && s.hint ? s.hint : s.noText || "Try a different move.")); if (tries >= 2 && s.hintSq) this.later(() => this.board.mark({[s.hintSq]: "hint"}), 750); this.later(() => { g.undo(); this.board.set(g, s.last || null); this.board.mark(s.marks || {}); }, 700); }
     };
     this.panel(s, ``, {next: false, extra: s.hint ? `<button class="btn" id="lhint">Hint</button>` : ""});
     if (s.hint) $("#lhint").onclick = () => { this.feedback("hint", "Hint", s.hint); if (s.hintSq) this.board.mark({[s.hintSq]: "hint"}); };
@@ -1728,7 +1728,9 @@ const CURRICULUM = [
   {id: "u5-principles", title: "The Three Golden Rules", sub: "Center, develop, castle", steps: [
     {t: "say", fen: START, demo: ["e2e4","e7e5","g1f3","b8c6","f1c4","f8c5","e1g1"], text: "Rule 1: fight for the <b>center</b> with pawns. Rule 2: <b>develop</b> knights and bishops quickly. Rule 3: <b>castle</b> early to protect your king."},
     {t: "say", fen: START, text: "Avoid: moving the same piece twice, bringing the queen out early, and grabbing pawns on the edge while your pieces sleep."},
-    {t: "quiz", fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2", text: "White to move. Which is the best developing move?", options: ["Ng1-f3", "a2-a4", "Qd1-h5", "Ke1-e2"], a: 0, explain: "Nf3 develops a piece and attacks the e5 pawn."},
+    {t: "drill", fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2", text: "White to move. Play the best developing move on the board.", accept: {uci: ["g1f3"]},
+      why: {b1c3: {ok: true, text: "That develops a piece, nice! But there's a knight move that also attacks the pawn on e5."}, f1c4: {ok: true, text: "A good developing move! But there's a knight move that also attacks the pawn on e5."}, f1b5: {ok: true, text: "It develops, but there's a knight move that also attacks the pawn on e5."}, d1h5: "Bringing the queen out this early lets Black chase her around while developing.", d1f3: "Bringing the queen out this early lets Black chase her around while developing.", d1g4: "Bringing the queen out this early lets Black chase her around while developing.", e1e2: "Never walk your king into the center. It needs to castle.", a2a4: "An edge pawn move doesn't develop anything.", h2h4: "An edge pawn move doesn't develop anything."},
+      hint: "Which knight can jump forward and attack the pawn on e5?", hintSq: "g1", okTitle: "Perfect!", okText: "The knight develops and attacks the e5 pawn at the same time."},
     {t: "game", fen: START, bot: "bruno", goal: "win", limit: 150, text: "Your first real game! Bruno brings his queen out early. Develop your pieces, castle, and take anything he leaves hanging. Use the threat helper if you need it.", okText: "Development wins!"}
   ]},
   {id: "u5-italian", title: "The Italian Game", sub: "1.e4 e5 2.Nf3 Nc6 3.Bc4", steps: [
@@ -1865,7 +1867,9 @@ const CURRICULUM = [
   ]},
   {id: "u8-king", title: "King Safety", sub: "Don't open your own king", steps: [
     {t: "say", fen: "r1bq1rk1/pppp1ppp/2n2n2/2b1p3/2B1P3/2NP1N2/PPP2PPP/R1BQ1RK1 w - - 0 1", marks: {f2:"mark",g2:"mark",h2:"mark"}, text: "After castling, the three pawns in front of your king are its shield. Every pawn move there creates holes the enemy can use. Move them only with a good reason."},
-    {t: "quiz", fen: "r1bq1rk1/pppp1ppp/2n2n2/2b1p3/2B1P3/2NP1N2/PPP2PPP/R1BQ1RK1 w - - 0 1", text: "Black's bishop eyes f2 and a knight could land on g4. What's the safest way to deal with that?", options: ["Push g4 to kick everything", "Play h3 to stop ...Ng4, keeping the shield mostly intact", "Move the king to h1 and push f4 and g4"], a: 1, explain: "One small, useful pawn move. h3 prevents ...Ng4 without opening lines."},
+    {t: "drill", fen: "r1bq1rk1/pppp1ppp/2n2n2/2b1p3/2B1P3/2NP1N2/PPP2PPP/R1BQ1RK1 w - - 0 1", marks: {g4: "mark"}, text: "Black's bishop eyes f2, and a black knight would love to jump to g4. Make the safest move on the board.", accept: {uci: ["h2h3"]},
+      why: {g2g4: "That rips open your king's shield. Now the black pieces can rush in.", g1h1: "The king is fine where it is. You still haven't stopped the knight."},
+      hint: "One small pawn step can stop the knight from ever landing on g4.", hintSq: "h2", okTitle: "Safe and solid!", okText: "One small, useful pawn move. Now the knight can never land on g4, and your shield stays intact."},
     {t: "puzzles", theme: "exposedKing", n: 3, range: [900, 1500], text: "Punish exposed kings."},
     {t: "puzzles", theme: "kingsideAttack", n: 3, range: [1000, 1600], text: "Kingside attacks."}
   ]}
