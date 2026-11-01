@@ -70,6 +70,16 @@ a{color:var(--go-hi)}
 .pbar .caps{display:flex;align-items:center;gap:0;margin-left:4px;height:18px}
 .pbar .caps i{width:16px;height:16px;background-size:100% 100%;display:inline-block;margin-right:-5px}
 .pbar .adv{font-size:12px;color:var(--muted);margin-left:8px}
+.pbar{height:48px}
+.pbar .who{display:flex;flex-direction:column;justify-content:center;min-width:0;gap:1px;line-height:1.15}
+.pbar .who .l1{display:flex;align-items:baseline;gap:6px;min-width:0;white-space:nowrap}
+.pbar .who .l1 .nm{overflow:hidden;text-overflow:ellipsis}
+.pbar .who .l1 .rt{margin-left:0}
+.pbar .who .l2{display:flex;align-items:center;height:16px;min-height:16px}
+.pbar .who .l2 .caps{margin-left:0}
+.pbar .av{width:40px;height:40px;flex:0 0 auto}
+.clock{display:inline-flex;align-items:center;justify-content:flex-end;gap:8px}
+.clock.run::before{content:"";width:14px;height:14px;border-radius:50%;border:2px solid currentColor;box-sizing:border-box;background:conic-gradient(currentColor 0 25%,transparent 0);opacity:.85}
 .clock{margin-left:auto;min-width:110px;text-align:right;font:700 22px var(--mono);padding:2px 10px;border-radius:4px;background:#1B1A18;color:#8F8B84;font-variant-numeric:tabular-nums}
 .clock.run{background:#FFFFFF;color:#262421}
 .clock.low{background:#E2523E;color:#fff}
@@ -205,7 +215,7 @@ table.tb th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-sp
 @media (max-width:1100px){:root{--panel-w:330px}}
 .tabbar,.sheet{display:none}
 @media (max-width:900px){
-  :root{--tab-h:58px;--pbar-h:40px}
+  :root{--tab-h:58px;--pbar-h:46px}
   .app{display:block}
   .rail{display:none}
   .main{padding:0;min-height:calc(100dvh - var(--tab-h))}
@@ -215,7 +225,7 @@ table.tb th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-sp
   .stage{flex-direction:column;align-items:stretch;gap:0;height:calc(100dvh - var(--tab-h) - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow:hidden}
   .boardcol{width:100%;flex:none;gap:0;align-items:center}
   .pbar{width:100%;height:var(--pbar-h);padding:0 max(8px,env(safe-area-inset-left,0px)) 0 max(8px,env(safe-area-inset-right,0px));gap:8px;min-width:0}
-  .pbar .av{width:28px;height:28px;font-size:13px}
+  .pbar .av{width:34px;height:34px;font-size:14px}
   .pbar .nm{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
   .pbar .rt{font-size:12.5px;white-space:nowrap}
   .pbar .pill{font-size:11px;padding:2px 8px;white-space:nowrap}
@@ -541,6 +551,15 @@ function themeKeyLabel(k){ const i = PZ.themeIdx[k]; return i == null ? k : PZ.t
 const FILES = "abcdefgh";
 const sqXY = (sq, o) => { const f = FILES.indexOf(sq[0]), r = +sq[1] - 1; return o === "w" ? [f, 7 - r] : [7 - f, r]; };
 const xySq = (x, y, o) => o === "w" ? FILES[x] + (8 - y) : FILES[7 - x] + (y + 1);
+/* Player bars read like a game app: name and rating on top, captured pieces underneath, clock on the right */
+function shapeBar(bar){
+  if (!bar || bar.querySelector(":scope > .who")) return;
+  const kids = [...bar.children]; const nm = kids.find(k => k.classList.contains("nm")); if (!nm) return;
+  const who = document.createElement("div"); who.className = "who"; const l1 = document.createElement("div"); l1.className = "l1"; const l2 = document.createElement("div"); l2.className = "l2";
+  kids.forEach(k => { if (k.classList.contains("nm") || k.classList.contains("rt") || (k.classList.contains("pill") && !/thinking/.test(k.textContent))) l1.appendChild(k); else if (k.classList.contains("caps") || k.classList.contains("adv")) l2.appendChild(k); });
+  who.append(l1, l2); const av = bar.querySelector(":scope > .av"); if (av) av.after(who); else bar.prepend(who);
+}
+new MutationObserver(ms => { ms.forEach(m => { const t = m.target; if (t.classList && t.classList.contains("pbar")) shapeBar(t); else if (t.querySelectorAll) t.querySelectorAll(".pbar").forEach(shapeBar); }); }).observe(document.documentElement, {childList: true, subtree: true});
 function kingSquare(g, color){ const b = g.board(); for (let r = 0; r < 8; r++) for (let f = 0; f < 8; f++){ const p = b[r][f]; if (p && p.type === "k" && p.color === color) return FILES[f] + (8 - r); } return null; }
 
 function makeBoard(wrap, opts = {}){
