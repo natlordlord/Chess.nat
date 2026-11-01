@@ -5,9 +5,17 @@
   const CFG = window.CHESSNAT_CONFIG || {};
   const ready = !!(CFG.supabaseUrl && CFG.supabaseAnonKey && window.supabase && !/YOUR-/.test(CFG.supabaseUrl));
   const sb = ready ? window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, {auth: {persistSession: true, autoRefreshToken: true, detectSessionInUrl: true}}) : null;
-  let session = null;
-  const sessionReady = sb ? sb.auth.getSession().then(r => { session = r.data.session; return session; }).catch(() => null) : Promise.resolve(null);
-  if (sb) sb.auth.onAuthStateChange((ev, s) => { const before = session && session.user.id; session = s; const after = s && s.user.id; if (ev === "SIGNED_IN" && before !== after) location.reload(); if (ev === "SIGNED_OUT" && before) location.reload(); });
+  let session = null, booted = false, reloading = false;
+  /* getSession() waits until the client has restored the saved session (and read any sign-in link in the URL).
+     supabase-js also announces that restore as "SIGNED_IN", so events before boot must never trigger a reload. */
+  const sessionReady = sb ? sb.auth.getSession().then(r => { session = r.data.session; return session; }).catch(() => null).finally(() => { booted = true; }) : Promise.resolve(null);
+  if (sb) sb.auth.onAuthStateChange((ev, s) => {
+    const before = session && session.user.id, after = s && s.user.id;
+    session = s;
+    if (!booted) return;
+    // reload only when the person actually changed (signed in here or in another tab, or signed out)
+    if ((ev === "SIGNED_IN" || ev === "SIGNED_OUT") && before !== after && !reloading){ reloading = true; setTimeout(() => location.reload(), 50); }
+  });
 
   /* ---- db: documents stored in table kv(user_id, path, data) with row level security ---- */
   function docRef(path){
