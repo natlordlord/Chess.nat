@@ -1,0 +1,2 @@
+{ "name": "Chess.nat", "short_name": "Chess.nat", "start_url": "/", "display": "standalone", "background_color": "#2B2926", "theme_color": "#211F1C",
+  "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" }] }

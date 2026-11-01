@@ -1,0 +1,47 @@
+# Chess.nat
+
+Persönliche Schach-Lernseite: Lernpfad bis 1600, über 200.000 bewertete Puzzles mit Rängen von Iron bis Challenger,
+Puzzle Rush, Daily Puzzle, Themen-Training, 12 Bots, Partien gegen Freunde (live, per Link oder an einem Gerät)
+und Partie-Analyse mit Stockfish. Statische Seite ohne Build-Schritt, Konten und Live-Spiel über Supabase.
+
+## Einrichtung (einmalig, ca. 10 Minuten)
+
+### 1. Supabase-Projekt anlegen
+1. Auf https://supabase.com anmelden → **New project** (Name z. B. `chess-nat`, Region Frankfurt).
+2. **SQL Editor → New query**, den Inhalt von `supabase/schema.sql` einfügen → **Run**.
+3. **Authentication → URL Configuration**: bei *Site URL* die Vercel-Adresse eintragen
+   (z. B. `https://chess-nat.vercel.app`), bei *Redirect URLs* dieselbe Adresse plus `/**`.
+4. **Project Settings → API**: *Project URL* und *anon public key* kopieren.
+
+### 2. Schlüssel eintragen
+In `config.js` die beiden Werte `supabaseUrl` und `supabaseAnonKey` ersetzen und committen.
+Der anon key ist öffentlich gedacht; die Daten schützt die Row-Level-Security aus `schema.sql`
+(jede Person sieht nur ihre eigenen Zeilen).
+
+### 3. Auf Vercel veröffentlichen
+1. https://vercel.com → **Add New → Project** → dieses GitHub-Repository importieren.
+2. Framework Preset: **Other**, Build Command leer lassen, Output Directory leer lassen → **Deploy**.
+3. Jede Änderung auf `main` wird danach automatisch veröffentlicht.
+
+### Optional: Mit Google anmelden
+Supabase → Authentication → Providers → Google aktivieren, dann in `config.js` `google: true` setzen.
+
+## Was wo gespeichert wird
+- Ohne Konto: Fortschritt nur im Browser des Geräts.
+- Mit Konto: Tabelle `kv` in Supabase, je Person getrennt (`user_id`), Pfade `data/users/<id>/profile`
+  und `data/users/<id>/log-YYYY-MM-DD` (Trainingsprotokoll: Fehler, Partien, Lektionen).
+- Fortschritt aus der Claude-Version übernehmen: dort Settings → *Copy my data*, hier Account → *Import*.
+
+## Aufbau
+| Pfad | Inhalt |
+| --- | --- |
+| `index.html` | die komplette App |
+| `platform.js` | Anbindung an Supabase (Login, Speichern, Live-Räume) |
+| `config.js` | Supabase-Schlüssel |
+| `puzzles/` | Lichess-Puzzle-Datenbank (CC0), nach Rating in 100er-Schritten |
+| `engine/sf.js` | Stockfish 10 (GPL) |
+| `voice/` | Coach-Stimme (Kokoro, Apache 2.0) |
+| `sounds/` | Zug-Geräusche (Lichess, AGPL) |
+| `vendor/` | chess.js (BSD), supabase-js (MIT) |
+
+Figuren „Staunty“ von sadsnake1 (CC BY-NC-SA 4.0), nur für private, nicht-kommerzielle Nutzung.
