@@ -9,20 +9,7 @@
   const ua = navigator.userAgent;
   const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(ua);
-  /* Real screen height. iOS 26 home-screen apps sometimes report a viewport that is short by the
-     status bar (WebKit bug 316008), which leaves an empty strip under the tab bar. A home-screen app on
-     iPhone always fills the whole screen, so then the screen size is the right answer. */
-  function height(){
-    const h = window.innerHeight;
-    if (!isApp || !isIOS) return h;
-    const sw = screen.width, sh = screen.height, portrait = window.innerHeight >= window.innerWidth;
-    const full = portrait ? Math.max(sw, sh) : Math.min(sw, sh);
-    return full > h && full - h <= 120 ? full : h;
-  }
-  const setHeight = () => document.documentElement.style.setProperty("--app-h", height() + "px");
-  setHeight();
-  window.addEventListener("resize", setHeight);
-  window.addEventListener("orientationchange", () => setTimeout(setHeight, 250));
+  const height = () => window.innerHeight;
   window.ChessApp = {isApp, isIOS, height};
   if (isApp) document.documentElement.classList.add("app-mode");
 
