@@ -328,6 +328,10 @@ table.tb th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-sp
 @media (max-width:900px){
   :root{--tab-h:52px;padding:0}
   html{background:var(--rail)}
+  /* iOS 26 bug (WebKit 301108): a home-screen app whose page is shorter than the screen gets a viewport
+     that is short by the status bar, leaving a strip under the tab bar. The page is only fixed layers,
+     so give it the screen's height. The min() cap keeps it from ever scrolling (WebKit 316008). */
+  html.app-mode{min-height:min(100lvh,calc(100% + env(safe-area-inset-top,0px)))}
   .app{position:fixed;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;padding-top:var(--sat);background:var(--bg)}
   .main{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
   .page{padding:12px max(14px,var(--sal)) 20px max(14px,var(--sar))}
