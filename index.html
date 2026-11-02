@@ -328,7 +328,7 @@ table.tb th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-sp
 @media (max-width:900px){
   :root{--tab-h:52px;padding:0}
   html,body{height:100%;overflow:hidden}
-  .app{position:fixed;inset:0;display:flex;flex-direction:column;padding-top:var(--sat);background:var(--bg)}
+  .app{position:fixed;top:0;left:0;right:0;height:var(--app-h,100%);display:flex;flex-direction:column;padding-top:var(--sat);background:var(--bg)}
   .main{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
   .page{padding:12px max(14px,var(--sal)) 20px max(14px,var(--sar))}
   .stage,.app .stage{height:100%}
@@ -753,7 +753,7 @@ function safeInsets(){
 }
 function sizeBoard(){
   const sa = safeInsets();
-  const vw = window.innerWidth, vh = window.innerHeight - sa.t - sa.b;
+  const vw = window.innerWidth, vh = (window.ChessApp ? window.ChessApp.height() : window.innerHeight) - sa.t - sa.b;
   let bs;
   if (vw <= 900){
     const land = vw > vh && vh <= 520;
