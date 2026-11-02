@@ -8,10 +8,45 @@
 <title>Chess.nat</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="manifest" href="manifest.webmanifest">
+<!-- home-screen app (iPhone/iPad): full screen, own icon, own name, dark status bar, launch screens -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Chess.nat">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="apple-touch-startup-image" media="(device-width:440px) and (device-height:956px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/icons/splash-1320x2868.png">
+<link rel="apple-touch-startup-image" media="(device-width:420px) and (device-height:912px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/icons/splash-1260x2736.png">
+<link rel="apple-touch-startup-image" media="(device-width:402px) and (device-height:874px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/icons/splash-1206x2622.png">
+<link rel="apple-touch-startup-image" media="(device-width:430px) and (device-height:932px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/icons/splash-1290x2796.png">
+<link rel="apple-touch-startup-image" media="(device-width:393px) and (device-height:852px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/icons/splash-1179x2556.png">
+<link rel="apple-touch-startup-image" media="(device-width:428px) and (device-height:926px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/icons/splash-1284x2778.png">
+<link rel="apple-touch-startup-image" media="(device-width:390px) and (device-height:844px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/icons/splash-1170x2532.png">
+<link rel="apple-touch-startup-image" media="(device-width:360px) and (device-height:780px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/icons/splash-1080x2340.png">
+<link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:812px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/icons/splash-1125x2436.png">
+<link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/icons/splash-1242x2688.png">
+<link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:896px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/icons/splash-828x1792.png">
+<link rel="apple-touch-startup-image" media="(device-width:414px) and (device-height:736px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/icons/splash-1242x2208.png">
+<link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/icons/splash-750x1334.png">
+<link rel="apple-touch-startup-image" media="(device-width:820px) and (device-height:1180px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/icons/splash-1640x2360.png">
+<link rel="apple-touch-startup-image" media="(device-width:834px) and (device-height:1194px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/icons/splash-1668x2388.png">
+<link rel="apple-touch-startup-image" media="(device-width:1024px) and (device-height:1366px) and (-webkit-device-pixel-ratio:2) and (orientation:portrait)" href="/icons/splash-2048x2732.png">
+<script src="pwa.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap">
 <style>
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)} body{margin:0} [hidden]{display:none!important} img{max-width:100%}
+/* home-screen app: behave like a native app (html.app-mode is set by pwa.js) */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%} body{-webkit-tap-highlight-color:transparent}
+html.app-mode,html.app-mode body{overscroll-behavior:none}
+html.app-mode{touch-action:manipulation}
+html.app-mode .nav,html.app-mode .btn,html.app-mode .tabbar,html.app-mode .tile,html.app-mode .sheet,html.app-mode .pbar,html.app-mode .board{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+html.app-mode .rail{height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+.install-hint{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tab-h,0px) + env(safe-area-inset-bottom,0px) + 12px);z-index:90;width:min(440px,calc(100% - 24px));display:flex;align-items:center;gap:12px;background:var(--panel-3);border:1px solid var(--line);border-radius:12px;padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.install-hint img{border-radius:9px;flex:none}
+.install-hint .ih-t{flex:1;min-width:0;display:flex;flex-direction:column;font-size:13.5px;line-height:1.35}
+.install-hint .ih-t span{color:var(--muted)}
+.install-hint .ih-x{border:0;background:none;color:var(--muted);font-size:22px;line-height:1;padding:4px 6px;cursor:pointer}
 /* Chess.nat — app shell: fixed nav rail left, board stage centre, side panel right. Single dark theme by choice. */
 :root{
   --bg:#2B2926; --rail:#211F1C; --panel:#211F1C; --panel-2:#33302C; --panel-3:#3D3A35; --line:#3F3B36;
@@ -693,8 +728,15 @@ function makeBoard(wrap, opts = {}){
 function gameDests(g){ return sq => g.moves({square: sq, verbose: true}).map(m => ({to: m.to, promotion: !!m.promotion})).filter((v, i, a) => a.findIndex(w => w.to === v.to) === i); }
 
 /* board size: fill the viewport height like a real chess site */
+/* space taken by the notch/status bar and home indicator (non-zero in the home-screen app) */
+function safeInsets(){
+  let el = document.getElementById("sa-probe");
+  if (!el){ el = document.createElement("div"); el.id = "sa-probe"; el.style.cssText = "position:fixed;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)"; document.body.appendChild(el); }
+  const cs = getComputedStyle(el); return {t: parseFloat(cs.paddingTop) || 0, b: parseFloat(cs.paddingBottom) || 0};
+}
 function sizeBoard(){
-  const vw = window.innerWidth, vh = window.innerHeight;
+  const sa = safeInsets();
+  const vw = window.innerWidth, vh = window.innerHeight - sa.t - sa.b;
   let bs;
   if (vw <= 900){
     const land = vw > vh && vh <= 520;
@@ -2754,6 +2796,8 @@ Views.account = {
       return;
     }
     let mode = this.mode || "in";
+    /* in the home-screen app, links from emails open in Safari (a separate login on iPhone), so sign in with the password here */
+    const inApp = !!(window.ChessApp && window.ChessApp.isApp);
     const render = () => {
       main.innerHTML = `<div class="page" style="max-width:440px"><h1 class="h-title">${mode === "up" ? "Create account" : "Sign in"}</h1><p class="muted">Your rating, lessons and games are saved to your account and sync across devices.</p>
         <form class="unit" id="af" style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
@@ -2761,15 +2805,15 @@ Views.account = {
           <label class="muted">Password<input type="password" id="pw" minlength="6" required autocomplete="${mode === "up" ? "new-password" : "current-password"}" style="width:100%;margin-top:4px;background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font:600 14px var(--body)"></label>
           <p id="aerr" style="color:var(--bad);margin:0;font-size:13px"></p>
           <button class="btn go big" type="submit">${mode === "up" ? "Create account" : "Sign in"}</button>
-          <button class="btn" type="button" id="mg">Email me a sign-in link instead</button>
+          ${inApp ? "" : `<button class="btn" type="button" id="mg">Email me a sign-in link instead</button>`}
           ${window.CHESSNAT_CONFIG && window.CHESSNAT_CONFIG.google ? `<button class="btn" type="button" id="gg">Continue with Google</button>` : ""}
         </form>
         <p class="muted" style="text-align:center">${mode === "up" ? `Already have an account? <a href="#" id="sw">Sign in</a>` : `New here? <a href="#" id="sw">Create an account</a> · <a href="#" id="fg">Forgot password</a>`}</p>
-        <p class="dim" style="text-align:center;font-size:12.5px">You can also keep playing without an account. Progress then stays on this device.</p></div>`;
+        <p class="dim" style="text-align:center;font-size:12.5px">${inApp ? "On iPhone the app keeps its own progress, separate from Safari. Sign in with the same account in both and everything stays in sync." : "You can also keep playing without an account. Progress then stays on this device."}</p></div>`;
       const err = t => { $("#aerr").textContent = t || ""; };
       $("#sw").onclick = e => { e.preventDefault(); mode = this.mode = mode === "up" ? "in" : "up"; render(); };
-      if ($("#fg")) $("#fg").onclick = async e => { e.preventDefault(); const em = $("#em").value.trim(); if (!em) return err("Enter your email first."); const r = await site.reset(em); err(r.error ? r.error.message : ""); if (!r.error) toast("Check your inbox for a reset link"); };
-      $("#mg").onclick = async () => { const em = $("#em").value.trim(); if (!em) return err("Enter your email first."); const r = await site.magic(em); if (r.error) err(r.error.message); else { err(""); toast("Sign-in link sent. Check your inbox."); } };
+      if ($("#fg")) $("#fg").onclick = async e => { e.preventDefault(); const em = $("#em").value.trim(); if (!em) return err("Enter your email first."); const r = await site.reset(em); err(r.error ? r.error.message : ""); if (!r.error) toast(inApp ? "Check your inbox. Set the new password there, then sign in here." : "Check your inbox for a reset link", inApp ? 4500 : 2200); };
+      if ($("#mg")) $("#mg").onclick = async () => { const em = $("#em").value.trim(); if (!em) return err("Enter your email first."); const r = await site.magic(em); if (r.error) err(r.error.message); else { err(""); toast("Sign-in link sent. Check your inbox."); } };
       if ($("#gg")) $("#gg").onclick = () => site.google();
       $("#af").onsubmit = async e => { e.preventDefault(); err(""); const em = $("#em").value.trim(), pw = $("#pw").value;
         const r = mode === "up" ? await site.signUp(em, pw) : await site.signIn(em, pw);
@@ -2780,7 +2824,7 @@ Views.account = {
           return err(m); }
         if (mode === "up" && r.data && r.data.user && Array.isArray(r.data.user.identities) && r.data.user.identities.length === 0){
           mode = this.mode = "in"; render(); $("#em").value = em; return $("#aerr").textContent = "This email already has an account. Sign in with your password."; }
-        if (mode === "up" && !r.data.session){ err(""); $("#af").outerHTML = `<div class="msg ok" style="margin-top:12px"><div class="ic">✓</div><div><h4>Check your inbox</h4><p>We sent a confirmation link to ${esc(em)}. Open it on this device; you'll be signed in automatically.</p></div></div>`; } };
+        if (mode === "up" && !r.data.session){ err(""); $("#af").outerHTML = `<div class="msg ok" style="margin-top:12px"><div class="ic">✓</div><div><h4>Check your inbox</h4><p>We sent a confirmation link to ${esc(em)}. ${inApp ? "Open it, then come back to this app and sign in with your email and password." : "Open it on this device; you'll be signed in automatically."}</p></div></div>`; } };
     };
     render();
   }

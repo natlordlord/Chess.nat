@@ -26,6 +26,18 @@ Der anon key ist öffentlich gedacht; die Daten schützt die Row-Level-Security 
 ### Optional: Mit Google anmelden
 Supabase → Authentication → Providers → Google aktivieren, dann in `config.js` `google: true` setzen.
 
+## Als App auf dem iPhone
+1. https://chess-nat.vercel.app in **Safari** öffnen.
+2. Teilen-Symbol → **Zum Home-Bildschirm** → Hinzufügen.
+3. Chess.nat startet dann vom Home-Bildschirm im Vollbild mit eigenem Icon und Startbildschirm, ohne Safari-Leisten.
+4. In der App einmal mit E-Mail und Passwort anmelden: Auf dem iPhone hat die App einen eigenen Speicher, getrennt von Safari.
+   Mit Konto ist der Fortschritt in beiden gleich.
+
+Technik: `manifest.webmanifest` und die `apple-*`-Tags in `index.html` machen die Seite installierbar, `icons/` enthält
+App-Icons und Startbildschirme, `sw.js` hält App und Dateien für schnellen Start und Offline-Betrieb vor, `pwa.js` schaltet
+den App-Modus ein (kein Zoomen, kein Gummiband-Scrollen) und zeigt in Safari den Installationshinweis.
+Ändern sich `vendor/` oder `engine/`, in `sw.js` die `VERSION` hochzählen.
+
 ## Was wo gespeichert wird
 - Ohne Konto: Fortschritt nur im Browser des Geräts.
 - Mit Konto: Tabelle `kv` in Supabase, je Person getrennt (`user_id`), Pfade `data/users/<id>/profile`
@@ -38,6 +50,7 @@ Supabase → Authentication → Providers → Google aktivieren, dann in `config
 | `index.html` | die komplette App |
 | `platform.js` | Anbindung an Supabase (Login, Speichern, Live-Räume) |
 | `config.js` | Supabase-Schlüssel |
+| `pwa.js`, `sw.js`, `icons/` | Home-Bildschirm-App (iPhone, Android) |
 | `puzzles/` | Lichess-Puzzle-Datenbank (CC0), nach Rating in 100er-Schritten |
 | `engine/sf.js` | Stockfish 10 (GPL) |
 | `voice/` | Coach-Stimme (Kokoro, Apache 2.0) |
