@@ -35,7 +35,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap">
 <style>
-:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)} body{margin:0} [hidden]{display:none!important} img{max-width:100%}
+:root{--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);--sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px);padding-top:var(--sat);padding-bottom:var(--sab)} body{margin:0} [hidden]{display:none!important} img{max-width:100%}
 /* home-screen app: behave like a native app (html.app-mode is set by pwa.js) */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%} body{-webkit-tap-highlight-color:transparent}
 html.app-mode,html.app-mode body{overscroll-behavior:none}
@@ -322,6 +322,23 @@ table.tb th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-sp
 @media (max-width:900px) and (orientation:landscape) and (max-height:520px){
   .stage{flex-direction:row;height:calc(100dvh - var(--tab-h))}
   .boardcol{width:auto}
+}
+/* phones: the app is exactly one screen. Status bar on top, content in the middle (the only thing that scrolls),
+   tab bar at the bottom. Nothing else moves, nothing is counted twice. */
+@media (max-width:900px){
+  :root{--tab-h:52px;padding:0}
+  html,body{height:100%;overflow:hidden}
+  .app{position:fixed;inset:0;display:flex;flex-direction:column;padding-top:var(--sat);background:var(--bg)}
+  .main{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+  .page{padding:12px max(14px,var(--sal)) 20px max(14px,var(--sar))}
+  .stage,.app .stage{height:100%}
+  .pbar{padding:0 max(10px,var(--sal)) 0 max(10px,var(--sar))}
+  .pbar .pill{background:none;padding:0;font-size:15px;font-weight:800;color:var(--fg)}
+  .tabbar{position:static;flex:none;height:calc(var(--tab-h) + var(--sab));padding:0 var(--sar) var(--sab) var(--sal)}
+  .tabbar button{gap:2px;font-size:10.5px}
+  .tabbar svg{width:24px;height:24px}
+  .sheet .panelx{padding-bottom:calc(14px + var(--tab-h) + var(--sab))}
+  .toast{bottom:calc(var(--tab-h) + var(--sab) + 12px)}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
@@ -731,7 +748,7 @@ function gameDests(g){ return sq => g.moves({square: sq, verbose: true}).map(m =
 /* space taken by the notch/status bar and home indicator (non-zero in the home-screen app) */
 function safeInsets(){
   let el = document.getElementById("sa-probe");
-  if (!el){ el = document.createElement("div"); el.id = "sa-probe"; el.style.cssText = "position:fixed;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)"; document.body.appendChild(el); }
+  if (!el){ el = document.createElement("div"); el.id = "sa-probe"; el.style.cssText = "position:fixed;visibility:hidden;pointer-events:none;padding:var(--sat) 0 var(--sab)"; document.body.appendChild(el); }
   const cs = getComputedStyle(el); return {t: parseFloat(cs.paddingTop) || 0, b: parseFloat(cs.paddingBottom) || 0};
 }
 function sizeBoard(){
