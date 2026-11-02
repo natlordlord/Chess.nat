@@ -16,6 +16,9 @@
     // like a native app: the page never zooms, also not when a text field gets the focus
     const vp = document.querySelector('meta[name="viewport"]');
     if (vp) vp.content = "width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover";
+    // solid bar behind the status bar, so iOS 26 doesn't draw its blur over the top of the app
+    const edge = () => { if (!document.querySelector(".edge-top")){ const d = document.createElement("div"); d.className = "edge-top"; d.setAttribute("aria-hidden", "true"); document.body.appendChild(d); } };
+    if (document.body) edge(); else document.addEventListener("DOMContentLoaded", edge);
     // when the keyboard closes, iOS can leave the page shifted: snap back
     document.addEventListener("focusout", () => setTimeout(() => { if (!document.activeElement || document.activeElement === document.body) window.scrollTo(0, 0); }, 100));
   }
