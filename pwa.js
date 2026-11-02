@@ -11,7 +11,14 @@
   const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(ua);
   const height = () => window.innerHeight;
   window.ChessApp = {isApp, isIOS, height};
-  if (isApp) document.documentElement.classList.add("app-mode");
+  if (isApp){
+    document.documentElement.classList.add("app-mode");
+    // like a native app: the page never zooms, also not when a text field gets the focus
+    const vp = document.querySelector('meta[name="viewport"]');
+    if (vp) vp.content = "width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover";
+    // when the keyboard closes, iOS can leave the page shifted: snap back
+    document.addEventListener("focusout", () => setTimeout(() => { if (!document.activeElement || document.activeElement === document.body) window.scrollTo(0, 0); }, 100));
+  }
 
   /* ---- service worker ---- */
   if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")){
