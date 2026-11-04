@@ -766,13 +766,27 @@ function makeBoard(wrap, opts = {}){
   B.setThreats = t => { B.threats = t || {}; B.paint(); };
   B.setArrows = a => { B.arrows = a || []; drawArrows(); };
   let arrowPreview = null;
+  /* arrows in the style of the big chess sites: wide, see-through, big head; knight moves bend into an L */
+  const ARROW_COL = {g: "#15781B", r: "#882020", b: "#003088", y: "#FFAA00"};
+  function arrowSVG(a, b, c){
+    const col = ARROW_COL[c] || ARROW_COL.y; const [x1, y1] = sqXY(a, B.o), [x2, y2] = sqXY(b, B.o);
+    const sx = x1 + .5, sy = y1 + .5, tx = x2 + .5, ty = y2 + .5;
+    if (a === b) return `<circle cx="${sx}" cy="${sy}" r=".45" fill="none" stroke="${col}" stroke-width=".07" opacity=".8"/>`;
+    const dx = x2 - x1, dy = y2 - y1, knight = (Math.abs(dx) === 1 && Math.abs(dy) === 2) || (Math.abs(dx) === 2 && Math.abs(dy) === 1);
+    const W = .2, HW = .5, HL = .4, pts = [[sx, sy]];
+    if (knight){ if (Math.abs(dy) > Math.abs(dx)) pts.push([sx, ty]); else pts.push([tx, sy]); }
+    const [px, py] = pts[pts.length - 1]; const ux0 = tx - px, uy0 = ty - py, L = Math.hypot(ux0, uy0) || 1, ux = ux0 / L, uy = uy0 / L;
+    const tipX = tx - ux * .1, tipY = ty - uy * .1, bx = tipX - ux * HL, by = tipY - uy * HL;
+    // pull the start out of the centre a little, like chess.com
+    const [qx, qy] = pts[1] || [bx, by]; const s0 = Math.hypot(qx - sx, qy - sy) || 1; pts[0] = [sx + (qx - sx) / s0 * .15, sy + (qy - sy) / s0 * .15];
+    pts.push([bx, by]);
+    const nx = -uy, ny = ux;
+    const head = `${tipX},${tipY} ${bx + nx * HW / 2},${by + ny * HW / 2} ${bx - nx * HW / 2},${by - ny * HW / 2}`;
+    return `<g opacity=".8"><polyline points="${pts.map(p => p.join(",")).join(" ")}" fill="none" stroke="${col}" stroke-width="${W}" stroke-linejoin="miter" stroke-linecap="butt"/><polygon points="${head}" fill="${col}"/></g>`;
+  }
   function drawArrows(){
-    svg.innerHTML = `<defs>${["g","r","b","y"].map(c => `<marker id="ah${c}" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="2.4" markerHeight="2.4" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="${({g:"#15781B",r:"#882020",b:"#003088",y:"#E68F00"})[c]}"/></marker>`).join("")}</defs>`;
     const all = (B.ply != null ? [] : B.arrows).concat(B.userArrows, arrowPreview ? [arrowPreview] : []);
-    all.forEach(([a, b, c = "g"]) => { const [x1, y1] = sqXY(a, B.o), [x2, y2] = sqXY(b, B.o); const cx1 = x1 + .5, cy1 = y1 + .5, cx2 = x2 + .5, cy2 = y2 + .5; const len = Math.hypot(cx2 - cx1, cy2 - cy1); const ex = cx2 - (cx2 - cx1) / len * .32, ey = cy2 - (cy2 - cy1) / len * .32;
-      const col = ({g:"#15781B",r:"#882020",b:"#003088",y:"#E68F00"})[c];
-      if (a === b){ svg.insertAdjacentHTML("beforeend", `<circle cx="${cx1}" cy="${cy1}" r=".44" fill="none" stroke="${col}" stroke-width=".08" opacity=".8"/>`); return; }
-      svg.insertAdjacentHTML("beforeend", `<line x1="${cx1}" y1="${cy1}" x2="${ex}" y2="${ey}" stroke="${col}" stroke-width=".16" stroke-linecap="round" opacity=".8" marker-end="url(#ah${c})"/>`); });
+    svg.innerHTML = all.map(([a, b, c = "g"]) => arrowSVG(a, b, c)).join("");
   }
   /* game-style celebration over the board: big word, rating change, puzzle rating and confetti */
   B.cheer = ({tier = 1, word, delta, sub, streak}) => {
@@ -810,7 +824,7 @@ function makeBoard(wrap, opts = {}){
     if (m.promotion){ const p = B.pieces[from]; B.sel = null; B.paint(); promo = opts.autoQueen ? "q" : await B.promote(to, p.code[0]); }
     B.sel = null; B.onMove(from, to, promo);
   }
-  const ARROW_COLOR = e => e.shiftKey ? "g" : e.ctrlKey || e.metaKey ? "r" : e.altKey ? "b" : "y";
+  const ARROW_COLOR = e => e.shiftKey ? "g" : e.ctrlKey || e.metaKey ? "r" : e.altKey ? "b" : null;
   el.addEventListener("pointerdown", e => {
     Sound.init();
     const sq = sqFromPoint(e.clientX, e.clientY); if (!sq) return;
@@ -832,7 +846,7 @@ function makeBoard(wrap, opts = {}){
     } else { const hadPre = !!B.premove; B.premove = null; B.sel = null; B.selPre = false; B.paint(); if (!hadPre) B.onTapEmpty && B.onTapEmpty(sq); }
   });
   el.addEventListener("pointermove", e => {
-    if (rdrag){ const to = sqFromPoint(e.clientX, e.clientY); const pv = to && to !== rdrag.from ? [rdrag.from, to, rdrag.c] : null; if (JSON.stringify(pv) !== JSON.stringify(arrowPreview)){ arrowPreview = pv; drawArrows(); } return; }
+    if (rdrag){ const to = sqFromPoint(e.clientX, e.clientY); const pv = to && to !== rdrag.from ? [rdrag.from, to, rdrag.c || "y"] : null; if (JSON.stringify(pv) !== JSON.stringify(arrowPreview)){ arrowPreview = pv; drawArrows(); } return; }
     if (!drag) return;
     if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 5) return;
     drag.moved = true; drag.el.classList.add("lift");
@@ -841,8 +855,8 @@ function makeBoard(wrap, opts = {}){
   });
   function endDrag(e){
     if (rdrag){ const r = rdrag; rdrag = null; arrowPreview = null; const to = e ? sqFromPoint(e.clientX, e.clientY) : null;
-      if (to && to === r.from){ if (B.userMarks[to] === r.c) delete B.userMarks[to]; else B.userMarks[to] = r.c; }
-      else if (to){ const i = B.userArrows.findIndex(a => a[0] === r.from && a[1] === to); if (i >= 0 && B.userArrows[i][2] === r.c) B.userArrows.splice(i, 1); else { if (i >= 0) B.userArrows.splice(i, 1); B.userArrows.push([r.from, to, r.c]); } }
+      if (to && to === r.from){ const c = r.c || "r"; if (B.userMarks[to] === c) delete B.userMarks[to]; else B.userMarks[to] = c; }
+      else if (to){ const c = r.c || "y"; const i = B.userArrows.findIndex(a => a[0] === r.from && a[1] === to); if (i >= 0 && B.userArrows[i][2] === c) B.userArrows.splice(i, 1); else { if (i >= 0) B.userArrows.splice(i, 1); B.userArrows.push([r.from, to, c]); } }
       B.paint(); return; }
     if (!drag) return; const d = drag; drag = null; d.el.classList.remove("lift");
     if (!d.moved){ return; }
