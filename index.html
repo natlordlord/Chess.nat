@@ -364,29 +364,25 @@ table.tb th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-sp
 .btn.nv.on{background:var(--go);color:#fff}
 .pill.pzr{cursor:pointer;border:0;font:inherit;font-size:12px;font-weight:700}
 .pill.pzr.on{background:var(--panel-3)}
-/* celebration */
+/* celebration: same look as the board, beige letters with a green rim */
 .fx{container-type:size}
-.cheer{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6cqh;pointer-events:none}
-.cheer .word{font:900 13cqw/1 var(--display);letter-spacing:-.02em;color:#fff;-webkit-text-stroke:.5cqw #3b2a00;paint-order:stroke fill;
-  background:linear-gradient(180deg,#FFF6B0 0%,#FFD23F 45%,#FF9F1C 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
-  filter:drop-shadow(0 .8cqw 0 rgba(0,0,0,.35));animation:cheerIn .55s cubic-bezier(.2,1.6,.4,1) both, cheerOut .35s ease-in 1.35s forwards}
-.cheer.t1 .word{font-size:10cqw;background:linear-gradient(180deg,#E9FFD0,#9BD35C 55%,#5E9E2E);-webkit-background-clip:text;background-clip:text}
-.cheer.t2 .word{font-size:12cqw;background:linear-gradient(180deg,#E3F4FF,#6EC1FF 55%,#2F7FD8);-webkit-background-clip:text;background-clip:text}
-.cheer.t4 .word{font-size:15cqw;background:linear-gradient(180deg,#FFE3FA,#FF7AD9 40%,#9B5CFF 100%);-webkit-background-clip:text;background-clip:text;animation:cheerIn .6s cubic-bezier(.2,1.6,.4,1) both, wobble .5s ease-in-out .6s 2, cheerOut .4s ease-in 1.7s forwards}
-.cheer.t3 .word,.cheer.t4 .word{animation-duration:.6s}
-.cheer.t3 .word{animation:cheerIn .6s cubic-bezier(.2,1.6,.4,1) both, cheerOut .4s ease-in 1.7s forwards}
-.cheer .delta{font:900 7cqw/1 var(--display);color:#9BE35C;text-shadow:0 .5cqw 0 rgba(0,0,0,.5);animation:pop .4s .25s cubic-bezier(.2,1.8,.4,1) both, cheerOut .35s ease-in 1.4s forwards}
+.cheer{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.8cqh;pointer-events:none}
+.cheer .word{font:900 12cqw/1 var(--display);letter-spacing:-.01em;color:#F3F3DC;-webkit-text-stroke:.55cqw #4E7A2C;paint-order:stroke fill;
+  text-shadow:0 .9cqw 0 #3B5E20,0 1.6cqw 2.4cqw rgba(0,0,0,.35);animation:cheerIn .55s cubic-bezier(.2,1.6,.4,1) both, cheerOut .35s ease-in 1.35s forwards}
+.cheer.t1 .word{font-size:10cqw}
+.cheer.t3 .word{font-size:13.5cqw;animation:cheerIn .6s cubic-bezier(.2,1.6,.4,1) both, cheerOut .4s ease-in 1.7s forwards}
+.cheer.t4 .word{font-size:15cqw;color:#FFFFF0;-webkit-text-stroke-color:#3F6A1F;animation:cheerIn .6s cubic-bezier(.2,1.6,.4,1) both, wobble .5s ease-in-out .6s 2, cheerOut .4s ease-in 1.7s forwards}
+.cheer .delta{font:900 7cqw/1 var(--display);color:#9BD35C;-webkit-text-stroke:.35cqw #2F4A18;paint-order:stroke fill;text-shadow:0 .5cqw 0 rgba(0,0,0,.45);animation:pop .4s .25s cubic-bezier(.2,1.8,.4,1) both, cheerOut .35s ease-in 1.4s forwards}
 .cheer .delta.neg{color:var(--bad)}
-.cheer .sub,.cheer .streak{font:800 3.6cqw/1.2 var(--body);color:#fff;background:rgba(0,0,0,.6);padding:.8cqw 2.4cqw;border-radius:99px;animation:pop .35s .4s ease-out both, cheerOut .35s ease-in 1.45s forwards}
-.cheer .sub b{color:#FFD23F}
-.cheer .streak{background:rgba(226,82,62,.85)}
+.cheer .sub,.cheer .streak{font:800 3.6cqw/1.2 var(--body);color:#EEEED2;background:rgba(33,31,28,.88);border:.3cqw solid #769656;padding:.8cqw 2.6cqw;border-radius:99px;animation:pop .35s .4s ease-out both, cheerOut .35s ease-in 1.45s forwards}
+.cheer .sub b{color:#9BD35C}
+.cheer .streak{background:#769656;border-color:#EEEED2;color:#fff}
 .cheer.t3 .delta,.cheer.t3 .sub,.cheer.t3 .streak,.cheer.t4 .delta,.cheer.t4 .sub,.cheer.t4 .streak{animation-delay:.3s,1.75s}
 .cheer .cf{position:absolute;left:50%;top:46%;width:2.2cqw;height:1.2cqw;border-radius:2px;background:var(--c);opacity:0;animation:conf 1.25s var(--d) cubic-bezier(.15,.7,.3,1) forwards}
 .cheer .cf:nth-child(3n){width:1.4cqw;height:1.4cqw;border-radius:50%}
 .cheer .burst{position:absolute;left:50%;top:46%;width:120cqw;height:120cqw;margin:-60cqw 0 0 -60cqw;border-radius:50%;
-  background:repeating-conic-gradient(rgba(255,226,120,.32) 0 9deg,transparent 9deg 24deg);-webkit-mask:radial-gradient(circle,#000 18%,transparent 62%);mask:radial-gradient(circle,#000 18%,transparent 62%);
+  background:repeating-conic-gradient(rgba(238,238,210,.34) 0 9deg,transparent 9deg 24deg);-webkit-mask:radial-gradient(circle,#000 18%,transparent 62%);mask:radial-gradient(circle,#000 18%,transparent 62%);
   animation:burst 2s ease-out forwards}
-.cheer.t4 .burst{background:repeating-conic-gradient(rgba(255,150,230,.36) 0 9deg,transparent 9deg 24deg)}
 @keyframes cheerIn{0%{opacity:0;transform:scale(.2) rotate(-8deg)}60%{opacity:1;transform:scale(1.18) rotate(3deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
 @keyframes cheerOut{to{opacity:0;transform:scale(1.25)}}
 @keyframes wobble{0%,100%{transform:rotate(0) scale(1)}25%{transform:rotate(-4deg) scale(1.05)}75%{transform:rotate(4deg) scale(1.05)}}
@@ -598,8 +594,9 @@ const Sound = {ac:null, buf:{}, loading:false,
   init(){ if (this.ac) { if (this.ac.state === "suspended") this.ac.resume(); return; }
     try { this.ac = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return; }
     if (this.loading) return; this.loading = true;
-    ["Move","Capture","Check","Victory","Defeat","GenericNotify"].forEach(n => {
-      fetch("sounds/" + n + ".mp3").then(r => r.arrayBuffer()).then(b => new Promise((res, rej) => this.ac.decodeAudioData(b, res, rej))).then(d => { this.buf[n] = d; }).catch(() => {});
+    const CHEER_CLIPS = ["nice","good","great","smooth","brilliant","superb","onfire","legendary","unstoppable","genius"];
+    ["Move","Capture","Check","Victory","Defeat","GenericNotify"].concat(CHEER_CLIPS.map(c => "cheer:" + c)).forEach(n => {
+      fetch(n.startsWith("cheer:") ? "cheer/" + n.slice(6) + ".mp3" : "sounds/" + n + ".mp3").then(r => r.arrayBuffer()).then(b => new Promise((res, rej) => this.ac.decodeAudioData(b, res, rej))).then(d => { this.buf[n] = d; }).catch(() => {});
     }); },
   play(n, vol = 1){ if (!S.settings.sound) return; this.init(); const ac = this.ac; if (!ac) return;
     if (this.buf[n]){ const s = ac.createBufferSource(); s.buffer = this.buf[n]; const g = ac.createGain(); g.gain.value = vol; s.connect(g).connect(ac.destination); s.start(); return; }
@@ -612,7 +609,8 @@ const Sound = {ac:null, buf:{}, loading:false,
   right(){ this.tone([[784,.14,.09],[1047,.16,.09],[1319,.3]]); },
   /* celebration: a rising sparkle (longer for bigger cheers) and the announcer saying the word */
   cheer(tier, slug){ const notes = [[1047,.09,.06],[1319,.09,.06],[1568,.09,.06],[2093,.12,.07],[2637,.32]].slice(5 - Math.min(5, tier + 2)); this.tone(notes, "triangle", .13);
-    if (!S.settings.sound || !slug) return; setTimeout(() => { try { const a = new Audio("cheer/" + slug + ".mp3"); a.volume = .95; a.play().catch(() => {}); } catch(e) {} }, 140); },
+    /* the announcer plays from memory (loaded with the other sounds), so it is in sync with the picture; if it isn't loaded yet it is skipped rather than coming late */
+    if (!S.settings.sound || !slug || !this.buf["cheer:" + slug]) return; setTimeout(() => this.play("cheer:" + slug, .9), 120); },
   wrong(){ this.tone([[220,.18,.12],[165,.26]], "square", .05); },
   tick(){ this.tone([[1600,.05]], "sine", .05); },
   forMove(m, g){ if (g && g.in_check && g.in_check()) this.play("Check"); else if (m && (m.flags.includes("c") || m.flags.includes("e"))) this.play("Capture"); else this.play("Move"); }
@@ -790,7 +788,7 @@ function makeBoard(wrap, opts = {}){
   }
   /* game-style celebration over the board: big word, rating change, puzzle rating and confetti */
   B.cheer = ({tier = 1, word, delta, sub, streak}) => {
-    const cols = ["#81B64C","#F2C14E","#4FA3F7","#E2523E","#B57EDC","#FFFFFF"], n = 10 + tier * 9;
+    const cols = ["#81B64C","#EEEED2","#769656","#BACA44","#FFFFFF","#5D8A35"], n = 10 + tier * 9;
     const bits = Array.from({length: n}, (_, i) => { const a = (i / n) * Math.PI * 2 + Math.random() * .5, r = 28 + Math.random() * (14 + tier * 6);
       return `<i class="cf" style="--x:${(Math.cos(a) * r).toFixed(1)}cqw;--y:${(Math.sin(a) * r - 6).toFixed(1)}cqw;--r:${Math.round(Math.random() * 720 - 360)}deg;--c:${cols[i % cols.length]};--d:${(Math.random() * .25).toFixed(2)}s"></i>`; }).join("");
     fx.innerHTML = `<div class="cheer t${tier}">${tier >= 3 ? `<div class="burst"></div>` : ""}${bits}<div class="word">${esc(word)}</div>${delta != null ? `<div class="delta ${delta < 0 ? "neg" : ""}">${delta >= 0 ? "+" : ""}${delta}</div>` : ""}${sub ? `<div class="sub">${sub}</div>` : ""}${streak >= 3 ? `<div class="streak">🔥 ${streak} in a row</div>` : ""}</div>`;
@@ -1046,6 +1044,8 @@ Views.puzzles = {
     if (App.view !== this) return;
     this.settled = false; this.delta = 0; this.resumed = resumed;
     this.R.start(p);
+    /* load the puzzle packs around your rating in the background, so the next puzzle never waits for a download */
+    setTimeout(() => { const lo = Math.floor((S.puzzle.r + 25) / 100) * 100; [lo, lo - 100, lo + 100].forEach(l => PZ.shard(l)); }, 1200);
     if (resumed && this.firstLoad) toast("Your unfinished puzzle is back. Skipping it counts as a miss.", 3200);
     this.firstLoad = false;
   },
