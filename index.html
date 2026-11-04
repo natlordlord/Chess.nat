@@ -1001,7 +1001,7 @@ function sideToMoveText(c){ return c === "w" ? "White to move" : "Black to move"
 Views.puzzles = {
   mount(main){
     main.innerHTML = stageHTML();
-    const board = makeBoard($("#bw")); const V = this; V.board = board; V.session = [];
+    const board = makeBoard($("#bw")); const V = this; V.board = board; V.session = []; V.firstLoad = true;
     $("#botbar").innerHTML = youBar();
     $("#topbar").innerHTML = `<span class="pill" id="pzinfo">Rated puzzle</span>`;
     V.R = PuzzleRunner(board, {
@@ -1016,19 +1016,31 @@ Views.puzzles = {
     whenPuzzles(() => { if (PZ.err) { $("#sp").innerHTML = `<div class="msg no"><div class="ic">!</div><div><h4>Puzzles could not load</h4><p>${esc(PZ.err)}. Reload the page to try again.</p></div></div>`; return; } V.next(); });
   },
   unmount(){ clearTimeout(this.timer); this.R && this.R.stop(); },
+  /* the rated puzzle on the board is saved with your progress until it counts, so leaving, reloading
+     or switching devices brings the same puzzle back instead of a fresh one */
   async next(){
     clearTimeout(this.timer); this.R.stop();
-    const target = S.puzzle.r + 25 + Math.round((Math.random() - .5) * 80);
-    const p = await PZ.pick({target, spread: 50});
-    if (!p || App.view !== this) return;
-    this.settled = false; this.delta = 0;
+    let p = null, resumed = false;
+    try { if (Array.isArray(S.puzzle.cur)) { p = decodeP(S.puzzle.cur); resumed = true; } } catch(e) { p = null; }
+    if (!p){
+      const target = S.puzzle.r + 25 + Math.round((Math.random() - .5) * 80);
+      p = await PZ.pick({target, spread: 50});
+      if (!p || App.view !== this) return;
+      if (Array.isArray(S.puzzle.cur)) { p = decodeP(S.puzzle.cur); resumed = true; }
+      else { S.puzzle.cur = encodeP(p); save(); }
+    }
+    if (App.view !== this) return;
+    this.settled = false; this.delta = 0; this.resumed = resumed;
     this.R.start(p);
+    if (resumed && this.firstLoad) toast("Your unfinished puzzle is back. Skipping it counts as a miss.", 3200);
+    this.firstLoad = false;
   },
   settle(ok, viaHint){
     if (this.settled) return; this.settled = true;
     const R = this.R, p = R.p, old = S.puzzle.r;
     const d = eloDelta(old, p.r, ok ? 1 : 0, S.puzzle.n);
     const before = rankOf(old);
+    S.puzzle.cur = null;
     S.puzzle.r = Math.max(100, old + d); S.puzzle.n++; if (ok){ S.puzzle.w++; S.puzzle.streak++; S.puzzle.best = Math.max(S.puzzle.best, S.puzzle.streak); } else S.puzzle.streak = 0;
     S.puzzle.peak = Math.max(S.puzzle.peak || 0, S.puzzle.r);
     S.puzzle.hist.push([Date.now(), S.puzzle.r]);
@@ -1053,7 +1065,7 @@ Views.puzzles = {
       <div class="dim" style="font-size:12px;margin-top:4px">${rk.next ? `Next: ${esc(rk.next)} at ${rk.nextAt}` : "Top of the ladder"} · Better than ${betterThan(S.puzzle.r)}% of players</div>`;
     let msg = "";
     const tm = p ? sideToMoveText(R.user) : "";
-    if (state === "load") msg = `<div class="msg"><div class="ic">…</div><div><h4>Get ready</h4><p>Your opponent is about to move.</p></div></div>`;
+    if (state === "load") msg = this.resumed ? `<div class="msg hint"><div class="ic">↺</div><div><h4>Unfinished puzzle</h4><p>This one still counts. Solve it, or skip it as a miss.</p></div></div>` : `<div class="msg"><div class="ic">…</div><div><h4>Get ready</h4><p>Your opponent is about to move.</p></div></div>`;
     if (state === "play") msg = `<div class="msg"><div class="ic" style="background:${R.user === "w" ? "#fff" : "#262421"};color:${R.user === "w" ? "#262421" : "#fff"}">${R.user === "w" ? "♔" : "♚"}</div><div><h4>${tm}</h4><p>Find the best move.</p></div></div>`;
     if (state === "wrong") msg = `<div class="msg no"><div class="ic">✕</div><div><h4>Incorrect</h4><p>${R.refute ? `After ${esc(R.refute.played)}, your opponent answers <b>${esc(R.refute.reply)}</b> (red arrow). ` : ""}Try again, or look at the solution.</p></div></div>`;
     if (state === "hint") msg = `<div class="msg hint"><div class="ic">?</div><div><h4>Hint</h4><p>${R.hint === 1 ? "The highlighted piece is the one to move." : "Follow the arrow."} Hints count as a miss.</p></div></div>`;
@@ -1070,8 +1082,8 @@ Views.puzzles = {
       <div class="h-sec m-hide">Overall</div><div class="grid3 m-hide"><div class="stat"><b>${S.puzzle.n}</b><span>played</span></div><div class="stat"><b>${acc}%</b><span>solved</span></div><div class="stat"><b>${S.puzzle.streak}</b><span>streak (best ${S.puzzle.best})</span></div></div>`;
     const done = state === "solved" || state === "done";
     $("#sf").innerHTML = done ? `${BoardNav.html()}<button class="btn go big" id="pnext" style="flex:1">Next puzzle</button>` :
-      `${BoardNav.html()}<button class="btn" id="phint" ${state === "load" || state === "solution" ? "disabled" : ""}>Hint</button><button class="btn" id="psol" ${state === "load" || state === "solution" ? "disabled" : ""}>Solution</button><button class="btn go" id="pnext" style="flex:1">${this.R.failed ? "Next puzzle" : "Skip"}</button>`;
-    $("#pnext").onclick = () => { if (!this.R.done && !this.R.failed && this.R.p && !this.R.locked) this.settle(false); this.next(); };
+      `${BoardNav.html()}<button class="btn" id="phint" ${state === "load" || state === "solution" ? "disabled" : ""}>Hint</button><button class="btn" id="psol" ${state === "load" || state === "solution" ? "disabled" : ""}>Solution</button><button class="btn go" id="pnext" style="flex:1" title="${this.R.failed ? "" : "Skipping counts as a miss"}">${this.R.failed ? "Next puzzle" : "Skip"}</button>`;
+    $("#pnext").onclick = () => { if (!this.settled && this.R.p && !(this.R.done && !this.R.failed)) this.settle(false); this.next(); };
     if ($("#phint")) $("#phint").onclick = () => this.R.showHint();
     if ($("#psol")) $("#psol").onclick = () => this.R.showSolution();
   }
