@@ -350,6 +350,50 @@ table.tb th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-sp
 /* touch screens: iOS zooms into any text field under 16px when you tap it, so fields are never smaller */
 @media (pointer:coarse){input,textarea,select{font-size:16px!important}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* right-click square highlights (chess.com style) */
+.sq.um-r .hl{background:rgba(235,97,80,.8)}
+.sq.um-g .hl{background:rgba(172,206,89,.8)}
+.sq.um-b .hl{background:rgba(82,176,220,.8)}
+.sq.um-y .hl{background:rgba(255,170,0,.8)}
+/* premove: queued move shown in red */
+.sq.pre .hl{background:rgba(214,79,0,.55)}
+/* looking at an earlier position */
+.boardwrap.viewing .board{filter:saturate(.75) brightness(.92)}
+.boardwrap.viewing::after{content:"Earlier position · tap the board or › to return";position:absolute;left:50%;bottom:6px;transform:translateX(-50%);z-index:31;pointer-events:none;background:rgba(0,0,0,.72);color:#fff;font:700 12px var(--body);padding:4px 10px;border-radius:12px;white-space:nowrap}
+.btn.nv{min-width:40px;padding-left:10px;padding-right:10px;font-size:20px;line-height:1}
+.btn.nv.on{background:var(--go);color:#fff}
+.pill.pzr{cursor:pointer;border:0;font:inherit;font-size:12px;font-weight:700}
+.pill.pzr.on{background:var(--panel-3)}
+/* celebration */
+.fx{container-type:size}
+.cheer{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6cqh;pointer-events:none}
+.cheer .word{font:900 13cqw/1 var(--display);letter-spacing:-.02em;color:#fff;-webkit-text-stroke:.5cqw #3b2a00;paint-order:stroke fill;
+  background:linear-gradient(180deg,#FFF6B0 0%,#FFD23F 45%,#FF9F1C 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 .8cqw 0 rgba(0,0,0,.35));animation:cheerIn .55s cubic-bezier(.2,1.6,.4,1) both, cheerOut .35s ease-in 1.35s forwards}
+.cheer.t1 .word{font-size:10cqw;background:linear-gradient(180deg,#E9FFD0,#9BD35C 55%,#5E9E2E);-webkit-background-clip:text;background-clip:text}
+.cheer.t2 .word{font-size:12cqw;background:linear-gradient(180deg,#E3F4FF,#6EC1FF 55%,#2F7FD8);-webkit-background-clip:text;background-clip:text}
+.cheer.t4 .word{font-size:15cqw;background:linear-gradient(180deg,#FFE3FA,#FF7AD9 40%,#9B5CFF 100%);-webkit-background-clip:text;background-clip:text;animation:cheerIn .6s cubic-bezier(.2,1.6,.4,1) both, wobble .5s ease-in-out .6s 2, cheerOut .4s ease-in 1.7s forwards}
+.cheer.t3 .word,.cheer.t4 .word{animation-duration:.6s}
+.cheer.t3 .word{animation:cheerIn .6s cubic-bezier(.2,1.6,.4,1) both, cheerOut .4s ease-in 1.7s forwards}
+.cheer .delta{font:900 7cqw/1 var(--display);color:#9BE35C;text-shadow:0 .5cqw 0 rgba(0,0,0,.5);animation:pop .4s .25s cubic-bezier(.2,1.8,.4,1) both, cheerOut .35s ease-in 1.4s forwards}
+.cheer .delta.neg{color:var(--bad)}
+.cheer .sub,.cheer .streak{font:800 3.6cqw/1.2 var(--body);color:#fff;background:rgba(0,0,0,.6);padding:.8cqw 2.4cqw;border-radius:99px;animation:pop .35s .4s ease-out both, cheerOut .35s ease-in 1.45s forwards}
+.cheer .sub b{color:#FFD23F}
+.cheer .streak{background:rgba(226,82,62,.85)}
+.cheer.t3 .delta,.cheer.t3 .sub,.cheer.t3 .streak,.cheer.t4 .delta,.cheer.t4 .sub,.cheer.t4 .streak{animation-delay:.3s,1.75s}
+.cheer .cf{position:absolute;left:50%;top:46%;width:2.2cqw;height:1.2cqw;border-radius:2px;background:var(--c);opacity:0;animation:conf 1.25s var(--d) cubic-bezier(.15,.7,.3,1) forwards}
+.cheer .cf:nth-child(3n){width:1.4cqw;height:1.4cqw;border-radius:50%}
+.cheer .burst{position:absolute;left:50%;top:46%;width:120cqw;height:120cqw;margin:-60cqw 0 0 -60cqw;border-radius:50%;
+  background:repeating-conic-gradient(rgba(255,226,120,.32) 0 9deg,transparent 9deg 24deg);-webkit-mask:radial-gradient(circle,#000 18%,transparent 62%);mask:radial-gradient(circle,#000 18%,transparent 62%);
+  animation:burst 2s ease-out forwards}
+.cheer.t4 .burst{background:repeating-conic-gradient(rgba(255,150,230,.36) 0 9deg,transparent 9deg 24deg)}
+@keyframes cheerIn{0%{opacity:0;transform:scale(.2) rotate(-8deg)}60%{opacity:1;transform:scale(1.18) rotate(3deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes cheerOut{to{opacity:0;transform:scale(1.25)}}
+@keyframes wobble{0%,100%{transform:rotate(0) scale(1)}25%{transform:rotate(-4deg) scale(1.05)}75%{transform:rotate(4deg) scale(1.05)}}
+@keyframes pop{0%{opacity:0;transform:scale(.4)}100%{opacity:1;transform:scale(1)}}
+@keyframes conf{0%{opacity:1;transform:translate(-50%,-50%) rotate(0) scale(.6)}75%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y) + 14cqw)) rotate(var(--r)) scale(1)}}
+@keyframes burst{0%{opacity:0;transform:scale(.3) rotate(0)}25%{opacity:1}100%{opacity:0;transform:scale(1) rotate(60deg)}}
+@media (prefers-reduced-motion:reduce){.cheer .word,.cheer .delta,.cheer .sub,.cheer .streak{animation:pop .2s both, cheerOut .3s 1.5s forwards}.cheer .cf,.cheer .burst{display:none}}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -566,6 +610,9 @@ const Sound = {ac:null, buf:{}, loading:false,
   tone(seq, type = "sine", gain = .16){ if (!S.settings.sound) return; this.init(); const ac = this.ac; if (!ac) return; let t = ac.currentTime;
     seq.forEach(([f, d, gap]) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = f; g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d + .02); t += gap || d * .6; }); },
   right(){ this.tone([[784,.14,.09],[1047,.16,.09],[1319,.3]]); },
+  /* celebration: a rising sparkle (longer for bigger cheers) and the announcer saying the word */
+  cheer(tier, slug){ const notes = [[1047,.09,.06],[1319,.09,.06],[1568,.09,.06],[2093,.12,.07],[2637,.32]].slice(5 - Math.min(5, tier + 2)); this.tone(notes, "triangle", .13);
+    if (!S.settings.sound || !slug) return; setTimeout(() => { try { const a = new Audio("cheer/" + slug + ".mp3"); a.volume = .95; a.play().catch(() => {}); } catch(e) {} }, 140); },
   wrong(){ this.tone([[220,.18,.12],[165,.26]], "square", .05); },
   tick(){ this.tone([[1600,.05]], "sine", .05); },
   forMove(m, g){ if (g && g.in_check && g.in_check()) this.play("Check"); else if (m && (m.flags.includes("c") || m.flags.includes("e"))) this.play("Capture"); else this.play("Move"); }
@@ -640,7 +687,9 @@ function makeBoard(wrap, opts = {}){
   wrap.classList.add("boardwrap");
   wrap.innerHTML = `<div class="board" role="grid" aria-label="Chessboard"></div><svg class="arrows" viewBox="0 0 8 8" preserveAspectRatio="none"></svg><div class="fx"></div>`;
   const el = wrap.querySelector(".board"), svg = wrap.querySelector(".arrows"), fx = wrap.querySelector(".fx");
-  const B = {o: opts.orientation || "w", pieces: {}, sel: null, last: null, check: null, marks: {}, threats: {}, arrows: [], dests: opts.dests || (() => []), canPick: opts.canPick || (() => false), onMove: opts.onMove || (() => {}), locked: false, onTapEmpty: opts.onTapEmpty, badges: []};
+  const B = {o: opts.orientation || "w", pieces: {}, sel: null, selPre: false, last: null, check: null, marks: {}, threats: {}, arrows: [], dests: opts.dests || (() => []), canPick: opts.canPick || (() => false), onMove: opts.onMove || (() => {}), locked: false, onTapEmpty: opts.onTapEmpty, badges: [],
+    userArrows: [], userMarks: {}, premove: null, premoveFor: opts.premove || null, live: null, ply: null, el: wrap};
+  const histOn = opts.history !== false; BoardNav.cur = histOn ? B : null;
   const squares = [];
   function buildSquares(){
     el.querySelectorAll(".sq").forEach(n => n.remove());
@@ -658,7 +707,7 @@ function makeBoard(wrap, opts = {}){
   B.flip = o => { B.o = o || (B.o === "w" ? "b" : "w"); buildSquares(); Object.entries(B.pieces).forEach(([sq, p]) => place(p.el, sq)); B.paint(); };
   B.setOrientation = o => { if (o !== B.o) B.flip(o); };
   /* position sync with move animation */
-  B.set = (g, last) => {
+  function render(g, last){
     const want = {}; const bd = g.board();
     for (let r = 0; r < 8; r++) for (let f = 0; f < 8; f++){ const p = bd[r][f]; if (p) want[FILES[f] + (8 - r)] = p.color + p.type; }
     const old = B.pieces, next = {}, freeOld = [];
@@ -673,31 +722,66 @@ function makeBoard(wrap, opts = {}){
     freeOld.forEach(([, op]) => { if (!op.used) op.el.remove(); });
     B.pieces = next; B.last = last || null;
     B.check = g.in_check() ? kingSquare(g, g.turn()) : null;
-    B.sel = null; B.paint();
+    B.sel = null; B.selPre = false; B.paint();
+  }
+  /* live position from the game; stepping back through history shows older positions without touching the game */
+  let liveFen = null;
+  B.set = (g, last) => {
+    const fen = g.fen(); if (fen !== liveFen){ if (liveFen !== null){ B.userArrows = []; B.userMarks = {}; } liveFen = fen; }
+    B.live = {g, last: last || null};
+    if (B.ply != null){ B.ply = null; wrap.classList.remove("viewing"); }
+    render(g, last);
+    if (B.premove){ const pm = B.premove; setTimeout(() => { if (B.premove !== pm) return; B.premove = null;
+      if (B.ply == null && B.canPick(pm.from) && B.dests(pm.from).some(d => d.to === pm.to)) B.onMove(pm.from, pm.to, pm.promo); else B.paint(); }, 30); }
+  };
+  let sfCache = null;
+  function startFen(g){ if (sfCache && sfCache.g === g) return sfCache.f; const h = g.history({verbose: true}); for (let i = 0; i < h.length; i++) g.undo(); const f = g.fen(); h.forEach(m => g.move({from: m.from, to: m.to, promotion: m.promotion})); sfCache = {g, f}; return f; }
+  B.canStep = () => histOn && !!B.live && B.live.g.history().length > 0;
+  B.step = d => {
+    if (!histOn || !B.live) return; const g = B.live.g, h = g.history({verbose: true}), n = h.length;
+    const cur = B.ply == null ? n : B.ply; const v = clamp(d <= -99 ? 0 : d >= 99 ? n : cur + d, 0, n);
+    if (v === cur) return;
+    if (v === n){ B.ply = null; wrap.classList.remove("viewing"); render(g, B.live.last); }
+    else { const t = new Chess(startFen(g)); for (let i = 0; i < v; i++) t.move({from: h[i].from, to: h[i].to, promotion: h[i].promotion}); B.ply = v; wrap.classList.add("viewing"); render(t, v ? {from: h[v - 1].from, to: h[v - 1].to} : null); }
+    const mv = h[Math.max(cur, v) - 1]; if (mv) Sound.play(mv.captured ? "Capture" : "Move", .6);
+    BoardNav.paint();
   };
   B.paint = () => {
-    const dests = B.sel ? B.dests(B.sel) : [];
+    const dests = B.sel ? (B.selPre ? preDests(B.sel) : B.dests(B.sel)) : [];
+    const vw = B.ply != null, marks = vw ? {} : B.marks, threats = vw ? {} : B.threats, pm = B.premove;
     squares.forEach(d => { const sq = d.dataset.sq;
       d.classList.toggle("last", !!(B.last && (B.last.from === sq || B.last.to === sq)));
       d.classList.toggle("sel", B.sel === sq);
       d.classList.toggle("chk", B.check === sq);
-      ["good","bad","hint","mark"].forEach(c => d.classList.toggle(c, B.marks[sq] === c));
-      d.classList.toggle("thr", B.threats[sq] === "thr"); d.classList.toggle("tgt", B.threats[sq] === "tgt");
+      ["good","bad","hint","mark"].forEach(c => d.classList.toggle(c, marks[sq] === c));
+      d.classList.toggle("thr", threats[sq] === "thr"); d.classList.toggle("tgt", threats[sq] === "tgt");
+      d.classList.toggle("pre", !!(pm && (pm.from === sq || pm.to === sq)));
+      ["um-r","um-g","um-b","um-y"].forEach(c => d.classList.toggle(c, B.userMarks[sq] === c.slice(3)));
       d.querySelectorAll(".dot,.cap").forEach(n => n.remove());
     });
-    if (S.settings.legal) dests.forEach(t => { const d = sqEl(t.to); if (!d) return; const s = document.createElement("span"); s.className = B.pieces[t.to] ? "cap" : "dot"; d.appendChild(s); });
+    if (S.settings.legal || B.selPre) dests.forEach(t => { const d = sqEl(t.to); if (!d) return; const s = document.createElement("span"); s.className = B.pieces[t.to] ? "cap" : "dot"; d.appendChild(s); });
     drawArrows();
   };
   B.mark = (m) => { B.marks = m || {}; B.paint(); };
   B.setThreats = t => { B.threats = t || {}; B.paint(); };
   B.setArrows = a => { B.arrows = a || []; drawArrows(); };
+  let arrowPreview = null;
   function drawArrows(){
     svg.innerHTML = `<defs>${["g","r","b","y"].map(c => `<marker id="ah${c}" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="2.4" markerHeight="2.4" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="${({g:"#15781B",r:"#882020",b:"#003088",y:"#E68F00"})[c]}"/></marker>`).join("")}</defs>`;
-    B.arrows.forEach(([a, b, c = "g"]) => { const [x1, y1] = sqXY(a, B.o), [x2, y2] = sqXY(b, B.o); const cx1 = x1 + .5, cy1 = y1 + .5, cx2 = x2 + .5, cy2 = y2 + .5; const len = Math.hypot(cx2 - cx1, cy2 - cy1); const ex = cx2 - (cx2 - cx1) / len * .32, ey = cy2 - (cy2 - cy1) / len * .32;
+    const all = (B.ply != null ? [] : B.arrows).concat(B.userArrows, arrowPreview ? [arrowPreview] : []);
+    all.forEach(([a, b, c = "g"]) => { const [x1, y1] = sqXY(a, B.o), [x2, y2] = sqXY(b, B.o); const cx1 = x1 + .5, cy1 = y1 + .5, cx2 = x2 + .5, cy2 = y2 + .5; const len = Math.hypot(cx2 - cx1, cy2 - cy1); const ex = cx2 - (cx2 - cx1) / len * .32, ey = cy2 - (cy2 - cy1) / len * .32;
       const col = ({g:"#15781B",r:"#882020",b:"#003088",y:"#E68F00"})[c];
       if (a === b){ svg.insertAdjacentHTML("beforeend", `<circle cx="${cx1}" cy="${cy1}" r=".44" fill="none" stroke="${col}" stroke-width=".08" opacity=".8"/>`); return; }
       svg.insertAdjacentHTML("beforeend", `<line x1="${cx1}" y1="${cy1}" x2="${ex}" y2="${ey}" stroke="${col}" stroke-width=".16" stroke-linecap="round" opacity=".8" marker-end="url(#ah${c})"/>`); });
   }
+  /* game-style celebration over the board: big word, rating change, puzzle rating and confetti */
+  B.cheer = ({tier = 1, word, delta, sub, streak}) => {
+    const cols = ["#81B64C","#F2C14E","#4FA3F7","#E2523E","#B57EDC","#FFFFFF"], n = 10 + tier * 9;
+    const bits = Array.from({length: n}, (_, i) => { const a = (i / n) * Math.PI * 2 + Math.random() * .5, r = 28 + Math.random() * (14 + tier * 6);
+      return `<i class="cf" style="--x:${(Math.cos(a) * r).toFixed(1)}cqw;--y:${(Math.sin(a) * r - 6).toFixed(1)}cqw;--r:${Math.round(Math.random() * 720 - 360)}deg;--c:${cols[i % cols.length]};--d:${(Math.random() * .25).toFixed(2)}s"></i>`; }).join("");
+    fx.innerHTML = `<div class="cheer t${tier}">${tier >= 3 ? `<div class="burst"></div>` : ""}${bits}<div class="word">${esc(word)}</div>${delta != null ? `<div class="delta ${delta < 0 ? "neg" : ""}">${delta >= 0 ? "+" : ""}${delta}</div>` : ""}${sub ? `<div class="sub">${sub}</div>` : ""}${streak >= 3 ? `<div class="streak">🔥 ${streak} in a row</div>` : ""}</div>`;
+    clearTimeout(B._cheerT); B._cheerT = setTimeout(() => { fx.innerHTML = ""; }, tier >= 3 ? 2100 : 1700);
+  };
   B.float = (text, neg) => { fx.innerHTML = `<div class="float ${neg ? "neg" : ""}">${esc(text)}</div>`; setTimeout(() => { fx.innerHTML = ""; }, 1150); };
   B.badge = (sq, label, color) => { wrap.querySelectorAll(".badge-mv").forEach(n => n.remove()); if (!sq) return; const [x, y] = sqXY(sq, B.o); const b = document.createElement("div"); b.className = "badge-mv"; b.style.left = ((x + 1) * 12.5) + "%"; b.style.top = (y * 12.5) + "%"; b.style.background = color; b.textContent = label; wrap.appendChild(b); };
   B.overlay = html => { wrap.querySelectorAll(".overlay").forEach(n => n.remove()); if (!html) return null; const o = document.createElement("div"); o.className = "overlay"; o.innerHTML = html; wrap.appendChild(o); return o; };
@@ -711,26 +795,44 @@ function makeBoard(wrap, opts = {}){
 
   /* input */
   function sqFromPoint(cx, cy){ const r = el.getBoundingClientRect(); const x = Math.floor((cx - r.left) / r.width * 8), y = Math.floor((cy - r.top) / r.height * 8); if (x < 0 || y < 0 || x > 7 || y > 7) return null; return xySq(x, y, B.o); }
-  let drag = null;
+  let drag = null, rdrag = null;
+  /* premove: while the opponent is to move, your own pieces can queue a move; it plays as soon as it's your turn */
+  function preColor(){ return B.premoveFor && B.ply == null && B.live ? B.premoveFor() : null; }
+  function preDests(sq){ const c = preColor(); if (!c || !B.live) return []; const f = B.live.g.fen().split(" "); f[1] = c; f[3] = "-"; const t = new Chess(); if (!t.load(f.join(" "))) return [];
+    return t.moves({square: sq, verbose: true}).map(m => ({to: m.to, promotion: !!m.promotion})).filter((v, i, a) => a.findIndex(w => w.to === v.to) === i); }
+  B.cancelPremove = () => { if (B.premove || B.selPre){ B.premove = null; B.selPre = false; B.sel = null; B.paint(); } };
   async function attempt(from, to){
+    if (B.selPre){ const m = preDests(from).find(d => d.to === to); B.sel = null; B.selPre = false;
+      if (m){ B.premove = {from, to, promo: m.promotion ? "q" : undefined}; Sound.play("Move", .25); } B.paint(); return; }
     const ds = B.dests(from); const m = ds.find(d => d.to === to);
     if (!m){ B.sel = null; B.paint(); return; }
     let promo;
     if (m.promotion){ const p = B.pieces[from]; B.sel = null; B.paint(); promo = opts.autoQueen ? "q" : await B.promote(to, p.code[0]); }
     B.sel = null; B.onMove(from, to, promo);
   }
+  const ARROW_COLOR = e => e.shiftKey ? "g" : e.ctrlKey || e.metaKey ? "r" : e.altKey ? "b" : "y";
   el.addEventListener("pointerdown", e => {
-    Sound.init(); if (B.locked) return; if (e.button !== 0 && e.pointerType === "mouse") return;
+    Sound.init();
     const sq = sqFromPoint(e.clientX, e.clientY); if (!sq) return;
-    if (B.sel && B.sel !== sq && B.dests(B.sel).some(d => d.to === sq)){ attempt(B.sel, sq); return; }
-    if (B.pieces[sq] && B.canPick(sq)){
-      B.sel = sq; B.paint();
+    /* right mouse: draw an arrow (drag) or highlight a square (click); also cancels a premove */
+    if (e.pointerType === "mouse" && e.button === 2){ B.cancelPremove(); rdrag = {from: sq, c: ARROW_COLOR(e)}; try { el.setPointerCapture(e.pointerId); } catch(_) {} return; }
+    if (e.button !== 0 && e.pointerType === "mouse") return;
+    if (B.userArrows.length || Object.keys(B.userMarks).length){ B.userArrows = []; B.userMarks = {}; B.paint(); }
+    if (B.ply != null){ B.step(99); return; }
+    if (B.locked) return;
+    const curDests = B.sel ? (B.selPre ? preDests(B.sel) : B.dests(B.sel)) : [];
+    if (B.sel && B.sel !== sq && curDests.some(d => d.to === sq)){ attempt(B.sel, sq); return; }
+    const pc = preColor(), canPre = pc && B.pieces[sq] && B.pieces[sq].code[0] === pc && !B.canPick(sq);
+    if (B.pieces[sq] && (B.canPick(sq) || canPre)){
+      if (canPre && B.premove) B.premove = null;
+      B.sel = sq; B.selPre = !!canPre; B.paint();
       const p = B.pieces[sq].el; const r = el.getBoundingClientRect();
       drag = {from: sq, el: p, x: e.clientX, y: e.clientY, moved: false, r};
       try { el.setPointerCapture(e.pointerId); } catch(_) {}
-    } else { B.sel = null; B.paint(); B.onTapEmpty && B.onTapEmpty(sq); }
+    } else { const hadPre = !!B.premove; B.premove = null; B.sel = null; B.selPre = false; B.paint(); if (!hadPre) B.onTapEmpty && B.onTapEmpty(sq); }
   });
   el.addEventListener("pointermove", e => {
+    if (rdrag){ const to = sqFromPoint(e.clientX, e.clientY); const pv = to && to !== rdrag.from ? [rdrag.from, to, rdrag.c] : null; if (JSON.stringify(pv) !== JSON.stringify(arrowPreview)){ arrowPreview = pv; drawArrows(); } return; }
     if (!drag) return;
     if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 5) return;
     drag.moved = true; drag.el.classList.add("lift");
@@ -738,6 +840,10 @@ function makeBoard(wrap, opts = {}){
     drag.el.style.transform = `translate(${px}px, ${py}px)`;
   });
   function endDrag(e){
+    if (rdrag){ const r = rdrag; rdrag = null; arrowPreview = null; const to = e ? sqFromPoint(e.clientX, e.clientY) : null;
+      if (to && to === r.from){ if (B.userMarks[to] === r.c) delete B.userMarks[to]; else B.userMarks[to] = r.c; }
+      else if (to){ const i = B.userArrows.findIndex(a => a[0] === r.from && a[1] === to); if (i >= 0 && B.userArrows[i][2] === r.c) B.userArrows.splice(i, 1); else { if (i >= 0) B.userArrows.splice(i, 1); B.userArrows.push([r.from, to, r.c]); } }
+      B.paint(); return; }
     if (!drag) return; const d = drag; drag = null; d.el.classList.remove("lift");
     if (!d.moved){ return; }
     const to = e ? sqFromPoint(e.clientX, e.clientY) : null;
@@ -750,6 +856,18 @@ function makeBoard(wrap, opts = {}){
   buildSquares();
   return B;
 }
+/* Move navigation for the board on screen: ‹ › buttons ([data-nav]) and the arrow keys */
+const BoardNav = {
+  cur: null,
+  ok(){ const b = this.cur; return b && b.el.isConnected ? b : null; },
+  html(){ return `<button class="btn nv" data-nav="-1" aria-label="Previous position" title="Previous position (←)">‹</button><button class="btn nv" data-nav="1" aria-label="Next position" title="Next position (→)">›</button>`; },
+  paint(){ const b = this.ok(); $$("[data-nav]").forEach(x => { const d = +x.dataset.nav; x.disabled = !b || !b.canStep() || (d > 0 ? b.ply == null : b.ply === 0); x.classList.toggle("on", !!(b && b.ply != null && d > 0)); }); }
+};
+document.addEventListener("click", e => { const t = e.target.closest && e.target.closest("[data-nav]"); if (!t) return; const b = BoardNav.ok(); if (b) b.step(+t.dataset.nav); });
+document.addEventListener("keydown", e => { const b = BoardNav.ok(); if (!b || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+  const d = {ArrowLeft: -1, ArrowRight: 1, ArrowUp: -99, ArrowDown: 99, Home: -99, End: 99}[e.key]; if (d == null) return; e.preventDefault(); b.step(d); });
+new MutationObserver(() => { if ($("[data-nav]")) BoardNav.paint(); }).observe(document.documentElement, {childList: true, subtree: true});
+
 /* legal destinations from a chess.js game */
 function gameDests(g){ return sq => g.moves({square: sq, verbose: true}).map(m => ({to: m.to, promotion: !!m.promotion})).filter((v, i, a) => a.findIndex(w => w.to === v.to) === i); }
 
@@ -863,6 +981,18 @@ function logPuzzle(mode, R, ok, delta){
   S.recent.push({id: p.id, r: p.r, ok, mode, ts: Date.now(), d: delta || 0, th: p.th});
   logEvent("puzzle", {mode, id: p.id, puzzleRating: p.r, themes: themeNames(p), solved: ok, firstTry: ok, wrong: R.wrong.map(w => ({played: w.san, expected: w.expected, fen: w.fen})), hints: R.hint, solutionShown: R.sol, ms: R.elapsed(), delta: delta || 0});
 }
+/* how loud to celebrate: harder puzzles, streaks and quick solves earn bigger cheers */
+const CHEERS = [null, [["Nice!","nice"],["Good one!","good"]], [["Great!","great"],["Smooth!","smooth"]], [["Brilliant!","brilliant"],["Superb!","superb"]], [["Legendary!","legendary"],["Unstoppable!","unstoppable"],["Genius!","genius"]]];
+function cheerFor({diff = 0, streak = 0, ms = 99999}){
+  let tier = diff >= 200 || streak >= 10 ? 4 : diff >= 100 || streak >= 5 ? 3 : diff >= 0 || streak >= 3 || ms < 6000 ? 2 : 1;
+  let [word, slug] = rnd(CHEERS[tier]);
+  if (streak >= 5 && tier === 3 && Math.random() < .5){ word = "On fire!"; slug = "onfire"; }
+  return {tier, word, slug};
+}
+function celebrate(board, info, extra = {}){ const c = cheerFor(info); board.cheer({tier: c.tier, word: c.word, ...extra}); Sound.cheer(c.tier, c.slug); return c; }
+/* puzzle rating while solving: hidden by default like chess.com, tap to show (remembered) */
+function pzRatingChip(p, reveal){ const show = reveal || S.settings.showPzRating; return `<button class="pill pzr ${show ? "on" : ""}" data-pzr title="${show ? "Hide the puzzle rating while solving" : "Show the puzzle rating"}">${show ? "Puzzle " + p.r : "👁 Show puzzle rating"}</button>`; }
+document.addEventListener("click", e => { const t = e.target.closest && e.target.closest("[data-pzr]"); if (!t) return; S.settings.showPzRating = !S.settings.showPzRating; save(); const v = App.view; if (v && v.panel && v.lastState !== undefined) v.panel(v.lastState); });
 function stageHTML(){ return `<div class="stage"><div class="boardcol"><div class="pbar" id="topbar"></div><div id="bw"></div><div class="pbar" id="botbar"></div></div><aside class="side"><div class="scroll" id="sp"></div><div class="foot" id="sf"></div></aside></div>`; }
 function youBar(extra = ""){ const rk = rankOf(S.puzzle.r); return `<div class="av">${emblem(rk, 34)}</div><span class="nm">${esc(S.name)}</span><span class="rt">(${S.puzzle.r})</span>${extra}`; }
 function sideToMoveText(c){ return c === "w" ? "White to move" : "Black to move"; }
@@ -881,7 +1011,7 @@ Views.puzzles = {
       onRefute: R => V.panel("wrong"),
       onHint: R => { if (R.hint === 1 && !R.failed) { R.failed = true; V.settle(false, true); } V.panel("hint"); },
       onSolutionStart: (R, first) => { if (first) V.settle(false); V.panel("solution"); },
-      onSolved: (R, clean) => { if (clean) V.settle(true); V.panel(clean ? "solved" : "done"); if (S.settings.autoNext && clean) V.timer = setTimeout(() => V.next(), 1100); }
+      onSolved: (R, clean) => { if (clean) V.settle(true); V.panel(clean ? "solved" : "done"); if (S.settings.autoNext && clean) V.timer = setTimeout(() => V.next(), V.cheerTier >= 3 ? 2300 : 1800); }
     });
     whenPuzzles(() => { if (PZ.err) { $("#sp").innerHTML = `<div class="msg no"><div class="ic">!</div><div><h4>Puzzles could not load</h4><p>${esc(PZ.err)}. Reload the page to try again.</p></div></div>`; return; } V.next(); });
   },
@@ -904,7 +1034,8 @@ Views.puzzles = {
     S.puzzle.hist.push([Date.now(), S.puzzle.r]);
     recordThemes(p, ok); markSeen(p); if (ok) rmFailed(p); else addFailed(p);
     this.delta = d; this.session.push({ok, d, r: p.r});
-    this.board.float((d >= 0 ? "+" : "") + d, d < 0);
+    if (ok){ const c = celebrate(this.board, {diff: p.r - old, streak: S.puzzle.streak, ms: R.elapsed()}, {delta: d, sub: `Puzzle rated <b>${p.r}</b>`, streak: S.puzzle.streak}); this.cheerTier = c.tier; }
+    else this.board.float((d >= 0 ? "+" : "") + d, d < 0);
     logPuzzle("rated", R, ok, d);
     save();
     const after = rankOf(S.puzzle.r);
@@ -913,7 +1044,10 @@ Views.puzzles = {
   },
   rankUp(b, a, up){ const o = this.board.overlay(`<div class="card-over"><div style="display:flex;justify-content:center;margin-bottom:8px">${emblem(a, 84)}</div><h3>${up ? "Promoted!" : "Demoted"}</h3><p>${esc(b.label)} → <b>${esc(a.label)}</b></p><button class="btn go wide" id="rkok">Keep going</button></div>`); if (up) Sound.play("Victory", .7); $("#rkok", o).onclick = () => this.board.overlay(null); },
   panel(state){
+    this.lastState = state;
     const R = this.R, p = R.p; const rk = rankOf(S.puzzle.r);
+    { const rev = state === "solved" || state === "done" || state === "solution", show = rev || S.settings.showPzRating; const ti = $("#pzinfo");
+      if (ti && p){ ti.outerHTML = `<button class="pill pzr ${show ? "on" : ""}" id="pzinfo" data-pzr title="Tap to ${S.settings.showPzRating ? "hide" : "show"} the puzzle rating">Rated puzzle · ${show ? "<b>" + p.r + "</b>" : "rating hidden 👁"}</button>`; } }
     const head = `<div class="row" style="gap:12px;align-items:center">${emblem(rk, 56)}<div style="flex:1;min-width:0"><div style="font:900 30px var(--display);line-height:1;font-variant-numeric:tabular-nums">${S.puzzle.r}${this.delta ? `<span style="font-size:16px;margin-left:8px;color:${this.delta > 0 ? "var(--go-hi)" : "var(--bad)"}">${this.delta > 0 ? "+" : ""}${this.delta}</span>` : ""}</div><div class="muted" style="font-weight:700">${esc(rk.label)}${rk.idx < 7 ? ` · ${rk.lp} LP` : ` · ${rk.lp} LP`}</div></div></div>
       <div class="bar" style="margin-top:10px"><i style="width:${Math.round(rk.pct * 100)}%"></i></div>
       <div class="dim" style="font-size:12px;margin-top:4px">${rk.next ? `Next: ${esc(rk.next)} at ${rk.nextAt}` : "Top of the ladder"} · Better than ${betterThan(S.puzzle.r)}% of players</div>`;
@@ -924,19 +1058,19 @@ Views.puzzles = {
     if (state === "wrong") msg = `<div class="msg no"><div class="ic">✕</div><div><h4>Incorrect</h4><p>${R.refute ? `After ${esc(R.refute.played)}, your opponent answers <b>${esc(R.refute.reply)}</b> (red arrow). ` : ""}Try again, or look at the solution.</p></div></div>`;
     if (state === "hint") msg = `<div class="msg hint"><div class="ic">?</div><div><h4>Hint</h4><p>${R.hint === 1 ? "The highlighted piece is the one to move." : "Follow the arrow."} Hints count as a miss.</p></div></div>`;
     if (state === "solution") msg = `<div class="msg hint"><div class="ic">!</div><div><h4>Solution</h4><p>Watch the line. This puzzle goes into your review list.</p></div></div>`;
-    if (state === "solved") msg = `<div class="msg ok"><div class="ic">✓</div><div><h4>Correct!</h4><p>${p ? themeNames(p).slice(0, 3).map(esc).join(" · ") : ""}</p></div></div>`;
+    if (state === "solved") msg = `<div class="msg ok"><div class="ic">✓</div><div><h4>Correct! ${this.delta ? `<span style="color:var(--go-hi)">${this.delta > 0 ? "+" : ""}${this.delta}</span>` : ""}</h4><p>This puzzle was rated <b>${p ? p.r : ""}</b>${p && p.r > S.puzzle.r - this.delta ? `, ${p.r - (S.puzzle.r - this.delta)} above you` : ""}. ${p ? themeNames(p).slice(0, 3).map(esc).join(" · ") : ""}</p></div></div>`;
     if (state === "done") msg = `<div class="msg"><div class="ic">✓</div><div><h4>Puzzle complete</h4><p>${p ? themeNames(p).slice(0, 3).map(esc).join(" · ") : ""}</p></div></div>`;
     const reveal = state === "solved" || state === "done" || state === "solution";
     const learn = reveal && p ? learnLink(p) : "";
-    const info = p ? `${learn}<div class="row" style="margin-top:10px"><span class="pill">Puzzle ${reveal ? p.r : "rating hidden"}</span>${reveal ? `<a class="pill" href="https://lichess.org/training/${esc(p.id)}" target="_blank" rel="noopener">Source #${esc(p.id)}</a>` : ""}</div>` : "";
+    const info = p ? `${learn}<div class="row" style="margin-top:10px">${pzRatingChip(p, reveal)}${reveal ? `<a class="pill" href="https://lichess.org/training/${esc(p.id)}" target="_blank" rel="noopener">Source #${esc(p.id)}</a>` : ""}</div>` : "";
     const ses = this.session.slice(-24).map(s => `<span title="Puzzle ${s.r}: ${s.d > 0 ? "+" : ""}${s.d}" style="display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:24px;border-radius:4px;font:800 11px var(--body);background:${s.ok ? "var(--go)" : "var(--bad)"};color:#fff">${s.d > 0 ? "+" : ""}${s.d}</span>`).join("");
     const acc = S.puzzle.n ? Math.round(S.puzzle.w / S.puzzle.n * 100) : 0;
     $("#sp").innerHTML = (innerWidth <= 900 ? `<div style="margin-bottom:10px">${msg}</div>` + head + info : head + `<div style="margin-top:14px">${msg}</div>${info}`) + `
       <div class="h-sec">This session</div><div class="row" style="gap:4px">${ses || `<span class="dim">Your results will appear here.</span>`}</div>
       <div class="h-sec m-hide">Overall</div><div class="grid3 m-hide"><div class="stat"><b>${S.puzzle.n}</b><span>played</span></div><div class="stat"><b>${acc}%</b><span>solved</span></div><div class="stat"><b>${S.puzzle.streak}</b><span>streak (best ${S.puzzle.best})</span></div></div>`;
     const done = state === "solved" || state === "done";
-    $("#sf").innerHTML = done ? `<button class="btn go big" id="pnext">Next puzzle</button>` :
-      `<button class="btn" id="phint" ${state === "load" || state === "solution" ? "disabled" : ""}>Hint</button><button class="btn" id="psol" ${state === "load" || state === "solution" ? "disabled" : ""}>Solution</button><button class="btn go" id="pnext" style="flex:1">${this.R.failed ? "Next puzzle" : "Skip"}</button>`;
+    $("#sf").innerHTML = done ? `${BoardNav.html()}<button class="btn go big" id="pnext" style="flex:1">Next puzzle</button>` :
+      `${BoardNav.html()}<button class="btn" id="phint" ${state === "load" || state === "solution" ? "disabled" : ""}>Hint</button><button class="btn" id="psol" ${state === "load" || state === "solution" ? "disabled" : ""}>Solution</button><button class="btn go" id="pnext" style="flex:1">${this.R.failed ? "Next puzzle" : "Skip"}</button>`;
     $("#pnext").onclick = () => { if (!this.R.done && !this.R.failed && this.R.p && !this.R.locked) this.settle(false); this.next(); };
     if ($("#phint")) $("#phint").onclick = () => this.R.showHint();
     if ($("#psol")) $("#psol").onclick = () => this.R.showSolution();
@@ -965,7 +1099,8 @@ Views.rush = {
       this.R = PuzzleRunner(board, {fast: true, noRetry: true,
         onReady: () => this.panel(),
         onWrong: (R, first, m) => { this.log.push({ok: false, r: R.p.r}); this.strikes++; recordThemes(R.p, false); addFailed(R.p); logPuzzle("rush", R, false); this.panel(); setTimeout(() => { if (this.strikes >= 3) this.finish(); else this.next(); }, 700); },
-        onSolved: (R) => { this.score++; this.log.push({ok: true, r: R.p.r}); recordThemes(R.p, true); this.panel(); setTimeout(() => this.next(), 260); }
+        onSolved: (R) => { this.score++; this.log.push({ok: true, r: R.p.r}); recordThemes(R.p, true); this.panel();
+          if (this.score % 5 === 0){ const t = this.score >= 30 ? 4 : this.score >= 15 ? 3 : 2; const [w, sl] = rnd(CHEERS[t]); board.cheer({tier: t, word: w, sub: `<b>${this.score}</b> solved`}); Sound.cheer(t, sl); } setTimeout(() => this.next(), 260); }
       });
       if (this.left != null){ this.end = Date.now() + this.left; this.tick = setInterval(() => { const ms = this.end - Date.now(); const c = $("#rclock"); if (c) { c.textContent = fmtClock(Math.max(0, ms)); c.classList.toggle("low", ms < 20000); } if (ms <= 0) this.finish(); }, 200); }
       this.next(); this.panel();
@@ -979,7 +1114,7 @@ Views.rush = {
       <div class="row" style="gap:6px;margin:8px 0 14px">${x(0)}${x(1)}${x(2)}</div>
       ${this.R && this.R.p ? `<div class="msg"><div class="ic">${this.R.user === "w" ? "♔" : "♚"}</div><div><h4>${sideToMoveText(this.R.user)}</h4><p>One mistake costs a strike.</p></div></div>` : ""}
       <div class="h-sec">Puzzles</div><div class="row" style="gap:4px">${this.log.map(l => `<span style="min-width:40px;height:24px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font:800 11px var(--body);color:#fff;background:${l.ok ? "var(--go)" : "var(--bad)"}">${l.r}</span>`).join("")}</div>`;
-    $("#sf").innerHTML = `<button class="btn" id="rquit" style="flex:1">End run</button>`; $("#rquit").onclick = () => this.finish();
+    $("#sf").innerHTML = `${BoardNav.html()}<button class="btn" id="rquit" style="flex:1">End run</button>`; $("#rquit").onclick = () => this.finish();
   },
   finish(){
     if (this.over) return; this.over = true; clearInterval(this.tick); this.R.stop();
@@ -1010,6 +1145,7 @@ Views.daily = {
   },
   unmount(){ this.R && this.R.stop(); },
   finish(clean){
+    if (clean && this.R && this.R.p) celebrate(this.board, {diff: this.R.p.r - S.puzzle.r, ms: this.R.elapsed()}, {sub: `Daily puzzle rated <b>${this.R.p.r}</b>`});
     const k = todayKey();
     if (!S.daily.done[k]){
       const y = new Date(Date.now() - 864e5); const yk = y.getFullYear() + "-" + String(y.getMonth()+1).padStart(2,"0") + "-" + String(y.getDate()).padStart(2,"0");
@@ -1028,7 +1164,7 @@ Views.daily = {
       ${state === "solved" || state === "done" || solvedToday ? `<div class="row" style="margin-top:10px"><span class="pill">Rating ${p ? p.r : ""}</span>${p ? themeNames(p).slice(0, 3).map(n => `<span class="pill">${esc(n)}</span>`).join("") : ""}</div>` : ""}
       <div class="h-sec">Last 14 days</div><div class="row" style="gap:4px">${last14()}</div>`;
     const done = state === "solved" || state === "done";
-    $("#sf").innerHTML = done ? `<button class="btn" id="dre">Replay</button><button class="btn go" id="dmore" style="flex:1">Solve more puzzles</button>` : `<button class="btn" id="dh">Hint</button><button class="btn" id="ds">Solution</button>`;
+    $("#sf").innerHTML = done ? `${BoardNav.html()}<button class="btn" id="dre">Replay</button><button class="btn go" id="dmore" style="flex:1">Solve more puzzles</button>` : `${BoardNav.html()}<button class="btn" id="dh">Hint</button><button class="btn" id="ds">Solution</button>`;
     if (done){ $("#dre").onclick = () => this.R.start(p); $("#dmore").onclick = () => App.go("puzzles"); }
     else { $("#dh").onclick = () => this.R.showHint(); $("#ds").onclick = () => this.R.showSolution(); }
   }
@@ -1075,17 +1211,17 @@ Views.train = {
   run(k){
     this.k = k; this.ok = 0; this.bad = 0; this.used = new Set();
     if (k === "__failed" && !S.failed.length){ toast("No failed puzzles. Nice!"); return; }
-    this.main.innerHTML = stageHTML(); const board = makeBoard($("#bw"));
+    this.main.innerHTML = stageHTML(); const board = makeBoard($("#bw")); this.board = board; this.run_ = 0;
     $("#botbar").innerHTML = youBar();
     const title = k === "__failed" ? "Failed puzzles" : k === "__mix" ? "Random mix" : k === "__weak" ? "Weakest themes" : themeKeyLabel(k);
     $("#topbar").innerHTML = `<span class="pill">Train · ${esc(title)}</span>`; this.title = title;
     this.R = PuzzleRunner(board, {
       onReady: () => this.panel("play"),
-      onWrong: (R, first) => { if (first){ this.bad++; recordThemes(R.p, false); addFailed(R.p); logPuzzle("train", R, false); } this.panel("wrong"); },
+      onWrong: (R, first) => { this.run_ = 0; if (first){ this.bad++; recordThemes(R.p, false); addFailed(R.p); logPuzzle("train", R, false); } this.panel("wrong"); },
       onRefute: R => this.panel("wrong"),
       onHint: (R) => { if (R.hint === 1 && !R.failed){ R.failed = true; this.bad++; recordThemes(R.p, false); addFailed(R.p); logPuzzle("train", R, false); } this.panel("hint"); },
       onSolutionStart: (R, first) => { if (first){ this.bad++; recordThemes(R.p, false); addFailed(R.p); logPuzzle("train", R, false); } this.panel("solution"); },
-      onSolved: (R, clean) => { if (clean){ this.ok++; recordThemes(R.p, true); rmFailed(R.p); logPuzzle("train", R, true); } save(); this.panel(clean ? "solved" : "done"); if (clean && S.settings.autoNext) this.t = setTimeout(() => this.next(), 1000); }
+      onSolved: (R, clean) => { if (clean){ this.ok++; this.run_++; recordThemes(R.p, true); rmFailed(R.p); logPuzzle("train", R, true); celebrate(board, {diff: R.p.r - S.puzzle.r, streak: this.run_, ms: R.elapsed()}, {sub: `Puzzle rated <b>${R.p.r}</b>`, streak: this.run_}); } else this.run_ = 0; save(); this.panel(clean ? "solved" : "done"); if (clean && S.settings.autoNext) this.t = setTimeout(() => this.next(), 1800); }
     });
     this.next();
   },
@@ -1100,7 +1236,7 @@ Views.train = {
       <div class="msg ${cls}"><div class="ic">${ic}</div><div><h4>${h}</h4><p>${t}</p></div></div>
       ${reveal && p ? `${learnLink(p)}<div class="row" style="margin-top:10px"><span class="pill">Rating ${p.r}</span>${themeNames(p).slice(0, 4).map(n => `<span class="pill">${esc(n)}</span>`).join("")}</div>` : ""}`;
     const done = state === "solved" || state === "done";
-    $("#sf").innerHTML = `<button class="btn" id="tback">Themes</button>` + (done ? `<button class="btn go" id="tn" style="flex:1">Next</button>` : `<button class="btn" id="th">Hint</button><button class="btn" id="ts">Solution</button><button class="btn go" id="tn" style="flex:1">Skip</button>`);
+    $("#sf").innerHTML = `<button class="btn" id="tback">Themes</button>${BoardNav.html()}` + (done ? `<button class="btn go" id="tn" style="flex:1">Next</button>` : `<button class="btn" id="th">Hint</button><button class="btn" id="ts">Solution</button><button class="btn go" id="tn" style="flex:1">Skip</button>`);
     $("#tback").onclick = () => { this.R.stop(); this.menu(); }; $("#tn").onclick = () => this.next();
     if ($("#th")) $("#th").onclick = () => this.R.showHint(); if ($("#ts")) $("#ts").onclick = () => this.R.showSolution();
   }
@@ -1305,7 +1441,7 @@ Views.bots = {
     this.stopGame();
     this.main.innerHTML = stageHTML();
     const G = this.G = {tuned: tunedBot(bot, opt.level), bot, color, opt, g: new Chess(fen || undefined), view: null, over: false, thinking: false, chat: rnd(BOT_LINES.hi), dead: false, hintsUsed: 0, takebacks: 0, warns: 0, startFen: fen || null};
-    const board = G.board = makeBoard($("#bw"), {orientation: color});
+    const board = G.board = makeBoard($("#bw"), {orientation: color, history: false, premove: () => { const G = this.G; return G && !G.over && !G.warn && G.view == null && G.g.turn() !== G.color ? G.color : null; }});
     board.canPick = sq => { if (G.over || G.thinking || G.view != null || G.warn) return false; const p = G.g.get(sq); return p && p.color === color && G.g.turn() === color; };
     board.dests = sq => gameDests(G.g)(sq);
     board.onMove = (f, t, pr) => this.userMove(f, t, pr);
@@ -1343,7 +1479,7 @@ Views.bots = {
         const c = uciMv === a.best || wl < 1.5 ? "best" : wl < 3 ? "excellent" : wl < 7 ? "good" : wl < 12 ? "inaccuracy" : wl < 22 ? "mistake" : "blunder";
         const k = CLS[c]; G.board.badge(t, k.sym, k.c); G.lastCls = c; G.clsCount = G.clsCount || {}; G.clsCount[c] = (G.clsCount[c] || 0) + 1;
         if (loss >= 180 && vAfter < 250){
-          G.warns++; G.warn = {best: a.best, loss, before};
+          G.warns++; G.warn = {best: a.best, loss, before}; G.board.cancelPremove();
           const bestSan = sanOf(before, a.best);
           G.chat = null; this.panel();
           const o = G.board.overlay(`<div class="card-over"><h3 style="font-size:20px">Careful!</h3><p>That move ${loss >= 9000 ? "allows checkmate" : "gives away about " + (loss / 100).toFixed(1) + " pawns"}. ${bestSan ? "A better move was <b>" + esc(bestSan) + "</b>." : ""}</p><div class="row" style="justify-content:center"><button class="btn go" id="tb">Take back</button><button class="btn" id="keep">Keep my move</button></div></div>`);
@@ -2037,7 +2173,7 @@ Views.review = {
     this.A = {pgn, hdr, moves, fens, evals: new Array(fens.length).fill(null), lines: new Array(fens.length).fill(null), cls: [], ply: 0, done: false, me: meta ? meta.color : "w", final: t};
     this.main.innerHTML = stageHTML();
     const wrapCol = $(".boardcol"); wrapCol.style.position = "relative";
-    const board = this.board = makeBoard($("#bw"), {orientation: this.A.me});
+    const board = this.board = makeBoard($("#bw"), {orientation: this.A.me, history: false});
     $("#bw").insertAdjacentHTML("beforeend", `<div class="evalbar" id="evb"><i style="height:50%"></i><span id="evt">0.0</span></div>`);
     board.canPick = () => false;
     const W = hdr.White || "White", B = hdr.Black || "Black";
@@ -2185,7 +2321,7 @@ Views.analysis = {
     main.innerHTML = stageHTML();
     const fen = arg && arg.fen;
     this.start = fen || START; this.g = new Chess(this.start); this.redo = []; this.lines = []; this.depth = 0; this.req = 0;
-    const board = this.board = makeBoard($("#bw"), {orientation: arg && arg.orient || "w"});
+    const board = this.board = makeBoard($("#bw"), {orientation: arg && arg.orient || "w", history: false});
     $("#bw").insertAdjacentHTML("beforeend", `<div class="evalbar" id="evb"><i style="height:50%"></i><span id="evt">0.0</span></div>`);
     board.canPick = sq => { const p = this.g.get(sq); return p && p.color === this.g.turn(); };
     board.dests = sq => gameDests(this.g)(sq);
@@ -2232,7 +2368,7 @@ Views.coords = {
   mount(main){
     this.main = main; this.best = S.coordsBest || 0;
     main.innerHTML = stageHTML();
-    const board = this.board = makeBoard($("#bw"), {orientation: "w"}); board.set(new Chess("8/8/8/8/8/8/8/8 w - - 0 1"), null); board.canPick = () => false;
+    const board = this.board = makeBoard($("#bw"), {orientation: "w", history: false}); board.set(new Chess("8/8/8/8/8/8/8/8 w - - 0 1"), null); board.canPick = () => false;
     board.onTapEmpty = sq => this.tap(sq);
     $("#topbar").innerHTML = `<span class="pill">Coordinates</span>`; $("#botbar").innerHTML = youBar();
     this.menu();
@@ -2332,7 +2468,7 @@ Views.friend = {
     try { history.replaceState(null, "", "#g-" + code); } catch(e) {}
     this.main.innerHTML = stageHTML();
     const s = this.st;
-    const board = this.board = makeBoard($("#bw"), {orientation: s.seat === "b" ? "b" : "w"});
+    const board = this.board = makeBoard($("#bw"), {orientation: s.seat === "b" ? "b" : "w", premove: () => { const st = this.st; return st && !st.result && (st.seat === "w" || st.seat === "b") && this.opp() && st.g.turn() !== st.seat ? st.seat : null; }});
     board.canPick = sq => { const st = this.st; if (!st || st.result || !st.seat || st.seat === "spec" || !this.opp()) return false; const p = st.g.get(sq); return p && p.color === st.seat && st.g.turn() === st.seat; };
     board.dests = sq => gameDests(this.st.g)(sq);
     board.onMove = (f, t, pr) => this.move(f, t, pr);
@@ -2448,7 +2584,7 @@ Views.friend = {
     $$("[data-q]").forEach(b => b.onclick = () => this.send(QUICK_CHAT[+b.dataset.q]));
     const chf = $("#chf"); if (chf){ chf.onsubmit = e => { e.preventDefault(); const v = $("#chi").value.trim(); $("#chi").value = ""; if (v){ this.send(v); } }; if (prevChi) $("#chi").value = prevChi; if (chiFocus) $("#chi").focus(); }
     const playing = o && !s.result && s.seat !== "spec";
-    $("#sf").innerHTML = `<button class="btn" id="fx">Leave</button><button class="btn" id="ff" aria-label="Flip board">⇅</button>` +
+    $("#sf").innerHTML = `<button class="btn" id="fx">Leave</button><button class="btn" id="ff" aria-label="Flip board">⇅</button>${BoardNav.html()}` +
       (playing ? (this.tbAsked ? `<button class="btn go" id="ftba">Allow takeback</button>` : `<button class="btn" id="ftb" ${s.tbReq || !s.moves.length ? "disabled" : ""}>Takeback</button>`) + (this.drawOffered ? `<button class="btn go" id="fda">Accept draw</button>` : `<button class="btn" id="fdo" ${s.offer ? "disabled" : ""}>Draw</button>`) + `<button class="btn" id="frs">Resign</button>` : "") +
       (s.result && s.seat !== "spec" ? `<button class="btn go" id="frm" style="flex:1" ${s.rematch ? "disabled" : ""}>${s.rematch ? "Waiting…" : this.rematchAsked ? "Accept rematch" : "Rematch"}</button><button class="btn" id="frv">Review</button>` : "");
     $("#fx").onclick = () => { try { sessionStorage.removeItem(LIVE_KEY); } catch(e) {} this.menu(); }; $("#ff").onclick = () => this.board.flip();
@@ -2537,7 +2673,7 @@ Views.linkgame = {
     if ($("#lkc")) $("#lkc").onclick = () => { const t = $("#lk"); navigator.clipboard.writeText(this.link()).then(() => { toast("Link copied. Send it to " + opp); this.sent = true; }).catch(() => { t.focus(); t.select(); toast("Press copy on your keyboard"); }); };
     if ($("#lk")) $("#lk").onfocus = e => e.target.select();
     $("#pf").onsubmit = e => { e.preventDefault(); const p = parseLinkHash($("#pin").value.trim()); if (!p){ toast("That doesn't look like a game link"); return; } if (p.gid !== this.gid){ this.open(p); return; } this.open(p); };
-    $("#sf").innerHTML = `<button class="btn" id="lgb">Games</button><button class="btn" id="lgf" aria-label="Flip board">⇅</button>${!over ? `<button class="btn" id="lgr">Resign</button>` : `<button class="btn go" id="lgv" style="flex:1">Review</button>`}`;
+    $("#sf").innerHTML = `<button class="btn" id="lgb">Games</button><button class="btn" id="lgf" aria-label="Flip board">⇅</button>${BoardNav.html()}${!over ? `<button class="btn" id="lgr">Resign</button>` : `<button class="btn go" id="lgv" style="flex:1">Review</button>`}`;
     $("#lgb").onclick = () => App.go("friend"); $("#lgf").onclick = () => this.board.flip();
     if ($("#lgr")) $("#lgr").onclick = () => { const b = $("#lgr"); if (!b.dataset.armed){ b.dataset.armed = 1; b.textContent = "Sure?"; b.style.background = "var(--bad)"; return; } this.finish(me === "w" ? "0-1" : "1-0", "by resignation"); r.moves.push("resign"); r.moves.pop(); save(); this.render(); };
     if ($("#lgv")) $("#lgv").onclick = () => App.go("review", {pgn: this.g.pgn(), meta: S.games[S.games.length - 1]});
@@ -2599,7 +2735,7 @@ Views.local = {
     const h = this.g.history(); let mv = ""; for (let i = 0; i < h.length; i += 2) mv += `<span class="n">${i / 2 + 1}.</span><span class="m">${esc(h[i])}</span><span class="m">${h[i+1] ? esc(h[i+1]) : ""}</span>`;
     const turnName = this.g.turn() === "w" ? c.white : c.black;
     $("#sp").innerHTML = `<div class="msg ${this.over ? "ok" : ""}"><div class="ic">${this.g.turn() === "w" ? "♔" : "♚"}</div><div><h4>${this.over ? esc(this.over.res) + " " + esc(this.over.why) : esc(turnName) + " to move"}</h4><p>${tcLabel(c.tc)}</p></div></div><div class="h-sec">Moves</div><div class="moves">${mv || `<span></span><span class="dim">No moves yet</span>`}</div>`;
-    $("#sf").innerHTML = `<button class="btn" id="lx">Setup</button><button class="btn" id="lf" aria-label="Flip board">⇅</button>${!this.over ? `<button class="btn" id="lu">Undo</button><button class="btn" id="ld">Draw</button><button class="btn" id="lr">${esc(turnName)} resigns</button>` : ""}`;
+    $("#sf").innerHTML = `<button class="btn" id="lx">Setup</button><button class="btn" id="lf" aria-label="Flip board">⇅</button>${BoardNav.html()}${!this.over ? `<button class="btn" id="lu">Undo</button><button class="btn" id="ld">Draw</button><button class="btn" id="lr">${esc(turnName)} resigns</button>` : ""}`;
     $("#lx").onclick = () => this.menu(); $("#lf").onclick = () => { this.board.flip(); this.render(); };
     if ($("#lu")) $("#lu").onclick = () => { if (this.g.undo()){ this.lastAt = Date.now(); this.board.set(this.g, lastMv(this.g)); if (c.flip) this.board.setOrientation(this.g.turn()); this.render(); } };
     if ($("#ld")) $("#ld").onclick = () => this.end("1/2-1/2", "by agreement");
