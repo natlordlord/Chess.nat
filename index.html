@@ -707,7 +707,7 @@ const Sound = {ac:null, buf:{}, loading:false,
     try { this.ac = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return; }
     if (this.loading) return; this.loading = true;
     ["Move","Capture","Check","Mate","Victory","Defeat","GenericNotify","cheer1","cheer2","cheer3","cheer4"].forEach(n => {
-      fetch("sounds/" + n + ".mp3").then(r => r.arrayBuffer()).then(b => new Promise((res, rej) => this.ac.decodeAudioData(b, res, rej))).then(d => { this.buf[n] = d; }).catch(() => {});
+      fetch("sounds/" + n + ".mp3?v=3").then(r => r.arrayBuffer()).then(b => new Promise((res, rej) => this.ac.decodeAudioData(b, res, rej))).then(d => { this.buf[n] = d; }).catch(() => {});
     }); },
   play(n, vol = 1){ if (!S.settings.sound) return; this.init(); const ac = this.ac; if (!ac) return;
     if (this.buf[n]){ const s = ac.createBufferSource(); s.buffer = this.buf[n]; const g = ac.createGain(); g.gain.value = vol; s.connect(g).connect(ac.destination); s.start(); return; }
