@@ -390,43 +390,61 @@ table.tb th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-sp
 @keyframes conf{0%{opacity:1;transform:translate(-50%,-50%) rotate(0) scale(.6)}75%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y) + 14cqw)) rotate(var(--r)) scale(1)}}
 @keyframes burst{0%{opacity:0;transform:scale(.3) rotate(0)}25%{opacity:1}100%{opacity:0;transform:scale(1) rotate(60deg)}}
 @media (prefers-reduced-motion:reduce){.cheer .word,.cheer .delta,.cheer .sub,.cheer .streak{animation:pop .2s both, cheerOut .3s 1.5s forwards}.cheer .cf,.cheer .burst{display:none}}
-/* ===== Journey (same look as the rest: dark panels, board green and beige) ===== */
+/* ===== Journey: comic style like the pieces (thick dark outlines, flat colours, glossy top) ===== */
 .jpage{max-width:720px;margin:0 auto}
 .jhead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .jhead .jtitle{flex:1;text-align:center}
 .jhead h1{margin:2px 0;font:900 28px var(--display)}
 .jstart{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.jstart>div{flex:1;min-width:200px}
-.jmap{position:relative;border-radius:10px;overflow:hidden;background:var(--panel)}
-.jmap::before{content:"";position:absolute;inset:0;opacity:.035;background:repeating-conic-gradient(#EEEED2 0 25%,transparent 0 50%) 0 0/96px 96px;pointer-events:none}
+.jmap{position:relative;border-radius:14px;overflow:hidden;border:4px solid #1d1c1a;box-shadow:0 6px 0 #141312;
+  background:radial-gradient(ellipse at 50% 40%,transparent 40%,rgba(0,0,0,.45) 100%),repeating-conic-gradient(#5d7a43 0 25%,#4f6a38 0 50%) 0 0/180px 180px}
+.jmap::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.07),transparent 35%) 0 0/360px 360px;pointer-events:none}
 .jpath{position:absolute;inset:0;pointer-events:none}
-.jpath .base{fill:none;stroke:#3a3835;stroke-width:24;stroke-linecap:round}
-.jpath .dash{fill:none;stroke:rgba(238,238,210,.28);stroke-width:4;stroke-dasharray:2 14;stroke-linecap:round}
-.jdeco{position:absolute;transform:translate(-50%,-50%);pointer-events:none;user-select:none;opacity:.32;filter:grayscale(.35)}
-.jnode{position:absolute;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:50%;border:0;cursor:pointer;display:grid;place-items:center;
-  background:var(--panel-3);color:var(--muted);font:900 20px var(--display);box-shadow:0 4px 0 #1a1917;transition:transform .15s}
-.jnode:hover{transform:translate(-50%,-50%) scale(1.06)}
-.jnode.done{background:#EEEED2;color:#4E7A2C;box-shadow:0 4px 0 #b9b99a}
-.jnode.cur{background:var(--go);color:#fff;box-shadow:0 4px 0 var(--go-deep)}
-.jnode.locked{cursor:default}
-.jnode.locked .jn{opacity:.7;font-size:16px}
-.jnode.quest:not(.locked){outline:3px solid var(--go);outline-offset:3px}
-.jnode.boss{width:74px;height:74px;font-size:30px}
-.jnode.world{width:90px;height:90px;font-size:40px}
-.jnode.boss.locked,.jnode.quest.locked{filter:grayscale(.9) brightness(.85)}
-.jnode.boss.done,.jnode.boss.cur{outline:3px solid #EEEED2;outline-offset:3px}
-.jnode.cur{animation:jpulse 1.6s ease-in-out infinite}
-.jnode.unlock{animation:junlock .6s cubic-bezier(.2,1.7,.4,1), jpulse 1.6s ease-in-out .6s infinite}
-.jnode .jlv{position:absolute;bottom:-6px;right:-6px;background:var(--bg,#1f1e1b);color:var(--fg);font:800 11px var(--body);padding:2px 6px;border-radius:9px;border:1px solid var(--line)}
-.jnode .js{position:absolute;top:100%;left:50%;transform:translate(-50%,8px);white-space:nowrap}
-.jstars i{font-style:normal;color:var(--panel-3);margin:0 1px}
-.jstars i.on{color:var(--go-hi)}
-.jnode .js .jstars i{font-size:15px}
-.jpawn{position:absolute;width:46px;height:46px;transform:translate(-50%,-100%);margin-top:-22px;pointer-events:none;z-index:3;filter:drop-shadow(0 6px 4px rgba(0,0,0,.45))}
-.jpawn .pc{position:absolute;inset:0;width:100%;height:100%;transform:none;animation:jbob 1.4s ease-in-out infinite}
-.jworldboss{position:absolute;left:50%;transform:translateX(-50%);background:var(--panel-2);color:var(--fg);font:800 13px var(--body);padding:4px 12px;border-radius:12px;white-space:nowrap;border:1px solid var(--line)}
-@keyframes jpulse{0%,100%{box-shadow:0 4px 0 var(--go-deep),0 0 0 0 rgba(127,178,74,.6)}50%{box-shadow:0 4px 0 var(--go-deep),0 0 0 12px rgba(127,178,74,0)}}
-@keyframes junlock{0%{transform:translate(-50%,-50%) scale(.4)}100%{transform:translate(-50%,-50%) scale(1)}}
-@keyframes jbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.jpath .edge{fill:none;stroke:#1d1c1a;stroke-width:40;stroke-linecap:round;stroke-linejoin:round}
+.jpath .base{fill:none;stroke:#EEEED2;stroke-width:30;stroke-linecap:round;stroke-linejoin:round}
+.jpath .shade{fill:none;stroke:rgba(0,0,0,.08);stroke-width:12;stroke-linecap:round;transform:translateY(5px)}
+.jpath .dash{fill:none;stroke:#c9c9a6;stroke-width:5;stroke-dasharray:1 16;stroke-linecap:round;animation:jflow 1.6s linear infinite}
+@keyframes jflow{to{stroke-dashoffset:-34}}
+.jdeco{position:absolute;transform:translate(-50%,-50%);pointer-events:none;user-select:none;filter:drop-shadow(2px 3px 0 rgba(0,0,0,.35));animation:jsway 4.5s ease-in-out infinite;animation-delay:var(--dl,0s)}
+@keyframes jsway{0%,100%{transform:translate(-50%,-50%) rotate(-4deg)}50%{transform:translate(-50%,-56%) rotate(4deg)}}
+.jnode{position:absolute;transform:translate(-50%,-50%);width:62px;height:62px;border-radius:50%;cursor:pointer;display:grid;place-items:center;
+  border:4px solid #1d1c1a;background:#c8c8bb;color:#1d1c1a;font:900 22px var(--display);
+  box-shadow:0 6px 0 #1d1c1a,inset 0 -7px 0 rgba(0,0,0,.16),inset 0 5px 0 rgba(255,255,255,.45);transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
+.jnode:hover{transform:translate(-50%,-50%) scale(1.08)}
+.jnode:active{transform:translate(-50%,-46%) scale(.97)}
+.jnode .jn{position:relative;z-index:1}
+.jnode.done{background:#EEEED2;color:#4E7A2C}
+.jnode.cur{background:#81B64C;color:#fff;-webkit-text-stroke:1.5px #1d1c1a;paint-order:stroke fill}
+.jnode.locked{background:#8d8d84;color:#5f5f58;cursor:default}
+.jnode.locked .jn{opacity:0}
+.jnode .jlock{position:absolute;inset:0;display:grid;place-items:center;z-index:2;transition:transform .35s,opacity .35s}
+.jnode .jlock svg{width:30px;height:30px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.35))}
+.jnode.shake .jlock{animation:jshake .42s ease-in-out}
+.jnode.open .jlock{transform:translate(18px,-46px) rotate(35deg) scale(1.1);opacity:0;transition:transform .45s cubic-bezier(.3,1.4,.6,1),opacity .4s .1s}
+.jnode.open .jlock .sh{transform:translateY(-3px)}
+@keyframes jshake{0%,100%{transform:rotate(0)}20%{transform:rotate(-16deg)}40%{transform:rotate(14deg)}60%{transform:rotate(-10deg)}80%{transform:rotate(8deg)}}
+.jnode .jic{position:absolute;top:-16px;right:-14px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:18px;background:#EEEED2;border:3px solid #1d1c1a;box-shadow:0 3px 0 #1d1c1a;z-index:2}
+.jnode.quest:not(.locked){background:#EEEED2;color:#4E7A2C}
+.jnode.quest.cur{background:#81B64C;color:#fff}
+.jnode.boss{width:80px;height:80px;font-size:26px;background:#4E7A2C;color:#EEEED2}
+.jnode.boss.locked{background:#6d6d66;color:#4a4a45}
+.jnode.world{width:96px;height:96px;font-size:30px}
+.jnode.world .jic{width:44px;height:44px;font-size:24px;top:-20px;right:-16px}
+.jnode.cur{animation:jpulse 1.8s ease-in-out infinite}
+.jnode.unlock{animation:junlock .55s cubic-bezier(.2,1.8,.4,1), jpulse 1.8s ease-in-out .55s infinite}
+.jnode .js{position:absolute;top:100%;left:50%;transform:translate(-50%,9px);white-space:nowrap;z-index:2}
+.jstars i{font-style:normal;color:#5f5f58;margin:0 1px;-webkit-text-stroke:2px #1d1c1a;paint-order:stroke fill}
+.jstars i.on{color:#F2C14E}
+.jnode .js .jstars i{font-size:17px}
+.jpawn{position:absolute;width:52px;height:52px;transform:translate(-50%,-100%);margin-top:-26px;pointer-events:none;z-index:4;filter:drop-shadow(0 7px 0 rgba(0,0,0,.35))}
+.jpawn .pc{position:absolute;inset:0;width:100%;height:100%;transform:none;animation:jbob 1.6s ease-in-out infinite}
+.jworldboss{position:absolute;left:50%;transform:translateX(-50%);background:#EEEED2;color:#1d1c1a;font:900 14px var(--display);padding:5px 14px;border-radius:14px;white-space:nowrap;border:3px solid #1d1c1a;box-shadow:0 4px 0 #1d1c1a}
+@keyframes jpulse{0%,100%{box-shadow:0 6px 0 #1d1c1a,inset 0 -7px 0 rgba(0,0,0,.16),inset 0 5px 0 rgba(255,255,255,.45),0 0 0 0 rgba(238,238,210,.7)}50%{box-shadow:0 6px 0 #1d1c1a,inset 0 -7px 0 rgba(0,0,0,.16),inset 0 5px 0 rgba(255,255,255,.45),0 0 0 14px rgba(238,238,210,0)}}
+@keyframes junlock{0%{transform:translate(-50%,-50%) scale(.6)}60%{transform:translate(-50%,-50%) scale(1.18)}100%{transform:translate(-50%,-50%) scale(1)}}
+@keyframes jbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.jautobar{position:absolute;left:8px;right:8px;bottom:4px;height:3px;border-radius:2px;background:rgba(255,255,255,.7);transform-origin:left;animation:jauto 2.6s linear forwards}
+.btn#jcont{position:relative;overflow:hidden}
+@keyframes jauto{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 /* world effects */
 .jfx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .jfx i{position:absolute;top:-10px;display:block;border-radius:50%}
@@ -440,7 +458,9 @@ table.tb th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-sp
 @keyframes jtwinkle{0%,100%{opacity:.2}50%{opacity:1}}
 /* level card */
 .jcard-wrap{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:16px;animation:pop .2s ease-out}
-.jcard{background:var(--panel);border-radius:16px;padding:22px 24px;width:min(360px,100%);text-align:center;box-shadow:0 14px 40px rgba(0,0,0,.5)}
+.jcard{background:var(--panel);border-radius:16px;padding:22px 24px;width:min(360px,100%);text-align:center;border:4px solid #1d1c1a;box-shadow:0 8px 0 #141312,0 18px 40px rgba(0,0,0,.5);animation:jcardin .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes jcardin{from{transform:scale(.7) translateY(20px);opacity:0}to{transform:none;opacity:1}}
+.jbig .pc{position:relative;display:inline-block;width:64px;height:64px;transform:none}
 .jcard h3{margin:4px 0;font:900 24px var(--display)}.jcard p{color:var(--muted);margin:0 0 14px}
 .jbig{font-size:54px;line-height:1;margin-bottom:6px}.jbig.sm{font-size:34px;margin:0}
 .jdone .jstars i{font-size:38px}
@@ -2326,6 +2346,7 @@ const WORLDS = [
   {k: "sky",     name: "Cloud Kingdom",  sky: ["#dcefff", "#7fb0e6"], deco: ["☁️", "🎈", "🕊️", "🌈", "🏰", "🪁"], boss: "The Sky King", bossBot: "titan"},
 ];
 const PER_WORLD = 50;
+const LOCK_SVG = `<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path class="sh" d="M7.5 11V8a4.5 4.5 0 0 1 9 0v3" fill="none" stroke="#1d1c1a" stroke-width="4.2" stroke-linecap="round"/><path class="sh" d="M7.5 11V8a4.5 4.5 0 0 1 9 0v3" fill="none" stroke="#EEEED2" stroke-width="2" stroke-linecap="round"/><rect x="4.5" y="10.5" width="15" height="11" rx="2.6" fill="#E9B64A" stroke="#1d1c1a" stroke-width="2"/><circle cx="12" cy="15.4" r="1.6" fill="#1d1c1a"/><path d="M12 16.4v2.2" stroke="#1d1c1a" stroke-width="1.8" stroke-linecap="round"/></svg>`;
 const QUESTS = {
   timed:   {icon: "⏱️", name: "Beat the Clock", short: "Timed"},
   lives:   {icon: "❤️", name: "Three Lives", short: "3 lives"},
@@ -2371,14 +2392,18 @@ Views.journey = {
     const pos = L => { const i = L - first; return {x: 50 + Math.sin(i * .78) * 30, y: height - 70 - i * H}; };
     let path = ""; for (let L = first; L <= last; L++){ const p = pos(L); if (L === first) path += `M ${p.x} ${p.y}`; else { const q = pos(L - 1); path += ` C ${q.x} ${q.y - H / 2}, ${p.x} ${p.y + H / 2}, ${p.x} ${p.y}`; } }
     const doneTo = clamp(J.level - first, 0, PER_WORLD);
-    let deco = ""; for (let i = 0; i < 44; i++){ const L = first + Math.floor(hashL(wi, i) * PER_WORLD); const p = pos(L); const side = hashL(wi, i + 99) < .5 ? -1 : 1;
-      const x = clamp(p.x + side * (20 + hashL(wi, i + 7) * 18), 4, 92), y = p.y - 30 + hashL(wi, i + 3) * 60; deco += `<span class="jdeco" style="left:${x}%;top:${y}px;font-size:${22 + Math.round(hashL(wi, i + 5) * 18)}px">${w.deco[i % w.deco.length]}</span>`; }
+    let deco = ""; for (let i = 0; i < 34; i++){ const L = first + Math.floor(hashL(wi, i) * PER_WORLD); const p = pos(L); const side = hashL(wi, i + 99) < .5 ? -1 : 1;
+      const x = clamp(p.x + side * (20 + hashL(wi, i + 7) * 18), 4, 92), y = p.y - 30 + hashL(wi, i + 3) * 60; deco += `<span class="jdeco" style="left:${x}%;top:${y}px;font-size:${24 + Math.round(hashL(wi, i + 5) * 20)}px;--dl:-${(hashL(wi, i + 9) * 4).toFixed(1)}s">${w.deco[i % w.deco.length]}</span>`; }
+    // during the unlock animation the new level still looks locked, and the pawn waits on the level just finished
+    const hop = anim && anim.to === J.level && anim.from < anim.to && J.level >= first && J.level <= last ? anim : null;
+    const shown = hop ? hop.to - 1 : J.level;
     let nodes = ""; for (let L = first; L <= last; L++){
-      const sp = levelSpec(L), p = pos(L), st = J.best[L] || 0, cur = L === J.level, locked = L > J.level, boss = sp.type === "boss";
+      const sp = levelSpec(L), p = pos(L), st = J.best[L] || 0, cur = L === shown && !hop, locked = L > shown, boss = sp.type === "boss";
       const label = boss ? (sp.world ? "👑" : "⚔️") : QUESTS[sp.type] ? QUESTS[sp.type].icon : L;
       nodes += `<button class="jnode ${boss ? "boss" : ""} ${sp.world ? "world" : ""} ${QUESTS[sp.type] ? "quest" : ""} ${cur ? "cur" : ""} ${locked ? "locked" : ""} ${st ? "done" : ""}" data-lv="${L}" style="left:${p.x}%;top:${p.y}px" aria-label="Level ${L}${locked ? ", locked" : ""}">
-        <span class="jn">${locked && !boss && !QUESTS[sp.type] ? "🔒" : label}</span>${boss || QUESTS[sp.type] ? `<span class="jlv">${L}</span>` : ""}${st ? `<span class="js">${starsHTML(st)}</span>` : ""}</button>`; }
+        <span class="jn">${L}</span>${locked ? `<span class="jlock">${LOCK_SVG}</span>` : boss || QUESTS[sp.type] ? `<span class="jic">${label}</span>` : ""}${st ? `<span class="js">${starsHTML(st)}</span>` : ""}</button>`; }
     const curPos = J.level >= first && J.level <= last ? pos(J.level) : null;
+    const pawnL = hop ? Math.max(first, hop.to - 1) : J.level, pawnPos = pawnL >= first && pawnL <= last ? pos(pawnL) : null;
     const startChoice = J.level === 1 && !Object.keys(J.best).length && S.puzzle.n >= 10 && S.puzzle.r > 600;
     const jumpTo = Math.max(1, Math.floor((S.puzzle.r - 450) / 4 / 10) * 10 - 9);
     this.main.innerHTML = `<div class="page jpage">
@@ -2389,33 +2414,46 @@ Views.journey = {
       ${startChoice ? `<div class="unit jstart"><div><b>Start where you are?</b><div class="muted" style="font-size:13px">Your puzzle rating is ${S.puzzle.r}. Level 1 starts at 450.</div></div><button class="btn" id="jfrom1">Start at level 1</button><button class="btn go" id="jjump">Jump to level ${jumpTo}</button></div>` : ""}
       <div class="jmap w-${w.k}" id="jmap" style="height:${height}px">
         ${w.fx ? `<div class="jfx fx-${w.fx}">${Array.from({length: 26}, (_, i) => `<i style="left:${Math.round(hashL(wi, i + 300) * 100)}%;animation-delay:-${(hashL(wi, i + 400) * 12).toFixed(1)}s;animation-duration:${(7 + hashL(wi, i + 500) * 8).toFixed(1)}s"></i>`).join("")}</div>` : ""}
-        <svg class="jpath" viewBox="0 0 100 ${height}" preserveAspectRatio="none" width="100%" height="${height}"><path d="${path}" class="base" vector-effect="non-scaling-stroke"/><path d="${path}" class="dash" vector-effect="non-scaling-stroke"/></svg>
+        <svg class="jpath" viewBox="0 0 100 ${height}" preserveAspectRatio="none" width="100%" height="${height}"><path d="${path}" class="edge" vector-effect="non-scaling-stroke"/><path d="${path}" class="base" vector-effect="non-scaling-stroke"/><path d="${path}" class="dash" vector-effect="non-scaling-stroke"/></svg>
         ${deco}${nodes}
         <div class="jworldboss" style="top:${pos(last).y - 92}px">${esc(w.boss)}</div>
-        ${curPos ? `<div class="jpawn" id="jpawn" style="left:${curPos.x}%;top:${curPos.y}px"><i class="pc wp"></i></div>` : ""}
+        ${pawnPos ? `<div class="jpawn" id="jpawn" style="left:${pawnPos.x}%;top:${pawnPos.y}px"><i class="pc wp"></i></div>` : ""}
       </div></div>`;
     $("#jprev").onclick = () => { this.w = Math.max(0, wi - 1); this.draw(); };
     $("#jnext").onclick = () => { this.w = Math.min(maxW, wi + 1); this.draw(); };
     if ($("#jfrom1")) $("#jfrom1").onclick = () => { J.best[0] = 1; save(); this.draw(); };
     if ($("#jjump")) $("#jjump").onclick = () => { J.level = jumpTo; J.best[0] = 1; save(); this.w = worldIdx(jumpTo); this.draw({from: 1, to: jumpTo}); };
     $$(".jnode", this.main).forEach(b => b.onclick = () => this.card(+b.dataset.lv));
-    // scroll the current level into view, then let the pawn hop to it
-    const target = curPos ? curPos.y : 0;
-    requestAnimationFrame(() => { const m = $("#jmap"), main = $("#main"); if (!m) return;
-      const own = main && /auto|scroll/.test(getComputedStyle(main).overflowY) && main.scrollHeight > main.clientHeight + 4;
-      const sc = own ? main : document.scrollingElement, viewH = own ? main.clientHeight : innerHeight, base = own ? main.getBoundingClientRect().top : 0;
-      const y = m.getBoundingClientRect().top - base + sc.scrollTop + target - viewH * .55; sc.scrollTop = Math.max(0, y); });
-    if (anim && anim.to === J.level && curPos && anim.from >= first && anim.from <= last && anim.from !== anim.to){
-      const a = pos(anim.from), pw = $("#jpawn"); const mapW = $("#jmap").clientWidth;
-      const dx = (a.x - curPos.x) / 100 * mapW, dy = a.y - curPos.y;
-      pw.animate([{transform: `translate(calc(-50% + ${dx}px), calc(-100% + ${dy}px))`}, {transform: `translate(calc(-50% + ${dx / 2}px), calc(-100% + ${dy / 2 - 70}px)) scale(1.15)`, offset: .5}, {transform: "translate(-50%, -100%)"}], {duration: 750, easing: "cubic-bezier(.3,.7,.4,1)"});
-      this.t = setTimeout(() => { Sound.play("Move", .8); const n = $(`.jnode[data-lv="${J.level}"]`); if (n){ n.classList.add("unlock"); } }, 720);
-    }
+    // bring the current level into view (whatever element scrolls on this device), then play the hop
+    const focusL = hop ? pawnL : J.level;
+    const scroller = el => { for (let p = el && el.parentElement; p; p = p.parentElement){ const o = getComputedStyle(p).overflowY; if (/auto|scroll/.test(o) && p.scrollHeight > p.clientHeight + 4) return p; } return document.scrollingElement; };
+    const toNode = (L, ms = 0) => { const n = $(`.jnode[data-lv="${L}"]`); if (!n) return; const sc = scroller(n), docS = sc === document.scrollingElement;
+      const r = n.getBoundingClientRect(), top = docS ? 0 : sc.getBoundingClientRect().top, viewH = docS ? innerHeight : sc.clientHeight;
+      const goal = Math.max(0, sc.scrollTop + r.top - top - viewH * .5 + r.height / 2), start = sc.scrollTop;
+      if (!ms || Math.abs(goal - start) < 2){ sc.scrollTop = goal; return; }
+      const t0 = performance.now(), ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      const step = now => { const k = Math.min(1, (now - t0) / ms); sc.scrollTop = start + (goal - start) * ease(k); if (k < 1 && App.view === this) requestAnimationFrame(step); }; requestAnimationFrame(step); };
+    requestAnimationFrame(() => toNode(focusL)); setTimeout(() => toNode(focusL), 120);
+    if (!hop) { setTimeout(() => toNode(focusL), 450); return; }
+    const T = ms => new Promise(r => { this.t = setTimeout(r, ms); });
+    (async () => {
+      await T(550); if (App.view !== this) return;
+      const pw = $("#jpawn"), node = $(`.jnode[data-lv="${hop.to}"]`); if (!pw || !node || !curPos) return;
+      const mapW = $("#jmap").clientWidth, from = pos(pawnL), dx = (curPos.x - from.x) / 100 * mapW, dy = curPos.y - from.y;
+      toNode(hop.to, 900); Sound.play("Move", .9);
+      const a = pw.animate([{transform: "translate(-50%, -100%)"}, {transform: `translate(calc(-50% + ${dx * .5}px), calc(-100% + ${dy * .5 - 80}px)) scale(1.18) rotate(-8deg)`, offset: .5}, {transform: `translate(calc(-50% + ${dx}px), calc(-100% + ${dy}px)) scale(1, .82)`, offset: .88}, {transform: `translate(calc(-50% + ${dx}px), calc(-100% + ${dy}px))`}], {duration: 820, easing: "cubic-bezier(.35,.6,.4,1)", fill: "forwards"});
+      await T(720); Sound.play("Move", 1);
+      await T(220); node.classList.add("shake"); Sound.play("Capture", .8);
+      await T(420); node.classList.remove("shake"); node.classList.add("open"); Sound.cheer(1);
+      await T(380); node.classList.remove("locked"); node.classList.add("cur", "unlock"); const lk = $(".jlock", node); if (lk) lk.remove();
+      a.cancel(); pw.style.left = curPos.x + "%"; pw.style.top = curPos.y + "px";
+      await T(650); if (App.view === this && !$(".jcard-wrap")) this.card(hop.to);
+    })();
   },
   card(L){
     const J = jState(), sp = levelSpec(L), locked = L > J.level, st = J.best[L] || 0;
     const ov = document.createElement("div"); ov.className = "jcard-wrap";
-    const head = sp.type === "boss" ? `<div style="display:flex;justify-content:center;margin-bottom:8px">${botAvatar(sp.bot, 72)}</div>` : `<div class="jbig">${QUESTS[sp.type] ? QUESTS[sp.type].icon : "♟"}</div>`;
+    const head = sp.type === "boss" ? `<div style="display:flex;justify-content:center;margin-bottom:8px">${botAvatar(sp.bot, 72)}</div>` : `<div class="jbig">${QUESTS[sp.type] ? QUESTS[sp.type].icon : `<i class="pc wp"></i>`}</div>`;
     ov.innerHTML = `<div class="jcard" role="dialog" aria-label="Level ${L}">${head}<div class="muted" style="font-size:12px;font-weight:800;letter-spacing:.08em">LEVEL ${L}${sp.type === "boss" ? (sp.world ? " · WORLD BOSS" : " · BOSS") : QUESTS[sp.type] ? " · QUEST" : ""}</div>
       <h3>${esc(sp.title)}</h3><p>${esc(sp.goal)}</p>${st ? `<div style="font-size:26px;margin:4px 0 10px">${starsHTML(st)}</div>` : ""}
       ${locked ? `<p class="dim">Finish level ${J.level} first.</p><button class="btn" data-x>Close</button>` : `<div class="grid2"><button class="btn" data-x>Back</button><button class="btn go" id="jplay">${st ? "Play again" : "Play"}</button></div>`}</div>`;
@@ -2526,8 +2564,11 @@ function journeyResultCard(board, sp, stars, res){
   const ov = board.overlay(`<div class="card-over jdone"><div style="font-size:40px;line-height:1">${starsHTML(stars)}</div><h3>Level ${sp.L} complete!</h3>
     <p>${res.newWorld ? `New world unlocked: <b>${esc(worldName(nl))}</b> ✨` : nl > sp.L ? `Next up: level ${nl}${nsp.type === "boss" ? " · a boss game ⚔️" : QUESTS[nsp.type] ? " · " + QUESTS[nsp.type].name : ""}` : "Replay finished."}</p>
     <div class="grid2"><button class="btn" id="jagain">Replay</button><button class="btn go" id="jcont">Continue</button></div></div>`);
-  $("#jcont", ov).onclick = () => App.go("journey", {anim: {from: Math.min(sp.L, res.from), to: res.to}});
-  $("#jagain", ov).onclick = () => Views.journey.start(sp.L);
+  const go = () => { clearTimeout(auto); App.go("journey", {anim: {from: Math.min(sp.L, res.from), to: res.to}}); };
+  const auto = res.to > sp.L ? setTimeout(() => { if ($("#jcont")) go(); }, 2600) : null;
+  if (auto) $("#jcont", ov).insertAdjacentHTML("beforeend", `<i class="jautobar"></i>`);
+  $("#jcont", ov).onclick = go;
+  $("#jagain", ov).onclick = () => { clearTimeout(auto); Views.journey.start(sp.L); };
 }
 
 /* ===== Game Review: Stockfish analysis with move classifications ===== */
