@@ -390,6 +390,72 @@ table.tb th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-sp
 @keyframes conf{0%{opacity:1;transform:translate(-50%,-50%) rotate(0) scale(.6)}75%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y) + 14cqw)) rotate(var(--r)) scale(1)}}
 @keyframes burst{0%{opacity:0;transform:scale(.3) rotate(0)}25%{opacity:1}100%{opacity:0;transform:scale(1) rotate(60deg)}}
 @media (prefers-reduced-motion:reduce){.cheer .word,.cheer .delta,.cheer .sub,.cheer .streak{animation:pop .2s both, cheerOut .3s 1.5s forwards}.cheer .cf,.cheer .burst{display:none}}
+/* ===== Journey ===== */
+.jpage{max-width:720px;margin:0 auto}
+.jhead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.jhead .jtitle{flex:1;text-align:center}
+.jhead h1{margin:2px 0;font:900 28px var(--display)}
+.jstart{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.jstart>div{flex:1;min-width:200px}
+.jmap{position:relative;border-radius:16px;overflow:hidden;background:radial-gradient(ellipse 60% 40px at 20% 30%,rgba(255,255,255,.18),transparent 70%) 0 0/100% 420px,radial-gradient(ellipse 50% 50px at 80% 70%,rgba(0,0,0,.07),transparent 70%) 0 0/100% 380px,linear-gradient(180deg,var(--sky2) 0%,var(--sky1) 55%,var(--sky1) 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)}
+.jpath{position:absolute;inset:0;pointer-events:none}
+.jpath .base{fill:none;stroke:rgba(255,255,255,.55);stroke-width:26;stroke-linecap:round}
+.jpath .dash{fill:none;stroke:rgba(0,0,0,.18);stroke-width:4;stroke-dasharray:2 14;stroke-linecap:round}
+.jdeco{position:absolute;transform:translate(-50%,-50%);pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.18));user-select:none}
+.jnode{position:absolute;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:50%;border:0;cursor:pointer;display:grid;place-items:center;
+  background:radial-gradient(circle at 35% 30%,#a8d878,#5f9b37 70%);color:#fff;font:900 20px var(--display);box-shadow:0 5px 0 #3e6b21,0 8px 14px rgba(0,0,0,.25);transition:transform .15s}
+.jnode:hover{transform:translate(-50%,-50%) scale(1.06)}
+.jnode.done{background:radial-gradient(circle at 35% 30%,#fff2b0,#e8b93a 70%);box-shadow:0 5px 0 #a87a14,0 8px 14px rgba(0,0,0,.25);color:#5a3d00}
+.jnode.locked{background:radial-gradient(circle at 35% 30%,#d6d6d6,#9a9a9a 70%);box-shadow:0 5px 0 #6d6d6d,0 8px 14px rgba(0,0,0,.2);color:#fff;cursor:default}
+.jnode.locked .jn{opacity:.85;font-size:17px}
+.jnode.quest{background:radial-gradient(circle at 35% 30%,#bfe6ff,#3d8fd6 70%);box-shadow:0 5px 0 #24619a,0 8px 14px rgba(0,0,0,.25)}
+.jnode.boss{width:76px;height:76px;font-size:30px;background:radial-gradient(circle at 35% 30%,#ffb3a3,#d6453a 70%);box-shadow:0 6px 0 #8f2620,0 10px 18px rgba(0,0,0,.3)}
+.jnode.world{width:92px;height:92px;font-size:40px;background:radial-gradient(circle at 35% 30%,#ffe9a6,#c8862a 60%,#7a4a10);box-shadow:0 7px 0 #5d3708,0 12px 22px rgba(0,0,0,.35)}
+.jnode.locked.quest,.jnode.locked.boss{filter:grayscale(.85) brightness(.95)}
+.jnode.done.quest,.jnode.done.boss{filter:none;outline:4px solid #f3c64a;outline-offset:2px}
+.jnode.cur{animation:jpulse 1.6s ease-in-out infinite}
+.jnode.unlock{animation:junlock .6s cubic-bezier(.2,1.7,.4,1), jpulse 1.6s ease-in-out .6s infinite}
+.jnode .jlv{position:absolute;bottom:-6px;right:-6px;background:#1f1e1b;color:#fff;font:800 11px var(--body);padding:2px 6px;border-radius:9px}
+.jnode .js{position:absolute;top:100%;left:50%;transform:translate(-50%,8px);white-space:nowrap}
+.jstars i{font-style:normal;color:rgba(0,0,0,.25);text-shadow:none;margin:0 1px}
+.jstars i.on{color:#ffd23f;text-shadow:0 1px 0 #a87a14,0 0 6px rgba(255,210,63,.6)}
+.jnode .js .jstars i{font-size:15px}
+.jpawn{position:absolute;width:46px;height:46px;transform:translate(-50%,-100%);margin-top:-22px;pointer-events:none;z-index:3;filter:drop-shadow(0 6px 4px rgba(0,0,0,.35))}
+.jpawn .pc{position:absolute;inset:0;width:100%;height:100%;transform:none;animation:jbob 1.4s ease-in-out infinite}
+.jworldboss{position:absolute;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);color:#fff;font:800 13px var(--body);padding:4px 12px;border-radius:12px;white-space:nowrap}
+@keyframes jpulse{0%,100%{box-shadow:0 5px 0 #3e6b21,0 8px 14px rgba(0,0,0,.25),0 0 0 0 rgba(255,255,255,.7)}50%{box-shadow:0 5px 0 #3e6b21,0 8px 14px rgba(0,0,0,.25),0 0 0 12px rgba(255,255,255,0)}}
+@keyframes junlock{0%{transform:translate(-50%,-50%) scale(.4)}100%{transform:translate(-50%,-50%) scale(1)}}
+@keyframes jbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+/* world effects */
+.jfx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.jfx i{position:absolute;top:-10px;display:block;border-radius:50%}
+.fx-snow i{width:7px;height:7px;background:#fff;opacity:.9;animation:jfall linear infinite}
+.fx-bubbles i{width:10px;height:10px;border:2px solid rgba(255,255,255,.7);top:auto;bottom:-14px;animation:jrise linear infinite}
+.fx-embers i{width:5px;height:5px;background:#ffb347;box-shadow:0 0 6px #ff7b00;top:auto;bottom:-10px;animation:jrise linear infinite}
+.fx-stars i{width:3px;height:3px;background:#fff;animation:jtwinkle ease-in-out infinite;top:auto}
+.fx-stars i:nth-child(odd){top:30%}.fx-stars i:nth-child(3n){top:60%}.fx-stars i:nth-child(4n){top:85%}.fx-stars i:nth-child(5n){top:12%}
+@keyframes jfall{to{transform:translateY(5200px) translateX(40px)}}
+@keyframes jrise{to{transform:translateY(-5200px) translateX(-30px)}}
+@keyframes jtwinkle{0%,100%{opacity:.2}50%{opacity:1}}
+/* level card */
+.jcard-wrap{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:16px;animation:pop .2s ease-out}
+.jcard{background:var(--panel);border-radius:16px;padding:22px 24px;width:min(360px,100%);text-align:center;box-shadow:0 14px 40px rgba(0,0,0,.5)}
+.jcard h3{margin:4px 0;font:900 24px var(--display)}.jcard p{color:var(--muted);margin:0 0 14px}
+.jbig{font-size:54px;line-height:1;margin-bottom:6px}.jbig.sm{font-size:34px;margin:0}
+.jdone .jstars i{font-size:38px}
+/* level play */
+.jprog{display:flex;gap:6px;justify-content:center;margin-top:12px}
+.jprog i{width:22px;height:10px;border-radius:5px;background:var(--panel-3)}.jprog i.on{background:var(--go)}
+.jhearts{display:flex;justify-content:center;gap:6px;font-size:24px;margin-top:8px}.jhearts i{font-style:normal}.jhearts i.lost{filter:grayscale(1);opacity:.35}
+.jclock{font:900 20px var(--mono);background:var(--panel-2);padding:2px 10px;border-radius:6px}.jclock.low{color:#fff;background:var(--bad)}
+.jcount{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.35)}
+.jcount b{font:900 min(34vw,170px)/1 var(--display);color:#F3F3DC;-webkit-text-stroke:5px #4E7A2C;paint-order:stroke fill;text-shadow:0 8px 0 #3B5E20;animation:jcnt .8s cubic-bezier(.2,1.6,.4,1)}
+.jcount b.go{color:#9BD35C}
+@keyframes jcnt{0%{transform:scale(2.2);opacity:0}40%{transform:scale(1);opacity:1}100%{transform:scale(.9);opacity:.9}}
+/* home tile */
+.tile.jtile{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--sky2),var(--sky1));color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.tile.jtile p{color:rgba(255,255,255,.92)}
+.tile.jtile .jt-deco{position:absolute;right:14px;top:10px;font-size:30px;opacity:.9}
+@media (max-width:720px){.jhead h1{font-size:22px}.jnode{width:52px;height:52px;font-size:18px}.jnode.boss{width:68px;height:68px}.jnode.world{width:82px;height:82px}}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -504,7 +570,7 @@ const DEF = () => ({
   rush:{best3:0, best5:0, bestS:0, runs:[]},
   daily:{last:"", streak:0, best:0, done:{}},
   themes:{}, failed:[], seen:[], recent:[],
-  bots:{}, games:[], lessons:{}, xp:0, h2h:{}, linkGames:{},
+  bots:{}, games:[], journey: {level: 1, best: {}}, lessons:{}, xp:0, h2h:{}, linkGames:{},
   day:{k:"", pz:0, ls:0, gm:0, rush:0, daily:0}, plan:{streak:0, best:0, last:""},
   settings:{sound:true, voice:true, coords:true, legal:true, autoNext:true, board:"green", anim:true, coach:true, threats:true},
 });
@@ -532,10 +598,55 @@ function cloudErr(e, what){
   if (e && e.code === "invalid_argument" && what !== "log-size"){ Cloud.db = null; Cloud.status = "viewonly"; } else Cloud.status = "error";
   renderRailStatus();
 }
+
+/* Progress from two devices (or a device and the account) is merged, never replaced:
+   a fresh phone must not wipe lessons done on the computer. Counters take the bigger value, lists are joined. */
+function mergeProgress(a, b){
+  if (!a) return b; if (!b) return a;
+  a = mergeDefaults(JSON.parse(JSON.stringify(a))); b = mergeDefaults(JSON.parse(JSON.stringify(b)));
+  const newer = (a.ts || 0) >= (b.ts || 0) ? a : b, older = newer === a ? b : a;
+  const m = JSON.parse(JSON.stringify(newer));
+  const pa = a.puzzle || {}, pb = b.puzzle || {};
+  const pw = (pa.n || 0) > (pb.n || 0) ? a : (pb.n || 0) > (pa.n || 0) ? b : newer, po = pw === a ? b : a;
+  m.puzzle = JSON.parse(JSON.stringify(pw.puzzle));
+  m.themes = {}; new Set([...Object.keys(a.themes || {}), ...Object.keys(b.themes || {})]).forEach(k => { const x = (a.themes || {})[k], y = (b.themes || {})[k]; m.themes[k] = !x ? y : !y ? x : ((x.n || 0) >= (y.n || 0) ? x : y); });
+  const seenW = new Set(pw.seen || []);
+  m.seen = [...new Set([...(po.seen || []), ...(pw.seen || [])])];
+  const fid = new Set((pw.failed || []).map(x => x[0]));
+  m.failed = (pw.failed || []).concat((po.failed || []).filter(x => !fid.has(x[0]) && !seenW.has(x[0])));
+  const rk = r => r.id + ":" + r.ts; const rs = new Map(); [...(a.recent || []), ...(b.recent || [])].forEach(r => rs.set(rk(r), r));
+  m.recent = [...rs.values()].sort((x, y) => (x.ts || 0) - (y.ts || 0)).slice(-150);
+  m.lessons = {}; new Set([...Object.keys(a.lessons || {}), ...Object.keys(b.lessons || {})]).forEach(k => { const x = (a.lessons || {})[k] || {}, y = (b.lessons || {})[k] || {};
+    m.lessons[k] = {done: !!(x.done || y.done), stars: Math.max(x.stars || 0, y.stars || 0), ts: Math.max(x.ts || 0, y.ts || 0)}; });
+  m.xp = Math.max(a.xp || 0, b.xp || 0);
+  m.rush = Object.assign({}, newer.rush, {best3: Math.max(a.rush.best3 || 0, b.rush.best3 || 0), best5: Math.max(a.rush.best5 || 0, b.rush.best5 || 0), bestS: Math.max(a.rush.bestS || 0, b.rush.bestS || 0)});
+  { const rr = new Map(); [...(a.rush.runs || []), ...(b.rush.runs || [])].forEach(r => rr.set(JSON.stringify(r), r)); m.rush.runs = [...rr.values()].slice(-50); }
+  m.daily = Object.assign({}, (a.daily.last || "") >= (b.daily.last || "") ? a.daily : b.daily); m.daily.done = Object.assign({}, b.daily.done, a.daily.done); m.daily.best = Math.max(a.daily.best || 0, b.daily.best || 0);
+  { const gs = new Map(); [...(a.games || []), ...(b.games || [])].forEach(g => gs.set(g.id || (g.ts + ":" + (g.pgn || "").length), g)); m.games = [...gs.values()].sort((x, y) => (x.ts || 0) - (y.ts || 0)).slice(-80); }
+  const tot = r => r ? (r.w || 0) + (r.d || 0) + (r.l || 0) : -1;
+  m.bots = {}; new Set([...Object.keys(a.bots || {}), ...Object.keys(b.bots || {})]).forEach(k => { const x = (a.bots || {})[k], y = (b.bots || {})[k]; m.bots[k] = tot(x) >= tot(y) ? x : y; });
+  m.h2h = {}; new Set([...Object.keys(a.h2h || {}), ...Object.keys(b.h2h || {})]).forEach(k => { const x = (a.h2h || {})[k], y = (b.h2h || {})[k]; m.h2h[k] = tot(x) >= tot(y) ? x : y; });
+  m.linkGames = Object.assign({}, older.linkGames, newer.linkGames);
+  m.plan = Object.assign({}, (a.plan.last || "") >= (b.plan.last || "") ? a.plan : b.plan, {best: Math.max(a.plan.best || 0, b.plan.best || 0)});
+  if (a.day.k === b.day.k){ m.day = {k: a.day.k}; new Set([...Object.keys(a.day), ...Object.keys(b.day)]).forEach(k => { if (k !== "k") m.day[k] = Math.max(a.day[k] || 0, b.day[k] || 0); }); }
+  else m.day = JSON.parse(JSON.stringify((a.day.k || "") > (b.day.k || "") ? a.day : b.day));
+  if (a.journey || b.journey){ const ja = a.journey || {}, jb = b.journey || {}; m.journey = Object.assign({}, jb, ja, {level: Math.max(ja.level || 1, jb.level || 1), best: Object.assign({}, jb.best, ja.best)});
+    Object.keys(m.journey.best).forEach(k => { m.journey.best[k] = Math.max((ja.best || {})[k] || 0, (jb.best || {})[k] || 0); }); }
+  if ((!m.name || m.name === "You") && older.name && older.name !== "You") m.name = older.name;
+  m.rev = Math.max(a.rev || 0, b.rev || 0) + 1; m.ts = Math.max(a.ts || 0, b.ts || 0);
+  return m;
+}
+const progSig = x => JSON.stringify([x.puzzle && x.puzzle.n, Object.keys(x.lessons || {}).length, (x.games || []).length, x.xp, x.journey && x.journey.level, (x.seen || []).length, x.day]);
+/* read, merge, write: another device may have saved in the meantime */
 function pushProfile(){
   if (!Cloud.db) return;
-  const body = JSON.parse(JSON.stringify(S));
-  Cloud.queue = Cloud.queue.then(() => Cloud.db.doc(Cloud.base + "/profile").set(body).then(() => { Cloud.status = "on"; Cloud.lastError = ""; renderRailStatus(); }).catch(e => cloudErr(e, "profile")));
+  Cloud.queue = Cloud.queue.then(async () => {
+    const ref = Cloud.db.doc(Cloud.base + "/profile");
+    let remote = null; try { const snap = await ref.get(); remote = snap.exists ? snap.data() : null; } catch(e) {}
+    if (remote && progSig(mergeProgress(S, remote)) !== progSig(S)){ const m = mergeProgress(S, remote); S = m; writeLocal(); if (["home", "learn", "stats", "review", "journey", "train"].includes(App.route)) App.refresh(); }
+    await ref.set(JSON.parse(JSON.stringify(S)));
+    Cloud.status = "on"; Cloud.lastError = ""; renderRailStatus();
+  }).catch(e => cloudErr(e, "profile"));
 }
 /* Training log: every miss and every finished game, one document per day ("log-2026-11-01", then "-2"…), for later analysis */
 const LogBook = {key: null, rows: null};
@@ -576,12 +687,13 @@ async function connectCloud(){
   let remote = null;
   try { const snap = await db.doc(Cloud.base + "/profile").get(); remote = snap.exists ? snap.data() : null; } catch(e){ cloudErr(e, "read"); return; }
   if (!remote && Cloud.owner){ try { const old = await db.doc("profile/main").get(); if (old.exists && (old.data().ts || 0) > (S.ts || 0)) adopt(old.data()); } catch(e) {} }
-  if (remote && (remote.ts || 0) > (S.ts || 0)) adopt(remote); else pushProfile();
+  if (remote){ const m = mergeProgress(S, remote); if (progSig(m) !== progSig(S) || (remote.ts || 0) > (S.ts || 0)) adopt(m); }
+  pushProfile();
   let first = true;
   db.doc(Cloud.base + "/profile").onSnapshot(snap => {
     if (first){ first = false; return; }
     if (snap.metadata.hasPendingWrites || !snap.exists) return;
-    const r = snap.data(); if ((r.ts || 0) > (S.ts || 0) + 500 && !App.busy()) adopt(r);
+    const r = snap.data(); if ((r.ts || 0) > (S.ts || 0) + 500 && !App.busy()) adopt(mergeProgress(S, r));
   }, e => cloudErr(e, "listen"));
   try { const k = "chessnat-log"; const a = JSON.parse(localStorage.getItem(k + ":" + uid) || (claimed === uid || !claimed ? localStorage.getItem(k) : null) || "[]"); if (a.length){ localStorage.removeItem(k + ":" + uid); localStorage.removeItem(k); Cloud.queue = Cloud.queue.then(() => appendLog(a)); } } catch(e) {}
 }
@@ -594,9 +706,8 @@ const Sound = {ac:null, buf:{}, loading:false,
   init(){ if (this.ac) { if (this.ac.state === "suspended") this.ac.resume(); return; }
     try { this.ac = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return; }
     if (this.loading) return; this.loading = true;
-    const CHEER_CLIPS = ["nice","good","great","smooth","brilliant","superb","onfire","legendary","unstoppable","genius"];
-    ["Move","Capture","Check","Victory","Defeat","GenericNotify"].concat(CHEER_CLIPS.map(c => "cheer:" + c)).forEach(n => {
-      fetch(n.startsWith("cheer:") ? "cheer/" + n.slice(6) + ".mp3" : "sounds/" + n + ".mp3").then(r => r.arrayBuffer()).then(b => new Promise((res, rej) => this.ac.decodeAudioData(b, res, rej))).then(d => { this.buf[n] = d; }).catch(() => {});
+    ["Move","Capture","Check","Mate","Victory","Defeat","GenericNotify","cheer1","cheer2","cheer3","cheer4"].forEach(n => {
+      fetch("sounds/" + n + ".mp3").then(r => r.arrayBuffer()).then(b => new Promise((res, rej) => this.ac.decodeAudioData(b, res, rej))).then(d => { this.buf[n] = d; }).catch(() => {});
     }); },
   play(n, vol = 1){ if (!S.settings.sound) return; this.init(); const ac = this.ac; if (!ac) return;
     if (this.buf[n]){ const s = ac.createBufferSource(); s.buffer = this.buf[n]; const g = ac.createGain(); g.gain.value = vol; s.connect(g).connect(ac.destination); s.start(); return; }
@@ -608,12 +719,11 @@ const Sound = {ac:null, buf:{}, loading:false,
     seq.forEach(([f, d, gap]) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = f; g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d + .02); t += gap || d * .6; }); },
   right(){ this.tone([[784,.14,.09],[1047,.16,.09],[1319,.3]]); },
   /* celebration: a rising sparkle (longer for bigger cheers) and the announcer saying the word */
-  cheer(tier, slug){ const notes = [[1047,.09,.06],[1319,.09,.06],[1568,.09,.06],[2093,.12,.07],[2637,.32]].slice(5 - Math.min(5, tier + 2)); this.tone(notes, "triangle", .13);
-    /* the announcer plays from memory (loaded with the other sounds), so it is in sync with the picture; if it isn't loaded yet it is skipped rather than coming late */
-    if (!S.settings.sound || !slug || !this.buf["cheer:" + slug]) return; setTimeout(() => this.play("cheer:" + slug, .9), 120); },
-  wrong(){ this.tone([[220,.18,.12],[165,.26]], "square", .05); },
+  /* celebration jingle (marimba and glockenspiel), bigger for bigger cheers; skipped if not loaded yet rather than playing late */
+  cheer(tier){ const n = "cheer" + clamp(tier, 1, 4); if (this.buf[n]) this.play(n, .85); else this.tone([[1047,.09,.06],[1319,.09,.06],[1568,.2]], "triangle", .1); },
+  wrong(){ this.tone([[311,.12,.08],[233,.24]], "triangle", .09); },
   tick(){ this.tone([[1600,.05]], "sine", .05); },
-  forMove(m, g){ if (g && g.in_check && g.in_check()) this.play("Check"); else if (m && (m.flags.includes("c") || m.flags.includes("e"))) this.play("Capture"); else this.play("Move"); }
+  forMove(m, g){ if (g && g.in_checkmate && g.in_checkmate()) this.play("Mate", .95); else if (g && g.in_check && g.in_check()) this.play("Check"); else if (m && (m.flags.includes("c") || m.flags.includes("e"))) this.play("Capture"); else this.play("Move"); }
 };
 
 /* ---------- voice (lessons): pre-recorded neural voice clips, keyed by the text ---------- */
@@ -658,11 +768,20 @@ PZ.pick = async ({target, spread = 60, theme = null, exclude = null, lo = null, 
     const a = lo != null ? Math.max(lo, target - w) : target - w, b = hi != null ? Math.min(hi, target + w) : target + w;
     const pool = await PZ.range(a, b);
     const c = pool.filter(p => Math.abs(p.r - target) <= w && ok(p));
-    if (c.length >= 3 || (w > 500 && c.length)) return rnd(c);
+    if (c.length >= 3 || (w > 500 && c.length)) return theme == null ? varied(c) : rnd(c);
     if (lo != null && hi != null && a <= lo && b >= hi) { const all = pool.filter(ok); if (all.length) return rnd(all); }
   }
   const any = await PZ.range(target - 100, target + 100); return any.length ? rnd(any) : null;
 };
+/* variety: avoid repeating the motifs of the last few puzzles, and now and then steer towards a weak theme */
+function varied(c){
+  const phase = new Set(["opening", "middlegame", "endgame"].map(k => PZ.themeIdx[k]));
+  const recentTh = new Set(S.recent.slice(-3).flatMap(r => r.th || []).filter(i => !phase.has(i)));
+  let pool = c.filter(p => !p.th.some(i => recentTh.has(i))); if (pool.length < 3) pool = c;
+  if (Math.random() < .25){ const weak = Object.entries(S.themes).filter(([k, v]) => v.n >= 3 && PZ.themeIdx[k] != null).sort((a, b) => a[1].ok / a[1].n - b[1].ok / b[1].n)[0];
+    if (weak){ const wi = PZ.themeIdx[weak[0]]; const wp = pool.filter(p => p.th.includes(wi)); if (wp.length) return rnd(wp); } }
+  return rnd(pool);
+}
 function themeLabel(i){ return PZ.themes[i] ? PZ.themes[i][1] : ""; }
 function themeKeyLabel(k){ const i = PZ.themeIdx[k]; return i == null ? k : PZ.themes[i][1]; }
 
@@ -831,6 +950,7 @@ function makeBoard(wrap, opts = {}){
     if (e.button !== 0 && e.pointerType === "mouse") return;
     if (B.userArrows.length || Object.keys(B.userMarks).length){ B.userArrows = []; B.userMarks = {}; B.paint(); }
     if (B.ply != null){ B.step(99); return; }
+    if (B.beforeInput) B.beforeInput();
     if (B.locked) return;
     const curDests = B.sel ? (B.selPre ? preDests(B.sel) : B.dests(B.sel)) : [];
     if (B.sel && B.sel !== sq && curDests.some(d => d.to === sq)){ attempt(B.sel, sq); return; }
@@ -909,11 +1029,13 @@ window.addEventListener("resize", sizeBoard); window.addEventListener("orientati
 
 /* ===== Puzzle runner (shared by rated, rush, daily, training) ===== */
 function PuzzleRunner(board, hooks = {}){
-  const R = {p:null, g:null, idx:0, user:"w", failed:false, hint:0, sol:false, done:false, wrong:[], t0:0, locked:true};
+  const R = {p:null, g:null, idx:0, user:"w", failed:false, hint:0, sol:false, done:false, wrong:[], t0:0, locked:true, pendingReset:null};
+  board.beforeInput = () => { if (R.pendingReset) R.pendingReset(); };
   board.canPick = sq => { if (R.locked || R.done && !R.free) return false; const pc = R.g.get(sq); return pc && pc.color === R.user && R.g.turn() === R.user; };
   board.dests = sq => gameDests(R.g)(sq);
   board.onMove = (from, to, promo) => R.userMove(from, to, promo);
   R.start = async (p) => {
+    clearTimeout(R.resetT); R.pendingReset = null;
     Object.assign(R, {p, g: new Chess(p.fen), idx: 0, failed: false, hint: 0, sol: false, done: false, wrong: [], locked: true, free: false});
     R.user = R.g.turn() === "w" ? "b" : "w";
     board.setOrientation(R.user); board.mark({}); board.setArrows([]); board.badge(null); board.overlay(null);
@@ -945,9 +1067,11 @@ function PuzzleRunner(board, hooks = {}){
       R.wrong.push({san: m.san, uci, expected: exp, fen: fenBefore});
       const first = !R.failed; R.failed = true; R.locked = true; R.refute = null;
       hooks.onWrong && hooks.onWrong(R, first, m);
-      const p0 = R.p, fenAfter = R.g.fen(); let delay = 650;
-      if (!hooks.fast && !Engine.failed && !R.g.game_over()){ delay = 1900; Engine.run({fen: fenAfter, depth: 9}).then(r => { if (!r || !r.best || R.p !== p0 || R.g.fen() !== fenAfter) return; board.setArrows([[r.best.slice(0,2), r.best.slice(2,4), "r"]]); R.refute = {played: m.san, reply: sanOf(fenAfter, r.best)}; hooks.onRefute && hooks.onRefute(R); }); }
-      setTimeout(() => { if (R.p !== p0) return; R.g.undo(); const h = R.g.history({verbose: true}); const l = h[h.length - 1]; board.set(R.g, l ? {from: l.from, to: l.to} : null); board.mark({}); board.setArrows([]); if (!hooks.noRetry) R.locked = false; }, delay);
+      const p0 = R.p, fenAfter = R.g.fen(), delay = hooks.fast ? 500 : 800;
+      /* the engine's answer goes into the panel text; the board snaps back quickly, and touching the board snaps it back at once */
+      if (!hooks.fast && !Engine.failed && !R.g.game_over()) Engine.run({fen: fenAfter, depth: 8}).then(r => { if (!r || !r.best || R.p !== p0) return; R.refute = {played: m.san, reply: sanOf(fenAfter, r.best)}; hooks.onRefute && hooks.onRefute(R); });
+      const back = () => { if (R.p !== p0 || R.pendingReset !== back) return; R.pendingReset = null; clearTimeout(R.resetT); if (R.g.fen() === fenAfter) R.g.undo(); const h = R.g.history({verbose: true}); const l = h[h.length - 1]; board.set(R.g, l ? {from: l.from, to: l.to} : null); board.mark({}); board.setArrows([]); if (!hooks.noRetry) R.locked = false; };
+      R.pendingReset = hooks.noRetry ? null : back; R.resetT = setTimeout(() => { if (hooks.noRetry){ if (R.p === p0){ R.g.undo(); const h = R.g.history({verbose: true}); const l = h[h.length - 1]; board.set(R.g, l ? {from: l.from, to: l.to} : null); board.mark({}); } } else back(); }, delay);
     }
   };
   R.finish = () => {
@@ -1001,6 +1125,7 @@ function cheerFor({diff = 0, streak = 0, ms = 99999}){
   if (streak >= 5 && tier === 3 && Math.random() < .5){ word = "On fire!"; slug = "onfire"; }
   return {tier, word, slug};
 }
+function fmtSec(ms){ const s = Math.round(ms / 1000); return s < 60 ? s + "s" : Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
 function celebrate(board, info, extra = {}){ const c = cheerFor(info); board.cheer({tier: c.tier, word: c.word, ...extra}); Sound.cheer(c.tier, c.slug); return c; }
 /* puzzle rating while solving: hidden by default like chess.com, tap to show (remembered) */
 function pzRatingChip(p, reveal){ const show = reveal || S.settings.showPzRating; return `<button class="pill pzr ${show ? "on" : ""}" data-pzr title="${show ? "Hide the puzzle rating while solving" : "Show the puzzle rating"}">${show ? "Puzzle " + p.r : "👁 Show puzzle rating"}</button>`; }
@@ -1052,7 +1177,12 @@ Views.puzzles = {
   settle(ok, viaHint){
     if (this.settled) return; this.settled = true;
     const R = this.R, p = R.p, old = S.puzzle.r;
-    const d = eloDelta(old, p.r, ok ? 1 : 0, S.puzzle.n);
+    /* speed counts a little, along a square-root curve: solving in the expected time gives the normal points,
+       quick solves up to +20 %, slow ones down to half. Misses are not affected. */
+    const ms = R.elapsed(), T = (7 + 9 * Math.ceil(p.moves.length / 2)) * 1000;
+    const speed = ok ? clamp(1.2 - .2 * Math.sqrt(ms / T), .5, 1.2) : 1;
+    let d = eloDelta(old, p.r, ok ? 1 : 0, S.puzzle.n); if (ok && d > 0) d = Math.max(1, Math.round(d * speed));
+    this.speed = ok ? {ms, f: speed} : null;
     const before = rankOf(old);
     S.puzzle.cur = null;
     S.puzzle.r = Math.max(100, old + d); S.puzzle.n++; if (ok){ S.puzzle.w++; S.puzzle.streak++; S.puzzle.best = Math.max(S.puzzle.best, S.puzzle.streak); } else S.puzzle.streak = 0;
@@ -1060,7 +1190,7 @@ Views.puzzles = {
     S.puzzle.hist.push([Date.now(), S.puzzle.r]);
     recordThemes(p, ok); markSeen(p); if (ok) rmFailed(p); else addFailed(p);
     this.delta = d; this.session.push({ok, d, r: p.r});
-    if (ok){ const c = celebrate(this.board, {diff: p.r - old, streak: S.puzzle.streak, ms: R.elapsed()}, {delta: d, sub: `Puzzle rated <b>${p.r}</b>`, streak: S.puzzle.streak}); this.cheerTier = c.tier; }
+    if (ok){ const c = celebrate(this.board, {diff: p.r - old, streak: S.puzzle.streak, ms: R.elapsed()}, {delta: d, sub: `Puzzle rated <b>${p.r}</b> · ⏱ ${fmtSec(ms)}${speed >= 1.08 ? " fast!" : ""}`, streak: S.puzzle.streak}); this.cheerTier = c.tier; }
     else this.board.float((d >= 0 ? "+" : "") + d, d < 0);
     logPuzzle("rated", R, ok, d);
     save();
@@ -1084,7 +1214,7 @@ Views.puzzles = {
     if (state === "wrong") msg = `<div class="msg no"><div class="ic">✕</div><div><h4>Incorrect</h4><p>${R.refute ? `After ${esc(R.refute.played)}, your opponent answers <b>${esc(R.refute.reply)}</b> (red arrow). ` : ""}Try again, or look at the solution.</p></div></div>`;
     if (state === "hint") msg = `<div class="msg hint"><div class="ic">?</div><div><h4>Hint</h4><p>${R.hint === 1 ? "The highlighted piece is the one to move." : "Follow the arrow."} Hints count as a miss.</p></div></div>`;
     if (state === "solution") msg = `<div class="msg hint"><div class="ic">!</div><div><h4>Solution</h4><p>Watch the line. This puzzle goes into your review list.</p></div></div>`;
-    if (state === "solved") msg = `<div class="msg ok"><div class="ic">✓</div><div><h4>Correct! ${this.delta ? `<span style="color:var(--go-hi)">${this.delta > 0 ? "+" : ""}${this.delta}</span>` : ""}</h4><p>This puzzle was rated <b>${p ? p.r : ""}</b>${p && p.r > S.puzzle.r - this.delta ? `, ${p.r - (S.puzzle.r - this.delta)} above you` : ""}. ${p ? themeNames(p).slice(0, 3).map(esc).join(" · ") : ""}</p></div></div>`;
+    if (state === "solved") msg = `<div class="msg ok"><div class="ic">✓</div><div><h4>Correct! ${this.delta ? `<span style="color:var(--go-hi)">${this.delta > 0 ? "+" : ""}${this.delta}</span>` : ""}</h4><p>Solved in <b>${this.speed ? fmtSec(this.speed.ms) : "?"}</b>${this.speed && Math.abs(this.speed.f - 1) >= .05 ? ` (${this.speed.f > 1 ? "speed bonus" : "slower"} ×${this.speed.f.toFixed(2)})` : ""}. This puzzle was rated <b>${p ? p.r : ""}</b>${p && p.r > S.puzzle.r - this.delta ? `, ${p.r - (S.puzzle.r - this.delta)} above you` : ""}. ${p ? themeNames(p).slice(0, 3).map(esc).join(" · ") : ""}</p></div></div>`;
     if (state === "done") msg = `<div class="msg"><div class="ic">✓</div><div><h4>Puzzle complete</h4><p>${p ? themeNames(p).slice(0, 3).map(esc).join(" · ") : ""}</p></div></div>`;
     const reveal = state === "solved" || state === "done" || state === "solution";
     const learn = reveal && p ? learnLink(p) : "";
@@ -1435,7 +1565,10 @@ function capturedFrom(g){
 function capsHTML(list, color, adv){ return `<span class="caps">${list.map(t => `<i class="pc ${color}${t}" style="position:static;transform:none;width:16px;height:16px"></i>`).join("")}</span>${adv > 0 ? `<span class="adv">+${adv}</span>` : ""}`; }
 
 Views.bots = {
-  mount(main){ this.main = main; this.menu(); },
+  mount(main, arg){ this.main = main;
+    if (arg && arg.journey){ const j = arg.journey; const col = j.L % 20 === 0 ? "b" : "w"; // every other boss you get Black
+      this.start(j.bot, col, {coach: false, hints: false, threats: S.settings.threats, level: j.world ? "normal" : (j.bot.r > levelRating(j.L) ? "relaxed" : "normal")}); this.G.journey = j; this.bars(); this.panel(); return; }
+    this.menu(); },
   unmount(){ this.stopGame(); },
   menu(){
     this.stopGame();
@@ -1462,7 +1595,13 @@ Views.bots = {
     $("#bk").onclick = () => this.menu();
     $("#go").onclick = () => { S.settings.coach = $("#coach").checked; S.settings.threats = $("#thr").checked; save(); this.start(bot, col === "r" ? (Math.random() < .5 ? "w" : "b") : col, {coach: $("#coach").checked, hints: $("#hints").checked, threats: $("#thr").checked, level: lv}); };
   },
-  stopGame(){ if (this.G){ this.G.dead = true; this.G = null; } Engine.clear(); document.onkeydown = null; },
+  stopGame(){ if (this.G){ this.keepUnfinished(this.G); this.G.dead = true; this.G = null; } Engine.clear(); document.onkeydown = null; },
+  /* games you leave halfway are kept too, so Game Review can go through them */
+  keepUnfinished(G){
+    if (G.over || G.kept || G.g.history().length < 4) return; G.kept = true; const me = G.color;
+    G.g.header("White", me === "w" ? S.name : G.bot.name, "Black", me === "b" ? S.name : G.bot.name, "Result", "*", "Event", "Chess.nat vs " + G.bot.name, "Date", todayKey().replace(/-/g, "."));
+    S.games.push({id: Date.now().toString(36), mode: G.journey ? "journey" : "bot", opp: G.bot.name, oppR: G.bot.r, color: me, result: "*", why: "unfinished", pgn: G.g.pgn(), ts: Date.now(), moves: G.g.history().length, takebacks: G.takebacks, warns: G.warns}); save();
+  },
   start(bot, color, opt, fen){
     this.stopGame();
     this.main.innerHTML = stageHTML();
@@ -1548,6 +1687,7 @@ Views.bots = {
     dayTick("gm"); S.games.push(rec); save();
     logEvent("game", {opponent: G.bot.name, opponentRating: G.bot.r, color: me, result: res, why, pgn, moves: rec.moves, takebacks: G.takebacks, coachWarnings: G.warns});
     G.chat = score === 1 ? rnd(BOT_LINES.lose) : score === 0 ? rnd(BOT_LINES.win) : rnd(BOT_LINES.draw);
+    if (G.journey){ rec.mode = "journey"; save(); this.journeyEnd(G, score, pgn, rec); return; }
     Sound.play(score === 1 ? "Victory" : score === 0 ? "Defeat" : "GenericNotify", .8);
     const title = score === 1 ? "You won!" : score === 0 ? G.bot.name + " won" : "Draw";
     const o = G.board.overlay(`<div class="card-over"><div style="display:flex;justify-content:center;margin-bottom:6px">${botAvatar(G.bot, 64)}</div><h3>${esc(title)}</h3><p>${esc(why)}</p><div class="grid2"><button class="btn go" id="rv">Game Review</button><button class="btn" id="rm">Rematch</button></div><button class="btn ghost sm" id="cl" style="margin-top:8px">View board</button></div>`);
@@ -1556,11 +1696,26 @@ Views.bots = {
     $("#cl", o).onclick = () => G.board.overlay(null);
     this.panel();
   },
+  /* boss game in the Journey: a win clears the level, anything else is another try */
+  journeyEnd(G, score, pgn, rec){
+    const j = G.journey; this.panel();
+    if (score === 1){
+      const res = journeyComplete(j.L, 3); G.board.cheer({tier: 4, word: j.world ? "Boss defeated!" : "Victory!", sub: `Level ${j.L} cleared`}); Sound.cheer(4);
+      setTimeout(() => { if (this.G !== G) return; const o = G.board.overlay(`<div class="card-over jdone"><div style="display:flex;justify-content:center;margin-bottom:6px">${botAvatar(G.bot, 64)}</div><div style="font-size:34px;line-height:1">${starsHTML(3)}</div><h3>${j.world ? "World boss beaten!" : "Boss beaten!"}</h3><p>${res.newWorld ? `New world: <b>${esc(worldName(res.to))}</b> ✨` : `On to level ${res.to}.`}</p>
+        <div class="grid2"><button class="btn" id="jrv">Game Review</button><button class="btn go" id="jcont">Continue</button></div></div>`);
+        $("#jrv", o).onclick = () => App.go("review", {pgn, meta: rec}); $("#jcont", o).onclick = () => App.go("journey", {anim: {from: j.L, to: res.to}}); }, 1600);
+    } else {
+      Sound.play(score === 0 ? "Defeat" : "GenericNotify", .8);
+      const o = G.board.overlay(`<div class="card-over"><div style="display:flex;justify-content:center;margin-bottom:6px">${botAvatar(G.bot, 64)}</div><h3>${score === 0 ? esc(G.bot.name) + " holds the path" : "A draw isn't enough"}</h3><p>You need a win to pass. Look at the game, then try again.</p>
+        <div class="grid3"><button class="btn" id="jmap">Map</button><button class="btn" id="jrv">Review</button><button class="btn go" id="jagain">Try again</button></div></div>`);
+      $("#jmap", o).onclick = () => App.go("journey"); $("#jrv", o).onclick = () => App.go("review", {pgn, meta: rec}); $("#jagain", o).onclick = () => App.go("bots", {journey: j});
+    }
+  },
   nav(d){ const G = this.G; if (!G) return; const h = G.g.history({verbose: true}); let v = G.view == null ? h.length : G.view; v = clamp(v + d, 0, h.length); this.showPly(v); },
   showPly(v){ const G = this.G; const h = G.g.history({verbose: true}); if (v >= h.length){ G.view = null; G.board.set(G.g, lastMv(G.g)); this.panel(); return; }
     G.view = v; const t = new Chess(G.startFen || undefined); for (let i = 0; i < v; i++) t.move(h[i]); G.board.set(t, v ? {from: h[v-1].from, to: h[v-1].to} : null); this.panel(); },
   async hint(){ const G = this.G; if (!G || G.over || G.g.turn() !== G.color) return; G.hintsUsed++; const r = await Engine.run({fen: G.g.fen(), depth: 12}); if (r && r.best && this.G === G) G.board.setArrows([[r.best.slice(0,2), r.best.slice(2,4), "g"]]); },
-  takeback(){ const G = this.G; if (!G || G.over || G.thinking) return; const h = G.g.history(); if (!h.length) return; G.g.undo(); if (G.g.turn() !== G.color && G.g.history().length) G.g.undo(); G.takebacks++; G.view = null; G.board.set(G.g, lastMv(G.g)); this.bars(); this.panel(); },
+  takeback(){ const G = this.G; if (!G || G.over || G.thinking || G.journey) return; const h = G.g.history(); if (!h.length) return; G.g.undo(); if (G.g.turn() !== G.color && G.g.history().length) G.g.undo(); G.takebacks++; G.view = null; G.board.set(G.g, lastMv(G.g)); this.bars(); this.panel(); },
   panel(){
     const G = this.G; if (!G) return; const h = G.g.history();
     let mv = ""; for (let i = 0; i < h.length; i += 2){ const n = i / 2 + 1; mv += `<span class="n ${n % 2 ? "" : "odd"}">${n}.</span><span class="m ${G.view === i + 1 || (G.view == null && i + 1 === h.length) ? "cur" : ""} ${n % 2 ? "" : "odd"}" data-ply="${i + 1}">${esc(h[i])}</span><span class="m ${h[i+1] ? "" : ""} ${G.view === i + 2 || (G.view == null && i + 2 === h.length) ? "cur" : ""} ${n % 2 ? "" : "odd"}" data-ply="${i + 2}">${h[i+1] ? esc(h[i+1]) : ""}</span>`; }
@@ -2155,6 +2310,225 @@ const CURRICULUM = [
 /* Openings come right after the basics, so every practice game builds on them. */
 (function(){ const ORDER = ["u1","u5","u2","u3","u4","u5b","u6","u7","u8","u9","u10"]; CURRICULUM.sort((a, b) => ORDER.indexOf(a.id) - ORDER.indexOf(b.id)); })();
 
+/* ===== Journey: an endless path of levels through themed worlds ===== */
+/* Every level is a little goal: solve puzzles of the level's height, every 5th level is a quest
+   (beat the clock, three lives, flawless, mate hunt), every 10th a real game against a bot,
+   and every 50th the world boss. Fail and you simply try again with fresh puzzles of the same height. */
+const WORLDS = [
+  {k: "meadow",  name: "Spring Meadow",  sky: ["#bfe3a0", "#6fae49"], deco: ["🌼", "🌳", "🌷", "🍄", "🌻", "🐝", "🦋"], boss: "The Meadow Keeper", bossBot: "mara"},
+  {k: "desert",  name: "Golden Desert",  sky: ["#f6e2a6", "#d8a24a"], deco: ["🌵", "🐪", "🏜️", "🦂", "☀️", "🐍"], boss: "Sultan of Sand", bossBot: "oskar"},
+  {k: "winter",  name: "Frozen North",   sky: ["#e6f3fb", "#93bcd9"], deco: ["❄️", "☃️", "🌲", "🐧", "🏔️", "🦌"], boss: "The Ice Queen", bossBot: "selin", fx: "snow"},
+  {k: "ocean",   name: "Coral Coast",    sky: ["#a6e2ef", "#2f8fb5"], deco: ["🐚", "🐠", "🌊", "🏝️", "🐙", "🦀"], boss: "Captain Kraken", bossBot: "viktor", fx: "bubbles"},
+  {k: "volcano", name: "Fire Mountain",  sky: ["#f5b38f", "#8e3b2a"], deco: ["🌋", "🔥", "🪨", "🐉", "♨️"], boss: "The Lava Lord", bossBot: "ada", fx: "embers"},
+  {k: "night",   name: "Starlit Night",  sky: ["#5b5fa3", "#1b1d3a"], deco: ["⭐", "🌙", "🦉", "✨", "🪐", "🌠"], boss: "The Night Owl", bossBot: "kaiser", fx: "stars"},
+  {k: "crystal", name: "Crystal Caves",  sky: ["#c7b6ee", "#5b3f9e"], deco: ["💎", "🔮", "🦇", "✨", "🕯️"], boss: "The Crystal Golem", bossBot: "kaiser", fx: "stars"},
+  {k: "sky",     name: "Cloud Kingdom",  sky: ["#dcefff", "#7fb0e6"], deco: ["☁️", "🎈", "🕊️", "🌈", "🏰", "🪁"], boss: "The Sky King", bossBot: "titan"},
+];
+const PER_WORLD = 50;
+const QUESTS = {
+  timed:   {icon: "⏱️", name: "Beat the Clock", short: "Timed"},
+  lives:   {icon: "❤️", name: "Three Lives", short: "3 lives"},
+  perfect: {icon: "💎", name: "Flawless", short: "Flawless"},
+  mate:    {icon: "🎯", name: "Mate Hunt", short: "Mates"},
+};
+function worldIdx(L){ return Math.floor((L - 1) / PER_WORLD); }
+function worldOf(L){ return WORLDS[worldIdx(L) % WORLDS.length]; }
+function worldName(L){ const w = worldOf(L), c = Math.floor(worldIdx(L) / WORLDS.length); return w.name + (c ? " " + ["", "II", "III", "IV", "V", "VI"][Math.min(c, 5)] : ""); }
+/* about four rating points per level: level 1 ≈ 450, level 290 ≈ 1600, level 640 ≈ 3000 */
+function levelRating(L){ return Math.min(3000, 450 + 4 * (L - 1)); }
+function pickBossBot(target){ let best = BOTS[0]; BOTS.forEach(b => { if (Math.abs(b.r - target) < Math.abs(best.r - target)) best = b; }); return best; }
+function levelSpec(L){
+  const r = levelRating(L), w = worldOf(L);
+  if (L % PER_WORLD === 0){ const bot = pickBossBot(r + 100);
+    return {L, type: "boss", world: true, r, bot, title: w.boss, goal: `Beat the world boss (${bot.name}, ${bot.r}) in a real game.`}; }
+  if (L % 10 === 0){ const bot = pickBossBot(r - 150); return {L, type: "boss", r, bot, title: bot.name + " blocks the path", goal: `Win a game against ${bot.name} (${bot.r}).`}; }
+  if (L % 5 === 0){
+    const q = ["timed", "lives", "perfect", "mate"][((L / 5 - 1) / 2) % 4];
+    if (q === "timed"){ const n = 4 + Math.min(4, Math.floor(L / 60)), secs = Math.max(75, 30 * n - Math.floor(L / 25) * 5); return {L, type: q, r: r - 150, n, secs, title: QUESTS[q].name, goal: `Solve ${n} puzzles in ${secs} seconds.`}; }
+    if (q === "lives") return {L, type: q, r: r - 60, n: 6, title: QUESTS[q].name, goal: "Solve 6 puzzles. Three mistakes and you're out."};
+    if (q === "perfect") return {L, type: q, r, n: 3, title: QUESTS[q].name, goal: "Solve 3 puzzles without a single mistake or hint."};
+    return {L, type: q, r: r - 80, n: 3, theme: L < 120 ? "mateIn2" : "mateIn3plus", title: QUESTS[q].name, goal: `Find 3 checkmates (${L < 120 ? "mate in 2" : "mate in 3+"}).`};
+  }
+  const n = L <= 20 ? 1 : L <= 200 ? 2 : 3;
+  return {L, type: "puzzles", r, n, title: "Level " + L, goal: `Solve ${n === 1 ? "a puzzle" : n + " puzzles"} rated about ${r}.`};
+}
+function jState(){ if (!S.journey) S.journey = {level: 1, best: {}}; if (!S.journey.best) S.journey.best = {}; return S.journey; }
+function starsHTML(n, of = 3){ return `<span class="jstars">${Array.from({length: of}, (_, i) => `<i class="${i < n ? "on" : ""}">★</i>`).join("")}</span>`; }
+const hashL = (L, k) => { let h = (L * 2654435761 + k * 40503) >>> 0; h ^= h >>> 15; h = Math.imul(h, 2246822519) >>> 0; h ^= h >>> 13; return (h >>> 0) / 4294967296; };
+
+/* ---------- the map ---------- */
+Views.journey = {
+  mount(main, arg){
+    this.main = main; const J = jState();
+    this.w = arg && arg.world != null ? arg.world : worldIdx(Math.min(J.level, 100000));
+    this.draw(arg && arg.anim);
+  },
+  unmount(){ clearTimeout(this.t); },
+  draw(anim){
+    const J = jState(), wi = this.w, w = WORLDS[wi % WORLDS.length], first = wi * PER_WORLD + 1, last = first + PER_WORLD - 1;
+    const maxW = worldIdx(J.level), H = 96, top = 70, height = top + PER_WORLD * H + 40;
+    const pos = L => { const i = L - first; return {x: 50 + Math.sin(i * .78) * 30, y: height - 70 - i * H}; };
+    let path = ""; for (let L = first; L <= last; L++){ const p = pos(L); if (L === first) path += `M ${p.x} ${p.y}`; else { const q = pos(L - 1); path += ` C ${q.x} ${q.y - H / 2}, ${p.x} ${p.y + H / 2}, ${p.x} ${p.y}`; } }
+    const doneTo = clamp(J.level - first, 0, PER_WORLD);
+    let deco = ""; for (let i = 0; i < 44; i++){ const L = first + Math.floor(hashL(wi, i) * PER_WORLD); const p = pos(L); const side = hashL(wi, i + 99) < .5 ? -1 : 1;
+      const x = clamp(p.x + side * (20 + hashL(wi, i + 7) * 18), 4, 92), y = p.y - 30 + hashL(wi, i + 3) * 60; deco += `<span class="jdeco" style="left:${x}%;top:${y}px;font-size:${22 + Math.round(hashL(wi, i + 5) * 18)}px">${w.deco[i % w.deco.length]}</span>`; }
+    let nodes = ""; for (let L = first; L <= last; L++){
+      const sp = levelSpec(L), p = pos(L), st = J.best[L] || 0, cur = L === J.level, locked = L > J.level, boss = sp.type === "boss";
+      const label = boss ? (sp.world ? "👑" : "⚔️") : QUESTS[sp.type] ? QUESTS[sp.type].icon : L;
+      nodes += `<button class="jnode ${boss ? "boss" : ""} ${sp.world ? "world" : ""} ${QUESTS[sp.type] ? "quest" : ""} ${cur ? "cur" : ""} ${locked ? "locked" : ""} ${st ? "done" : ""}" data-lv="${L}" style="left:${p.x}%;top:${p.y}px" aria-label="Level ${L}${locked ? ", locked" : ""}">
+        <span class="jn">${locked && !boss && !QUESTS[sp.type] ? "🔒" : label}</span>${boss || QUESTS[sp.type] ? `<span class="jlv">${L}</span>` : ""}${st ? `<span class="js">${starsHTML(st)}</span>` : ""}</button>`; }
+    const curPos = J.level >= first && J.level <= last ? pos(J.level) : null;
+    const startChoice = J.level === 1 && !Object.keys(J.best).length && S.puzzle.n >= 10 && S.puzzle.r > 600;
+    const jumpTo = Math.max(1, Math.floor((S.puzzle.r - 450) / 4 / 10) * 10 - 9);
+    this.main.innerHTML = `<div class="page jpage">
+      <div class="jhead"><button class="btn sm" id="jprev" ${wi <= 0 ? "disabled" : ""} aria-label="Previous world">‹</button>
+        <div class="jtitle"><div class="muted" style="font-size:12px;font-weight:800;letter-spacing:.08em">WORLD ${wi + 1} · LEVELS ${first}–${last}</div><h1>${esc(worldName(first))}</h1>
+          <div class="muted" style="font-size:13px">You're on <b>level ${J.level}</b> · puzzles about ${levelRating(J.level)}</div></div>
+        <button class="btn sm" id="jnext" ${wi >= maxW ? "disabled" : ""} aria-label="Next world">›</button></div>
+      ${startChoice ? `<div class="unit jstart"><div><b>Start where you are?</b><div class="muted" style="font-size:13px">Your puzzle rating is ${S.puzzle.r}. Level 1 starts at 450.</div></div><button class="btn" id="jfrom1">Start at level 1</button><button class="btn go" id="jjump">Jump to level ${jumpTo}</button></div>` : ""}
+      <div class="jmap w-${w.k}" id="jmap" style="height:${height}px;--sky1:${w.sky[0]};--sky2:${w.sky[1]}">
+        ${w.fx ? `<div class="jfx fx-${w.fx}">${Array.from({length: 26}, (_, i) => `<i style="left:${Math.round(hashL(wi, i + 300) * 100)}%;animation-delay:-${(hashL(wi, i + 400) * 12).toFixed(1)}s;animation-duration:${(7 + hashL(wi, i + 500) * 8).toFixed(1)}s"></i>`).join("")}</div>` : ""}
+        <svg class="jpath" viewBox="0 0 100 ${height}" preserveAspectRatio="none" width="100%" height="${height}"><path d="${path}" class="base" vector-effect="non-scaling-stroke"/><path d="${path}" class="dash" vector-effect="non-scaling-stroke"/></svg>
+        ${deco}${nodes}
+        <div class="jworldboss" style="top:${pos(last).y - 92}px">${esc(w.boss)}</div>
+        ${curPos ? `<div class="jpawn" id="jpawn" style="left:${curPos.x}%;top:${curPos.y}px"><i class="pc wp"></i></div>` : ""}
+      </div></div>`;
+    $("#jprev").onclick = () => { this.w = Math.max(0, wi - 1); this.draw(); };
+    $("#jnext").onclick = () => { this.w = Math.min(maxW, wi + 1); this.draw(); };
+    if ($("#jfrom1")) $("#jfrom1").onclick = () => { J.best[0] = 1; save(); this.draw(); };
+    if ($("#jjump")) $("#jjump").onclick = () => { J.level = jumpTo; J.best[0] = 1; save(); this.w = worldIdx(jumpTo); this.draw({from: 1, to: jumpTo}); };
+    $$(".jnode", this.main).forEach(b => b.onclick = () => this.card(+b.dataset.lv));
+    // scroll the current level into view, then let the pawn hop to it
+    const target = curPos ? curPos.y : 0;
+    requestAnimationFrame(() => { const m = $("#jmap"), main = $("#main"); if (!m) return;
+      const own = main && /auto|scroll/.test(getComputedStyle(main).overflowY) && main.scrollHeight > main.clientHeight + 4;
+      const sc = own ? main : document.scrollingElement, viewH = own ? main.clientHeight : innerHeight, base = own ? main.getBoundingClientRect().top : 0;
+      const y = m.getBoundingClientRect().top - base + sc.scrollTop + target - viewH * .55; sc.scrollTop = Math.max(0, y); });
+    if (anim && anim.to === J.level && curPos && anim.from >= first && anim.from <= last && anim.from !== anim.to){
+      const a = pos(anim.from), pw = $("#jpawn"); const mapW = $("#jmap").clientWidth;
+      const dx = (a.x - curPos.x) / 100 * mapW, dy = a.y - curPos.y;
+      pw.animate([{transform: `translate(calc(-50% + ${dx}px), calc(-100% + ${dy}px))`}, {transform: `translate(calc(-50% + ${dx / 2}px), calc(-100% + ${dy / 2 - 70}px)) scale(1.15)`, offset: .5}, {transform: "translate(-50%, -100%)"}], {duration: 750, easing: "cubic-bezier(.3,.7,.4,1)"});
+      this.t = setTimeout(() => { Sound.play("Move", .8); const n = $(`.jnode[data-lv="${J.level}"]`); if (n){ n.classList.add("unlock"); } }, 720);
+    }
+  },
+  card(L){
+    const J = jState(), sp = levelSpec(L), locked = L > J.level, st = J.best[L] || 0;
+    const ov = document.createElement("div"); ov.className = "jcard-wrap";
+    const head = sp.type === "boss" ? `<div style="display:flex;justify-content:center;margin-bottom:8px">${botAvatar(sp.bot, 72)}</div>` : `<div class="jbig">${QUESTS[sp.type] ? QUESTS[sp.type].icon : "♟"}</div>`;
+    ov.innerHTML = `<div class="jcard" role="dialog" aria-label="Level ${L}">${head}<div class="muted" style="font-size:12px;font-weight:800;letter-spacing:.08em">LEVEL ${L}${sp.type === "boss" ? (sp.world ? " · WORLD BOSS" : " · BOSS") : QUESTS[sp.type] ? " · QUEST" : ""}</div>
+      <h3>${esc(sp.title)}</h3><p>${esc(sp.goal)}</p>${st ? `<div style="font-size:26px;margin:4px 0 10px">${starsHTML(st)}</div>` : ""}
+      ${locked ? `<p class="dim">Finish level ${J.level} first.</p><button class="btn" data-x>Close</button>` : `<div class="grid2"><button class="btn" data-x>Back</button><button class="btn go" id="jplay">${st ? "Play again" : "Play"}</button></div>`}</div>`;
+    document.body.appendChild(ov);
+    const close = () => ov.remove(); ov.onclick = e => { if (e.target === ov || e.target.closest("[data-x]")) close(); };
+    const pb = $("#jplay", ov); if (pb) pb.onclick = () => { close(); this.start(L); };
+  },
+  start(L){ const sp = levelSpec(L);
+    if (sp.type === "boss") App.go("bots", {journey: {L, bot: sp.bot, world: !!sp.world}});
+    else App.go("jlevel", {L}); }
+};
+
+/* ---------- playing a puzzle level or quest ---------- */
+Views.jlevel = {
+  mount(main, arg){
+    this.main = main; this.sp = levelSpec(arg.L); this.alive = true;
+    main.innerHTML = stageHTML();
+    const board = this.board = makeBoard($("#bw")); const V = this;
+    this.st = {solved: 0, mistakes: 0, lives: 3, hints: 0, done: false, t0: 0, lastR: this.sp.r};
+    $("#botbar").innerHTML = youBar();
+    this.R = PuzzleRunner(board, {
+      noRetry: this.sp.type === "timed" || this.sp.type === "lives" || this.sp.type === "perfect", fast: this.sp.type === "timed",
+      onReady: () => V.panel(),
+      onWrong: (R, first) => { if (first){ V.st.mistakes++; logPuzzle("journey", R, false); recordThemes(R.p, false); addFailed(R.p); } V.wrong(first); },
+      onRefute: () => V.panel(),
+      onHint: R => { V.st.hints++; if (V.sp.type === "perfect") V.fail("A hint was used."); V.panel(); },
+      onSolutionStart: () => { if (V.sp.type === "perfect") V.fail("The solution was shown."); V.panel(); },
+      onSolved: (R, clean) => { if (clean){ logPuzzle("journey", R, true); recordThemes(R.p, true); rmFailed(R.p); } markSeen(R.p); V.st.solved++; V.solvedOne(clean); }
+    });
+    this.panel();
+    whenPuzzles(() => { if (!this.alive) return; if (this.sp.type === "timed") this.countdown(); else this.next(); });
+  },
+  unmount(){ this.alive = false; clearInterval(this.clock); clearTimeout(this.t); this.R && this.R.stop(); },
+  countdown(){
+    const ov = this.board.overlay(`<div class="jcount"><b id="jcn">3</b></div>`); let n = 3; Sound.tick();
+    const step = () => { if (!this.alive) return; n--; const el = $("#jcn"); if (!el) return;
+      if (n > 0){ el.textContent = n; el.style.animation = "none"; void el.offsetWidth; el.style.animation = ""; Sound.tick(); this.t = setTimeout(step, 800); }
+      else { el.textContent = "Go!"; el.classList.add("go"); el.style.animation = "none"; void el.offsetWidth; el.style.animation = ""; Sound.play("GenericNotify", .7);
+        this.t = setTimeout(() => { this.board.overlay(null); this.st.t0 = Date.now(); this.clock = setInterval(() => this.tickClock(), 200); this.next(); }, 600); } };
+    this.t = setTimeout(step, 800);
+  },
+  left(){ return this.sp.type === "timed" && this.st.t0 ? Math.max(0, this.sp.secs * 1000 - (Date.now() - this.st.t0)) : null; },
+  tickClock(){ const l = this.left(); const el = $("#jclock"); if (el){ el.textContent = fmtSec(l); el.classList.toggle("low", l < 15000); } if (l <= 0 && !this.st.done) this.fail("Time's up."); },
+  async next(){
+    if (!this.alive || this.st.done) return; const sp = this.sp;
+    const target = sp.type === "lives" ? sp.r + this.st.solved * 15 : sp.r + Math.round((Math.random() - .5) * 40);
+    const p = await PZ.pick({target, spread: 40, theme: sp.theme || null}); if (!this.alive || this.st.done) return;
+    if (!p){ toast("Couldn't load puzzles. Check your connection."); return; }
+    this.R.start(p); this.panel();
+  },
+  wrong(first){
+    const sp = this.sp, st = this.st;
+    if (sp.type === "perfect" && first){ this.fail("One mistake ends a flawless run."); return; }
+    if (sp.type === "lives" && first){ st.lives--; this.panel(); if (st.lives <= 0){ this.fail("Out of lives."); return; } this.t = setTimeout(() => this.next(), 900); return; }
+    if (sp.type === "timed" && first){ this.t = setTimeout(() => this.next(), 550); }
+    this.panel();
+  },
+  solvedOne(){
+    const sp = this.sp, st = this.st; this.panel();
+    if (st.solved >= sp.n){ this.win(); return; }
+    this.board.cheer({tier: 1, word: rnd(["Nice!", "Good!", "Yes!"]), sub: `<b>${st.solved}</b> of ${sp.n}`}); Sound.cheer(1);
+    this.t = setTimeout(() => this.next(), sp.type === "timed" ? 450 : 1100);
+  },
+  stars(){ const sp = this.sp, st = this.st;
+    if (sp.type === "timed"){ const f = this.left() / (sp.secs * 1000); return f >= .4 ? 3 : f >= .15 ? 2 : 1; }
+    if (sp.type === "lives") return st.lives >= 3 ? 3 : st.lives === 2 ? 2 : 1;
+    if (sp.type === "perfect") return 3;
+    const m = st.mistakes + st.hints; return m === 0 ? 3 : m === 1 ? 2 : 1; },
+  win(){
+    const st = this.st, sp = this.sp; if (st.done) return; st.done = true; clearInterval(this.clock);
+    const stars = this.stars(); const res = journeyComplete(sp.L, stars);
+    this.board.cheer({tier: stars >= 3 ? 4 : 3, word: stars >= 3 ? "Level complete!" : "Level clear!", sub: starsHTML(stars) }); Sound.cheer(stars >= 3 ? 4 : 3);
+    this.t = setTimeout(() => journeyResultCard(this.board, sp, stars, res), 1500);
+    this.panel();
+  },
+  fail(why){
+    const st = this.st; if (st.done) return; st.done = true; clearInterval(this.clock); this.R.stop && this.R.stop(); Sound.play("Defeat", .6);
+    const ov = this.board.overlay(`<div class="card-over"><div class="jbig">😵</div><h3>Level failed</h3><p>${esc(why)} No worries, the next try has fresh puzzles of the same height.</p>
+      <div class="grid2"><button class="btn" id="jmapb">Map</button><button class="btn go" id="jretry">Try again</button></div></div>`);
+    $("#jretry", ov).onclick = () => App.go("jlevel", {L: this.sp.L}); $("#jmapb", ov).onclick = () => App.go("journey");
+    this.panel();
+  },
+  panel(){
+    const sp = this.sp, st = this.st, R = this.R, q = QUESTS[sp.type];
+    const pills = Array.from({length: sp.n}, (_, i) => `<i class="${i < st.solved ? "on" : ""}"></i>`).join("");
+    $("#topbar").innerHTML = `<div class="who"><span class="pill">Level ${sp.L} · ${esc(worldName(sp.L))}</span></div>${sp.type === "timed" ? `<span class="jclock" id="jclock">${fmtSec(this.left() == null ? sp.secs * 1000 : this.left())}</span>` : ""}`;
+    const extra = sp.type === "lives" ? `<div class="jhearts">${[0, 1, 2].map(i => `<i class="${i < st.lives ? "" : "lost"}">❤️</i>`).join("")}</div>` : "";
+    const turn = st.done ? (st.solved >= sp.n ? "Level complete!" : "Level failed") : R && R.p ? (R.done ? "Solved!" : R.locked ? "Your opponent moves…" : sideToMoveText(R.user)) : "Loading…";
+    $("#sp").innerHTML = `<div class="side-h"><div class="jbig sm">${q ? q.icon : "♟"}</div><div><div class="muted" style="font-size:12px;font-weight:800;letter-spacing:.06em">LEVEL ${sp.L}${q ? " · " + q.name.toUpperCase() : ""}</div><div style="font:900 20px var(--display)">${esc(sp.goal)}</div></div></div>
+      <div class="jprog">${pills}</div><div class="muted" style="text-align:center;font-size:13px;margin-top:4px">${st.solved} of ${sp.n} solved${sp.type === "puzzles" || sp.type === "mate" ? ` · mistakes ${st.mistakes + st.hints}` : ""}</div>${extra}
+      <div class="msg" style="margin-top:12px"><div class="ic">${R && R.user === "b" ? "♚" : "♔"}</div><div><h4>${esc(turn)}</h4><p>${R && R.refute ? `After ${esc(R.refute.played)}, the answer is <b>${esc(R.refute.reply)}</b>.` : "Find the best move."}</p></div></div>`;
+    $("#sf").innerHTML = `<button class="btn" id="jquit">Map</button>${BoardNav.html()}${sp.type === "perfect" || sp.type === "timed" ? "" : `<button class="btn" id="jhint" style="flex:1">Hint</button>`}`;
+    $("#jquit").onclick = () => App.go("journey");
+    if ($("#jhint")) $("#jhint").onclick = () => this.R.showHint();
+  }
+};
+
+/* record a finished level and unlock the next one */
+function journeyComplete(L, stars){
+  const J = jState(), before = J.level, prevBest = J.best[L] || 0;
+  J.best[L] = Math.max(prevBest, stars); if (L >= J.level) J.level = L + 1;
+  S.xp = (S.xp || 0) + 10 + 5 * Math.max(0, stars - prevBest); save();
+  logEvent("journey", {level: L, stars, world: worldName(L), type: levelSpec(L).type});
+  return {from: before, to: J.level, newWorld: worldIdx(J.level) > worldIdx(before)};
+}
+function journeyResultCard(board, sp, stars, res){
+  const nl = res.to, nsp = levelSpec(nl);
+  const ov = board.overlay(`<div class="card-over jdone"><div style="font-size:40px;line-height:1">${starsHTML(stars)}</div><h3>Level ${sp.L} complete!</h3>
+    <p>${res.newWorld ? `New world unlocked: <b>${esc(worldName(nl))}</b> ✨` : nl > sp.L ? `Next up: level ${nl}${nsp.type === "boss" ? " · a boss game ⚔️" : QUESTS[nsp.type] ? " · " + QUESTS[nsp.type].name : ""}` : "Replay finished."}</p>
+    <div class="grid2"><button class="btn" id="jagain">Replay</button><button class="btn go" id="jcont">Continue</button></div></div>`);
+  $("#jcont", ov).onclick = () => App.go("journey", {anim: {from: Math.min(sp.L, res.from), to: res.to}});
+  $("#jagain", ov).onclick = () => Views.journey.start(sp.L);
+}
+
 /* ===== Game Review: Stockfish analysis with move classifications ===== */
 const CLS = {
   brilliant:  {sym:"!!", name:"Brilliant",  c:"#1BACA6"},
@@ -2185,7 +2559,7 @@ Views.review = {
     const games = S.games.slice().reverse();
     this.main.innerHTML = `<div class="page"><h1 class="h-title">Game Review</h1><p class="muted">Every move gets graded, from Brilliant to Blunder. Pick a game or paste a PGN.</p>
       <div class="unit" style="margin-top:12px"><h3>Paste a PGN</h3><textarea id="pgnin" rows="4" style="width:100%;margin-top:8px;background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:10px;font:500 13px var(--mono)" placeholder="1. e4 e5 2. Nf3 Nc6 3. Bc4 ..."></textarea><button class="btn go" id="pgngo" style="margin-top:8px">Review</button></div>
-      <div class="h-sec">Your games</div><div class="list">${games.map((g, i) => `<div class="li"><span class="pill ${g.result === "1/2-1/2" ? "" : ((g.result === "1-0") === (g.color === "w") ? "go" : "bad")}">${g.result === "1/2-1/2" ? "Draw" : ((g.result === "1-0") === (g.color === "w") ? "Win" : "Loss")}</span><div class="grow"><div class="t">vs ${esc(g.opp)} (${g.oppR || "?"}) · ${g.moves} plies</div><div class="s">${new Date(g.ts).toLocaleString("en-GB")} ${g.review ? `· Accuracy ${g.review.acc}` : ""}</div></div><button class="btn sm" data-i="${S.games.length - 1 - i}">Review</button></div>`).join("") || `<p class="dim">No games yet. Play a bot first.</p>`}</div></div>`;
+      <div class="h-sec">Your games</div><div class="list">${games.map((g, i) => `<div class="li"><span class="pill ${g.result === "1/2-1/2" || g.result === "*" ? "" : ((g.result === "1-0") === (g.color === "w") ? "go" : "bad")}">${g.result === "*" ? "Unfinished" : g.result === "1/2-1/2" ? "Draw" : ((g.result === "1-0") === (g.color === "w") ? "Win" : "Loss")}</span><div class="grow"><div class="t">vs ${esc(g.opp)}${g.oppR ? ` (${g.oppR})` : ""} · ${Math.ceil(g.moves / 2)} moves${g.mode === "journey" ? " · Journey" : g.mode === "friend" || g.mode === "link" ? " · Friend" : ""}</div><div class="s">${new Date(g.ts).toLocaleString("en-GB")} ${g.review ? `· Accuracy ${g.review.acc}` : ""}</div></div><button class="btn sm" data-i="${S.games.length - 1 - i}">Review</button></div>`).join("") || `<p class="dim">No games yet. Play a bot first.</p>`}</div></div>`;
     $("#pgngo").onclick = () => { const t = $("#pgnin").value.trim(); if (!t) return; const g = new Chess(); if (!g.load_pgn(t, {sloppy: true})){ toast("That PGN could not be read"); return; } this.open(t, null); };
     $$("[data-i]", this.main).forEach(b => b.onclick = () => { const g = S.games[+b.dataset.i]; this.open(g.pgn, g); });
   },
@@ -2438,7 +2812,9 @@ function linkList(){
 Views.friend = {
   mount(main, arg){ this.main = main; this.cfg = this.cfg || {tc: [10, 0], color: "r"}; if (arg && arg.join) this.join(arg.join, false); else this.menu(); },
   unmount(){ this.leave(); },
-  leave(){ clearInterval(this.tick); if (this.R){ try { this.R.leave(); } catch(e) {} } this.R = null; this.st = null; this.chat = []; document.onkeydown = null; },
+  leave(){ const st = this.st; if (st && !st.result && !st.saved && (st.seat === "w" || st.seat === "b") && st.moves.length >= 4){ st.saved = true; const o = this.opp();
+      S.games.push({id: Date.now().toString(36), mode: "friend", opp: o && o.presence.name || "Friend", color: st.seat, result: "*", why: "unfinished", pgn: st.g.pgn(), ts: Date.now(), moves: st.moves.length}); save(); }
+    clearInterval(this.tick); if (this.R){ try { this.R.leave(); } catch(e) {} } this.R = null; this.st = null; this.chat = []; document.onkeydown = null; },
   menu(err){
     this.leave();
     try { if (location.hash !== "#friend") history.replaceState(null, "", "#friend"); } catch(e) {}
@@ -2785,13 +3161,14 @@ const ICONS = {
   board: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',
   menu: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
   bell: '<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+  map: '<path d="M9 4L3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/>',
   flame: '<path d="M12 22c4.4 0 7-2.9 7-6.6 0-3.9-3-6.4-4.4-9.4-.6 2.3-1.8 3.5-3 4.2.3-2.6-.7-5.4-3.1-8.2C8 6 5 9 5 14c0 4.3 2.9 8 7 8z"/>',
 };
 function icon(n, size = 22){ return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ""}</svg>`; }
 const LOGO = `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="8" r="5" fill="#7FB24A"/><path d="M10.5 15h11l-1.6 6.5h-7.8z" fill="#7FB24A"/><path d="M8 27c0-2.8 2.2-4.5 4.4-4.5h7.2c2.2 0 4.4 1.7 4.4 4.5v1H8z" fill="#7FB24A"/></svg>`;
 
 const NAV = [
-  ["home", "Home", "home"], ["learn", "Learn", "book"], ["puzzles", "Puzzles", "puzzle"], ["rush", "Puzzle Rush", "bolt"], ["daily", "Daily Puzzle", "calendar"],
+  ["home", "Home", "home"], ["journey", "Journey", "map"], ["learn", "Learn", "book"], ["puzzles", "Puzzles", "puzzle"], ["rush", "Puzzle Rush", "bolt"], ["daily", "Daily Puzzle", "calendar"],
   ["train", "Train", "target"], ["bots", "Play Bots", "bot"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"],
 ];
 /* bottom of the rail, like chess.com: who you are, then a row of small icon buttons */
@@ -2824,7 +3201,7 @@ function renderRail(){
 }
 
 const TABS = [["home", "Home", "home"], ["learn", "Learn", "book"], ["puzzles", "Puzzles", "puzzle"], ["play", "Play", "bot"], ["more", "More", "menu"]];
-const TAB_OF = {home: "home", learn: "learn", lesson: "learn", puzzles: "puzzles", rush: "puzzles", daily: "puzzles", train: "puzzles", coords: "puzzles", play: "play", bots: "play", friend: "play", local: "play", linkgame: "play", review: "more", analysis: "more", stats: "more", settings: "more", account: "more"};
+const TAB_OF = {journey: "home", jlevel: "home", home: "home", learn: "learn", lesson: "learn", puzzles: "puzzles", rush: "puzzles", daily: "puzzles", train: "puzzles", coords: "puzzles", play: "play", bots: "play", friend: "play", local: "play", linkgame: "play", review: "more", analysis: "more", stats: "more", settings: "more", account: "more"};
 function renderTabs(){
   let t = $("#tabbar"); if (!t) return; const cur = TAB_OF[App.route] || "home"; const dailyOpen = !S.daily.done[todayKey()];
   t.innerHTML = TABS.map(([k, n, ic]) => `<button class="${cur === k ? "on" : ""}" data-t="${k}">${icon(ic, 24)}<span>${n}</span>${k === "puzzles" && dailyOpen ? `<i class="dot"></i>` : ""}</button>`).join("");
@@ -2832,7 +3209,7 @@ function renderTabs(){
 }
 function openSheet(){
   const sh = $("#sheet"); const rk = rankOf(S.puzzle.r);
-  const items = [["rush", "Puzzle Rush", "bolt"], ["daily", "Daily Puzzle", "calendar"], ["train", "Train", "target"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"], ["coords", "Coordinates", "board"], ["settings", "Settings", "gear"], ["account", "Account", "users"]];
+  const items = [["journey", "Journey", "map"], ["rush", "Puzzle Rush", "bolt"], ["daily", "Daily Puzzle", "calendar"], ["train", "Train", "target"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"], ["coords", "Coordinates", "board"], ["settings", "Settings", "gear"], ["account", "Account", "users"]];
   sh.innerHTML = `<div class="panelx" role="dialog" aria-label="More"><div class="grab"></div><button class="rk" data-s="stats">${emblem(rk, 36)}<span style="text-align:left"><div style="font-weight:900">${esc(rk.label)}</div><div class="muted" style="font-size:12px">${S.puzzle.r} puzzle rating · ${Cloud.status === "on" ? "synced to your account" : "saved on this device"}</div></span></button>${items.map(([k, n, ic]) => `<button data-s="${k}">${icon(ic, 26)}<span>${n}</span></button>`).join("")}</div>`;
   sh.hidden = false; sh.onclick = e => { if (e.target === sh) sh.hidden = true; };
   $$("[data-s]", sh).forEach(b => b.onclick = () => { sh.hidden = true; App.go(b.dataset.s); });
@@ -2851,10 +3228,12 @@ const App = {
     this.view.mount(main, arg);
   },
   refresh(){ renderRail(); if (["home", "stats", "settings", "learn", "train"].includes(this.route)) this.go(this.route); },
-  busy(){ return ["puzzles", "rush", "bots", "friend", "review", "lesson", "analysis", "coords", "local", "linkgame"].includes(this.route); }
+  busy(){ return ["jlevel", "puzzles", "rush", "bots", "friend", "review", "lesson", "analysis", "coords", "local", "linkgame"].includes(this.route); }
 };
 
 /* ===== Home ===== */
+function journeyTile(){ const J = jState(), L = J.level, sp = levelSpec(L), w = worldOf(L);
+  return `<button class="tile jtile" data-go="journey" style="grid-column:span 2;--sky1:${w.sky[0]};--sky2:${w.sky[1]}"><span class="jt-deco">${w.deco.slice(0, 3).join(" ")}</span>${icon("map", 40)}<span class="pill go">Journey</span><h3>Level ${L} · ${esc(worldName(L))}</h3><p>${sp.type === "boss" ? "⚔️ Boss game: " + esc(sp.bot.name) : QUESTS[sp.type] ? QUESTS[sp.type].icon + " " + QUESTS[sp.type].name : "Puzzles about " + sp.r} · ${Object.values(J.best).reduce((a, b) => a + b, 0) - (J.best[0] || 0)} ★ collected</p></button>`; }
 Views.home = {
   mount(main){
     const rk = rankOf(S.puzzle.r); const next = typeof nextLesson === "function" ? nextLesson() : null;
@@ -2872,6 +3251,7 @@ Views.home = {
       <div class="unit" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><div style="min-width:180px"><div class="muted" style="font-weight:800;font-size:13px;letter-spacing:.06em">TODAY'S PLAN</div><div style="font:900 22px var(--display)">${planDone() ? "Done for today ✓" : PLAN.filter(([k, n]) => planVal(k) >= n).length + " of " + PLAN.length}</div><div class="dim" style="font-size:12.5px">${icon("flame", 14)} ${S.plan.streak} day streak · best ${S.plan.best}</div></div>
         <div style="flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">${PLAN.map(([k, n, t]) => { const v = Math.min(n, planVal(k)); return `<button class="lsn ${v >= n ? "done" : ""}" data-plan="${k}"><span class="n">${v >= n ? "✓" : v}</span><span><div class="t">${t}</div><div class="s">${v} / ${n}</div></span></button>`; }).join("")}</div></div>
       <div class="tiles">
+        ${journeyTile()}
         ${next ? `<button class="tile" data-go="lesson" data-l="${next.id}" style="grid-column:span 2;border:1px solid var(--go)">${icon("book", 40)}<span class="pill go">Continue learning</span><h3>${esc(next.title)}</h3><p>${esc(next.sub || "")}</p></button>` : ""}
         <button class="tile" data-go="daily">${icon("calendar", 40)}<h3>Daily Puzzle</h3><p>${S.daily.done[todayKey()] ? "Solved today ✓" : "Not solved yet"} · Streak ${S.daily.streak}</p></button>
         <button class="tile" data-go="puzzles">${icon("puzzle", 40)}<h3>Puzzles</h3><p>Rated puzzles that adapt to you. ${PZ.total ? PZ.total.toLocaleString("en-US") + " puzzles." : ""}</p></button>
@@ -2941,7 +3321,7 @@ Views.settings = {
       <div class="unit"><h3>Sound and voice</h3>${chk("sound", "Move sounds")}${chk("voice", "Coach voice in lessons (English)")}<div class="row" style="margin:4px 0 8px"><span class="muted">Speed</span>${[[.9,"Slow"],[1,"Normal"],[1.15,"Fast"]].map(([v, t]) => `<button class="btn sm ${(st.voiceRate || 1) === v ? "go" : ""}" data-vr="${v}">${t}</button>`).join("")}</div><button class="btn sm" id="tv">Test voice</button></div>
       <div class="unit"><h3>Puzzles</h3>${chk("autoNext", "Jump to the next puzzle after a correct solve")}</div>
       <div class="unit"><h3>Saving</h3><p class="muted" id="sv"></p><div class="row"><button class="btn sm" id="exp">Copy my data</button><button class="btn sm" id="rst">Reset everything</button></div></div>
-      <div class="unit"><h3>Credits</h3><p class="muted" style="font-size:13px">Puzzles from the Lichess open database (CC0). Pieces "Staunty" by sadsnake1 (CC BY-NC-SA 4.0). Sounds from the Lichess project (AGPL). Analysis by Stockfish 10 (GPL). chess.js by Jeff Hlywa (BSD). Coach voice generated with Kokoro (Apache 2.0), voice "Heart". Accounts and live play by Supabase.</p></div></div>`;
+      <div class="unit"><h3>Credits</h3><p class="muted" style="font-size:13px">Puzzles from the Lichess open database (CC0). Pieces "Staunty" by sadsnake1 (CC BY-NC-SA 4.0). Sounds made for Chess.nat. Analysis by Stockfish 10 (GPL). chess.js by Jeff Hlywa (BSD). Coach voice generated with Kokoro (Apache 2.0), voice "Heart". Accounts and live play by Supabase.</p></div></div>`;
     const sv = () => { $("#sv").textContent = Cloud.status === "on" ? "Your progress is saved to your Chess.nat account. It's private and follows you to every device where you're signed in." : Cloud.status === "viewonly" ? "Saving to your account was refused, so progress stays on this device. Try signing out and in again." : Cloud.status === "error" ? "Cloud sync has a problem (" + Cloud.lastError + "). Progress is still saved on this device." : "Progress is saved on this device only. Sign in under Account to sync it everywhere."; };
     sv();
     $$("[data-s]", main).forEach(c => c.onchange = () => { st[c.dataset.s] = c.checked; save(); if (c.dataset.s === "sound" && c.checked) Sound.play("Move"); });

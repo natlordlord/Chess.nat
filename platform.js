@@ -37,26 +37,45 @@
     async email(){ await sessionReady; return session ? session.user.email : null; }
   };
 
-  /* ---- room: Supabase Realtime presence, shaped like Claude's named rooms ---- */
+  /* ---- room: shaped like Claude's named rooms ----
+     Presence only says who is in the room (sent once). Game state travels as broadcast messages, which are
+     fast and have a high rate limit; sending every move as presence ran into Supabase's presence rate limit. */
   const tabId = Math.random().toString(36).slice(2, 10);
   function join(name){
     return new Promise((resolve, reject) => {
-      const ch = sb.channel("chessnat-" + name, {config: {presence: {key: tabId}}});
-      let state = {}, connected = false, peersCbs = [], connCbs = [], snap = [], updatedAt = {};
-      const build = () => { const ps = ch.presenceState(); snap = Object.keys(ps).map(k => { const meta = ps[k][ps[k].length - 1] || {}; const pres = JSON.parse(JSON.stringify(meta.p || {})); const prev = snap.find(x => x.peer === k); const same = prev && JSON.stringify(prev.presence) === JSON.stringify(pres); return Object.freeze({peer: k, by: meta.u || null, isMe: k === tabId, sameTab: k === tabId, kind: "viewer", guest: false, presence: same ? prev.presence : Object.freeze(pres), updatedAt: same ? prev.updatedAt : Date.now()}); }); return snap; };
-      ch.on("presence", {event: "sync"}, () => { const p = build(); peersCbs.forEach(cb => cb({peers: p, joined: [], left: [], updated: p})); });
+      const ch = sb.channel("chessnat-" + name, {config: {presence: {key: tabId}, broadcast: {self: false, ack: false}}});
+      let state = {}, connected = false, peersCbs = [], connCbs = [], snap = [];
+      const here = new Set(), states = {}, by = {}, upd = {};
+      const build = () => { snap = [...here].map(k => { const prev = snap.find(x => x.peer === k); const pres = states[k] || {}; const same = prev && prev.presence === pres;
+        return Object.freeze({peer: k, by: by[k] || null, isMe: k === tabId, sameTab: k === tabId, kind: "viewer", guest: false, presence: pres, updatedAt: upd[k] || Date.now()}); }); return snap; };
+      const fire = () => { const p = build(); peersCbs.forEach(cb => cb({peers: p, joined: [], left: [], updated: p})); };
+      const me = () => { states[tabId] = Object.freeze(JSON.parse(JSON.stringify(state))); upd[tabId] = Date.now(); by[tabId] = session ? session.user.id : null; };
+      let sendT = null, lastSent = 0;
+      const send = () => { clearTimeout(sendT); sendT = null; lastSent = Date.now(); if (!connected) return;
+        ch.send({type: "broadcast", event: "st", payload: {k: tabId, u: session ? session.user.id : null, p: state}}).catch(() => {}); };
+      const sendSoon = () => { if (sendT) return; const wait = Math.max(0, 40 - (Date.now() - lastSent)); sendT = setTimeout(send, wait); };
+      ch.on("broadcast", {event: "st"}, ({payload}) => { if (!payload || payload.k === tabId) return; states[payload.k] = Object.freeze(payload.p || {}); by[payload.k] = payload.u || null; upd[payload.k] = Date.now(); here.add(payload.k); fire(); });
+      ch.on("broadcast", {event: "hi"}, ({payload}) => { if (payload && payload.k !== tabId) send(); });
+      ch.on("presence", {event: "join"}, ({key}) => { here.add(key); if (key !== tabId) send(); fire(); });
+      ch.on("presence", {event: "leave"}, ({key}) => { if (key === tabId) return; here.delete(key); delete states[key]; fire(); });
+      ch.on("presence", {event: "sync"}, () => { const ps = ch.presenceState(); Object.keys(ps).forEach(k => here.add(k)); [...here].forEach(k => { if (!ps[k] && k !== tabId) { here.delete(k); delete states[k]; } }); fire(); });
+      // a quiet heartbeat repeats our state now and then, so a missed message heals by itself
+      const beat = setInterval(() => { if (connected) send(); }, 5000);
       const room = {
         name,
-        presence: async patch => { for (const k in patch){ if (patch[k] === null) delete state[k]; else state[k] = patch[k]; } if (JSON.stringify(state).length > 8000) throw {code: "invalid_argument", message: "presence too large"}; await ch.track({p: JSON.parse(JSON.stringify(state)), u: session ? session.user.id : null}); },
+        presence: async patch => { for (const k in patch){ if (patch[k] === null) delete state[k]; else state[k] = patch[k]; }
+          if (JSON.stringify(state).length > 60000) throw {code: "invalid_argument", message: "state too large"}; me(); fire(); sendSoon(); },
         peers: () => snap, onPeers: cb => { peersCbs.push(cb); setTimeout(() => cb({peers: snap, joined: snap, left: [], updated: []}), 0); return () => { peersCbs = peersCbs.filter(x => x !== cb); }; },
         connected: () => connected, onConnection: cb => { connCbs.push(cb); setTimeout(() => cb(connected), 0); return () => {}; },
         emit: async () => {}, on: () => () => {},
-        leave: async () => { try { await ch.untrack(); } catch(e) {} sb.removeChannel(ch); }
+        leave: async () => { clearInterval(beat); try { await ch.untrack(); } catch(e) {} sb.removeChannel(ch); }
       };
+      here.add(tabId); me();
       let settled = false;
-      ch.subscribe(status => {
-        connected = status === "SUBSCRIBED"; connCbs.forEach(cb => cb(connected));
-        if (!settled && status === "SUBSCRIBED"){ settled = true; resolve(room); }
+      ch.subscribe(async status => {
+        const was = connected; connected = status === "SUBSCRIBED"; if (was !== connected) connCbs.forEach(cb => cb(connected));
+        if (connected){ try { await ch.track({u: session ? session.user.id : null}); } catch(e) {} send(); ch.send({type: "broadcast", event: "hi", payload: {k: tabId}}).catch(() => {}); }
+        if (!settled && connected){ settled = true; resolve(room); }
         if (!settled && (status === "CHANNEL_ERROR" || status === "TIMED_OUT")){ settled = true; reject({code: "upstream_error", message: status}); }
       });
       setTimeout(() => { if (!settled){ settled = true; reject({code: "upstream_error", message: "timeout"}); } }, 10000);
