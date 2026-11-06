@@ -530,6 +530,15 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 .invite-pop .ip-t{flex:1;min-width:0;display:flex;flex-direction:column;font-size:13px;color:var(--muted)}
 .invite-pop .ip-t b{font:900 16px var(--display);color:var(--fg)}
 
+/* ===== Opening name card ===== */
+.opn{display:flex;gap:10px;align-items:flex-start;background:var(--panel-2);border:1px solid var(--line);border-left:3px solid #A88865;border-radius:10px;padding:9px 12px;margin-bottom:10px}
+.opn.new{animation:tipin .35s ease-out;border-color:#A88865}
+.opn-ic{font-size:18px;line-height:1.2}
+.opn-n{font:900 15px var(--display)}
+.opn-eco{font:700 11px var(--mono);color:var(--muted);margin-left:4px}
+.opn p{margin:3px 0 0;font-size:13px;color:var(--muted);line-height:1.4}
+.opn .btn{flex:none;align-self:center}
+
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
 .pc.wr{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMTcuOTMgMjAuNDFjNC45LS43NCA5LjU4LS41NyAxNC4xNCAwTTE0LjE4IDkuNjZjLTEuMDYgOC43NyAxLjEgMTAuNjggMy43NSAxMC43NWwtMy4zMSAxOC4xNmgyMC43NmwtMy4zMS0xOC4xNmMyLjY0LS4wNyA0LjgtMS45OCAzLjc1LTEwLjc1bC0zLjYxLS41My0xLjA3IDMuNjUtMy4xNS0uMS0uNTItMy43NmgtNC45NEwyMiAxMi42OGwtMy4xNS4xLTEuMDctMy42NXoiLz48cGF0aCBkPSJNMTcuOTMgMjAuNDFjNi44MyAwIDEzLjEyLjQxIDE0Ljk1IDE2LjU4bDIuMzIuMzgtMy4xMy0xNi40M2MtLjAzLS4zLTYuMDktMS44Mi0xNC4xNC0uNTMiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Im0xNC43OCAxMC4yMiAyLjI3LS4yOWMtMS45MS4zMi0yLjMgNS4zLTIuMyA1LjMtLjI1LS4xOC0uMi00LjkuMDMtNS4wMW0xMC41LS42N2MtMS42NSAwLTIuNTIgMi43NS0yLjUyIDIuNzVsLjMzLTIuNzN6bTcuNC4yNy45Mi4xMWMtLjc4LjUtMS41OSAyLTEuNTkgMnptLTE0LjIgMTEuMTQgMi42MS0uMjljLTIuNjIuMy00Ljg5IDEzLjExLTQuODkgMTMuMTF6Ii8+PHBhdGggZD0iTTM0LjAxIDkuNGMuMzYgNi4zNi0xLjk1IDEwLjYtOC4wNCAxMC41M2w0Ljc4LjU3YzcuNTIuMyA1LjEtMTAuOCA1LjA3LTEwLjg0eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuMiIgZD0iTTI1IDM2LjQ2cy05LjEzLjA0LTExLjcgMS42MmMtMS43MiAxLjA2LTIuMTMgMy42NS0xLjkgNi4zMmgyNy4yYy4yMy0yLjY3LS4xOC01LjI2LTEuOS02LjMyQzM0LjEyIDM2LjUgMjUgMzYuNDYgMjUgMzYuNDZ6Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI1IDM3LjE1UzE2LjI5IDM3IDEzLjM4IDM4LjhjLS4zNy4yMy0uNy44NC0uOTYgMS40LjI2LS4zNC41LS42Mi44OS0uODZDMTUuODcgMzcuNzggMjUgMzcuNzMgMjUgMzcuNzNzOS4xMy4wNSAxMS43IDEuNjJjLjM4LjI0LjU4LjUzLjg1Ljg3YTMgMyAwIDAgMC0xLjE1LTEuNkMzMy42NSAzNy4xNSAyNSAzNy4xNiAyNSAzNy4xNnoiLz48L3N2Zz4=')}
@@ -665,7 +674,7 @@ const DEF = () => ({
   themes:{}, failed:[], seen:[], recent:[],
   bots:{}, games:[], journey: {level: 1, best: {}}, lessons:{}, xp:0, h2h:{}, linkGames:{},
   day:{k:"", pz:0, ls:0, gm:0, rush:0, daily:0}, plan:{streak:0, best:0, last:""},
-  settings:{sound:true, voice:true, coords:true, legal:true, autoNext:true, board:"green", anim:true, coach:true, threats:true},
+  settings:{sound:true, voice:true, coords:true, legal:true, autoNext:true, board:"green", anim:true, coach:true, threats:true, openings:true},
 });
 let S = DEF();
 function mergeDefaults(x){ const d = DEF(); for (const k in d){ if (x[k] === undefined) x[k] = d[k]; else if (d[k] && typeof d[k] === "object" && !Array.isArray(d[k])) for (const kk in d[k]) if (x[k][kk] === undefined) x[k][kk] = d[k][kk]; } return x; }
@@ -1628,6 +1637,18 @@ const BOTS = [
   {id:"titan",  name:"Titan",  r:2800, kind:"sf", skill:20, depth:13, hue:190, tag:"Engine", bio:"Full-strength engine.", lesson:"Good luck."},
 ];
 /* which of `color`'s pieces can be won right now: attacked and undefended, or attacked by something cheaper */
+/* the next bot worth playing: just above your strongest win, never far below your puzzle level,
+   and one step easier after three losses in a row against it */
+function recommendBot(){
+  const won = b => S.bots[b.id] && S.bots[b.id].w > 0;
+  const top = BOTS.filter(won).pop(), topR = top ? top.r : 0;
+  const floor = Math.max(topR, ((S.puzzle && S.puzzle.r) || 800) - 400);
+  let i = BOTS.findIndex(b => !won(b) && b.r > topR && b.r >= floor - 150);
+  if (i < 0) i = BOTS.findIndex(b => !won(b));
+  if (i < 0) return BOTS[BOTS.length - 1];
+  const r = S.bots[BOTS[i].id]; if (r && (r.streakL || 0) >= 3 && i > 0) i--;
+  return BOTS[i];
+}
 function hangingFor(g, color){
   const opp = color === "w" ? "b" : "w"; const out = [];
   const asTurn = c => { const p = g.fen().split(" "); p[1] = c; p[3] = "-"; return p.join(" "); };
@@ -1673,7 +1694,7 @@ Views.bots = {
   menu(){
     this.stopGame();
     const rec = id => S.bots[id] || {w: 0, d: 0, l: 0};
-    const recBot = BOTS.find(b => (rec(b.id).w || 0) < 2) || BOTS[BOTS.length - 1];
+    const recBot = recommendBot();
     this.main.innerHTML = `<div class="page"><h1 class="h-title">Play Bots</h1><p class="muted">Start low and climb: beat a bot twice, then move up. Every bot has a Relaxed setting, and the threat helper shows hanging pieces.</p>
       <div class="tiles" style="margin-top:14px">${BOTS.map(b => { const r = rec(b.id); const isRec = b === recBot; return `<button class="tile" data-bot="${b.id}" style="${isRec ? "border:2px solid var(--go)" : ""}">${isRec ? `<span class="pill go">Recommended</span>` : ""}<div class="row" style="gap:10px;flex-wrap:nowrap">${botAvatar(b, 52)}<div style="min-width:0"><h3>${esc(b.name)} <span class="muted" style="font-weight:700">${b.r}</span></h3><span class="pill">${esc(b.tag)}</span></div></div><p>${esc(b.bio)}</p><p style="color:var(--fg)">${r.w}W · ${r.d}D · ${r.l}L</p></button>`; }).join("")}</div></div>`;
     $$(".tile[data-bot]", this.main).forEach(t => t.onclick = () => this.setup(BOTS.find(b => b.id === t.dataset.bot)));
@@ -1685,6 +1706,7 @@ Views.bots = {
       ${typeof BEAT_LESSON === "object" && BEAT_LESSON[bot.id] && lessonById(BEAT_LESSON[bot.id]) ? `<button class="btn sm" id="beat" style="margin-top:10px">📖 How to beat ${esc(bot.name)}: ${esc(lessonById(BEAT_LESSON[bot.id]).title)}</button>` : ""}</div>
       <div class="unit"><h3>I play</h3><div class="row" style="margin-top:8px"><button class="btn sm on-c" data-c="w">White</button><button class="btn sm" data-c="r">Random</button><button class="btn sm" data-c="b">Black</button></div>
       <label class="chk"><input type="checkbox" id="coach" ${S.settings.coach ? "checked" : ""}> Coach mode: warn me before I blunder and allow takebacks</label>
+      <label class="chk"><input type="checkbox" id="opn" ${S.settings.openings !== false ? "checked" : ""}> Show opening names, so you learn what you and the bot are playing</label>
       <label class="chk"><input type="checkbox" id="tips" ${S.settings.tips ? "checked" : ""}> Coach tips: light advice like a stronger friend (plans, checks, captures, threats)</label>
       <label class="chk"><input type="checkbox" id="hints" checked> Allow hints</label>
       <label class="chk"><input type="checkbox" id="thr" ${S.settings.threats !== false ? "checked" : ""}> Threat helper: mark pieces that are hanging (yours red, theirs green)</label>
@@ -1697,7 +1719,7 @@ Views.bots = {
     $$("[data-c]", this.main).forEach(b => b.onclick = () => { col = b.dataset.c; mark(); }); mark();
     $("#bk").onclick = () => this.menu();
     if ($("#beat")) $("#beat").onclick = () => App.go("lesson", {id: BEAT_LESSON[bot.id]});
-    $("#go").onclick = () => { S.settings.coach = $("#coach").checked; S.settings.threats = $("#thr").checked; S.settings.tips = $("#tips").checked; S.settings.ostart = $("#ostart").value; save();
+    $("#go").onclick = () => { S.settings.coach = $("#coach").checked; S.settings.threats = $("#thr").checked; S.settings.tips = $("#tips").checked; S.settings.openings = $("#opn").checked; S.settings.ostart = $("#ostart").value; save();
       this.start(bot, col === "r" ? (Math.random() < .5 ? "w" : "b") : col, {coach: $("#coach").checked, hints: $("#hints").checked, threats: $("#thr").checked, tips: $("#tips").checked, level: lv, openSan: (OPENING_STARTS.find(o => o.k === $("#ostart").value) || {}).san || ""}); };
   },
   stopGame(){ if (this.G){ this.keepUnfinished(this.G); this.G.dead = true; this.G = null; } Engine.clear(); document.onkeydown = null; },
@@ -1831,10 +1853,17 @@ Views.bots = {
       if (G.tipKey) tip = `<div class="ctip ${G.tipNew ? "new" : ""}"><span class="ctip-ic">💡</span><div><b>Coach</b><p>${esc(COACH_TIPS[G.tipKey])}</p></div></div>`;
       if (G.tipNew){ G.tipNew = false; Voice.say(COACH_TIPS[G.tipKey]); }
     }
-    $("#sp").innerHTML = `${tip}${G.chat ? `<div class="chat"><div class="av">${botAvatar(G.bot, 44)}</div><div class="bubble">${esc(G.chat)}</div></div>` : ""}
+    let opn = "";
+    if (S.settings.openings !== false){
+      if (!Openings.map){ if (!G.opnWait){ G.opnWait = true; Openings.load().then(() => { if (this.G === G) this.panel(); }); } }
+      else { const o = Openings.ofGame(G.g, G.startFen); const fresh = o && o.name !== G.opnName; if (o) G.opnName = o.name;
+        const h2 = G.g.history(), out = o && h2.length > o.ply + 1 ? `Out of the book since move ${Math.floor(o.ply / 2) + 1}.` : "";
+        opn = Openings.card(o, {fresh: fresh && h2.length > 0, note: out, noLesson: !G.over}); }
+    }
+    $("#sp").innerHTML = `${tip}${opn}${G.chat ? `<div class="chat"><div class="av">${botAvatar(G.bot, 44)}</div><div class="bubble">${esc(G.chat)}</div></div>` : ""}
       <div class="h-sec">Moves</div><div class="moves" id="mvl">${mv || `<span></span><span class="dim">No moves yet</span>`}</div>
       ${G.over ? `<div class="msg" style="margin-top:12px"><div class="ic">★</div><div><h4>Result ${esc(G.result || "")}</h4><p>Open Game Review to see your best and worst moves.</p></div></div>` : ""}`;
-    $$("#mvl .m[data-ply]").forEach(s => s.onclick = () => this.showPly(+s.dataset.ply));
+    $$("#mvl .m[data-ply]").forEach(s => s.onclick = () => this.showPly(+s.dataset.ply)); Openings.wire($("#sp"));
     const ml = $("#mvl"); if (ml) ml.parentElement.scrollTop = ml.parentElement.scrollHeight;
     $("#sf").innerHTML = G.over ? `<button class="btn" id="nb">Bots</button><button class="btn" id="fl" aria-label="Flip board">⇅</button><button class="btn go" id="rv2" style="flex:1">Game Review</button>`
       : `<button class="btn m-hide" id="nb">Bots</button><button class="btn" id="fl" aria-label="Flip board">⇅</button><button class="btn" id="pv" aria-label="Previous move">‹</button><button class="btn" id="nx" aria-label="Next move">›</button>${G.opt.hints ? `<button class="btn" id="hi">Hint</button>` : ""}${G.opt.coach ? `<button class="btn" id="tbk">Undo</button>` : ""}<button class="btn" id="rs">Resign</button>`;
@@ -2986,6 +3015,102 @@ function journeyResultCard(board, sp, stars, res){
   $("#jagain", ov).onclick = () => { clearTimeout(auto); Views.journey.start(sp.L); };
 }
 
+/* ===== Opening names: recognise the opening from the position (Lichess opening database, CC0) ===== */
+const OPENING_FAMILIES = {
+  "Italian Game": "White's bishop goes to c4 and aims at f7, the weakest square in Black's camp. Quick development, then c3 and d4.",
+  "Ruy Lopez": "The Spanish: White's bishop pins the knight that guards e5. A slow, deep fight for the centre.",
+  "Scotch Game": "White opens the centre at once with d4 and gets free piece play.",
+  "Petrov's Defense": "Black copies White and attacks e4 straight back. Very solid.",
+  "Philidor Defense": "Black holds e5 with ...d6. Solid but a bit passive.",
+  "King's Gambit": "White gives up the f-pawn to open the f-file and attack fast. Wild and risky for both sides.",
+  "Vienna Game": "White plays Nc3 first and keeps the f-pawn ready to push to f4.",
+  "Four Knights Game": "Both sides bring out their knights first. Calm and classical.",
+  "Three Knights Opening": "Both sides develop knights early, a calm classical start.",
+  "Sicilian Defense": "Black answers 1.e4 with ...c5 and fights for d4 from the side. The sharpest answer to 1.e4.",
+  "French Defense": "Black plays ...e6 and ...d5: a solid pawn chain, then counterattack against White's centre.",
+  "Caro-Kann Defense": "Black plays ...c6 and ...d5. Rock solid, and the light-squared bishop gets out before ...e6.",
+  "Scandinavian Defense": "Black hits e4 right away with ...d5 and takes back with the queen or the knight.",
+  "Pirc Defense": "Black lets White build a big centre, then attacks it with ...g6, ...Bg7 and ...e5 or ...c5.",
+  "Modern Defense": "Black fianchettoes the bishop first and attacks White's centre later.",
+  "Alekhine Defense": "Black's knight provokes White's pawns forward, then Black attacks the overextended centre.",
+  "Queen's Gambit Declined": "Black holds d5 with ...e6. One of the most solid defences in chess.",
+  "Queen's Gambit Accepted": "Black takes the c4-pawn and gives back the centre for free piece play.",
+  "Queen's Gambit": "White offers the c-pawn to pull Black's d-pawn away from the centre.",
+  "Slav Defense": "Black holds d5 with ...c6 and keeps the bishop free to come out.",
+  "London System": "White sets up d4, Bf4, e3, c3 and Nf3 against almost everything. Easy to learn, solid plans.",
+  "Queen's Pawn Game": "White starts with 1.d4. A slower, more positional game than 1.e4.",
+  "King's Indian Defense": "Black lets White take the centre, castles quickly and strikes back with ...e5, often attacking on the kingside.",
+  "Nimzo-Indian Defense": "Black pins the c3-knight with ...Bb4 to fight for e4.",
+  "Queen's Indian Defense": "Black controls e4 with a fianchettoed bishop on b7.",
+  "Grünfeld Defense": "Black gives White a big centre, then attacks it with pieces and ...c5.",
+  "Dutch Defense": "Black plays ...f5 to grab e4 and aims for a kingside attack.",
+  "Benoni Defense": "Black plays ...c5 against d4 and gets an unbalanced, dynamic game.",
+  "English Opening": "White starts with 1.c4 and controls d5 from the side.",
+  "Réti Opening": "White starts with 1.Nf3 and stays flexible, often with a fianchetto.",
+  "Zukertort Opening": "White starts with 1.Nf3, a flexible move that can turn into many openings.",
+  "Bishop's Opening": "White puts the bishop on c4 before the knight, often aiming at f7.",
+  "Center Game": "White opens the centre at once, but the queen comes out early.",
+  "Danish Gambit": "White gives up pawns for a big lead in development.",
+  "Englund Gambit": "A risky gambit for Black against 1.d4 with ...e5.",
+  "Elephant Gambit": "Black hits back with ...d5 at once. Risky but tricky.",
+  "Latvian Gambit": "Black plays ...f5 early. Very risky.",
+  "Owen Defense": "Black fianchettoes the queen's bishop with ...b6 against 1.e4.",
+  "Nimzowitsch Defense": "Black answers 1.e4 with ...Nc6.",
+  "Bird Opening": "White starts with 1.f4 and aims for e5.",
+  "Catalan Opening": "White combines d4 and c4 with a fianchettoed bishop on g2.",
+  "Trompowsky Attack": "White plays Bg5 early against ...Nf6.",
+  "Colle System": "White builds d4, e3, Bd3 and aims for e4 later.",
+  "King's Pawn Game": "1.e4: White takes the centre and opens lines for the queen and the bishop.",
+  "King's Knight Opening": "Both sides play e4 and e5, then White attacks e5 with the knight.",
+  "King's Indian Attack": "White sets up Nf3, g3, Bg2, d3 and O-O, then pushes e4–e5 against Black's king.",
+  "Bogo-Indian Defense": "Black gives a check with ...Bb4+ to develop quickly against 1.d4 and 2.c4.",
+  "Benko Gambit": "Black gives a pawn with ...b5 for long pressure on the queenside.",
+  "Ponziani Opening": "White prepares d4 with c3. Rare but tricky.",
+  "Indian Defense": "Black answers 1.d4 with ...Nf6 and keeps the setup flexible.",
+  "Old Indian Defense": "Black plays ...d6 and ...e5 against 1.d4. Solid and a bit slow.",
+  "Blackmar-Diemer Gambit": "White gives a pawn with d4, e4 and f3 for a fast attack.",
+  "Hungarian Opening": "White starts with 1.g3 and fianchettoes the bishop.",
+  "Grob Opening": "1.g4: an odd, risky first move.",
+  "Polish Opening": "1.b4: White grabs space on the queenside right away.",
+  "Bongcloud Attack": "The king walks out on move two. A joke opening: please don't!",
+};
+const OPENING_LESSONS = [
+  [/Fried Liver|Two Knights/, "rep-twoknights"], [/Italian Game|Giuoco/, "rep-italian"], [/London System/, "rep-london"],
+  [/Caro-Kann Defense: Advance/, "rep-caro-adv"], [/Caro-Kann/, "rep-caro-classical"], [/Queen's Gambit Declined/, "rep-qgd"],
+  [/Queen's Gambit/, "u5-qgd"], [/Sicilian Defense: Alapin/, "rep-alapin"], [/Sicilian/, "rep-alapin"], [/King's Gambit/, "c-selin"],
+  [/Wayward Queen|Napoleon|Parham/, "c-bruno"],
+];
+const Openings = {
+  map: null, loading: null, memo: new Map(),
+  load(){ if (this.map) return Promise.resolve(this.map); return this.loading || (this.loading = fetch("data/openings.json").then(r => r.ok ? r.json() : {}).then(m => { this.map = m; this.memo.clear(); return m; }).catch(() => { this.map = {}; return this.map; })); },
+  key(fen){ const s = fen.split(" ").slice(0, 4).join(" "); let h = 0x811c9dc5; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(36); },
+  at(fen){ const r = this.map && this.map[this.key(fen)]; return r ? {eco: r[0], name: r[1]} : null; },
+  /* fens[0] is the start; returns the last named position and, per ply, whether it was still in the book */
+  ofFens(fens){
+    if (!this.map) return null; let last = null, book = [];
+    for (let i = 1; i < fens.length && i <= 40; i++){ const r = this.at(fens[i]); book[i] = !!r; if (r) last = Object.assign({ply: i}, r); }
+    return last ? Object.assign(last, {book}) : null;
+  },
+  ofGame(g, startFen){
+    const h = g.history({verbose: true}), sig = (startFen || "") + h.slice(0, 40).map(m => m.from + m.to).join("");
+    if (this.memo.has(sig)) return this.memo.get(sig);
+    if (startFen && startFen.split(" ")[0] !== "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"){ const t = new Chess(startFen); const fens = [t.fen()]; h.slice(0, 40).forEach(m => { t.move(m); fens.push(t.fen()); }); const r = this.ofFens(fens); if (this.map) this.memo.set(sig, r); return r; }
+    const t = new Chess(), fens = [t.fen()]; h.slice(0, 40).forEach(m => { t.move(m); fens.push(t.fen()); });
+    const r = this.ofFens(fens); if (this.map) this.memo.set(sig, r); return r;
+  },
+  ofPgn(pgn){ const g = new Chess(); if (!g.load_pgn(pgn || "", {sloppy: true})) return null; return this.ofGame(g, g.header().FEN); },
+  family(name){ const base = name.split(":")[0].trim(); if (OPENING_FAMILIES[base]) return OPENING_FAMILIES[base];
+    const k = Object.keys(OPENING_FAMILIES).filter(f => base.startsWith(f)).sort((x, y) => y.length - x.length)[0]; return k ? OPENING_FAMILIES[k] : null; },
+  lesson(name){ const hit = OPENING_LESSONS.find(([re]) => re.test(name)); return hit && lessonById(hit[1]) ? hit[1] : null; },
+  /* the small card in a game panel */
+  card(o, extra){
+    if (!o) return "";
+    const fam = this.family(o.name), les = this.lesson(o.name), done = les && S.lessons[les] && S.lessons[les].done;
+    return `<div class="opn ${extra && extra.fresh ? "new" : ""}"><span class="opn-ic">📖</span><div class="grow"><div class="opn-n">${esc(o.name)} <span class="opn-eco">${esc(o.eco)}</span></div>${fam ? `<p>${esc(fam)}</p>` : ""}${extra && extra.note ? `<p class="dim">${extra.note}</p>` : ""}</div>${les && !(extra && extra.noLesson) ? `<button class="btn sm ${done ? "" : "go"}" data-olesson="${les}">${done ? "Review" : "Learn it"}</button>` : ""}</div>`;
+  },
+  wire(root){ if (!root) return; root.querySelectorAll("[data-olesson]").forEach(b => b.onclick = () => App.go("lesson", {id: b.dataset.olesson})); }
+};
+
 /* ===== Game Review: Stockfish analysis with move classifications ===== */
 const CLS = {
   brilliant:  {sym:"!!", name:"Brilliant",  c:"#1BACA6"},
@@ -3016,7 +3141,8 @@ Views.review = {
     const games = S.games.slice().reverse();
     this.main.innerHTML = `<div class="page"><h1 class="h-title">Game Review</h1><p class="muted">Every move gets graded, from Brilliant to Blunder. Pick a game or paste a PGN.</p>
       <div class="unit" style="margin-top:12px"><h3>Paste a PGN</h3><textarea id="pgnin" rows="4" style="width:100%;margin-top:8px;background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:10px;font:500 13px var(--mono)" placeholder="1. e4 e5 2. Nf3 Nc6 3. Bc4 ..."></textarea><button class="btn go" id="pgngo" style="margin-top:8px">Review</button></div>
-      <div class="h-sec">Your games</div><div class="list">${games.map((g, i) => `<div class="li"><span class="pill ${g.result === "1/2-1/2" || g.result === "*" ? "" : ((g.result === "1-0") === (g.color === "w") ? "go" : "bad")}">${g.result === "*" ? "Unfinished" : g.result === "1/2-1/2" ? "Draw" : ((g.result === "1-0") === (g.color === "w") ? "Win" : "Loss")}</span><div class="grow"><div class="t">vs ${esc(g.opp)}${g.oppR ? ` (${g.oppR})` : ""} · ${Math.ceil(g.moves / 2)} moves${g.mode === "journey" ? " · Journey" : g.mode === "friend" || g.mode === "link" ? " · Friend" : ""}</div><div class="s">${new Date(g.ts).toLocaleString("en-GB")} ${g.review ? `· Accuracy ${g.review.acc}` : ""}</div></div><button class="btn sm" data-i="${S.games.length - 1 - i}">Review</button></div>`).join("") || `<p class="dim">No games yet. Play a bot first.</p>`}</div></div>`;
+      <div class="h-sec">Your games</div><div class="list">${games.map((g, i) => `<div class="li"><span class="pill ${g.result === "1/2-1/2" || g.result === "*" ? "" : ((g.result === "1-0") === (g.color === "w") ? "go" : "bad")}">${g.result === "*" ? "Unfinished" : g.result === "1/2-1/2" ? "Draw" : ((g.result === "1-0") === (g.color === "w") ? "Win" : "Loss")}</span><div class="grow"><div class="t">vs ${esc(g.opp)}${g.oppR ? ` (${g.oppR})` : ""} · ${Math.ceil(g.moves / 2)} moves${g.mode === "journey" ? " · Journey" : g.mode === "friend" || g.mode === "link" ? " · Friend" : ""}</div><div class="s">${(o => o ? `📖 ${esc(o.name)} · ` : "")(S.settings.openings !== false && Openings.map ? Openings.ofPgn(g.pgn) : null)}${new Date(g.ts).toLocaleString("en-GB")} ${g.review ? `· Accuracy ${g.review.acc}` : ""}</div></div><button class="btn sm" data-i="${S.games.length - 1 - i}">Review</button></div>`).join("") || `<p class="dim">No games yet. Play a bot first.</p>`}</div></div>`;
+    if (!Openings.map && S.settings.openings !== false) Openings.load().then(() => { if (App.route === "review" && !this.A) this.list(); });
     $("#pgngo").onclick = () => { const t = $("#pgnin").value.trim(); if (!t) return; const g = new Chess(); if (!g.load_pgn(t, {sloppy: true})){ toast("That PGN could not be read"); return; } this.open(t, null); };
     $$("[data-i]", this.main).forEach(b => b.onclick = () => { const g = S.games[+b.dataset.i]; this.open(g.pgn, g); });
   },
@@ -3036,6 +3162,8 @@ Views.review = {
     const W = hdr.White || "White", B = hdr.Black || "Black";
     $("#topbar").innerHTML = `<span class="nm">${esc(this.A.me === "w" ? B : W)}</span>`; $("#botbar").innerHTML = `<span class="nm">${esc(this.A.me === "w" ? W : B)}</span>`;
     document.onkeydown = e => { if (e.key === "ArrowLeft") this.go(this.A.ply - 1); if (e.key === "ArrowRight") this.go(this.A.ply + 1); };
+    const setOpen = () => { if (this.A !== A0) return; A0.open = Openings.ofFens(A0.fens); this.go(A0.ply); }; const A0 = this.A;
+    if (Openings.map) A0.open = Openings.ofFens(A0.fens); else Openings.load().then(setOpen);
     this.go(0); this.analyse();
   },
   async analyse(){
@@ -3072,7 +3200,7 @@ Views.review = {
       else if (loss < 22) c = "mistake";
       else c = "blunder";
       // book: early, sound moves
-      if (i < 12 && loss < 10 && Math.abs(A.evals[i + 1]) < 150) c = "book";
+      if (A.open ? (A.open.book[i + 1] && loss < 10) : (i < 12 && loss < 10 && Math.abs(A.evals[i + 1]) < 150)) c = "book";
       // great: the only good move
       const L = A.lines[i] || [];
       if ((c === "best") && L.length > 1 && L[1]){ const second = Engine.white(L[1], A.fens[i]) * sg; if (winPct(before) - winPct(second) >= 15 && wpA >= 40) c = "great"; }
@@ -3123,9 +3251,10 @@ Views.review = {
     let mv = ""; for (let i = 0; i < A.moves.length; i += 2){ const n = i / 2 + 1;
       const cell = j => { if (!A.moves[j]) return `<span></span>`; const c = A.cls[j]; const k = c ? CLS[c] : null; return `<span class="m ${A.ply === j + 1 ? "cur" : ""}" data-ply="${j + 1}">${k && ["brilliant","great","inaccuracy","mistake","miss","blunder"].includes(c) ? `<span class="cls" style="background:${k.c};width:16px;height:16px;font-size:9px;margin-right:4px">${k.sym}</span>` : ""}${esc(A.moves[j].san)}</span>`; };
       mv += `<span class="n">${n}.</span>${cell(i)}${cell(i + 1)}`; }
-    $("#sp").innerHTML = top + `<div class="h-sec">Moves</div><div class="moves">${mv}</div>`;
+    const opnCard = S.settings.openings !== false && A.open ? Openings.card(A.open, {note: A.moves.length > A.open.ply ? `Both sides followed known theory until move ${Math.floor((A.open.ply - 1) / 2) + 1}.` : ""}) : "";
+    $("#sp").innerHTML = opnCard + top + `<div class="h-sec">Moves</div><div class="moves">${mv}</div>`;
     $$("#sp .m[data-ply]").forEach(s => s.onclick = () => this.go(+s.dataset.ply));
-    $$("#sp [data-km]").forEach(s => s.onclick = () => this.go(+s.dataset.km));
+    $$("#sp [data-km]").forEach(s => s.onclick = () => this.go(+s.dataset.km)); Openings.wire($("#sp"));
     $("#sf").innerHTML = `<button class="btn" id="rvb">Games</button><button class="btn" id="r0">«</button><button class="btn" id="rp">‹</button><button class="btn" id="rn">›</button><button class="btn" id="re">»</button><button class="btn" id="ran">Analyze</button>${A.done ? `<button class="btn go" id="rlearn" style="flex:1">Retry mistakes</button>` : ""}`;
     $("#rvb").onclick = () => { this.dead = true; Engine.clear(); this.list(); };
     $("#r0").onclick = () => this.go(0); $("#rp").onclick = () => this.go(A.ply - 1); $("#rn").onclick = () => this.go(A.ply + 1); $("#re").onclick = () => this.go(A.moves.length);
@@ -3206,9 +3335,11 @@ Views.analysis = {
     const status = g.in_checkmate() ? "Checkmate" : g.in_stalemate() ? "Stalemate" : g.in_draw() ? "Draw" : sideToMoveText(g.turn());
     $("#sp").innerHTML = `<div class="row" style="justify-content:space-between"><div style="font:900 20px var(--display)">${status}</div><span class="pill">${this.depth ? "Depth " + this.depth : "Thinking…"}</span></div>
       <div class="list" style="margin-top:8px">${this.lines.map(l => `<div class="li"><span class="pill" style="min-width:54px;justify-content:center;background:${Engine.white(l, fen) >= 0 ? "#EEE" : "#333"};color:${Engine.white(l, fen) >= 0 ? "#222" : "#EEE"}">${fmtEval(Engine.white(l, fen))}</span><div class="grow"><div class="t" style="white-space:normal;font-weight:600">${esc(pvSan(l))}</div></div></div>`).join("") || `<p class="dim">Engine lines appear here.</p>`}</div>
+      ${S.settings.openings !== false && Openings.map ? Openings.card(Openings.ofGame(g, this.start)) : ""}
       <div class="h-sec">Moves</div><div class="moves">${mv || `<span></span><span class="dim">Make moves for both sides</span>`}</div>
       <div class="h-sec">Position</div><input type="text" id="afen" value="${esc(fen)}" style="width:100%;font:600 12px var(--mono)" aria-label="FEN">
       <div class="row" style="margin-top:6px"><button class="btn sm" id="aload">Load FEN</button><button class="btn sm" id="acopy">Copy FEN</button><button class="btn sm" id="apgn">Copy PGN</button></div>`;
+    Openings.wire($("#sp")); if (!Openings.map && S.settings.openings !== false) Openings.load().then(() => { if (!this.dead) this.panel(); });
     $("#aload").onclick = () => { const v = $("#afen").value.trim(); const t = new Chess(); if (!t.load(v)){ toast("That FEN isn't valid"); return; } this.g = t; this.redo = []; this.update(); };
     $("#acopy").onclick = () => navigator.clipboard.writeText(fen).then(() => toast("FEN copied")).catch(() => toast("Copy failed"));
     $("#apgn").onclick = () => navigator.clipboard.writeText(g.pgn()).then(() => toast("PGN copied")).catch(() => toast("Copy failed"));
@@ -3740,7 +3871,7 @@ Views.home = {
 Views.play = {
   mount(main){
     const myLink = Object.values(S.linkGames || {}).filter(r => { if (r.result) return false; const g = new Chess(); (r.moves || []).forEach(u => g.move({from: u.slice(0,2), to: u.slice(2,4), promotion: u[4] || undefined})); return g.turn() === r.color; }).length;
-    const rec = BOTS.find(b => { const r = S.bots[b.id]; return !r || r.w < 3; }) || BOTS[BOTS.length - 1];
+    const rec = recommendBot();
     main.innerHTML = `<div class="page"><h1 class="h-title">Play</h1>
       <div class="unit" style="display:flex;gap:12px;align-items:center;margin-top:10px">${botAvatar(rec, 56)}<div style="flex:1;min-width:0"><div class="muted" style="font-size:12px;font-weight:800">RECOMMENDED BOT</div><div style="font:900 20px var(--display)">${esc(rec.name)} <span class="muted">${rec.r}</span></div><div class="muted" style="font-size:13px">${esc(rec.lesson)}</div></div><button class="btn go" id="prec">Play</button></div>
       <div class="tiles">
@@ -3788,7 +3919,7 @@ Views.settings = {
     const chk = (k, t) => `<label class="chk"><input type="checkbox" data-s="${k}" ${st[k] ? "checked" : ""}> ${t}</label>`;
     main.innerHTML = `<div class="page" style="max-width:640px"><h1 class="h-title">Settings</h1>
       <div class="unit" style="margin-top:12px"><h3>Profile</h3><label class="muted" style="display:block;margin-top:8px">Display name <input type="text" id="nm" value="${esc(S.name)}" maxlength="24" style="margin-left:8px"></label></div>
-      <div class="unit"><h3>Board</h3>${chk("coords", "Show coordinates")}${chk("legal", "Show legal moves")}${chk("anim", "Animate pieces")}
+      <div class="unit"><h3>Board</h3>${chk("coords", "Show coordinates")}${chk("legal", "Show legal moves")}${chk("openings", "Show opening names (bot games, analysis, review)")}${chk("anim", "Animate pieces")}
         <div class="row" style="margin-top:6px">${["green","brown","blue","slate"].map(b => `<button class="btn sm ${st.board === b ? "go" : ""}" data-b="${b}">${b[0].toUpperCase() + b.slice(1)}</button>`).join("")}</div></div>
       <div class="unit"><h3>Sound and voice</h3>${chk("sound", "Move sounds")}${chk("voice", "Coach voice in lessons (English)")}<div class="row" style="margin:4px 0 8px"><span class="muted">Speed</span>${[[.9,"Slow"],[1,"Normal"],[1.15,"Fast"]].map(([v, t]) => `<button class="btn sm ${(st.voiceRate || 1) === v ? "go" : ""}" data-vr="${v}">${t}</button>`).join("")}</div><button class="btn sm" id="tv">Test voice</button></div>
       <div class="unit"><h3>Puzzles</h3>${chk("autoNext", "Jump to the next puzzle after a correct solve")}</div>
@@ -3813,7 +3944,7 @@ function boot(){
   const shell = document.createElement("div"); shell.className = "app"; shell.innerHTML = `<nav class="rail" id="rail" aria-label="Main"></nav><main class="main" id="main"></main><nav class="tabbar" id="tabbar" aria-label="Main"></nav><div class="sheet" id="sheet" hidden></div>`; document.body.appendChild(shell);
   sizeBoard();
   if (typeof Chess === "undefined"){ $("#main").innerHTML = `<div class="page"><div class="msg no"><div class="ic">!</div><div><h4>Chess engine library didn't load</h4><p>Check your connection and reload.</p></div></div></div>`; return; }
-  loadPuzzles(); connectCloud(); Voice.load();
+  loadPuzzles(); connectCloud(); Voice.load(); setTimeout(() => Openings.load(), 2500);
   const h = (location.hash || "").slice(1);
   if (h.startsWith("m-")) App.go("linkgame", {hash: h});
   else if (h.startsWith("g-") && Views.friend) App.go("friend", {join: h.slice(2)});
@@ -3851,6 +3982,7 @@ Views.account = {
         <p class="muted" style="text-align:center">${mode === "up" ? `Already have an account? <a href="#" id="sw">Sign in</a>` : `New here? <a href="#" id="sw">Create an account</a> · <a href="#" id="fg">Forgot password</a>`}</p>
         <p class="dim" style="text-align:center;font-size:12.5px">${inApp ? "On iPhone the app keeps its own progress, separate from Safari. Sign in with the same account in both and everything stays in sync." : "You can also keep playing without an account. Progress then stays on this device."}</p></div>`;
       const err = t => { $("#aerr").textContent = t || ""; };
+      if (window.CHESSNAT_AUTH_ERROR){ err(window.CHESSNAT_AUTH_ERROR); window.CHESSNAT_AUTH_ERROR = null; }
       $("#sw").onclick = e => { e.preventDefault(); mode = this.mode = mode === "up" ? "in" : "up"; render(); };
       if ($("#fg")) $("#fg").onclick = async e => { e.preventDefault(); const em = $("#em").value.trim(); if (!em) return err("Enter your email first."); const r = await site.reset(em); err(r.error ? r.error.message : ""); if (!r.error) toast(inApp ? "Check your inbox. Set the new password there, then sign in here." : "Check your inbox for a reset link", inApp ? 4500 : 2200); };
       if ($("#mg")) $("#mg").onclick = async () => { const em = $("#em").value.trim(); if (!em) return err("Enter your email first."); const r = await site.magic(em); if (r.error) err(r.error.message); else { err(""); toast("Sign-in link sent. Check your inbox."); } };
@@ -3864,7 +3996,7 @@ Views.account = {
           return err(m); }
         if (mode === "up" && r.data && r.data.user && Array.isArray(r.data.user.identities) && r.data.user.identities.length === 0){
           mode = this.mode = "in"; render(); $("#em").value = em; return $("#aerr").textContent = "This email already has an account. Sign in with your password."; }
-        if (mode === "up" && !r.data.session){ err(""); $("#af").outerHTML = `<div class="msg ok" style="margin-top:12px"><div class="ic">✓</div><div><h4>Check your inbox</h4><p>We sent a confirmation link to ${esc(em)}. ${inApp ? "Open it, then come back to this app and sign in with your email and password." : "Open it on this device; you'll be signed in automatically."}</p></div></div>`; } };
+        if (mode === "up" && !r.data.session){ err(""); $("#af").outerHTML = `<div class="msg ok" style="margin-top:12px"><div class="ic">✓</div><div><h4>Check your inbox</h4><p>We sent a confirmation link to ${esc(em)}. ${inApp ? "Open it, then come back to this app and sign in with your email and password." : "Open it on this device; you'll be signed in automatically."}</p><p class="muted" style="font-size:13px;margin:6px 0 0">If the link opens an error page, your email is usually confirmed anyway. Just come back here and sign in with your email and password.</p></div></div>`; } };
     };
     render();
   }

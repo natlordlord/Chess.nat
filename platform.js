@@ -17,6 +17,12 @@
     if ((ev === "SIGNED_IN" || ev === "SIGNED_OUT") && before !== after && !reloading){ reloading = true; setTimeout(() => location.reload(), 50); }
   });
 
+  /* a sign-in link that failed (expired, already used) comes back with the error in the address */
+  try { const h = new URLSearchParams((location.hash || "").replace(/^#/, "") + "&" + (location.search || "").replace(/^\?/, ""));
+    if (h.get("error_description") || h.get("error_code")){ const code = h.get("error_code") || "";
+      window.CHESSNAT_AUTH_ERROR = code === "otp_expired" ? "That sign-in link has expired or was already used. Sign in with your email and password, or request a new link." : (h.get("error_description") || "Sign-in didn't work.").replace(/\+/g, " ");
+      history.replaceState(null, "", location.pathname + "#account"); } } catch(e) {}
+
   /* ---- db: documents stored in table kv(user_id, path, data) with row level security ---- */
   function docRef(path){
     const uidOf = () => session && session.user.id;
