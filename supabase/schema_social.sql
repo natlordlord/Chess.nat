@@ -137,3 +137,9 @@ alter table public.chess_players drop constraint if exists chess_players_handle_
 alter table public.chess_players add constraint chess_players_handle_format check (handle is null or handle ~ '^[a-z0-9_]{3,20}$');
 create unique index if not exists chess_players_handle_key on public.chess_players (handle);
 grant update (handle) on public.chess_players to authenticated;
+
+-- game ratings per time control on the player card (2026-11-06)
+alter table public.chess_players add column if not exists ratings jsonb;
+alter table public.chess_players drop constraint if exists chess_players_ratings_size;
+alter table public.chess_players add constraint chess_players_ratings_size check (ratings is null or pg_column_size(ratings) < 600);
+grant update (ratings) on public.chess_players to authenticated;
