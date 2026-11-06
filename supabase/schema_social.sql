@@ -130,3 +130,10 @@ alter table public.chess_players add column if not exists trophies int not null 
 alter table public.chess_players drop constraint if exists chess_players_avatar_size;
 alter table public.chess_players add constraint chess_players_avatar_size check (avatar is null or pg_column_size(avatar) < 2000);
 grant update (avatar, trophies) on public.chess_players to authenticated;
+
+-- unique player ID (like @natlordlord) to find an account (2026-11-06)
+alter table public.chess_players add column if not exists handle text;
+alter table public.chess_players drop constraint if exists chess_players_handle_format;
+alter table public.chess_players add constraint chess_players_handle_format check (handle is null or handle ~ '^[a-z0-9_]{3,20}$');
+create unique index if not exists chess_players_handle_key on public.chess_players (handle);
+grant update (handle) on public.chess_players to authenticated;

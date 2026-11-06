@@ -660,6 +660,10 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 .pat-n{display:flex;flex-direction:column;align-items:flex-end;min-width:52px;font-variant-numeric:tabular-nums}
 .pat-n b{font:900 15px var(--display)}.pat-n small{color:var(--muted);font-size:11.5px}
 @media (max-width:800px){.stats-grid{grid-template-columns:1fr}}
+.hdl{font:700 14px var(--mono);color:var(--go-hi);display:flex;align-items:center;gap:8px;margin-top:2px}
+.hdl-in{display:flex;align-items:center;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;margin-top:4px}
+.hdl-in span{padding:0 4px 0 10px;color:var(--muted);font:700 15px var(--mono)}
+.hdl-in input{flex:1;border:0;background:transparent;padding:8px 10px 8px 0;font:700 15px var(--mono);color:var(--fg);outline:none;min-width:0}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -2348,7 +2352,7 @@ const CURRICULUM = [
     {t: "drill", fen: "4k3/8/8/3n4/8/8/8/3QK3 w - - 0 1", accept: {uci: ["d1d5"]}, text: "Black's knight is undefended. Take it.", okText: "Free piece. +3."},
     {t: "drill", fen: "r1bqkbnr/pppp1ppp/2n5/4p3/3PP3/8/PPP2PPP/RNBQKBNR b KQkq - 0 3", accept: {uci: ["e5d4","c6d4"]}, text: "Black to move. White just pushed d4. Win a pawn.", hint: "The d4 pawn is attacked twice and defended once.", okText: "A free central pawn."},
     {t: "puzzles", theme: "hangingPiece", n: 4, range: [400, 1000], text: "Real puzzles: something is hanging. Find it."},
-    {t: "game", fen: START, bot: "nova", goal: "win", limit: 80, text: "Practice game against Nova. She leaves pieces hanging all the time. Take them, then checkmate her.", okText: "You won your first game!"}
+    {t: "game", fen: START, bot: "nova", goal: "win", limit: 80, text: "Practice game against Jakov. He leaves pieces hanging all the time. Take them, then checkmate him.", okText: "You won your first game!"}
   ]},
   {id: "u2-defenders", title: "Attackers and Defenders", sub: "Count before you capture", steps: [
     {t: "say", fen: "4k3/8/3p4/4p3/8/8/4R3/4K3 w - - 0 1", text: "Capturing a defended piece starts a <b>trade</b>. Count attackers and defenders. If you have more attackers, you usually win the piece. Here the e5 pawn is defended by d6: taking it with the rook loses the rook.", arrows: [["e2","e5","r"],["d6","e5","b"]]},
@@ -2396,7 +2400,7 @@ const CURRICULUM = [
     {t: "drill", fen: "r3k3/8/8/3N4/8/8/8/4K3 w - - 0 1", accept: {uci: ["d5c7"]}, text: "Find the knight fork.", hint: "Which square attacks both the king and the rook?", okText: "Check and attack on the rook. Next move you take it."},
     {t: "drill", fen: "6k1/5ppp/8/2r1q3/8/8/5PPP/1Q4K1 w - - 0 1", accept: {uci: ["b1b8"]}, text: "Queens are great at double attacks. Find the strongest check.", hint: "Black's back rank is weak.", okText: "Qb8+! Black must block with Qe8, and Qxe8 is checkmate."},
     {t: "puzzles", theme: "fork", n: 5, range: [600, 1200], text: "Fork puzzles."},
-    {t: "game", fen: START, bot: "pip", goal: "win", limit: 120, text: "Practice game against Pip. Pip grabs things greedily and walks into forks. Look for double attacks.", okText: "Victory!"}
+    {t: "game", fen: START, bot: "pip", goal: "win", limit: 120, text: "Practice game against Ankov. Ankov grabs things greedily and walks into forks. Look for double attacks.", okText: "Victory!"}
   ]},
   {id: "u4-pin", title: "Pins", sub: "It can't move", steps: [
     {t: "say", fen: "4k3/8/2n5/8/B7/8/8/4K3 w - - 0 1", arrows: [["a4","e8","r"]], text: "A <b>pin</b>: a piece can't move because a more valuable piece stands behind it. If the piece behind is the king, the pin is <b>absolute</b>: moving is illegal."},
@@ -2439,7 +2443,7 @@ const CURRICULUM = [
     {t: "say", fen: START, demo: ["e2e4","e7e5"], text: "Against <b>1.e4</b>, the simplest answer is <b>1...e5</b>: a central pawn and open lines for your pieces."},
     {t: "say", fen: START, demo: ["e2e4","c7c6","d2d4","d7d5"], text: "The <b>Caro-Kann</b> (1...c6 then ...d5) is solid and safe. Great when you want calm games."},
     {t: "say", fen: START, demo: ["d2d4","d7d5","c2c4","e7e6"], text: "Against <b>1.d4</b>, play <b>1...d5</b> and support it with ...e6 or ...c6."},
-    {t: "game", fen: START, user: "b", bot: "pip", goal: "win", limit: 150, text: "Now play Black against Pip. Answer e4 with e5, or d4 with d5, and develop.", okText: "Great win with Black!"}
+    {t: "game", fen: START, user: "b", bot: "pip", goal: "win", limit: 150, text: "Now play Black against Ankov. Answer e4 with e5, or d4 with d5, and develop.", okText: "Great win with Black!"}
   ]},
   {id: "u5-traps", title: "Classic Opening Traps", sub: "Fall for none of them", steps: [
     {t: "say", fen: START, demo: ["f2f3","e7e5","g2g4","d8h4"], text: "<b>Fool's Mate</b>, the fastest checkmate: mate in 2. Weakening your king with f3 and g4 is deadly."},
@@ -2655,15 +2659,15 @@ CURRICULUM.push(
       text: "Play the White moves.", okText: "Space and an easy plan: that's the Advance."},
     {t: "game", after: "e4 c6 d4 d5 e5 Bf5 Nf3 e6 Be2 c5 Be3 Nd7 O-O Ne7 c3 Nc6 Nbd2", user: "w", bot: "mara", goal: "win", limit: 160, text: "Use your space to beat Mara.", okText: "You beat the Caro-Kann!"}
   ]},
-  {id: "c-selin", title: "Facing the King's Gambit", sub: "Selin's 2.f4: take and strike back", bot: "selin", steps: [
-    {t: "say", after: "e4 e5 f4", orient: "b", text: "Selin plays the wild <b>King's Gambit</b>: 2.f4 offers a pawn to open the f-file. Take it, then strike back in the center with <b>...d5</b>. Counterattack beats defending."},
+  {id: "c-selin", title: "Facing the King's Gambit", sub: "Selina's 2.f4: take and strike back", bot: "selin", steps: [
+    {t: "say", after: "e4 e5 f4", orient: "b", text: "Selina plays the wild <b>King's Gambit</b>: 2.f4 offers a pawn to open the f-file. Take it, then strike back in the center with <b>...d5</b>. Counterattack beats defending."},
     {t: "drill", after: "e4 e5 f4 exf4 Nf3", orient: "b", text: "You took the pawn. Now hit back in the center.", accept: {san: ["d5"]},
       why: {g7g5: {ok: true, text: "Holding the pawn with ...g5 is playable, but it weakens your king. Strike in the center instead."}, d7d6: {ok: true, text: "Fine, but ...d5 is more active."}},
       hint: "Use a center pawn to open lines for your pieces.", okTitle: "Counterattack!", okText: "...d5 opens your pieces and takes the sting out of the gambit."},
     {t: "line", fen: START, user: "b", orient: "b", opening: "King's Gambit Accepted", san: "e4 e5 f4 exf4 Nf3 d5 exd5 Nf6 Bc4 Nxd5 O-O Be7",
       notes: {3: "Take the gambit pawn.", 5: "Strike in the center.", 7: "Develop and attack d5.", 9: "Win the pawn back.", 11: "Develop and get ready to castle."},
       text: "Play Black against the King's Gambit.", okText: "You're a pawn up with easy development."},
-    {t: "game", after: "e4 e5 f4 exf4 Nf3 d5 exd5 Nf6 Bc4 Nxd5 O-O Be7", user: "b", bot: "selin", goal: "win", limit: 160, text: "Selin is a sharp tactician. Castle, keep your pieces protected, and use your extra pawn.", okText: "You tamed the King's Gambit!"}
+    {t: "game", after: "e4 e5 f4 exf4 Nf3 d5 exd5 Nf6 Bc4 Nxd5 O-O Be7", user: "b", bot: "selin", goal: "win", limit: 160, text: "Selina is a sharp tactician. Castle, keep your pieces protected, and use your extra pawn.", okText: "You tamed the King's Gambit!"}
   ]}
  ]},
  {id: "u8b", title: "Think Like a Pro", target: "1200 → 1500", desc: "What strong players ask themselves on every move, and how they make plans when nothing is happening.", lessons: [
@@ -2732,6 +2736,22 @@ BOTS.push(
   {id: "ragnar", name: "Ragnar", r: 2350, kind: "sf", skill: 14, depth: 11, hue: 25, tag: "Master", bio: "Viking of the board. Attacks with everything.", lesson: "Survive the storm."},
   {id: "orion",  name: "Orion",  r: 2650, kind: "sf", skill: 18, depth: 12, hue: 250, tag: "Grandmaster", bio: "Plays like a grandmaster from the stars.", lesson: "Learn from every move."}
 );
+/* the bots carry the names of real people now; ids stay the same so every result and trophy is kept */
+const BOT_NAMES = {
+  nova:  {name: "Jakov",    bio: "Just learned how the pieces move. Leaves things hanging all the time."},
+  bea:   {name: "Sammy",    bio: "Moves fast and forgets about pieces in the middle of the board."},
+  pip:   {name: "Ankov",    bio: "Grabs anything that isn't nailed down and never checks what you can do back."},
+  rudi:  {name: "Tim",      bio: "Pushes pawns everywhere and never castles."},
+  kim:   {name: "Lily",     bio: "Loves checks, even pointless ones."},
+  omar:  {name: "Till",     bio: "Defends well but forgets about back-rank mates."},
+  fritz: {name: "Johannes", bio: "Solid and slow. Waits for you to make a mistake."},
+  jonas: {name: "Wolf",     bio: "Attacks the king whenever he can."},
+  lotte: {name: "Sophie",   bio: "Calculates short tactics well. Weaker in endgames."},
+  pavel: {name: "Finn",     bio: "Classical player. Controls the centre first."},
+  selin: {name: "Selina"},
+  titan: {name: "Yasemin", r: 3500, skill: 20, depth: 16, blunder: 0, tag: "Perfect engine", bio: "The perfect engine. No human can beat her.", lesson: "Survive as long as you can."},
+};
+BOTS.forEach(b => Object.assign(b, BOT_NAMES[b.id] || {}));
 BOTS.sort((a, b) => a.r - b.r);
 Object.assign(BOOKS, {
   greta: ["e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 f3g5", "e2e4 e7e5 g1f3 b8c6 f1c4 f8c5 c2c3"],
@@ -5155,8 +5175,27 @@ const Social = (() => {
     const {data, error} = await sb.from("chess_players").select("*").eq("id", me).maybeSingle();
     if (error) return null;
     if (data){ player = data; D.players[me] = data; if (S.name === "You" || !S.name){ S.name = data.name; save(); if (typeof renderRail === "function") renderRail(); } return data; }
-    if (!S.name || S.name === "You") return null;
-    return (await setName(S.name, true)).player || null;
+    return null;
+  }
+  /* the player ID: unique, lowercase, used to find an account */
+  const cleanHandle = h => String(h || "").trim().replace(/^@/, "").toLowerCase();
+  const handleOk = h => /^[a-z0-9_]{3,20}$/.test(h);
+  function suggestHandle(){ const base = (S.name && S.name !== "You" ? S.name : ((site.getSession() || {}).user || {}).email || "").split("@")[0];
+    return base.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9_]/g, "").slice(0, 20); }
+  async function create(name, handle){
+    name = String(name || "").trim().slice(0, 24); handle = cleanHandle(handle);
+    if (name.length < 2) return {error: "Your name needs at least 2 characters."};
+    if (!handleOk(handle)) return {error: "The ID needs 3 to 20 characters: letters a–z, numbers or _."};
+    const {data, error} = await sb.from("chess_players").insert({id: me, name, handle, rating: S.puzzle.r, avatar: myAvatar(), trophies: typeof achCount === "function" ? achCount() : 0}).select().single();
+    if (error) return {error: /handle/.test(error.message) ? "That ID is already taken. Try another one." : /name/.test(error.message) && /duplicate|unique/i.test(error.message) ? "That name is already taken. Try another one." : error.message};
+    player = data; D.players[me] = data; S.name = data.name; save(); if (typeof renderRail === "function") renderRail(); beat(); return {player: data};
+  }
+  async function setHandle(handle){
+    handle = cleanHandle(handle); if (!handleOk(handle)) return {error: "The ID needs 3 to 20 characters: letters a–z, numbers or _."};
+    if (player && player.handle === handle) return {player};
+    const {data, error} = await sb.from("chess_players").update({handle}).eq("id", me).select().single();
+    if (error) return {error: /duplicate|unique/i.test(error.message) ? "That ID is already taken. Try another one." : error.message};
+    player = data; D.players[me] = data; return {player: data};
   }
   /* claim a player name; with retry, add two digits if it's taken */
   async function setName(name, retry){
@@ -5183,7 +5222,7 @@ const Social = (() => {
         sb.from("chess_gifts").select("from_id,to_id,created_at").order("created_at", {ascending: false}).limit(1000)]);
       D.friends = f.data || []; D.duels = d.data || []; D.gifts = g.data || [];
       const ids = new Set(); D.friends.forEach(r => { ids.add(r.a); ids.add(r.b); }); D.duels.forEach(r => { ids.add(r.white); ids.add(r.black); }); ids.delete(me);
-      if (ids.size){ const {data} = await sb.from("chess_players").select("id,name,rating,last_seen,avatar,trophies").in("id", [...ids]); (data || []).forEach(p => { D.players[p.id] = p; }); }
+      if (ids.size){ const {data} = await sb.from("chess_players").select("id,name,handle,rating,last_seen,avatar,trophies").in("id", [...ids]); (data || []).forEach(p => { D.players[p.id] = p; }); }
       loaded = Date.now(); loading = null;
       /* numbers for the friend trophies */
       const stg = standings(); S.stat = S.stat || {};
@@ -5318,7 +5357,7 @@ const Social = (() => {
     wire(el, () => cages(el));
   }
 
-  return {syncCard, start, load, setName, request, accept, remove, heart, invite, gameOver, friendChip, wire, cages, standings, rel, P, seen, isOnline, face, dot,
+  return {create, setHandle, suggestHandle, cleanHandle, syncCard, start, load, setName, request, accept, remove, heart, invite, gameOver, friendChip, wire, cages, standings, rel, P, seen, isOnline, face, dot,
     get me(){ return me; }, get player(){ return player; }, get data(){ return D; }, sb};
 })();
 
@@ -5332,27 +5371,35 @@ Views.friends = {
   draw(){
     const main = this.main; if (!main || App.route !== "friends") return;
     const me = Social.player, D = Social.data, st = Social.standings();
-    if (!me){ main.innerHTML = `<div class="page" style="max-width:640px"><h1 class="h-title">Friends</h1><div class="unit" style="margin-top:12px"><h3>Choose your player name</h3><p class="muted">This is how friends find you and how you appear in their cage. You can change it later.</p>
-      <form id="nmf" class="row" style="margin-top:8px"><input type="text" id="nm" maxlength="24" placeholder="e.g. Pupsi" value="${esc(S.name === "You" ? "" : S.name)}" style="flex:1;min-width:160px"><button class="btn go" type="submit">Save</button></form><p id="nmerr" style="color:var(--bad);font-size:13px;margin:6px 0 0"></p></div></div>`;
-      $("#nmf").onsubmit = async e => { e.preventDefault(); const r = await Social.setName($("#nm").value); if (r.error) $("#nmerr").textContent = r.error; else this.draw(); }; return; }
+    if (!me || !me.handle){ const nameNow = me ? me.name : (S.name === "You" ? "" : S.name);
+      main.innerHTML = `<div class="page" style="max-width:640px"><h1 class="h-title">Friends</h1><div class="unit" style="margin-top:12px"><h3>${me ? "Pick your player ID" : "Set up your player card"}</h3>
+        <p class="muted">Your <b>player ID</b> is unique, like <b>@natlordlord</b>. Friends use it to find you. Your <b>name</b> is what they see in games and in the cage.</p>
+        <form id="nmf" style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+          ${me ? "" : `<label class="muted">Name<input type="text" id="nm" maxlength="24" placeholder="e.g. Pupsi" value="${esc(nameNow)}" style="width:100%;margin-top:4px"></label>`}
+          <label class="muted">Player ID<div class="hdl-in"><span>@</span><input type="text" id="hd" maxlength="21" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="natlordlord" value="${esc(Social.suggestHandle())}"></div></label>
+          <p class="dim" style="margin:0;font-size:12.5px">3 to 20 characters: letters a–z, numbers or _.</p>
+          <button class="btn go" type="submit">Save</button></form><p id="nmerr" style="color:var(--bad);font-size:13px;margin:6px 0 0"></p></div></div>`;
+      $("#hd").oninput = e => { const v = Social.cleanHandle(e.target.value).replace(/[^a-z0-9_]/g, ""); if (v !== e.target.value) e.target.value = v; };
+      $("#nmf").onsubmit = async e => { e.preventDefault(); const r = me ? await Social.setHandle($("#hd").value) : await Social.create($("#nm").value, $("#hd").value); if (r.error) $("#nmerr").textContent = r.error; else { toast("Saved. Your ID is @" + r.player.handle, 3000); this.draw(); } }; return; }
     const other = r => r.a === me.id ? r.b : r.a;
     const friends = D.friends.filter(r => r.status === "accepted").map(other).sort((x, y) => (Social.isOnline(Social.P(y)) - Social.isOnline(Social.P(x))) || Social.P(x).name.localeCompare(Social.P(y).name));
     const incoming = D.friends.filter(r => r.status === "pending" && r.requested_by !== me.id).map(other), sent = D.friends.filter(r => r.status === "pending" && r.requested_by === me.id).map(other);
-    const person = (id, right) => { const p = Social.P(id), o = st[id]; return `<div class="li fr">${Social.face(p, 42)}<div class="grow"><div class="t">${Social.dot(p)}${esc(p.name)}${p.rating ? ` <span class="muted">(${p.rating})</span>` : ""}</div><div class="s">${esc(Social.seen(p))}${o ? ` · score ${o.w}:${o.l}${o.cage === "mine" ? " · 🔒 in your cage" : o.cage === "theirs" ? " · you're in their cage" : ""}` : ""}</div></div>${right}</div>`; };
+    const person = (id, right) => { const p = Social.P(id), o = st[id]; return `<div class="li fr">${Social.face(p, 42)}<div class="grow"><div class="t">${Social.dot(p)}${esc(p.name)}${p.rating ? ` <span class="muted">(${p.rating})</span>` : ""}</div><div class="s">${p.handle ? `@${esc(p.handle)} · ` : ""}${esc(Social.seen(p))}${o ? ` · score ${o.w}:${o.l}${o.cage === "mine" ? " · 🔒 in your cage" : o.cage === "theirs" ? " · you're in their cage" : ""}` : ""}</div></div>${right}</div>`; };
     const TCS = [[3, 0], [5, 0], [10, 0], [15, 10]];
     main.innerHTML = `<div class="page" style="max-width:760px"><h1 class="h-title">Friends</h1>
-      <div class="unit" style="margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">${Social.face(me, 54)}<div style="flex:1;min-width:180px"><div class="muted" style="font-size:12px;font-weight:800;letter-spacing:.06em">YOUR PLAYER NAME</div>${this.renaming ? `<form id="rnf" class="row" style="margin-top:4px"><input type="text" id="rnv" maxlength="24" value="${esc(me.name)}" style="width:200px"><button class="btn sm go" type="submit">Save</button><button class="btn sm" type="button" id="rnx">Cancel</button></form><p id="rnerr" style="color:var(--bad);font-size:13px;margin:4px 0 0"></p>` : `<div style="font:900 22px var(--display)">${esc(me.name)}</div>`}</div>${this.renaming ? "" : `<button class="btn sm" id="ren">Change</button>`}</div>
-      <div class="unit"><h3>Add a friend</h3><form id="sf2" class="row" style="margin-top:8px"><input type="text" id="sq" placeholder="Search by player name" value="${esc(this.q)}" style="flex:1;min-width:160px"><button class="btn go" type="submit">Search</button></form><div id="sres"></div></div>
+      <div class="unit" style="margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">${Social.face(me, 54)}<div style="flex:1;min-width:180px"><div class="muted" style="font-size:12px;font-weight:800;letter-spacing:.06em">YOUR PLAYER CARD</div>${this.renaming ? `<form id="rnf" style="display:flex;flex-direction:column;gap:6px;margin-top:4px"><input type="text" id="rnv" maxlength="24" value="${esc(me.name)}" placeholder="Name"><div class="hdl-in"><span>@</span><input type="text" id="rnh" maxlength="21" autocapitalize="off" spellcheck="false" value="${esc(me.handle)}"></div><div class="row"><button class="btn sm go" type="submit">Save</button><button class="btn sm" type="button" id="rnx">Cancel</button></div></form><p id="rnerr" style="color:var(--bad);font-size:13px;margin:4px 0 0"></p>` : `<div style="font:900 22px var(--display)">${esc(me.name)}</div><div class="hdl">@${esc(me.handle)} <button class="btn sm ghost" id="cpid">Copy ID</button></div>`}</div>${this.renaming ? "" : `<button class="btn sm" id="ren">Change</button>`}</div>
+      <div class="unit"><h3>Add a friend</h3><form id="sf2" class="row" style="margin-top:8px"><input type="text" id="sq" placeholder="Player ID or name, e.g. @natlordlord" value="${esc(this.q)}" style="flex:1;min-width:160px"><button class="btn go" type="submit">Search</button></form><div id="sres"></div></div>
       ${incoming.length ? `<h2 class="h-sec">Friend requests</h2><div class="list">${incoming.map(id => person(id, `<button class="btn sm" data-rm="${id}">Decline</button><button class="btn sm go" data-acc="${id}">Accept</button>`)).join("")}</div>` : ""}
       <h2 class="h-sec" style="margin-top:16px">Your friends <span class="muted" style="font-weight:600">${friends.filter(id => Social.isOnline(Social.P(id))).length} online</span></h2>
       ${friends.length ? `<div class="row" style="margin:0 0 8px"><span class="muted" style="font-size:13px">Invite with:</span>${TCS.map(tc => `<button class="btn sm ${tc[0] === this.tc[0] && tc[1] === this.tc[1] ? "go" : ""}" data-tcs="${tc.join(",")}">${tcLabel(tc)}</button>`).join("")}</div>
         <div class="list">${friends.map(id => person(id, `${st[id] && st[id].cage === "mine" ? `<button class="btn sm" data-h="${id}" aria-label="Send a heart">❤️</button>` : ""}<button class="btn sm ${Social.isOnline(Social.P(id)) ? "go" : ""}" data-inv="${id}">Invite</button><button class="btn sm ghost" data-rmf="${id}" aria-label="Remove friend">✕</button>`)).join("")}</div>`
-        : `<div class="unit"><p class="muted" style="margin:0">No friends yet. Search for their player name above, or play them live and tap “Add as friend” after the game.</p></div>`}
+        : `<div class="unit"><p class="muted" style="margin:0">No friends yet. Search for their player ID above, or play them live and tap “Add as friend” after the game.</p></div>`}
       ${sent.length ? `<h2 class="h-sec" style="margin-top:16px">Requests you sent</h2><div class="list">${sent.map(id => person(id, `<button class="btn sm" data-rm="${id}">Cancel</button>`)).join("")}</div>` : ""}
       <p class="muted" style="margin-top:16px;font-size:13.5px">Beat a friend in a live game and they go into your cage in the <a href="#" id="gotr">Cages</a>. Lose and you're in theirs, until you win again.</p></div>`;
     if ($("#ren")) $("#ren").onclick = () => { this.renaming = true; this.draw(); $("#rnv").focus(); };
     if ($("#rnx")) $("#rnx").onclick = () => { this.renaming = false; this.draw(); };
-    if ($("#rnf")) $("#rnf").onsubmit = async e => { e.preventDefault(); const r = await Social.setName($("#rnv").value); if (r.error){ $("#rnerr").textContent = r.error; return; } this.renaming = false; toast("Name saved"); this.draw(); };
+    if ($("#rnf")) $("#rnf").onsubmit = async e => { e.preventDefault(); let r = await Social.setHandle($("#rnh").value); if (!r.error && $("#rnv").value.trim() !== me.name) r = await Social.setName($("#rnv").value); if (r.error){ $("#rnerr").textContent = r.error; return; } this.renaming = false; toast("Saved"); this.draw(); };
+    if ($("#cpid")) $("#cpid").onclick = async () => { try { await navigator.clipboard.writeText("@" + me.handle); toast("Copied @" + me.handle); } catch(e) { toast("@" + me.handle); } };
     $("#gotr").onclick = e => { e.preventDefault(); App.go("trophies"); };
     $("#sf2").onsubmit = e => { e.preventDefault(); this.search($("#sq").value); };
     $$("[data-tcs]", main).forEach(b => b.onclick = () => { this.tc = b.dataset.tcs.split(",").map(Number); this.draw(); });
@@ -5367,12 +5414,14 @@ Views.friends = {
     this.q = q = String(q || "").trim(); const out = $("#sres"); if (!out) return;
     if (q.length < 2){ out.innerHTML = q ? `<p class="muted" style="font-size:13px">Type at least 2 letters.</p>` : ""; return; }
     out.innerHTML = `<p class="dim" style="font-size:13px">Searching…</p>`;
-    const {data, error} = await Social.sb.from("chess_players").select("id,name,rating,last_seen,avatar,trophies").ilike("name", "%" + q.replace(/[%_\\]/g, "") + "%").neq("id", Social.me).order("last_seen", {ascending: false}).limit(10);
+    const h = Social.cleanHandle(q).replace(/[^a-z0-9_]/g, ""), n = q.replace(/^@/, "").replace(/[^\p{L}\p{N}_ .-]/gu, "");
+    const {data, error} = await Social.sb.from("chess_players").select("id,name,handle,rating,last_seen,avatar,trophies").or(`handle.ilike.${h || "-"}%,name.ilike.%${n || "-"}%`).neq("id", Social.me).order("last_seen", {ascending: false}).limit(12);
+    if (data) data.sort((a, b) => (b.handle === h) - (a.handle === h));
     if (error){ out.innerHTML = `<p class="muted">${esc(error.message)}</p>`; return; }
     (data || []).forEach(p => { Social.data.players[p.id] = p; });
     out.innerHTML = (data || []).length ? `<div class="list" style="margin-top:8px">${data.map(p => { const r = Social.rel(p.id);
-      return `<div class="li fr">${Social.face(p, 38)}<div class="grow"><div class="t">${Social.dot(p)}${esc(p.name)}${p.rating ? ` <span class="muted">(${p.rating})</span>` : ""}</div><div class="s">${esc(Social.seen(p))}</div></div>${r === "friend" ? `<span class="pill go">Friends</span>` : r === "sent" ? `<span class="pill">Requested</span>` : `<button class="btn sm go" data-add="${p.id}">${r === "incoming" ? "Accept" : "Add friend"}</button>`}</div>`; }).join("")}</div>`
-      : `<p class="muted" style="font-size:13px;margin:8px 0 0">Nobody called “${esc(q)}” yet. Your friend needs a Chess.nat account and a player name.</p>`;
+      return `<div class="li fr">${Social.face(p, 38)}<div class="grow"><div class="t">${Social.dot(p)}${esc(p.name)}${p.rating ? ` <span class="muted">(${p.rating})</span>` : ""}</div><div class="s">${p.handle ? `@${esc(p.handle)} · ` : ""}${esc(Social.seen(p))}</div></div>${r === "friend" ? `<span class="pill go">Friends</span>` : r === "sent" ? `<span class="pill">Requested</span>` : `<button class="btn sm go" data-add="${p.id}">${r === "incoming" ? "Accept" : "Add friend"}</button>`}</div>`; }).join("")}</div>`
+      : `<p class="muted" style="font-size:13px;margin:8px 0 0">Nobody called “${esc(q)}” yet. Ask your friend for their player ID. They need a Chess.nat account and a player card.</p>`;
     $$("[data-add]", out).forEach(b => b.onclick = async () => { b.disabled = true; await Social.request(b.dataset.add); this.draw(); });
   }
 };
