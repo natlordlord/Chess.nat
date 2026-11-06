@@ -4945,7 +4945,11 @@ Views.home = {
   mount(main){
     if (typeof autoPlace === "function") autoPlace();
     const rk = rankOf(S.puzzle.r); const next = typeof nextLesson === "function" ? nextLesson() : null;
-    S.day.popped = S.day.k === todayKey() ? (S.day.popped || {}) : {};
+    /* which finished plan items already popped away today: kept on this device only, never synced,
+       so a sync or a re-render can't bring them back and replay the animation */
+    const popKey = "chessnat-popped-" + todayKey(); let popped = {}; try { popped = JSON.parse(localStorage.getItem(popKey) || "{}"); } catch(e) {}
+    const toPop = PLAN.filter(([k, n]) => planVal(k) >= n && !popped[k]).map(([k]) => k);
+    if (toPop.length){ toPop.forEach(k => { popped[k] = 1; }); try { localStorage.setItem(popKey, JSON.stringify(popped)); } catch(e) {} }
     const weak = weakThemes(1)[0]; const goal = 1600; const start = 400;
     const pct = clamp((S.puzzle.r - start) / (goal - start), 0, 1);
     main.innerHTML = `<div class="page">${siteBanner()}
@@ -4958,7 +4962,7 @@ Views.home = {
         <div style="min-width:220px"><div class="muted" style="font-weight:800;font-size:13px;letter-spacing:.06em">JOURNEY TO 1600</div><div style="font:900 26px var(--display)">${Math.round(pct * 100)}%</div><div class="bar" style="margin-top:6px"><i style="width:${Math.round(pct * 100)}%"></i></div><div class="dim" style="font-size:12.5px;margin-top:4px">${S.xp || 0} XP · ${Object.values(S.lessons).filter(l => l.done).length} lessons done</div></div>
       </div>
       <div class="unit" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><div style="min-width:180px"><div class="muted" style="font-weight:800;font-size:13px;letter-spacing:.06em">TODAY'S PLAN</div><div style="font:900 22px var(--display)">${planDone() ? "Done for today ✓" : PLAN.filter(([k, n]) => planVal(k) >= n).length + " of " + PLAN.length}</div><div class="dim" style="font-size:12.5px">${icon("flame", 14)} ${S.plan.streak} day streak · best ${S.plan.best}</div></div>
-        <div style="flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">${PLAN.filter(([k, n]) => !(planVal(k) >= n && S.day.popped[k])).map(([k, n, t]) => { const v = Math.min(n, planVal(k)); return `<button class="lsn ${v >= n ? "done pop" : ""}" data-plan="${k}"><span class="n">${v >= n ? "✓" : v}</span><span><div class="t">${t}</div><div class="s">${v} / ${n}</div></span></button>`; }).join("")}</div></div>
+        <div style="flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">${PLAN.filter(([k, n]) => !(planVal(k) >= n && popped[k] && !toPop.includes(k))).map(([k, n, t]) => { const v = Math.min(n, planVal(k)); return `<button class="lsn ${v >= n ? "done" : ""} ${toPop.includes(k) ? "pop" : ""}" data-plan="${k}"><span class="n">${v >= n ? "✓" : v}</span><span><div class="t">${t}</div><div class="s">${v} / ${n}</div></span></button>`; }).join("")}</div></div>
       <div class="tiles">
         ${journeyTile()}
         ${next ? `<button class="tile" data-go="lesson" data-l="${next.id}" style="grid-column:span 2;border:1px solid var(--go)">${icon("book", 40)}<span class="pill go">Continue learning</span><h3>${esc(next.title)}</h3><p>${esc(next.sub || "")}</p></button>` : ""}
@@ -4977,7 +4981,7 @@ Views.home = {
       </div></div>`;
     $$("[data-go]", main).forEach(b => b.onclick = () => b.dataset.go === "lesson" ? App.go("lesson", {id: b.dataset.l}) : App.go(b.dataset.go));
     /* finished plan items celebrate once and then disappear */
-    const pops = $$(".lsn.pop", main); if (pops.length) setTimeout(() => { pops.forEach((b, j) => setTimeout(() => { b.classList.add("popping"); Sound.play(j ? "Move" : "Capture", .7); S.day.popped[b.dataset.plan] = 1; setTimeout(() => { b.remove(); if (planDone() && !S.day.popped.all){ S.day.popped.all = 1; Sound.cheer(2); } }, 520); }, j * 260)); save(); }, 700);
+    const pops = $$(".lsn.pop", main); if (pops.length) setTimeout(() => { pops.forEach((b, j) => setTimeout(() => { if (!b.isConnected) return; b.classList.add("popping"); Sound.play(j ? "Move" : "Capture", .7); setTimeout(() => { b.remove(); if (planDone() && j === pops.length - 1) Sound.cheer(2); }, 520); }, j * 260)); }, 700);
     $$("[data-plan]", main).forEach(b => b.onclick = () => { const k = b.dataset.plan; if (k === "ls"){ const n = nextLesson(); n ? App.go("lesson", {id: n.id}) : App.go("learn"); } else App.go({pz: "puzzles", gm: "bots", rd: S.daily.done[todayKey()] ? "rush" : "daily"}[k]); });
   }
 };
