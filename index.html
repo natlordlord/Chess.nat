@@ -2697,15 +2697,15 @@ CURRICULUM.push(
       text: "Play the White moves.", okText: "Space and an easy plan: that's the Advance."},
     {t: "game", after: "e4 c6 d4 d5 e5 Bf5 Nf3 e6 Be2 c5 Be3 Nd7 O-O Ne7 c3 Nc6 Nbd2", user: "w", bot: "mara", goal: "win", limit: 160, text: "Use your space to beat Mara.", okText: "You beat the Caro-Kann!"}
   ]},
-  {id: "c-selin", title: "Facing the King's Gambit", sub: "Selina's 2.f4: take and strike back", bot: "selin", steps: [
-    {t: "say", after: "e4 e5 f4", orient: "b", text: "Selina plays the wild <b>King's Gambit</b>: 2.f4 offers a pawn to open the f-file. Take it, then strike back in the center with <b>...d5</b>. Counterattack beats defending."},
+  {id: "c-selin", title: "Facing the King's Gambit", sub: "Kira's 2.f4: take and strike back", bot: "selin", steps: [
+    {t: "say", after: "e4 e5 f4", orient: "b", text: "Kira plays the wild <b>King's Gambit</b>: 2.f4 offers a pawn to open the f-file. Take it, then strike back in the center with <b>...d5</b>. Counterattack beats defending."},
     {t: "drill", after: "e4 e5 f4 exf4 Nf3", orient: "b", text: "You took the pawn. Now hit back in the center.", accept: {san: ["d5"]},
       why: {g7g5: {ok: true, text: "Holding the pawn with ...g5 is playable, but it weakens your king. Strike in the center instead."}, d7d6: {ok: true, text: "Fine, but ...d5 is more active."}},
       hint: "Use a center pawn to open lines for your pieces.", okTitle: "Counterattack!", okText: "...d5 opens your pieces and takes the sting out of the gambit."},
     {t: "line", fen: START, user: "b", orient: "b", opening: "King's Gambit Accepted", san: "e4 e5 f4 exf4 Nf3 d5 exd5 Nf6 Bc4 Nxd5 O-O Be7",
       notes: {3: "Take the gambit pawn.", 5: "Strike in the center.", 7: "Develop and attack d5.", 9: "Win the pawn back.", 11: "Develop and get ready to castle."},
       text: "Play Black against the King's Gambit.", okText: "You're a pawn up with easy development."},
-    {t: "game", after: "e4 e5 f4 exf4 Nf3 d5 exd5 Nf6 Bc4 Nxd5 O-O Be7", user: "b", bot: "selin", goal: "win", limit: 160, text: "Selina is a sharp tactician. Castle, keep your pieces protected, and use your extra pawn.", okText: "You tamed the King's Gambit!"}
+    {t: "game", after: "e4 e5 f4 exf4 Nf3 d5 exd5 Nf6 Bc4 Nxd5 O-O Be7", user: "b", bot: "selin", goal: "win", limit: 160, text: "Kira is a sharp tactician. Castle, keep your pieces protected, and use your extra pawn.", okText: "You tamed the King's Gambit!"}
   ]}
  ]},
  {id: "u8b", title: "Think Like a Pro", target: "1200 → 1500", desc: "What strong players ask themselves on every move, and how they make plans when nothing is happening.", lessons: [
@@ -2777,16 +2777,18 @@ BOTS.push(
 /* the bots carry the names of real people now; ids stay the same so every result and trophy is kept */
 const BOT_NAMES = {
   nova:  {name: "Jakov",    bio: "Just learned how the pieces move. Leaves things hanging all the time."},
-  bea:   {name: "Sammy",    bio: "Moves fast and forgets about pieces in the middle of the board."},
   pip:   {name: "Ankov",    bio: "Grabs anything that isn't nailed down and never checks what you can do back."},
   rudi:  {name: "Tim",      bio: "Pushes pawns everywhere and never castles."},
   kim:   {name: "Lily",     bio: "Loves checks, even pointless ones."},
   omar:  {name: "Till",     bio: "Defends well but forgets about back-rank mates."},
   fritz: {name: "Johannes", bio: "Solid and slow. Waits for you to make a mistake."},
-  jonas: {name: "Wolf",     bio: "Attacks the king whenever he can."},
   lotte: {name: "Sophie",   bio: "Calculates short tactics well. Weaker in endgames."},
-  pavel: {name: "Finn",     bio: "Classical player. Controls the centre first."},
-  selin: {name: "Selina"},
+  selin: {name: "Kira"},
+  /* the four strongest after Yasemin */
+  orion:  {name: "Sammy",  bio: "Grandmaster strength. Finds the best move almost every time.", lesson: "Learn from every move."},
+  draco:  {name: "Wolf",   bio: "Hunts your king from the first move and almost never misses.", lesson: "Survive the hunt."},
+  ragnar: {name: "Finn",   bio: "Master who attacks with everything he has.", lesson: "Survive the storm."},
+  kaiser: {name: "Selina", bio: "Master strength. Hardly ever blunders and punishes every slip.", lesson: "Expect to lose. Learn from it."},
   titan: {name: "Yasemin", r: 3500, skill: 20, depth: 16, blunder: 0, tag: "Perfect engine", bio: "The perfect engine. No human can beat her.", lesson: "Survive as long as you can."},
 };
 BOTS.forEach(b => Object.assign(b, BOT_NAMES[b.id] || {}));
