@@ -988,6 +988,13 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 .rkstage.spilling{box-shadow:0 0 0 2px var(--rk1),0 0 34px color-mix(in srgb,var(--rk1) 45%,transparent);animation:rkpulse 3s ease-in-out infinite}
 @keyframes rkpulse{50%{box-shadow:0 0 0 2px var(--rk1),0 0 54px color-mix(in srgb,var(--rk1) 70%,transparent)}}
 @media (max-width:600px){.wstage{width:150px;height:192px}}
+.swr{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 6px}
+.sw{position:relative;width:34px;height:34px;border-radius:50%;border:2px solid var(--line);background:var(--c);cursor:pointer;padding:0;color:var(--muted);font:900 15px var(--body);display:grid;place-items:center;touch-action:manipulation;box-shadow:inset 0 -6px 10px rgba(0,0,0,.18)}
+.sw.on{border-color:var(--fg);box-shadow:0 0 0 3px var(--go),inset 0 -6px 10px rgba(0,0,0,.18)}
+.sw.locked{opacity:.5}.sw.locked svg{width:14px;height:14px;color:#fff;filter:drop-shadow(0 1px 1px #000)}
+.sw.big{width:52px;height:52px;flex:none;display:inline-block}
+.sw:active{transform:scale(.92)}
+.wi.locked .wi-pv>.av3w{filter:grayscale(.85) brightness(.75);opacity:.7}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -4072,11 +4079,24 @@ const AV_SLOTS = [
   ["shirt", "Shirt"], ["coat", "Coat & armour"], ["cape", "Cape"], ["pants", "Pants"], ["shoes", "Shoes"],
   ["right", "Right hand"], ["left", "Left hand"], ["wrist", "Bracelet"], ["aura", "Aura"], ["frame", "Rank border"],
   ["paint", "Face paint"], ["back", "Wings"], ["pet", "Pet"],
+  ["shape", "Head"], ["build", "Build"], ["height", "Height"], ["eyeshape", "Eye shape"], ["brows", "Eyebrows"], ["nose", "Nose"], ["mouth", "Mouth"], ["beard", "Facial hair"], ["cheeks", "Cheeks"],
 ];
 const AV_ITEMS = [
   // hair (free choices)
   ["hair", "none", "Bald", 0], ["hair", "short", "Short", 0], ["hair", "messy", "Messy", 0], ["hair", "long", "Long", 0], ["hair", "bun", "Bun", 0],
-  ["hair", "curly", "Curly", 0], ["hair", "mohawk", "Mohawk", "t:streak-pz-10"], ["hair", "flame", "Fire hair", "t:rating-1800"],
+  ["hair", "curly", "Curly", 0], ["hair", "buzz", "Buzz cut", 0], ["hair", "side", "Side part", 0], ["hair", "quiff", "Quiff", 0], ["hair", "spiky", "Spiky", 0],
+  ["hair", "ponytail", "Ponytail", 0], ["hair", "braids", "Braids", 0], ["hair", "afro", "Afro", 0],
+  ["hair", "mohawk", "Mohawk", "t:streak-pz-10"], ["hair", "flame", "Fire hair", "t:rating-1800"],
+  // character: free choices, a few rare ones to earn
+  ["shape", "human", "Face", 0], ["shape", "piece", "Chess piece", 0],
+  ["build", "slim", "Slim", 0], ["build", "normal", "Normal", 0], ["build", "broad", "Broad", 0],
+  ["height", "short", "Short", 0], ["height", "normal", "Normal", 0], ["height", "tall", "Tall", 0],
+  ["eyeshape", "round", "Round", 0], ["eyeshape", "almond", "Almond", 0], ["eyeshape", "sleepy", "Sleepy", 0], ["eyeshape", "wide", "Wide", 0],
+  ["brows", "none", "None", 0], ["brows", "soft", "Soft", 0], ["brows", "straight", "Straight", 0], ["brows", "angry", "Fierce", 0], ["brows", "thick", "Thick", 0],
+  ["nose", "none", "None", 0], ["nose", "button", "Button", 0], ["nose", "round", "Round", 0], ["nose", "pointed", "Pointed", 0],
+  ["mouth", "smile", "Smile", 0], ["mouth", "grin", "Grin", 0], ["mouth", "neutral", "Calm", 0], ["mouth", "smirk", "Smirk", 0], ["mouth", "laugh", "Laugh", 0], ["mouth", "fangs", "Fangs", "t:upset-400"],
+  ["beard", "none", "None", 0], ["beard", "stubble", "Stubble", 0], ["beard", "mustache", "Mustache", 0], ["beard", "goatee", "Goatee", 0], ["beard", "full", "Full beard", 0], ["beard", "viking", "Viking braids", "t:bot-ragnar"],
+  ["cheeks", "none", "None", 0], ["cheeks", "blush", "Blush", 0], ["cheeks", "freckles", "Freckles", 0], ["cheeks", "both", "Both", 0],
   // eyes
   ["eyes", "brown", "Brown", 0], ["eyes", "blue", "Blue", 0], ["eyes", "green", "Green", 0], ["eyes", "gray", "Gray", 0],
   ["eyes", "gold", "Golden", "t:rating-1600"], ["eyes", "glow", "Glowing", "t:bot-titan"],
@@ -4084,6 +4104,7 @@ const AV_ITEMS = [
   ["head", "none", "Nothing", 0], ["head", "beanie", "Beanie", "t:pz-25"], ["head", "cap", "Cap", "t:games-10"], ["head", "band", "Headband", "t:streak-pz-5"],
   ["head", "wizard", "Wizard hat", "t:lessons-25"], ["head", "helmet", "Steel helmet", "t:bot-viktor"], ["head", "viking", "Viking helmet", "t:bot-ragnar"],
   ["head", "laurel", "Laurel wreath", "t:winstreak-5"], ["head", "crown", "Crown", "n:150"], ["head", "imperial", "Imperial crown", "n:300"],
+  ["head", "knighthelm", "Knight's helm", "c:knight"], ["head", "mitre", "Bishop's mitre", "c:bishop"], ["head", "tower", "Tower crown", "c:rook"], ["head", "tiara", "Queen's tiara", "c:queen"], ["head", "kingcrown", "King's crown", "c:king"],
   // mask
   ["mask", "none", "Nothing", 0], ["mask", "domino", "Domino mask", "t:th-discoveredAttack-2"], ["mask", "ninja", "Ninja mask", "t:pzfast-50"], ["mask", "visor", "Knight visor", "t:th-fork-4"],
   // glasses
@@ -4125,7 +4146,23 @@ const AV_ITEMS = [
   // rank border: earned with your puzzle rating, like a ranked border
   ["frame", "auto", "My rank", 0], ...TIERS.map(t => ["frame", t.k, t.name, "r:" + t.lo]),
 ].map(([slot, id, name, req]) => ({slot, id, name, req}));
-const AV_DEFAULT = {cls: "pawn", hair: "short", eyes: "brown", head: "none", mask: "none", glasses: "none", ears: "none", shirt: "rags", coat: "none", cape: "none", pants: "patched", shoes: "bare", right: "none", left: "none", wrist: "none", aura: "none", frame: "auto", paint: "none", back: "none", pet: "none"};
+const AV_DEFAULT = {cls: "pawn", hair: "short", eyes: "brown", head: "none", mask: "none", glasses: "none", ears: "none", shirt: "rags", coat: "none", cape: "none", pants: "patched", shoes: "bare", right: "none", left: "none", wrist: "none", aura: "none", frame: "auto", paint: "none", back: "none", pet: "none",
+  shape: "human", skin: "fair", hairC: "darkbrown", build: "normal", height: "normal", eyeshape: "round", brows: "soft", nose: "button", mouth: "smile", beard: "none", cheeks: "none",
+  shirtC: "", pantsC: "", coatC: "", capeC: "", shoesC: ""};
+/* colours: skin, hair and every piece of clothing */
+const AV_COLORS = {
+  skin: [["porcelain", "Porcelain", "#f3d9c4", 0], ["fair", "Fair", "#ebc3a3", 0], ["light", "Light", "#dba985", 0], ["medium", "Medium", "#c08a60", 0], ["tan", "Tan", "#a06c45", 0], ["brown", "Brown", "#7b4e30", 0],
+    ["deep", "Deep", "#5a3722", 0], ["ebony", "Ebony", "#3c2417", 0], ["ivory", "Chess ivory", "#ece2ce", 0], ["stone", "Stone", "#8d9096", "n:60"], ["jade", "Jade", "#5aa36a", "n:120"], ["frost", "Frost", "#9fd0f0", "n:180"],
+    ["goldskin", "Gold", "#d4a13a", "n:250"], ["obsidian", "Obsidian", "#2a2a36", "n:350"]],
+  hairC: [["black", "Black", "#1c1a1a", 0], ["darkbrown", "Dark brown", "#3b2a20", 0], ["brown", "Brown", "#6b4423", 0], ["auburn", "Auburn", "#8a3a1d", 0], ["ginger", "Ginger", "#c0602a", 0], ["blond", "Blond", "#d9b26a", 0],
+    ["platinum", "Platinum", "#ece3c8", 0], ["gray", "Gray", "#9a9a9a", 0], ["white", "White", "#f2f2f0", 0], ["blue", "Blue", "#2f6fd8", "n:40"], ["pink", "Pink", "#e05aa8", "n:70"], ["green", "Green", "#3fb05a", "n:100"],
+    ["purple", "Purple", "#7a3fd0", "n:140"], ["red", "Fire red", "#d1202f", "n:200"]],
+  cloth: [["", "Original", "", 0], ["red", "Red", "#b3261e", 0], ["orange", "Orange", "#d9731f", 0], ["yellow", "Yellow", "#e0b13a", 0], ["green", "Green", "#3f8f3a", 0], ["teal", "Teal", "#1f8a8a", 0],
+    ["blue", "Blue", "#2f6fb5", 0], ["navy", "Navy", "#22355e", 0], ["purple", "Purple", "#5a2d91", 0], ["pink", "Pink", "#d0578f", 0], ["brown", "Brown", "#6b4423", 0], ["beige", "Beige", "#c9b48f", 0],
+    ["gray", "Gray", "#6f7782", 0], ["black", "Black", "#1f1f22", 0], ["white", "White", "#f0eee9", 0]],
+};
+const CLOTH_SLOT = {shirt: "shirtC", coat: "coatC", pants: "pantsC", shoes: "shoesC", cape: "capeC"};
+function avColor(kind, id){ const list = AV_COLORS[kind === "skin" || kind === "hairC" ? kind : "cloth"], c = list.find(x => x[0] === id); return c && c[2] ? c[2] : null; }
 const EYE_C = {brown: "#5a3b22", blue: "#2f6fb5", green: "#3f8f3a", gray: "#6b7280", gold: "#d9a21b", glow: "#ff3b3b"};
 
 /* ---------- drawing ---------- */
@@ -4300,7 +4337,11 @@ function botCfg(b){
     cape: r >= 1500 ? pick(["none", "cloth", "red", "purple", "ermine"]) : "none", pants: pick(["patched", "jeans", "trousers", "royal"]), shoes: pick(["bare", "sneakers", "boots", "golden"]),
     right: r >= 2400 ? (b.id === "draco" ? "firesword" : "scepter") : r >= 1400 ? "sword" : r >= 900 ? "woodsword" : "none",
     left: r >= 2400 ? "orb" : r >= 1700 ? "shield" : r >= 1200 ? "book" : "none", wrist: r >= 1800 ? "gold" : "none",
-    aura: r >= 2600 ? "cosmic" : r >= 2200 ? "fire" : r >= 1800 ? "glow" : "none", frame: "none", hue: h};
+    aura: r >= 2600 ? "cosmic" : r >= 2200 ? "fire" : r >= 1800 ? "glow" : "none", frame: "auto", hue: h,
+    skin: ["porcelain", "fair", "light", "medium", "tan", "brown", "deep", "ebony"][(ids * 7) % 8], hairC: ["black", "darkbrown", "brown", "auburn", "ginger", "blond", "platinum", "gray"][(ids * 3) % 8],
+    brows: ["soft", "straight", "angry", "thick"][ids % 4], nose: ["button", "round", "pointed"][ids % 3], mouth: r >= 2000 ? "smirk" : ["smile", "grin", "neutral", "smirk"][ids % 4],
+    beard: ids % 5 === 1 ? "stubble" : ids % 7 === 2 ? "full" : ids % 9 === 4 ? "mustache" : "none", eyeshape: ["round", "almond", "sleepy", "wide"][(ids >> 1) % 4], cheeks: ids % 6 === 5 ? "freckles" : "none",
+    build: r >= 1800 ? "broad" : ["slim", "normal", "normal"][ids % 3], height: ["short", "normal", "tall"][(ids >> 2) % 3]};
 }
 /* bot pictures everywhere use the avatar now */
 botAvatar = function(b, size = 44){ return `<span class="botav" style="width:${size}px;height:${size}px;background:hsl(${b.hue} 40% 30%)">${avatarSVG(Object.assign(botCfg(b), {aura: "none"}), {head: true, size})}</span>`; };
@@ -4326,6 +4367,7 @@ function frameTier(cfg, rating){ const f = cfg && cfg.frame; const t = TIERS.fin
 function itemUnlocked(it){
   if (!it.req) return true;
   if (typeof it.req === "string" && it.req.startsWith("r:")) return peakRating() >= +it.req.slice(2);
+  if (typeof it.req === "string" && it.req.startsWith("c:")){ const c = AV_CLASSES.find(x => x.k === it.req.slice(2)); return !!c && classUnlocked(c); }
   if (typeof it.req === "string" && it.req.startsWith("n:")) return (typeof achCount === "function" ? achCount() : 0) >= +it.req.slice(2);
   if (typeof it.req === "string" && it.req.startsWith("t:")) return typeof achHas === "function" && achHas(it.req.slice(2));
   return false;
@@ -4334,6 +4376,7 @@ function itemReqText(it){
   if (!it.req) return "Free";
   if (it.req.startsWith("n:")) return `Collect ${it.req.slice(2)} trophies`;
   if (it.req.startsWith("r:")) return `Reach ${it.req.slice(2)} puzzle rating`;
+  if (it.req.startsWith("c:")) return `Unlock the ${it.req.slice(2)} figure`;
   const a = typeof achById === "function" ? achById(it.req.slice(2)) : null; return a ? `Trophy: ${a.name}` : "Locked";
 }
 /* turn the figure by dragging; solid bodies get real thickness from stacked layers */
@@ -4382,7 +4425,7 @@ const Av3D = (() => {
     T = window.THREE; T.ColorManagement.legacyMode = false;
     const cv = document.createElement("canvas");
     R = new T.WebGLRenderer({canvas: cv, antialias: true, alpha: true, preserveDrawingBuffer: true, powerPreference: "low-power"});
-    R.outputEncoding = T.sRGBEncoding; R.toneMapping = T.ACESFilmicToneMapping; R.toneMappingExposure = 1.12; R.setPixelRatio(1); R.setClearColor(0, 0); R.autoClear = true;
+    R.outputEncoding = T.sRGBEncoding; R.toneMapping = T.ACESFilmicToneMapping; R.toneMappingExposure = .95; R.setPixelRatio(1); R.setClearColor(0, 0); R.autoClear = true;
     cv.addEventListener("webglcontextlost", e => { e.preventDefault(); dead = true; views.clear(); }, false);
     grow(320, 400); ENV = makeEnv(); snapScene = new T.Scene(); lights(snapScene);
     io = new IntersectionObserver(es => es.forEach(e => { const v = e.target._v; if (v) v.vis = e.isIntersecting; }), {rootMargin: "80px"});
@@ -4402,7 +4445,7 @@ const Av3D = (() => {
   }
   function setLights(sc, tier, rimC){
     const L = sc.userData.L;
-    L.hemi.intensity = tier === 1 ? 1.0 : .55; L.key.intensity = tier === 1 ? 1.6 : 2.1; L.fill.intensity = tier === 1 ? .7 : .65;
+    L.hemi.intensity = tier === 1 ? .8 : .4; L.key.intensity = tier === 1 ? 1.3 : 1.6; L.fill.intensity = tier === 1 ? .55 : .45;
     L.rim.color.set(rimC || 0xffffff); L.rim.intensity = tier >= 3 ? 3.2 : tier === 2 ? 1.4 : 1;
   }
 
@@ -4474,12 +4517,15 @@ const Av3D = (() => {
     const key = [TIER, kind, color, o.side || 0, o.map ? o.map.uuid : "", o.em || 0, o.op || 1, o.emMap ? o.emMap.uuid : ""].join("|"); if (MAT[key]) return MAT[key];
     const c = new T.Color(color); let m;
     if (kind === "glow") m = new T.MeshBasicMaterial({color: c, transparent: true, opacity: o.op || 1, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false});
+    else if (TIER < 2 && kind === "wood") m = TIER === 0 ? new T.MeshBasicMaterial({color: 0x9a6a3a, toneMapped: false}) : new T.MeshPhongMaterial({color: 0x9a6a3a, shininess: 40});
     else if (TIER === 0) m = new T.MeshBasicMaterial({color: kind === "gem" || kind === "gold" ? c.clone().offsetHSL(0, .05, .06) : c, map: o.map || null, toneMapped: false});
-    else if (TIER === 1) m = new T.MeshPhongMaterial({color: c, map: o.map || null, shininess: kind === "cloth" ? 28 : kind === "metal" || kind === "gold" ? 140 : 90, specular: kind === "gold" ? 0x8a6a20 : kind === "metal" ? 0x777777 : 0x3a3a3a, emissive: o.em ? c : 0x000000, emissiveIntensity: o.em ? .35 : 0});
+    else if (TIER === 1) m = new T.MeshPhongMaterial({color: c, map: o.map || null, shininess: kind === "cloth" ? 28 : kind === "flesh" ? 18 : kind === "hair" ? 55 : kind === "metal" || kind === "gold" ? 140 : 90, specular: kind === "gold" ? 0x8a6a20 : kind === "metal" ? 0x777777 : 0x3a3a3a, emissive: o.em ? c : 0x000000, emissiveIntensity: o.em ? .35 : 0});
     else {
       const P = TIER >= 3 ? T.MeshPhysicalMaterial : T.MeshStandardMaterial, b = {color: c, envMap: ENV, envMapIntensity: 1, map: o.map || null};
       if (kind === "skin") Object.assign(b, {roughness: TIER >= 3 ? .26 : .38, metalness: 0}, TIER >= 3 ? {clearcoat: .55, clearcoatRoughness: .2} : {});
-      else if (kind === "cloth") Object.assign(b, {roughness: .86, metalness: 0, bumpMap: weaveTex(), bumpScale: .12, envMapIntensity: .55}, TIER >= 3 ? {sheen: .6, sheenRoughness: .5, sheenColor: c.clone().lerp(new T.Color(0xffffff), .2)} : {});
+      else if (kind === "flesh") Object.assign(b, {roughness: .55, metalness: 0, envMapIntensity: .6}, TIER >= 3 ? {sheen: .5, sheenRoughness: .6, sheenColor: new T.Color(0xffd0b0), clearcoat: .08, clearcoatRoughness: .5} : {});
+      else if (kind === "hair") Object.assign(b, {roughness: .55, metalness: 0, envMapIntensity: .6}, TIER >= 3 ? {sheen: .4, sheenRoughness: .4, sheenColor: c.clone().lerp(new T.Color(0xffffff), .4)} : {});
+      else if (kind === "cloth") Object.assign(b, {roughness: .86, metalness: 0, bumpMap: weaveTex(), bumpScale: .03, envMapIntensity: .5}, TIER >= 3 ? {sheen: .6, sheenRoughness: .5, sheenColor: c.clone().lerp(new T.Color(0xffffff), .2)} : {});
       else if (kind === "leather") Object.assign(b, {roughness: .55, metalness: 0, bumpMap: weaveTex(), bumpScale: .08}, TIER >= 3 ? {clearcoat: .3, clearcoatRoughness: .5} : {});
       else if (kind === "metal") Object.assign(b, {roughness: .26, metalness: 1, envMapIntensity: 1.3}, TIER >= 3 ? {clearcoat: .6, clearcoatRoughness: .15} : {});
       else if (kind === "gold") Object.assign(b, {roughness: .2, metalness: 1, envMapIntensity: 1.5}, TIER >= 3 ? {clearcoat: 1, clearcoatRoughness: .08} : {});
@@ -4559,85 +4605,99 @@ const Av3D = (() => {
   function faceShell(H, y0, y1, grow, key){ return G("sh" + key + y0 + y1 + grow, () => { const pts = []; for (let i = 0; i <= 14; i++){ const y = y0 + (y1 - y0) * i / 14; pts.push(V2(Math.max(.001, H.prof(y) * grow), y)); } return new T.LatheGeometry(pts, 28, -1.25, 2.5); }); }
 
   const EYE_C = {brown: 0x5a3b22, blue: 0x2f6fb5, green: 0x3f8f3a, gray: 0x6b7280, gold: 0xd9a21b, glow: 0xff3b3b};
-  const SHIRT = {rags: [0x9b8160], tee: [0xf0eee9], stripes: [0xffffff, "stripes"], hoodie: [0x6f7782], tunic: [0x3f8f3a], silk: [0x7c4dbd], royal: [0x8b1e2d]};
+  const SHIRT = {rags: [0x9b8160], tee: [0xf0eee9], stripes: [0x22355e, "stripes"], hoodie: [0x6f7782], tunic: [0x3f8f3a], silk: [0x7c4dbd], royal: [0x8b1e2d]};
   const PANTS = {patched: 0x6b5a45, jeans: 0x3a5a8c, trousers: 0x2d2f36, royal: 0xeee7da};
-  const HAIR_C = [0x3b2a20, 0x6b4423, 0x1d1d1f, 0xa8733a, 0x8a2e1d, 0xd8c7a0];
+  const HUMAN = {prof: PROF.sphere(.27, 1.08), eyes: [[-.092, .035], [.092, .035]], mouth: -.115, ears: .262, hat: [0, .0, .92], hair: 1, top: .29, human: 1};
+  const hx = h => parseInt(String(h).slice(1), 16);
+  const shade = (c, k) => { const x = new T.Color(c); x.multiplyScalar(k); return x.getHex(); };
+  /* chess glyph on the belt buckle: the figure you've earned */
+  const glyphTex = cls => ctex("glyph" + cls, 64, 64, (g, w) => { g.fillStyle = "#e9c36a"; g.fillRect(0, 0, w, w); g.fillStyle = "#2a1d0e"; g.font = "900 46px serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText({pawn: "♟", knight: "♞", bishop: "♝", rook: "♜", queen: "♛", king: "♚"}[cls] || "♟", w / 2, w / 2 + 3); }, {srgb: 1});
+  const stubbleTex = c => ctex("stub" + c, 128, 128, (g, w) => { const rr = rnd(9); g.fillStyle = c; for (let i = 0; i < 900; i++){ const x = rr() * w, y = rr() * w; if (y < w * .2) continue; g.globalAlpha = .35 + rr() * .4; g.fillRect(x, y, 1.6, 1.6); } }, {srgb: 1});
 
   function build(cfg, tier, o = {}){
     TIER = tier;
-    const a = Object.assign({}, AV_DEFAULT, cfg || {}), cls = HEADS[a.cls] ? a.cls : "pawn", H = HEADS[cls];
+    const a = Object.assign({}, AV_DEFAULT, cfg || {}), cls = HEADS[a.cls] ? a.cls : "pawn", H = a.shape === "piece" ? HEADS[cls] : HUMAN;
     const rig = {tier, a, fx: [], pmats: [], own: [], eyes: [], tick: [], t: 0, emote: null, pose: o.pose || "idle", blink: 2 + Math.random() * 3, rr: rnd(hashStr(JSON.stringify(a)) % 2147483646 + 1)};
     const root = new T.Group(), fig = new T.Group(); root.add(fig); fig.position.y = .2; rig.root = root; rig.fig = fig;
-    const skin = M("skin", IV), ol = true;
-    /* ground shadow and pedestal */
+    const skinHex = hx(avColor("skin", a.skin) || "#ebc3a3"), skin = a.skin === "goldskin" ? M("gold", skinHex) : a.skin === "obsidian" ? M("dark", skinHex) : M(a.skin === "ivory" ? "skin" : "flesh", skinHex), ol = true;
+    rig.skin = skin; rig.skinHex = skinHex;
+    const cc = (slot, def) => { const v = avColor("cloth", a[CLOTH_SLOT[slot]]); return v ? hx(v) : def; };
+    const B = {slim: .9, normal: 1, broad: 1.13}[a.build] || 1, hip = {short: .4, normal: .5, tall: .6}[a.height] || .5;
+    /* ground shadow and pedestal: its metal shows the figure you've earned */
     const sh = new T.Mesh(G("pl2", () => new T.PlaneGeometry(2.2, 2.2)), new T.MeshBasicMaterial({map: shadowTex(), transparent: true, depthWrite: false, toneMapped: false})); sh.rotation.x = -Math.PI / 2; sh.position.y = .003; root.add(sh); rig.own.push(sh.material);
     const base = new T.Group(); root.add(base); rig.base = base;
-    mesh(cyl(.6, .66, .14, 48), skin, 0, .07, 0, base, ol); mesh(tor(.6, .032, 10, 48), skin, 0, .14, 0, base).rotation.x = Math.PI / 2; mesh(cyl(.5, .56, .06, 48), skin, 0, .17, 0, base, ol);
-    /* feet */
-    const shoeK = a.shoes, shoeM = shoeK === "sneakers" ? M("cloth", 0xf4f4f4) : shoeK === "boots" ? M("leather", 0x5b3a22) : shoeK === "golden" ? M("gold", 0xe0b13a) : skin;
-    [-1, 1].forEach(s => { const f = mesh(sph(.12), shoeM, s * .17, .07, .26, fig, ol); f.scale.set(1, .62, 1.45);
-      if (shoeK === "sneakers"){ const so = mesh(sph(.125), M("dark", 0xb3261e), s * .17, .035, .26, fig); so.scale.set(1, .25, 1.48); }
-      if (shoeK === "boots") mesh(cyl(.11, .12, .22, 16), shoeM, s * .17, .18, .2, fig); });
-    /* legs/robe (pants), belt */
-    const pantsM = a.pants === "jeans" ? M("cloth", 0xffffff, {map: denimTex()}) : M("cloth", PANTS[a.pants] || PANTS.patched);
-    mesh(lathe("skirt", [[.5, 0], [.495, .05], [.44, .27], [.37, .47]], 40), pantsM, 0, 0, 0, fig, ol);
-    if (a.pants === "patched"){ const p = mesh(box(.14, .12, .02), M("cloth", 0x8a7558), .15, .2, .43, fig); p.rotation.set(-.15, .3, .1); }
-    if (a.pants === "royal") mesh(tor(.485, .018, 6, 40), M("gold", 0xe0b13a), 0, .06, 0, fig).rotation.x = Math.PI / 2;
+    const pm = {pawn: M("wood", 0xffffff), knight: M("gold", 0xb87333), bishop: M("metal", 0xd8dde3), rook: M("skin", 0xd6cfc2), queen: M("gold", 0xe0b13a), king: M("gold", 0xe0b13a)}[cls];
+    mesh(cyl(.6, .66, .14, 48), pm, 0, .07, 0, base, ol); mesh(tor(.6, .032, 10, 48), pm, 0, .14, 0, base).rotation.x = Math.PI / 2; mesh(cyl(.5, .56, .06, 48), pm, 0, .17, 0, base, ol);
+    if (cls === "queen" || cls === "king") for (let i = 0; i < 8; i++){ const an = i / 8 * Math.PI * 2; mesh(oct(.03), M("gem", i % 2 ? 0xd1202f : 0x2f6fb5), Math.sin(an) * .63, .08, Math.cos(an) * .63, base); }
+    /* legs and feet */
+    const shoeK = a.shoes, shoeC = cc("shoes", shoeK === "sneakers" ? 0xf4f4f4 : 0x5b3a22), shoeM = shoeK === "sneakers" ? M("cloth", shoeC) : shoeK === "boots" ? M("leather", shoeC) : shoeK === "golden" ? M("gold", 0xe0b13a) : skin;
+    const pantsC = cc("pants", PANTS[a.pants] || PANTS.patched), pantsM = a.pants === "jeans" && !a.pantsC ? M("cloth", 0xffffff, {map: denimTex()}) : M("cloth", pantsC);
+    [-1, 1].forEach(s => { const x = s * .13 * B;
+      const f = mesh(sph(.105), shoeM, x, .06, .05, fig, ol); f.scale.set(1, .62, 1.55);
+      if (shoeK === "sneakers"){ const so = mesh(sph(.108), M("cloth", 0xf6f6f2), x, .03, .05, fig); so.scale.set(1.02, .28, 1.58); }
+      if (shoeK === "boots") mesh(cyl(.1, .11, .22, 16), shoeM, x, .17, .01, fig);
+      mesh(caps(.098, Math.max(.05, hip - .2)), pantsM, x, (hip + .1) / 2 + .02, 0, fig, ol);
+      if (a.pants === "royal") mesh(tor(.1, .012, 6, 20), M("gold", 0xe0b13a), x, .2, 0, fig).rotation.x = Math.PI / 2; });
+    if (a.pants === "patched"){ const p = mesh(box(.09, .08, .02), M("cloth", shade(pantsC, 1.3)), .14 * B, hip * .55, .1, fig); p.rotation.set(0, .2, .1); }
+    mesh(lathe("hips", [[.001, -.08], [.2, -.07], [.27, 0], [.27, .1]], 32), pantsM, 0, hip - .02, 0, fig, ol).scale.set(B, 1, B);
     /* torso (breathes); arms hang from it */
-    const torso = new T.Group(); torso.position.y = .45; fig.add(torso); rig.torso = torso;
-    const shirt = SHIRT[a.shirt] || SHIRT.rags, shirtM = shirt[1] === "stripes" ? M("cloth", 0xffffff, {map: stripeTex("#f4f1ea", "#22355e", 10)}) : M("cloth", shirt[0]);
-    mesh(lathe("torso", [[.37, 0], [.33, .15], [.34, .33], [.39, .47], [.4, .55], [.34, .65], [.2, .72], [.09, .75], [0, .76]], 40), shirtM, 0, 0, 0, torso, ol);
+    const torso = new T.Group(); torso.position.y = hip + .02; fig.add(torso); rig.torso = torso;
+    const tb = new T.Group(); tb.scale.set(B, 1, B); torso.add(tb);
+    const shirt = SHIRT[a.shirt] || SHIRT.rags, shirtC = cc("shirt", shirt[0]);
+    const shirtM = shirt[1] === "stripes" ? M("cloth", 0xffffff, {map: stripeTex("#f4f1ea", "#" + shirtC.toString(16).padStart(6, "0"), 10)}) : M("cloth", shirtC);
+    mesh(lathe("torso2", [[.255, 0], [.245, .13], [.265, .3], [.31, .45], [.33, .53], [.29, .63], [.17, .7], [.08, .73], [0, .74]], 40), shirtM, 0, 0, 0, tb, ol);
+    if (["rags", "tunic", "royal"].includes(a.shirt)) mesh(lathe("hem", [[.38, -.3], [.36, -.2], [.3, -.06], [.26, .03]], 40), shirtM, 0, 0, 0, tb, ol);
     const beltM = a.shirt === "tunic" || a.shirt === "royal" ? M("gold", 0xd9a531) : M("leather", 0x4a3020);
-    mesh(tor(.37, .036, 8, 40), beltM, 0, .02, 0, torso).rotation.x = Math.PI / 2;
-    if (a.shirt === "rags"){ [[-.13, .3, .33, .2], [.16, .16, .32, -.3]].forEach(([x, y, z, r]) => { const p = mesh(box(.12, .1, .02), M("cloth", 0x7a6248), x, y, z, torso); p.rotation.set(0, x * 1.2, r); }); }
-    if (a.shirt === "hoodie"){ const hd = mesh(tor(.19, .075, 10, 24), shirtM, 0, .7, -.08, torso); hd.rotation.x = Math.PI / 2 - .4; mesh(box(.28, .12, .03), M("cloth", 0x5f6670), 0, .18, .335, torso); [-.05, .05].forEach(x => mesh(cyl(.008, .008, .16, 6), M("cloth", 0xffffff), x, .58, .3, torso)); }
-    if (a.shirt === "royal"){ [.3, .1].forEach(y => mesh(tor(.36 + y * .05, .015, 6, 40), M("gold", 0xe0b13a), 0, y + .08, 0, torso).rotation.x = Math.PI / 2); [.2, .3, .4, .5].forEach(y => mesh(sph(.022, 10, 8), M("gold", 0xe0b13a), 0, y, .345 + (y > .45 ? .02 : 0), torso)); }
-    if (a.shirt === "tunic") mesh(box(.04, .3, .02), M("cloth", 0x2b6428), 0, .5, .33, torso).rotation.x = -.35;
+    mesh(tor(.262, .03, 8, 40), beltM, 0, .02, 0, tb).rotation.x = Math.PI / 2;
+    { const bk = mesh(cyl(.055, .055, .02, 24), M(TIER === 0 ? "cloth" : "gold", 0xe9c36a, {map: glyphTex(cls)}), 0, .02, .285, tb); bk.rotation.x = Math.PI / 2; bk.rotation.y = Math.PI; }
+    if (a.shirt === "rags"){ [[-.1, .3, .27, .2], [.12, .16, .26, -.3]].forEach(([x, y, z, r]) => { const p = mesh(box(.1, .08, .02), M("cloth", shade(shirtC, .78)), x, y, z, tb); p.rotation.set(0, x * 1.4, r); }); }
+    if (a.shirt === "hoodie"){ const hd = mesh(tor(.17, .07, 10, 24), shirtM, 0, .68, -.08, tb); hd.rotation.x = Math.PI / 2 - .4; mesh(box(.24, .1, .03), M("cloth", shade(shirtC, .85)), 0, .17, .265, tb); [-.05, .05].forEach(x => mesh(cyl(.007, .007, .14, 6), M("cloth", 0xffffff), x, .55, .27, tb)); }
+    if (a.shirt === "royal"){ [.3, .1].forEach(y => mesh(tor(.27 + y * .05, .013, 6, 40), M("gold", 0xe0b13a), 0, y + .08, 0, tb).rotation.x = Math.PI / 2); [.2, .3, .4, .5].forEach(y => mesh(sph(.02, 10, 8), M("gold", 0xe0b13a), 0, y, .27 + y * .07, tb)); }
+    if (a.shirt === "tunic") mesh(box(.035, .26, .02), M("cloth", shade(shirtC, .7)), 0, .5, .3, tb).rotation.x = -.35;
     /* coat / armour */
-    const coatK = a.coat, coatC = {vest: [0x5b3a22, "leather"], jacket: [0x26324a, "cloth"], leather: [0x7a4d2b, "leather"], steel: [0xbfc6cf, "metal"], gold: [0xe0b13a, "gold"]}[coatK];
+    const coatK = a.coat, coatC = {vest: [cc("coat", 0x5b3a22), "leather"], jacket: [cc("coat", 0x26324a), "cloth"], leather: [cc("coat", 0x7a4d2b), "leather"], steel: [0xbfc6cf, "metal"], gold: [0xe0b13a, "gold"]}[coatK];
     let sleeveUp = shirtM, sleeveLo = ["rags", "tee"].includes(a.shirt) ? skin : shirtM;
     if (coatC){ const cm = M(coatC[1], coatC[0]), open = coatK === "vest" || coatK === "jacket";
-      mesh(lathe("coat" + (open ? "o" : "c"), [[.385, .02], [.345, .16], [.355, .33], [.405, .47], [.415, .55], [.355, .64], [.22, .7]], 40, open ? .32 : 0, open ? Math.PI * 2 - .64 : Math.PI * 2), M(coatC[1], coatC[0], {side: T.DoubleSide}), 0, 0, 0, torso, ol);
-      if (coatK === "jacket"){ sleeveUp = cm; sleeveLo = cm; [-1, 1].forEach(s => { const l = mesh(box(.09, .22, .02), cm, s * .1, .56, .33, torso); l.rotation.set(-.3, s * .35, s * .25); }); }
+      mesh(lathe("coat2" + (open ? "o" : "c"), [[.28, .02], [.27, .14], [.29, .3], [.335, .45], [.355, .53], [.315, .62], [.2, .69]], 40, open ? .34 : 0, open ? Math.PI * 2 - .68 : Math.PI * 2), M(coatC[1], coatC[0], {side: T.DoubleSide}), 0, 0, 0, tb, ol);
+      if (coatK === "jacket"){ sleeveUp = cm; sleeveLo = cm; mesh(lathe("coattail", [[.33, -.26], [.31, -.12], [.28, .02]], 40, .34, Math.PI * 2 - .68), M(coatC[1], coatC[0], {side: T.DoubleSide}), 0, 0, 0, tb); [-1, 1].forEach(s => { const l = mesh(box(.08, .2, .02), cm, s * .09, .55, .28, tb); l.rotation.set(-.3, s * .35, s * .25); }); }
       if (["leather", "steel", "gold"].includes(coatK)){ sleeveUp = cm;
-        if (coatK !== "leather"){ mesh(box(.04, .4, .02), M(coatC[1], hexNum(coatK === "gold" ? "#fff0b0" : "#ffffff")), 0, .35, .37, torso).rotation.x = -.06; }
-        if (coatK === "gold") mesh(oct(.05), M("gem", 0xd1202f), 0, .45, .4, torso);
-        if (coatK === "leather") [-.12, .12].forEach(x => { const st = mesh(box(.035, .52, .015), M("leather", 0x3a2414), x, .38, .345, torso); st.rotation.set(-.1, 0, x * 1.4); }); } }
+        if (coatK !== "leather") mesh(box(.035, .36, .02), M(coatC[1], coatK === "gold" ? 0xfff0b0 : 0xffffff), 0, .35, .31, tb).rotation.x = -.08;
+        if (coatK === "gold") mesh(oct(.045), M("gem", 0xd1202f), 0, .45, .33, tb);
+        if (coatK === "leather") [-.1, .1].forEach(x => { const st = mesh(box(.03, .48, .015), M("leather", 0x3a2414), x, .36, .28, tb); st.rotation.set(-.1, 0, x * 1.6); }); } }
     /* arms with elbows; hands carry the items */
     const arm = s => {
-      const shG = new T.Group(); shG.position.set(s * .36, .58, 0); torso.add(shG);
-      mesh(caps(.088, .17), sleeveUp, 0, -.12, 0, shG, ol);
-      if (["steel", "gold", "leather"].includes(coatK)){ const pm = M(coatC[1], coatC[0]); const pd = mesh(G("pad", () => new T.SphereGeometry(.15, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2)), pm, 0, .0, 0, shG, ol); pd.rotation.z = s * .25;
-        if (coatK === "gold") [-.05, .05].forEach(z => { const sp = mesh(cone(.035, .14, 10), pm, s * .06, .14, z, shG); sp.rotation.z = -s * .5; }); }
-      const el = new T.Group(); el.position.y = -.27; shG.add(el);
-      mesh(caps(.078, .15), sleeveLo, 0, -.1, 0, el, ol);
-      const hand = new T.Group(); hand.position.y = -.24; el.add(hand); mesh(sph(.092), skin, 0, 0, 0, hand, ol);
+      const shG = new T.Group(); shG.position.set(s * .32 * B, .56, 0); torso.add(shG);
+      mesh(caps(.075, .17), sleeveUp, 0, -.12, 0, shG, ol);
+      if (["steel", "gold", "leather"].includes(coatK)){ const pmm = M(coatC[1], coatC[0]); const pd = mesh(G("pad2", () => new T.SphereGeometry(.13, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2)), pmm, 0, 0, 0, shG, ol); pd.rotation.z = s * .25;
+        if (coatK === "gold") [-.05, .05].forEach(z => { const sp = mesh(cone(.03, .12, 10), pmm, s * .05, .12, z, shG); sp.rotation.z = -s * .5; }); }
+      const el = new T.Group(); el.position.y = -.26; shG.add(el);
+      mesh(caps(.067, .14), sleeveLo, 0, -.1, 0, el, ol);
+      const hand = new T.Group(); hand.position.y = -.22; el.add(hand); mesh(sph(.075), skin, 0, 0, 0, hand, ol);
+      const th = mesh(sph(.032, 10, 8), skin, -s * .045, .025, .045, hand); th.scale.set(1, 1.3, 1);
       const item = new T.Group(); hand.add(item); item.rotation.set(.12, 0, -s * .3);
       return {sh: shG, el, hand, item, s};
     };
     rig.R = arm(-1); rig.L = arm(1);
     if (a.wrist !== "none"){ const wm = a.wrist === "rope" ? M("cloth", 0xb8955a) : a.wrist === "silver" ? M("metal", 0xdfe4ea) : a.wrist === "gold" ? M("gold", 0xe0b13a) : M("metal", 0x4b5563);
-      const w = mesh(tor(.085, .022, 8, 20), wm, 0, -.16, 0, rig.R.el); w.rotation.x = Math.PI / 2;
-      if (a.wrist === "rune"){ const g = mesh(tor(.087, .008, 6, 24), M("glow", 0x59e3ff), 0, -.16, 0, rig.R.el); g.rotation.x = Math.PI / 2; } }
+      const w = mesh(tor(.073, .02, 8, 20), wm, 0, -.15, 0, rig.R.el); w.rotation.x = Math.PI / 2;
+      if (a.wrist === "rune"){ const g = mesh(tor(.075, .007, 6, 24), M("glow", 0x59e3ff), 0, -.15, 0, rig.R.el); g.rotation.x = Math.PI / 2; } }
     /* neck and head */
-    mesh(cyl(.1, .12, .14, 16), skin, 0, 1.25, 0, fig);
-    const head = new T.Group(); head.position.y = H.y; fig.add(head); rig.head = head;
+    const top = hip + .02 + .74;
+    mesh(cyl(.075, .085, .14, 16), skin, 0, top + .03, 0, fig);
+    const head = new T.Group(); head.position.y = H.human ? top + .36 : H.y + (top - 1.21); fig.add(head); rig.head = head;
     buildHead(rig, a, cls, H, head, skin);
-    /* cape */
+    /* cape: from the shoulders almost to the ground */
     if (a.cape !== "none"){ const C = {cloth: [0x8a7a5e, 0x6d6049], red: [0xb3261e, 0xe0b13a], green: [0x2f7a3a, 0x9fd36b], purple: [0x5a2d91, 0xe0b13a], ermine: [0x8b1e2d, 0xffffff]}[a.cape] || [0x8a7a5e, 0x6d6049];
-      const cg = new T.CylinderGeometry(.4, .66, 1.06, 26, 12, true, Math.PI - 1.15, 2.3); rig.own.push(cg); const base0 = cg.attributes.position.array.slice();
-      const cape = new T.Group(); cape.position.set(0, .56, -.04); fig.add(cape);
-      mesh(cg, M("cloth", C[0], {side: T.FrontSide}), 0, 0, 0, cape, ol); mesh(cg, a.cape === "ermine" ? M("cloth", 0xffffff, {map: ermineTex(), side: T.BackSide}) : M("cloth", C[1], {side: T.BackSide}), 0, 0, 0, cape);
-      if (a.cape === "ermine"){ const col = mesh(tor(.3, .07, 10, 24, Math.PI * 1.3), M("cloth", 0xffffff, {map: ermineTex()}), 0, 1.16, -.05, fig); col.rotation.set(Math.PI / 2, 0, Math.PI * -.15 - Math.PI / 2 + Math.PI); }
-      rig.cape = {g: cg, base: base0};
+      const capeHex = cc("cape", C[0]), ch = top - .2 + .02;
+      const cg = new T.CylinderGeometry(.33 * B, .56, ch, 26, 12, true, Math.PI - 1.15, 2.3); rig.own.push(cg); const base0 = cg.attributes.position.array.slice();
+      const cape = new T.Group(); cape.position.set(0, top - .2 - ch / 2 + .01, -.03); fig.add(cape);
+      mesh(cg, M("cloth", capeHex, {side: T.FrontSide}), 0, 0, 0, cape, ol); mesh(cg, a.cape === "ermine" ? M("cloth", 0xffffff, {map: ermineTex(), side: T.BackSide}) : M("cloth", C[1], {side: T.BackSide}), 0, 0, 0, cape);
+      if (a.cape === "ermine"){ const col = mesh(tor(.25, .06, 10, 24, Math.PI * 1.3), M("cloth", 0xffffff, {map: ermineTex()}), 0, top - .06, -.04, fig); col.rotation.set(Math.PI / 2, 0, Math.PI * .85); }
+      rig.cape = {g: cg, base: base0, h: ch};
     }
-    /* wings */
     if (a.back !== "none") buildWings(rig, a.back, torso);
-    /* hand items */
     buildItem(rig, a.right, rig.R, "R"); buildItem(rig, a.left, rig.L, "L");
-    /* aura */
     if (a.aura !== "none") buildAura(rig, a.aura, root);
-    /* mythic: rune circle and floating energy */
     if (tier >= 4){ const rc = new T.Mesh(G("pl1", () => new T.PlaneGeometry(1.9, 1.9)), new T.MeshBasicMaterial({map: runeTex("#ffd75e"), transparent: true, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false, opacity: .85}));
       rc.rotation.x = -Math.PI / 2; rc.position.y = .215; root.add(rc); rig.own.push(rc.material); rig.rune = rc;
       emitter(rig, root, {n: 26, tex: sparkTex(), spawn: p => { const ang = Math.random() * 6.3, r = .3 + Math.random() * .4; p.x = Math.cos(ang) * r; p.z = Math.sin(ang) * r; p.y = .25; p.vx = 0; p.vz = 0; p.vy = .5 + Math.random() * .6; p.life = 1.2 + Math.random(); p.s = .07 + Math.random() * .06; p.c = 0xfff1b0; p.c2 = 0xff9a3a; }});
@@ -4650,51 +4710,92 @@ const Av3D = (() => {
   function hexNum(h){ return parseInt(h.slice(1), 16); }
 
   function buildHead(rig, a, cls, H, head, skin){
-    const ol = true, eyeC = EYE_C[a.eyes] || EYE_C.brown, hairC = a.hairC != null ? a.hairC : a.hue != null ? HAIR_C[Math.floor(a.hue / 60) % HAIR_C.length] : HAIR_C[0];
+    const ol = true, eyeC = EYE_C[a.eyes] || EYE_C.brown, hairC = hx(avColor("hairC", a.hairC) || "#3b2a20"), key = H.human ? "human" : cls;
     if (H.knight){
       const g = extr("horse", HORSE, .26, .06, true); mesh(g, skin, 0, 0, 0, head, ol);
       mesh(sph(.035, 10, 8), M("dark", 0x2a2420), .33, -.13, .17, head); mesh(sph(.035, 10, 8), M("dark", 0x2a2420), .33, -.13, -.17, head);
       [1, -1].forEach(s => { const e = new T.Group(); e.position.set(.12, .12, s * .2); head.add(e); e.rotation.y = s > 0 ? 0 : Math.PI; eyeParts(e, eyeC, a); rig.eyes.push(e); });
-      if (a.hair !== "none"){ const hm = a.hair === "flame" ? M("cloth", 0xff7a1f, {em: .9}) : M("cloth", hairC);
+      if (a.hair !== "none"){ const hm = a.hair === "flame" ? M("cloth", 0xff7a1f, {em: .9}) : M("hair", hairC);
         for (let i = 0; i < 7; i++){ const t = i / 6, x = -.26 + t * .2, y = .2 - t * .45; const m = mesh(box(.09, .12, .1), hm, x - .04, y + .15, 0, head); m.rotation.z = .5 + t * .4; }
         if (a.hair === "flame") flames(rig, head, [-.2, .35, 0], .2, 14); }
+      if (a.glasses !== "none") [1, -1].forEach(s => { const g2 = new T.Group(); g2.position.set(.12, .12, s * .235); head.add(g2); lens(rig, a.glasses, g2, 0); });
+      if (a.ears !== "none") [1, -1].forEach(s => earring(rig, a.ears, head, -.1, -.08, s * .19));
+      if (a.mask !== "none") [1, -1].forEach(s => mesh(box(.22, .08, .02), a.mask === "visor" ? M("metal", 0xb9c0c8) : M("dark", 0x161616), .12, .12, s * .232, head));
     } else {
-      const pts = []; for (let i = 0; i <= 24; i++){ const y = -.34 + i * .8 / 24; const r = H.prof(y); if (r > 0 || i === 0) pts.push(V2(r, y)); }
-      mesh(lathe("head" + cls, pts.map(p => [p.x, p.y]), 40), skin, 0, 0, 0, head, ol);
-      if (cls === "bishop"){ mesh(sph(.06), skin, 0, .46, 0, head, ol); const sl = mesh(box(.025, .2, .02), M("dark", 0x2a2420), .1, .26, .14, head); sl.rotation.set(-.5, 0, -.6); }
-      if (cls === "rook"){ for (let i = 0; i < 6; i++){ const ang = i / 6 * Math.PI * 2 + Math.PI / 6; const b = mesh(box(.12, .11, .08), skin, Math.sin(ang) * .24, .32, Math.cos(ang) * .24, head, ol); b.rotation.y = ang; } mesh(tor(.28, .012, 6, 40), M("dark", 0x8a8070), 0, .12, 0, head).rotation.x = Math.PI / 2; }
-      if (cls === "queen"){ const cm = M("gold", 0xe0b13a); mesh(tor(.22, .028, 8, 36), cm, 0, .26, 0, head).rotation.x = Math.PI / 2; for (let i = 0; i < 8; i++){ const ang = i / 8 * Math.PI * 2; mesh(cone(.03, .1, 8), cm, Math.sin(ang) * .22, .32, Math.cos(ang) * .22, head); mesh(sph(.028, 10, 8), skin, Math.sin(ang) * .22, .39, Math.cos(ang) * .22, head); } }
-      if (cls === "king"){ const cm = M("gold", 0xe0b13a); mesh(cyl(.21, .21, .1, 32, true), M("gold", 0xe0b13a, {side: T.DoubleSide}), 0, .32, 0, head); mesh(box(.05, .2, .05), cm, 0, .48, 0, head); mesh(box(.15, .05, .05), cm, 0, .5, 0, head); }
-      H.eyes.forEach(([x, y]) => { const f = faceAt(H, x, y, -.012); const e = new T.Group(); e.position.copy(f.p); orient(e, f.n); head.add(e); eyeParts(e, eyeC, a); rig.eyes.push(e); });
-      { const f = faceAt(H, 0, H.mouth, .004); const m = mesh(tor(.06, .012, 6, 16, Math.PI), M("dark", 0x3a2a22), 0, 0, 0, head); m.position.copy(f.p); orient(m, f.n); m.rotateZ(Math.PI); }
+      const pts = []; for (let i = 0; i <= 26; i++){ const y = -.34 + i * .8 / 26; const r = H.prof(y); if (r > 0 || i === 0) pts.push(V2(r, y)); }
+      mesh(lathe("head" + key, pts.map(p => [p.x, p.y]), 40), skin, 0, 0, 0, head, ol);
+      if (H.human){ [-1, 1].forEach(s => { const e = mesh(sph(.06, 14, 10), skin, s * .262, -.01, -.01, head, ol); e.scale.set(.45, 1, .8); });
+        const j = mesh(sph(.2, 24, 16), skin, 0, -.13, .06, head); j.scale.set(1, .75, .9); }
+      if (cls === "bishop" && !H.human){ mesh(sph(.06), skin, 0, .46, 0, head, ol); const sl = mesh(box(.025, .2, .02), M("dark", 0x2a2420), .1, .26, .14, head); sl.rotation.set(-.5, 0, -.6); }
+      if (cls === "rook" && !H.human){ for (let i = 0; i < 6; i++){ const ang = i / 6 * Math.PI * 2 + Math.PI / 6; const b = mesh(box(.12, .11, .08), skin, Math.sin(ang) * .24, .32, Math.cos(ang) * .24, head, ol); b.rotation.y = ang; } }
+      if (cls === "queen" && !H.human){ const cm = M("gold", 0xe0b13a); mesh(tor(.22, .028, 8, 36), cm, 0, .26, 0, head).rotation.x = Math.PI / 2; for (let i = 0; i < 8; i++){ const ang = i / 8 * Math.PI * 2; mesh(cone(.03, .1, 8), cm, Math.sin(ang) * .22, .32, Math.cos(ang) * .22, head); mesh(sph(.028, 10, 8), skin, Math.sin(ang) * .22, .39, Math.cos(ang) * .22, head); } }
+      if (cls === "king" && !H.human){ const cm = M("gold", 0xe0b13a); mesh(cyl(.21, .21, .1, 32, true), M("gold", 0xe0b13a, {side: T.DoubleSide}), 0, .32, 0, head); mesh(box(.05, .2, .05), cm, 0, .48, 0, head); mesh(box(.15, .05, .05), cm, 0, .5, 0, head); }
+      H.eyes.forEach(([x, y]) => { const f = faceAt(H, x, y, -.012); const e = new T.Group(); e.position.copy(f.p); orient(e, f.n); head.add(e); eyeParts(e, eyeC, a, rig); rig.eyes.push(e); });
+      buildFace(rig, a, head, H, key, hairC);
       if (H.hair && a.hair !== "none") buildHair(rig, a.hair, hairC, head, H);
-      if (a.paint !== "none"){ const y0 = -.2, y1 = .2, lay = {key: cls, eyes: H.eyes.map(([x, y]) => [(Math.asin(x / H.prof(y)) + 1.25) / 2.5, 1 - (y - y0) / (y1 - y0)]), mouth: [.5, 1 - (H.mouth - y0) / (y1 - y0)]};
+      if (a.paint !== "none"){ const y0 = -.2, y1 = .2, lay = {key, eyes: H.eyes.map(([x, y]) => [(Math.asin(x / H.prof(y)) + 1.25) / 2.5, 1 - (y - y0) / (y1 - y0)]), mouth: [.5, 1 - (H.mouth - y0) / (y1 - y0)]};
         const tex = paintTex(a.paint, lay), glow = ["runes", "demon", "kintsugi"].includes(a.paint);
-        const pm = M("skin", 0xffffff, {map: tex, transparent: true, emMap: glow ? tex : null}); mesh(faceShell(H, y0, y1, 1.012, cls), pm, 0, 0, 0, head); }
-      if (a.mask !== "none") buildMask(rig, a.mask, head, H, cls);
+        mesh(faceShell(H, y0, y1, 1.012, key), M("skin", 0xffffff, {map: tex, transparent: true, emMap: glow ? tex : null}), 0, 0, 0, head); }
+      if (a.mask !== "none") buildMask(rig, a.mask, head, H, key);
       if (a.glasses !== "none") buildGlasses(rig, a.glasses, head, H);
-      if (a.ears !== "none") [-1, 1].forEach(s => earring(rig, a.ears, head, s * H.ears, -.07, 0));
+      if (a.ears !== "none") [-1, 1].forEach(s => earring(rig, a.ears, head, s * (H.ears + .01), -.07, 0));
     }
-    if (H.knight){ if (a.glasses !== "none") [1, -1].forEach(s => { const g = new T.Group(); g.position.set(.12, .12, s * .235); head.add(g); lens(rig, a.glasses, g, 0); }); if (a.ears !== "none") [1, -1].forEach(s => earring(rig, a.ears, head, -.1, -.08, s * .19)); if (a.mask !== "none") [1, -1].forEach(s => { const m = mesh(box(.22, .08, .02), a.mask === "visor" ? M("metal", 0xb9c0c8) : M("dark", 0x161616), .12, .12, s * .232, head); }); }
     if (a.head !== "none"){ const hg = new T.Group(); hg.position.set(H.hat[0], H.hat[1], 0); hg.scale.setScalar(H.hat[2]); head.add(hg); buildHat(rig, a.head, hg); }
     if (a.eyes === "glow" || rig.tier >= 4) rig.eyes.forEach(e => sprite(rig, e, glowTex(), a.eyes === "glow" ? 0xff3b3b : 0xffd75e, .16, 0, 0, .03, .9));
   }
-  function eyeParts(e, c, a){
-    if (TIER === 0){ mesh(sph(.05, 16, 12), M("dark", 0x1d1a17), 0, 0, 0, e).scale.set(1, 1.15, .5); mesh(sph(.016, 8, 6), M("glow", 0xffffff), .015, .02, .022, e); return; }
-    mesh(sph(.06, 18, 14), M("skin", 0xfbfaf6), 0, 0, 0, e).scale.set(1, 1.12, .5);
-    mesh(sph(.038, 16, 12), M(a.eyes === "gold" || a.eyes === "glow" ? "gem" : "dark", c), 0, 0, .02, e).scale.set(1, 1.05, .45);
-    mesh(sph(.02, 10, 8), M("dark", 0x0d0b0a), 0, 0, .032, e).scale.set(1, 1, .5);
-    mesh(sph(.009, 8, 6), M("glow", 0xffffff), .013, .016, .04, e);
+  /* brows, nose, mouth, cheeks and facial hair */
+  function buildFace(rig, a, head, H, key, hairC){
+    const dark = M("dark", 0x3a2420), browM = M("hair", shade(hairC, .8)), place = (m, x, y, push) => { const f = faceAt(H, x, y, push); m.position.copy(f.p); orient(m, f.n); return m; };
+    if (a.brows !== "none") H.eyes.forEach(([x, y]) => { const s = Math.sign(x), b = place(new T.Group(), x, y + .082, .004); head.add(b);
+      const m = mesh(caps(a.brows === "thick" ? .019 : .012, .065), browM, 0, 0, 0, b); m.rotation.z = Math.PI / 2 + ({soft: -s * .12, straight: 0, angry: s * .38, thick: -s * .05}[a.brows] || 0); });
+    if (a.nose !== "none"){ const n = place(new T.Group(), 0, -.035, a.nose === "pointed" ? 0 : -.006); head.add(n);
+      if (a.nose === "button") mesh(sph(.028, 12, 10), rig.skin, 0, 0, 0, n);
+      else if (a.nose === "round") mesh(sph(.042, 14, 10), rig.skin, 0, 0, 0, n).scale.set(1, .85, .8);
+      else { const c = mesh(cone(.03, .085, 12), rig.skin, 0, -.01, .03, n); c.rotation.x = Math.PI / 2 + .35; } }
+    { const mg = place(new T.Group(), 0, H.mouth, .004), mk = a.mouth; head.add(mg);
+      if (mk === "neutral"){ const m = mesh(caps(.009, .06), dark, 0, 0, 0, mg); m.rotation.z = Math.PI / 2; }
+      else if (mk === "laugh"){ const m = mesh(sph(.05, 16, 10, ), M("dark", 0x3a1414), 0, -.005, -.01, mg); m.scale.set(1.1, .7, .45); mesh(sph(.025, 10, 8), M("flesh", 0xd65a6a), 0, -.025, .005, mg).scale.set(1.2, .6, .5); mesh(box(.07, .016, .01), M("skin", 0xffffff), 0, .018, .006, mg); }
+      else { const m = mesh(tor(.055, .011, 6, 16, Math.PI), dark, 0, 0, 0, mg); m.rotation.z = Math.PI; if (mk === "smirk"){ m.rotation.z = Math.PI + .35; m.position.x = .015; m.scale.set(.85, .7, 1); }
+        if (mk === "grin"){ const t2 = mesh(G("teeth", () => new T.CircleGeometry(.05, 16, Math.PI, Math.PI)), M("skin", 0xffffff), 0, .003, .003, mg); }
+        if (mk === "fangs") [-1, 1].forEach(s => { const f = mesh(cone(.012, .04, 8), M("skin", 0xffffff), s * .03, -.03, .006, mg); f.rotation.z = Math.PI; }); } }
+    if (a.cheeks === "blush" || a.cheeks === "both") [-1, 1].forEach(s => { const c = place(new T.Mesh(G("blush", () => new T.CircleGeometry(.045, 20)), new T.MeshBasicMaterial({color: 0xff7a8a, transparent: true, opacity: .32, depthWrite: false, toneMapped: false})), s * .15, -.055, .004); head.add(c); rig.own.push(c.material); });
+    if (a.cheeks === "freckles" || a.cheeks === "both") [-1, 1].forEach(s => [[0, 0], [.025, .012], [-.02, .015], [.012, -.02], [-.028, -.012], [.035, -.01]].forEach(([dx, dy]) => head.add(place(new T.Mesh(sph(.006, 6, 4), M("dark", 0x8a5532)), s * .14 + dx, -.04 + dy, .001))));
+    const b = a.beard; if (b === "none") return;
+    const hm = M("hair", hairC);
+    if (b === "stubble") mesh(faceShell(H, -.32, -.06, 1.006, key), M("hair", hairC, {map: stubbleTex("#" + hairC.toString(16).padStart(6, "0")), transparent: true}), 0, 0, 0, head);
+    if (b === "full" || b === "viking"){ mesh(G("beard" + key, () => { const pts = []; for (let i = 0; i <= 12; i++){ const y = -.4 + i * .24 / 12; pts.push(V2(Math.max(.001, (H.prof(y) || .05) * 1.08 + (y < -.3 ? .02 : 0)), y)); } return new T.LatheGeometry(pts, 28, -1.35, 2.7); }), hm, 0, 0, 0, head, true);
+      [-1, 1].forEach(s => { const sb = mesh(box(.035, .16, .06), hm, s * .25, -.08, .03, head); sb.rotation.z = -s * .1; }); }
+    if (["mustache", "goatee", "full", "viking"].includes(b)) [-1, 1].forEach(s => { const m = place(new T.Group(), s * .035, H.mouth + .035, .01); head.add(m); const mm = mesh(sph(.035, 12, 8), hm, 0, 0, 0, m); mm.scale.set(1.3, .55, .6); mm.rotation.z = s * .25; });
+    if (b === "goatee"){ const g = place(new T.Group(), 0, H.mouth - .07, .008); head.add(g); mesh(sph(.04, 12, 8), hm, 0, -.01, 0, g).scale.set(.9, 1.3, .7); }
+    if (b === "viking") [-1, 1].forEach(s => { mesh(G("braid" + s, () => taper([[s * .06, -.34, .2], [s * .07, -.48, .17], [s * .06, -.6, .14]], .028, .02, 6, 10)), hm, 0, 0, 0, head); mesh(sph(.022, 8, 6), M("gold", 0xe0b13a), s * .06, -.62, .14, head); });
+  }
+  function eyeParts(e, c, a, rig){
+    const sh = {almond: [1.18, .8], sleepy: [1.05, 1], wide: [1.15, 1.2]}[a.eyeshape] || [1, 1.1];
+    if (TIER === 0){ mesh(sph(.045, 16, 12), M("dark", 0x1d1a17), 0, 0, 0, e).scale.set(sh[0], sh[1] * 1.1, .5); mesh(sph(.014, 8, 6), M("glow", 0xffffff), .014, .018, .022, e); }
+    else {
+      mesh(sph(.05, 18, 14), M("skin", 0xfbfaf6), 0, 0, 0, e).scale.set(sh[0], sh[1], .5);
+      mesh(sph(.032, 16, 12), M(a.eyes === "gold" || a.eyes === "glow" ? "gem" : "dark", c), 0, 0, .017, e).scale.set(1, 1.05, .45);
+      mesh(sph(.017, 10, 8), M("dark", 0x0d0b0a), 0, 0, .027, e).scale.set(1, 1, .5);
+      mesh(sph(.008, 8, 6), M("glow", 0xffffff), .011, .013, .034, e);
+    }
+    if (a.eyeshape === "sleepy" && rig){ const lid = mesh(G("lid", () => new T.SphereGeometry(.054, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2)), rig.skin, 0, -.004, .002, e); lid.rotation.x = Math.PI / 2 - .25; lid.scale.set(sh[0], 1, .62); }
   }
   function buildHair(rig, k, c, head, H){
-    const hm = k === "flame" ? M("cloth", 0xff6a1a, {em: .8}) : M("cloth", c), r = H.prof(0) || .3, rr = rig.rr;
-    const capG = G("cap" + r, () => new T.SphereGeometry(r * 1.06, 32, 14, 0, Math.PI * 2, 0, 1.18)); const cap = mesh(capG, hm, 0, 0, 0, head, true); cap.rotation.x = -.38;
-    if (k === "messy" || k === "flame") for (let i = 0; i < 10; i++){ const th = .2 + rr() * .9, ph = rr() * 6.28; const n = new T.Vector3(Math.sin(th) * Math.sin(ph), Math.cos(th), Math.sin(th) * Math.cos(ph)).applyAxisAngle(new T.Vector3(1, 0, 0), -.38); if (n.z > .55 && n.y < .6) continue; const cn = mesh(cone(.06, k === "flame" ? .24 : .16, 8), hm, n.x * r, n.y * r, n.z * r, head); cn.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), n.clone().add(new T.Vector3(0, .6, 0)).normalize()); if (k === "flame") rig.tick.push((dt, t) => { cn.scale.y = 1 + Math.sin(t * 9 + i) * .25; }); }
+    const hm = k === "flame" ? M("cloth", 0xff6a1a, {em: .8}) : M("hair", c), r = H.prof(0) || .3, rr = rig.rr, hs = M("hair", c, {side: T.DoubleSide});
+    const capG = G("cap" + r, () => new T.SphereGeometry(r * 1.06, 32, 14, 0, Math.PI * 2, 0, 1.18));
+    if (k !== "afro"){ const cap = mesh(k === "buzz" ? G("capb" + r, () => new T.SphereGeometry(r * 1.025, 32, 14, 0, Math.PI * 2, 0, 1.25)) : capG, hm, 0, H.human ? .02 : 0, 0, head, true); cap.rotation.x = -.38; }
+    const out = (th, ph) => new T.Vector3(Math.sin(th) * Math.sin(ph), Math.cos(th), Math.sin(th) * Math.cos(ph)).applyAxisAngle(new T.Vector3(1, 0, 0), -.38);
+    if (k === "messy" || k === "flame" || k === "spiky") for (let i = 0; i < (k === "spiky" ? 18 : 10); i++){ const th = .15 + rr() * .95, ph = rr() * 6.28, n = out(th, ph); if (n.z > .55 && n.y < .6) continue; const cn = mesh(cone(k === "spiky" ? .05 : .06, k === "flame" ? .24 : k === "spiky" ? .2 : .16, 8), hm, n.x * r, n.y * r + .02, n.z * r, head); cn.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), n.clone().add(new T.Vector3(0, k === "spiky" ? .2 : .6, 0)).normalize()); if (k === "flame") rig.tick.push((dt, t) => { cn.scale.y = 1 + Math.sin(t * 9 + i) * .25; }); }
     if (k === "flame") flames(rig, head, [0, r * .9, -.05], .22, 18);
-    if (k === "long"){ const b = mesh(G("hairlong" + r, () => new T.CylinderGeometry(r * 1.03, r * 1.14, .52, 24, 1, true, .8, Math.PI * 2 - 1.6)), M("cloth", c, {side: T.DoubleSide}), 0, -.17, -.01, head); }
-    if (k === "bun") mesh(sph(.12), hm, 0, r * .82, -r * .5, head, true);
-    if (k === "curly"){ for (let i = 0; i < 34; i++){ const y = 1 - (i / 33) * 1.25, rad = Math.sqrt(Math.max(0, 1 - y * y)), th = i * 2.4; const n = new T.Vector3(Math.cos(th) * rad, y, Math.sin(th) * rad); if (n.z > .35 && n.y < .62) continue; mesh(sph(.075, 10, 8), hm, n.x * r * 1.04, n.y * r * 1.04, n.z * r * 1.04, head); } }
-    if (k === "mohawk"){ const mm = M("cloth", 0xd1202f); for (let i = 0; i < 7; i++){ const a2 = -.9 + i * .38; const n = new T.Vector3(0, Math.cos(a2), Math.sin(a2)); const cn = mesh(cone(.05, .22, 8), mm, 0, n.y * r * .98, n.z * r * .98, head); cn.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), n); } }
+    if (k === "long") mesh(G("hairlong" + r, () => new T.CylinderGeometry(r * 1.04, r * 1.16, .55, 24, 1, true, .8, Math.PI * 2 - 1.6)), hs, 0, -.18, -.01, head);
+    if (k === "bun") mesh(sph(.11), hm, 0, r * .85, -r * .55, head, true);
+    if (k === "side"){ const sw = mesh(sph(.13, 16, 10), hm, -.07, r * .82, r * .42, head); sw.scale.set(1.5, .45, .8); sw.rotation.set(-.4, 0, .25); }
+    if (k === "quiff"){ const q = mesh(sph(.13, 16, 10), hm, 0, r * .95, r * .4, head); q.scale.set(1.35, .7, 1); q.rotation.x = -.5; }
+    if (k === "afro") mesh(sph(.36, 28, 20), hm, 0, .14, -.13, head, true);
+    if (k === "ponytail"){ mesh(G("tail", () => taper([[0, .2, -.27], [0, .05, -.36], [0, -.2, -.38], [0, -.4, -.33]], .075, .03, 8, 14)), hm, 0, 0, 0, head); mesh(tor(.05, .015, 6, 16), M("cloth", 0xd1202f), 0, .17, -.29, head).rotation.x = .9; }
+    if (k === "braids") [-1, 1].forEach(s => { mesh(G("braidh" + s, () => taper([[s * .25, .05, -.04], [s * .27, -.15, -.02], [s * .25, -.4, .02]], .05, .03, 8, 12)), hm, 0, 0, 0, head); mesh(sph(.025, 8, 6), M("cloth", 0xd1202f), s * .25, -.41, .02, head); });
+    if (k === "curly"){ for (let i = 0; i < 34; i++){ const y = 1 - (i / 33) * 1.25, rad = Math.sqrt(Math.max(0, 1 - y * y)), th = i * 2.4; const n = new T.Vector3(Math.cos(th) * rad, y, Math.sin(th) * rad); if (n.z > .35 && n.y < .62) continue; mesh(sph(.072, 10, 8), hm, n.x * r * 1.04, n.y * r * 1.04 + .02, n.z * r * 1.04, head); } }
+    if (k === "mohawk"){ const mm = M("hair", c === 0x3b2a20 ? 0xd1202f : c); for (let i = 0; i < 7; i++){ const a2 = -.9 + i * .38; const n = new T.Vector3(0, Math.cos(a2), Math.sin(a2)); const cn = mesh(cone(.05, .22, 8), mm, 0, n.y * r * .98 + .02, n.z * r * .98, head); cn.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), n); } }
   }
   function buildHat(rig, k, g){
     const ol = true;
@@ -4704,6 +4805,13 @@ const Av3D = (() => {
     else if (k === "wizard"){ const m = M("cloth", 0x4b2a8a); const c = mesh(cone(.3, .78, 32), m, 0, .5, -.04, g, ol); c.rotation.x = -.12; mesh(cyl(.46, .46, .03, 40), m, 0, .12, 0, g, ol); for (let i = 0; i < 3; i++){ const s = mesh(oct(.035), M("gem", 0xffd75e, {em: .6}), Math.sin(i * 2) * .14, .32 + i * .14, .18 - i * .05, g); s.scale.set(1, 1, .4); } }
     else if (k === "helmet" || k === "viking"){ const m = M("metal", 0xb9c0c8); const c = mesh(G("helm", () => new T.SphereGeometry(.335, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2 + .1)), m, 0, .03, 0, g, ol); c.rotation.x = -.1; mesh(tor(.33, .025, 8, 40), m, 0, .02, 0, g).rotation.x = Math.PI / 2 - .1; mesh(box(.05, .22, .03), m, 0, -.05, .33, g);
       if (k === "viking") [-1, 1].forEach(s => mesh(G("horn" + s, () => taper([[s * .28, .12, 0], [s * .44, .2, 0], [s * .55, .38, .02], [s * .5, .56, .04]], .065, .008)), M("skin", 0xefe2c4), 0, 0, 0, g)); }
+    else if (k === "knighthelm"){ const m = M("metal", 0xc9ced6); const c = mesh(G("helm", () => new T.SphereGeometry(.335, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2 + .1)), m, 0, .03, 0, g, ol); c.rotation.x = -.1; mesh(tor(.33, .025, 8, 40), M("gold", 0xd9a531), 0, .02, 0, g).rotation.x = Math.PI / 2 - .1;
+      const hs = mesh(extr("horse", HORSE, .26, .06, true), M("gold", 0xd9a531), 0, .42, 0, g); hs.scale.setScalar(.5); hs.rotation.y = -Math.PI / 2;
+      for (let i = 0; i < 6; i++){ const pl = mesh(sph(.05, 10, 8), M("cloth", 0xb3261e), 0, .5 - i * .02, -.1 - i * .07, g); pl.scale.set(.6, 1.6, .6); pl.rotation.x = -.6 - i * .15; } }
+    else if (k === "mitre"){ mesh(lathe("mitre", [[.29, 0], [.3, .14], [.24, .38], [.12, .58], [.001, .68]], 32), M("cloth", 0xf4f1ea), 0, .1, 0, g, ol); mesh(box(.06, .58, .02), M("gold", 0xd9a531), 0, .38, .25, g).rotation.x = -.38; mesh(tor(.295, .02, 6, 36), M("gold", 0xd9a531), 0, .12, 0, g).rotation.x = Math.PI / 2; mesh(box(.02, .1, .02), M("gold", 0xd9a531), 0, .82, 0, g); mesh(box(.07, .02, .02), M("gold", 0xd9a531), 0, .83, 0, g); }
+    else if (k === "tower"){ const m = M("skin", 0xd6cfc2); mesh(cyl(.31, .31, .16, 36, true), M("skin", 0xd6cfc2, {side: T.DoubleSide}), 0, .26, 0, g, ol); for (let i = 0; i < 8; i++){ const an = i / 8 * Math.PI * 2; const b = mesh(box(.1, .1, .06), m, Math.sin(an) * .3, .38, Math.cos(an) * .3, g, ol); b.rotation.y = an; } mesh(tor(.31, .012, 6, 40), M("dark", 0x7a7064), 0, .2, 0, g).rotation.x = Math.PI / 2; }
+    else if (k === "tiara"){ const m = M("gold", 0xe0b13a); const t = mesh(tor(.29, .018, 8, 40, Math.PI * 1.1), m, 0, .14, 0, g); t.rotation.set(Math.PI / 2 - .25, 0, Math.PI * .45 - Math.PI / 2 + Math.PI); for (let i = -3; i <= 3; i++){ const an = i * .22; const h = .07 - Math.abs(i) * .012; const sp = mesh(cone(.022, h + .04, 8), m, Math.sin(an) * .29, .2 + h / 2, Math.cos(an) * .29 - .02, g); } mesh(oct(.045), M("gem", 0x7fd3ff), 0, .3, .27, g).scale.set(.8, 1.3, .6); [-1, 1].forEach(s => mesh(oct(.025), M("gem", 0xd1202f), s * .15, .22, .24, g)); sparkles(rig, g, [0, .3, .27], .15, 3); }
+    else if (k === "kingcrown"){ const m = M("gold", 0xe0b13a); mesh(G("velvet2", () => new T.SphereGeometry(.24, 24, 10, 0, Math.PI * 2, 0, Math.PI / 2)), M("cloth", 0x8b1e2d), 0, .3, 0, g); mesh(cyl(.26, .28, .14, 36, true), M("gold", 0xe0b13a, {side: T.DoubleSide}), 0, .3, 0, g); for (let i = 0; i < 6; i++){ const an = i / 6 * Math.PI * 2; mesh(cone(.04, .14, 8), m, Math.sin(an) * .26, .43, Math.cos(an) * .26, g); } mesh(box(.04, .2, .04), m, 0, .6, 0, g); mesh(box(.13, .04, .04), m, 0, .63, 0, g); mesh(oct(.04), M("gem", 0xd1202f), 0, .3, .28, g); }
     else if (k === "laurel"){ const m = M(rig.tier >= 3 ? "gold" : "cloth", rig.tier >= 3 ? 0xe0b13a : 0x4f8a3a); for (let i = 0; i < 22; i++){ const ang = i / 22 * Math.PI * 2; if (Math.abs(Math.sin(ang / 2)) < .1) continue; const l = mesh(sph(.06, 8, 6), m, Math.sin(ang) * .31, .13 + Math.cos(ang) * .05, Math.cos(ang) * .31, g); l.scale.set(.5, 1, .25); l.rotation.set(0, ang, .6); } }
     else if (k === "crown" || k === "imperial"){ const m = M("gold", 0xe0b13a), imp = k === "imperial", y0 = imp ? .3 : .28;
       mesh(cyl(.25, .27, imp ? .16 : .12, 36, true), M("gold", 0xe0b13a, {side: T.DoubleSide}), 0, y0, 0, g);
@@ -4844,8 +4952,8 @@ const Av3D = (() => {
 
   /* ---------- views ---------- */
   function frameCam(cam, mode, aspect, spill, pet){
-    const F = {full: [1.16, 3.05, 6.6, 0], head: [1.82, .95, 3.4, .1], bust: [1.68, 1.15, 4, .1], cage: [1.04, 2.6, 6.3, 0]}[mode] || [1.08, 2.85, 6.6, 0];
-    let [ty, hgt, d] = F; const wid = (mode === "full" || mode === "cage" ? hgt * .7 : hgt * .95) + (pet && mode === "full" ? .8 : 0);
+    const F = {full: [1.16, 3.05, 6.6, 0], head: [1.82, .95, 3.4, .1], torso: [1.28, 1.35, 4.4, 0], legs: [.62, 1.25, 4.2, 0], bust: [1.68, 1.15, 4, .1], cage: [1.04, 2.6, 6.3, 0]}[mode] || [1.08, 2.85, 6.6, 0];
+    let [ty, hgt, d] = F; const wid = (mode === "full" || mode === "cage" ? hgt * .7 : mode === "torso" || mode === "legs" ? hgt * .85 : hgt * .95) + (pet && mode === "full" ? .8 : 0);
     const tanH = Math.max(hgt / 2 / d, wid / 2 / d / Math.max(.2, aspect)) * (1 + 2 * (spill || 0));
     cam.fov = 2 * Math.atan(tanH) * 180 / Math.PI; cam.aspect = aspect; cam.position.set(pet && mode === "full" ? .25 : 0, ty + d * .1, d); cam.lookAt(pet && mode === "full" ? .25 : 0, ty, 0); cam.updateProjectionMatrix();
   }
@@ -5190,12 +5298,16 @@ Views.awards = {
 };
 
 /* ===== Your figure: wardrobe first (every item is a trophy reward), trophies second ===== */
+/* the wardrobe: who you are first (body, hair, face), then what you wear, then what you've earned */
 const WGROUPS = [
-  ["figure", "Figure", null], ["head", "Head", ["hair", "head"]], ["face", "Face", ["eyes", "paint", "glasses", "mask", "ears"]],
-  ["body", "Body", ["shirt", "coat"]], ["back", "Back", ["back", "cape"]], ["hands", "Hands", ["right", "left", "wrist"]],
-  ["legs", "Legs", ["pants", "shoes"]], ["aura", "Aura", ["aura"]], ["pet", "Pet", "pet"], ["frame", "Border", ["frame"]]];
+  ["body", "Body", ["sw:skin", "build", "height", "shape"]], ["hair", "Hair", ["hair", "sw:hairC"]],
+  ["face", "Face", ["eyeshape", "eyes", "brows", "nose", "mouth", "beard", "cheeks", "paint"]],
+  ["clothes", "Clothes", ["shirt", "coat", "pants", "shoes"]], ["headwear", "Hats & extras", ["head", "glasses", "mask", "ears"]],
+  ["back", "Back", ["back", "cape"]], ["hands", "Hands", ["right", "left", "wrist"]], ["aura", "Aura", ["aura"]],
+  ["figure", "Figure", null], ["pet", "Pet", "pet"], ["frame", "Border", ["frame"]]];
+const SW_NAME = {skin: "Skin", hairC: "Hair colour", shirtC: "Colour", coatC: "Colour", pantsC: "Colour", shoesC: "Colour", capeC: "Colour"};
 const SLOT_NAME = Object.fromEntries(AV_SLOTS);
-const HEADISH = ["hair", "head", "eyes", "glasses", "mask", "ears", "paint"];
+const HEADISH = ["hair", "head", "eyes", "glasses", "mask", "ears", "paint", "shape", "eyeshape", "brows", "nose", "mouth", "beard", "cheeks"];
 /* a short reason for a locked item, e.g. "Win 10 games" or "150 trophies" */
 function itemReqShort(it){
   if (!it.req) return "";
@@ -5234,7 +5346,7 @@ function heroStage(el, cfg, o = {}){
   return Av3D.stage(el.querySelector(".rk-fig"), cfg, {tier, rank: fi, spill: spill ? .28 : 0, pet: o.pet});
 }
 Views.awards = {
-  mount(main, arg){ this.main = main; this.tab = (arg && arg.tab) || this.tab || "wardrobe"; this.grp = (arg && arg.grp) || this.grp || "figure"; this.open = this.open || null; Ach.check(); S.ach.newItems = 0; this.draw(); },
+  mount(main, arg){ this.main = main; this.tab = (arg && arg.tab) || this.tab || "wardrobe"; this.grp = (arg && arg.grp) || this.grp || "body"; this.open = this.open || null; Ach.check(); S.ach.newItems = 0; this.draw(); },
   draw(){
     const av = myAvatar(), n = achCount(), tier = bodyTier(n), cls = AV_CLASSES.find(c => c.k === av.cls) || AV_CLASSES[0], nextT = BODY_TIERS.find(t => t.n > n);
     this.main.innerHTML = `<div class="page wpage">
@@ -5256,9 +5368,10 @@ Views.awards = {
   /* ---------- wardrobe ---------- */
   wardrobe(){
     const body = $("#awbody"), av = myAvatar(), tier = bodyTier(), g = WGROUPS.find(x => x[0] === this.grp) || WGROUPS[0];
-    const count = slots => { const its = AV_ITEMS.filter(i => slots.includes(i.slot)); return [its.filter(itemUnlocked).length, its.length]; };
+    const count = slots => { const its = AV_ITEMS.filter(i => slots.includes(i.slot)); let u = its.filter(itemUnlocked).length, all = its.length;
+      slots.filter(x => x.startsWith("sw:")).forEach(x => { const l = AV_COLORS[x.slice(3)]; all += l.length; u += l.filter(c => itemUnlocked({req: c[3]})).length; }); return [u, all]; };
     const chips = WGROUPS.map(([k, t, slots]) => { const [u, all] = slots === "pet" ? [caughtBots().length, BOTS.length] : slots ? count(slots) : [AV_CLASSES.filter(classUnlocked).length, AV_CLASSES.length]; return `<button class="chip ${k === this.grp ? "on" : ""}" data-grp="${k}">${t} <span>${u}/${all}</span></button>`; }).join("");
-    const pv = (cfg, slot) => Av3D.tag(Object.assign({}, cfg, slot === "aura" ? {} : {aura: "none"}, {pet: "none"}), {w: 104, h: 104, mode: HEADISH.includes(slot) ? "head" : "full", tier, rank: -1, fill: true});
+    const pv = (cfg, slot) => Av3D.tag(Object.assign({}, cfg, slot === "aura" ? {} : {aura: "none"}, {pet: "none"}), {w: 104, h: 104, mode: HEADISH.includes(slot) ? "head" : ["shirt", "coat"].includes(slot) ? "torso" : ["pants", "shoes"].includes(slot) ? "legs" : "full", tier, rank: -1, fill: true});
     const card = (inner, name, on, ok, why, data) => `<button class="wi ${on ? "on" : ""} ${ok ? "" : "locked"}" ${data}><div class="wi-pv">${inner}<span class="wi-on">✓</span>${ok ? "" : `<span class="wi-lock">${LOCK_SVG}</span>`}</div><b>${esc(name)}</b>${ok ? "" : `<small>${esc(why)}</small>`}</button>`;
     let grid = "";
     if (!g[2]) grid = `<div class="wgrid">${AV_CLASSES.map(c => card(pv(Object.assign({}, av, {cls: c.k}), "cls"), c.name, av.cls === c.k, classUnlocked(c), `${c.need.tro} trophies`, `data-cls="${c.k}"`)).join("")}</div>`;
@@ -5268,14 +5381,25 @@ Views.awards = {
         : `<p class="muted" style="margin:0 0 10px">Every bot you beat sits in a cage. Pick one to let it out: it floats next to you as your pet.</p><div class="wgrid">${card(`<div class="wi-none">∅</div>`, "No pet", av.pet === "none", true, "", `data-item="pet:none"`)}${BOTS.map(b => { const got = caught.includes(b);
           return card(Av3D.tag(Object.assign(botCfg(b), {aura: "none"}), {w: 104, h: 104, mode: "full", tier: botTierOf(b), fill: true}), got ? b.name : "???", av.pet === b.id, got, got ? "" : `Beat ${b.name} (${b.r})`, `data-item="pet:${b.id}"`); }).join("")}</div>`;
     }
-    else grid = g[2].map(slot => `${g[2].length > 1 ? `<div class="wsub">${esc(SLOT_NAME[slot])}</div>` : ""}<div class="wgrid ${slot === "frame" ? "frames" : ""}">${AV_ITEMS.filter(i => i.slot === slot).map(it => {
+    else grid = g[2].map(slot => {
+      if (slot.startsWith("sw:")) return this.swatches(slot.slice(3), av);
+      const sw = CLOTH_SLOT[slot] && !(slot === "coat" && ["none", "steel", "gold"].includes(av.coat)) && !(slot === "shoes" && ["bare", "golden"].includes(av.shoes)) ? this.swatches(CLOTH_SLOT[slot], av) : "";
+      return `${g[2].length > 1 ? `<div class="wsub">${esc(SLOT_NAME[slot])}</div>` : ""}<div class="wgrid ${slot === "frame" ? "frames" : ""}">${AV_ITEMS.filter(i => i.slot === slot).map(it => {
       const inner = slot === "frame" ? `<div class="wi-frame">${avatarBadge(Object.assign({}, av, {frame: it.id}), 56, S.puzzle.r)}</div>` : pv(Object.assign({}, av, {[slot]: it.id}), slot);
-      return card(inner, it.name, av[slot] === it.id, itemUnlocked(it), itemReqShort(it), `data-item="${slot}:${it.id}"`); }).join("")}</div>`).join("");
+      return card(inner, it.name, av[slot] === it.id, itemUnlocked(it), itemReqShort(it), `data-item="${slot}:${it.id}"`); }).join("")}</div>${sw}`; }).join("");
     body.innerHTML = `<div class="chips wchips">${chips}</div>${grid}`;
     const on = body.querySelector(".chip.on"); if (on){ const row = on.parentNode; row.scrollLeft = Math.max(0, on.offsetLeft - row.clientWidth / 2 + on.offsetWidth / 2); }
     $$("[data-grp]", body).forEach(b => b.onclick = () => { this.grp = b.dataset.grp; this.wardrobe(); });
     $$("[data-item]", body).forEach(b => b.onclick = () => this.pick(b));
+    $$("[data-sw]", body).forEach(b => b.onclick = () => { const [key, id] = b.dataset.sw.split(":"), c = (key === "skin" || key === "hairC" ? AV_COLORS[key] : AV_COLORS.cloth).find(x => x[0] === id);
+      if (!itemUnlocked({req: c[3]})){ detailSheet(`<div class="row" style="gap:12px;flex-wrap:nowrap"><span class="sw big" style="--c:${c[2]}"></span><div><div style="font:900 20px var(--display)">${esc(c[1])}</div><p style="margin:4px 0 0">${esc(itemReqText({req: c[3]}))}. You have ${achCount()} trophies.</p></div></div>`); return; }
+      this.equip(key, id, b, true); });
     $$("[data-cls]", body).forEach(b => b.onclick = () => { const c = AV_CLASSES.find(x => x.k === b.dataset.cls); if (!classUnlocked(c)){ classDetail(c); return; } this.equip("cls", c.k, b); Sound.cheer(2); });
+  },
+  /* a row of colour dots under an item */
+  swatches(key, av){
+    const list = key === "skin" || key === "hairC" ? AV_COLORS[key] : AV_COLORS.cloth;
+    return `<div class="wsub">${esc(SW_NAME[key])}</div><div class="swr">${list.map(([id, name, hex, req]) => { const ok = itemUnlocked({req}); return `<button class="sw ${(av[key] || "") === id ? "on" : ""} ${ok ? "" : "locked"}" data-sw="${key}:${id}" title="${esc(name)}" aria-label="${esc(name)}" style="--c:${hex || "transparent"}">${id === "" ? "↺" : ""}${ok ? "" : LOCK_SVG}</button>`; }).join("")}</div>`;
   },
   pick(b){
     const [slot, id] = b.dataset.item.split(":");
@@ -5287,9 +5411,11 @@ Views.awards = {
     this.equip(slot, id, b);
   },
   /* one tap: the tile, the figure and the save update at once; the slow part (saving, syncing) waits */
-  equip(slot, id, b){
-    const av = myAvatar(); if (av[slot] === id) return; av[slot] = id; S.stat.dressed = 1;
-    const grid = b.closest(".wgrid"); if (grid) grid.querySelectorAll(".wi.on").forEach(x => x.classList.remove("on")); b.classList.add("on");
+  equip(slot, id, b, sw){
+    const av = myAvatar(); if ((av[slot] || "") === id) return; av[slot] = id; S.stat.dressed = 1;
+    const grid = b.closest(sw ? ".swr" : ".wgrid"); if (grid) grid.querySelectorAll(".on").forEach(x => x.classList.remove("on")); b.classList.add("on");
+    /* previews follow the new look a moment later; swatches for coats and shoes appear or vanish with the item */
+    clearTimeout(this._rw); if (sw || ["coat", "shoes", "shape", "skin", "hairC"].includes(slot)) this._rw = setTimeout(() => { if ($("#awbody") && this.tab === "wardrobe"){ const y = window.scrollY; this.wardrobe(); window.scrollTo(0, y); } }, sw ? 700 : 250);
     if (slot !== "cls") Sound.play("Move", .6);
     /* paint the tick first, then rebuild the figure on the next frame */
     requestAnimationFrame(() => setTimeout(() => { if (!$("#avst")) return; if (slot === "frame" || slot === "cls") this.stage = heroStage($("#avst"), myAvatar(), {}); else if (this.stage) this.stage.set(myAvatar(), bodyTier()); }, 0));
