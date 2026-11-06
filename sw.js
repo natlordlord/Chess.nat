@@ -5,10 +5,10 @@
      refreshed in the background.
    - Supabase (login, saves, live games) and the coach voice clips are never touched.
    Bump VERSION to throw away all cached files. */
-const VERSION = "chessnat-v3";
+const VERSION = "chessnat-v4";
 const SHELL = [
   "/", "/config.js", "/platform.js", "/pwa.js", "/manifest.webmanifest", "/favicon.svg",
-  "/vendor/chess.js", "/vendor/supabase.js", "/engine/sf.js",
+  "/vendor/chess.js", "/vendor/supabase.js", "/vendor/three.min.js", "/engine/sf.js",
   "/puzzles/index.json", "/voice/index.json",
   "/icons/icon-192.png", "/icons/apple-touch-icon.png",
   "/sounds/Move.mp3", "/sounds/Capture.mp3", "/sounds/Check.mp3",

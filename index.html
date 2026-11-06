@@ -850,6 +850,145 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
   .wemotes .btn{padding:5px 8px;font-size:12.5px}
 }
 
+/* ===== rank crests & borders ===== */
+.crest{overflow:visible;flex:none}
+.cr-rays{transform-box:fill-box;transform-origin:center;animation:spin 24s linear infinite}
+.cr-shine{animation:crshine 4.5s ease-in-out infinite}
+@keyframes crshine{0%,55%{transform:skewX(-20deg) translateX(0)}85%,100%{transform:skewX(-20deg) translateX(130px)}}
+.cr-spark{transform-box:fill-box;transform-origin:center;animation:crspark 2.2s ease-in-out infinite}
+@keyframes crspark{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1)}}
+.cr-flick{transform-box:fill-box;transform-origin:50% 100%;animation:crflick .5s ease-in-out infinite alternate}
+@keyframes crflick{to{transform:scaleY(1.12) skewX(2deg)}}
+@media (prefers-reduced-motion:reduce){.cr-rays,.cr-shine,.cr-spark,.cr-flick{animation:none}}
+
+/* ===== 3D figures ===== */
+.av3w{position:relative;display:inline-block;flex:none;vertical-align:middle}
+.av3w>canvas{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0}
+.av3w.ok>canvas{opacity:1}
+.av3w.ok>.avatar,.av3w.ok>svg{display:none}
+.av3w>.avatar,.av3w>svg{width:100%;height:100%}
+.av3w.fb>canvas{display:none}
+.avb{position:relative;display:inline-flex;flex:none;vertical-align:middle;border:0!important;background:none!important;overflow:visible!important;border-radius:0!important}
+.avb-c{position:absolute;inset:0;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 50% 35%,#4a4540,#2a2724)}
+.avb-c .av3w{width:100%!important;height:100%!important}
+.avb>svg.avf,.avb>svg.avf-b{position:absolute;left:-60%;top:-60%;width:220%;height:220%;pointer-events:none;overflow:visible}
+.avb>svg.avf{z-index:1}
+.avb>svg.avf-b{z-index:0}
+.avb>.avb-c{z-index:0}
+.botav{border-radius:50%;overflow:hidden;display:inline-flex;flex:none;align-items:center;justify-content:center}
+.botav .av3w{width:100%!important;height:100%!important}
+.botfull3{display:inline-flex;justify-content:center;align-items:flex-end}
+.av3w.spill>canvas{inset:-28%;width:156%;height:156%;pointer-events:none}
+/* wardrobe v3: 3D previews, rank stage */
+.wi{touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:border-color .12s,transform .12s}
+.wi:hover{border-color:var(--line)}
+@media (hover:hover){.wi:hover{border-color:color-mix(in srgb,var(--go) 50%,var(--line))}}
+.wi:active{transform:scale(.97)}
+.wi .wi-on{display:none}.wi.on .wi-on{display:block}
+.wi-pv{background:radial-gradient(circle at 50% 40%,var(--panel-3),var(--panel-2) 70%)}
+.wi-pv>.av3w{position:absolute;inset:0}
+.wi.locked .wi-pv>.av3w{filter:grayscale(1) brightness(.6);opacity:.55}
+.wi-none{font:900 34px var(--display);color:var(--muted);opacity:.5}
+.wgrid.frames .wi-pv{overflow:visible}
+.wi-frame{display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+.wi.locked .wi-frame{filter:grayscale(1);opacity:.45}
+.rkstage{position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 75%,color-mix(in srgb,var(--rk2) 55%,transparent) 0,var(--panel-2) 70%)!important}
+.rkstage.spilling{overflow:visible;z-index:2}
+.rk-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.16;pointer-events:none;overflow:hidden;border-radius:inherit}
+.rk-bg .crest{width:120%;height:120%}
+.rk-fig{position:absolute;inset:0}
+.rk-badge{position:absolute;left:6px;bottom:6px;pointer-events:none;z-index:3;filter:drop-shadow(0 4px 8px rgba(0,0,0,.5))}
+.spilling .rk-badge{left:-14px;bottom:-14px}
+.wstage{width:220px;height:270px;border-radius:14px;overflow:hidden}
+.wstage.spilling{overflow:visible}
+@media (max-width:600px){
+  .wstage{width:140px;height:178px}
+  .rk-badge .crest{width:40px;height:40px}
+  .spilling .rk-badge .crest{width:54px;height:54px}
+}
+.wtrack{grid-template-columns:repeat(5,1fr)}
+@media (max-width:600px){.wtrack span{font-size:9.5px;letter-spacing:-.01em}}
+
+/* ===== you, always visible ===== */
+.mtop{display:none}
+@media (max-width:900px){
+  body:not(.busy) .mtop{display:flex;position:sticky;top:0;z-index:40;align-items:center;gap:8px;height:58px;padding:0 max(10px,env(safe-area-inset-right,0px)) 0 max(10px,env(safe-area-inset-left,0px));padding-top:env(safe-area-inset-top,0px);box-sizing:content-box;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  body:not(.busy) .main{min-height:calc(100dvh - var(--tab-h) - 58px)}
+}
+.mtop button{border:0;background:none;color:var(--fg);cursor:pointer;font:inherit;padding:0}
+.mt-me{width:44px;height:44px;display:grid;place-items:center;flex:none}
+.mt-rank{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-width:0}
+.mt-t{display:flex;flex-direction:column;align-items:flex-start;min-width:0;line-height:1.1}
+.mt-t b{font:900 15px var(--display);white-space:nowrap}
+.mt-t small{font-size:11px;color:var(--muted);font-weight:700}
+.mt-lp{display:block;width:92px;height:4px;border-radius:2px;background:var(--panel-3);overflow:hidden;margin:3px 0 2px}
+.mt-lp i{display:block;height:100%;background:linear-gradient(90deg,var(--go),#b6e07a)}
+.mt-fr{position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;width:52px;flex:none;color:var(--muted)!important}
+.mt-fr.on{color:var(--fg)!important}
+.mt-fr small{font-size:10.5px;font-weight:800}
+.mt-fr .badge{position:absolute;top:-4px;right:6px;background:var(--bad);color:#fff;font-size:10px;font-weight:800;border-radius:8px;padding:0 5px;line-height:15px}
+.mt-fr .odot{position:absolute;top:-1px;right:12px}
+.railme{display:flex;align-items:center;gap:12px;margin:0 2px 10px;padding:10px 10px;border-radius:10px;border:0;background:var(--panel-2);color:var(--fg);cursor:pointer;text-align:left;width:calc(100% - 4px)}
+.railme:hover,.railme.on{background:var(--panel-3)}
+.rm-t{display:flex;flex-direction:column;min-width:0;gap:2px}
+.rm-t b{font:900 15px var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rm-rk{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);font-weight:700;white-space:nowrap}
+.rail .ib .dot{position:absolute;right:4px;bottom:4px;width:8px;height:8px;border-radius:50%;background:var(--muted);border:2px solid var(--rail)}
+/* home: your rank, big and centred */
+.home-rank{display:flex;flex-direction:column;align-items:center;text-align:center;padding:18px 16px 16px!important;background:radial-gradient(ellipse at 50% 30%,color-mix(in srgb,var(--rk2) 40%,var(--panel)) 0,var(--panel) 65%)!important;overflow:hidden}
+.hr-crest{border:0;background:none;padding:0;cursor:pointer;filter:drop-shadow(0 10px 22px rgba(0,0,0,.45));margin-bottom:2px}
+.hr-l{font:900 32px var(--display);line-height:1.05;letter-spacing:-.01em}
+.hr-lp{display:flex;gap:10px;align-items:baseline;justify-content:center;margin-top:4px}
+.hr-lp b{font:900 18px var(--display);color:var(--rk1)}
+.hr-lp span{color:var(--muted);font-weight:700;font-size:13.5px}
+.lpbar{height:10px;border-radius:5px;background:var(--panel-3)}
+.lpbar i{background:linear-gradient(90deg,var(--rk2,var(--go)),var(--rk1,#b6e07a));border-radius:5px}
+.hr-bar{width:min(360px,100%);margin-top:8px}
+.hr-sub{font-size:12.5px;margin-top:6px}
+.hr-goal{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12.5px;color:var(--muted);font-weight:700;width:min(360px,100%)}
+.hr-goal .bar{flex:1;margin:0}.hr-goal b{color:var(--fg)}
+/* profile page */
+.mepage{max-width:900px}
+.mehero{display:flex;gap:18px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+.mestage{width:240px!important;height:300px!important}
+.meinfo{flex:1;min-width:0}
+.merank{display:flex;gap:12px;align-items:center;margin-top:10px;background:var(--panel-2);border-radius:12px;padding:8px 12px 10px 6px;--rk1:#b6e07a}
+.mr-l{font:900 22px var(--display);line-height:1.1}
+.mr-lp{display:flex;gap:8px;align-items:baseline}.mr-lp b{font:900 15px var(--display)}.mr-lp span{font-size:12.5px}
+.merank .lpbar{margin-top:5px;height:8px}
+.mebtns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.mb{display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 6px;color:var(--fg);cursor:pointer;font:inherit}
+.mb svg{color:var(--go)}.mb b{font:800 14px var(--display)}.mb small{font-size:11.5px;color:var(--muted);text-align:center}
+@media (hover:hover){.mb:hover{border-color:var(--go)}}
+.mefr{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.mf{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 6px 10px;color:var(--fg);cursor:pointer;font:inherit;overflow:visible}
+.mf b{font-size:13px;display:flex;align-items:center;gap:4px;max-width:100%;overflow:hidden;white-space:nowrap}.mf small{font-size:11px;color:var(--muted)}
+.mf-all{justify-content:center;color:var(--muted)}
+@media (max-width:600px){
+  .mehero{flex-direction:row;align-items:flex-start;gap:12px;padding:10px}
+  .mestage{width:132px!important;height:176px!important}
+  .merank{flex-direction:column;align-items:flex-start;padding:8px 10px}
+  .merank .crest{width:52px;height:52px}
+  .mr-l{font-size:19px}
+  .mebtns{grid-template-columns:repeat(2,1fr)}
+}
+.cage-in.c3{padding:0;align-items:stretch}
+.cage-in.c3>.av3w{position:absolute;inset:0}
+.cage-in.c3.c3 .bars{background:none;box-shadow:none}
+.cage-in.c3 .av3w.fb~.bars{background:repeating-linear-gradient(90deg,transparent 0 15px,#8d8a85 15px 18px,#5c5955 18px 19px)}
+.cage-out{align-self:center;text-align:center;color:var(--muted);font:800 13px var(--body);line-height:1.4}
+.cage.out .cage-in{background:repeating-linear-gradient(135deg,#252321 0 10px,#2a2826 10px 20px)}
+.cage-btns{gap:6px;flex-wrap:wrap}.cage-btns .btn{flex:1 1 auto}
+.av3w.ok>:not(canvas){display:none!important}
+.merank{margin-top:10px;padding:10px 16px 12px 10px}
+.cage.out .bars{opacity:.35}
+.cage-out{position:relative;z-index:3}
+@media (max-width:600px){.merank{flex-direction:row!important;align-items:center!important}.merank .crest{width:64px!important;height:64px!important}}
+.wstage{width:250px;height:310px}
+.rkstage.spilling{box-shadow:0 0 0 2px var(--rk1),0 0 34px color-mix(in srgb,var(--rk1) 45%,transparent);animation:rkpulse 3s ease-in-out infinite}
+@keyframes rkpulse{50%{box-shadow:0 0 0 2px var(--rk1),0 0 54px color-mix(in srgb,var(--rk1) 70%,transparent)}}
+@media (max-width:600px){.wstage{width:150px;height:192px}}
+
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
 .pc.wr{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMTcuOTMgMjAuNDFjNC45LS43NCA5LjU4LS41NyAxNC4xNCAwTTE0LjE4IDkuNjZjLTEuMDYgOC43NyAxLjEgMTAuNjggMy43NSAxMC43NWwtMy4zMSAxOC4xNmgyMC43NmwtMy4zMS0xOC4xNmMyLjY0LS4wNyA0LjgtMS45OCAzLjc1LTEwLjc1bC0zLjYxLS41My0xLjA3IDMuNjUtMy4xNS0uMS0uNTItMy43NmgtNC45NEwyMiAxMi42OGwtMy4xNS4xLTEuMDctMy42NXoiLz48cGF0aCBkPSJNMTcuOTMgMjAuNDFjNi44MyAwIDEzLjEyLjQxIDE0Ljk1IDE2LjU4bDIuMzIuMzgtMy4xMy0xNi40M2MtLjAzLS4zLTYuMDktMS44Mi0xNC4xNC0uNTMiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Im0xNC43OCAxMC4yMiAyLjI3LS4yOWMtMS45MS4zMi0yLjMgNS4zLTIuMyA1LjMtLjI1LS4xOC0uMi00LjkuMDMtNS4wMW0xMC41LS42N2MtMS42NSAwLTIuNTIgMi43NS0yLjUyIDIuNzVsLjMzLTIuNzN6bTcuNC4yNy45Mi4xMWMtLjc4LjUtMS41OSAyLTEuNTkgMnptLTE0LjIgMTEuMTQgMi42MS0uMjljLTIuNjIuMy00Ljg5IDEzLjExLTQuODkgMTMuMTF6Ii8+PHBhdGggZD0iTTM0LjAxIDkuNGMuMzYgNi4zNi0xLjk1IDEwLjYtOC4wNCAxMC41M2w0Ljc4LjU3YzcuNTIuMyA1LjEtMTAuOCA1LjA3LTEwLjg0eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuMiIgZD0iTTI1IDM2LjQ2cy05LjEzLjA0LTExLjcgMS42MmMtMS43MiAxLjA2LTIuMTMgMy42NS0xLjkgNi4zMmgyNy4yYy4yMy0yLjY3LS4xOC01LjI2LTEuOS02LjMyQzM0LjEyIDM2LjUgMjUgMzYuNDYgMjUgMzYuNDZ6Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI1IDM3LjE1UzE2LjI5IDM3IDEzLjM4IDM4LjhjLS4zNy4yMy0uNy44NC0uOTYgMS40LjI2LS4zNC41LS42Mi44OS0uODZDMTUuODcgMzcuNzggMjUgMzcuNzMgMjUgMzcuNzNzOS4xMy4wNSAxMS43IDEuNjJjLjM4LjI0LjU4LjUzLjg1Ljg3YTMgMyAwIDAgMC0xLjE1LTEuNkMzMy42NSAzNy4xNSAyNSAzNy4xNiAyNSAzNy4xNnoiLz48L3N2Zz4=')}
@@ -947,16 +1086,6 @@ function rankOf(r){
   const nextLabel = d < 3 ? t.name + " " + ROMAN[d+1] : TIERS[i+1].name + (i + 1 >= 7 ? "" : " IV");
   return {tier:t, idx:i, div:ROMAN[d], label:t.name + " " + ROMAN[d], lp:Math.round(pct * 100), pct, next:nextLabel, nextAt:Math.round(dHi)};
 }
-function emblem(r, size = 36){
-  const rk = typeof r === "number" ? rankOf(r) : r, t = rk.tier, id = "g" + t.k + Math.random().toString(36).slice(2,7);
-  const gems = rk.idx >= 7 ? 3 : rk.idx >= 4 ? 2 : 1;
-  let g = ""; for (let i = 0; i < gems; i++){ const x = 20 + (i - (gems-1)/2) * 7; g += `<path d="M${x} 12 l3 4 -3 4 -3 -4z" fill="#fff" opacity=".9"/>`; }
-  return `<svg viewBox="0 0 40 40" width="${size}" height="${size}" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${t.c1}"/><stop offset="1" stop-color="${t.c2}"/></linearGradient></defs>
-  <path d="M20 2 L35 8.5 V21 C35 29.5 28.5 35.5 20 38 C11.5 35.5 5 29.5 5 21 V8.5 Z" fill="url(#${id})" stroke="${t.c2}" stroke-width="1.5"/>
-  <path d="M20 6 L31 10.8 V21 C31 27.3 26.3 31.8 20 33.8 C13.7 31.8 9 27.3 9 21 V10.8 Z" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.2"/>${g}
-  ${rk.div ? `<text x="20" y="30.5" text-anchor="middle" font-family="Figtree,sans-serif" font-weight="900" font-size="8.5" fill="#fff" stroke="rgba(0,0,0,.35)" stroke-width=".6">${rk.div}</text>` : `<path d="M14 27 l3 -4 3 3 3 -3 3 4z" fill="#fff"/>`}</svg>`;
-}
-
 function betterThan(r){ const z = (r - 1600) / 330; const t = 1 / (1 + .2316419 * Math.abs(z)); const d = .3989423 * Math.exp(-z * z / 2); let p = d * t * (.3193815 + t * (-.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274)))); p = z > 0 ? 1 - p : p; const v = p * 100; return v < 1 ? v.toFixed(2) : v >= 99 ? v.toFixed(2) : Math.round(v); }
 /* ---------- daily plan ---------- */
 const PLAN = [["pz", 10, "Solve 10 puzzles"], ["ls", 1, "Finish a lesson"], ["gm", 1, "Play a game"], ["rd", 1, "Daily Puzzle or Puzzle Rush"]];
@@ -1217,6 +1346,121 @@ function varied(c){
 }
 function themeLabel(i){ return PZ.themes[i] ? PZ.themes[i][1] : ""; }
 function themeKeyLabel(k){ const i = PZ.themeIdx[k]; return i == null ? k : PZ.themes[i][1]; }
+
+/* ===== Rank crests and rank borders (own designs; the higher the rank, the bigger and wilder) ===== */
+function hexMix(a, b, t){ const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const x = p(a), y = p(b);
+  return "#" + x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, "0")).join(""); }
+const CREST = [
+  /* wings: kind, count, length; top: ornament; gem: accent colour; s: shield scale */
+  {wing: null,      n: 0, L: 0,  top: "none",    gem: "#c9c4be", s: 1},
+  {wing: "fin",     n: 2, L: 13, top: "spike",   gem: "#ffb36b", s: 1},
+  {wing: "feather", n: 3, L: 19, top: "three",   gem: "#bfe6ff", s: .96},
+  {wing: "feather", n: 4, L: 25, top: "crown3",  gem: "#fff1a6", s: .92, shine: 1},
+  {wing: "shard",   n: 4, L: 27, top: "crystal3", gem: "#9ff5e8", s: .9, shine: 1},
+  {wing: "leaf",    n: 5, L: 28, top: "leaves",  gem: "#7dffb0", s: .88, shine: 1},
+  {wing: "shard",   n: 5, L: 34, top: "crystal5", gem: "#e8f2ff", s: .85, shine: 1, two: 1, spark: 1},
+  {wing: "feather", n: 6, L: 37, top: "horns",   gem: "#f2b8ff", s: .82, shine: 1, two: 1, glow: 1},
+  {wing: "spike",   n: 7, L: 41, top: "flames",  gem: "#ff5a4a", s: .8, shine: 1, rays: 1, glow: 1},
+  {wing: "feather", n: 7, L: 46, top: "grand",   gem: "#7fd3ff", s: .78, shine: 1, two: 1, rays: 1, spark: 1, glow: 1},
+];
+function crestParts(idx, uid){
+  const t = TIERS[idx], C = CREST[idx], c1 = t.c1, c2 = t.c2, dk = hexMix(c2, "#000000", .45), lt = hexMix(c1, "#ffffff", .45);
+  const defs = `<linearGradient id="m${uid}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${lt}"/><stop offset=".38" stop-color="${c1}"/><stop offset=".72" stop-color="${c2}"/><stop offset="1" stop-color="${dk}"/></linearGradient>
+    <linearGradient id="w${uid}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${c2}"/><stop offset=".55" stop-color="${c1}"/><stop offset="1" stop-color="${lt}"/></linearGradient>
+    <radialGradient id="g${uid}"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="${C.gem}"/><stop offset="1" stop-color="${hexMix(C.gem, "#000000", .55)}"/></radialGradient>
+    <radialGradient id="h${uid}"><stop offset="0" stop-color="${C.gem}" stop-opacity=".75"/><stop offset="1" stop-color="${C.gem}" stop-opacity="0"/></radialGradient>`;
+  return {t, C, c1, c2, dk, lt, defs};
+}
+/* one wing, drawn for the right side; the left one is mirrored */
+function crestWing(C, P, uid, k = 1){
+  if (!C.wing) return "";
+  const n = C.n, L = C.L * k, out = [];
+  for (let i = 0; i < n; i++){
+    const f = n === 1 ? .5 : i / (n - 1), ang = -18 + f * 100, len = L * (1 - f * .38), w = Math.max(4, len * .24);
+    let d;
+    if (C.wing === "fin") d = `M0 0 C${w} ${-len * .2} ${w * .9} ${-len * .8} ${w * .2} ${-len} C${-w * .3} ${-len * .7} ${-w * .3} ${-len * .3} 0 0Z`;
+    else if (C.wing === "feather") d = `M0 0 C${w} ${-len * .25} ${w * .75} ${-len * .78} 0 ${-len} C${-w * .32} ${-len * .7} ${-w * .42} ${-len * .3} 0 0Z`;
+    else if (C.wing === "leaf") d = `M0 0 C${w * 1.2} ${-len * .3} ${w * .9} ${-len * .8} 0 ${-len} C${-w * .9} ${-len * .8} ${-w * 1.2} ${-len * .3} 0 0Z`;
+    else if (C.wing === "shard") d = `M0 0 L${w * .55} ${-len * .55} L0 ${-len} L${-w * .55} ${-len * .5}Z`;
+    else d = `M0 0 L${w * .5} ${-len * .45} L${w * .08} ${-len} L${-w * .35} ${-len * .4}Z`;
+    out.push(`<path d="${d}" transform="rotate(${ang})" fill="url(#w${uid})" stroke="${P.dk}" stroke-width="1.1" stroke-linejoin="round"/>`);
+    if (C.wing === "feather" || C.wing === "leaf") out.push(`<path d="M0 0 L0 ${-len * .9}" transform="rotate(${ang})" stroke="${P.lt}" stroke-width=".8" opacity=".7"/>`);
+  }
+  return out.reverse().join("");
+}
+function crestTop(C, P, uid){
+  const g = `url(#m${uid})`, s = `stroke="${P.dk}" stroke-width="1.2" stroke-linejoin="round"`;
+  switch (C.top){
+    case "spike": return `<path d="M-5 -30 L0 -40 L5 -30Z" fill="${g}" ${s}/>`;
+    case "three": return `<path d="M-14 -27 L-11 -36 L-6 -29 L0 -42 L6 -29 L11 -36 L14 -27Z" fill="${g}" ${s}/>`;
+    case "crown3": return `<path d="M-17 -27 L-15 -44 L-7 -33 L0 -50 L7 -33 L15 -44 L17 -27Z" fill="${g}" ${s}/><circle cx="-15" cy="-45" r="2.6" fill="url(#g${uid})"/><circle cx="15" cy="-45" r="2.6" fill="url(#g${uid})"/><circle cx="0" cy="-51" r="3.2" fill="url(#g${uid})"/>`;
+    case "crystal3": return [[-11, 12, -8], [0, 19, 0], [11, 12, 8]].map(([x, h, r]) => `<path d="M${x - 4} -28 L${x} ${-28 - h} L${x + 4} -28Z" transform="rotate(${r} ${x} -28)" fill="url(#g${uid})" ${s}/>`).join("");
+    case "leaves": return [-30, -12, 0, 12, 30].map((r, i) => `<path d="M0 -28 C5 -34 5 -42 0 ${-46 - (i === 2 ? 6 : 0)} C-5 -42 -5 -34 0 -28Z" transform="rotate(${r} 0 -24)" fill="${g}" ${s}/>`).join("");
+    case "crystal5": return [[-18, 10, -22], [-9, 16, -10], [0, 24, 0], [9, 16, 10], [18, 10, 22]].map(([x, h, r]) => `<path d="M${x - 4} -26 L${x} ${-26 - h} L${x + 4} -26Z" transform="rotate(${r} ${x} -26)" fill="url(#g${uid})" ${s}/>`).join("");
+    case "horns": return `<path d="M-12 -26 C-24 -34 -30 -48 -24 -62 C-22 -48 -14 -40 -4 -34Z" fill="${g}" ${s}/><path d="M12 -26 C24 -34 30 -48 24 -62 C22 -48 14 -40 4 -34Z" fill="${g}" ${s}/><path d="M-8 -28 L0 -44 L8 -28Z" fill="url(#g${uid})" ${s}/>`;
+    case "flames": return `<g class="cr-flick">${[[-16, 16], [-8, 24], [0, 32], [8, 24], [16, 16]].map(([x, h]) => `<path d="M${x - 6} -26 C${x - 7} ${-26 - h * .5} ${x - 1} ${-26 - h * .7} ${x} ${-26 - h} C${x + 2} ${-26 - h * .6} ${x + 7} ${-26 - h * .5} ${x + 6} -26Z" fill="#ff6a2b" stroke="#7a1208" stroke-width="1"/><path d="M${x - 2.5} -27 C${x - 2} ${-27 - h * .4} ${x} ${-27 - h * .5} ${x} ${-27 - h * .7} C${x + 1} ${-27 - h * .45} ${x + 3} ${-27 - h * .4} ${x + 2.5} -27Z" fill="#ffd34a"/>`).join("")}</g>`;
+    case "grand": return `<path d="M-24 -26 L-26 -50 L-14 -38 L-8 -58 L0 -44 L8 -58 L14 -38 L26 -50 L24 -26Z" fill="${g}" ${s}/><path d="M-22 -30 H22" stroke="${P.lt}" stroke-width="1.6"/>${[[-26, -51], [-8, -59], [8, -59], [26, -51]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3" fill="url(#g${uid})" stroke="${P.dk}" stroke-width=".8"/>`).join("")}<path d="M-5 -46 L0 -54 L5 -46 L0 -38Z" fill="url(#g${uid})" stroke="${P.dk}" stroke-width=".8"/>`;
+  }
+  return "";
+}
+function crestGem(idx, C, P, uid){
+  const s = `stroke="${P.dk}" stroke-width="1.1" stroke-linejoin="round"`, g = `url(#g${uid})`;
+  if (idx === 0) return `<circle cx="0" cy="0" r="6" fill="${P.c2}" ${s}/><circle cx="-1.5" cy="-1.5" r="2" fill="${P.lt}" opacity=".6"/>${[[-17, -18], [17, -18], [-17, 8], [17, 8]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2" fill="${P.lt}" ${s}/>`).join("")}`;
+  if (idx === 1) return `<circle cx="0" cy="0" r="8" fill="${g}" ${s}/>`;
+  if (idx === 2 || idx === 6) return `<path d="M0 -12 L9 -2 L0 13 L-9 -2Z" fill="${g}" ${s}/><path d="M-9 -2 H9 M0 -12 L-3 -2 L0 13 L3 -2Z" fill="none" stroke="#fff" stroke-width=".7" opacity=".7"/>`;
+  if (idx === 3 || idx === 9) return `<path d="M0 -14 L4 -4 L14 0 L4 4 L0 14 L-4 4 L-14 0 L-4 -4Z" fill="${g}" ${s}/><circle r="3.5" fill="#fff" opacity=".85"/>`;
+  if (idx === 4) return `<path d="M-6 -11 H6 L11 0 L6 11 H-6 L-11 0Z" fill="${g}" ${s}/><path d="M-6 -11 L0 0 L6 -11 M-11 0 H11 M-6 11 L0 0 L6 11" fill="none" stroke="#fff" stroke-width=".6" opacity=".6"/>`;
+  if (idx === 5) return `<path d="M-6 -12 H6 L10 -6 V6 L6 12 H-6 L-10 6 V-6Z" fill="${g}" ${s}/><path d="M-4 -8 H4 V8 H-4Z" fill="none" stroke="#fff" stroke-width=".7" opacity=".6"/>`;
+  if (idx === 7) return [-10, 0, 10].map((x, i) => `<path d="M${x} ${-9 - (i === 1 ? 4 : 0)} L${x + 5} ${-1} L${x} ${10} L${x - 5} -1Z" fill="${g}" ${s}/>`).join("");
+  return `<path d="M0 -13 C8 -13 12 -6 12 0 C12 8 5 13 0 13 C-5 13 -12 8 -12 0 C-12 -6 -8 -13 0 -13Z" fill="${g}" ${s}/><path d="M-5 -6 C-2 -9 3 -9 5 -6" stroke="#fff" stroke-width="1.4" fill="none" opacity=".8"/>`;
+}
+const SHIELD = "M-26 -24 L-8 -28 L0 -33 L8 -28 L26 -24 L26 2 C26 20 12 30 0 37 C-12 30 -26 20 -26 2Z";
+/* the crest itself; size = pixel height */
+function crestSVG(idx, div, size = 40, opt = {}){
+  idx = clamp(idx | 0, 0, TIERS.length - 1);
+  const uid = "c" + idx + Math.random().toString(36).slice(2, 7), P = crestParts(idx, uid), C = P.C, sc = C.s;
+  const wx = 26 * sc - 4, wy = -4;
+  const reach = C.wing ? C.L + 4 : 0, top = C.top === "none" ? 34 : C.top === "horns" ? 66 : C.top === "grand" || C.top === "flames" ? 62 : 52;
+  const hw = Math.max(32, 26 * sc + reach * .95), vb = [-hw, -top * sc - 6, hw * 2, top * sc + 6 + (div ? 50 : 42) * sc];
+  const sq = Math.max(vb[2], vb[3]); const vx = -sq / 2, vy = vb[1] - (sq - vb[3]) / 2;
+  const wings = C.wing ? `<g transform="translate(${wx} ${wy})">${C.two ? `<g transform="scale(.72) rotate(-8)" opacity=".85">${crestWing(C, P, uid, .9)}</g>` : ""}${crestWing(C, P, uid)}</g>
+    <g transform="scale(-1 1) translate(${wx} ${wy})">${C.two ? `<g transform="scale(.72) rotate(-8)" opacity=".85">${crestWing(C, P, uid, .9)}</g>` : ""}${crestWing(C, P, uid)}</g>` : "";
+  const rays = C.rays ? `<g class="cr-rays" opacity=".55">${Array.from({length: 12}, (_, i) => `<path d="M-3 0 L0 ${-hw * 1.05} L3 0Z" transform="rotate(${i * 30})" fill="${idx === 8 ? "#ff6a4a" : "#ffe9a0"}"/>`).join("")}</g>` : "";
+  const glow = C.glow ? `<circle r="${hw * .8}" fill="url(#h${uid})"/>` : "";
+  const shine = C.shine ? `<clipPath id="k${uid}"><path d="${SHIELD}"/></clipPath><g clip-path="url(#k${uid})"><rect class="cr-shine" x="-60" y="-40" width="18" height="90" fill="#fff" opacity=".35" transform="skewX(-20)"/></g>` : "";
+  const spark = C.spark ? [[-hw * .7, -top * .4], [hw * .75, -top * .2], [hw * .3, 30], [-hw * .4, 26]].map(([x, y], i) => `<path class="cr-spark" style="animation-delay:${i * .45}s" d="M${x} ${y - 4} L${x + 1} ${y - 1} L${x + 4} ${y} L${x + 1} ${y + 1} L${x} ${y + 4} L${x - 1} ${y + 1} L${x - 4} ${y} L${x - 1} ${y - 1}Z" fill="#fff"/>`).join("") : "";
+  const ribbon = div ? `<g transform="translate(0 ${40 * sc})"><path d="M-22 -6 H22 L18 0 L22 6 H-22 L-18 0Z" fill="${P.dk}" stroke="${P.c1}" stroke-width="1"/><text y="3.6" text-anchor="middle" font-family="Figtree,sans-serif" font-weight="900" font-size="10" fill="#fff">${div}</text></g>` : "";
+  return `<svg class="crest cr-${P.t.k} ${opt.cls || ""}" viewBox="${vx} ${vy} ${sq} ${sq}" width="${size}" height="${size}" aria-hidden="true"><defs>${P.defs}</defs>
+    ${glow}${rays}${wings}<g transform="scale(${sc})">${crestTop(C, P, uid)}
+    <path d="${SHIELD}" fill="url(#m${uid})" stroke="${P.dk}" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="${SHIELD}" transform="scale(.8) translate(0 1)" fill="none" stroke="${P.lt}" stroke-width="1.4" opacity=".7"/>
+    <path d="M-20 -20 L-6 -23 L0 -27 V30 C-10 25 -20 17 -20 2Z" fill="#fff" opacity=".12"/>${shine}
+    <g transform="translate(0 2)">${crestGem(idx, C, P, uid)}</g></g>${ribbon}${spark}</svg>`;
+}
+/* the old emblem() everywhere becomes the crest */
+function emblem(r, size = 36){ const rk = typeof r === "number" ? rankOf(r) : r; return crestSVG(rk.idx, rk.div, size); }
+
+/* ===== rank border around a round avatar: ring, then crest, wings, crown, rays as the rank climbs ===== */
+function rankFrameSVG(idx, compact){
+  if (idx < 0) return {back: "", front: ""};
+  const uid = "f" + idx + Math.random().toString(36).slice(2, 7), P = crestParts(idx, uid), C = P.C;
+  const sw = compact ? 6 : 4 + idx * .55;
+  let back = "", front = "";
+  if (!compact){
+    if (C.rays) back += `<g class="cr-rays" style="transform-origin:50px 50px" opacity=".5">${Array.from({length: 16}, (_, i) => `<path d="M47 50 L50 ${-48 - (i % 2) * 14} L53 50Z" transform="rotate(${i * 22.5} 50 50)" fill="${idx === 8 ? "#ff5a3a" : "#ffe9a0"}"/>`).join("")}</g>`;
+    if (C.glow) back += `<circle cx="50" cy="50" r="${82 + idx * 2}" fill="url(#h${uid})"/>`;
+    if (idx >= 3 && C.wing){ const k = idx >= 9 ? 1.65 : idx >= 7 ? 1.3 : idx >= 5 ? 1.05 : .8;
+      const w = crestWing(C, P, uid, k);
+      back += `<g transform="translate(96 46) scale(1.15)">${C.two ? `<g transform="scale(.75) rotate(-10)" opacity=".85">${w}</g>` : ""}${w}</g><g transform="translate(4 46) scale(-1.15 1.15)">${C.two ? `<g transform="scale(.75) rotate(-10)" opacity=".85">${w}</g>` : ""}${w}</g>`; }
+    if (idx === 8) back += Array.from({length: 14}, (_, i) => `<path d="M44 6 L50 ${-14 - (i % 3) * 6} L56 6Z" transform="rotate(${i * 25.7} 50 50)" fill="url(#m${uid})" stroke="${P.dk}" stroke-width="1"/>`).join("");
+    if (idx >= 4){ const k = .7 + idx * .05; front += `<g transform="translate(50 ${1 + 27 * k}) scale(${k})">${crestTop(C, P, uid)}</g>`; }
+    if (idx >= 2) front += `<g transform="translate(50 ${101 + idx * .2}) scale(${.42 + idx * .03})"><path d="${SHIELD}" fill="url(#m${uid})" stroke="${P.dk}" stroke-width="2.4"/><g transform="translate(0 2)">${crestGem(idx, C, P, uid)}</g></g>`;
+    if (C.spark) front += [[-8, 10], [108, 22], [96, 92], [6, 88]].map(([x, y], i) => `<path class="cr-spark" style="animation-delay:${i * .5}s" d="M${x} ${y - 5} L${x + 1.2} ${y - 1.2} L${x + 5} ${y} L${x + 1.2} ${y + 1.2} L${x} ${y + 5} L${x - 1.2} ${y + 1.2} L${x - 5} ${y} L${x - 1.2} ${y - 1.2}Z" fill="#fff"/>`).join("");
+  }
+  const ring = `<circle cx="50" cy="50" r="${50 - sw / 2 + 1}" fill="none" stroke="url(#m${uid})" stroke-width="${sw}"/><circle cx="50" cy="50" r="${50 - sw + 1.2}" fill="none" stroke="${P.dk}" stroke-width="1"/><circle cx="50" cy="50" r="${50}" fill="none" stroke="${P.dk}" stroke-width="1"/>`;
+  const sv = (cls, body) => `<svg class="${cls} avf-${P.t.k} ${compact ? "cmp" : ""}" viewBox="-60 -60 220 220" aria-hidden="true">${body}</svg>`;
+  return {back: back ? sv("avf-b", `<defs>${P.defs}</defs>${back}`) : "", front: sv("avf", `<defs>${P.defs}</defs>${ring}${front}`)};
+}
 
 /* ===== Board component ===== */
 const FILES = "abcdefgh";
@@ -3046,22 +3290,25 @@ Views.trophies = {
       ${next ? `<div class="unit" style="display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap">${botAvatar(next, 52)}<div style="flex:1;min-width:180px"><div class="muted" style="font-size:12px;font-weight:800;letter-spacing:.06em">NEXT TO CATCH</div><div style="font:900 20px var(--display)">${esc(next.name)} <span class="muted">${next.r}</span></div><div class="muted" style="font-size:13px">${esc(tierOf(next.r).name)} trophy</div></div><button class="btn go" id="tnext">Play ${esc(next.name)}</button></div>` : ""}
       <div id="pcages"></div>
       <h2 class="h-sec" style="margin-top:18px">Bots</h2>
-      <div class="cages">${BOTS.map(b => { const r = S.bots[b.id] || {}, got = r.w > 0, t = tierOf(b.r), fed = S.trophy.fed[b.id] || 0;
-        return `<div class="cage ${got ? "got" : "empty"} tier-${t.k}" data-cb="${b.id}">
-          <div class="cage-in">${got ? botPortrait(b, 108) : `<div class="cage-q">?</div>`}<div class="bars"></div><div class="drops" id="drop-${b.id}"></div><div class="say" id="say-${b.id}"></div></div>
+      <div class="cages">${BOTS.map(b => { const r = S.bots[b.id] || {}, got = r.w > 0, t = tierOf(b.r), fed = S.trophy.fed[b.id] || 0, out = got && myAvatar().pet === b.id;
+        const bar = t.k === "wood" ? undefined : parseInt(t.a.slice(1), 16);
+        return `<div class="cage ${got ? "got" : "empty"} ${out ? "out" : ""} tier-${t.k}" data-cb="${b.id}">
+          <div class="cage-in ${got && !out ? "c3" : ""}">${out ? `<div class="cage-out">Out with you<br>as your pet</div>` : got ? Av3D.tag(botCfg(b), {w: 150, h: 150, live: "cage", fps: 30, mode: "cage", tier: botTierOf(b), rank: -1, bar, fill: true, fb: avatarSVG(botCfg(b), {size: 100})}) : `<div class="cage-q">?</div>`}<div class="bars"></div><div class="drops" id="drop-${b.id}"></div><div class="say" id="say-${b.id}"></div></div>
           <div class="plate"><b>${got ? esc(b.name) : "???"}</b><span>${b.r} · ${t.name}</span>${got ? `<span>${r.w} win${r.w > 1 ? "s" : ""}${fed ? ` · fed ${fed}×` : ""}</span>` : `<span>Not caught yet</span>`}</div>
-          ${got ? `<button class="btn sm" data-feed="${b.id}">Feed 💩</button>` : `<button class="btn sm" data-play="${b.id}">Challenge</button>`}</div>`; }).join("")}</div></div>`;
+          ${got ? `<div class="row cage-btns">${out ? "" : `<button class="btn sm" data-feed="${b.id}">Feed 💩</button>`}${petsOpen() ? `<button class="btn sm ${out ? "go" : ""}" data-pet="${b.id}">${out ? "Back in the cage" : "Let out as pet"}</button>` : ""}</div>` : `<button class="btn sm" data-play="${b.id}">Challenge</button>`}</div>`; }).join("")}</div></div>`;
     if (typeof Social !== "undefined") Social.cages($("#pcages")); wireBotTabs(this.main);
     if ($("#tnext")) $("#tnext").onclick = () => { App.go("bots"); Views.bots.setup(next); };
     $$("[data-play]", this.main).forEach(x => x.onclick = () => { App.go("bots"); Views.bots.setup(BOTS.find(b => b.id === x.dataset.play)); });
     $$("[data-feed]", this.main).forEach(x => x.onclick = () => this.feed(x.dataset.feed));
+    $$("[data-pet]", this.main).forEach(x => x.onclick = () => { const av = myAvatar(), id = x.dataset.pet; const was = av.pet === id; av.pet = was ? "none" : id; save(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard();
+      toast(was ? "Back in the cage." : (BOTS.find(b => b.id === id) || {}).name + " is your pet now. It follows you around.", 2600); Sound.play(was ? "Capture" : "Move", .7); this.draw(); });
   },
   feed(id){
     S.trophy.fed[id] = (S.trophy.fed[id] || 0) + 1; save();
     const d = $("#drop-" + id), c = $(`.cage[data-cb="${id}"]`), say = $("#say-" + id); if (!d) return;
     const p = document.createElement("span"); p.className = "poo"; p.textContent = "💩"; p.style.left = (30 + Math.random() * 40) + "%"; d.appendChild(p);
     Sound.tone([[300, .06, .04], [180, .12]], "triangle", .12);
-    setTimeout(() => { Sound.play("Capture", .5); c.classList.remove("hit"); void c.offsetWidth; c.classList.add("hit"); say.textContent = rnd(CAGE_LINES); say.classList.remove("show"); void say.offsetWidth; say.classList.add("show"); }, 520);
+    setTimeout(() => { Sound.play("Capture", .5); Av3D.react(c.querySelector(".cage-in"), "hit"); c.classList.remove("hit"); void c.offsetWidth; c.classList.add("hit"); say.textContent = rnd(CAGE_LINES); say.classList.remove("show"); void say.offsetWidth; say.classList.add("show"); }, 520);
     setTimeout(() => p.remove(), 2600);
     const plate = $(`.cage[data-cb="${id}"] .plate span:last-child`); if (plate){ const r = S.bots[id]; plate.textContent = `${r.w} win${r.w > 1 ? "s" : ""} · fed ${S.trophy.fed[id]}×`; }
   }
@@ -3824,6 +4071,7 @@ const AV_SLOTS = [
   ["hair", "Hair"], ["eyes", "Eyes"], ["head", "Headwear"], ["mask", "Mask"], ["glasses", "Glasses"], ["ears", "Earrings"],
   ["shirt", "Shirt"], ["coat", "Coat & armour"], ["cape", "Cape"], ["pants", "Pants"], ["shoes", "Shoes"],
   ["right", "Right hand"], ["left", "Left hand"], ["wrist", "Bracelet"], ["aura", "Aura"], ["frame", "Rank border"],
+  ["paint", "Face paint"], ["back", "Wings"], ["pet", "Pet"],
 ];
 const AV_ITEMS = [
   // hair (free choices)
@@ -3866,11 +4114,18 @@ const AV_ITEMS = [
   ["wrist", "none", "Nothing", 0], ["wrist", "rope", "Rope", "t:plan-3"], ["wrist", "silver", "Silver", "n:40"], ["wrist", "gold", "Gold", "n:100"], ["wrist", "rune", "Rune band", "n:220"],
   // aura
   ["aura", "none", "Nothing", 0], ["aura", "glow", "Soft glow", "n:30"], ["aura", "green", "Green pulse", "n:80"], ["aura", "fire", "Fire aura", "t:winstreak-10"],
-  ["aura", "storm", "Lightning", "t:rush-30"], ["aura", "cosmic", "Cosmic", "n:350"],
-  // rank border
-  ["frame", "none", "None", 0], ["frame", "bronze", "Bronze", "n:10"], ["frame", "silver", "Silver", "n:50"], ["frame", "gold", "Gold", "n:120"], ["frame", "diamond", "Diamond", "n:220"], ["frame", "legend", "Legendary", "n:400"],
+  ["aura", "storm", "Lightning", "t:rush-30"], ["aura", "chakra", "Chakra", "t:plan-30"], ["aura", "orbit", "Fireballs", "t:rush-40"],
+  ["aura", "shadow", "Shadow", "t:fastmate-14"], ["aura", "holy", "Holy light", "n:250"], ["aura", "cosmic", "Cosmic", "n:350"],
+  // face paint
+  ["paint", "none", "Nothing", 0], ["paint", "war", "War paint", "t:wins-10"], ["paint", "tribal", "Tribal", "t:streak-pz-10"], ["paint", "runes", "Glowing runes", "t:themes-15"],
+  ["paint", "demon", "Demon marks", "t:upset-200"], ["paint", "kintsugi", "Gold cracks", "t:rating-2000"],
+  // wings
+  ["back", "none", "Nothing", 0], ["back", "angel", "Angel wings", "n:125"], ["back", "bat", "Bat wings", "t:mates-50"], ["back", "crystal", "Crystal wings", "t:rating-1800"],
+  ["back", "fire", "Phoenix wings", "t:winstreak-10"], ["back", "void", "Void wings", "n:400"],
+  // rank border: earned with your puzzle rating, like a ranked border
+  ["frame", "auto", "My rank", 0], ...TIERS.map(t => ["frame", t.k, t.name, "r:" + t.lo]),
 ].map(([slot, id, name, req]) => ({slot, id, name, req}));
-const AV_DEFAULT = {cls: "pawn", hair: "short", eyes: "brown", head: "none", mask: "none", glasses: "none", ears: "none", shirt: "rags", coat: "none", cape: "none", pants: "patched", shoes: "bare", right: "none", left: "none", wrist: "none", aura: "none", frame: "none"};
+const AV_DEFAULT = {cls: "pawn", hair: "short", eyes: "brown", head: "none", mask: "none", glasses: "none", ears: "none", shirt: "rags", coat: "none", cape: "none", pants: "patched", shoes: "bare", right: "none", left: "none", wrist: "none", aura: "none", frame: "auto", paint: "none", back: "none", pet: "none"};
 const EYE_C = {brown: "#5a3b22", blue: "#2f6fb5", green: "#3f8f3a", gray: "#6b7280", gold: "#d9a21b", glow: "#ff3b3b"};
 
 /* ---------- drawing ---------- */
@@ -4010,7 +4265,9 @@ const AV_DEFS = `<defs><radialGradient id="avAuraG"><stop offset=".55" stop-colo
   <linearGradient id="avShade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".35" stop-color="#fff" stop-opacity="0"/><stop offset=".7" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".28"/></linearGradient>
   <radialGradient id="avAuraCosmic"><stop offset="0" stop-color="#b48cff" stop-opacity=".7"/><stop offset=".7" stop-color="#3a1f7a" stop-opacity=".5"/><stop offset="1" stop-color="#3a1f7a" stop-opacity="0"/></radialGradient></defs>`;
 /* body tiers: flat at first, then shaded (3D), then alive (idle motion), then legend (emotes) */
-const BODY_TIERS = [{k: 0, n: 0, name: "Flat", txt: "A simple flat figure."}, {k: 1, n: 30, name: "Solid", txt: "Shaded 3D body with depth when you turn it."}, {k: 2, n: 80, name: "Alive", txt: "Breathes, blinks and moves on its own."}, {k: 3, n: 150, name: "Legend", txt: "Emotes: wave, cheer, dance, flex."}];
+const BODY_TIERS = [{k: 0, n: 0, name: "Paper", txt: "A flat figure, drawn in ink."}, {k: 1, n: 25, name: "Toy", txt: "Shiny plastic, like a toy figure."},
+  {k: 2, n: 75, name: "Sculpted", txt: "Real materials. Breathes, blinks and looks around."}, {k: 3, n: 150, name: "Hero", txt: "Polished metal, glowing gems and emotes."},
+  {k: 4, n: 300, name: "Mythic", txt: "Floats, crackles with power and breaks out of every frame."}];
 function bodyTier(n){ if (n == null) n = typeof achCount === "function" ? achCount() : 0; return BODY_TIERS.filter(t => n >= t.n).pop().k; }
 function avatarSVG(cfg, opt = {}){
   const a = Object.assign({}, AV_DEFAULT, cfg || {}), P = avParts(a), back = !!opt.back, tier = opt.tier || 0;
@@ -4051,13 +4308,24 @@ botPortrait = function(b, size = 96){ const t = typeof tierOf === "function" ? t
   return `<span class="botfull portrait tier-${t.k}" style="width:${size}px;height:${size}px;background:linear-gradient(135deg,${t.a},${t.b})"><span style="background:hsl(${b.hue || 0} 40% 22%)">${avatarSVG(botCfg(b), {size: Math.round(size * .8)})}</span></span>`; };
 
 /* ---------- the player's avatar state ---------- */
-function myAvatar(){ S.avatar = Object.assign({}, AV_DEFAULT, S.avatar || {}); return S.avatar; }
+function myAvatar(){ const a = S.avatar = Object.assign({}, AV_DEFAULT, S.avatar || {});
+  /* old trophy borders became rank borders */
+  if (!AV_ITEMS.some(i => i.slot === "frame" && i.id === a.frame)) a.frame = "auto";
+  if (a.pet !== "none" && !(S.bots[a.pet] && S.bots[a.pet].w > 0)) a.pet = "none";
+  return a; }
 function classUnlocked(c){
   const n = c.need, tro = typeof achCount === "function" ? achCount() : 0, best = BOTS.filter(b => S.bots[b.id] && S.bots[b.id].w > 0).reduce((m, b) => Math.max(m, b.r), 0), pz = Math.max(S.puzzle.r || 0, S.puzzle.peak || 0);
   return tro >= (n.tro || 0) && pz >= (n.pz || 0) && best >= (n.bot || 0);
 }
+/* the highest puzzle rating you ever reached decides which rank borders you own */
+function peakRating(){ return Math.max(S.puzzle.r || 0, S.puzzle.peak || 0); }
+function petsOpen(){ return (typeof achCount === "function" ? achCount() : 0) >= 50; }
+function caughtBots(){ return BOTS.filter(b => S.bots[b.id] && S.bots[b.id].w > 0); }
+/* which rank border to draw: "auto" follows the current rating */
+function frameTier(cfg, rating){ const f = cfg && cfg.frame; const t = TIERS.findIndex(x => x.k === f); if (t >= 0) return t; const r = rating != null ? rating : null; return r == null ? -1 : rankOf(r).idx; }
 function itemUnlocked(it){
   if (!it.req) return true;
+  if (typeof it.req === "string" && it.req.startsWith("r:")) return peakRating() >= +it.req.slice(2);
   if (typeof it.req === "string" && it.req.startsWith("n:")) return (typeof achCount === "function" ? achCount() : 0) >= +it.req.slice(2);
   if (typeof it.req === "string" && it.req.startsWith("t:")) return typeof achHas === "function" && achHas(it.req.slice(2));
   return false;
@@ -4065,6 +4333,7 @@ function itemUnlocked(it){
 function itemReqText(it){
   if (!it.req) return "Free";
   if (it.req.startsWith("n:")) return `Collect ${it.req.slice(2)} trophies`;
+  if (it.req.startsWith("r:")) return `Reach ${it.req.slice(2)} puzzle rating`;
   const a = typeof achById === "function" ? achById(it.req.slice(2)) : null; return a ? `Trophy: ${a.name}` : "Locked";
 }
 /* turn the figure by dragging; solid bodies get real thickness from stacked layers */
@@ -4085,6 +4354,610 @@ function avatarStage(el, cfg, tier){
   set();
   return {emote, reset(){ ang = 0; vel = 0; set(); }};
 }
+
+/* ===== 3D figures: one model for every avatar, bot and pet =====
+   One WebGL renderer draws all figures and copies each picture into its own small canvas, so a page can show
+   many figures (wardrobe, cages, friends) without running out of WebGL contexts. Items are real 3D parts that
+   hang on the same skeleton, so every outfit fits from every side when you spin the figure.
+   Body tiers change how the same model is rendered: paper (flat ink), toy (plastic), sculpted (real
+   materials, alive), hero (polished, emotes), mythic (floats, power, spills out of the frame). */
+const Av3D = (() => {
+  let T = null, R = null, ENV = null, loading = null, dead = false, bufW = 0, bufH = 0, CT = 2;
+  const GEO = {}, MAT = {}, TEX = {}, reg = new Map(), snaps = new Map(), views = new Set(), pending = new Set(), queue = [];
+  let nextId = 1, raf = 0, qraf = 0, snapScene = null, io = null;
+  const IV = 0xECE2CE, INK = 0x1d1a17, DPR = () => Math.min(2, window.devicePixelRatio || 1);
+  const rnd = s => () => (s = (s * 16807) % 2147483647) / 2147483647;
+
+  /* ---------- loading ---------- */
+  function load(){
+    if (T) return Promise.resolve(T); if (dead) return Promise.reject(new Error("3D off"));
+    if (!loading) loading = new Promise((res, rej) => {
+      if (window.THREE) return res();
+      const add = (src, next) => { const s = document.createElement("script"); s.src = src; s.async = true; s.onload = () => res(); s.onerror = next; document.head.appendChild(s); };
+      add("vendor/three.min.js", () => add("https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js", () => rej(new Error("three.js not loaded"))));
+    }).then(init).catch(e => { dead = true; console.warn("3D figures off:", e && e.message); pending.forEach(fallback); pending.clear(); throw e; });
+    return loading;
+  }
+  function init(){
+    T = window.THREE; T.ColorManagement.legacyMode = false;
+    const cv = document.createElement("canvas");
+    R = new T.WebGLRenderer({canvas: cv, antialias: true, alpha: true, preserveDrawingBuffer: true, powerPreference: "low-power"});
+    R.outputEncoding = T.sRGBEncoding; R.toneMapping = T.ACESFilmicToneMapping; R.toneMappingExposure = 1.12; R.setPixelRatio(1); R.setClearColor(0, 0); R.autoClear = true;
+    cv.addEventListener("webglcontextlost", e => { e.preventDefault(); dead = true; views.clear(); }, false);
+    grow(320, 400); ENV = makeEnv(); snapScene = new T.Scene(); lights(snapScene);
+    io = new IntersectionObserver(es => es.forEach(e => { const v = e.target._v; if (v) v.vis = e.isIntersecting; }), {rootMargin: "80px"});
+    pending.forEach(hydrate); pending.clear(); return T;
+  }
+  function grow(w, h){ w = Math.ceil(w); h = Math.ceil(h); if (w <= bufW && h <= bufH) return; bufW = Math.max(bufW, w); bufH = Math.max(bufH, h); R.setSize(bufW, bufH, false); }
+  function makeEnv(){
+    const pm = new T.PMREMGenerator(R), sc = new T.Scene();
+    sc.add(new T.Mesh(new T.BoxGeometry(12, 12, 12), new T.MeshBasicMaterial({color: 0x3a3632, side: T.BackSide})));
+    const panel = (c, k, x, y, z, w, h) => { const m = new T.Mesh(new T.PlaneGeometry(w, h), new T.MeshBasicMaterial({color: new T.Color(c).multiplyScalar(k), side: T.DoubleSide})); m.position.set(x, y, z); m.lookAt(0, 0, 0); sc.add(m); };
+    panel(0xfff0dc, 7, -3.5, 3.5, 3.5, 3, 2.4); panel(0xd8e6ff, 3.5, 4.5, 1.5, 1, 1.6, 4); panel(0xffffff, 4, 0, 5.8, 0, 5, 3); panel(0xffd9a8, 2.5, 0, .5, -5.5, 6, 1.6); panel(0x9fb6ff, 1.2, -5, -1, -2, 2, 2);
+    const t = pm.fromScene(sc, .035).texture; pm.dispose(); return t;
+  }
+  function lights(sc){
+    const hemi = new T.HemisphereLight(0xfff4e6, 0x3d3530, .55), key = new T.DirectionalLight(0xfff1e0, 2.1), fill = new T.DirectionalLight(0xc8dcff, .65), rim = new T.DirectionalLight(0xffffff, 1.1);
+    key.position.set(-2.6, 4.2, 5); fill.position.set(3.2, 2, 3); rim.position.set(.8, 3, -4.5); sc.add(hemi, key, fill, rim); sc.userData.L = {hemi, key, fill, rim};
+  }
+  function setLights(sc, tier, rimC){
+    const L = sc.userData.L;
+    L.hemi.intensity = tier === 1 ? 1.0 : .55; L.key.intensity = tier === 1 ? 1.6 : 2.1; L.fill.intensity = tier === 1 ? .7 : .65;
+    L.rim.color.set(rimC || 0xffffff); L.rim.intensity = tier >= 3 ? 3.2 : tier === 2 ? 1.4 : 1;
+  }
+
+  /* ---------- textures ---------- */
+  function ctex(key, w, h, draw, o = {}){
+    if (TEX[key]) return TEX[key];
+    const c = document.createElement("canvas"); c.width = w; c.height = h; draw(c.getContext("2d"), w, h);
+    const t = new T.CanvasTexture(c); if (o.srgb) t.encoding = T.sRGBEncoding; if (o.rep){ t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(o.rep[0], o.rep[1]); }
+    t.anisotropy = 4; return TEX[key] = t;
+  }
+  const radial = (stops) => (g, w, h) => { const r = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2); stops.forEach(([o, c]) => r.addColorStop(o, c)); g.fillStyle = r; g.fillRect(0, 0, w, h); };
+  const glowTex = () => ctex("glow", 128, 128, radial([[0, "rgba(255,255,255,1)"], [.25, "rgba(255,255,255,.55)"], [1, "rgba(255,255,255,0)"]]));
+  const dotTex = () => ctex("dot", 64, 64, radial([[0, "rgba(255,255,255,1)"], [.45, "rgba(255,255,255,.8)"], [1, "rgba(255,255,255,0)"]]));
+  const shadowTex = () => ctex("shadow", 128, 128, radial([[0, "rgba(0,0,0,.55)"], [.55, "rgba(0,0,0,.28)"], [1, "rgba(0,0,0,0)"]]));
+  const sparkTex = () => ctex("spark", 64, 64, (g, w) => { const c = w / 2;
+    radial([[0, "rgba(255,255,255,.9)"], [.2, "rgba(255,255,255,.3)"], [.5, "rgba(255,255,255,0)"]])(g, w, w);
+    g.fillStyle = "#fff"; g.beginPath(); g.moveTo(c, 2); g.lineTo(c + 3, c - 3); g.lineTo(w - 2, c); g.lineTo(c + 3, c + 3); g.lineTo(c, w - 2); g.lineTo(c - 3, c + 3); g.lineTo(2, c); g.lineTo(c - 3, c - 3); g.fill(); });
+  const smokeTex = () => ctex("smoke", 64, 64, (g, w) => { const rr = rnd(7); for (let i = 0; i < 14; i++){ const x = 16 + rr() * 32, y = 16 + rr() * 32, r = 8 + rr() * 14, gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, "rgba(255,255,255,.35)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, w, w); } });
+  const weaveTex = () => ctex("weave", 128, 128, (g, w) => { const rr = rnd(3); g.fillStyle = "#808080"; g.fillRect(0, 0, w, w); for (let y = 0; y < w; y += 8) for (let x = 0; x < w; x += 8){ const v = ((x + y) / 8) % 2 ? 138 : 118; const n = v + (rr() - .5) * 10; g.fillStyle = `rgb(${n},${n},${n})`; g.fillRect(x, y, 8, 4); g.fillRect(x + ((y / 8) % 2 ? 4 : 0), y + 4, 4, 4); } g.filter = "blur(1px)"; g.drawImage(g.canvas, 0, 0); }, {rep: [4, 4]});
+  const stripeTex = (a, b, n) => ctex("st" + a + b + n, 16, 64, (g, w, h) => { for (let i = 0; i < n; i++){ g.fillStyle = i % 2 ? b : a; g.fillRect(0, i * h / n, w, h / n); } }, {srgb: 1});
+  const denimTex = () => ctex("denim", 128, 128, (g, w) => { const rr = rnd(11); g.fillStyle = "#3a5a8c"; g.fillRect(0, 0, w, w); for (let i = 0; i < 1800; i++){ const x = rr() * w, y = rr() * w; g.fillStyle = rr() > .5 ? "rgba(255,255,255,.12)" : "rgba(10,20,40,.18)"; g.fillRect(x, y, 3, 1); } }, {srgb: 1, rep: [3, 3]});
+  const ermineTex = () => ctex("ermine", 64, 64, (g, w) => { g.fillStyle = "#f6f3ec"; g.fillRect(0, 0, w, w); g.fillStyle = "#1b1b1b"; [[12, 10], [44, 18], [24, 40], [52, 50], [6, 54]].forEach(([x, y]) => { g.beginPath(); g.moveTo(x, y); g.lineTo(x - 3, y + 8); g.lineTo(x + 3, y + 8); g.fill(); }); }, {srgb: 1, rep: [4, 3]});
+  const woodTex = () => ctex("wood", 64, 128, (g, w, h) => { const rr = rnd(5); g.fillStyle = "#8a5a2b"; g.fillRect(0, 0, w, h); for (let i = 0; i < 26; i++){ g.strokeStyle = `rgba(${60 + rr() * 30},${35 + rr() * 20},15,.5)`; g.lineWidth = 1 + rr() * 2; const x = rr() * w; g.beginPath(); g.moveTo(x, 0); g.bezierCurveTo(x + 4, h * .3, x - 4, h * .6, x + 2, h); g.stroke(); } }, {srgb: 1});
+  const runeTex = (col) => ctex("rune" + col, 256, 256, (g, w) => { const c = w / 2, rr = rnd(13); g.strokeStyle = col; g.lineWidth = 3; g.shadowColor = col; g.shadowBlur = 8;
+    [118, 100, 64].forEach(r => { g.beginPath(); g.arc(c, c, r, 0, 7); g.stroke(); });
+    for (let i = 0; i < 16; i++){ const a = i / 16 * Math.PI * 2, x = c + Math.cos(a) * 109, y = c + Math.sin(a) * 109; g.save(); g.translate(x, y); g.rotate(a + Math.PI / 2); g.beginPath(); g.moveTo(-4, -5); g.lineTo(rr() * 8 - 4, 0); g.lineTo(4, 5); if (rr() > .5){ g.moveTo(-4, 5); g.lineTo(4, -5); } g.stroke(); g.restore(); }
+    g.beginPath(); for (let i = 0; i < 6; i++){ const a = i / 6 * Math.PI * 2 - Math.PI / 2; g[i ? "lineTo" : "moveTo"](c + Math.cos(a) * 64, c + Math.sin(a) * 64); } g.closePath(); g.stroke();
+    g.beginPath(); for (let i = 0; i < 3; i++){ const a = i / 3 * Math.PI * 2 - Math.PI / 2; g[i ? "lineTo" : "moveTo"](c + Math.cos(a) * 100, c + Math.sin(a) * 100); } g.closePath(); g.stroke();
+    g.beginPath(); for (let i = 0; i < 3; i++){ const a = i / 3 * Math.PI * 2 + Math.PI / 2; g[i ? "lineTo" : "moveTo"](c + Math.cos(a) * 100, c + Math.sin(a) * 100); } g.closePath(); g.stroke(); });
+  const pillarTex = () => ctex("pillar", 8, 128, (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, "rgba(255,255,255,0)"); gr.addColorStop(.6, "rgba(255,255,255,.55)"); gr.addColorStop(1, "rgba(255,255,255,.9)"); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
+
+  /* face paint: drawn on the face, eyes at the given spots (u, v from the top left) */
+  function paintTex(style, lay){
+    return ctex("paint-" + style + lay.key, 256, 256, (g, W) => {
+      const E = lay.eyes.map(([u, v]) => [u * W, v * W]), M = [lay.mouth[0] * W, lay.mouth[1] * W], ew = W * .085;
+      g.lineCap = "round"; g.lineJoin = "round";
+      if (style === "war"){ E.forEach(([x, y], i) => { const s = i ? 1 : -1; g.fillStyle = "#b3261e"; g.fillRect(x - ew * 1.4, y + ew * .9, ew * 2.8, ew * .55); g.fillStyle = "#121212"; g.fillRect(x - ew * 1.2, y + ew * 1.7, ew * 2.4, ew * .45); g.fillStyle = "#b3261e"; g.fillRect(x + s * ew * .2 - ew * .2, y - ew * 2.2, ew * .4, ew * 1.4); }); g.fillStyle = "#121212"; g.fillRect(W / 2 - ew * .22, E[0][1] - ew * 2.5, ew * .44, ew * 3.6); }
+      else if (style === "tribal"){ g.strokeStyle = "#141414"; g.lineWidth = W * .022; E.forEach(([x, y], i) => { const s = i ? 1 : -1; g.beginPath(); g.arc(x, y, ew * 1.6, Math.PI * (i ? 1.1 : -.1), Math.PI * (i ? 2.15 : .9), !i); g.stroke(); g.beginPath(); g.moveTo(x + s * ew * 1.7, y + ew * .4); g.quadraticCurveTo(x + s * ew * 2.6, y + ew * 2.2, x + s * ew * 1.2, y + ew * 3.2); g.stroke(); g.beginPath(); g.moveTo(x + s * ew * 1.4, y + ew * 3.6); g.lineTo(x + s * ew * .6, y + ew * 4.2); g.stroke(); });
+        g.beginPath(); g.moveTo(M[0] - ew * .8, M[1] + ew * 1.2); g.lineTo(M[0], M[1] + ew * 2); g.lineTo(M[0] + ew * .8, M[1] + ew * 1.2); g.stroke(); }
+      else if (style === "runes"){ g.strokeStyle = "#59e3ff"; g.lineWidth = W * .016; g.shadowColor = "#59e3ff"; g.shadowBlur = 10; const rune = (x, y, k) => { g.beginPath(); g.moveTo(x, y - k); g.lineTo(x, y + k); g.moveTo(x, y - k * .4); g.lineTo(x + k * .6, y - k); g.moveTo(x, y + k * .1); g.lineTo(x - k * .6, y - k * .5); g.stroke(); };
+        E.forEach(([x, y], i) => { rune(x + (i ? 1 : -1) * ew * 1.5, y + ew * 2.4, ew * .8); g.beginPath(); g.moveTo(x - ew * 1.2, y - ew * 1.5); g.lineTo(x + ew * 1.2, y - ew * 1.5); g.stroke(); }); rune(W / 2, E[0][1] - ew * 2.6, ew * .9); }
+      else if (style === "demon"){ g.fillStyle = "#c4161c"; g.shadowColor = "#ff2a2a"; g.shadowBlur = 8; E.forEach(([x, y], i) => { g.beginPath(); g.moveTo(x - ew * .25, y + ew * .9); g.lineTo(x + ew * .25, y + ew * .9); g.lineTo(x, y + ew * 3.4); g.fill(); g.beginPath(); g.moveTo(x - ew * 1.3, y - ew * 1.2); g.lineTo(x + ew * 1.3, y - ew * (i ? 1.9 : .7)); g.lineTo(x + ew * 1.3, y - ew * (i ? 1.5 : .4)); g.fill(); });
+        const fy = E[0][1] - ew * 2.4; g.beginPath(); g.moveTo(W / 2, fy - ew); g.lineTo(W / 2 + ew * .55, fy); g.lineTo(W / 2, fy + ew); g.lineTo(W / 2 - ew * .55, fy); g.fill(); }
+      else if (style === "kintsugi"){ g.strokeStyle = "#ffcf40"; g.lineWidth = W * .012; g.shadowColor = "#ffcf40"; g.shadowBlur = 6; const rr = rnd(21); for (let k = 0; k < 5; k++){ let x = rr() * W, y = k < 2 ? 0 : rr() * W; g.beginPath(); g.moveTo(x, y); for (let i = 0; i < 7; i++){ x += (rr() - .5) * W * .18; y += W * .07 + rr() * W * .06; g.lineTo(x, y); } g.stroke(); } }
+    }, {srgb: 1});
+  }
+
+  /* ---------- geometry and materials ---------- */
+  const G = (key, make) => GEO[key] || (GEO[key] = make());
+  const V2 = (r, y) => new T.Vector2(r, y);
+  const sph = (r, w = 24, h = 16) => G("s" + r + w, () => new T.SphereGeometry(r, w, h));
+  const caps = (r, l) => G("c" + r + l, () => new T.CapsuleGeometry(r, l, 6, 14));
+  const cyl = (a, b, h, s = 24, open = false, ts = 0, tl = Math.PI * 2) => G(["y", a, b, h, s, open, ts, tl].join(), () => new T.CylinderGeometry(a, b, h, s, 1, open, ts, tl));
+  const tor = (r, t, rs = 8, ts = 32, arc = Math.PI * 2) => G(["t", r, t, rs, ts, arc].join(), () => new T.TorusGeometry(r, t, rs, ts, arc));
+  const lathe = (key, pts, seg = 36, ps = 0, pl = Math.PI * 2) => G("l" + key + seg + ps + pl, () => new T.LatheGeometry(pts.map(([r, y]) => V2(r, y)), seg, ps, pl));
+  const box = (x, y, z) => G(["b", x, y, z].join(), () => new T.BoxGeometry(x, y, z));
+  const cone = (r, h, s = 12) => G(["k", r, h, s].join(), () => new T.ConeGeometry(r, h, s));
+  const oct = r => G("o" + r, () => new T.OctahedronGeometry(r, 0));
+  const extr = (key, pts, depth, bev = .02, smooth) => G("e" + key, () => { const sh = new T.Shape(); if (smooth){ sh.moveTo(...pts[0]); sh.splineThru(pts.slice(1).concat([pts[0]]).map(([x, y]) => new T.Vector2(x, y))); } else pts.forEach(([x, y], i) => i ? sh.lineTo(x, y) : sh.moveTo(x, y)); const g = new T.ExtrudeGeometry(sh, {depth, bevelEnabled: true, bevelThickness: bev, bevelSize: bev, bevelSegments: 3, curveSegments: 10}); g.translate(0, 0, -depth / 2); g.computeVertexNormals(); return g; });
+  /* a tube whose radius shrinks along a curve: horns, chains, lightning */
+  function taper(pts, r0, r1, rs = 8, segs = 16){
+    const curve = new T.CatmullRomCurve3(pts.map(p => new T.Vector3(...p))), g = new T.TubeGeometry(curve, segs, 1, rs, false), pos = g.attributes.position, n = new T.Vector3(), c = new T.Vector3();
+    for (let i = 0; i <= segs; i++){ const t = i / segs, r = r0 + (r1 - r0) * t; curve.getPointAt(t, c); for (let j = 0; j <= rs; j++){ const k = i * (rs + 1) + j; n.fromBufferAttribute(pos, k).sub(c).multiplyScalar(r); pos.setXYZ(k, c.x + n.x, c.y + n.y, c.z + n.z); } }
+    g.computeVertexNormals(); return g;
+  }
+  let TIER = 2;
+  const flat = c => c;
+  function M(kind, color, o = {}){
+    const key = [TIER, kind, color, o.side || 0, o.map ? o.map.uuid : "", o.em || 0, o.op || 1, o.emMap ? o.emMap.uuid : ""].join("|"); if (MAT[key]) return MAT[key];
+    const c = new T.Color(color); let m;
+    if (kind === "glow") m = new T.MeshBasicMaterial({color: c, transparent: true, opacity: o.op || 1, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false});
+    else if (TIER === 0) m = new T.MeshBasicMaterial({color: kind === "gem" || kind === "gold" ? c.clone().offsetHSL(0, .05, .06) : c, map: o.map || null, toneMapped: false});
+    else if (TIER === 1) m = new T.MeshPhongMaterial({color: c, map: o.map || null, shininess: kind === "cloth" ? 28 : kind === "metal" || kind === "gold" ? 140 : 90, specular: kind === "gold" ? 0x8a6a20 : kind === "metal" ? 0x777777 : 0x3a3a3a, emissive: o.em ? c : 0x000000, emissiveIntensity: o.em ? .35 : 0});
+    else {
+      const P = TIER >= 3 ? T.MeshPhysicalMaterial : T.MeshStandardMaterial, b = {color: c, envMap: ENV, envMapIntensity: 1, map: o.map || null};
+      if (kind === "skin") Object.assign(b, {roughness: TIER >= 3 ? .26 : .38, metalness: 0}, TIER >= 3 ? {clearcoat: .55, clearcoatRoughness: .2} : {});
+      else if (kind === "cloth") Object.assign(b, {roughness: .86, metalness: 0, bumpMap: weaveTex(), bumpScale: .12, envMapIntensity: .55}, TIER >= 3 ? {sheen: .6, sheenRoughness: .5, sheenColor: c.clone().lerp(new T.Color(0xffffff), .2)} : {});
+      else if (kind === "leather") Object.assign(b, {roughness: .55, metalness: 0, bumpMap: weaveTex(), bumpScale: .08}, TIER >= 3 ? {clearcoat: .3, clearcoatRoughness: .5} : {});
+      else if (kind === "metal") Object.assign(b, {roughness: .26, metalness: 1, envMapIntensity: 1.3}, TIER >= 3 ? {clearcoat: .6, clearcoatRoughness: .15} : {});
+      else if (kind === "gold") Object.assign(b, {roughness: .2, metalness: 1, envMapIntensity: 1.5}, TIER >= 3 ? {clearcoat: 1, clearcoatRoughness: .08} : {});
+      else if (kind === "gem") Object.assign(b, {roughness: .05, metalness: .1, emissive: c, emissiveIntensity: TIER >= 3 ? .65 : .3, envMapIntensity: 2}, TIER >= 3 ? {clearcoat: 1, clearcoatRoughness: 0} : {});
+      else if (kind === "wood") Object.assign(b, {roughness: .75, metalness: 0, map: woodTex()});
+      else if (kind === "dark") Object.assign(b, {roughness: .3, metalness: .2});
+      else if (kind === "lens") Object.assign(b, {roughness: .05, metalness: .6, envMapIntensity: 2});
+      else Object.assign(b, {roughness: .5, metalness: 0});
+      if (o.em){ b.emissive = c; b.emissiveIntensity = o.em; }
+      m = new P(b);
+    }
+    if (o.emMap && m.emissive){ m.emissiveMap = o.emMap; m.emissive = new T.Color(0xffffff); m.emissiveIntensity = TIER >= 2 ? 1.6 : .8; }
+    if (o.side) m.side = o.side;
+    if (o.transparent){ m.transparent = true; m.depthWrite = false; m.polygonOffset = true; m.polygonOffsetFactor = -2; }
+    return MAT[key] = m;
+  }
+  let OL = null;
+  function outlineMat(){ if (OL) return OL; OL = new T.MeshBasicMaterial({color: INK, side: T.BackSide, toneMapped: false});
+    OL.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace("#include <begin_vertex>", "vec3 transformed = position + normal * 0.024;"); }; return OL; }
+  function mesh(geo, mat, x, y, z, parent, ol){
+    const m = new T.Mesh(geo, mat); m.position.set(x || 0, y || 0, z || 0); if (parent) parent.add(m);
+    if (ol && TIER === 0){ const h = new T.Mesh(geo, outlineMat()); m.add(h); }
+    return m;
+  }
+
+  /* ---------- particles ---------- */
+  const PVS = `attribute float aSize; attribute float aAlpha; attribute vec3 aColor; varying float vA; varying vec3 vC; uniform float uScale;
+    void main(){ vA = aAlpha; vC = aColor; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_PointSize = aSize * uScale / -mv.z; gl_Position = projectionMatrix * mv; }`;
+  const PFS = `uniform sampler2D map; varying float vA; varying vec3 vC; void main(){ vec4 t = texture2D(map, gl_PointCoord); gl_FragColor = vec4(vC * t.rgb, t.a * vA); }`;
+  function emitter(rig, parent, o){
+    const k = [.45, .65, 1, 1.25, 1.6][rig.tier] || 1, n = Math.max(4, Math.round(o.n * k));
+    const pos = new Float32Array(n * 3), col = new Float32Array(n * 3), size = new Float32Array(n), al = new Float32Array(n), g = new T.BufferGeometry();
+    g.setAttribute("position", new T.BufferAttribute(pos, 3)); g.setAttribute("aColor", new T.BufferAttribute(col, 3)); g.setAttribute("aSize", new T.BufferAttribute(size, 1)); g.setAttribute("aAlpha", new T.BufferAttribute(al, 1));
+    const mat = new T.ShaderMaterial({uniforms: {map: {value: o.tex || dotTex()}, uScale: {value: 400}}, vertexShader: PVS, fragmentShader: PFS, transparent: true, depthWrite: false, blending: o.normal ? T.NormalBlending : T.AdditiveBlending, toneMapped: false});
+    const pts = new T.Points(g, mat); pts.frustumCulled = false; pts.renderOrder = o.order || 5; parent.add(pts); rig.pmats.push(mat); rig.own.push(mat, g);
+    const P = Array.from({length: n}, () => ({}));
+    const c = new T.Color();
+    P.forEach((p, i) => { o.spawn(p, i, n); p.age = Math.random() * p.life; });
+    const upd = (dt, t) => {
+      for (let i = 0; i < n; i++){
+        const p = P[i]; p.age += dt; if (p.age >= p.life){ o.spawn(p, i, n); p.age = 0; }
+        const f = p.age / p.life;
+        if (o.step) o.step(p, dt, f, t); else { p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; }
+        pos[i * 3] = p.x; pos[i * 3 + 1] = p.y; pos[i * 3 + 2] = p.z;
+        c.set(p.c || 0xffffff); if (p.c2 != null) c.lerp(new T.Color(p.c2), f); col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
+        size[i] = p.s * (o.grow ? 1 + f * o.grow : 1 - f * (o.shrink != null ? o.shrink : .5));
+        al[i] = (p.a != null ? p.a : 1) * (f < .15 ? f / .15 : f > .6 ? (1 - f) / .4 : 1);
+      }
+      g.attributes.position.needsUpdate = g.attributes.aColor.needsUpdate = g.attributes.aSize.needsUpdate = g.attributes.aAlpha.needsUpdate = true;
+    };
+    rig.fx.push(upd); return pts;
+  }
+  function sprite(rig, parent, tex, color, scale, x, y, z, op = 1, add = true){
+    const m = new T.SpriteMaterial({map: tex, color, transparent: true, opacity: op, depthWrite: false, blending: add ? T.AdditiveBlending : T.NormalBlending, toneMapped: false});
+    const s = new T.Sprite(m); s.scale.set(scale, scale, 1); s.position.set(x, y, z); parent.add(s); rig.own.push(m); return s;
+  }
+
+  /* ---------- the figure ---------- */
+  /* heads: radius profile r(y) around the head centre, eyes (x, y), where hats sit */
+  const PROF = {
+    sphere: (r, sy = 1) => y => { const q = r * r - (y / sy) * (y / sy); return q > 0 ? Math.sqrt(q) : 0; },
+    rook: () => y => (y > -.27 && y < .27 ? .28 : 0),
+    bishop: () => { const P = [[-.3, .06], [-.26, .2], [-.12, .27], [.06, .27], [.2, .2], [.32, .1], [.4, .02]]; return y => { if (y <= P[0][0] || y >= P[P.length - 1][0]) return 0; for (let i = 1; i < P.length; i++) if (y <= P[i][0]){ const [y0, r0] = P[i - 1], [y1, r1] = P[i]; return r0 + (r1 - r0) * (y - y0) / (y1 - y0); } return 0; }; },
+  };
+  const HEADS = {
+    pawn:   {y: 1.52, prof: PROF.sphere(.3), eyes: [[-.105, .03], [.105, .03]], mouth: -.1, ears: .29, hat: [0, 0, 1], hair: 1, top: .3},
+    queen:  {y: 1.52, prof: PROF.sphere(.29), eyes: [[-.1, .03], [.1, .03]], mouth: -.1, ears: .28, hat: [0, .17, 1], hair: 1, top: .44},
+    king:   {y: 1.54, prof: PROF.sphere(.29, 1.08), eyes: [[-.1, .04], [.1, .04]], mouth: -.1, ears: .28, hat: [0, .24, 1], hair: 1, top: .52},
+    bishop: {y: 1.5, prof: PROF.bishop(), eyes: [[-.095, .02], [.095, .02]], mouth: -.11, ears: .26, hat: [0, .2, .78], hair: 0, top: .46},
+    rook:   {y: 1.5, prof: PROF.rook(), eyes: [[-.1, .03], [.1, .03]], mouth: -.1, ears: .285, hat: [0, .08, 1.02], hair: 0, top: .36},
+    knight: {y: 1.5, knight: 1, hat: [-.02, .14, .78], hair: 1, top: .44},
+  };
+  const HORSE = [[-.18, -.3], [-.3, -.08], [-.26, .18], [-.08, .32], [-.04, .44], [.06, .34], [.24, .32], [.36, .16], [.34, 0], [.4, -.12], [.38, -.22], [.28, -.24], [.16, -.18], [.14, -.26], [.18, -.3]];
+  function faceAt(H, x, y, push = 0){ const r = H.prof(y); const z = Math.sqrt(Math.max(0, r * r - x * x)); const p = new T.Vector3(x, y, z); const n = new T.Vector3(x, H.knight ? 0 : y * .35, z).normalize(); return {p: p.add(n.clone().multiplyScalar(push)), n}; }
+  function orient(o, n){ o.quaternion.setFromUnitVectors(new T.Vector3(0, 0, 1), n.clone().normalize()); }
+  /* a band of the face between two heights, used for masks and face paint (u runs left to right, v bottom to top) */
+  function faceShell(H, y0, y1, grow, key){ return G("sh" + key + y0 + y1 + grow, () => { const pts = []; for (let i = 0; i <= 14; i++){ const y = y0 + (y1 - y0) * i / 14; pts.push(V2(Math.max(.001, H.prof(y) * grow), y)); } return new T.LatheGeometry(pts, 28, -1.25, 2.5); }); }
+
+  const EYE_C = {brown: 0x5a3b22, blue: 0x2f6fb5, green: 0x3f8f3a, gray: 0x6b7280, gold: 0xd9a21b, glow: 0xff3b3b};
+  const SHIRT = {rags: [0x9b8160], tee: [0xf0eee9], stripes: [0xffffff, "stripes"], hoodie: [0x6f7782], tunic: [0x3f8f3a], silk: [0x7c4dbd], royal: [0x8b1e2d]};
+  const PANTS = {patched: 0x6b5a45, jeans: 0x3a5a8c, trousers: 0x2d2f36, royal: 0xeee7da};
+  const HAIR_C = [0x3b2a20, 0x6b4423, 0x1d1d1f, 0xa8733a, 0x8a2e1d, 0xd8c7a0];
+
+  function build(cfg, tier, o = {}){
+    TIER = tier;
+    const a = Object.assign({}, AV_DEFAULT, cfg || {}), cls = HEADS[a.cls] ? a.cls : "pawn", H = HEADS[cls];
+    const rig = {tier, a, fx: [], pmats: [], own: [], eyes: [], tick: [], t: 0, emote: null, pose: o.pose || "idle", blink: 2 + Math.random() * 3, rr: rnd(hashStr(JSON.stringify(a)) % 2147483646 + 1)};
+    const root = new T.Group(), fig = new T.Group(); root.add(fig); fig.position.y = .2; rig.root = root; rig.fig = fig;
+    const skin = M("skin", IV), ol = true;
+    /* ground shadow and pedestal */
+    const sh = new T.Mesh(G("pl2", () => new T.PlaneGeometry(2.2, 2.2)), new T.MeshBasicMaterial({map: shadowTex(), transparent: true, depthWrite: false, toneMapped: false})); sh.rotation.x = -Math.PI / 2; sh.position.y = .003; root.add(sh); rig.own.push(sh.material);
+    const base = new T.Group(); root.add(base); rig.base = base;
+    mesh(cyl(.6, .66, .14, 48), skin, 0, .07, 0, base, ol); mesh(tor(.6, .032, 10, 48), skin, 0, .14, 0, base).rotation.x = Math.PI / 2; mesh(cyl(.5, .56, .06, 48), skin, 0, .17, 0, base, ol);
+    /* feet */
+    const shoeK = a.shoes, shoeM = shoeK === "sneakers" ? M("cloth", 0xf4f4f4) : shoeK === "boots" ? M("leather", 0x5b3a22) : shoeK === "golden" ? M("gold", 0xe0b13a) : skin;
+    [-1, 1].forEach(s => { const f = mesh(sph(.12), shoeM, s * .17, .07, .26, fig, ol); f.scale.set(1, .62, 1.45);
+      if (shoeK === "sneakers"){ const so = mesh(sph(.125), M("dark", 0xb3261e), s * .17, .035, .26, fig); so.scale.set(1, .25, 1.48); }
+      if (shoeK === "boots") mesh(cyl(.11, .12, .22, 16), shoeM, s * .17, .18, .2, fig); });
+    /* legs/robe (pants), belt */
+    const pantsM = a.pants === "jeans" ? M("cloth", 0xffffff, {map: denimTex()}) : M("cloth", PANTS[a.pants] || PANTS.patched);
+    mesh(lathe("skirt", [[.5, 0], [.495, .05], [.44, .27], [.37, .47]], 40), pantsM, 0, 0, 0, fig, ol);
+    if (a.pants === "patched"){ const p = mesh(box(.14, .12, .02), M("cloth", 0x8a7558), .15, .2, .43, fig); p.rotation.set(-.15, .3, .1); }
+    if (a.pants === "royal") mesh(tor(.485, .018, 6, 40), M("gold", 0xe0b13a), 0, .06, 0, fig).rotation.x = Math.PI / 2;
+    /* torso (breathes); arms hang from it */
+    const torso = new T.Group(); torso.position.y = .45; fig.add(torso); rig.torso = torso;
+    const shirt = SHIRT[a.shirt] || SHIRT.rags, shirtM = shirt[1] === "stripes" ? M("cloth", 0xffffff, {map: stripeTex("#f4f1ea", "#22355e", 10)}) : M("cloth", shirt[0]);
+    mesh(lathe("torso", [[.37, 0], [.33, .15], [.34, .33], [.39, .47], [.4, .55], [.34, .65], [.2, .72], [.09, .75], [0, .76]], 40), shirtM, 0, 0, 0, torso, ol);
+    const beltM = a.shirt === "tunic" || a.shirt === "royal" ? M("gold", 0xd9a531) : M("leather", 0x4a3020);
+    mesh(tor(.37, .036, 8, 40), beltM, 0, .02, 0, torso).rotation.x = Math.PI / 2;
+    if (a.shirt === "rags"){ [[-.13, .3, .33, .2], [.16, .16, .32, -.3]].forEach(([x, y, z, r]) => { const p = mesh(box(.12, .1, .02), M("cloth", 0x7a6248), x, y, z, torso); p.rotation.set(0, x * 1.2, r); }); }
+    if (a.shirt === "hoodie"){ const hd = mesh(tor(.19, .075, 10, 24), shirtM, 0, .7, -.08, torso); hd.rotation.x = Math.PI / 2 - .4; mesh(box(.28, .12, .03), M("cloth", 0x5f6670), 0, .18, .335, torso); [-.05, .05].forEach(x => mesh(cyl(.008, .008, .16, 6), M("cloth", 0xffffff), x, .58, .3, torso)); }
+    if (a.shirt === "royal"){ [.3, .1].forEach(y => mesh(tor(.36 + y * .05, .015, 6, 40), M("gold", 0xe0b13a), 0, y + .08, 0, torso).rotation.x = Math.PI / 2); [.2, .3, .4, .5].forEach(y => mesh(sph(.022, 10, 8), M("gold", 0xe0b13a), 0, y, .345 + (y > .45 ? .02 : 0), torso)); }
+    if (a.shirt === "tunic") mesh(box(.04, .3, .02), M("cloth", 0x2b6428), 0, .5, .33, torso).rotation.x = -.35;
+    /* coat / armour */
+    const coatK = a.coat, coatC = {vest: [0x5b3a22, "leather"], jacket: [0x26324a, "cloth"], leather: [0x7a4d2b, "leather"], steel: [0xbfc6cf, "metal"], gold: [0xe0b13a, "gold"]}[coatK];
+    let sleeveUp = shirtM, sleeveLo = ["rags", "tee"].includes(a.shirt) ? skin : shirtM;
+    if (coatC){ const cm = M(coatC[1], coatC[0]), open = coatK === "vest" || coatK === "jacket";
+      mesh(lathe("coat" + (open ? "o" : "c"), [[.385, .02], [.345, .16], [.355, .33], [.405, .47], [.415, .55], [.355, .64], [.22, .7]], 40, open ? .32 : 0, open ? Math.PI * 2 - .64 : Math.PI * 2), M(coatC[1], coatC[0], {side: T.DoubleSide}), 0, 0, 0, torso, ol);
+      if (coatK === "jacket"){ sleeveUp = cm; sleeveLo = cm; [-1, 1].forEach(s => { const l = mesh(box(.09, .22, .02), cm, s * .1, .56, .33, torso); l.rotation.set(-.3, s * .35, s * .25); }); }
+      if (["leather", "steel", "gold"].includes(coatK)){ sleeveUp = cm;
+        if (coatK !== "leather"){ mesh(box(.04, .4, .02), M(coatC[1], hexNum(coatK === "gold" ? "#fff0b0" : "#ffffff")), 0, .35, .37, torso).rotation.x = -.06; }
+        if (coatK === "gold") mesh(oct(.05), M("gem", 0xd1202f), 0, .45, .4, torso);
+        if (coatK === "leather") [-.12, .12].forEach(x => { const st = mesh(box(.035, .52, .015), M("leather", 0x3a2414), x, .38, .345, torso); st.rotation.set(-.1, 0, x * 1.4); }); } }
+    /* arms with elbows; hands carry the items */
+    const arm = s => {
+      const shG = new T.Group(); shG.position.set(s * .36, .58, 0); torso.add(shG);
+      mesh(caps(.088, .17), sleeveUp, 0, -.12, 0, shG, ol);
+      if (["steel", "gold", "leather"].includes(coatK)){ const pm = M(coatC[1], coatC[0]); const pd = mesh(G("pad", () => new T.SphereGeometry(.15, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2)), pm, 0, .0, 0, shG, ol); pd.rotation.z = s * .25;
+        if (coatK === "gold") [-.05, .05].forEach(z => { const sp = mesh(cone(.035, .14, 10), pm, s * .06, .14, z, shG); sp.rotation.z = -s * .5; }); }
+      const el = new T.Group(); el.position.y = -.27; shG.add(el);
+      mesh(caps(.078, .15), sleeveLo, 0, -.1, 0, el, ol);
+      const hand = new T.Group(); hand.position.y = -.24; el.add(hand); mesh(sph(.092), skin, 0, 0, 0, hand, ol);
+      const item = new T.Group(); hand.add(item); item.rotation.set(.12, 0, -s * .3);
+      return {sh: shG, el, hand, item, s};
+    };
+    rig.R = arm(-1); rig.L = arm(1);
+    if (a.wrist !== "none"){ const wm = a.wrist === "rope" ? M("cloth", 0xb8955a) : a.wrist === "silver" ? M("metal", 0xdfe4ea) : a.wrist === "gold" ? M("gold", 0xe0b13a) : M("metal", 0x4b5563);
+      const w = mesh(tor(.085, .022, 8, 20), wm, 0, -.16, 0, rig.R.el); w.rotation.x = Math.PI / 2;
+      if (a.wrist === "rune"){ const g = mesh(tor(.087, .008, 6, 24), M("glow", 0x59e3ff), 0, -.16, 0, rig.R.el); g.rotation.x = Math.PI / 2; } }
+    /* neck and head */
+    mesh(cyl(.1, .12, .14, 16), skin, 0, 1.25, 0, fig);
+    const head = new T.Group(); head.position.y = H.y; fig.add(head); rig.head = head;
+    buildHead(rig, a, cls, H, head, skin);
+    /* cape */
+    if (a.cape !== "none"){ const C = {cloth: [0x8a7a5e, 0x6d6049], red: [0xb3261e, 0xe0b13a], green: [0x2f7a3a, 0x9fd36b], purple: [0x5a2d91, 0xe0b13a], ermine: [0x8b1e2d, 0xffffff]}[a.cape] || [0x8a7a5e, 0x6d6049];
+      const cg = new T.CylinderGeometry(.4, .66, 1.06, 26, 12, true, Math.PI - 1.15, 2.3); rig.own.push(cg); const base0 = cg.attributes.position.array.slice();
+      const cape = new T.Group(); cape.position.set(0, .56, -.04); fig.add(cape);
+      mesh(cg, M("cloth", C[0], {side: T.FrontSide}), 0, 0, 0, cape, ol); mesh(cg, a.cape === "ermine" ? M("cloth", 0xffffff, {map: ermineTex(), side: T.BackSide}) : M("cloth", C[1], {side: T.BackSide}), 0, 0, 0, cape);
+      if (a.cape === "ermine"){ const col = mesh(tor(.3, .07, 10, 24, Math.PI * 1.3), M("cloth", 0xffffff, {map: ermineTex()}), 0, 1.16, -.05, fig); col.rotation.set(Math.PI / 2, 0, Math.PI * -.15 - Math.PI / 2 + Math.PI); }
+      rig.cape = {g: cg, base: base0};
+    }
+    /* wings */
+    if (a.back !== "none") buildWings(rig, a.back, torso);
+    /* hand items */
+    buildItem(rig, a.right, rig.R, "R"); buildItem(rig, a.left, rig.L, "L");
+    /* aura */
+    if (a.aura !== "none") buildAura(rig, a.aura, root);
+    /* mythic: rune circle and floating energy */
+    if (tier >= 4){ const rc = new T.Mesh(G("pl1", () => new T.PlaneGeometry(1.9, 1.9)), new T.MeshBasicMaterial({map: runeTex("#ffd75e"), transparent: true, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false, opacity: .85}));
+      rc.rotation.x = -Math.PI / 2; rc.position.y = .215; root.add(rc); rig.own.push(rc.material); rig.rune = rc;
+      emitter(rig, root, {n: 26, tex: sparkTex(), spawn: p => { const ang = Math.random() * 6.3, r = .3 + Math.random() * .4; p.x = Math.cos(ang) * r; p.z = Math.sin(ang) * r; p.y = .25; p.vx = 0; p.vz = 0; p.vy = .5 + Math.random() * .6; p.life = 1.2 + Math.random(); p.s = .07 + Math.random() * .06; p.c = 0xfff1b0; p.c2 = 0xff9a3a; }});
+      sprite(rig, root, glowTex(), 0xffcf6a, 1.6, 0, .35, 0, .35);
+    }
+    rig.update = (dt) => tick(rig, dt);
+    tick(rig, 0);
+    return rig;
+  }
+  function hexNum(h){ return parseInt(h.slice(1), 16); }
+
+  function buildHead(rig, a, cls, H, head, skin){
+    const ol = true, eyeC = EYE_C[a.eyes] || EYE_C.brown, hairC = a.hairC != null ? a.hairC : a.hue != null ? HAIR_C[Math.floor(a.hue / 60) % HAIR_C.length] : HAIR_C[0];
+    if (H.knight){
+      const g = extr("horse", HORSE, .26, .06, true); mesh(g, skin, 0, 0, 0, head, ol);
+      mesh(sph(.035, 10, 8), M("dark", 0x2a2420), .33, -.13, .17, head); mesh(sph(.035, 10, 8), M("dark", 0x2a2420), .33, -.13, -.17, head);
+      [1, -1].forEach(s => { const e = new T.Group(); e.position.set(.12, .12, s * .2); head.add(e); e.rotation.y = s > 0 ? 0 : Math.PI; eyeParts(e, eyeC, a); rig.eyes.push(e); });
+      if (a.hair !== "none"){ const hm = a.hair === "flame" ? M("cloth", 0xff7a1f, {em: .9}) : M("cloth", hairC);
+        for (let i = 0; i < 7; i++){ const t = i / 6, x = -.26 + t * .2, y = .2 - t * .45; const m = mesh(box(.09, .12, .1), hm, x - .04, y + .15, 0, head); m.rotation.z = .5 + t * .4; }
+        if (a.hair === "flame") flames(rig, head, [-.2, .35, 0], .2, 14); }
+    } else {
+      const pts = []; for (let i = 0; i <= 24; i++){ const y = -.34 + i * .8 / 24; const r = H.prof(y); if (r > 0 || i === 0) pts.push(V2(r, y)); }
+      mesh(lathe("head" + cls, pts.map(p => [p.x, p.y]), 40), skin, 0, 0, 0, head, ol);
+      if (cls === "bishop"){ mesh(sph(.06), skin, 0, .46, 0, head, ol); const sl = mesh(box(.025, .2, .02), M("dark", 0x2a2420), .1, .26, .14, head); sl.rotation.set(-.5, 0, -.6); }
+      if (cls === "rook"){ for (let i = 0; i < 6; i++){ const ang = i / 6 * Math.PI * 2 + Math.PI / 6; const b = mesh(box(.12, .11, .08), skin, Math.sin(ang) * .24, .32, Math.cos(ang) * .24, head, ol); b.rotation.y = ang; } mesh(tor(.28, .012, 6, 40), M("dark", 0x8a8070), 0, .12, 0, head).rotation.x = Math.PI / 2; }
+      if (cls === "queen"){ const cm = M("gold", 0xe0b13a); mesh(tor(.22, .028, 8, 36), cm, 0, .26, 0, head).rotation.x = Math.PI / 2; for (let i = 0; i < 8; i++){ const ang = i / 8 * Math.PI * 2; mesh(cone(.03, .1, 8), cm, Math.sin(ang) * .22, .32, Math.cos(ang) * .22, head); mesh(sph(.028, 10, 8), skin, Math.sin(ang) * .22, .39, Math.cos(ang) * .22, head); } }
+      if (cls === "king"){ const cm = M("gold", 0xe0b13a); mesh(cyl(.21, .21, .1, 32, true), M("gold", 0xe0b13a, {side: T.DoubleSide}), 0, .32, 0, head); mesh(box(.05, .2, .05), cm, 0, .48, 0, head); mesh(box(.15, .05, .05), cm, 0, .5, 0, head); }
+      H.eyes.forEach(([x, y]) => { const f = faceAt(H, x, y, -.012); const e = new T.Group(); e.position.copy(f.p); orient(e, f.n); head.add(e); eyeParts(e, eyeC, a); rig.eyes.push(e); });
+      { const f = faceAt(H, 0, H.mouth, .004); const m = mesh(tor(.06, .012, 6, 16, Math.PI), M("dark", 0x3a2a22), 0, 0, 0, head); m.position.copy(f.p); orient(m, f.n); m.rotateZ(Math.PI); }
+      if (H.hair && a.hair !== "none") buildHair(rig, a.hair, hairC, head, H);
+      if (a.paint !== "none"){ const y0 = -.2, y1 = .2, lay = {key: cls, eyes: H.eyes.map(([x, y]) => [(Math.asin(x / H.prof(y)) + 1.25) / 2.5, 1 - (y - y0) / (y1 - y0)]), mouth: [.5, 1 - (H.mouth - y0) / (y1 - y0)]};
+        const tex = paintTex(a.paint, lay), glow = ["runes", "demon", "kintsugi"].includes(a.paint);
+        const pm = M("skin", 0xffffff, {map: tex, transparent: true, emMap: glow ? tex : null}); mesh(faceShell(H, y0, y1, 1.012, cls), pm, 0, 0, 0, head); }
+      if (a.mask !== "none") buildMask(rig, a.mask, head, H, cls);
+      if (a.glasses !== "none") buildGlasses(rig, a.glasses, head, H);
+      if (a.ears !== "none") [-1, 1].forEach(s => earring(rig, a.ears, head, s * H.ears, -.07, 0));
+    }
+    if (H.knight){ if (a.glasses !== "none") [1, -1].forEach(s => { const g = new T.Group(); g.position.set(.12, .12, s * .235); head.add(g); lens(rig, a.glasses, g, 0); }); if (a.ears !== "none") [1, -1].forEach(s => earring(rig, a.ears, head, -.1, -.08, s * .19)); if (a.mask !== "none") [1, -1].forEach(s => { const m = mesh(box(.22, .08, .02), a.mask === "visor" ? M("metal", 0xb9c0c8) : M("dark", 0x161616), .12, .12, s * .232, head); }); }
+    if (a.head !== "none"){ const hg = new T.Group(); hg.position.set(H.hat[0], H.hat[1], 0); hg.scale.setScalar(H.hat[2]); head.add(hg); buildHat(rig, a.head, hg); }
+    if (a.eyes === "glow" || rig.tier >= 4) rig.eyes.forEach(e => sprite(rig, e, glowTex(), a.eyes === "glow" ? 0xff3b3b : 0xffd75e, .16, 0, 0, .03, .9));
+  }
+  function eyeParts(e, c, a){
+    if (TIER === 0){ mesh(sph(.05, 16, 12), M("dark", 0x1d1a17), 0, 0, 0, e).scale.set(1, 1.15, .5); mesh(sph(.016, 8, 6), M("glow", 0xffffff), .015, .02, .022, e); return; }
+    mesh(sph(.06, 18, 14), M("skin", 0xfbfaf6), 0, 0, 0, e).scale.set(1, 1.12, .5);
+    mesh(sph(.038, 16, 12), M(a.eyes === "gold" || a.eyes === "glow" ? "gem" : "dark", c), 0, 0, .02, e).scale.set(1, 1.05, .45);
+    mesh(sph(.02, 10, 8), M("dark", 0x0d0b0a), 0, 0, .032, e).scale.set(1, 1, .5);
+    mesh(sph(.009, 8, 6), M("glow", 0xffffff), .013, .016, .04, e);
+  }
+  function buildHair(rig, k, c, head, H){
+    const hm = k === "flame" ? M("cloth", 0xff6a1a, {em: .8}) : M("cloth", c), r = H.prof(0) || .3, rr = rig.rr;
+    const capG = G("cap" + r, () => new T.SphereGeometry(r * 1.06, 32, 14, 0, Math.PI * 2, 0, 1.18)); const cap = mesh(capG, hm, 0, 0, 0, head, true); cap.rotation.x = -.38;
+    if (k === "messy" || k === "flame") for (let i = 0; i < 10; i++){ const th = .2 + rr() * .9, ph = rr() * 6.28; const n = new T.Vector3(Math.sin(th) * Math.sin(ph), Math.cos(th), Math.sin(th) * Math.cos(ph)).applyAxisAngle(new T.Vector3(1, 0, 0), -.38); if (n.z > .55 && n.y < .6) continue; const cn = mesh(cone(.06, k === "flame" ? .24 : .16, 8), hm, n.x * r, n.y * r, n.z * r, head); cn.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), n.clone().add(new T.Vector3(0, .6, 0)).normalize()); if (k === "flame") rig.tick.push((dt, t) => { cn.scale.y = 1 + Math.sin(t * 9 + i) * .25; }); }
+    if (k === "flame") flames(rig, head, [0, r * .9, -.05], .22, 18);
+    if (k === "long"){ const b = mesh(G("hairlong" + r, () => new T.CylinderGeometry(r * 1.03, r * 1.14, .52, 24, 1, true, .8, Math.PI * 2 - 1.6)), M("cloth", c, {side: T.DoubleSide}), 0, -.17, -.01, head); }
+    if (k === "bun") mesh(sph(.12), hm, 0, r * .82, -r * .5, head, true);
+    if (k === "curly"){ for (let i = 0; i < 34; i++){ const y = 1 - (i / 33) * 1.25, rad = Math.sqrt(Math.max(0, 1 - y * y)), th = i * 2.4; const n = new T.Vector3(Math.cos(th) * rad, y, Math.sin(th) * rad); if (n.z > .35 && n.y < .62) continue; mesh(sph(.075, 10, 8), hm, n.x * r * 1.04, n.y * r * 1.04, n.z * r * 1.04, head); } }
+    if (k === "mohawk"){ const mm = M("cloth", 0xd1202f); for (let i = 0; i < 7; i++){ const a2 = -.9 + i * .38; const n = new T.Vector3(0, Math.cos(a2), Math.sin(a2)); const cn = mesh(cone(.05, .22, 8), mm, 0, n.y * r * .98, n.z * r * .98, head); cn.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), n); } }
+  }
+  function buildHat(rig, k, g){
+    const ol = true;
+    if (k === "beanie"){ const m = M("cloth", 0xb3261e); const c = mesh(G("beanie", () => new T.SphereGeometry(.325, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2)), m, 0, .04, -.02, g, ol); c.rotation.x = -.25; const rim = mesh(tor(.31, .045, 10, 32), m, 0, .06, -.01, g); rim.rotation.x = Math.PI / 2 - .25; mesh(sph(.08), M("cloth", 0xf4f1ea), 0, .38, -.1, g, ol); }
+    else if (k === "cap"){ const m = M("cloth", 0x2f6fb5); const c = mesh(G("capH", () => new T.SphereGeometry(.318, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2)), m, 0, .04, 0, g, ol); c.rotation.x = -.18; const br = mesh(cyl(.2, .2, .025, 24, false, -Math.PI / 2, Math.PI), m, 0, .09, .22, g); br.rotation.x = .12; mesh(sph(.025, 8, 6), m, 0, .36, -.05, g); }
+    else if (k === "band"){ const b = mesh(tor(.305, .032, 8, 36), M("cloth", 0xd1202f), 0, .12, -.01, g); b.rotation.x = Math.PI / 2 - .2; [-1, 1].forEach(s => { const t = mesh(box(.05, .2, .015), M("cloth", 0xd1202f), s * .05, .02, -.33, g); t.rotation.set(.3, 0, s * .4); }); }
+    else if (k === "wizard"){ const m = M("cloth", 0x4b2a8a); const c = mesh(cone(.3, .78, 32), m, 0, .5, -.04, g, ol); c.rotation.x = -.12; mesh(cyl(.46, .46, .03, 40), m, 0, .12, 0, g, ol); for (let i = 0; i < 3; i++){ const s = mesh(oct(.035), M("gem", 0xffd75e, {em: .6}), Math.sin(i * 2) * .14, .32 + i * .14, .18 - i * .05, g); s.scale.set(1, 1, .4); } }
+    else if (k === "helmet" || k === "viking"){ const m = M("metal", 0xb9c0c8); const c = mesh(G("helm", () => new T.SphereGeometry(.335, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2 + .1)), m, 0, .03, 0, g, ol); c.rotation.x = -.1; mesh(tor(.33, .025, 8, 40), m, 0, .02, 0, g).rotation.x = Math.PI / 2 - .1; mesh(box(.05, .22, .03), m, 0, -.05, .33, g);
+      if (k === "viking") [-1, 1].forEach(s => mesh(G("horn" + s, () => taper([[s * .28, .12, 0], [s * .44, .2, 0], [s * .55, .38, .02], [s * .5, .56, .04]], .065, .008)), M("skin", 0xefe2c4), 0, 0, 0, g)); }
+    else if (k === "laurel"){ const m = M(rig.tier >= 3 ? "gold" : "cloth", rig.tier >= 3 ? 0xe0b13a : 0x4f8a3a); for (let i = 0; i < 22; i++){ const ang = i / 22 * Math.PI * 2; if (Math.abs(Math.sin(ang / 2)) < .1) continue; const l = mesh(sph(.06, 8, 6), m, Math.sin(ang) * .31, .13 + Math.cos(ang) * .05, Math.cos(ang) * .31, g); l.scale.set(.5, 1, .25); l.rotation.set(0, ang, .6); } }
+    else if (k === "crown" || k === "imperial"){ const m = M("gold", 0xe0b13a), imp = k === "imperial", y0 = imp ? .3 : .28;
+      mesh(cyl(.25, .27, imp ? .16 : .12, 36, true), M("gold", 0xe0b13a, {side: T.DoubleSide}), 0, y0, 0, g);
+      for (let i = 0; i < (imp ? 8 : 5); i++){ const ang = i / (imp ? 8 : 5) * Math.PI * 2; mesh(cone(.045, .15, 8), m, Math.sin(ang) * .25, y0 + .13, Math.cos(ang) * .25, g); mesh(sph(.025, 8, 6), m, Math.sin(ang) * .25, y0 + .22, Math.cos(ang) * .25, g); }
+      [[0, 0xd1202f], [Math.PI / 2, 0x2f6fb5], [-Math.PI / 2, 0x2f6fb5], [Math.PI, 0x3f8f3a]].forEach(([ang, c]) => mesh(oct(.04), M("gem", c), Math.sin(ang) * .262, y0, Math.cos(ang) * .262, g));
+      if (imp){ mesh(G("velvet", () => new T.SphereGeometry(.24, 24, 10, 0, Math.PI * 2, 0, Math.PI / 2)), M("cloth", 0x8b1e2d), 0, y0 + .02, 0, g); [0, Math.PI / 2].forEach(r => { const ar = mesh(tor(.24, .022, 8, 24, Math.PI), m, 0, y0 + .04, 0, g); ar.rotation.y = r; });
+        mesh(sph(.05), m, 0, y0 + .32, 0, g); mesh(box(.025, .1, .025), m, 0, y0 + .41, 0, g); mesh(box(.07, .025, .025), m, 0, y0 + .41, 0, g); sparkles(rig, g, [0, y0 + .2, 0], .35, 6); } }
+  }
+  function buildMask(rig, k, head, H, cls){
+    if (k === "domino") mesh(faceShell(H, -.03, .1, 1.04, cls), M("dark", 0x161616, {side: T.DoubleSide}), 0, 0, 0, head);
+    else if (k === "ninja"){ mesh(faceShell(H, -.28, -.04, 1.04, cls), M("cloth", 0x1c1c22, {side: T.DoubleSide}), 0, 0, 0, head); mesh(faceShell(H, .1, .16, 1.03, cls), M("cloth", 0x1c1c22, {side: T.DoubleSide}), 0, 0, 0, head); }
+    else if (k === "visor"){ const m = M("metal", 0xb9c0c8, {side: T.DoubleSide}); mesh(faceShell(H, .07, .26, 1.16, cls), m, 0, 0, 0, head); mesh(faceShell(H, -.3, -.01, 1.16, cls), m, 0, 0, 0, head); mesh(faceShell(H, -.01, .07, 1.1, cls), M("dark", 0x101010, {side: T.DoubleSide}), 0, 0, 0, head); }
+  }
+  function lens(rig, k, g, s){
+    if (k === "round") mesh(tor(.072, .012, 8, 24), M("dark", 0x2a2420), 0, 0, 0, g);
+    else if (k === "square"){ const t = mesh(tor(.085, .012, 4, 4), M("dark", 0x1d1d1f), 0, 0, 0, g); t.rotation.z = Math.PI / 4; }
+    else if (k === "shades"){ mesh(sph(.08, 16, 10), M("lens", 0x111111), 0, 0, 0, g).scale.set(1.1, .8, .25); }
+    else if (k === "monocle"){ if (s > 0) return; mesh(tor(.07, .012, 8, 24), M("gold", 0xe0b13a), 0, 0, 0, g); mesh(G("mono", () => new T.CircleGeometry(.068, 20)), M("glow", 0x9fd8ff, {op: .25}), 0, 0, 0, g); }
+    else if (k === "star"){ const pts = []; for (let i = 0; i < 10; i++){ const r = i % 2 ? .04 : .09, an = i / 10 * Math.PI * 2 + Math.PI / 2; pts.push([Math.cos(an) * r, Math.sin(an) * r]); } mesh(extr("star", pts, .02, .006), M("gem", 0xff5fae), 0, 0, 0, g); }
+  }
+  function buildGlasses(rig, k, head, H){
+    const ps = H.eyes.map(([x, y]) => faceAt(H, x, y, .045));
+    ps.forEach((f, i) => { const g = new T.Group(); g.position.copy(f.p); orient(g, f.n); head.add(g); lens(rig, k, g, i ? 1 : -1); });
+    if (k === "monocle"){ const f = ps[0]; mesh(G("chain", () => taper([[f.p.x - .05, f.p.y - .06, f.p.z], [f.p.x - .14, -.2, f.p.z - .05], [f.p.x - .2, -.36, .1]], .006, .006, 5, 12)), M("gold", 0xe0b13a), 0, 0, 0, head); return; }
+    const a = ps[0].p, b = ps[1].p, mid = a.clone().add(b).multiplyScalar(.5); const br = mesh(cyl(.01, .01, a.distanceTo(b) - .15, 6), M("dark", 0x2a2420), mid.x, mid.y + .02, mid.z, head); br.rotation.z = Math.PI / 2;
+    [-1, 1].forEach((s, i) => { const p = ps[i].p; const tm = mesh(box(.012, .012, .28), M("dark", 0x2a2420), p.x + s * .07, p.y + .01, p.z - .15, head); tm.rotation.y = s * .25; });
+  }
+  function earring(rig, k, head, x, y, z){
+    const g = new T.Group(); g.position.set(x, y, z); head.add(g);
+    if (k === "stud") mesh(sph(.028, 10, 8), M("metal", 0xdfe4ea), 0, 0, 0, g);
+    else if (k === "hoop" || k === "gold"){ const t = mesh(tor(k === "gold" ? .065 : .05, .01, 8, 20), M(k === "gold" ? "gold" : "metal", k === "gold" ? 0xe0b13a : 0xdfe4ea), 0, -.06, 0, g); t.rotation.y = Math.PI / 2; }
+    else if (k === "diamond"){ mesh(oct(.045), M("gem", 0xcff3ff), 0, -.06, 0, g).scale.set(.8, 1.2, .8); sparkles(rig, g, [0, -.06, 0], .06, 2); }
+  }
+  /* hand items point up; the item group already undoes the arm's tilt */
+  function buildItem(rig, k, A, side){
+    const g = A.item, ol = true;
+    if (k === "none" || !k) return;
+    if (k === "stick"){ const s = mesh(cyl(.025, .03, .9, 8), M("wood", 0xffffff), 0, .25, .02, g); s.rotation.z = .08; }
+    else if (k === "woodsword"){ mesh(box(.08, .5, .025), M("wood", 0xffffff), 0, .38, 0, g, ol); mesh(box(.22, .04, .05), M("wood", 0xffffff), 0, .12, 0, g); mesh(cyl(.025, .025, .14, 8), M("leather", 0x4a3020), 0, .02, 0, g); }
+    else if (k === "sword" || k === "firesword"){ const fire = k === "firesword";
+      mesh(extr("blade", [[-.04, 0], [.04, 0], [.035, .52], [0, .62], [-.035, .52]], .012, .008), fire ? M("dark", 0x2a1010, {em: .4}) : M("metal", 0xdfe4ea), 0, .14, 0, g, ol);
+      mesh(box(.24, .035, .05), M("gold", 0xd9a531), 0, .13, 0, g); mesh(cyl(.022, .022, .14, 8), M("leather", 0x3a2414), 0, .04, 0, g); mesh(sph(.035, 10, 8), M("gold", 0xd9a531), 0, -.04, 0, g);
+      if (fire){ mesh(extr("bladeE", [[-.05, 0], [.05, 0], [.045, .52], [0, .64], [-.045, .52]], .004, .004), M("glow", 0xff6a1a, {op: .65}), 0, .14, 0, g); flames(rig, g, [0, .45, 0], .14, 22, .32); } }
+    else if (k === "wand"){ mesh(cyl(.014, .02, .42, 8), M("dark", 0x2a1d14), 0, .2, 0, g); const tip = mesh(oct(.04), M("gem", 0x9fe8ff, {em: 1.2}), 0, .43, 0, g); rig.tick.push((dt, t) => { tip.rotation.y = t * 2; }); sparkles(rig, g, [0, .43, 0], .12, 6, 0x9fe8ff); }
+    else if (k === "scepter"){ const m = M("gold", 0xe0b13a); mesh(cyl(.022, .026, .62, 10), m, 0, .25, 0, g); mesh(tor(.06, .014, 6, 20), m, 0, .56, 0, g).rotation.x = Math.PI / 2; mesh(sph(.06), M("gem", 0xd1202f), 0, .62, 0, g); mesh(box(.02, .08, .02), m, 0, .71, 0, g); sparkles(rig, g, [0, .62, 0], .12, 4); }
+    else if (k === "book"){ const b = mesh(box(.2, .26, .06), M("leather", 0x7a2a2a), 0, .06, .05, g, ol); b.rotation.y = .4; const p = mesh(box(.185, .245, .05), M("cloth", 0xf4efe1), .012, .06, .05, g); p.rotation.y = .4; }
+    else if (k === "shield"){ const sg = new T.Group(); sg.position.set(side === "L" ? .1 : -.1, .05, .06); sg.rotation.y = side === "L" ? .9 : -.9; g.add(sg);
+      mesh(extr("shield", [[-.2, .2], [.2, .2], [.2, -.02], [0, -.26], [-.2, -.02]], .04, .02), M("metal", 0x5c8bb0), 0, 0, 0, sg, ol); mesh(box(.04, .38, .02), M("cloth", 0xffffff), 0, -.01, .04, sg); mesh(box(.3, .04, .02), M("cloth", 0xffffff), 0, .06, .04, sg); }
+    else if (k === "torch"){ mesh(cyl(.028, .022, .5, 8), M("wood", 0xffffff), 0, .18, 0, g); mesh(cyl(.05, .035, .08, 10), M("metal", 0x4b5563), 0, .44, 0, g); flames(rig, g, [0, .5, 0], .1, 20); rig.light = [g, 0xff8a2a]; }
+    else if (k === "flame"){ mesh(sph(.07), M("glow", 0xffb347), 0, .14, .04, g); flames(rig, g, [0, .14, .04], .09, 18); sprite(rig, g, glowTex(), 0xff8a2a, .5, 0, .14, .04, .7); }
+    else if (k === "orb"){ const m = M("gold", 0xe0b13a); mesh(sph(.1, 24, 16), m, 0, .14, .03, g, ol); mesh(tor(.1, .012, 6, 24), M("gem", 0x2f6fb5), 0, .14, .03, g).rotation.x = Math.PI / 2; mesh(box(.022, .1, .022), m, 0, .28, .03, g); mesh(box(.07, .022, .022), m, 0, .28, .03, g); }
+  }
+  function flames(rig, parent, at, spread, n, len = .4){
+    emitter(rig, parent, {n, tex: dotTex(), spawn: p => { p.x = at[0] + (Math.random() - .5) * spread * .5; p.y = at[1]; p.z = at[2] + (Math.random() - .5) * spread * .5; p.vx = (Math.random() - .5) * .08; p.vz = (Math.random() - .5) * .08; p.vy = len * (1.2 + Math.random()); p.life = .35 + Math.random() * .35; p.s = spread * (.9 + Math.random() * .6); p.c = 0xffd34a; p.c2 = 0xff3a10; }, shrink: .8});
+  }
+  function sparkles(rig, parent, at, spread, n, col = 0xfff4c0){
+    emitter(rig, parent, {n, tex: sparkTex(), spawn: p => { p.x = at[0] + (Math.random() - .5) * spread; p.y = at[1] + (Math.random() - .5) * spread; p.z = at[2] + (Math.random() - .5) * spread; p.vx = p.vy = p.vz = 0; p.life = .8 + Math.random() * 1.2; p.s = .05 + Math.random() * .05; p.c = col; }, shrink: -.2});
+  }
+  function buildWings(rig, k, torso){
+    const w = new T.Group(); w.position.set(0, .55, -.3); torso.add(w); rig.wings = [];
+    const col = {angel: 0xf8f6f0, fire: 0xff8a2a, void: 0x2a1440, crystal: 0x9fe8ff, bat: 0x2a1418}[k];
+    [-1, 1].forEach(s => {
+      const wg = new T.Group(); wg.position.x = s * .1; w.add(wg); rig.wings.push([wg, s]);
+      if (k === "bat"){ const pts = [[0, 0], [s * .5, .42], [s * .95, .55], [s * 1.05, .2], [s * .9, .02], [s * .75, -.15], [s * .55, -.05], [s * .38, -.3], [s * .2, -.12]];
+        const sh = new T.Shape(); pts.forEach(([x, y], i) => i ? sh.lineTo(x, y) : sh.moveTo(x, y)); const geo = new T.ShapeGeometry(sh); rig.own.push(geo); const mm = mesh(geo, M("leather", col, {side: T.DoubleSide}), 0, 0, 0, wg); mm.rotation.y = s * .35;
+        [[.5, .42], [.95, .55], [.9, .02], [.38, -.3]].forEach(([x, y]) => { const gg = taper([[0, 0, 0], [s * x * .6, y * .7, -.02], [s * x, y, 0]], .022, .006, 5, 8); rig.own.push(gg); mesh(gg, M("dark", 0x120a0a), 0, 0, 0, wg).rotation.y = s * .35; });
+        return; }
+      const cr = k === "crystal", m = cr ? M("gem", col, {em: .5}) : M(k === "angel" ? "cloth" : "cloth", col, {em: k === "fire" ? .9 : k === "void" ? .15 : 0});
+      const rows = [[7, .62, 0], [6, .46, .05], [5, .3, .1]];
+      rows.forEach(([n, len, dz], ri) => { for (let i = 0; i < n; i++){ const f = i / (n - 1), ang = .35 + f * 1.35, x = s * (.14 + Math.sin(ang) * .62 * (1 - ri * .18)), y = .24 + Math.cos(ang) * .42 - ri * .02;
+        const fe = mesh(cr ? oct(.1) : sph(.1, 10, 8), m, x, y, -dz, wg); fe.scale.set(cr ? .35 : .45, len * (1.1 - f * .35) * (cr ? 3 : 2.4), cr ? .35 : .12); fe.rotation.z = s * (Math.PI - ang * .55) ; } });
+      if (k === "fire") flames(rig, wg, [s * .6, .1, 0], .4, 24, .5);
+      if (k === "void") emitter(rig, wg, {n: 14, tex: smokeTex(), normal: 1, spawn: p => { p.x = s * (.2 + Math.random() * .6); p.y = Math.random() * .6 - .1; p.z = -.05; p.vx = s * .05; p.vy = .15; p.vz = 0; p.life = 1.5; p.s = .35; p.c = 0x3a1a5a; p.a = .7; }, grow: 1});
+      if (cr) sparkles(rig, wg, [s * .5, .3, 0], .7, 6, 0xcff6ff);
+    });
+  }
+  function buildAura(rig, k, root){
+    const C = {glow: 0xfff1c8, green: 0x8ee05a, fire: 0xff7a1f, storm: 0x7fd3ff, cosmic: 0xb48cff, chakra: 0xffc24a, orbit: 0xff8a2a, shadow: 0x6a2a9a, holy: 0xfff6d0}[k];
+    const fig = rig.fig;
+    if (k !== "shadow") { const gl = sprite(rig, root, glowTex(), C, k === "holy" ? 3 : 2.6, 0, 1.2, -.5, k === "glow" ? .5 : .38); rig.tick.push((dt, t) => { gl.material.opacity = (k === "glow" ? .5 : .38) * (.8 + Math.sin(t * 2.2) * .2); }); }
+    if (k === "glow" || k === "green") emitter(rig, root, {n: 18, spawn: p => { const a = Math.random() * 6.3, r = .5 + Math.random() * .4; p.x = Math.cos(a) * r; p.z = Math.sin(a) * r; p.y = .3 + Math.random() * .4; p.vx = p.vz = 0; p.vy = .3 + Math.random() * .3; p.life = 2 + Math.random(); p.s = .06; p.c = C; }});
+    if (k === "green"){ const ring = new T.Group(); ring.position.y = .02; root.add(ring); for (let i = 0; i < 18; i++){ const a = i / 18 * Math.PI * 2; const d = mesh(box(.12, .015, .03), M("glow", C), Math.cos(a) * .85, 0, Math.sin(a) * .85, ring); d.rotation.y = -a; } rig.tick.push((dt, t) => { ring.rotation.y = t * .6; }); }
+    if (k === "fire"){ emitter(rig, root, {n: 70, spawn: p => { const a = Math.random() * 6.3, r = .5 + Math.random() * .25; p.x = Math.cos(a) * r; p.z = Math.sin(a) * r; p.y = .1 + Math.random() * .2; p.vx = -p.x * .15; p.vz = -p.z * .15; p.vy = .9 + Math.random() * .8; p.life = .7 + Math.random() * .6; p.s = .22 + Math.random() * .16; p.c = 0xffd34a; p.c2 = 0xd1200f; }, shrink: .7});
+      emitter(rig, root, {n: 16, tex: sparkTex(), spawn: p => { const a = Math.random() * 6.3, r = .4 + Math.random() * .4; p.x = Math.cos(a) * r; p.z = Math.sin(a) * r; p.y = .3; p.vx = (Math.random() - .5) * .3; p.vz = 0; p.vy = 1 + Math.random(); p.life = 1.2; p.s = .05; p.c = 0xffe08a; }}); }
+    if (k === "storm"){ const bolts = []; for (let i = 0; i < 3; i++){ const mm = new T.Mesh(new T.BufferGeometry(), new T.MeshBasicMaterial({color: 0xcff3ff, transparent: true, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false})); root.add(mm); bolts.push({m: mm, next: Math.random() * 1.5, on: 0}); rig.own.push(mm.material); }
+      rig.tick.push((dt, t) => bolts.forEach(b => { b.next -= dt; b.on -= dt; if (b.next <= 0){ b.next = .6 + Math.random() * 1.6; b.on = .14; const s = Math.random() < .5 ? -1 : 1, x0 = s * (.5 + Math.random() * .4); const pts = []; let x = x0, y = 2.3 + Math.random() * .3; for (let i = 0; i < 8; i++){ pts.push([x, y, (Math.random() - .5) * .4]); x += (Math.random() - .5) * .3; y -= .28; } b.m.geometry.dispose(); b.m.geometry = taper(pts, .025, .008, 4, 16); } b.m.visible = b.on > 0; b.m.material.opacity = Math.max(0, b.on / .14); }));
+      emitter(rig, root, {n: 20, tex: sparkTex(), spawn: p => { const a = Math.random() * 6.3, r = .5 + Math.random() * .4; p.x = Math.cos(a) * r; p.z = Math.sin(a) * r; p.y = .3 + Math.random() * 1.8; p.vx = (Math.random() - .5); p.vy = (Math.random() - .5); p.vz = 0; p.life = .3 + Math.random() * .3; p.s = .07; p.c = 0xcff3ff; }}); }
+    if (k === "cosmic"){ const orb = new T.Group(); orb.position.y = 1.1; root.add(orb); for (let r = 0; r < 3; r++){ const ring = new T.Group(); ring.rotation.set(.4 + r * .5, r, .3 * r); orb.add(ring); for (let i = 0; i < 12; i++){ const a = i / 12 * Math.PI * 2; mesh(sph(i % 4 ? .018 : .03, 8, 6), M("glow", i % 4 ? 0xffffff : 0xd8b4ff), Math.cos(a) * (.85 + r * .08), 0, Math.sin(a) * (.85 + r * .08), ring); } rig.tick.push((dt, t) => { ring.rotation.y = t * (.4 + r * .25) * (r % 2 ? -1 : 1); }); } }
+    if (k === "chakra"){ const cg = new T.Group(); cg.position.y = 1.1; root.add(cg); [[.95, 0, .2], [.85, 1.1, -.3], [.75, -.9, .5]].forEach(([r, ry, rz], i) => { const t = mesh(tor(r, .012, 6, 64), M("glow", 0xffc24a, {op: .8}), 0, 0, 0, cg); t.rotation.set(Math.PI / 2 + rz, ry, 0); rig.tick.push((dt, tt) => { t.rotation.z = tt * (.5 + i * .3) * (i % 2 ? -1 : 1); }); });
+      [0xd1202f, 0xff7a1f, 0xffd34a, 0x3fbf5a, 0x3f8fd8, 0x4b3fb8, 0xb04bd8].forEach((c, i) => { const o = mesh(sph(.035, 10, 8), M("glow", c), 0, .32 + i * .2, .45 - Math.abs(i - 3) * .02, rig.fig); const s = sprite(rig, o, glowTex(), c, .22, 0, 0, 0, .8); rig.tick.push((dt, t) => { s.material.opacity = .5 + Math.sin(t * 3 + i * .7) * .35; }); });
+      emitter(rig, root, {n: 24, spawn: p => { p.a0 = Math.random() * 6.3; p.r = .7; p.y = .2; p.life = 2.4; p.s = .07; p.c = 0xffd98a; p.vy = .55; }, step: (p, dt, f) => { p.a0 += dt * 2; p.y += p.vy * dt; p.x = Math.cos(p.a0) * p.r * (1 - f * .4); p.z = Math.sin(p.a0) * p.r * (1 - f * .4); }}); }
+    if (k === "orbit"){ for (let i = 0; i < 3; i++){ const ball = new T.Group(); root.add(ball); mesh(sph(.08), M("glow", 0xffc070), 0, 0, 0, ball); sprite(rig, ball, glowTex(), 0xff7a1f, .55, 0, 0, 0, .9);
+        rig.tick.push((dt, t) => { const a = t * 1.6 + i * 2.09; ball.position.set(Math.cos(a) * .95, 1.0 + Math.sin(t * 1.3 + i) * .35, Math.sin(a) * .95); });
+        emitter(rig, root, {n: 22, spawn: p => { p.x = ball.position.x; p.y = ball.position.y; p.z = ball.position.z; p.vx = (Math.random() - .5) * .1; p.vy = .15; p.vz = (Math.random() - .5) * .1; p.life = .45; p.s = .16; p.c = 0xffb347; p.c2 = 0xd1200f; }, shrink: .9}); } }
+    if (k === "shadow"){ emitter(rig, root, {n: 30, tex: smokeTex(), normal: 1, order: 1, spawn: p => { const a = Math.random() * 6.3, r = .45 + Math.random() * .3; p.x = Math.cos(a) * r * 1.2; p.z = -.35 - Math.random() * .2; p.y = .1 + Math.random() * .3; p.vx = p.x * .15; p.vz = 0; p.vy = .45 + Math.random() * .3; p.life = 2 + Math.random(); p.s = .45 + Math.random() * .3; p.c = 0x2a1238; p.a = .4; }, grow: 1.2});
+      sprite(rig, root, glowTex(), 0x8a2be2, 2.2, 0, 1.1, -.6, .25); rig.eyes.forEach(e => sprite(rig, e, glowTex(), 0xd02bff, .2, 0, 0, .03, .9)); }
+    if (k === "holy"){ const pl = new T.Mesh(cyl(.55, .7, 3.2, 32, true), new T.MeshBasicMaterial({map: pillarTex(), color: 0xfff1c0, transparent: true, opacity: .16, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide, toneMapped: false})); pl.position.y = 1.6; root.add(pl); rig.own.push(pl.material);
+      const halo = mesh(tor(.24, .022, 8, 40), M("glow", 0xffe08a), 0, rig.head.position.y + .5, -.05, rig.fig); halo.rotation.x = Math.PI / 2 - .3; sprite(rig, halo, glowTex(), 0xffd75e, .8, 0, 0, 0, .5);
+      emitter(rig, root, {n: 22, tex: sparkTex(), spawn: p => { p.x = (Math.random() - .5) * 1.2; p.z = (Math.random() - .5) * 1.2; p.y = 2.6; p.vx = 0; p.vz = 0; p.vy = -.4 - Math.random() * .3; p.life = 3; p.s = .05 + Math.random() * .04; p.c = 0xfff4c0; }}); }
+  }
+
+  /* ---------- motion ---------- */
+  const lerp = (a, b, k) => a + (b - a) * k;
+  function tick(rig, dt){
+    rig.t += dt; const t = rig.t, k = dt ? 1 - Math.exp(-dt * 10) : 1, tier = rig.tier, A = rig, live = tier >= 2;
+    /* target pose */
+    const P = {rSx: .1, rSz: -.3, rEx: -.2, rEz: 0, lSx: .1, lSz: .3, lEx: -.2, lEz: 0, hY: 0, hX: 0, hZ: 0, fY: 0, fX: 0, fZ: 0, fRz: 0, fRy: 0, br: 0, eye: 1};
+    if (live){ P.br = Math.sin(t * 1.8) * .012; P.rSz += Math.sin(t * 1.1) * .04; P.lSz -= Math.sin(t * 1.1 + .5) * .04; P.hY = Math.sin(t * .37) * .28 * Math.sin(t * .13 + 1); P.hX = Math.sin(t * .5) * .05;
+      if (tier >= 3) P.fRz = Math.sin(t * .4) * .02; }
+    if (tier >= 4) P.fY = .26 + Math.sin(t * 1.6) * .05;
+    if (rig.pose === "cage"){ const r = (t % 4.2), shake = r > 3.2 ? Math.sin(t * 40) * .025 : 0; P.rSx = -1.2 + (r > 3.2 ? Math.sin(t * 30) * .08 : 0); P.lSx = P.rSx; P.rSz = .08; P.lSz = -.08; P.rEx = -.45; P.lEx = -.45; P.fX = shake; P.hY = Math.sin(t * .7) * .45; P.hX = r > 3.2 ? -.12 : Math.sin(t * .4) * .08; rig.rattle = shake; if ((t % 9) > 8.2) P.fY = Math.abs(Math.sin((t % 9 - 8.2) * 4)) * .12; }
+    if (rig.pose === "pet"){ P.fY = .05 + Math.sin(t * 2.4) * .06; P.rSz = -.6 + Math.sin(t * 5) * .15; P.lSz = .6 - Math.sin(t * 5) * .15; P.hY = Math.sin(t * .6) * .3; }
+    const e = rig.emote; if (e){ const s = t - e.t0, d = e.d || 2.6; if (s > d) rig.emote = null; else { const w = Math.min(1, s * 4, (d - s) * 4);
+      const mix = (key, v) => { P[key] = lerp(P[key], v, w); };
+      if (e.k === "wave"){ mix("rSz", -2.5); mix("rSx", .25); mix("rEz", -.5 + Math.sin(s * 14) * .45); mix("hZ", .12); }
+      else if (e.k === "cheer"){ mix("rSz", -2.75); mix("lSz", 2.75); mix("rEz", -.3); mix("lEz", .3); mix("hX", -.22); P.fY += s < d - .3 ? Math.abs(Math.sin(s * 6)) * .2 * w : 0; }
+      else if (e.k === "dance"){ mix("fRz", Math.sin(s * 7) * .14); P.fY += Math.abs(Math.sin(s * 7)) * .07 * w; mix("rSz", -1.2 + Math.sin(s * 7) * .8); mix("lSz", 1.2 + Math.sin(s * 7 + Math.PI) * .8); mix("rEz", -.6); mix("lEz", .6); mix("hY", Math.sin(s * 3.5) * .3); mix("fRy", Math.sin(s * 3.5) * .35); }
+      else if (e.k === "flex"){ mix("rSz", -1.45); mix("lSz", 1.45); mix("rSx", 0); mix("lSx", 0); mix("rEz", -1.75 + Math.sin(s * 9) * .08); mix("lEz", 1.75 - Math.sin(s * 9) * .08); mix("rEx", 0); mix("lEx", 0); mix("hX", -.12); P.br += .03 * w; }
+      else if (e.k === "power"){ const b = s > .9; mix("rSz", b ? -1.3 : -.55); mix("lSz", b ? 1.3 : .55); mix("rSx", b ? 0 : .35); mix("lSx", b ? 0 : .35); mix("hX", b ? -.2 : .25); P.fY += (b ? .32 : -.08) * w; if (b && !e.burst){ e.burst = 1; if (rig.onBurst) rig.onBurst(); } }
+      else if (e.k === "hit"){ mix("fZ", -.08); mix("hY", Math.sin(s * 25) * .45 * (1 - s / d)); P.eye = .25; }
+    } }
+    /* blink */
+    if (live){ rig.blink -= dt; if (rig.blink < 0){ if (rig.blink < -.13) rig.blink = 2.5 + Math.random() * 3.5; else P.eye = Math.min(P.eye, .1); } }
+    /* apply */
+    const R = rig.R, L = rig.L;
+    R.sh.rotation.x = lerp(R.sh.rotation.x, P.rSx, k); R.sh.rotation.z = lerp(R.sh.rotation.z, P.rSz, k); R.el.rotation.x = lerp(R.el.rotation.x, P.rEx, k); R.el.rotation.z = lerp(R.el.rotation.z, P.rEz, k);
+    L.sh.rotation.x = lerp(L.sh.rotation.x, P.lSx, k); L.sh.rotation.z = lerp(L.sh.rotation.z, P.lSz, k); L.el.rotation.x = lerp(L.el.rotation.x, P.lEx, k); L.el.rotation.z = lerp(L.el.rotation.z, P.lEz, k);
+    rig.head.rotation.y = lerp(rig.head.rotation.y, P.hY, k); rig.head.rotation.x = lerp(rig.head.rotation.x, P.hX, k); rig.head.rotation.z = lerp(rig.head.rotation.z, P.hZ, k);
+    rig.fig.position.y = lerp(rig.fig.position.y, .2 + P.fY, k); rig.fig.position.x = P.fX; rig.fig.position.z = lerp(rig.fig.position.z, P.fZ, k); rig.fig.rotation.z = lerp(rig.fig.rotation.z, P.fRz, k); rig.fig.rotation.y = lerp(rig.fig.rotation.y, P.fRy, k);
+    rig.torso.scale.set(1 - P.br * .3, 1 + P.br, 1 - P.br * .3);
+    rig.eyes.forEach(ey => { ey.scale.y = P.eye < 1 ? P.eye : lerp(ey.scale.y, 1, k); });
+    if (rig.cape && live){ const pos = rig.cape.g.attributes.position, b = rig.cape.base; for (let i = 0; i < pos.count; i++){ const y = b[i * 3 + 1], f = (.53 - y) / 1.06; pos.setZ(i, b[i * 3 + 2] - f * f * (.06 + Math.sin(t * 2.2 + y * 4 + b[i * 3] * 3) * .05)); pos.setX(i, b[i * 3] + f * Math.sin(t * 1.7 + y * 3) * .02); } pos.needsUpdate = true; }
+    if (rig.wings) rig.wings.forEach(([wg, s]) => { wg.rotation.y = s * (live ? .25 + Math.sin(t * (tier >= 4 ? 3 : 1.6)) * (tier >= 4 ? .3 : .12) : .25); });
+    if (rig.rune){ rig.rune.rotation.z = t * .5; rig.rune.material.opacity = .65 + Math.sin(t * 2) * .2; }
+    if (rig.pet) rig.pet.update(dt);
+    rig.tick.forEach(f => f(dt, t)); rig.fx.forEach(f => f(dt, t));
+  }
+
+  /* ---------- views ---------- */
+  function frameCam(cam, mode, aspect, spill, pet){
+    const F = {full: [1.16, 3.05, 6.6, 0], head: [1.82, .95, 3.4, .1], bust: [1.68, 1.15, 4, .1], cage: [1.04, 2.6, 6.3, 0]}[mode] || [1.08, 2.85, 6.6, 0];
+    let [ty, hgt, d] = F; const wid = (mode === "full" || mode === "cage" ? hgt * .7 : hgt * .95) + (pet && mode === "full" ? .8 : 0);
+    const tanH = Math.max(hgt / 2 / d, wid / 2 / d / Math.max(.2, aspect)) * (1 + 2 * (spill || 0));
+    cam.fov = 2 * Math.atan(tanH) * 180 / Math.PI; cam.aspect = aspect; cam.position.set(pet && mode === "full" ? .25 : 0, ty + d * .1, d); cam.lookAt(pet && mode === "full" ? .25 : 0, ty, 0); cam.updateProjectionMatrix();
+  }
+  function addPet(rig, cfg){
+    const b = typeof BOTS !== "undefined" && BOTS.find(x => x.id === cfg.pet); if (!b) return;
+    const p = build(Object.assign(botCfg(b), {aura: "none", back: "none", pet: "none"}), rig.tier, {pose: "pet"}); TIER = rig.tier;
+    p.root.scale.setScalar(.36); p.root.position.set(.95, .55, .25); p.root.rotation.y = -.45; rig.root.add(p.root); rig.pet = p; p.base.visible = false;
+    rig.own.push(...p.own); rig.pmats.push(...p.pmats);
+  }
+  function makeRig(spec){
+    const rig = build(spec.cfg, spec.tier, {pose: spec.pose});
+    if (spec.pet !== false && spec.mode === "full" && spec.cfg.pet && spec.cfg.pet !== "none") addPet(rig, spec.cfg);
+    if (spec.pose === "cage"){ const bars = new T.Group(); const m = M(spec.bar ? "gold" : "metal", spec.bar || 0x8d8a85); for (let i = -4; i <= 4; i++) mesh(cyl(.03, .03, 2.8, 10), m, i * .22, 1.3, .62, bars); mesh(box(2.1, .07, .07), m, 0, 2.02, .62, bars); mesh(box(2.1, .07, .07), m, 0, .3, .62, bars); rig.root.add(bars); rig.bars = bars; rig.tick.push(() => { bars.position.x = (rig.rattle || 0) * .6; }); }
+    return rig;
+  }
+  function disposeRig(rig){ if (!rig) return; rig.own.forEach(x => x.dispose && x.dispose()); }
+  function rimFor(spec){ const i = spec.rank != null ? spec.rank : -1; return i >= 0 ? TIERS[i].c1 : 0xffffff; }
+  function renderTo(scene, cam, rig, w, h, ctx){
+    grow(w, h); rig.pmats.forEach(m => { m.uniforms.uScale.value = h / (2 * Math.tan(cam.fov * Math.PI / 360)); });
+    R.setViewport(0, 0, w, h); R.setScissor(0, 0, w, h); R.setScissorTest(true); R.clear(); R.render(scene, cam);
+    ctx.clearRect(0, 0, w, h); ctx.drawImage(R.domElement, 0, bufH - h, w, h, 0, 0, w, h);
+  }
+  class View {
+    constructor(cv, spec){
+      this.cv = cv; this.spec = spec; this.ctx = cv.getContext("2d"); this.scene = new T.Scene(); lights(this.scene); this.cam = new T.PerspectiveCamera(30, 1, .1, 60);
+      this.yaw = 0; this.vel = 0; this.idle = 0; this.vis = true; this.last = 0; this.fps = spec.fps || 60; cv._v = this; this.set(spec.cfg, spec.tier); io.observe(cv); views.add(this); kick();
+      if (spec.drag) this.drag();
+    }
+    set(cfg, tier){
+      const sp = this.spec; sp.cfg = cfg; if (tier != null) sp.tier = tier;
+      if (this.rig){ this.scene.remove(this.rig.root); disposeRig(this.rig); }
+      this.rig = makeRig(sp); this.scene.add(this.rig.root); setLights(this.scene, sp.tier, rimFor(sp)); this.rig.root.rotation.y = this.yaw;
+      this.rig.onBurst = () => { const r = this.rig; const fl = sprite(r, r.root, glowTex(), 0xffe08a, .5, 0, 1.2, .3, 1); let s = 0; r.tick.push(dt => { s += dt; fl.scale.setScalar(.5 + s * 9); fl.material.opacity = Math.max(0, 1 - s * 1.6); }); };
+      this.size(); this.draw(performance.now(), 0);
+    }
+    size(){ const d = DPR(), r = this.cv.getBoundingClientRect(); const w = Math.max(16, Math.round((r.width || this.spec.w) * d)), h = Math.max(16, Math.round((r.height || this.spec.h) * d)); if (this.cv.width !== w || this.cv.height !== h){ this.cv.width = w; this.cv.height = h; } this.w = w; this.h = h; frameCam(this.cam, this.spec.mode, w / h, this.spec.spill, this.rig && !!this.rig.pet); }
+    draw(now, dt){
+      if (!this.drg){ if (Math.abs(this.vel) > .0005){ this.yaw += this.vel; this.vel *= .94; this.idle = 0; } else { this.idle += dt; if (this.idle > 4 && this.spec.drag){ const tgt = Math.round(this.yaw / (Math.PI * 2)) * Math.PI * 2; this.yaw += (tgt - this.yaw) * Math.min(1, dt * 2); } } }
+      this.rig.root.rotation.y = this.yaw; this.rig.update(dt); renderTo(this.scene, this.cam, this.rig, this.w, this.h, this.ctx);
+    }
+    drag(){
+      const cv = this.cv.parentNode || this.cv; let d = null; cv.style.touchAction = "pan-y"; cv.style.cursor = "grab";
+      cv.addEventListener("pointerdown", e => { d = {x: e.clientX, y: e.clientY, a: this.yaw, on: false}; this.vel = 0; });
+      window.addEventListener("pointermove", e => { if (!d) return; const dx = e.clientX - d.x; if (!d.on && Math.abs(dx) > 4) d.on = true; if (!d.on) return; this.drg = true; const na = d.a + dx * .012; this.vel = (na - this.yaw) * .5; this.yaw = na; this.idle = 0; });
+      const up = () => { if (d){ d = null; this.drg = false; } }; window.addEventListener("pointerup", up); window.addEventListener("pointercancel", up);
+    }
+    emote(k){ if (this.rig){ this.rig.emote = {k, t0: this.rig.t, d: k === "power" ? 2.8 : k === "hit" ? .9 : 2.6}; this.idle = 0; } }
+  }
+  function kick(){ if (!raf) raf = requestAnimationFrame(loop); }
+  let lastT = 0;
+  function loop(now){
+    raf = 0; const dt = Math.min(.05, lastT ? (now - lastT) / 1000 : .016); lastT = now; let n = 0;
+    if (!dead && !document.hidden) for (const v of views){ if (!v.cv.isConnected){ views.delete(v); io.unobserve(v.cv); disposeRig(v.rig); continue; } n++; if (!v.vis) continue; if (now - v.last < 1000 / v.fps - 2) continue; const vdt = v.last ? Math.min(.05, (now - v.last) / 1000) : dt; v.last = now; v.size(); v.draw(now, vdt); }
+    if (views.size) raf = requestAnimationFrame(loop); else lastT = 0;
+  }
+  /* still pictures: rendered once, then copied from the cache */
+  function snapshot(spec, w, h){
+    const key = JSON.stringify([spec.cfg, spec.tier, spec.mode, spec.rank, spec.pet, spec.pose, spec.bar, w, h]); let c = snaps.get(key); if (c) return c;
+    const rig = makeRig(spec); snapScene.add(rig.root); setLights(snapScene, spec.tier, rimFor(spec)); rig.root.rotation.y = spec.yaw || 0;
+    for (let i = 0; i < 24; i++) rig.update(.05);
+    const cam = new T.PerspectiveCamera(30, w / h, .1, 60); frameCam(cam, spec.mode, w / h, 0, !!rig.pet);
+    c = document.createElement("canvas"); c.width = w; c.height = h; renderTo(snapScene, cam, rig, w, h, c.getContext("2d"));
+    snapScene.remove(rig.root); disposeRig(rig); if (snaps.size > 400) snaps.delete(snaps.keys().next().value); snaps.set(key, c); return c;
+  }
+  function fallback(cv){ const w = cv.parentNode; if (w) w.classList.add("fb"); }
+  function hydrate(cv){
+    if (cv.dataset.done) return; const spec = reg.get(cv.dataset.k); if (!spec){ return; }
+    if (dead) return fallback(cv); if (!T){ pending.add(cv); load().catch(() => {}); return; }
+    cv.dataset.done = 1; reg.delete(cv.dataset.k);
+    try {
+      if (spec.live){ new View(cv, spec); cv.parentNode && cv.parentNode.classList.add("ok"); return; }
+      const d = DPR(), w = Math.round(spec.w * d), h = Math.round(spec.h * d); cv.width = w; cv.height = h;
+      const key = JSON.stringify([spec.cfg, spec.tier, spec.mode, spec.rank, spec.pet, spec.pose, spec.bar, w, h]);
+      const draw = () => { if (!cv.isConnected) return; const c = snapshot(spec, w, h); const x = cv.getContext("2d"); x.clearRect(0, 0, w, h); x.drawImage(c, 0, 0); cv.parentNode && cv.parentNode.classList.add("ok"); };
+      if (snaps.has(key)) draw(); else { queue.push(draw); if (!qraf) qraf = requestAnimationFrame(drain); }
+    } catch(e){ console.warn(e); fallback(cv); }
+  }
+  function drain(){ qraf = 0; const t0 = performance.now(); while (queue.length && performance.now() - t0 < 12){ try { queue.shift()(); } catch(e){ console.warn(e); } } if (queue.length) qraf = requestAnimationFrame(drain); }
+  new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes){ if (n.nodeType !== 1) continue; if (n.matches && n.matches("canvas.av3c")) hydrate(n); else if (n.querySelectorAll) n.querySelectorAll("canvas.av3c").forEach(hydrate); } }).observe(document.documentElement, {childList: true, subtree: true});
+
+  /* ---------- public ---------- */
+  /* an HTML placeholder; becomes a 3D picture as soon as it lands in the page. fb = fallback drawing while loading */
+  function tag(cfg, o = {}){
+    const id = "a" + (nextId++), w = o.w || 120, h = o.h || 120;
+    reg.set(id, {cfg: Object.assign({}, AV_DEFAULT, cfg || {}), tier: o.tier != null ? o.tier : 2, mode: o.mode || "full", w, h, live: !!o.live, pose: o.pose || (o.live === "cage" ? "cage" : "idle"), rank: o.rank, pet: o.pet, fps: o.fps, drag: o.drag, spill: o.spill, bar: o.bar});
+    if (reg.size > 3000) reg.delete(reg.keys().next().value);
+    return `<span class="av3w ${o.cls || ""} ${o.spill ? "spill" : ""}" style="width:${o.fill ? "100%" : w + "px"};height:${o.fill ? "100%" : h + "px"}"><canvas class="av3c" data-k="${id}"></canvas>${o.fb || ""}</span>`;
+  }
+  /* the big interactive figure; returns a handle to swap the outfit or play an emote */
+  function stage(el, cfg, o = {}){
+    el.innerHTML = tag(cfg, Object.assign({live: true, drag: true, mode: "full", fill: true}, o, {fb: o.fb || ""}));
+    const cv = el.querySelector("canvas");
+    return {get view(){ return cv._v; }, set(c, tier){ if (cv._v) cv._v.set(Object.assign({}, AV_DEFAULT, c), tier); else { const s = reg.get(cv.dataset.k); if (s){ s.cfg = Object.assign({}, AV_DEFAULT, c); if (tier != null) s.tier = tier; } } },
+      emote(k){ if (cv._v) cv._v.emote(k); }};
+  }
+  function react(el, k){ const cv = el && (el.matches && el.matches("canvas") ? el : el.querySelector("canvas.av3c")); if (cv && cv._v) cv._v.emote(k); }
+  return {load, tag, stage, react, get ok(){ return !!T && !dead; }, get dead(){ return dead; }};
+})();
+/* start loading early; pictures fill in as soon as it's there */
+setTimeout(() => { Av3D.load().catch(() => {}); }, 50);
+
+/* ---------- every avatar picture in the app now comes from the 3D figure ---------- */
+function avTier(cfg){ return cfg && cfg._n != null ? bodyTier(cfg._n) : bodyTier(); }
+avatarBadge = function(cfg, size = 36, rating){
+  const a = Object.assign({}, AV_DEFAULT, cfg || {}), r = rating != null ? rating : a._r != null ? a._r : (cfg === S.avatar ? S.puzzle.r : null);
+  const fi = frameTier(a, r), compact = size < 52, F = rankFrameSVG(fi, compact), d = Math.round(size);
+  return `<span class="avb fi-${fi}" style="width:${d}px;height:${d}px">${F.back}<span class="avb-c">${Av3D.tag(Object.assign({}, a, {aura: "none", pet: "none"}), {w: d, h: d, mode: "bust", tier: avTier(cfg), rank: fi, fb: avatarSVG(Object.assign({}, a, {aura: "none"}), {head: true, size: d})})}</span>${F.front}</span>`;
+};
+botAvatar = function(b, size = 44){ const c = botCfg(b); return `<span class="botav" style="width:${size}px;height:${size}px;background:hsl(${b.hue || 0} 30% 24%)">${Av3D.tag(Object.assign({}, c, {aura: "none"}), {w: size, h: size, mode: "bust", tier: botTierOf(b), rank: rankOf(b.r).idx, fb: avatarSVG(Object.assign({}, c, {aura: "none"}), {head: true, size})})}</span>`; };
+botPortrait = function(b, size = 96){ const c = botCfg(b); return `<span class="botfull3">${Av3D.tag(c, {w: size, h: Math.round(size * 1.15), mode: "full", tier: botTierOf(b), rank: rankOf(b.r).idx, fb: avatarSVG(c, {size: Math.round(size * .8)})})}</span>`; };
+/* stronger bots have stronger bodies */
+function botTierOf(b){ return b.r >= 2400 ? 4 : b.r >= 1800 ? 3 : b.r >= 1100 ? 2 : b.r >= 600 ? 1 : 0; }
 
 /* ===== Trophies: hundreds of achievements, checked from what you've done ===== */
 const ACH_TIER = [null,
@@ -4318,14 +5191,16 @@ Views.awards = {
 
 /* ===== Your figure: wardrobe first (every item is a trophy reward), trophies second ===== */
 const WGROUPS = [
-  ["figure", "Figure", null], ["head", "Head", ["hair", "head"]], ["face", "Face", ["eyes", "glasses", "mask", "ears"]],
-  ["body", "Body", ["shirt", "coat"]], ["cape", "Cape", ["cape"]], ["hands", "Hands", ["right", "left", "wrist"]],
-  ["legs", "Legs", ["pants", "shoes"]], ["aura", "Aura", ["aura"]], ["frame", "Border", ["frame"]]];
+  ["figure", "Figure", null], ["head", "Head", ["hair", "head"]], ["face", "Face", ["eyes", "paint", "glasses", "mask", "ears"]],
+  ["body", "Body", ["shirt", "coat"]], ["back", "Back", ["back", "cape"]], ["hands", "Hands", ["right", "left", "wrist"]],
+  ["legs", "Legs", ["pants", "shoes"]], ["aura", "Aura", ["aura"]], ["pet", "Pet", "pet"], ["frame", "Border", ["frame"]]];
 const SLOT_NAME = Object.fromEntries(AV_SLOTS);
-/* a short reason for a locked item, e.g. "Beat Viktor" or "150 trophies" */
+const HEADISH = ["hair", "head", "eyes", "glasses", "mask", "ears", "paint"];
+/* a short reason for a locked item, e.g. "Win 10 games" or "150 trophies" */
 function itemReqShort(it){
   if (!it.req) return "";
   if (it.req.startsWith("n:")) return it.req.slice(2) + " trophies";
+  if (it.req.startsWith("r:")) return it.req.slice(2) + " puzzle rating";
   const a = achById(it.req.slice(2)); return a ? a.desc.replace(/\.$/, "") : "Locked";
 }
 function achProg(a){ if (!a || !a.prog) return null; try { const [c, g] = a.prog(); return {c: Math.min(c, g), g, p: Math.max(0, Math.min(1, c / g))}; } catch(e) { return null; } }
@@ -4344,13 +5219,22 @@ function achDetail(a){
 }
 /* what a figure needs, as three simple checks */
 function classDetail(c){
-  const n = c.need, tro = achCount(), pz = Math.max(S.puzzle.r || 0, S.puzzle.peak || 0), best = BOTS.filter(b => S.bots[b.id] && S.bots[b.id].w > 0).reduce((m, b) => Math.max(m, b.r), 0);
+  const n = c.need, tro = achCount(), pz = peakRating(), best = caughtBots().reduce((m, b) => Math.max(m, b.r), 0);
   const row = (ok, t, have) => `<div class="cneed ${ok ? "ok" : ""}"><span>${ok ? "✓" : ""}</span><div class="grow">${t}</div><small class="muted">${have}</small></div>`;
-  detailSheet(`<div class="row" style="gap:12px;align-items:center"><div style="width:64px;height:80px">${avatarSVG(Object.assign({}, myAvatar(), {cls: c.k, aura: "none"}), {fit: true})}</div><div><div class="muted" style="font:800 11px var(--body);letter-spacing:.06em">FIGURE</div><div style="font:900 20px var(--display)">${esc(c.name)}</div></div></div>
+  detailSheet(`<div class="row" style="gap:12px;align-items:center;flex-wrap:nowrap">${Av3D.tag(Object.assign({}, myAvatar(), {cls: c.k, aura: "none", pet: "none"}), {w: 70, h: 90, tier: bodyTier()})}<div><div class="muted" style="font:800 11px var(--body);letter-spacing:.06em">FIGURE</div><div style="font:900 20px var(--display)">${esc(c.name)}</div></div></div>
     <div class="cneeds">${row(tro >= n.tro, `${n.tro} trophies`, tro)}${row(pz >= n.pz, `${n.pz} puzzle rating`, pz)}${row(best >= n.bot, `Beat a ${n.bot}+ bot`, best ? "best " + best : "none yet")}</div>`);
 }
+/* the big figure with its rank backdrop; spills out of the box for mythic bodies and master+ ranks */
+function heroStage(el, cfg, o = {}){
+  const tier = o.tier != null ? o.tier : bodyTier(), r = o.rating != null ? o.rating : S.puzzle.r, fi = frameTier(cfg, r), t = TIERS[Math.max(0, fi)], rk = rankOf(r);
+  const spill = tier >= 4 || fi >= 7;
+  el.classList.add("rkstage"); el.classList.toggle("spilling", spill);
+  el.style.setProperty("--rk1", t.c1); el.style.setProperty("--rk2", t.c2);
+  el.innerHTML = `<div class="rk-bg">${fi >= 0 ? crestSVG(fi, "", 220, {cls: "rk-wm"}) : ""}</div><div class="rk-fig"></div>${fi >= 0 ? `<div class="rk-badge">${crestSVG(fi, fi === rk.idx ? rk.div : "", fi >= 7 ? 74 : 54)}</div>` : ""}`;
+  return Av3D.stage(el.querySelector(".rk-fig"), cfg, {tier, rank: fi, spill: spill ? .28 : 0, pet: o.pet});
+}
 Views.awards = {
-  mount(main, arg){ this.main = main; this.tab = (arg && arg.tab) || this.tab || "wardrobe"; this.grp = this.grp || "figure"; this.open = this.open || null; Ach.check(); S.ach.newItems = 0; this.draw(); },
+  mount(main, arg){ this.main = main; this.tab = (arg && arg.tab) || this.tab || "wardrobe"; this.grp = (arg && arg.grp) || this.grp || "figure"; this.open = this.open || null; Ach.check(); S.ach.newItems = 0; this.draw(); },
   draw(){
     const av = myAvatar(), n = achCount(), tier = bodyTier(n), cls = AV_CLASSES.find(c => c.k === av.cls) || AV_CLASSES[0], nextT = BODY_TIERS.find(t => t.n > n);
     this.main.innerHTML = `<div class="page wpage">
@@ -4359,33 +5243,59 @@ Views.awards = {
           <div class="row" style="gap:6px;margin:4px 0 10px"><span class="pill go">${esc(cls.name)}</span><span class="pill">${esc(BODY_TIERS[tier].name)} body</span><span class="pill">${n} trophies</span></div>
           <div class="wtrack">${BODY_TIERS.map(t => `<div class="${n >= t.n ? "on" : ""}"><i></i><span>${t.name}</span></div>`).join("")}</div>
           <p class="muted wnext">${nextT ? `<b>${nextT.n - n}</b> more trophies to unlock the <b>${nextT.name}</b> body. ${esc(nextT.txt)}` : "Your body is at its strongest."}</p>
-          ${tier >= 3 ? `<div class="row wemotes">${[["wave", "👋 Wave"], ["cheer", "🙌 Cheer"], ["dance", "💃 Dance"], ["flex", "💪 Flex"]].map(([k, t]) => `<button class="btn sm" data-em="${k}">${t}</button>`).join("")}</div>` : ""}
+          ${tier >= 3 ? `<div class="row wemotes">${[["wave", "👋 Wave"], ["cheer", "🙌 Cheer"], ["dance", "💃 Dance"], ["flex", "💪 Flex"]].concat(tier >= 4 ? [["power", "⚡ Power"]] : []).map(([k, t]) => `<button class="btn sm" data-em="${k}">${t}</button>`).join("")}</div>` : `<p class="dim wnext" style="margin-top:6px">Drag the figure to turn it.</p>`}
         </div></div>
       <div class="seg" style="margin:14px 0 10px"><button class="${this.tab === "wardrobe" ? "on" : ""}" data-tab="wardrobe">Wardrobe</button><button class="${this.tab === "trophies" ? "on" : ""}" data-tab="trophies">Trophies</button></div>
       <div id="awbody"></div></div>`;
-    this.stage = avatarStage($("#avst"), av, tier);
-    $$("[data-em]", this.main).forEach(b => b.onclick = () => { this.stage.emote(b.dataset.em); Sound.play("Move", .5); });
-    $$("[data-tab]", this.main).forEach(b => b.onclick = () => { this.tab = b.dataset.tab; this.draw(); });
-    if (this.tab === "trophies") this.trophies(); else this.wardrobe();
+    this.stage = heroStage($("#avst"), av, {tier});
+    $$("[data-em]", this.main).forEach(b => b.onclick = () => { this.stage.emote(b.dataset.em); Sound.play(b.dataset.em === "power" ? "Capture" : "Move", .5); });
+    $$("[data-tab]", this.main).forEach(b => b.onclick = () => { if (this.tab === b.dataset.tab) return; this.tab = b.dataset.tab; $$("[data-tab]", this.main).forEach(x => x.classList.toggle("on", x === b)); this.body(); });
+    this.body();
   },
+  body(){ if (this.tab === "trophies") this.trophies(); else this.wardrobe(); },
   /* ---------- wardrobe ---------- */
   wardrobe(){
-    const body = $("#awbody"), av = myAvatar(), g = WGROUPS.find(x => x[0] === this.grp) || WGROUPS[0];
+    const body = $("#awbody"), av = myAvatar(), tier = bodyTier(), g = WGROUPS.find(x => x[0] === this.grp) || WGROUPS[0];
     const count = slots => { const its = AV_ITEMS.filter(i => slots.includes(i.slot)); return [its.filter(itemUnlocked).length, its.length]; };
-    const chips = WGROUPS.map(([k, t, slots]) => { const [u, all] = slots ? count(slots) : [AV_CLASSES.filter(classUnlocked).length, AV_CLASSES.length]; return `<button class="chip ${k === this.grp ? "on" : ""}" data-grp="${k}">${t} <span>${u}/${all}</span></button>`; }).join("");
-    const headish = s => ["hair", "head", "eyes", "glasses", "mask", "ears"].includes(s);
-    const card = (cfgPrev, name, on, ok, why, data, head, frame) => `<button class="wi ${on ? "on" : ""} ${ok ? "" : "locked"}" ${data}><div class="wi-pv ${head ? "head" : ""}">${frame || avatarSVG(cfgPrev, {fit: true, head})}${on ? `<span class="wi-on">✓</span>` : ""}${ok ? "" : `<span class="wi-lock">${LOCK_SVG}</span>`}</div><b>${esc(name)}</b>${ok ? "" : `<small>${esc(why)}</small>`}</button>`;
+    const chips = WGROUPS.map(([k, t, slots]) => { const [u, all] = slots === "pet" ? [caughtBots().length, BOTS.length] : slots ? count(slots) : [AV_CLASSES.filter(classUnlocked).length, AV_CLASSES.length]; return `<button class="chip ${k === this.grp ? "on" : ""}" data-grp="${k}">${t} <span>${u}/${all}</span></button>`; }).join("");
+    const pv = (cfg, slot) => Av3D.tag(Object.assign({}, cfg, slot === "aura" ? {} : {aura: "none"}, {pet: "none"}), {w: 104, h: 104, mode: HEADISH.includes(slot) ? "head" : "full", tier, rank: -1, fill: true});
+    const card = (inner, name, on, ok, why, data) => `<button class="wi ${on ? "on" : ""} ${ok ? "" : "locked"}" ${data}><div class="wi-pv">${inner}<span class="wi-on">✓</span>${ok ? "" : `<span class="wi-lock">${LOCK_SVG}</span>`}</div><b>${esc(name)}</b>${ok ? "" : `<small>${esc(why)}</small>`}</button>`;
     let grid = "";
-    if (!g[2]) grid = `<div class="wgrid">${AV_CLASSES.map(c => card(Object.assign({}, av, {cls: c.k, aura: "none"}), c.name, av.cls === c.k, classUnlocked(c), `${c.need.tro} trophies`, `data-cls="${c.k}"`, false)).join("")}</div>`;
-    else grid = g[2].map(slot => `${g[2].length > 1 ? `<div class="wsub">${esc(SLOT_NAME[slot])}</div>` : ""}<div class="wgrid">${AV_ITEMS.filter(i => i.slot === slot).map(it => card(Object.assign({}, av, {[slot]: it.id}, slot === "aura" ? {} : {aura: "none"}), it.name, av[slot] === it.id, itemUnlocked(it), itemReqShort(it), `data-item="${slot}:${it.id}"`, headish(slot), slot === "frame" ? `<div class="wi-frame">${avatarBadge(Object.assign({}, av, {frame: it.id}), 60)}</div>` : "")).join("")}</div>`).join("");
+    if (!g[2]) grid = `<div class="wgrid">${AV_CLASSES.map(c => card(pv(Object.assign({}, av, {cls: c.k}), "cls"), c.name, av.cls === c.k, classUnlocked(c), `${c.need.tro} trophies`, `data-cls="${c.k}"`)).join("")}</div>`;
+    else if (g[2] === "pet"){
+      const caught = caughtBots();
+      grid = !petsOpen() ? `<div class="unit"><b>Pets unlock at 50 trophies.</b><p class="muted" style="margin:4px 0 0">Then every bot you've caught can leave its cage and follow you around. You have ${achCount()}.</p></div>`
+        : `<p class="muted" style="margin:0 0 10px">Every bot you beat sits in a cage. Pick one to let it out: it floats next to you as your pet.</p><div class="wgrid">${card(`<div class="wi-none">∅</div>`, "No pet", av.pet === "none", true, "", `data-item="pet:none"`)}${BOTS.map(b => { const got = caught.includes(b);
+          return card(Av3D.tag(Object.assign(botCfg(b), {aura: "none"}), {w: 104, h: 104, mode: "full", tier: botTierOf(b), fill: true}), got ? b.name : "???", av.pet === b.id, got, got ? "" : `Beat ${b.name} (${b.r})`, `data-item="pet:${b.id}"`); }).join("")}</div>`;
+    }
+    else grid = g[2].map(slot => `${g[2].length > 1 ? `<div class="wsub">${esc(SLOT_NAME[slot])}</div>` : ""}<div class="wgrid ${slot === "frame" ? "frames" : ""}">${AV_ITEMS.filter(i => i.slot === slot).map(it => {
+      const inner = slot === "frame" ? `<div class="wi-frame">${avatarBadge(Object.assign({}, av, {frame: it.id}), 56, S.puzzle.r)}</div>` : pv(Object.assign({}, av, {[slot]: it.id}), slot);
+      return card(inner, it.name, av[slot] === it.id, itemUnlocked(it), itemReqShort(it), `data-item="${slot}:${it.id}"`); }).join("")}</div>`).join("");
     body.innerHTML = `<div class="chips wchips">${chips}</div>${grid}`;
+    const on = body.querySelector(".chip.on"); if (on){ const row = on.parentNode; row.scrollLeft = Math.max(0, on.offsetLeft - row.clientWidth / 2 + on.offsetWidth / 2); }
     $$("[data-grp]", body).forEach(b => b.onclick = () => { this.grp = b.dataset.grp; this.wardrobe(); });
-    $$("[data-item]", body).forEach(b => b.onclick = () => { const [slot, id] = b.dataset.item.split(":"), it = AV_ITEMS.find(i => i.slot === slot && i.id === id);
-      if (!itemUnlocked(it)){ if (it.req.startsWith("t:")) achDetail(achById(it.req.slice(2))); else detailSheet(`<div style="font:900 20px var(--display)">${esc(it.name)}</div><p>Collect ${it.req.slice(2)} trophies to unlock it. You have ${achCount()}.</p><div class="bar"><i style="width:${Math.min(100, Math.round(achCount() / +it.req.slice(2) * 100))}%"></i></div>`); return; }
-      av[slot] = id; S.stat.dressed = 1; Sound.play("Move", .7); save(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); this.refreshFigure(); this.wardrobe(); });
-    $$("[data-cls]", body).forEach(b => b.onclick = () => { const c = AV_CLASSES.find(x => x.k === b.dataset.cls); if (!classUnlocked(c)){ classDetail(c); return; } av.cls = c.k; S.stat.dressed = 1; Sound.cheer(2); save(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); this.draw(); });
+    $$("[data-item]", body).forEach(b => b.onclick = () => this.pick(b));
+    $$("[data-cls]", body).forEach(b => b.onclick = () => { const c = AV_CLASSES.find(x => x.k === b.dataset.cls); if (!classUnlocked(c)){ classDetail(c); return; } this.equip("cls", c.k, b); Sound.cheer(2); });
   },
-  refreshFigure(){ const st = $("#avst"); if (st) this.stage = avatarStage(st, myAvatar(), bodyTier()); },
+  pick(b){
+    const [slot, id] = b.dataset.item.split(":");
+    if (slot === "pet"){ if (b.classList.contains("locked")){ const bot = BOTS.find(x => x.id === id); detailSheet(`<div style="font:900 20px var(--display)">Catch ${esc(bot.name)} first</div><p>Beat ${esc(bot.name)} (${bot.r}) in a game. Then it lands in your cage and can come out as your pet.</p>`); return; } this.equip("pet", id, b); return; }
+    const it = AV_ITEMS.find(i => i.slot === slot && i.id === id);
+    if (!itemUnlocked(it)){ if (it.req.startsWith("t:")) achDetail(achById(it.req.slice(2)));
+      else if (it.req.startsWith("r:")) detailSheet(`<div class="row" style="gap:12px;flex-wrap:nowrap">${crestSVG(TIERS.findIndex(t => t.k === id), "", 64)}<div><div style="font:900 20px var(--display)">${esc(it.name)} border</div><p style="margin:4px 0 0">Reach ${it.req.slice(2)} puzzle rating once and this border is yours for good. Your best so far: ${peakRating()}.</p></div></div>`);
+      else detailSheet(`<div style="font:900 20px var(--display)">${esc(it.name)}</div><p>Collect ${it.req.slice(2)} trophies to unlock it. You have ${achCount()}.</p><div class="bar"><i style="width:${Math.min(100, Math.round(achCount() / +it.req.slice(2) * 100))}%"></i></div>`); return; }
+    this.equip(slot, id, b);
+  },
+  /* one tap: the tile, the figure and the save update at once; the slow part (saving, syncing) waits */
+  equip(slot, id, b){
+    const av = myAvatar(); if (av[slot] === id) return; av[slot] = id; S.stat.dressed = 1;
+    const grid = b.closest(".wgrid"); if (grid) grid.querySelectorAll(".wi.on").forEach(x => x.classList.remove("on")); b.classList.add("on");
+    if (slot !== "cls") Sound.play("Move", .6);
+    /* paint the tick first, then rebuild the figure on the next frame */
+    requestAnimationFrame(() => setTimeout(() => { if (!$("#avst")) return; if (slot === "frame" || slot === "cls") this.stage = heroStage($("#avst"), myAvatar(), {}); else if (this.stage) this.stage.set(myAvatar(), bodyTier()); }, 0));
+    if (slot === "cls"){ const p = this.main.querySelector(".winfo .pill.go"); if (p) p.textContent = (AV_CLASSES.find(c => c.k === id) || {}).name; }
+    clearTimeout(this._sv); this._sv = setTimeout(() => { save(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); if (typeof renderRail === "function") renderRail(); if (typeof renderTop === "function") renderTop(); }, 350);
+  },
   /* ---------- trophies ---------- */
   trophies(){
     const body = $("#awbody");
@@ -5462,7 +6372,7 @@ const LOGO = `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="8"
 
 const NAV = [
   ["home", "Home", "home"], ["journey", "Journey", "map"], ["learn", "Learn", "book"], ["theory", "Theory", "scroll"], ["puzzles", "Puzzles", "puzzle"], ["rush", "Puzzle Rush", "bolt"], ["daily", "Daily Puzzle", "calendar"],
-  ["train", "Train", "target"], ["endgames", "Endgames", "crown"], ["bots", "Play Bots", "bot"], ["blitz", "Blitz", "flame"], ["awards", "Trophies", "trophy"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["profile", "My Profile", "user"], ["stats", "Stats", "chart"],
+  ["train", "Train", "target"], ["endgames", "Endgames", "crown"], ["bots", "Play Bots", "bot"], ["blitz", "Blitz", "flame"], ["awards", "Trophies", "trophy"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["me", "Profile", "user"], ["stats", "Stats", "chart"],
 ];
 /* bottom of the rail, like chess.com: who you are, then a row of small icon buttons */
 function railAccount(){
@@ -5472,9 +6382,8 @@ function railAccount(){
   const name = S.name && S.name !== "You" ? S.name : email ? email.split("@")[0] : "You";
   const sub = site && site.ready && !sess ? "Sign in to save" : "";
   const cur = App.route;
-  return `<button class="me ${cur === acct ? "on" : ""}" data-r="${acct}" title="${esc(email || "Your profile")}"><span class="av">${typeof avatarBadge === "function" ? avatarBadge(myAvatar(), 34) : `<i class="pc wp"></i>`}<i class="dot" id="cloudDot"></i></span><span class="nm"><b>${esc(name)}</b>${sub ? `<small>${sub}</small>` : ""}</span></button>
-    <div class="icons">
-      <button class="ib ${cur === "friend" ? "on" : ""}" data-r="friend" title="Play a friend" aria-label="Play a friend">${icon("users", 20)}</button>
+  return `<div class="icons">
+      <button class="ib ${cur === acct ? "on" : ""}" data-r="${acct}" title="${esc(email || "Account")}" aria-label="Account">${icon("user", 20)}<i class="dot" id="cloudDot"></i></button>
       <button class="ib ${cur === "daily" ? "on" : ""}" data-r="daily" title="Daily puzzle" aria-label="Daily puzzle">${icon("bell", 20)}${!S.daily.done[todayKey()] ? `<span class="badge">1</span>` : ""}</button>
       <button class="ib ${cur === "stats" ? "on" : ""}" data-r="stats" title="Stats" aria-label="Stats">${icon("chart", 20)}</button>
       <button class="ib ${cur === "settings" ? "on" : ""}" data-r="settings" title="Settings" aria-label="Settings">${icon("gear", 20)}</button>
@@ -5484,17 +6393,16 @@ function railAccount(){
 function renderRail(){
   const rail = $("#rail"); if (!rail) return; const rk = rankOf(S.puzzle.r); const cur = App.route;
   const dailyOpen = !S.daily.done[todayKey()];
-  rail.innerHTML = `<a class="brand" href="#home">${LOGO}<span>Chess<b>.nat</b></span></a>
+  rail.innerHTML = `<a class="brand" href="#home">${LOGO}<span>Chess<b>.nat</b></span></a>${typeof railMe === "function" ? railMe() : ""}
     ${NAV.map(([k, t, ic]) => `<button class="nav ${cur === k || (k === "friend" && (cur === "local" || cur === "linkgame")) || (k === "bots" && cur === "trophies") || (k === "blitz" && cur === "battle") ? "on" : ""}" data-r="${k}">${icon(ic)}<span>${t}</span>${k === "daily" && dailyOpen ? `<span class="badge">1</span>` : ""}</button>`).join("")}
     <div class="grow"></div>
-    <button class="rankchip" data-r="awards" aria-label="Your rank and trophies"><span class="rkf fr-${(S.avatar && S.avatar.frame) || "none"}">${emblem(rk, 30)}</span><span><div class="t">${esc(rk.label)}</div><div class="s">${S.puzzle.r} puzzle</div></span></button>
     ${railAccount()}`;
   $$("[data-r]", rail).forEach(b => b.onclick = () => App.go(b.dataset.r));
-  renderRailStatus();
+  renderRailStatus(); if (typeof renderTop === "function") renderTop();
 }
 
 const TABS = [["home", "Home", "home"], ["learn", "Learn", "book"], ["puzzles", "Puzzles", "puzzle"], ["play", "Play", "bot"], ["more", "More", "menu"]];
-const TAB_OF = {blitz: "play", battle: "play", theory: "learn", awards: "more", journey: "home", jlevel: "home", home: "home", learn: "learn", lesson: "learn", puzzles: "puzzles", rush: "puzzles", daily: "puzzles", train: "puzzles", coords: "puzzles", play: "play", bots: "play", friend: "play", local: "play", linkgame: "play", endgames: "play", trophies: "play", friends: "play", profile: "learn", review: "more", analysis: "more", stats: "more", settings: "more", account: "more"};
+const TAB_OF = {blitz: "play", battle: "play", theory: "learn", awards: "more", journey: "home", jlevel: "home", home: "home", learn: "learn", lesson: "learn", puzzles: "puzzles", rush: "puzzles", daily: "puzzles", train: "puzzles", coords: "puzzles", play: "play", bots: "play", friend: "play", local: "play", linkgame: "play", endgames: "play", trophies: "play", friends: "play", profile: "more", me: "more", review: "more", analysis: "more", stats: "more", settings: "more", account: "more"};
 function renderTabs(){
   let t = $("#tabbar"); if (!t) return; const cur = TAB_OF[App.route] || "home"; const dailyOpen = !S.daily.done[todayKey()];
   t.innerHTML = TABS.map(([k, n, ic]) => `<button class="${cur === k ? "on" : ""}" data-t="${k}">${icon(ic, 24)}<span>${n}</span>${k === "puzzles" && dailyOpen ? `<i class="dot"></i>` : ""}</button>`).join("");
@@ -5502,8 +6410,8 @@ function renderTabs(){
 }
 function openSheet(){
   const sh = $("#sheet"); const rk = rankOf(S.puzzle.r);
-  const items = [["journey", "Journey", "map"], ["theory", "Theory", "scroll"], ["blitz", "Blitz & Battle", "flame"], ["friends", "Friends", "heart"], ["awards", "Trophies", "trophy"], ["profile", "My Profile", "user"], ["endgames", "Endgames", "crown"], ["rush", "Puzzle Rush", "bolt"], ["daily", "Daily Puzzle", "calendar"], ["train", "Train", "target"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"], ["coords", "Coordinates", "board"], ["settings", "Settings", "gear"], ["account", "Account", "users"]];
-  sh.innerHTML = `<div class="panelx" role="dialog" aria-label="More"><div class="grab"></div><button class="rk" data-s="stats">${emblem(rk, 36)}<span style="text-align:left"><div style="font-weight:900">${esc(rk.label)}</div><div class="muted" style="font-size:12px">${S.puzzle.r} puzzle rating · ${Cloud.status === "on" ? "synced to your account" : "saved on this device"}</div></span></button>${items.map(([k, n, ic]) => `<button data-s="${k}">${icon(ic, 26)}<span>${n}</span></button>`).join("")}</div>`;
+  const items = [["journey", "Journey", "map"], ["theory", "Theory", "scroll"], ["blitz", "Blitz & Battle", "flame"], ["friends", "Friends", "heart"], ["awards", "Trophies", "trophy"], ["me", "Profile", "user"], ["endgames", "Endgames", "crown"], ["rush", "Puzzle Rush", "bolt"], ["daily", "Daily Puzzle", "calendar"], ["train", "Train", "target"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"], ["coords", "Coordinates", "board"], ["settings", "Settings", "gear"], ["account", "Account", "users"]];
+  sh.innerHTML = `<div class="panelx" role="dialog" aria-label="More"><div class="grab"></div><button class="rk" data-s="me">${emblem(rk, 36)}<span style="text-align:left"><div style="font-weight:900">${esc(rk.label)}</div><div class="muted" style="font-size:12px">${S.puzzle.r} puzzle rating · ${Cloud.status === "on" ? "synced to your account" : "saved on this device"}</div></span></button>${items.map(([k, n, ic]) => `<button data-s="${k}">${icon(ic, 26)}<span>${n}</span></button>`).join("")}</div>`;
   sh.hidden = false; sh.classList.remove("closing"); const px = $(".panelx", sh); px.style.transform = ""; px.classList.add("opening"); setTimeout(() => px.classList.remove("opening"), 300);
   const close = () => { if (sh.hidden || sh.classList.contains("closing")) return; sh.classList.add("closing"); px.style.transform = ""; setTimeout(() => { sh.hidden = true; sh.classList.remove("closing"); }, 220); };
   sh.onclick = e => { if (e.target === sh) close(); };
@@ -5533,7 +6441,7 @@ const App = {
     this.route = r; this.view = Views[r];
     try { if (location.hash !== "#" + r) history.replaceState(null, "", "#" + r); } catch(e) {}
     const main = $("#main"); main.innerHTML = ""; main.scrollTop = 0; window.scrollTo(0, 0);
-    renderRail(); renderTabs(); const sh = $("#sheet"); if (sh) sh.hidden = true; sizeBoard();
+    document.body.classList.toggle("busy", this.busy()); renderRail(); renderTabs(); const sh = $("#sheet"); if (sh) sh.hidden = true; sizeBoard();
     this.view.mount(main, arg);
   },
   refresh(){ renderRail(); if (["home", "stats", "settings", "learn", "train"].includes(this.route)) this.go(this.route); },
@@ -5555,13 +6463,13 @@ Views.home = {
     const weak = weakThemes(1)[0]; const goal = 1600; const start = 400;
     const pct = clamp((S.puzzle.r - start) / (goal - start), 0, 1);
     main.innerHTML = `<div class="page">${siteBanner()}
-      <div class="unit home-rank" style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:20px">
-        ${emblem(rk, 92)}
-        <div style="flex:1;min-width:220px"><div class="muted" style="font-weight:800;font-size:13px;letter-spacing:.06em">YOUR RANK</div><div class="big" style="font:900 34px var(--display);line-height:1.1">${esc(rk.label)}</div>
-          <div class="muted">${S.puzzle.r} puzzle rating · ${rk.lp} LP · better than ${betterThan(S.puzzle.r)}% of players</div>
-          <div class="bar" style="margin-top:10px;max-width:420px"><i style="width:${Math.round(rk.pct * 100)}%"></i></div>
-          <div class="dim" style="font-size:12.5px;margin-top:4px">${rk.next ? "Next: " + esc(rk.next) + " at " + rk.nextAt : ""}</div></div>
-        <div style="min-width:220px"><div class="muted" style="font-weight:800;font-size:13px;letter-spacing:.06em">JOURNEY TO 1600</div><div style="font:900 26px var(--display)">${Math.round(pct * 100)}%</div><div class="bar" style="margin-top:6px"><i style="width:${Math.round(pct * 100)}%"></i></div><div class="dim" style="font-size:12.5px;margin-top:4px">${S.xp || 0} XP · ${Object.values(S.lessons).filter(l => l.done).length} lessons done</div></div>
+      <div class="unit home-rank" style="--rk1:${rk.tier.c1};--rk2:${rk.tier.c2}">
+        <button class="hr-crest" data-go="me" aria-label="Your profile">${crestSVG(rk.idx, rk.div, 150)}</button>
+        <div class="hr-l">${esc(rk.label)}</div>
+        <div class="hr-lp"><b>${rk.lp} LP</b><span>${S.puzzle.r} puzzle rating</span></div>
+        <div class="bar lpbar hr-bar"><i style="width:${Math.round(rk.pct * 100)}%"></i></div>
+        <div class="dim hr-sub">${rk.next ? "Next: " + esc(rk.next) + " at " + rk.nextAt + " · " : ""}better than ${betterThan(S.puzzle.r)}% of players</div>
+        <div class="hr-goal"><span>Journey to 1600</span><div class="bar sm"><i style="width:${Math.round(pct * 100)}%"></i></div><b>${Math.round(pct * 100)}%</b></div>
       </div>
       <div class="unit" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><div style="min-width:180px"><div class="muted" style="font-weight:800;font-size:13px;letter-spacing:.06em">TODAY'S PLAN</div><div style="font:900 22px var(--display)">${planDone() ? "Done for today ✓" : PLAN.filter(([k, n]) => planVal(k) >= n).length + " of " + PLAN.length}</div><div class="dim" style="font-size:12.5px">${icon("flame", 14)} ${S.plan.streak} day streak · best ${S.plan.best}</div></div>
         <div style="flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">${PLAN.filter(([k, n]) => !(planVal(k) >= n && popped[k] && !toPop.includes(k))).map(([k, n, t]) => { const v = Math.min(n, planVal(k)); return `<button class="lsn ${v >= n ? "done" : ""} ${toPop.includes(k) ? "pop" : ""}" data-plan="${k}"><span class="n">${v >= n ? "✓" : v}</span><span><div class="t">${t}</div><div class="s">${v} / ${n}</div></span></button>`; }).join("")}</div></div>
@@ -5662,7 +6570,7 @@ Views.settings = {
 /* ===== Boot ===== */
 function boot(){
   document.body.dataset.board = S.settings.board || "green";
-  const shell = document.createElement("div"); shell.className = "app"; shell.innerHTML = `<nav class="rail" id="rail" aria-label="Main"></nav><main class="main" id="main"></main><nav class="tabbar" id="tabbar" aria-label="Main"></nav><div class="sheet" id="sheet" hidden></div>`; document.body.appendChild(shell);
+  const shell = document.createElement("div"); shell.className = "app"; shell.innerHTML = `<nav class="rail" id="rail" aria-label="Main"></nav><header class="mtop" id="mtop"></header><main class="main" id="main"></main><nav class="tabbar" id="tabbar" aria-label="Main"></nav><div class="sheet" id="sheet" hidden></div>`; document.body.appendChild(shell);
   sizeBoard();
   if (typeof Chess === "undefined"){ $("#main").innerHTML = `<div class="page"><div class="msg no"><div class="ic">!</div><div><h4>Chess engine library didn't load</h4><p>Check your connection and reload.</p></div></div></div>`; return; }
   loadPuzzles(); connectCloud(); Voice.load(); setTimeout(() => Openings.load(), 2500);
@@ -5674,6 +6582,66 @@ function boot(){
   window.addEventListener("hashchange", () => { const r = location.hash.slice(1); if (r !== App.route && Views[r] && r !== "lesson") App.go(r); if (r.startsWith("g-") && Views.friend && App.route !== "friend") App.go("friend", {join: r.slice(2)}); if (r.startsWith("m-")){ const p = parseLinkHash(r); const cur = App.route === "linkgame" && Views.linkgame.gid && p && p.gid === Views.linkgame.gid && p.moves.length === (Views.linkgame.rec.moves || []).length; if (!cur) App.go("linkgame", {hash: r}); } });
   document.addEventListener("pointerdown", () => Sound.init(), {once: true});
 }
+
+/* ===== You, always in reach: top bar on phones, profile block in the rail, and the profile page ===== */
+function friendsOnline(){
+  if (typeof Social === "undefined" || !Social.me) return 0;
+  const me = Social.me; return Social.data.friends.filter(r => r.status === "accepted").map(r => r.a === me ? r.b : r.a).filter(id => Social.isOnline(Social.P(id))).length;
+}
+function friendsPending(){ if (typeof Social === "undefined" || !Social.me) return 0; return Social.data.friends.filter(r => r.status === "pending" && r.requested_by !== Social.me).length; }
+/* phones: you on the left, your rank in the middle, friends on the right */
+function renderTop(){
+  const t = $("#mtop"); if (!t) return; const rk = rankOf(S.puzzle.r), on = friendsOnline(), inc = friendsPending();
+  t.innerHTML = `<button class="mt-me" data-r="me" aria-label="Your profile">${avatarBadge(myAvatar(), 36)}</button>
+    <button class="mt-rank" data-r="me" aria-label="Your rank">${crestSVG(rk.idx, "", 36)}<span class="mt-t"><b>${esc(rk.label)}</b><span class="mt-lp"><i style="width:${Math.round(rk.pct * 100)}%"></i></span><small>${rk.lp} LP · ${S.puzzle.r}</small></span></button>
+    <button class="mt-fr ${App.route === "friends" ? "on" : ""}" data-r="friends" aria-label="Friends">${icon("users", 24)}${inc ? `<span class="badge">${inc}</span>` : on ? `<span class="odot on"></span>` : ""}<small>Friends</small></button>`;
+  $$("[data-r]", t).forEach(b => b.onclick = () => App.go(b.dataset.r));
+}
+/* desktop rail: who you are sits at the top now */
+function railMe(){
+  const rk = rankOf(S.puzzle.r), cur = App.route;
+  return `<button class="railme ${cur === "me" ? "on" : ""}" data-r="me">${avatarBadge(myAvatar(), 46)}<span class="rm-t"><b>${esc(S.name && S.name !== "You" ? S.name : "You")}</b><span class="rm-rk">${crestSVG(rk.idx, "", 20)}${esc(rk.label)} · ${rk.lp} LP</span></span></button>`;
+}
+Views.me = {
+  mount(main){
+    this.main = main; const av = myAvatar(), rk = rankOf(S.puzzle.r), n = achCount(), tier = bodyTier(n), cls = AV_CLASSES.find(c => c.k === av.cls) || AV_CLASSES[0];
+    const site = window.ChessSite, sess = site && site.getSession && site.getSession(), P = typeof Social !== "undefined" && Social.player;
+    const handle = P && P.handle ? "@" + P.handle : "", on = friendsOnline();
+    main.innerHTML = `<div class="page mepage">
+      <div class="mehero"><div class="wstage mestage" id="mest"></div>
+        <div class="meinfo">
+          <div class="wname">${esc(S.name && S.name !== "You" ? S.name : "You")}</div>
+          <div class="muted" style="font-weight:700">${handle ? esc(handle) : sess ? "No player ID yet" : "Playing without an account"}</div>
+          <div class="row" style="gap:6px;margin-top:8px"><span class="pill go">${esc(cls.name)}</span><span class="pill">${esc(BODY_TIERS[tier].name)} body</span><span class="pill">${n} trophies</span></div>
+        </div></div>
+      <div class="merank">${crestSVG(rk.idx, rk.div, 76)}<div class="grow"><div class="mr-l">${esc(rk.label)}</div><div class="mr-lp"><b>${rk.lp} LP</b><span class="muted">${S.puzzle.r} puzzle rating</span></div><div class="bar lpbar"><i style="width:${Math.round(rk.pct * 100)}%"></i></div><div class="dim" style="font-size:12px;margin-top:3px">${rk.next ? "Next: " + esc(rk.next) + " at " + rk.nextAt : "Top of the ladder"} · better than ${betterThan(S.puzzle.r)}%</div></div></div>
+      <div class="mebtns">
+        <button class="mb" data-go="awards" data-tab="wardrobe">${icon("user", 26)}<b>Wardrobe</b><small>Dress your figure</small></button>
+        <button class="mb" data-go="awards" data-tab="trophies">${icon("trophy", 26)}<b>Trophies</b><small>${n} of ${ACH.length}</small></button>
+        <button class="mb" data-go="friends">${icon("users", 26)}<b>Friends</b><small>${on ? on + " online" : "Add and challenge"}</small></button>
+        <button class="mb" data-go="${typeof Views.account === "object" ? "account" : "settings"}">${icon("gear", 26)}<b>Account</b><small>${sess ? esc((sess.user.email || "").split("@")[0]) : "Sign in to sync"}</small></button>
+      </div>
+      <h2 class="h-sec" style="margin-top:18px">Ratings</h2>${typeof ratingsCards === "function" ? ratingsCards() : ""}
+      <div id="mefr"></div>
+      <h2 class="h-sec" style="margin-top:18px">More about you</h2>
+      <div class="tiles"><button class="tile" data-go="profile">${icon("target", 36)}<h3>Play style</h3><p>Your strengths, weak spots and opening repertoire.</p></button>
+        <button class="tile" data-go="stats">${icon("chart", 36)}<h3>Stats</h3><p>Rating history and puzzle themes.</p></button>
+        <button class="tile" data-go="trophies">${icon("cage", 36)}<h3>Cages</h3><p>${caughtBots().length} bots caught.</p></button></div>
+    </div>`;
+    this.stage = heroStage($("#mest"), av, {tier});
+    $$("[data-go]", main).forEach(b => b.onclick = () => App.go(b.dataset.go, b.dataset.tab ? {tab: b.dataset.tab} : undefined));
+    this.friends();
+  },
+  async friends(){
+    const el = $("#mefr"); if (!el || typeof Social === "undefined") return;
+    const site = window.ChessSite; if (!site || !site.ready) return; await site.sessionReady; if (!site.getSession()) return;
+    await Social.start(); await Social.load(); if (!el.isConnected) return;
+    const me = Social.me, ids = Social.data.friends.filter(r => r.status === "accepted").map(r => r.a === me ? r.b : r.a).sort((x, y) => Social.isOnline(Social.P(y)) - Social.isOnline(Social.P(x))).slice(0, 8);
+    el.innerHTML = `<h2 class="h-sec" style="margin-top:18px">Friends <span class="muted" style="font-weight:600">${friendsOnline()} online</span></h2>${ids.length ? `<div class="mefr">${ids.map(id => { const p = Social.P(id); return `<button class="mf" data-f="${id}">${Social.face(p, 52)}<b>${Social.dot(p)}${esc(p.name)}</b><small>${p.rating ? esc(rankOf(p.rating).label) : ""}</small></button>`; }).join("")}<button class="mf mf-all" data-all>${icon("users", 26)}<b>All friends</b></button></div>` : `<div class="unit"><p class="muted" style="margin:0">No friends yet. <a href="#" data-all>Find friends by player ID</a></p></div>`}`;
+    $$("[data-f], [data-all]", el).forEach(b => b.onclick = e => { e.preventDefault(); App.go("friends"); });
+    renderTop();
+  }
+};
 
 /* ===== Account page (website only) ===== */
 Views.account = {
@@ -5743,8 +6711,8 @@ const Social = (() => {
     return isOnline(p) ? "Online" : m < 60 ? `Last seen ${Math.max(1, Math.round(m))} min ago` : m < 1440 ? `Last seen ${Math.round(m / 60)} h ago` : `Last seen ${Math.round(m / 1440)} d ago`; };
   const hue = id => { let h = 0; for (const c of String(id)) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
   /* friends show their own avatar; players who never dressed up get a plain pawn */
-  const cfgOf = p => p && p.id === me ? myAvatar() : Object.assign({}, AV_DEFAULT, (p && p.avatar) || {});
-  const face = (p, size) => size >= 80 ? `<span class="botfull" style="width:${size}px;height:${size}px;background:hsl(${hue(p.id)} 30% 26%)"><span>${avatarSVG(cfgOf(p), {size: Math.round(size * .8)})}</span></span>` : avatarBadge(cfgOf(p), size);
+  const cfgOf = p => p && p.id === me ? myAvatar() : Object.assign({}, AV_DEFAULT, (p && p.avatar) || {}, {_r: p && p.rating, _n: p && p.trophies || 0, pet: (p && p.avatar && p.avatar.pet) || "none"});
+  const face = (p, size) => { const c = cfgOf(p); return size >= 80 ? Av3D.tag(c, {w: size, h: Math.round(size * 1.15), tier: avTier(c), rank: frameTier(c, c._r != null ? c._r : S.puzzle.r), fb: avatarSVG(c, {size: Math.round(size * .8)})}) : avatarBadge(c, size, p && p.id === me ? S.puzzle.r : p && p.rating); };
   const dot = p => `<span class="odot ${isOnline(p) ? "on" : ""}" title="${esc(seen(p))}"></span>`;
 
   async function start(){
@@ -5922,7 +6890,7 @@ const Social = (() => {
     await load(); if (!el.isConnected) return;
     const st = Object.values(standings()), mine = st.filter(o => o.cage === "mine"), theirs = st.filter(o => o.cage === "theirs");
     const meP = player || {id: me, name: S.name, rating: S.puzzle.r};
-    const cage = (o, who, inside, btn) => `<div class="cage got person ${who}" data-pc="${o.id}"><div class="cage-in">${avatarSVG(cfgOf(inside), {size: 100})}<div class="bars"></div><div class="drops" id="pdrop-${o.id}"></div><div class="say" id="psay-${o.id}"></div></div>
+    const cage = (o, who, inside, btn) => `<div class="cage got person ${who}" data-pc="${o.id}"><div class="cage-in c3">${Av3D.tag(Object.assign({}, cfgOf(inside), {aura: "none", pet: "none", back: "none"}), {w: 120, h: 132, live: "cage", fps: 30, tier: avTier(cfgOf(inside)), mode: "cage", fill: true, fb: avatarSVG(cfgOf(inside), {size: 100})})}<div class="bars"></div><div class="drops" id="pdrop-${o.id}"></div><div class="say" id="psay-${o.id}"></div></div>
       <div class="plate"><b>${dot(P(o.id))}${esc(who === "mine" ? P(o.id).name : "You")}</b><span>${who === "mine" ? "In your cage" : "In " + esc(P(o.id).name) + "'s cage"}</span><span>Score ${o.w}:${o.l}${o.d ? " · " + o.d + "½" : ""} · ${who === "mine" ? `❤️ ${o.sent} sent` : `❤️ ${o.got} received`}</span></div>${btn}</div>`;
     el.innerHTML = `<h2 class="h-sec" style="margin-top:18px">Friends</h2>
       ${!mine.length && !theirs.length ? `<div class="unit"><p class="muted" style="margin:0">Beat a signed-in friend in a live game and they land in your cage. If they beat you back, you're in theirs. <a href="#" data-gof>Find friends</a></p></div>` : ""}
@@ -5933,7 +6901,7 @@ const Social = (() => {
       const d = $("#pdrop-" + id), c = el.querySelector(`[data-pc="${id}"]`), say = $("#psay-" + id);
       const p = document.createElement("span"); p.className = "poo"; p.textContent = "❤️"; p.style.left = (30 + Math.random() * 40) + "%"; d.appendChild(p);
       Sound.tone([[660, .06, .05], [990, .14]], "sine", .1);
-      setTimeout(() => { c.classList.remove("hit"); void c.offsetWidth; c.classList.add("hit"); say.textContent = rnd(HEART_LINES); say.classList.remove("show"); void say.offsetWidth; say.classList.add("show"); }, 520);
+      setTimeout(() => { Av3D.react(c.querySelector(".cage-in"), "wave"); c.classList.remove("hit"); void c.offsetWidth; c.classList.add("hit"); say.textContent = rnd(HEART_LINES); say.classList.remove("show"); void say.offsetWidth; say.classList.add("show"); }, 520);
       setTimeout(() => p.remove(), 2600);
       const sp = c.querySelector(".plate span:last-child"); const o = standings()[id]; if (sp && o) sp.textContent = `Score ${o.w}:${o.l}${o.d ? " · " + o.d + "½" : ""} · ❤️ ${o.sent} sent`; });
     el.querySelectorAll("[data-pinv]").forEach(b => b.onclick = () => invite(b.dataset.pinv, [10, 0]));
