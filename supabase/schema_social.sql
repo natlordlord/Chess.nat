@@ -123,3 +123,10 @@ do $$ begin
   begin alter publication supabase_realtime add table public.chess_invites; exception when duplicate_object then null; end;
   begin alter publication supabase_realtime add table public.chess_duels; exception when duplicate_object then null; end;
 end $$;
+
+-- avatars and trophy counts on the public player card (2026-11-06)
+alter table public.chess_players add column if not exists avatar jsonb;
+alter table public.chess_players add column if not exists trophies int not null default 0;
+alter table public.chess_players drop constraint if exists chess_players_avatar_size;
+alter table public.chess_players add constraint chess_players_avatar_size check (avatar is null or pg_column_size(avatar) < 2000);
+grant update (avatar, trophies) on public.chess_players to authenticated;
