@@ -512,6 +512,24 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 .cage.got.tier-diamond .portrait{filter:drop-shadow(0 0 10px rgba(159,232,255,.6))}
 .cage.got.tier-legend .portrait{filter:drop-shadow(0 0 12px rgba(255,155,224,.7))}
 
+/* ===== Friends ===== */
+.odot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#6b6763;margin-right:6px;vertical-align:1px;flex:none}
+.odot.on{background:#7fc345;box-shadow:0 0 0 3px rgba(127,195,69,.22)}
+.li.fr{gap:10px}
+.li.fr .portrait{flex:none;border-radius:10px}
+.li.fr .btn{flex:none}
+.cage.person .plate b{display:flex;align-items:center;justify-content:center}
+.cage.person.theirs{border-color:color-mix(in srgb,var(--bad) 45%,var(--line))}
+.cage.person.theirs .cage-in{background:radial-gradient(circle at 50% 70%,#4a1d1d,#1d1414)}
+.cage-msg{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--panel-2);border:1px solid var(--line);font-size:14px;line-height:1.45}
+.cage-msg.win{border-color:var(--go)}
+.cage-msg.lose{border-color:var(--bad)}
+.cage-msg b{display:block;font:900 16px var(--display)}
+.invite-pop{position:fixed;z-index:120;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 14px);width:min(460px,calc(100% - 24px));display:flex;align-items:center;gap:10px;background:var(--panel-3,#2b2926);border:1px solid var(--go);border-radius:14px;padding:10px 12px;box-shadow:0 14px 40px rgba(0,0,0,.5);animation:tipin .3s ease-out}
+.invite-pop .portrait{flex:none;border-radius:10px}
+.invite-pop .ip-t{flex:1;min-width:0;display:flex;flex-direction:column;font-size:13px;color:var(--muted)}
+.invite-pop .ip-t b{font:900 16px var(--display);color:var(--fg)}
+
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
 .pc.wr{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMTcuOTMgMjAuNDFjNC45LS43NCA5LjU4LS41NyAxNC4xNCAwTTE0LjE4IDkuNjZjLTEuMDYgOC43NyAxLjEgMTAuNjggMy43NSAxMC43NWwtMy4zMSAxOC4xNmgyMC43NmwtMy4zMS0xOC4xNmMyLjY0LS4wNyA0LjgtMS45OCAzLjc1LTEwLjc1bC0zLjYxLS41My0xLjA3IDMuNjUtMy4xNS0uMS0uNTItMy43NmgtNC45NEwyMiAxMi42OGwtMy4xNS4xLTEuMDctMy42NXoiLz48cGF0aCBkPSJNMTcuOTMgMjAuNDFjNi44MyAwIDEzLjEyLjQxIDE0Ljk1IDE2LjU4bDIuMzIuMzgtMy4xMy0xNi40M2MtLjAzLS4zLTYuMDktMS44Mi0xNC4xNC0uNTMiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Im0xNC43OCAxMC4yMiAyLjI3LS4yOWMtMS45MS4zMi0yLjMgNS4zLTIuMyA1LjMtLjI1LS4xOC0uMi00LjkuMDMtNS4wMW0xMC41LS42N2MtMS42NSAwLTIuNTIgMi43NS0yLjUyIDIuNzVsLjMzLTIuNzN6bTcuNC4yNy45Mi4xMWMtLjc4LjUtMS41OSAyLTEuNTkgMnptLTE0LjIgMTEuMTQgMi42MS0uMjljLTIuNjIuMy00Ljg5IDEzLjExLTQuODkgMTMuMTF6Ii8+PHBhdGggZD0iTTM0LjAxIDkuNGMuMzYgNi4zNi0xLjk1IDEwLjYtOC4wNCAxMC41M2w0Ljc4LjU3YzcuNTIuMyA1LjEtMTAuOCA1LjA3LTEwLjg0eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuMiIgZD0iTTI1IDM2LjQ2cy05LjEzLjA0LTExLjcgMS42MmMtMS43MiAxLjA2LTIuMTMgMy42NS0xLjkgNi4zMmgyNy4yYy4yMy0yLjY3LS4xOC01LjI2LTEuOS02LjMyQzM0LjEyIDM2LjUgMjUgMzYuNDYgMjUgMzYuNDZ6Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI1IDM3LjE1UzE2LjI5IDM3IDEzLjM4IDM4LjhjLS4zNy4yMy0uNy44NC0uOTYgMS40LjI2LS4zNC41LS42Mi44OS0uODZDMTUuODcgMzcuNzggMjUgMzcuNzMgMjUgMzcuNzNzOS4xMy4wNSAxMS43IDEuNjJjLjM4LjI0LjU4LjUzLjg1Ljg3YTMgMyAwIDAgMC0xLjE1LTEuNkMzMy42NSAzNy4xNSAyNSAzNy4xNiAyNSAzNy4xNnoiLz48L3N2Zz4=')}
@@ -2556,11 +2574,14 @@ Views.trophies = {
     const caught = BOTS.filter(b => S.bots[b.id] && S.bots[b.id].w > 0), next = BOTS.find(b => !(S.bots[b.id] && S.bots[b.id].w > 0));
     this.main.innerHTML = `<div class="page"><h1 class="h-title">Trophy Hall</h1><p class="muted">Every bot you beat ends up in a cage. Stronger bots, more epic trophies. ${caught.length} of ${BOTS.length} caught.</p>
       ${next ? `<div class="unit" style="display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap">${botAvatar(next, 52)}<div style="flex:1;min-width:180px"><div class="muted" style="font-size:12px;font-weight:800;letter-spacing:.06em">NEXT TO CATCH</div><div style="font:900 20px var(--display)">${esc(next.name)} <span class="muted">${next.r}</span></div><div class="muted" style="font-size:13px">${esc(tierOf(next.r).name)} trophy</div></div><button class="btn go" id="tnext">Play ${esc(next.name)}</button></div>` : ""}
+      <div id="pcages"></div>
+      <h2 class="h-sec" style="margin-top:18px">Bots</h2>
       <div class="cages">${BOTS.map(b => { const r = S.bots[b.id] || {}, got = r.w > 0, t = tierOf(b.r), fed = S.trophy.fed[b.id] || 0;
         return `<div class="cage ${got ? "got" : "empty"} tier-${t.k}" data-cb="${b.id}">
           <div class="cage-in">${got ? botPortrait(b, 108) : `<div class="cage-q">?</div>`}<div class="bars"></div><div class="drops" id="drop-${b.id}"></div><div class="say" id="say-${b.id}"></div></div>
           <div class="plate"><b>${got ? esc(b.name) : "???"}</b><span>${b.r} · ${t.name}</span>${got ? `<span>${r.w} win${r.w > 1 ? "s" : ""}${fed ? ` · fed ${fed}×` : ""}</span>` : `<span>Not caught yet</span>`}</div>
           ${got ? `<button class="btn sm" data-feed="${b.id}">Feed 💩</button>` : `<button class="btn sm" data-play="${b.id}">Challenge</button>`}</div>`; }).join("")}</div></div>`;
+    if (typeof Social !== "undefined") Social.cages($("#pcages"));
     if ($("#tnext")) $("#tnext").onclick = () => { App.go("bots"); Views.bots.setup(next); };
     $$("[data-play]", this.main).forEach(x => x.onclick = () => { App.go("bots"); Views.bots.setup(BOTS.find(b => b.id === x.dataset.play)); });
     $$("[data-feed]", this.main).forEach(x => x.onclick = () => this.feed(x.dataset.feed));
@@ -3246,7 +3267,7 @@ function linkList(){
   return `<div class="list" style="margin-top:10px">${gs.map(([id, r]) => { const g = new Chess(); (r.moves || []).forEach(u => g.move({from: u.slice(0,2), to: u.slice(2,4), promotion: u[4] || undefined})); const my = g.turn() === r.color; return `<div class="li" data-lgid="${id}" style="cursor:pointer"><span class="pill ${r.result ? "" : my ? "go" : ""}">${r.result ? r.result : my ? "Your move" : "Waiting"}</span><div class="grow"><div class="t">vs ${esc(r.opp || "Friend")}</div><div class="s">${(r.moves || []).length} moves · ${new Date(r.ts).toLocaleDateString("en-GB")}</div></div><span class="muted">›</span></div>`; }).join("")}</div>`;
 }
 Views.friend = {
-  mount(main, arg){ this.main = main; this.cfg = this.cfg || {tc: [10, 0], color: "r"}; if (arg && arg.join) this.join(arg.join, false); else this.menu(); },
+  mount(main, arg){ this.main = main; this.cfg = this.cfg || {tc: [10, 0], color: "r"}; if (arg && arg.join) this.join(arg.join, !!arg.host); else this.menu(); },
   unmount(){ this.leave(); },
   leave(){ const st = this.st; if (st && !st.result && !st.saved && (st.seat === "w" || st.seat === "b") && st.moves.length >= 4){ st.saved = true; const o = this.opp();
       S.games.push({id: Date.now().toString(36), mode: "friend", opp: o && o.presence.name || "Friend", color: st.seat, result: "*", why: "unfinished", pgn: st.g.pgn(), ts: Date.now(), moves: st.moves.length}); save(); }
@@ -3388,6 +3409,8 @@ Views.friend = {
       const rec = {id: Date.now().toString(36), mode: "friend", opp: oppName, oppR: o ? o.presence.rating : null, color: s.seat, result: s.result.res, why: s.result.why, pgn, ts: Date.now(), moves: s.moves.length};
       dayTick("gm"); S.games.push(rec); save(); logEvent("game", {opponent: oppName, mode: "friend", color: s.seat, result: s.result.res, why: s.result.why, pgn, moves: s.moves.length, timeControl: tcLabel(s.tc || [0,0])});
       Sound.play(draw ? "GenericNotify" : win ? "Victory" : "Defeat", .8);
+      /* signed-in opponent: the result decides who sits in whose cage */
+      if (typeof Social !== "undefined" && o && o.by) Social.gameOver({id: s.code + ":" + s.gameNo, seat: s.seat, opp: o.by, oppName, result: s.result.res, why: s.result.why, moves: s.moves.length}).then(m => { if (m && this.st === s){ s.cageMsg = m; this.render(); } });
     }
     this.render();
   },
@@ -3413,6 +3436,8 @@ Views.friend = {
     else if (s.result) status = `<div class="msg ok"><div class="ic">★</div><div><h4>${s.result.res === "1/2-1/2" ? "Draw" : (s.result.res === "1-0" ? "White" : "Black") + " won"}</h4><p>${esc(s.result.why)}${this.rematchAsked ? " · " + esc(oppP.name || "Your friend") + " wants a rematch!" : ""}</p></div></div>`;
     else status = `<div class="msg"><div class="ic">${s.g.turn() === "w" ? "♔" : "♚"}</div><div><h4>${s.g.turn() === s.seat ? "Your move" : s.seat === "spec" ? "Watching" : esc(oppP.name || "Opponent") + " to move"}</h4><p>${tcLabel(s.tc || [0,0])}${specs ? " · " + specs + " watching" : ""}${this.drawOffered ? " · <b>Draw offered</b>" : ""}${this.tbAsked ? " · <b>Takeback requested</b>" : ""}${s.tbReq ? " · takeback sent" : ""}${this.online === false ? " · reconnecting…" : ""}</p></div></div>`;
     const chat = (this.chat || []).slice(-6).map(c => `<div style="display:flex;justify-content:${c.me ? "flex-end" : "flex-start"}"><span style="max-width:85%;padding:6px 10px;border-radius:12px;font-size:14px;font-weight:600;background:${c.me ? "var(--go)" : "#fff"};color:${c.me ? "#fff" : "#262421"}">${c.me ? "" : `<span style="font-size:11px;opacity:.65;display:block">${esc(c.who)}</span>`}${esc(c.t)}</span></div>`).join("");
+    if (s.result && s.cageMsg) status += `<div class="cage-msg ${s.cageMsg.cls}">${s.cageMsg.html}</div>`;
+    if (typeof Social !== "undefined" && o && o.by && s.seat !== "spec") status += Social.friendChip(o.by);
     $("#sp").innerHTML = status + (hh ? `<div class="row" style="margin-top:8px"><span class="muted" style="font-size:13px">Head to head vs ${esc(oppP.name || "Friend")}:</span><span class="pill go">${hh.w}W</span><span class="pill">${hh.d}D</span><span class="pill bad">${hh.l}L</span></div>` : "")
       + `<div class="h-sec">Moves</div><div class="moves">${mv || `<span></span><span class="dim">No moves yet</span>`}</div>`
       + (o && s.seat !== "spec" ? `<div class="h-sec">Chat</div><div style="display:flex;flex-direction:column;gap:6px">${chat || `<span class="dim" style="font-size:13px">Say hi!</span>`}</div>
@@ -3433,6 +3458,7 @@ Views.friend = {
     if ($("#frs")) $("#frs").onclick = () => { const b = $("#frs"); if (!b.dataset.armed){ b.dataset.armed = "1"; b.textContent = "Sure?"; b.style.background = "var(--bad)"; return; } s.result = {res: s.seat === "w" ? "0-1" : "1-0", why: "by resignation"}; this.publish(); this.finish(); };
     if ($("#frm")) $("#frm").onclick = () => { if (this.rematchAsked){ const o2 = this.opp(); this.newGame(s.gameNo + 1, o2 && o2.presence.seat === "w" ? "w" : "b"); } else { s.rematch = 1; this.publish(); this.render(); } };
     if ($("#frv")) $("#frv").onclick = () => App.go("review", {pgn: s.g.pgn(), meta: S.games[S.games.length - 1]});
+    if (typeof Social !== "undefined") Social.wire($("#sp"), () => this.render());
     this.clocks();
   }
 };
@@ -3598,6 +3624,7 @@ const ICONS = {
   menu: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
   bell: '<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
   map: '<path d="M9 4L3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/>',
+  heart: '<path d="M12 20s-7.5-4.6-9-9.3C2 7.4 4.2 4.5 7.3 4.5c2 0 3.6 1.1 4.7 2.8 1.1-1.7 2.7-2.8 4.7-2.8 3.1 0 5.3 2.9 4.3 6.2C19.5 15.4 12 20 12 20z"/>',
   trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M9.5 17h5"/>',
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4.3 4-6.5 8-6.5s7.2 2.2 8 6.5"/>',
   crown: '<path d="M3 18h18M4 8l4 4 4-7 4 7 4-4-2 10H6z"/>',
@@ -3608,7 +3635,7 @@ const LOGO = `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="8"
 
 const NAV = [
   ["home", "Home", "home"], ["journey", "Journey", "map"], ["learn", "Learn", "book"], ["puzzles", "Puzzles", "puzzle"], ["rush", "Puzzle Rush", "bolt"], ["daily", "Daily Puzzle", "calendar"],
-  ["train", "Train", "target"], ["endgames", "Endgames", "crown"], ["bots", "Play Bots", "bot"], ["trophies", "Trophy Hall", "trophy"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["profile", "My Profile", "user"], ["stats", "Stats", "chart"],
+  ["train", "Train", "target"], ["endgames", "Endgames", "crown"], ["bots", "Play Bots", "bot"], ["trophies", "Trophy Hall", "trophy"], ["friends", "Friends", "heart"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["profile", "My Profile", "user"], ["stats", "Stats", "chart"],
 ];
 /* bottom of the rail, like chess.com: who you are, then a row of small icon buttons */
 function railAccount(){
@@ -3640,7 +3667,7 @@ function renderRail(){
 }
 
 const TABS = [["home", "Home", "home"], ["learn", "Learn", "book"], ["puzzles", "Puzzles", "puzzle"], ["play", "Play", "bot"], ["more", "More", "menu"]];
-const TAB_OF = {journey: "home", jlevel: "home", home: "home", learn: "learn", lesson: "learn", puzzles: "puzzles", rush: "puzzles", daily: "puzzles", train: "puzzles", coords: "puzzles", play: "play", bots: "play", friend: "play", local: "play", linkgame: "play", endgames: "play", trophies: "play", profile: "learn", review: "more", analysis: "more", stats: "more", settings: "more", account: "more"};
+const TAB_OF = {journey: "home", jlevel: "home", home: "home", learn: "learn", lesson: "learn", puzzles: "puzzles", rush: "puzzles", daily: "puzzles", train: "puzzles", coords: "puzzles", play: "play", bots: "play", friend: "play", local: "play", linkgame: "play", endgames: "play", trophies: "play", friends: "play", profile: "learn", review: "more", analysis: "more", stats: "more", settings: "more", account: "more"};
 function renderTabs(){
   let t = $("#tabbar"); if (!t) return; const cur = TAB_OF[App.route] || "home"; const dailyOpen = !S.daily.done[todayKey()];
   t.innerHTML = TABS.map(([k, n, ic]) => `<button class="${cur === k ? "on" : ""}" data-t="${k}">${icon(ic, 24)}<span>${n}</span>${k === "puzzles" && dailyOpen ? `<i class="dot"></i>` : ""}</button>`).join("");
@@ -3648,7 +3675,7 @@ function renderTabs(){
 }
 function openSheet(){
   const sh = $("#sheet"); const rk = rankOf(S.puzzle.r);
-  const items = [["journey", "Journey", "map"], ["profile", "My Profile", "user"], ["trophies", "Trophy Hall", "trophy"], ["endgames", "Endgames", "crown"], ["rush", "Puzzle Rush", "bolt"], ["daily", "Daily Puzzle", "calendar"], ["train", "Train", "target"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"], ["coords", "Coordinates", "board"], ["settings", "Settings", "gear"], ["account", "Account", "users"]];
+  const items = [["journey", "Journey", "map"], ["profile", "My Profile", "user"], ["trophies", "Trophy Hall", "trophy"], ["friends", "Friends", "heart"], ["endgames", "Endgames", "crown"], ["rush", "Puzzle Rush", "bolt"], ["daily", "Daily Puzzle", "calendar"], ["train", "Train", "target"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"], ["coords", "Coordinates", "board"], ["settings", "Settings", "gear"], ["account", "Account", "users"]];
   sh.innerHTML = `<div class="panelx" role="dialog" aria-label="More"><div class="grab"></div><button class="rk" data-s="stats">${emblem(rk, 36)}<span style="text-align:left"><div style="font-weight:900">${esc(rk.label)}</div><div class="muted" style="font-size:12px">${S.puzzle.r} puzzle rating · ${Cloud.status === "on" ? "synced to your account" : "saved on this device"}</div></span></button>${items.map(([k, n, ic]) => `<button data-s="${k}">${icon(ic, 26)}<span>${n}</span></button>`).join("")}</div>`;
   sh.hidden = false; sh.onclick = e => { if (e.target === sh) sh.hidden = true; };
   $$("[data-s]", sh).forEach(b => b.onclick = () => { sh.hidden = true; App.go(b.dataset.s); });
@@ -3701,6 +3728,7 @@ Views.home = {
         <button class="tile" data-go="trophies">${icon("trophy", 40)}<h3>Trophy Hall</h3><p>${BOTS.filter(b => S.bots[b.id] && S.bots[b.id].w > 0).length} of ${BOTS.length} bots caught. Feed them!</p></button>
         <button class="tile" data-go="endgames">${icon("crown", 40)}<h3>Endgames</h3><p>Win it or survive it. With blitz clock.</p></button>
         <button class="tile" data-go="friend">${icon("users", 40)}<h3>Play a Friend</h3><p>Send a link, set the clock, play.</p></button>
+        <button class="tile" data-go="friends">${icon("heart", 40)}<h3>Friends</h3><p>See who's online, invite them, lock them in your cage.</p></button>
         <button class="tile" data-go="review">${icon("review", 40)}<h3>Game Review</h3><p>Brilliant, blunder and everything between.</p></button>
       </div></div>`;
     $$("[data-go]", main).forEach(b => b.onclick = () => b.dataset.go === "lesson" ? App.go("lesson", {id: b.dataset.l}) : App.go(b.dataset.go));
@@ -3845,6 +3873,248 @@ function siteBanner(){
   const site = window.ChessSite; if (!site || !site.ready || site.getSession()) return "";
   return `<div class="unit" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;border:1px solid var(--go)"><div style="flex:1;min-width:200px"><h3>Save your progress</h3><p class="muted" style="margin:2px 0 0">Create a free account so your rating, lessons and games follow you to every device.</p></div><button class="btn go" onclick="App.go('account')">Sign in</button></div>`;
 }
+
+/* ===== Friends between accounts (website only): player names, friend requests, online status, game invites,
+   and the cage: whoever won your last decisive live game keeps the other one locked up. Hearts instead of poop. ===== */
+const Social = (() => {
+  const site = window.ChessSite || {}, sb = site.sb;
+  const ONLINE_MS = 150000, INVITE_MS = 10 * 60000;
+  let me = null, player = null, started = false, loaded = 0, loading = null, ch = null, shownInv = new Set();
+  const D = {friends: [], players: {}, duels: [], gifts: []};
+  const ok = () => !!(sb && me);
+  const pair = (x, y) => x < y ? {a: x, b: y} : {a: y, b: x};
+  const P = id => D.players[id] || {id, name: "Player", rating: null};
+  const isOnline = p => p && p.last_seen && Date.now() - new Date(p.last_seen).getTime() < ONLINE_MS;
+  const seen = p => { if (!p || !p.last_seen) return ""; const m = (Date.now() - new Date(p.last_seen).getTime()) / 60000;
+    return isOnline(p) ? "Online" : m < 60 ? `Last seen ${Math.max(1, Math.round(m))} min ago` : m < 1440 ? `Last seen ${Math.round(m / 60)} h ago` : `Last seen ${Math.round(m / 1440)} d ago`; };
+  const hue = id => { let h = 0; for (const c of String(id)) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+  const face = (p, size) => botPortrait({id: "u" + String(p.id).slice(0, 8), r: p.rating || 800, hue: hue(p.id)}, size);
+  const dot = p => `<span class="odot ${isOnline(p) ? "on" : ""}" title="${esc(seen(p))}"></span>`;
+
+  async function start(){
+    if (started || !sb) return; started = true;
+    await site.sessionReady; const s = site.getSession(); if (!s) return; me = s.user.id;
+    await ensurePlayer();
+    beat(); setInterval(beat, 60000); document.addEventListener("visibilitychange", () => { if (!document.hidden) beat(); });
+    listen(); setInterval(pollInvites, 30000); pollInvites();
+  }
+  async function ensurePlayer(){
+    const {data, error} = await sb.from("chess_players").select("*").eq("id", me).maybeSingle();
+    if (error) return null;
+    if (data){ player = data; D.players[me] = data; if (S.name === "You" || !S.name){ S.name = data.name; save(); if (typeof renderRail === "function") renderRail(); } return data; }
+    if (!S.name || S.name === "You") return null;
+    return (await setName(S.name, true)).player || null;
+  }
+  /* claim a player name; with retry, add two digits if it's taken */
+  async function setName(name, retry){
+    name = String(name || "").trim().slice(0, 24); if (name.length < 2) return {error: "Use at least 2 characters."};
+    for (let i = 0; i < (retry ? 4 : 1); i++){
+      const n = i ? name.slice(0, 21) + Math.floor(10 + Math.random() * 90) : name;
+      const q = player ? sb.from("chess_players").update({name: n}).eq("id", me).select().single() : sb.from("chess_players").insert({id: me, name: n, rating: S.puzzle.r}).select().single();
+      const {data, error} = await q;
+      if (!error){ player = data; D.players[me] = data; S.name = data.name; save(); if (typeof renderRail === "function") renderRail(); return {player: data}; }
+      if (!/duplicate|unique/i.test(error.message)) return {error: error.message};
+    }
+    return {error: "That name is taken. Try another one."};
+  }
+  function beat(){ if (!player || document.hidden) return; sb.from("chess_players").update({last_seen: new Date().toISOString(), rating: S.puzzle.r}).eq("id", me).then(() => {}, () => {}); }
+
+  async function load(force){
+    if (!ok()) return; if (!force && Date.now() - loaded < 8000) return; if (loading) return loading;
+    loading = (async () => {
+      const [f, d, g] = await Promise.all([
+        sb.from("chess_friends").select("*"),
+        sb.from("chess_duels").select("*").order("created_at", {ascending: false}).limit(400),
+        sb.from("chess_gifts").select("from_id,to_id,created_at").order("created_at", {ascending: false}).limit(1000)]);
+      D.friends = f.data || []; D.duels = d.data || []; D.gifts = g.data || [];
+      const ids = new Set(); D.friends.forEach(r => { ids.add(r.a); ids.add(r.b); }); D.duels.forEach(r => { ids.add(r.white); ids.add(r.black); }); ids.delete(me);
+      if (ids.size){ const {data} = await sb.from("chess_players").select("id,name,rating,last_seen").in("id", [...ids]); (data || []).forEach(p => { D.players[p.id] = p; }); }
+      loaded = Date.now(); loading = null;
+    })().catch(() => { loading = null; });
+    return loading;
+  }
+  /* per opponent: score and who holds whom (the latest decisive game decides) */
+  function standings(){
+    const out = {};
+    D.duels.slice().sort((x, y) => new Date(x.created_at) - new Date(y.created_at)).forEach(r => {
+      const opp = r.white === me ? r.black : r.white, o = out[opp] || (out[opp] = {id: opp, w: 0, l: 0, d: 0, cage: null, ts: 0});
+      if (r.result === "1/2-1/2") o.d++; else { const iWon = (r.result === "1-0") === (r.white === me); if (iWon){ o.w++; o.cage = "mine"; } else { o.l++; o.cage = "theirs"; } }
+      o.ts = new Date(r.created_at).getTime(); });
+    Object.values(out).forEach(o => { o.sent = D.gifts.filter(g => g.from_id === me && g.to_id === o.id).length; o.got = D.gifts.filter(g => g.to_id === me && g.from_id === o.id).length; });
+    return out;
+  }
+  const rel = id => { const k = pair(me, id), r = D.friends.find(f => f.a === k.a && f.b === k.b); if (!r) return "none"; if (r.status === "accepted") return "friend"; return r.requested_by === me ? "sent" : "incoming"; };
+
+  async function request(id){
+    const k = pair(me, id), st = rel(id);
+    if (st === "incoming") return accept(id);
+    if (st !== "none") return;
+    const {error} = await sb.from("chess_friends").insert({...k, requested_by: me, status: "pending"});
+    if (error && !/duplicate/i.test(error.message)) return toast("Couldn't send the request: " + error.message, 3500);
+    toast("Friend request sent"); await load(true);
+  }
+  async function accept(id){ const k = pair(me, id); const {error} = await sb.from("chess_friends").update({status: "accepted"}).eq("a", k.a).eq("b", k.b); if (error) return toast(error.message, 3500); toast("You're friends now!"); Sound.cheer(1); await load(true); }
+  async function remove(id){ const k = pair(me, id); await sb.from("chess_friends").delete().eq("a", k.a).eq("b", k.b); await load(true); }
+  async function heart(id){
+    const {error} = await sb.from("chess_gifts").insert({from_id: me, to_id: id, kind: "heart"});
+    if (error){ toast("You can only send hearts to someone you've beaten."); return false; }
+    D.gifts.unshift({from_id: me, to_id: id, created_at: new Date().toISOString()}); return true;
+  }
+  async function invite(id, tc){
+    const code = newCode(); const {error} = await sb.from("chess_invites").insert({from_id: me, to_id: id, code, tc: tc.join("+")});
+    if (error){ toast("Couldn't send the invite: " + error.message, 3500); return; }
+    Views.friend.cfg = {tc: tc.slice(), color: "r"}; App.go("friend", {join: code, host: true});
+    toast("Invite sent to " + P(id).name + ". Waiting for them to join…", 3500);
+  }
+
+  /* live: invites, hearts and friend requests arrive at once; a poll catches anything missed */
+  function listen(){
+    try {
+      ch = sb.channel("social-" + me)
+        .on("postgres_changes", {event: "INSERT", schema: "public", table: "chess_invites", filter: "to_id=eq." + me}, ({new: r}) => showInvite(r))
+        .on("postgres_changes", {event: "INSERT", schema: "public", table: "chess_gifts", filter: "to_id=eq." + me}, async ({new: r}) => { await load(true); toast("❤️ " + P(r.from_id).name + " sent you a heart from your cage", 3500); Sound.cheer(1); })
+        .on("postgres_changes", {event: "*", schema: "public", table: "chess_friends"}, async ({new: r, eventType}) => { await load(true);
+          if (eventType === "INSERT" && r && r.requested_by !== me) toast(P(r.requested_by).name + " sent you a friend request", 3500);
+          if (eventType === "UPDATE" && r && r.status === "accepted" && r.requested_by === me) toast(P(r.a === me ? r.b : r.a).name + " accepted your friend request", 3500);
+          if (App.route === "friends") Views.friends.draw(); })
+        .subscribe();
+    } catch(e) {}
+  }
+  async function pollInvites(){
+    if (!ok() || document.hidden) return;
+    const since = new Date(Date.now() - INVITE_MS).toISOString();
+    const {data} = await sb.from("chess_invites").select("*").eq("to_id", me).eq("status", "open").gt("created_at", since).order("created_at", {ascending: false}).limit(3);
+    (data || []).forEach(showInvite);
+  }
+  async function showInvite(r){
+    if (!r || shownInv.has(r.id) || r.status !== "open" || Date.now() - new Date(r.created_at).getTime() > INVITE_MS) return; shownInv.add(r.id);
+    if (!D.players[r.from_id]) await load(true);
+    const p = P(r.from_id), tc = (r.tc || "10+0").split("+").map(Number);
+    const el = document.createElement("div"); el.className = "invite-pop";
+    el.innerHTML = `${face(p, 46)}<div class="ip-t"><b>${esc(p.name)} wants to play</b><span>${esc(tcLabel(tc))} · live game</span></div><button class="btn sm" data-x>Not now</button><button class="btn sm go" data-j>Play</button>`;
+    document.body.appendChild(el); Sound.play("GenericNotify", .8);
+    const close = st => { el.remove(); sb.from("chess_invites").update({status: st}).eq("id", r.id).then(() => {}, () => {}); };
+    el.querySelector("[data-j]").onclick = () => { close("accepted"); App.go("friend", {join: r.code}); };
+    el.querySelector("[data-x]").onclick = () => close("declined");
+    setTimeout(() => { if (el.isConnected) el.remove(); }, INVITE_MS);
+  }
+
+  /* a live game between two accounts ended */
+  async function gameOver(g){
+    if (!ok() || !g.opp || g.opp === me || (g.seat !== "w" && g.seat !== "b")) return null;
+    const draw = g.result === "1/2-1/2", win = !draw && ((g.result === "1-0") === (g.seat === "w"));
+    if (!win){ const row = {id: String(g.id).slice(0, 40), white: g.seat === "w" ? me : g.opp, black: g.seat === "b" ? me : g.opp, result: g.result, reason: String(g.why || "").slice(0, 40), moves: g.moves, reported_by: me};
+      const {error} = await sb.from("chess_duels").insert(row); if (error && !/duplicate/i.test(error.message)) return null; }
+    /* a win only counts once the loser's device has reported it */
+    let confirmed = !win;
+    for (let i = 0; i < 4; i++){ if (i || win) await sleep(win ? 1500 + i * 1500 : 0); await load(true); if (D.duels.some(r => r.id === String(g.id).slice(0, 40))){ confirmed = true; break; } if (!win) break; }
+    const o = standings()[g.opp] || {w: 0, l: 0, d: 0}, nm = esc(g.oppName || P(g.opp).name), score = `<span class="muted">Score: you ${o.w}, ${nm} ${o.l}${o.d ? `, ${o.d} draw${o.d > 1 ? "s" : ""}` : ""}</span>`;
+    if (draw) return {cls: "", html: `<b>Draw.</b> The cage stays as it was. ${score}`};
+    if (win && !confirmed) return {cls: "", html: `<b>You won!</b> The cage locks once ${nm}'s device confirms the result. If ${nm} closed the game early, it doesn't count.`};
+    if (win) return {cls: "win", html: `<b>🔒 ${nm} is now in your cage!</b> ${score}<div class="row" style="margin-top:6px"><button class="btn sm go" data-heart="${g.opp}">Send a ❤️</button><button class="btn sm" data-gocages>See the cage</button></div>`};
+    return {cls: "lose", html: `<b>😱 You're in ${nm}'s cage now.</b> Win the rematch to break out. ${score}`};
+  }
+  function friendChip(id){
+    if (!ok() || id === me) return ""; const st = rel(id);
+    if (st === "friend") return ""; if (st === "sent") return `<div class="row" style="margin-top:8px"><span class="pill">Friend request sent</span></div>`;
+    return `<div class="row" style="margin-top:8px"><button class="btn sm" data-addf="${id}">${st === "incoming" ? "Accept friend request" : "Add as friend"}</button></div>`;
+  }
+  function wire(root, redraw){
+    if (!root) return;
+    root.querySelectorAll("[data-heart]").forEach(b => b.onclick = async () => { if (await heart(b.dataset.heart)){ toast("❤️ sent"); Sound.cheer(1); } });
+    root.querySelectorAll("[data-gocages]").forEach(b => b.onclick = () => App.go("trophies"));
+    root.querySelectorAll("[data-addf]").forEach(b => b.onclick = async () => { await request(b.dataset.addf); redraw && redraw(); });
+  }
+
+  /* Trophy Hall: friends in your cage, and the cages you're stuck in */
+  const HEART_LINES = ["Aww… thanks ❤️", "Still mad. But thanks.", "Let me out!", "Rematch? Please?", "Okay, that's sweet.", "I'll get you next time ❤️"];
+  async function cages(el){
+    if (!el) return;
+    if (!sb) return;
+    await site.sessionReady;
+    if (!site.getSession()){ el.innerHTML = `<div class="unit" style="margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:200px"><h3>Lock up your friends</h3><p class="muted" style="margin:2px 0 0">Sign in, add your friends and beat them in a live game. They land in your cage, and you can send them hearts.</p></div><button class="btn go" data-acc>Sign in</button></div>`; el.querySelector("[data-acc]").onclick = () => App.go("account"); return; }
+    if (!me) await start();
+    el.innerHTML = `<p class="dim" style="margin-top:12px">Loading your friends…</p>`;
+    await load(); if (!el.isConnected) return;
+    const st = Object.values(standings()), mine = st.filter(o => o.cage === "mine"), theirs = st.filter(o => o.cage === "theirs");
+    const meP = player || {id: me, name: S.name, rating: S.puzzle.r};
+    const cage = (o, who, inside, btn) => `<div class="cage got person ${who}" data-pc="${o.id}"><div class="cage-in">${face(inside, 108)}<div class="bars"></div><div class="drops" id="pdrop-${o.id}"></div><div class="say" id="psay-${o.id}"></div></div>
+      <div class="plate"><b>${dot(P(o.id))}${esc(who === "mine" ? P(o.id).name : "You")}</b><span>${who === "mine" ? "In your cage" : "In " + esc(P(o.id).name) + "'s cage"}</span><span>Score ${o.w}:${o.l}${o.d ? " · " + o.d + "½" : ""} · ${who === "mine" ? `❤️ ${o.sent} sent` : `❤️ ${o.got} received`}</span></div>${btn}</div>`;
+    el.innerHTML = `<h2 class="h-sec" style="margin-top:18px">Friends</h2>
+      ${!mine.length && !theirs.length ? `<div class="unit"><p class="muted" style="margin:0">Beat a signed-in friend in a live game and they land in your cage. If they beat you back, you're in theirs. <a href="#" data-gof>Find friends</a></p></div>` : ""}
+      ${mine.length ? `<div class="cages">${mine.map(o => cage(o, "mine", P(o.id), `<button class="btn sm go" data-ph="${o.id}">Send ❤️</button>`)).join("")}</div>` : ""}
+      ${theirs.length ? `<p class="muted" style="margin:14px 0 0">Locked up! Win your next game against them to break out.</p><div class="cages">${theirs.map(o => cage(o, "theirs", meP, rel(o.id) === "friend" ? `<button class="btn sm" data-pinv="${o.id}">Challenge ${esc(P(o.id).name)}</button>` : `<button class="btn sm" data-addf="${o.id}">Add as friend</button>`)).join("")}</div>` : ""}`;
+    const g = el.querySelector("[data-gof]"); if (g) g.onclick = e => { e.preventDefault(); App.go("friends"); };
+    el.querySelectorAll("[data-ph]").forEach(b => b.onclick = async () => { const id = b.dataset.ph; if (!(await heart(id))) return;
+      const d = $("#pdrop-" + id), c = el.querySelector(`[data-pc="${id}"]`), say = $("#psay-" + id);
+      const p = document.createElement("span"); p.className = "poo"; p.textContent = "❤️"; p.style.left = (30 + Math.random() * 40) + "%"; d.appendChild(p);
+      Sound.tone([[660, .06, .05], [990, .14]], "sine", .1);
+      setTimeout(() => { c.classList.remove("hit"); void c.offsetWidth; c.classList.add("hit"); say.textContent = rnd(HEART_LINES); say.classList.remove("show"); void say.offsetWidth; say.classList.add("show"); }, 520);
+      setTimeout(() => p.remove(), 2600);
+      const sp = c.querySelector(".plate span:last-child"); const o = standings()[id]; if (sp && o) sp.textContent = `Score ${o.w}:${o.l}${o.d ? " · " + o.d + "½" : ""} · ❤️ ${o.sent} sent`; });
+    el.querySelectorAll("[data-pinv]").forEach(b => b.onclick = () => invite(b.dataset.pinv, [10, 0]));
+    wire(el, () => cages(el));
+  }
+
+  return {start, load, setName, request, accept, remove, heart, invite, gameOver, friendChip, wire, cages, standings, rel, P, seen, isOnline, face, dot,
+    get me(){ return me; }, get player(){ return player; }, get data(){ return D; }, sb};
+})();
+
+/* ---------- the Friends page ---------- */
+Views.friends = {
+  async mount(main){ this.main = main; this.q = ""; this.tc = this.tc || [10, 0]; this.main.innerHTML = `<div class="page"><h1 class="h-title">Friends</h1><p class="dim">Loading…</p></div>`;
+    const site = window.ChessSite || {}; if (!site.ready){ this.main.innerHTML = `<div class="page"><h1 class="h-title">Friends</h1><p class="muted">Accounts aren't set up on this site.</p></div>`; return; }
+    await site.sessionReady;
+    if (!site.getSession()){ this.main.innerHTML = `<div class="page" style="max-width:640px"><h1 class="h-title">Friends</h1><div class="unit" style="margin-top:12px"><h3>Sign in to add friends</h3><p class="muted">With an account you get a player name, can add friends, see who's online, invite them to a game, and lock them up in your Trophy Hall when you beat them.</p><button class="btn go" id="fsi">Sign in</button></div></div>`; $("#fsi").onclick = () => App.go("account"); return; }
+    await Social.start(); await Social.load(true); this.draw(); },
+  draw(){
+    const main = this.main; if (!main || App.route !== "friends") return;
+    const me = Social.player, D = Social.data, st = Social.standings();
+    if (!me){ main.innerHTML = `<div class="page" style="max-width:640px"><h1 class="h-title">Friends</h1><div class="unit" style="margin-top:12px"><h3>Choose your player name</h3><p class="muted">This is how friends find you and how you appear in their cage. You can change it later.</p>
+      <form id="nmf" class="row" style="margin-top:8px"><input type="text" id="nm" maxlength="24" placeholder="e.g. Pupsi" value="${esc(S.name === "You" ? "" : S.name)}" style="flex:1;min-width:160px"><button class="btn go" type="submit">Save</button></form><p id="nmerr" style="color:var(--bad);font-size:13px;margin:6px 0 0"></p></div></div>`;
+      $("#nmf").onsubmit = async e => { e.preventDefault(); const r = await Social.setName($("#nm").value); if (r.error) $("#nmerr").textContent = r.error; else this.draw(); }; return; }
+    const other = r => r.a === me.id ? r.b : r.a;
+    const friends = D.friends.filter(r => r.status === "accepted").map(other).sort((x, y) => (Social.isOnline(Social.P(y)) - Social.isOnline(Social.P(x))) || Social.P(x).name.localeCompare(Social.P(y).name));
+    const incoming = D.friends.filter(r => r.status === "pending" && r.requested_by !== me.id).map(other), sent = D.friends.filter(r => r.status === "pending" && r.requested_by === me.id).map(other);
+    const person = (id, right) => { const p = Social.P(id), o = st[id]; return `<div class="li fr">${Social.face(p, 42)}<div class="grow"><div class="t">${Social.dot(p)}${esc(p.name)}${p.rating ? ` <span class="muted">(${p.rating})</span>` : ""}</div><div class="s">${esc(Social.seen(p))}${o ? ` · score ${o.w}:${o.l}${o.cage === "mine" ? " · 🔒 in your cage" : o.cage === "theirs" ? " · you're in their cage" : ""}` : ""}</div></div>${right}</div>`; };
+    const TCS = [[3, 0], [5, 0], [10, 0], [15, 10]];
+    main.innerHTML = `<div class="page" style="max-width:760px"><h1 class="h-title">Friends</h1>
+      <div class="unit" style="margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">${Social.face(me, 54)}<div style="flex:1;min-width:180px"><div class="muted" style="font-size:12px;font-weight:800;letter-spacing:.06em">YOUR PLAYER NAME</div>${this.renaming ? `<form id="rnf" class="row" style="margin-top:4px"><input type="text" id="rnv" maxlength="24" value="${esc(me.name)}" style="width:200px"><button class="btn sm go" type="submit">Save</button><button class="btn sm" type="button" id="rnx">Cancel</button></form><p id="rnerr" style="color:var(--bad);font-size:13px;margin:4px 0 0"></p>` : `<div style="font:900 22px var(--display)">${esc(me.name)}</div>`}</div>${this.renaming ? "" : `<button class="btn sm" id="ren">Change</button>`}</div>
+      <div class="unit"><h3>Add a friend</h3><form id="sf2" class="row" style="margin-top:8px"><input type="text" id="sq" placeholder="Search by player name" value="${esc(this.q)}" style="flex:1;min-width:160px"><button class="btn go" type="submit">Search</button></form><div id="sres"></div></div>
+      ${incoming.length ? `<h2 class="h-sec">Friend requests</h2><div class="list">${incoming.map(id => person(id, `<button class="btn sm" data-rm="${id}">Decline</button><button class="btn sm go" data-acc="${id}">Accept</button>`)).join("")}</div>` : ""}
+      <h2 class="h-sec" style="margin-top:16px">Your friends <span class="muted" style="font-weight:600">${friends.filter(id => Social.isOnline(Social.P(id))).length} online</span></h2>
+      ${friends.length ? `<div class="row" style="margin:0 0 8px"><span class="muted" style="font-size:13px">Invite with:</span>${TCS.map(tc => `<button class="btn sm ${tc[0] === this.tc[0] && tc[1] === this.tc[1] ? "go" : ""}" data-tcs="${tc.join(",")}">${tcLabel(tc)}</button>`).join("")}</div>
+        <div class="list">${friends.map(id => person(id, `${st[id] && st[id].cage === "mine" ? `<button class="btn sm" data-h="${id}" aria-label="Send a heart">❤️</button>` : ""}<button class="btn sm ${Social.isOnline(Social.P(id)) ? "go" : ""}" data-inv="${id}">Invite</button><button class="btn sm ghost" data-rmf="${id}" aria-label="Remove friend">✕</button>`)).join("")}</div>`
+        : `<div class="unit"><p class="muted" style="margin:0">No friends yet. Search for their player name above, or play them live and tap “Add as friend” after the game.</p></div>`}
+      ${sent.length ? `<h2 class="h-sec" style="margin-top:16px">Requests you sent</h2><div class="list">${sent.map(id => person(id, `<button class="btn sm" data-rm="${id}">Cancel</button>`)).join("")}</div>` : ""}
+      <p class="muted" style="margin-top:16px;font-size:13.5px">Beat a friend in a live game and they go into your cage in the <a href="#" id="gotr">Trophy Hall</a>. Lose and you're in theirs, until you win again.</p></div>`;
+    if ($("#ren")) $("#ren").onclick = () => { this.renaming = true; this.draw(); $("#rnv").focus(); };
+    if ($("#rnx")) $("#rnx").onclick = () => { this.renaming = false; this.draw(); };
+    if ($("#rnf")) $("#rnf").onsubmit = async e => { e.preventDefault(); const r = await Social.setName($("#rnv").value); if (r.error){ $("#rnerr").textContent = r.error; return; } this.renaming = false; toast("Name saved"); this.draw(); };
+    $("#gotr").onclick = e => { e.preventDefault(); App.go("trophies"); };
+    $("#sf2").onsubmit = e => { e.preventDefault(); this.search($("#sq").value); };
+    $$("[data-tcs]", main).forEach(b => b.onclick = () => { this.tc = b.dataset.tcs.split(",").map(Number); this.draw(); });
+    $$("[data-acc]", main).forEach(b => b.onclick = async () => { await Social.accept(b.dataset.acc); this.draw(); });
+    $$("[data-rm]", main).forEach(b => b.onclick = async () => { await Social.remove(b.dataset.rm); this.draw(); });
+    $$("[data-rmf]", main).forEach(b => b.onclick = async () => { if (!b.dataset.armed){ b.dataset.armed = 1; b.textContent = "Remove?"; return; } await Social.remove(b.dataset.rmf); this.draw(); });
+    $$("[data-inv]", main).forEach(b => b.onclick = () => Social.invite(b.dataset.inv, this.tc));
+    $$("[data-h]", main).forEach(b => b.onclick = async () => { if (await Social.heart(b.dataset.h)){ toast("❤️ sent to " + Social.P(b.dataset.h).name); Sound.cheer(1); } });
+    if (this.q) this.search(this.q);
+  },
+  async search(q){
+    this.q = q = String(q || "").trim(); const out = $("#sres"); if (!out) return;
+    if (q.length < 2){ out.innerHTML = q ? `<p class="muted" style="font-size:13px">Type at least 2 letters.</p>` : ""; return; }
+    out.innerHTML = `<p class="dim" style="font-size:13px">Searching…</p>`;
+    const {data, error} = await Social.sb.from("chess_players").select("id,name,rating,last_seen").ilike("name", "%" + q.replace(/[%_\\]/g, "") + "%").neq("id", Social.me).order("last_seen", {ascending: false}).limit(10);
+    if (error){ out.innerHTML = `<p class="muted">${esc(error.message)}</p>`; return; }
+    (data || []).forEach(p => { Social.data.players[p.id] = p; });
+    out.innerHTML = (data || []).length ? `<div class="list" style="margin-top:8px">${data.map(p => { const r = Social.rel(p.id);
+      return `<div class="li fr">${Social.face(p, 38)}<div class="grow"><div class="t">${Social.dot(p)}${esc(p.name)}${p.rating ? ` <span class="muted">(${p.rating})</span>` : ""}</div><div class="s">${esc(Social.seen(p))}</div></div>${r === "friend" ? `<span class="pill go">Friends</span>` : r === "sent" ? `<span class="pill">Requested</span>` : `<button class="btn sm go" data-add="${p.id}">${r === "incoming" ? "Accept" : "Add friend"}</button>`}</div>`; }).join("")}</div>`
+      : `<p class="muted" style="font-size:13px;margin:8px 0 0">Nobody called “${esc(q)}” yet. Your friend needs a Chess.nat account and a player name.</p>`;
+    $$("[data-add]", out).forEach(b => b.onclick = async () => { b.disabled = true; await Social.request(b.dataset.add); this.draw(); });
+  }
+};
+if (window.ChessSite && window.ChessSite.ready) setTimeout(() => Social.start(), 1500);
 
 boot();
 </script>
