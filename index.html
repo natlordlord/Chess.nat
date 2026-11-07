@@ -1192,6 +1192,50 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 .tabbar button{position:relative}
 .tabbar .tbadge{position:absolute;top:4px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--bad);color:#fff;font:800 11px/18px var(--body);font-style:normal;text-align:center}
 .tabbar .dot.on{background:var(--go)}
+/* first start with an account: pick your player ID (not skippable, but "pick one for me" is one tap) */
+.idsetup{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center;padding:12px}
+@media (min-width:700px){.idsetup{align-items:center}}
+.ids-card{width:min(440px,100%);background:var(--panel);border-radius:20px;padding:20px 18px calc(18px + env(safe-area-inset-bottom,0px));box-shadow:0 20px 50px rgba(0,0,0,.5);animation:bubin .25s ease-out}
+.ids-ic{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--go) 22%,transparent);color:var(--go);margin:0 auto 6px}
+.ids-t{font:900 22px var(--display);text-align:center}
+.ids-card p{margin:6px 0 12px;font-size:14px;line-height:1.45}
+.ids-card form{display:flex;flex-direction:column;gap:10px}
+.ids-card label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:800}
+.ids-card input{width:100%}
+.hdl-in.locked{opacity:.6}
+
+/* ===== In-app notifications ===== */
+.ntf{--na:var(--go);position:fixed;z-index:160;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);width:min(440px,calc(100% - 20px));transform:translate(-50%,-140%) scale(.96);opacity:0;
+  transition:transform .5s cubic-bezier(.2,1.25,.35,1),opacity .3s ease;touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer}
+.ntf.in{transform:translate(-50%,0) scale(1);opacity:1}
+.ntf.out{transform:translate(-50%,-140%) scale(.96);opacity:0;transition:transform .35s cubic-bezier(.5,0,.75,0),opacity .3s ease}
+.ntf.drag{transition:none}
+.ntf-in{position:relative;display:flex;align-items:center;gap:12px;padding:12px 12px 14px;border-radius:20px;overflow:hidden;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--na) 16%,var(--panel-3,#2b2926)) 0%,var(--panel-3,#2b2926) 60%);
+  border:1px solid color-mix(in srgb,var(--na) 45%,transparent);box-shadow:0 18px 40px -8px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.03) inset}
+.ntf-ic{flex:none;display:grid;place-items:center;width:52px;height:52px;border-radius:16px;background:color-mix(in srgb,var(--na) 18%,transparent);color:var(--na)}
+.ntf.in .ntf-ic{animation:ntfpop .6s .12s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes ntfpop{0%{transform:scale(.4) rotate(-12deg);opacity:0}100%{transform:none;opacity:1}}
+.ntf-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.ntf-t small{font:900 10.5px var(--body);letter-spacing:.09em;text-transform:uppercase;color:var(--na)}
+.ntf-t b{font:900 16px var(--display);color:var(--fg);line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ntf-t span{font-size:13.5px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ntf-b{flex:none;height:38px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);font:800 13.5px var(--body);cursor:pointer}
+.ntf-b.go{background:var(--go);border-color:transparent;color:#fff;box-shadow:0 3px 0 color-mix(in srgb,var(--go) 55%,#000)}
+.ntf-b:active{transform:scale(.95)}
+.ntf-bar{position:absolute;left:14px;right:14px;bottom:5px;height:3px;border-radius:2px;background:color-mix(in srgb,var(--na) 70%,transparent);transform-origin:left;transform:scaleX(1);opacity:.7}
+.ntf.in .ntf-bar{transform:scaleX(0);transition:transform var(--ms,4500ms) linear}
+.ntf.drag .ntf-bar{transition:none}
+/* trophies: a light sweep across the card and a glow behind the medal */
+.ntf-trophy .ntf-in::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-50%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.14),transparent);transform:skewX(-18deg)}
+.ntf-trophy.in .ntf-in::after{animation:ntfsweep 1.1s .25s ease-out both}
+@keyframes ntfsweep{to{left:120%}}
+.ntf-trophy .ntf-ic{background:radial-gradient(circle,color-mix(in srgb,var(--na) 40%,transparent) 0,transparent 70%);width:58px;height:58px}
+.ntf-chat .ntf-ic,.ntf-invite .ntf-ic{background:none;border-radius:50%}
+/* toast: a pill that slides up and fades */
+.toast{animation:toastin .3s cubic-bezier(.2,1.2,.4,1);border-radius:999px!important;padding:11px 18px!important;max-width:calc(100% - 32px);text-align:center;border:1px solid var(--line)}
+.toast.out{opacity:0;transform:translate(-50%,10px);transition:opacity .25s,transform .25s}
+@keyframes toastin{from{opacity:0;transform:translate(-50%,14px) scale(.96)}}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -1263,7 +1307,38 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const rnd = a => a[Math.floor(Math.random() * a.length)];
 const todayKey = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); };
 function hashStr(s){ let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
-function toast(t, ms = 2200){ const el = document.createElement("div"); el.className = "toast"; el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), ms); }
+/* short message at the bottom: slides up, fades out, a new one replaces the old one */
+function toast(t, ms = 2200){
+  document.querySelectorAll(".toast").forEach(o => { o.classList.add("out"); setTimeout(() => o.remove(), 250); });
+  const el = document.createElement("div"); el.className = "toast"; el.textContent = t; document.body.appendChild(el);
+  setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 300); }, ms);
+}
+/* ---------- in-app notifications: one card at a time slides down from the top.
+   Tap it to open, swipe it up to dismiss, a thin bar shows how long it stays. Trophies, messages and invites all use it. ---------- */
+const Notify = {
+  q: [], cur: null,
+  show(o){ if (o.key && this.cur && this.cur.o.key === o.key){ this.close(this.cur, true); } if (o.key) this.q = this.q.filter(x => x.key !== o.key); this.q.push(o); if (!this.cur) this.next(); },
+  next(){
+    const o = this.q.shift(); if (!o) return;
+    const el = document.createElement("div"); el.className = "ntf " + (o.cls || ""); if (o.accent) el.style.setProperty("--na", o.accent);
+    el.innerHTML = `<div class="ntf-in">${o.icon ? `<div class="ntf-ic">${o.icon}</div>` : ""}<div class="ntf-t">${o.label ? `<small>${o.label}</small>` : ""}<b>${o.title || ""}</b>${o.text ? `<span>${o.text}</span>` : ""}</div>${(o.actions || []).map((x, i) => `<button class="ntf-b ${x.primary ? "go" : ""}" data-a="${i}">${x.label}</button>`).join("")}</div><i class="ntf-bar"></i>`;
+    document.body.appendChild(el); const cur = this.cur = {el, o, t0: performance.now()};
+    const ms = o.ms || 4500; el.style.setProperty("--ms", ms + "ms");
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("in")));
+    if (o.sound) o.sound();
+    cur.timer = setTimeout(() => this.close(cur), ms);
+    (o.actions || []).forEach((x, i) => el.querySelector(`[data-a="${i}"]`).onclick = e => { e.stopPropagation(); this.close(cur); x.fn && x.fn(); });
+    /* tap opens, swipe up dismisses */
+    let y0 = null, dy = 0;
+    el.addEventListener("pointerdown", e => { y0 = e.clientY; dy = 0; el.classList.add("drag"); clearTimeout(cur.timer); });
+    el.addEventListener("pointermove", e => { if (y0 == null) return; dy = Math.min(0, e.clientY - y0); el.style.transform = `translate(-50%, ${dy}px)`; });
+    const up = () => { if (y0 == null) return; y0 = null; el.classList.remove("drag"); el.style.transform = "";
+      if (dy < -30) return this.close(cur); if (Math.abs(dy) < 6 && o.onTap){ this.close(cur); o.onTap(); return; } cur.timer = setTimeout(() => this.close(cur), 1800); };
+    el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
+  },
+  close(cur, quick){ if (!cur || cur.closed) return; cur.closed = true; clearTimeout(cur.timer); cur.el.classList.remove("in"); cur.el.classList.add("out");
+    setTimeout(() => cur.el.remove(), quick ? 150 : 380); if (this.cur === cur){ this.cur = null; setTimeout(() => this.next(), quick ? 60 : 260); } }
+};
 
 /* ---------- ranks: League-style tiers mapped to FIDE-like percentiles ---------- */
 const TIERS = [
@@ -2070,7 +2145,6 @@ Views.puzzles = {
     this.R.start(p);
     /* load the puzzle packs around your rating in the background, so the next puzzle never waits for a download */
     setTimeout(() => { const lo = Math.floor((S.puzzle.r + 25) / 100) * 100; [lo, lo - 100, lo + 100].forEach(l => PZ.shard(l)); }, 1200);
-    if (resumed && this.firstLoad) toast("Your unfinished puzzle is back. Skipping it counts as a miss.", 3200);
     this.firstLoad = false;
   },
   settle(ok, viaHint){
@@ -4387,7 +4461,7 @@ const AV_ITEMS = [
   ["hair", "mohawk", "Mohawk", "t:streak-pz-10"], ["hair", "flame", "Fire hair", "t:rating-1800"],
   // character: free choices, a few rare ones to earn
   ["sex", "m", "Male", 0], ["sex", "f", "Female", 0],
-  ["shape", "human", "Face", 0], ["shape", "piece", "Chess piece", 0],
+  ["shape", "human", "Face", 0], ["shape", "piece", "Chess piece", 0], ["shape", "capy", "Capybara", 0],
   ["build", "slim", "Slim", 0], ["build", "normal", "Normal", 0], ["build", "broad", "Broad", 0],
   ["height", "short", "Short", 0], ["height", "normal", "Normal", 0], ["height", "tall", "Tall", 0],
   ["eyeshape", "round", "Round", 0], ["eyeshape", "almond", "Almond", 0], ["eyeshape", "sleepy", "Sleepy", 0], ["eyeshape", "wide", "Wide", 0],
@@ -4400,7 +4474,7 @@ const AV_ITEMS = [
   ["eyes", "brown", "Brown", 0], ["eyes", "blue", "Blue", 0], ["eyes", "green", "Green", 0], ["eyes", "gray", "Gray", 0],
   ["eyes", "gold", "Golden", "t:rating-1600"], ["eyes", "glow", "Glowing", "t:bot-titan"],
   // headwear
-  ["head", "none", "Nothing", 0], ["head", "beanie", "Beanie", "t:pz-25"], ["head", "cap", "Cap", "t:games-10"], ["head", "band", "Headband", "t:streak-pz-5"],
+  ["head", "none", "Nothing", 0], ["head", "yuzu", "Orange", 0], ["head", "beanie", "Beanie", "t:pz-25"], ["head", "cap", "Cap", "t:games-10"], ["head", "band", "Headband", "t:streak-pz-5"],
   ["head", "wizard", "Wizard hat", "t:lessons-25"], ["head", "helmet", "Steel helmet", "t:bot-viktor"], ["head", "viking", "Viking helmet", "t:bot-ragnar"],
   ["head", "laurel", "Laurel wreath", "t:winstreak-5"], ["head", "crown", "Crown", "n:150"], ["head", "imperial", "Imperial crown", "n:300"],
   ["head", "knighthelm", "Knight's helm", "c:knight"], ["head", "mitre", "Bishop's mitre", "c:bishop"], ["head", "tower", "Tower crown", "c:rook"], ["head", "tiara", "Queen's tiara", "c:queen"], ["head", "kingcrown", "King's crown", "c:king"],
@@ -4447,7 +4521,7 @@ const AV_ITEMS = [
 ].map(([slot, id, name, req]) => ({slot, id, name, req}));
 const AV_DEFAULT = {cls: "pawn", hair: "short", eyes: "brown", head: "none", mask: "none", glasses: "none", ears: "none", shirt: "rags", coat: "none", cape: "none", pants: "patched", shoes: "bare", right: "none", left: "none", wrist: "none", aura: "none", frame: "auto", paint: "none", back: "none", pet: "none",
   sex: "m", shape: "human", skin: "fair", hairC: "darkbrown", build: "normal", height: "normal", eyeshape: "round", brows: "soft", nose: "button", mouth: "smile", beard: "none", cheeks: "none",
-  shirtC: "", pantsC: "", coatC: "", capeC: "", shoesC: ""};
+  shirtC: "", pantsC: "", coatC: "", capeC: "", shoesC: "", fur: "classic"};
 /* colours: skin, hair and every piece of clothing */
 const AV_COLORS = {
   skin: [["porcelain", "Porcelain", "#f3d9c4", 0], ["fair", "Fair", "#ebc3a3", 0], ["light", "Light", "#dba985", 0], ["medium", "Medium", "#c08a60", 0], ["tan", "Tan", "#a06c45", 0], ["brown", "Brown", "#7b4e30", 0],
@@ -4456,12 +4530,15 @@ const AV_COLORS = {
   hairC: [["black", "Black", "#1c1a1a", 0], ["darkbrown", "Dark brown", "#3b2a20", 0], ["brown", "Brown", "#6b4423", 0], ["auburn", "Auburn", "#8a3a1d", 0], ["ginger", "Ginger", "#c0602a", 0], ["blond", "Blond", "#d9b26a", 0],
     ["platinum", "Platinum", "#ece3c8", 0], ["gray", "Gray", "#9a9a9a", 0], ["white", "White", "#f2f2f0", 0], ["blue", "Blue", "#2f6fd8", "n:40"], ["pink", "Pink", "#e05aa8", "n:70"], ["green", "Green", "#3fb05a", "n:100"],
     ["purple", "Purple", "#7a3fd0", "n:140"], ["red", "Fire red", "#d1202f", "n:200"]],
+  /* capybara fur */
+  fur: [["classic", "Capybara brown", "#9b6b45", 0], ["caramel", "Caramel", "#c38d58", 0], ["choco", "Chocolate", "#5f3e27", 0], ["cream", "Cream", "#eedfc4", 0], ["pink", "Pink", "#f4a6c6", 0], ["hotpink", "Hot pink", "#ff6fb1", 0],
+    ["lilac", "Lilac", "#bba4ea", 0], ["sky", "Baby blue", "#9ccbf2", 0], ["mint", "Mint", "#9fe2c2", 0], ["lemon", "Lemon", "#f6e27a", 0], ["gray", "Gray", "#9a9a9a", 0], ["goldfur", "Gold", "#d4a13a", "n:100"]],
   cloth: [["", "Original", "", 0], ["red", "Red", "#b3261e", 0], ["orange", "Orange", "#d9731f", 0], ["yellow", "Yellow", "#e0b13a", 0], ["green", "Green", "#3f8f3a", 0], ["teal", "Teal", "#1f8a8a", 0],
     ["blue", "Blue", "#2f6fb5", 0], ["navy", "Navy", "#22355e", 0], ["purple", "Purple", "#5a2d91", 0], ["pink", "Pink", "#d0578f", 0], ["brown", "Brown", "#6b4423", 0], ["beige", "Beige", "#c9b48f", 0],
     ["gray", "Gray", "#6f7782", 0], ["black", "Black", "#1f1f22", 0], ["white", "White", "#f0eee9", 0]],
 };
 const CLOTH_SLOT = {shirt: "shirtC", coat: "coatC", pants: "pantsC", shoes: "shoesC", cape: "capeC"};
-function avColor(kind, id){ const list = AV_COLORS[kind === "skin" || kind === "hairC" ? kind : "cloth"], c = list.find(x => x[0] === id); return c && c[2] ? c[2] : null; }
+function avColor(kind, id){ const list = AV_COLORS[kind === "skin" || kind === "hairC" || kind === "fur" ? kind : "cloth"], c = list.find(x => x[0] === id); return c && c[2] ? c[2] : null; }
 const EYE_C = {brown: "#5a3b22", blue: "#2f6fb5", green: "#3f8f3a", gray: "#6b7280", gold: "#d9a21b", glow: "#ff3b3b"};
 
 /* ---------- drawing ---------- */
@@ -4907,6 +4984,8 @@ const Av3D = (() => {
   const EYE_C = {brown: 0x5a3b22, blue: 0x2f6fb5, green: 0x3f8f3a, gray: 0x6b7280, gold: 0xd9a21b, glow: 0xff3b3b};
   const SHIRT = {rags: [0x9b8160], tee: [0xf0eee9], stripes: [0x22355e, "stripes"], hoodie: [0x6f7782], tunic: [0x3f8f3a], silk: [0x7c4dbd], royal: [0x8b1e2d]};
   const PANTS = {patched: 0x6b5a45, jeans: 0x3a5a8c, trousers: 0x2d2f36, royal: 0xeee7da};
+  /* capybara: a long blunt head with a big snout, small round ears high up, eyes far back on the sides */
+  const CAPY = {prof: PROF.sphere(.27, 1.08), eyes: [[-.115, .07], [.115, .07]], mouth: -.2, ears: .2, hat: [0, .05, .95], capy: 1, human: 1};
   const HUMAN = {prof: PROF.sphere(.27, 1.08), eyes: [[-.092, .035], [.092, .035]], mouth: -.115, ears: .262, hat: [0, .0, .92], hair: 1, top: .29, human: 1};
   const hx = h => parseInt(String(h).slice(1), 16);
   const shade = (c, k) => { const x = new T.Color(c); x.multiplyScalar(k); return x.getHex(); };
@@ -4916,10 +4995,11 @@ const Av3D = (() => {
 
   function build(cfg, tier, o = {}){
     TIER = tier;
-    const a = Object.assign({}, AV_DEFAULT, cfg || {}), cls = HEADS[a.cls] ? a.cls : "pawn", H = a.shape === "piece" ? HEADS[cls] : HUMAN;
+    const a = Object.assign({}, AV_DEFAULT, cfg || {}), cls = HEADS[a.cls] ? a.cls : "pawn", H = a.shape === "piece" ? HEADS[cls] : a.shape === "capy" ? CAPY : HUMAN;
     const rig = {tier, a, fx: [], pmats: [], own: [], eyes: [], tick: [], t: 0, emote: null, pose: o.pose || "idle", blink: 2 + Math.random() * 3, rr: rnd(hashStr(JSON.stringify(a)) % 2147483646 + 1)};
     const root = new T.Group(), fig = new T.Group(); root.add(fig); fig.position.y = .2; rig.root = root; rig.fig = fig;
-    const skinHex = hx(avColor("skin", a.skin) || "#ebc3a3"), skin = a.skin === "goldskin" ? M("gold", skinHex) : a.skin === "obsidian" ? M("dark", skinHex) : M(a.skin === "ivory" ? "skin" : "flesh", skinHex), ol = true;
+    const capy = a.shape === "capy", skinHex = capy ? hx(avColor("fur", a.fur) || "#9b6b45") : hx(avColor("skin", a.skin) || "#ebc3a3"),
+      skin = capy ? (a.fur === "goldfur" ? M("gold", skinHex) : M("hair", skinHex)) : a.skin === "goldskin" ? M("gold", skinHex) : a.skin === "obsidian" ? M("dark", skinHex) : M(a.skin === "ivory" ? "skin" : "flesh", skinHex), ol = true;
     rig.skin = skin; rig.skinHex = skinHex;
     const cc = (slot, def) => { const v = avColor("cloth", a[CLOTH_SLOT[slot]]); return v ? hx(v) : def; };
     const B = {slim: .9, normal: 1, broad: 1.13}[a.build] || 1, hip = {short: .4, normal: .5, tall: .6}[a.height] || .5, F = a.sex === "f"; rig.F = F;
@@ -5013,7 +5093,8 @@ const Av3D = (() => {
 
   function buildHead(rig, a, cls, H, head, skin){
     const ol = true, eyeC = EYE_C[a.eyes] || EYE_C.brown, hairC = hx(avColor("hairC", a.hairC) || "#3b2a20"), key = H.human ? "human" : cls;
-    if (H.knight){
+    if (H.capy){ buildCapy(rig, a, head, skin, eyeC); }
+    else if (H.knight){
       const g = extr("horse", HORSE, .26, .06, true); mesh(g, skin, 0, 0, 0, head, ol);
       mesh(sph(.035, 10, 8), M("dark", 0x2a2420), .33, -.13, .17, head); mesh(sph(.035, 10, 8), M("dark", 0x2a2420), .33, -.13, -.17, head);
       [1, -1].forEach(s => { const e = new T.Group(); e.position.set(.12, .12, s * .2); head.add(e); e.rotation.y = s > 0 ? 0 : Math.PI; eyeParts(e, eyeC, a); rig.eyes.push(e); });
@@ -5044,6 +5125,28 @@ const Av3D = (() => {
     }
     if (a.head !== "none"){ const hg = new T.Group(); hg.position.set(H.hat[0], H.hat[1], 0); hg.scale.setScalar(H.hat[2]); head.add(hg); buildHat(rig, a.head, hg); }
     if (a.eyes === "glow" || rig.tier >= 4) rig.eyes.forEach(e => sprite(rig, e, glowTex(), a.eyes === "glow" ? 0xff3b3b : 0xffd75e, .16, 0, 0, .03, .9));
+  }
+  function buildCapy(rig, a, head, fur, eyeC){
+    const ol = true, padM = M("hair", shade(rig.skinHex, .52)), dk = M("dark", 0x24170f);
+    /* the classic capybara: a tall, rounded block of a head, tiny ears, eyes high up, a broad nose at the bottom */
+    const hd = mesh(caps(.235, .2), fur, 0, -.02, -.01, head, ol); hd.scale.set(1.04, .86, .86);
+    const mz = mesh(sph(.17, 28, 18), fur, 0, -.15, .1, head, ol); mz.scale.set(1.22, .74, .68);
+    const pad = mesh(sph(.1, 24, 14), padM, 0, -.11, .205, head); pad.scale.set(1.5, .52, .38);
+    [-1, 1].forEach(s => { const n = mesh(sph(.02, 10, 8), dk, s * .05, -.105, .243, head); n.scale.set(1.5, .6, .5); n.rotation.z = s * .5; });
+    mesh(box(.007, .05, .01), padM, 0, -.17, .215, head);
+    [-1, 1].forEach(s => { const m = mesh(tor(.022, .006, 6, 12, Math.PI), dk, s * .021, -.2, .208, head); m.rotation.z = Math.PI; });
+    /* tiny round ears on the top corners */
+    [-1, 1].forEach(s => { const e = mesh(sph(.058, 16, 12), fur, s * .175, .27, -.04, head, ol); e.scale.set(1, .85, .55); e.rotation.z = -s * .35;
+      const ei = mesh(sph(.034, 12, 8), padM, s * .175, .266, -.015, head); ei.scale.set(1, .8, .3); ei.rotation.z = -s * .35; });
+    /* eyes high on the face, a little to the sides */
+    CAPY.eyes.forEach(([x, y]) => { const s = Math.sign(x), e = new T.Group(); e.position.set(x, y, .19); head.add(e); orient(e, new T.Vector3(s * .25, .05, .97)); e.scale.setScalar(.8); eyeParts(e, eyeC, a, rig); rig.eyes.push(e);
+      if (a.glasses !== "none"){ const g = new T.Group(); g.position.set(x, y, .235); orient(g, new T.Vector3(s * .2, .05, .98)); head.add(g); lens(rig, a.glasses, g, s); } });
+    if (a.glasses !== "none" && a.glasses !== "monocle"){ const br = mesh(cyl(.008, .008, .1, 6), M("dark", 0x2a2420), 0, CAPY.eyes[0][1] + .02, .235, head); br.rotation.z = Math.PI / 2; }
+    if (a.ears !== "none") [-1, 1].forEach(s => earring(rig, a.ears, head, s * .2, .2, -.04));
+    /* a tuft of hair on top, in the hair colour, if any hair is chosen */
+    if (a.hair !== "none"){ const hm = a.hair === "flame" ? M("cloth", 0xff7a1f, {em: .9}) : M("hair", hx(avColor("hairC", a.hairC) || "#3b2a20"));
+      for (let i = 0; i < 5; i++){ const t = mesh(cone(.032, .11, 8), hm, (i - 2) * .033, .32, .02 - Math.abs(i - 2) * .02, head); t.rotation.set(.15, 0, (i - 2) * .25); }
+      if (a.hair === "flame") flames(rig, head, [0, .34, 0], .18, 12); }
   }
   /* brows, nose, mouth, cheeks and facial hair */
   function buildFace(rig, a, head, H, key, hairC){
@@ -5102,6 +5205,9 @@ const Av3D = (() => {
   }
   function buildHat(rig, k, g){
     const ol = true;
+    /* an orange balanced on the head, the capybara classic */
+    if (k === "yuzu"){ const o = mesh(sph(.15, 28, 20), M("skin", 0xf28a1c), 0, .4, 0, g, ol); o.scale.set(1, .9, 1); mesh(sph(.018, 8, 6), M("cloth", 0x6b8e23), 0, .535, 0, g);
+      const lf = mesh(sph(.06, 12, 8), M("skin", 0x4caf50), .05, .555, .01, g); lf.scale.set(1.2, .25, .6); lf.rotation.z = -.4; return; }
     if (k === "beanie"){ const m = M("cloth", 0xb3261e); const c = mesh(G("beanie", () => new T.SphereGeometry(.325, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2)), m, 0, .04, -.02, g, ol); c.rotation.x = -.25; const rim = mesh(tor(.31, .045, 10, 32), m, 0, .06, -.01, g); rim.rotation.x = Math.PI / 2 - .25; mesh(sph(.08), M("cloth", 0xf4f1ea), 0, .38, -.1, g, ol); }
     else if (k === "cap"){ const m = M("cloth", 0x2f6fb5); const c = mesh(G("capH", () => new T.SphereGeometry(.318, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2)), m, 0, .04, 0, g, ol); c.rotation.x = -.18; const br = mesh(cyl(.2, .2, .025, 24, false, -Math.PI / 2, Math.PI), m, 0, .09, .22, g); br.rotation.x = .12; mesh(sph(.025, 8, 6), m, 0, .36, -.05, g); }
     else if (k === "band"){ const b = mesh(tor(.305, .032, 8, 36), M("cloth", 0xd1202f), 0, .12, -.01, g); b.rotation.x = Math.PI / 2 - .2; [-1, 1].forEach(s => { const t = mesh(box(.05, .2, .015), M("cloth", 0xd1202f), s * .05, .02, -.33, g); t.rotation.set(.3, 0, s * .4); }); }
@@ -5522,11 +5628,11 @@ const Ach = {
     if (items.length) setTimeout(() => this.pop(`<b>New item${items.length > 1 ? "s" : ""}: ${esc(items.map(i => i.name).slice(0, 3).join(", "))}</b><span>Put ${items.length > 1 ? "them" : "it"} on your avatar.</span>`, {tier: 3, cat: "fun"}, true), list.length * 1600);
   },
   pop(html, a, many){
-    const el = document.createElement("div"); el.className = "ach-pop t" + (a ? a.tier : 1);
-    el.innerHTML = `${a ? achMedal(a, 46, true) : ""}<div class="ap-t"><small>${many ? "TROPHIES" : "TROPHY UNLOCKED · " + (a ? ACH_TIER[a.tier].name.toUpperCase() : "")}</small>${html}</div><button class="btn sm" data-see>See</button>`;
-    document.body.appendChild(el); Sound.cheer(a && a.tier >= 4 ? 3 : a && a.tier >= 2 ? 2 : 1);
-    el.querySelector("[data-see]").onclick = () => { el.remove(); App.go("awards"); };
-    setTimeout(() => el.classList.add("out"), 4200); setTimeout(() => el.remove(), 4700);
+    const m = html.match(/<b>([\s\S]*?)<\/b>(?:<span>([\s\S]*?)<\/span>)?/) || [], tier = a ? a.tier || 1 : 1;
+    const col = ["#ffd75e", "#cd8b5a", "#d3dce3", "#ffd75e", "#c08cff", "#ffb347", "#ff9be0"][Math.min(6, tier)] || "#ffd75e";
+    Notify.show({cls: "ntf-trophy t" + tier, accent: col, icon: a && a.id ? achMedal(a, 48, true) : icon("trophy", 30), label: many ? "Trophies" : "Trophy unlocked" + (a && ACH_TIER[a.tier] ? " · " + ACH_TIER[a.tier].name : ""),
+      title: m[1] || "", text: m[2] || "", ms: 4600, sound: () => Sound.cheer(tier >= 4 ? 3 : tier >= 2 ? 2 : 1), onTap: () => App.go("awards", {tab: "trophies"}),
+      actions: [{label: "See", primary: true, fn: () => App.go("awards", {tab: "trophies"})}]});
   },
   /* things that happen once and aren't kept anywhere else */
   onEvent(kind, d){
@@ -5603,12 +5709,12 @@ Views.awards = {
 /* ===== Your figure: wardrobe first (every item is a trophy reward), trophies second ===== */
 /* the wardrobe: who you are first (body, hair, face), then what you wear, then what you've earned */
 const WGROUPS = [
-  ["body", "Body", ["sex", "sw:skin", "build", "height", "shape"]], ["hair", "Hair", ["hair", "sw:hairC"]],
+  ["body", "Body", ["shape", "sw:fur", "sex", "sw:skin", "build", "height"]], ["hair", "Hair", ["hair", "sw:hairC"]],
   ["face", "Face", ["eyeshape", "eyes", "brows", "nose", "mouth", "beard", "cheeks", "paint"]],
   ["clothes", "Clothes", ["shirt", "coat", "pants", "shoes"]], ["headwear", "Hats & extras", ["head", "glasses", "mask", "ears"]],
   ["back", "Back", ["back", "cape"]], ["hands", "Hands", ["right", "left", "wrist"]], ["aura", "Aura", ["aura"]],
   ["figure", "Figure", null], ["pet", "Pet", "pet"], ["frame", "Border", ["frame"]]];
-const SW_NAME = {skin: "Skin", hairC: "Hair colour", shirtC: "Colour", coatC: "Colour", pantsC: "Colour", shoesC: "Colour", capeC: "Colour"};
+const SW_NAME = {fur: "Fur colour", skin: "Skin", hairC: "Hair colour", shirtC: "Colour", coatC: "Colour", pantsC: "Colour", shoesC: "Colour", capeC: "Colour"};
 const SLOT_NAME = Object.fromEntries(AV_SLOTS);
 const HEADISH = ["hair", "head", "eyes", "glasses", "mask", "ears", "paint", "shape", "eyeshape", "brows", "nose", "mouth", "beard", "cheeks"];
 /* a short reason for a locked item, e.g. "Win 10 games" or "150 trophies" */
@@ -5686,7 +5792,7 @@ Views.awards = {
           return card(Av3D.tag(Object.assign(botCfg(b), {aura: "none"}), {w: 104, h: 104, mode: "full", tier: botTierOf(b), fill: true}), got ? b.name : "???", av.pet === b.id, got, got ? "" : `Beat ${b.name} (${b.r})`, `data-item="pet:${b.id}"`); }).join("")}</div>`;
     }
     else grid = g[2].map(slot => {
-      if (slot.startsWith("sw:")) return this.swatches(slot.slice(3), av);
+      if (slot.startsWith("sw:")) return `<div class="swblk" data-for="${slot}" ${this.noSw(slot, av) ? "hidden" : ""}>${this.swatches(slot.slice(3), av)}</div>`;
       const sw = CLOTH_SLOT[slot] ? `<div class="swblk" data-for="${slot}" ${this.noSw(slot, av) ? "hidden" : ""}>${this.swatches(CLOTH_SLOT[slot], av)}</div>` : "";
       return `${g[2].length > 1 ? `<div class="wsub">${esc(SLOT_NAME[slot])}</div>` : ""}<div class="wgrid ${slot === "frame" ? "frames" : ""}">${AV_ITEMS.filter(i => i.slot === slot).map(it => {
       const inner = slot === "frame" ? `<div class="wi-frame">${avatarBadge(Object.assign({}, av, {frame: it.id}), 56, S.puzzle.r)}</div>` : pv(Object.assign({}, av, {[slot]: it.id}), slot);
@@ -5696,12 +5802,12 @@ Views.awards = {
     const on = ch.querySelector(".chip.on"); if (on){ const row = on.parentNode; row.scrollLeft = keep != null ? keep : Math.max(0, on.offsetLeft - row.clientWidth / 2 + on.offsetWidth / 2); }
     $$("[data-grp]", ch).forEach(b => b.onclick = () => { if (this.grp === b.dataset.grp) return; this.grp = b.dataset.grp; this.wardrobe(); const m = $("#main"), top = $(".wtop"); if (m && top && body.getBoundingClientRect().top < top.getBoundingClientRect().bottom) (m.scrollHeight > m.clientHeight ? m : document.scrollingElement).scrollTo({top: top.offsetHeight > 0 ? body.offsetTop - top.offsetHeight - 10 : 0}); });
     $$("[data-item]", body).forEach(b => b.onclick = () => this.pick(b));
-    $$("[data-sw]", body).forEach(b => b.onclick = () => { const [key, id] = b.dataset.sw.split(":"), c = (key === "skin" || key === "hairC" ? AV_COLORS[key] : AV_COLORS.cloth).find(x => x[0] === id);
+    $$("[data-sw]", body).forEach(b => b.onclick = () => { const [key, id] = b.dataset.sw.split(":"), c = (key === "skin" || key === "hairC" || key === "fur" ? AV_COLORS[key] : AV_COLORS.cloth).find(x => x[0] === id);
       if (!itemUnlocked({req: c[3]})){ detailSheet(`<div class="row" style="gap:12px;flex-wrap:nowrap"><span class="sw big" style="--c:${c[2]}"></span><div><div style="font:900 20px var(--display)">${esc(c[1])}</div><p style="margin:4px 0 0">${esc(itemReqText({req: c[3]}))}. You have ${achCount()} trophies.</p></div></div>`); return; }
       this.equip(key, id, b, true); });
     $$("[data-cls]", body).forEach(b => b.onclick = () => { const c = AV_CLASSES.find(x => x.k === b.dataset.cls); if (!classUnlocked(c)){ classDetail(c); return; } this.equip("cls", c.k, b); Sound.cheer(2); });
   },
-  noSw(slot, av){ return (slot === "coat" && ["none", "steel", "gold"].includes(av.coat)) || (slot === "shoes" && ["bare", "golden"].includes(av.shoes)); },
+  noSw(slot, av){ if (slot === "sw:fur") return av.shape !== "capy"; if (slot === "sw:skin") return av.shape === "capy"; return (slot === "coat" && ["none", "steel", "gold"].includes(av.coat)) || (slot === "shoes" && ["bare", "golden"].includes(av.shoes)); },
   /* after a change: redraw only the small pictures, keep every button where it is (so the next tap always lands) */
   refresh(){
     const body = $("#awbody"), av = myAvatar(); if (!body || !this.pvf) return;
@@ -5712,7 +5818,7 @@ Views.awards = {
   },
   /* a row of colour dots under an item */
   swatches(key, av){
-    const list = key === "skin" || key === "hairC" ? AV_COLORS[key] : AV_COLORS.cloth;
+    const list = key === "skin" || key === "hairC" || key === "fur" ? AV_COLORS[key] : AV_COLORS.cloth;
     return `<div class="wsub">${esc(SW_NAME[key])}</div><div class="swr">${list.map(([id, name, hex, req]) => { const ok = itemUnlocked({req}); return `<button class="sw ${(av[key] || "") === id ? "on" : ""} ${ok ? "" : "locked"}" data-sw="${key}:${id}" title="${esc(name)}" aria-label="${esc(name)}" style="--c:${hex || "transparent"}">${id === "" ? "↺" : ""}${ok ? "" : LOCK_SVG}</button>`; }).join("")}</div>`;
   },
   pick(b){
@@ -7560,7 +7666,7 @@ const Social = (() => {
   async function start(){
     if (started || !sb) return; started = true;
     await site.sessionReady; const s = site.getSession(); if (!s) return; me = s.user.id;
-    await ensurePlayer();
+    await ensurePlayer(); requireId();
     beat(); setInterval(beat, 60000); document.addEventListener("visibilitychange", () => { if (!document.hidden) beat(); });
     listen(); setInterval(pollInvites, 30000); pollInvites();
   }
@@ -7587,8 +7693,36 @@ const Social = (() => {
     handle = cleanHandle(handle); if (!handleOk(handle)) return {error: "The ID needs 3 to 20 characters: letters a–z, numbers or _."};
     if (player && player.handle === handle) return {player};
     const {data, error} = await sb.from("chess_players").update({handle}).eq("id", me).select().single();
-    if (error) return {error: /duplicate|unique/i.test(error.message) ? "That ID is already taken. Try another one." : error.message};
+    if (error) return {error: /handle_locked/.test(error.message) ? "You've already changed your player ID once. It's fixed now." : /duplicate|unique/i.test(error.message) ? "That ID is already taken. Try another one." : error.message};
     player = data; D.players[me] = data; return {player: data};
+  }
+  /* everyone always has a player ID. Right after signing up you pick one; skip it and you get one automatically. */
+  async function autoId(){
+    let base = suggestHandle() || "player"; if (base.length < 3) base = (base + "chess").slice(0, 8);
+    const name = player ? player.name : (S.name && S.name !== "You" ? S.name : base.charAt(0).toUpperCase() + base.slice(1));
+    for (let i = 0; i < 8; i++){
+      const h = i === 0 ? base : i < 6 ? base.slice(0, 17) + Math.floor(100 + Math.random() * 900) : "player" + Math.floor(1e5 + Math.random() * 9e5);
+      const r = player ? await setHandle(h) : await create(i ? name.slice(0, 20) + (i > 2 ? Math.floor(10 + Math.random() * 90) : "") : name, h);
+      if (!r.error) return r;
+      if (!/taken/.test(r.error)) return r;
+    }
+    return {error: "Couldn't pick an ID"};
+  }
+  function requireId(preview){
+    if ((!ok() && !preview) || (player && player.handle) || document.querySelector(".idsetup")) return;
+    const nameNow = player ? player.name : (S.name === "You" ? "" : S.name || "");
+    const el = document.createElement("div"); el.className = "idsetup";
+    el.innerHTML = `<div class="ids-card"><div class="ids-ic">${typeof icon === "function" ? icon("user", 34) : ""}</div><div class="ids-t">Your player card</div>
+      <p class="muted">Pick your <b>player ID</b>. Friends find you with it, and it stays yours. You can change it once later. Your <b>name</b> you can change any time.</p>
+      <form id="idsf">${player ? "" : `<label class="muted">Name<input type="text" id="idsn" maxlength="24" placeholder="e.g. Nat" value="${esc(nameNow)}"></label>`}
+      <label class="muted">Player ID<div class="hdl-in"><span>@</span><input type="text" id="idsh" maxlength="21" autocapitalize="off" autocomplete="off" spellcheck="false" value="${esc(suggestHandle())}"></div></label>
+      <p class="dim" style="margin:0;font-size:12.5px">3 to 20 characters: letters a–z, numbers or _.</p><p id="idse" style="color:var(--bad);font-size:13px;margin:0"></p>
+      <button class="btn go big" type="submit">Save</button><button class="btn ghost" type="button" id="idsa">Pick one for me</button></form></div>`;
+    document.body.appendChild(el);
+    const done = r => { el.remove(); toast("Your player ID: @" + r.player.handle, 3200); if (typeof renderTop === "function") renderTop(); if (App.route === "friends" && Views.friends.draw) Views.friends.draw(); };
+    $("#idsh", el).oninput = e => { const v = cleanHandle(e.target.value).replace(/[^a-z0-9_]/g, ""); if (v !== e.target.value) e.target.value = v; };
+    $("#idsf", el).onsubmit = async e => { e.preventDefault(); const r = player ? await setHandle($("#idsh", el).value) : await create($("#idsn", el).value, $("#idsh", el).value); if (r.error){ $("#idse", el).textContent = r.error; return; } done(r); };
+    $("#idsa", el).onclick = async () => { const r = await autoId(); if (r.error){ $("#idse", el).textContent = r.error; return; } done(r); };
   }
   /* claim a player name; with retry, add two digits if it's taken */
   async function setName(name, retry){
@@ -7684,13 +7818,11 @@ const Social = (() => {
     if (!r || shownInv.has(r.id) || r.status !== "open" || Date.now() - new Date(r.created_at).getTime() > INVITE_MS) return; shownInv.add(r.id);
     if (!D.players[r.from_id]) await load(true);
     const p = P(r.from_id), battle = r.tc === "battle", tc = battle ? [3, 0] : (r.tc || "10+0").split("+").map(Number);
-    const el = document.createElement("div"); el.className = "invite-pop";
-    el.innerHTML = `${face(p, 46)}<div class="ip-t"><b>${esc(p.name)} ${battle ? "wants a Puzzle Battle" : "wants to play"}</b><span>${battle ? "3 minutes · same puzzles" : esc(tcLabel(tc)) + " · live game"}</span></div><button class="btn sm" data-x>Not now</button><button class="btn sm go" data-j>Play</button>`;
-    document.body.appendChild(el); Sound.play("GenericNotify", .8);
-    const close = st => { el.remove(); sb.from("chess_invites").update({status: st}).eq("id", r.id).then(() => {}, () => {}); };
-    el.querySelector("[data-j]").onclick = () => { close("accepted"); if (battle) App.go("battle", {join: r.code}); else App.go("friend", {join: r.code}); };
-    el.querySelector("[data-x]").onclick = () => close("declined");
-    setTimeout(() => { if (el.isConnected) el.remove(); }, INVITE_MS);
+    const set = st => sb.from("chess_invites").update({status: st}).eq("id", r.id).then(() => {}, () => {});
+    const join = () => { set("accepted"); if (battle) App.go("battle", {join: r.code}); else App.go("friend", {join: r.code}); };
+    Notify.show({key: "inv:" + r.id, cls: "ntf-invite", accent: "var(--go)", icon: face(p, 44), label: battle ? "Puzzle Battle" : "Challenge", title: `${esc(p.name)} ${battle ? "wants a Puzzle Battle" : "wants to play"}`,
+      text: battle ? "3 minutes · same puzzles" : esc(tcLabel(tc)) + " · live game", ms: Math.min(INVITE_MS, 20000), sound: () => Sound.play("GenericNotify", .8), onTap: join,
+      actions: [{label: "Later", fn: () => set("declined")}, {label: "Play", primary: true, fn: join}]});
   }
 
   /* a live game between two accounts ended */
@@ -7752,7 +7884,7 @@ const Social = (() => {
 
   /* the opponent has the app in the background: send "Your move" as a push (server checks friendship and rate) */
   async function nudge(id, code){ try { if (sb && me) await sb.rpc("nudge_turn", {target: id, code}); } catch(e) {} }
-  return {nudge, create, setHandle, suggestHandle, cleanHandle, syncCard, start, load, setName, request, accept, remove, heart, invite, gameOver, friendChip, wire, cages, standings, rel, P, seen, isOnline, face, dot,
+  return {nudge, requireId, autoId, create, setHandle, suggestHandle, cleanHandle, syncCard, start, load, setName, request, accept, remove, heart, invite, gameOver, friendChip, wire, cages, standings, rel, P, seen, isOnline, face, dot,
     get me(){ return me; }, get player(){ return player; }, get data(){ return D; }, sb};
 })();
 
@@ -7782,7 +7914,7 @@ Views.friends = {
     const person = (id, right) => { const p = Social.P(id), o = st[id]; return `<div class="li fr">${Social.face(p, 42)}<div class="grow"><div class="t">${Social.dot(p)}${esc(p.name)}${p.rating ? ` <span class="muted">(${p.rating})</span>` : ""}</div><div class="s">${p.handle ? `@${esc(p.handle)} · ` : ""}${p.ratings && p.ratings.blitz ? `Blitz ${p.ratings.blitz} · ` : ""}${esc(Social.seen(p))}${o ? ` · score ${o.w}:${o.l}${o.cage === "mine" ? " · 🔒 in your cage" : o.cage === "theirs" ? " · you're in their cage" : ""}` : ""}</div></div>${right}</div>`; };
     const TCS = [1, 3, 5, 10, 15], inc = S.invInc !== false; this.tc = [this.tc[0], inc ? 2 : 0]; S.invTc = this.tc.slice();
     main.innerHTML = `<div class="page" style="max-width:760px"><h1 class="h-title">Friends</h1>
-      <div class="unit" style="margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">${Social.face(me, 54)}<div style="flex:1;min-width:180px"><div class="muted" style="font-size:12px;font-weight:800;letter-spacing:.06em">YOUR PLAYER CARD</div>${this.renaming ? `<form id="rnf" style="display:flex;flex-direction:column;gap:6px;margin-top:4px"><input type="text" id="rnv" maxlength="24" value="${esc(me.name)}" placeholder="Name"><div class="hdl-in"><span>@</span><input type="text" id="rnh" maxlength="21" autocapitalize="off" spellcheck="false" value="${esc(me.handle)}"></div><div class="row"><button class="btn sm go" type="submit">Save</button><button class="btn sm" type="button" id="rnx">Cancel</button></div></form><p id="rnerr" style="color:var(--bad);font-size:13px;margin:4px 0 0"></p>` : `<div style="font:900 22px var(--display)">${esc(me.name)}</div><div class="hdl">@${esc(me.handle)} <button class="btn sm ghost" id="cpid">Copy ID</button></div>`}</div>${this.renaming ? "" : `<button class="btn sm" id="ren">Change</button>`}</div>
+      <div class="unit" style="margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">${Social.face(me, 54)}<div style="flex:1;min-width:180px"><div class="muted" style="font-size:12px;font-weight:800;letter-spacing:.06em">YOUR PLAYER CARD</div>${this.renaming ? `<form id="rnf" style="display:flex;flex-direction:column;gap:6px;margin-top:4px"><input type="text" id="rnv" maxlength="24" value="${esc(me.name)}" placeholder="Name"><div class="hdl-in ${me.handle_changes >= 1 ? "locked" : ""}"><span>@</span><input type="text" id="rnh" maxlength="21" autocapitalize="off" spellcheck="false" value="${esc(me.handle)}" ${me.handle_changes >= 1 ? "disabled" : ""}></div><p class="dim" style="margin:0;font-size:12px">${me.handle_changes >= 1 ? "Your player ID is fixed. Your name you can change any time." : "You can change your player ID once. Your name any time."}</p><div class="row"><button class="btn sm go" type="submit">Save</button><button class="btn sm" type="button" id="rnx">Cancel</button></div></form><p id="rnerr" style="color:var(--bad);font-size:13px;margin:4px 0 0"></p>` : `<div style="font:900 22px var(--display)">${esc(me.name)}</div><div class="hdl">@${esc(me.handle)} <button class="btn sm ghost" id="cpid">Copy ID</button></div>`}</div>${this.renaming ? "" : `<button class="btn sm" id="ren">Change</button>`}</div>
       <div class="unit"><h3>Add a friend</h3><form id="sf2" class="row" style="margin-top:8px"><input type="text" id="sq" placeholder="Player ID or name, e.g. @natlordlord" value="${esc(this.q)}" style="flex:1;min-width:160px"><button class="btn go" type="submit">Search</button></form><div id="sres"></div></div>
       ${incoming.length ? `<h2 class="h-sec">Friend requests</h2><div class="list">${incoming.map(id => person(id, `<button class="btn sm" data-rm="${id}">Decline</button><button class="btn sm go" data-acc="${id}">Accept</button>`)).join("")}</div>` : ""}
       <h2 class="h-sec" style="margin-top:16px">Your friends <span class="muted" style="font-weight:600">${friends.filter(id => Social.isOnline(Social.P(id))).length} online</span></h2>
@@ -7798,7 +7930,7 @@ Views.friends = {
       <p class="muted" style="margin-top:16px;font-size:13.5px">Beat a friend in a live game and they go into your cage in the <a href="#" id="gotr">Cages</a>. Lose and you're in theirs, until you win again.</p></div>`;
     if ($("#ren")) $("#ren").onclick = () => { this.renaming = true; this.draw(); $("#rnv").focus(); };
     if ($("#rnx")) $("#rnx").onclick = () => { this.renaming = false; this.draw(); };
-    if ($("#rnf")) $("#rnf").onsubmit = async e => { e.preventDefault(); let r = await Social.setHandle($("#rnh").value); if (!r.error && $("#rnv").value.trim() !== me.name) r = await Social.setName($("#rnv").value); if (r.error){ $("#rnerr").textContent = r.error; return; } this.renaming = false; toast("Saved"); this.draw(); };
+    if ($("#rnf")) $("#rnf").onsubmit = async e => { e.preventDefault(); let r = $("#rnh").disabled || Social.cleanHandle($("#rnh").value) === me.handle ? {} : await Social.setHandle($("#rnh").value); if (!r.error && $("#rnv").value.trim() !== me.name) r = await Social.setName($("#rnv").value); if (r.error){ $("#rnerr").textContent = r.error; return; } this.renaming = false; toast("Saved"); this.draw(); };
     if ($("#cpid")) $("#cpid").onclick = async () => { try { await navigator.clipboard.writeText("@" + me.handle); toast("Copied @" + me.handle); } catch(e) { toast("@" + me.handle); } };
     $("#gotr").onclick = e => { e.preventDefault(); App.go("trophies"); };
     $("#sf2").onsubmit = e => { e.preventDefault(); this.search($("#sq").value); };
@@ -7848,8 +7980,7 @@ const Chat = (() => {
     const o = m.from_id; last[o] = m;
     const v = Views.chat; if (App.route === "chat" && v.id === o && !document.hidden){ v.add(m); markRead(o, true); return; }
     unread[o] = (unread[o] || 0) + 1; refreshBadges(); Sound.tone([[880, .05, .04], [1175, .09]], "sine", .08);
-    const el = document.createElement("div"); el.className = "chatpop"; el.innerHTML = `${Social.face(Social.P(o), 34)}<div class="grow"><b>${esc(Social.P(o).name)}</b><span>${esc(m.body)}</span></div>`;
-    document.body.appendChild(el); el.onclick = () => { el.remove(); App.go("chat", {id: o}); }; setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 400); }, 4500);
+    Notify.show({key: "chat:" + o, cls: "ntf-chat", icon: Social.face(Social.P(o), 40), label: "Message", title: esc(Social.P(o).name), text: esc(m.body), ms: 4500, onTap: () => App.go("chat", {id: o})});
     if (App.route === "chat" && !v.id) v.draw();
   }
   function refreshBadges(){ if (typeof renderTop === "function") renderTop(); const b = $("#railchat"); if (b) b.textContent = total() || ""; }
