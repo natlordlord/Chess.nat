@@ -1237,6 +1237,39 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 .toast.out{opacity:0;transform:translate(-50%,10px);transition:opacity .25s,transform .25s}
 @keyframes toastin{from{opacity:0;transform:translate(-50%,14px) scale(.96)}}
 
+/* ===== Sparring partner ===== */
+.plan{border-radius:16px;padding:12px 14px;margin-bottom:10px;background:linear-gradient(135deg,color-mix(in srgb,#5aa9e6 14%,var(--panel-2)),var(--panel-2));border:1px solid color-mix(in srgb,#5aa9e6 40%,transparent)}
+.plan.new{animation:tipin .35s ease-out}
+.plan-h{display:flex;gap:10px;align-items:center}
+.plan-h>div{flex:1;min-width:0}
+.plan-ic{flex:none;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:color-mix(in srgb,#5aa9e6 25%,transparent);color:#7cc0f5}
+.plan-h small{display:block;font:900 10.5px var(--body);letter-spacing:.08em;text-transform:uppercase;color:#7cc0f5}
+.plan-h b{font:900 16px var(--display)}
+.plan-x{flex:none;width:30px;height:30px;border-radius:9px;border:0;background:none;color:var(--muted);cursor:pointer;display:grid;place-items:center}
+.plan-g{margin:10px 0 0;padding:0;list-style:none;counter-reset:pg;display:flex;flex-direction:column;gap:8px}
+.plan-g li{counter-increment:pg;display:grid;grid-template-columns:22px 1fr;column-gap:8px}
+.plan-g li::before{content:counter(pg);grid-row:span 2;width:22px;height:22px;border-radius:50%;background:#5aa9e6;color:#0e1a24;font:900 12px/22px var(--body);text-align:center}
+.plan-g b{font-size:14.5px}
+.plan-g span{font-size:13.5px;color:var(--muted);line-height:1.4}
+.plan-q{display:flex;gap:8px;align-items:flex-start;margin-top:10px;padding-top:9px;border-top:1px solid var(--line);font-size:13.5px;font-weight:700;font-style:italic;color:var(--fg)}
+.plan-q svg{flex:none;color:#7cc0f5;margin-top:1px}
+#plb.on{border-color:#5aa9e6;color:#7cc0f5}
+#plb svg{vertical-align:-3px}
+@media (max-width:420px){.m-hide2{display:none}}
+
+/* ===== Theory: simple cards with a picture of the position ===== */
+.th-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.th-card{display:flex;gap:12px;align-items:center;text-align:left;padding:10px;border-radius:16px;border:1px solid var(--line);background:var(--panel);color:var(--fg);font:inherit;cursor:pointer;transition:transform .12s,background .15s}
+.th-card:hover{background:var(--panel-2)}.th-card:active{transform:scale(.98)}
+.mini{flex:none;position:relative;width:88px;height:88px;border-radius:8px;overflow:hidden;
+  background:conic-gradient(var(--sq-d) 90deg,var(--sq-l) 90deg 180deg,var(--sq-d) 180deg 270deg,var(--sq-l) 270deg) 0 0/25% 25%}
+.mini .pc{position:absolute;width:12.5%;height:12.5%;transform:none;pointer-events:none}
+.th-c{display:flex;flex-direction:column;gap:3px;min-width:0}
+.th-c b{font:900 16px/1.2 var(--display)}
+.th-c>span{font-size:13.5px;color:var(--muted);line-height:1.35}
+.th-c small{font-size:12px;color:var(--muted);font-weight:700}
+.th-read{font-style:normal;color:var(--go)}
+
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
 .pc.wr{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMTcuOTMgMjAuNDFjNC45LS43NCA5LjU4LS41NyAxNC4xNCAwTTE0LjE4IDkuNjZjLTEuMDYgOC43NyAxLjEgMTAuNjggMy43NSAxMC43NWwtMy4zMSAxOC4xNmgyMC43NmwtMy4zMS0xOC4xNmMyLjY0LS4wNyA0LjgtMS45OCAzLjc1LTEwLjc1bC0zLjYxLS41My0xLjA3IDMuNjUtMy4xNS0uMS0uNTItMy43NmgtNC45NEwyMiAxMi42OGwtMy4xNS4xLTEuMDctMy42NXoiLz48cGF0aCBkPSJNMTcuOTMgMjAuNDFjNi44MyAwIDEzLjEyLjQxIDE0Ljk1IDE2LjU4bDIuMzIuMzgtMy4xMy0xNi40M2MtLjAzLS4zLTYuMDktMS44Mi0xNC4xNC0uNTMiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Im0xNC43OCAxMC4yMiAyLjI3LS4yOWMtMS45MS4zMi0yLjMgNS4zLTIuMyA1LjMtLjI1LS4xOC0uMi00LjkuMDMtNS4wMW0xMC41LS42N2MtMS42NSAwLTIuNTIgMi43NS0yLjUyIDIuNzVsLjMzLTIuNzN6bTcuNC4yNy45Mi4xMWMtLjc4LjUtMS41OSAyLTEuNTkgMnptLTE0LjIgMTEuMTQgMi42MS0uMjljLTIuNjIuMy00Ljg5IDEzLjExLTQuODkgMTMuMTF6Ii8+PHBhdGggZD0iTTM0LjAxIDkuNGMuMzYgNi4zNi0xLjk1IDEwLjYtOC4wNCAxMC41M2w0Ljc4LjU3YzcuNTIuMyA1LjEtMTAuOCA1LjA3LTEwLjg0eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuMiIgZD0iTTI1IDM2LjQ2cy05LjEzLjA0LTExLjcgMS42MmMtMS43MiAxLjA2LTIuMTMgMy42NS0xLjkgNi4zMmgyNy4yYy4yMy0yLjY3LS4xOC01LjI2LTEuOS02LjMyQzM0LjEyIDM2LjUgMjUgMzYuNDYgMjUgMzYuNDZ6Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI1IDM3LjE1UzE2LjI5IDM3IDEzLjM4IDM4LjhjLS4zNy4yMy0uNy44NC0uOTYgMS40LjI2LS4zNC41LS42Mi44OS0uODZDMTUuODcgMzcuNzggMjUgMzcuNzMgMjUgMzcuNzNzOS4xMy4wNSAxMS43IDEuNjJjLjM4LjI0LjU4LjUzLjg1Ljg3YTMgMyAwIDAgMC0xLjE1LTEuNkMzMy42NSAzNy4xNSAyNSAzNy4xNiAyNSAzNy4xNnoiLz48L3N2Zz4=')}
@@ -2619,6 +2652,7 @@ Views.bots = {
       <label class="chk"><input type="checkbox" id="opn" ${S.settings.openings !== false ? "checked" : ""}> Show opening names, so you learn what you and the bot are playing</label>
       <div id="helpers"><div class="muted" style="font-size:12px;font-weight:800;letter-spacing:.06em;margin-top:10px">HELP (NOT IN RATED GAMES)</div>
       <label class="chk"><input type="checkbox" id="coach" ${S.settings.coach === true ? "checked" : ""}> Coach mode: warn me before I blunder and allow takebacks</label>
+      <label class="chk"><input type="checkbox" id="spar" ${S.settings.spar === true ? "checked" : ""}> Sparring partner: on every move, the plan in words (key squares, weak pawns, open files, what to aim for), never the exact move</label>
       <label class="chk"><input type="checkbox" id="tips" ${S.settings.tips === true ? "checked" : ""}> Coach tips: light advice like a stronger friend (plans, checks, captures, threats)</label>
       <label class="chk"><input type="checkbox" id="hints" ${S.settings.hints === true ? "checked" : ""}> Allow hints</label>
       <label class="chk"><input type="checkbox" id="thr" ${S.settings.threats === true ? "checked" : ""}> Threat helper: mark pieces that are hanging (yours red, theirs green)</label></div>
@@ -2634,8 +2668,8 @@ Views.bots = {
     $("#bk").onclick = () => this.menu();
     if ($("#beat")) $("#beat").onclick = () => App.go("lesson", {id: BEAT_LESSON[bot.id]});
     $("#go").onclick = () => { const rated = tc[0] > 0 && $("#rated").checked, help = id => !rated && $(id).checked;
-      S.settings.coach = $("#coach").checked; S.settings.threats = $("#thr").checked; S.settings.tips = $("#tips").checked; S.settings.hints = $("#hints").checked; S.settings.openings = $("#opn").checked; S.settings.ostart = $("#ostart").value; S.settings.botTc = tc; if (tc[0]) S.settings.rated = $("#rated").checked; save();
-      this.start(bot, col === "r" ? (Math.random() < .5 ? "w" : "b") : col, {coach: help("#coach"), hints: help("#hints"), threats: help("#thr"), tips: help("#tips"), level: lv, tc: tc[0] ? tc : null, rated, openSan: (OPENING_STARTS.find(o => o.k === $("#ostart").value) || {}).san || ""}); };
+      S.settings.coach = $("#coach").checked; S.settings.threats = $("#thr").checked; S.settings.tips = $("#tips").checked; S.settings.spar = $("#spar").checked; S.settings.hints = $("#hints").checked; S.settings.openings = $("#opn").checked; S.settings.ostart = $("#ostart").value; S.settings.botTc = tc; if (tc[0]) S.settings.rated = $("#rated").checked; save();
+      this.start(bot, col === "r" ? (Math.random() < .5 ? "w" : "b") : col, {coach: help("#coach"), hints: help("#hints"), threats: help("#thr"), tips: help("#tips"), spar: help("#spar"), level: lv, tc: tc[0] ? tc : null, rated, openSan: (OPENING_STARTS.find(o => o.k === $("#ostart").value) || {}).san || ""}); };
   },
   stopGame(){ clearInterval(this.ctick); if (this.G){ this.keepUnfinished(this.G); this.G.dead = true; this.G = null; } Engine.clear(); document.onkeydown = null; },
   /* games you leave halfway are kept too, so Game Review can go through them */
@@ -2788,10 +2822,21 @@ Views.bots = {
     G.view = v; const t = new Chess(G.startFen || undefined); for (let i = 0; i < v; i++) t.move(h[i]); G.board.set(t, v ? {from: h[v-1].from, to: h[v-1].to} : null); this.panel(); },
   async hint(){ const G = this.G; if (!G || G.over || G.g.turn() !== G.color) return; G.hintsUsed++; const r = await Engine.run({fen: G.g.fen(), depth: 12}); if (r && r.best && this.G === G) G.board.setArrows([[r.best.slice(0,2), r.best.slice(2,4), "g"]]); },
   takeback(){ const G = this.G; if (!G || G.over || G.thinking || G.journey) return; const h = G.g.history(); if (!h.length) return; G.g.undo(); if (G.g.turn() !== G.color && G.g.history().length) G.g.undo(); G.takebacks++; G.view = null; G.board.set(G.g, lastMv(G.g)); this.bars(); this.panel(); },
+  /* sparring partner: the plan for your move, with the key squares lit on the board */
+  planCard(){
+    const G = this.G; if (!G || !G.opt.spar || G.opt.rated) return "";
+    const mine = !G.over && G.view == null && G.g.turn() === G.color && !G.thinking && !G.warn;
+    if (!mine){ if (G.planMarked){ G.planMarked = false; G.board.mark({}); } return G.plan && !G.over ? planCardHTML(G.plan, {close: true}) : ""; }
+    const ply = G.g.history().length, fresh = G.planPly !== ply;
+    if (fresh){ G.planPly = ply; G.plan = planFor(G.g, G.color, G.planEvPly === ply ? G.planEv : null);
+      if (G.planEvPly !== ply && !Engine.failed){ Engine.init(); const fen = G.g.fen(); Engine.run({fen, depth: 10}).then(r => { if (this.G !== G || G.planPly !== ply || !r || !r.lines[0]) return; G.planEvPly = ply; G.planEv = (G.color === "w" ? 1 : -1) * Engine.white(r.lines[0], fen); G.plan = planFor(G.g, G.color, G.planEv); this.panel(); }); } }
+    G.board.mark(G.plan.marks); G.planMarked = true;
+    return planCardHTML(G.plan, {fresh, close: true});
+  },
   panel(){
     const G = this.G; if (!G) return; const h = G.g.history();
     let mv = ""; for (let i = 0; i < h.length; i += 2){ const n = i / 2 + 1; mv += `<span class="n ${n % 2 ? "" : "odd"}">${n}.</span><span class="m ${G.view === i + 1 || (G.view == null && i + 1 === h.length) ? "cur" : ""} ${n % 2 ? "" : "odd"}" data-ply="${i + 1}">${esc(h[i])}</span><span class="m ${h[i+1] ? "" : ""} ${G.view === i + 2 || (G.view == null && i + 2 === h.length) ? "cur" : ""} ${n % 2 ? "" : "odd"}" data-ply="${i + 2}">${h[i+1] ? esc(h[i+1]) : ""}</span>`; }
-    let tip = "";
+    let tip = this.planCard();
     if (G.opt.tips && !G.over && G.view == null && G.g.turn() === G.color && !G.thinking){
       if (G.tipPly !== h.length){ G.tipPly = h.length; const k = coachTip(G.g, G.color, G.tipKey); if (k && k !== G.tipKey){ G.tipKey = k; G.tipNew = true; } else G.tipNew = false; }
       if (G.tipKey) tip = `<div class="ctip ${G.tipNew ? "new" : ""}"><span class="ctip-ic">💡</span><div><b>Coach</b><p>${esc(COACH_TIPS[G.tipKey])}</p></div></div>`;
@@ -2808,12 +2853,14 @@ Views.bots = {
       <div class="h-sec">Moves</div><div class="moves" id="mvl">${mv || `<span></span><span class="dim">No moves yet</span>`}</div>
       ${G.over ? `<div class="msg" style="margin-top:12px"><div class="ic">★</div><div><h4>Result ${esc(G.result || "")}</h4><p>Open Game Review to see your best and worst moves.</p></div></div>` : ""}`;
     $$("#mvl .m[data-ply]").forEach(s => s.onclick = () => this.showPly(+s.dataset.ply)); Openings.wire($("#sp"));
-    const ml = $("#mvl"); if (ml) ml.parentElement.scrollTop = ml.parentElement.scrollHeight;
+    const ml = $("#mvl"); if (ml) ml.parentElement.scrollTop = G.opt.spar && G.plan && G.g.turn() === G.color ? 0 : ml.parentElement.scrollHeight;
     $("#sf").innerHTML = G.over ? `<button class="btn" id="nb">Bots</button><button class="btn" id="fl" aria-label="Flip board">⇅</button><button class="btn go" id="rv2" style="flex:1">Game Review</button>`
-      : `<button class="btn m-hide" id="nb">Bots</button><button class="btn" id="fl" aria-label="Flip board">⇅</button><button class="btn" id="pv" aria-label="Previous move">‹</button><button class="btn" id="nx" aria-label="Next move">›</button>${G.opt.hints && !G.opt.rated ? `<button class="btn" id="hi">Hint</button>` : ""}${G.opt.coach && !G.opt.rated ? `<button class="btn" id="tbk">Undo</button>` : ""}<button class="btn" id="rs">Resign</button>`;
+      : `<button class="btn m-hide" id="nb">Bots</button><button class="btn" id="fl" aria-label="Flip board">⇅</button><button class="btn" id="pv" aria-label="Previous move">‹</button><button class="btn" id="nx" aria-label="Next move">›</button>${!G.opt.rated ? `<button class="btn ${G.opt.spar ? "on" : ""}" id="plb" aria-label="Plan">${icon("target", 18)}<span class="m-hide2">Plan</span></button>` : ""}${G.opt.hints && !G.opt.rated ? `<button class="btn" id="hi">Hint</button>` : ""}${G.opt.coach && !G.opt.rated ? `<button class="btn" id="tbk">Undo</button>` : ""}<button class="btn" id="rs">Resign</button>`;
     $("#nb").onclick = () => this.menu(); $("#fl").onclick = () => G.board.flip();
     if ($("#pv")) $("#pv").onclick = () => this.nav(-1); if ($("#nx")) $("#nx").onclick = () => this.nav(1);
-    if ($("#hi")) $("#hi").onclick = () => this.hint(); if ($("#tbk")) $("#tbk").onclick = () => this.takeback();
+    if ($("#hi")) $("#hi").onclick = () => this.hint();
+    if ($("#plb")) $("#plb").onclick = () => { G.opt.spar = !G.opt.spar; G.planPly = null; if (!G.opt.spar) G.board.mark({}); this.panel(); };
+    const px = $("[data-planx]"); if (px) px.onclick = () => { G.opt.spar = false; G.board.mark({}); this.panel(); }; if ($("#tbk")) $("#tbk").onclick = () => this.takeback();
     if ($("#rs")) $("#rs").onclick = () => { if (G.over) return; const o = G.board.overlay(`<div class="card-over"><h3 style="font-size:20px">Resign?</h3><div class="row" style="justify-content:center"><button class="btn" id="ry">Resign</button><button class="btn go" id="rn">Keep playing</button></div></div>`); $("#ry", o).onclick = () => { G.board.overlay(null); this.finish(G.color === "w" ? "0-1" : "1-0", "by resignation"); }; $("#rn", o).onclick = () => G.board.overlay(null); };
     if ($("#rv2")) $("#rv2").onclick = () => App.go("review", {pgn: G.g.pgn(), meta: S.games[S.games.length - 1]});
   }
@@ -2856,6 +2903,114 @@ function endHead(o){
   let last = "";
   if (g){ const h = g.history(); if (h.length){ const i = h.length - 1, n = Math.floor(i / 2) + 1; last = `<div class="end-last"><span>Last move</span><b>${n}${i % 2 ? "..." : "."} ${esc(h[i])}</b><span class="dim">· ${Math.ceil(h.length / 2)} move${Math.ceil(h.length / 2) === 1 ? "" : "s"}</span></div>`; } }
   return `<div class="endh ${draw ? "draw" : won ? "won" : "lost"}"><div class="end-ic">${draw ? "½" : won ? "★" : "✕"}</div><div class="end-badge">${esc(R.label)}</div><h3>${title}</h3>${line ? `<p class="end-line">${line}</p>` : ""}${last}</div>`;
+}
+
+/* ===== Sparring partner: reads the position like a coach and talks about plans, squares and pawns, never about the exact move.
+   Everything here is plain rules on the board (development, king safety, centre, outposts, weak pawns, open files, breaks).
+   The engine only adds who is better. ===== */
+const PLAN_V = {p: 1, n: 3, b: 3, r: 5, q: 9, k: 0};
+function planRead(g, me){
+  const op = me === "w" ? "b" : "w", B = g.board(), at = sq => { const f = sq.charCodeAt(0) - 97, r = 8 - +sq[1]; return B[r] && B[r][f]; };
+  const all = []; B.forEach((row, r) => row.forEach((p, f) => { if (p) all.push(Object.assign({sq: String.fromCharCode(97 + f) + (8 - r), f, r: 8 - r}, p)); }));
+  const mine = all.filter(p => p.color === me), theirs = all.filter(p => p.color === op);
+  const rel = r => me === "w" ? r : 9 - r;  /* rank from my side: 1 = my back rank */
+  const pawns = c => all.filter(p => p.color === c && p.type === "p");
+  const mat = c => all.filter(p => p.color === c).reduce((a, p) => a + PLAN_V[p.type], 0);
+  const heavy = all.filter(p => p.type !== "p" && p.type !== "k").reduce((a, p) => a + PLAN_V[p.type], 0);
+  const moveNo = Math.floor(g.history().length / 2) + 1;
+  /* development */
+  const home = me === "w" ? {b1: "n", g1: "n", c1: "b", f1: "b"} : {b8: "n", g8: "n", c8: "b", f8: "b"};
+  const undeveloped = Object.entries(home).filter(([sq, t]) => { const p = at(sq); return p && p.color === me && p.type === t; }).map(([sq, t]) => ({sq, t}));
+  const king = mine.find(p => p.type === "k"), oKing = theirs.find(p => p.type === "k");
+  const castled = king && (["g1", "c1", "b1", "h1"].includes(king.sq) && me === "w" || ["g8", "c8", "b8", "h8"].includes(king.sq) && me === "b");
+  const kingHome = king && king.sq === (me === "w" ? "e1" : "e8");
+  const canCastle = g.fen().split(" ")[2].replace("-", "").split("").some(ch => me === "w" ? ch === ch.toUpperCase() : ch === ch.toLowerCase());
+  const phase = heavy <= 26 ? "end" : (undeveloped.length >= 2 || (!castled && kingHome && moveNo <= 12)) && moveNo <= 14 ? "open" : "mid";
+  /* pawn structure */
+  const files = c => { const m = {}; pawns(c).forEach(p => m[p.f] = (m[p.f] || 0) + 1); return m; };
+  const myF = files(me), opF = files(op);
+  const isolated = (c, F) => pawns(c).filter(p => !F[p.f - 1] && !F[p.f + 1]);
+  const doubled = (c, F) => pawns(c).filter(p => F[p.f] > 1);
+  const passed = (c) => pawns(c).filter(p => { const other = c === "w" ? "b" : "w"; return !pawns(other).some(q => Math.abs(q.f - p.f) <= 1 && (c === "w" ? q.r > p.r : q.r < p.r)); });
+  /* outposts: squares in their half that their pawns can never attack, covered by one of my pawns */
+  const attackedByPawn = (sq, c) => { const f = sq.charCodeAt(0) - 97, r = +sq[1], dir = c === "w" ? -1 : 1; return [f - 1, f + 1].some(ff => { const q = ff >= 0 && ff < 8 && at(String.fromCharCode(97 + ff) + (r + dir)); return q && q.type === "p" && q.color === c; }); };
+  const canEverBeHitBy = (sq, c) => { const f = sq.charCodeAt(0) - 97, r = +sq[1]; return pawns(c).some(q => Math.abs(q.f - f) === 1 && (c === "w" ? q.r < r : q.r > r)); };
+  const outposts = [];
+  for (let f = 1; f < 7; f++) for (const rr of [4, 5, 6]){ const r = me === "w" ? rr : 9 - rr, sq = String.fromCharCode(97 + f) + r, p = at(sq);
+    if (p && p.color === me && p.type === "p") continue; if (!attackedByPawn(sq, me) || canEverBeHitBy(sq, op)) continue;
+    outposts.push({sq, central: f >= 2 && f <= 5, taken: p && p.color === me && (p.type === "n" || p.type === "b")}); }
+  /* files */
+  const openFiles = [], halfOpen = []; for (let f = 0; f < 8; f++){ if (!myF[f] && !opF[f]) openFiles.push(f); else if (!myF[f] && opF[f]) halfOpen.push(f); }
+  const myRooks = mine.filter(p => p.type === "r"), rooksOnOpen = myRooks.filter(p => openFiles.includes(p.f) || halfOpen.includes(p.f));
+  /* centre */
+  const centre = ["d4", "e4", "d5", "e5"], myCentre = centre.filter(sq => { const p = at(sq); return p && p.color === me && p.type === "p"; }), opCentre = centre.filter(sq => { const p = at(sq); return p && p.color === op && p.type === "p"; });
+  /* pawn breaks: one of my pawns can step forward and hit one of theirs */
+  const breaks = []; pawns(me).forEach(p => { const dir = me === "w" ? 1 : -1, to = String.fromCharCode(97 + p.f) + (p.r + dir); if (at(to)) return;
+    const hits = [p.f - 1, p.f + 1].filter(ff => ff >= 0 && ff < 8).map(ff => String.fromCharCode(97 + ff) + (p.r + 2 * dir)).filter(sq => { const q = at(sq); return q && q.type === "p" && q.color === op; });
+    if (hits.length && rel(p.r) >= 2 && rel(p.r) <= 5) breaks.push({from: p.sq, file: String.fromCharCode(97 + p.f), to, hit: {sq: hits[0]}}); });
+  /* their king */
+  const oCastled = oKing && ["g1", "c1", "b1", "h1", "g8", "c8", "b8", "h8"].includes(oKing.sq), oKingSide = oKing ? (oKing.f >= 5 ? "king" : oKing.f <= 2 ? "queen" : "centre") : "centre";
+  const myKingSide = king ? (king.f >= 5 ? "king" : king.f <= 2 ? "queen" : "centre") : "centre";
+  /* loose pieces: attacked and not defended (a safety check, not a move) */
+  const loose = typeof hangingFor === "function" ? hangingFor(g, me) : [];
+  /* bad pieces: knights on the rim, a bishop blocked by its own centre pawns */
+  const rim = mine.filter(p => p.type === "n" && (p.f === 0 || p.f === 7) && rel(p.r) <= 6);
+  const bishopPair = mine.filter(p => p.type === "b").length === 2 && theirs.filter(p => p.type === "b").length < 2;
+  return {me, op, phase, moveNo, undeveloped, castled, kingHome, canCastle, myCentre, opCentre, outposts, openFiles, halfOpen, myRooks, rooksOnOpen, breaks,
+    isoTheirs: isolated(op, opF), dblTheirs: doubled(op, opF), isoMine: isolated(me, myF), passedMine: passed(me), passedTheirs: passed(op),
+    oCastled, oKingSide, myKingSide, loose, rim, bishopPair, matDiff: mat(me) - mat(op), queens: all.some(p => p.type === "q"), king, oKing, at};
+}
+const PIECE_NAME = {p: "pawn", n: "knight", b: "bishop", r: "rook", q: "queen", k: "king"};
+const fileName = f => String.fromCharCode(97 + f) + "-file";
+/* turn the reading into a short plan: a headline, up to three goals with the squares they're about, and a question to think with */
+function planFor(g, me, ev){
+  const R = planRead(g, me), goals = [], marks = {};
+  const add = (t, d, sqs, why) => { if (goals.length >= 3) return; goals.push({t, d, why}); (sqs || []).forEach(s => { if (!marks[s]) marks[s] = "hint"; }); };
+  let head, q;
+  /* safety first */
+  if (R.loose.length){ const t = PIECE_NAME[(R.at(R.loose[0]) || {}).type] || "piece"; add(`Watch your ${t} on ${R.loose[0]}`, `It's attacked and nothing protects it. Every plan starts with nothing hanging.`, [R.loose[0]], "safety"); }
+  if (R.phase === "open"){
+    head = "Opening: get everything out";
+    if (R.undeveloped.length) add("Develop your pieces", `Still at home: ${R.undeveloped.map(u => PIECE_NAME[u.t] + " on " + u.sq).join(", ")}. Knights before bishops, towards the centre, and each piece only once.`, R.undeveloped.map(u => u.sq));
+    if (!R.castled && R.canCastle) add("Get your king safe", R.kingHome && (R.openFiles.includes(3) || R.openFiles.includes(4)) ? "The centre is opening up and your king is still in it. Castling is urgent." : "Castle soon. It tucks your king away and brings a rook into play.", [R.king && R.king.sq]);
+    if (!R.myCentre.length) add("Claim the centre", `You have no pawn on d4, e4, d5 or e5. ${R.opCentre.length ? "Your opponent does, so challenge it." : "Put one there while you can."} The centre is where your pieces get room.`, ["d4", "e4", "d5", "e5"].filter(s => !R.at(s)));
+    else add("Hold your centre", `Your pawn on ${R.myCentre[0]} gives your pieces room. Keep it protected and don't swap it off for nothing.`, R.myCentre);
+    q = "Which of my pieces isn't doing anything yet?";
+  } else if (R.phase === "mid"){
+    head = ev == null ? "Middlegame: make a plan" : ev > 150 ? "Middlegame: you're better, now press" : ev < -150 ? "Middlegame: you're under pressure" : ev > 50 ? "Middlegame: you're slightly better" : ev < -50 ? "Middlegame: be careful" : "Middlegame: balanced, so find a plan";
+    if (ev != null && ev < -150) add("Defend first", "You're worse here. Tighten up: protect your king, trade pieces that attack you, and don't open the position.", []);
+    const op = R.outposts.filter(o => !o.taken).sort((a, b) => b.central - a.central)[0], held = R.outposts.find(o => o.taken);
+    if (op) add(`${op.sq} is your key square`, `None of their pawns can ever attack ${op.sq}, and your pawn covers it. A knight there would be a monster.`, [op.sq]);
+    else if (held) add(`Keep the piece on ${held.sq}`, `Your ${PIECE_NAME[R.at(held.sq).type]} on ${held.sq} can't be chased away by a pawn. Build around it.`, [held.sq]);
+    const tgt = R.isoTheirs[0] || R.dblTheirs[0];
+    if (tgt) add(`Target their pawn on ${tgt.sq}`, `It's ${R.isoTheirs.includes(tgt) ? "isolated: no pawn can ever protect it" : "doubled and slow"}. Pile up on it with pieces and park something on the square in front of it.`, [tgt.sq]);
+    const free = R.openFiles[0] != null ? R.openFiles[0] : R.halfOpen[0];
+    if (free != null && R.myRooks.length && R.rooksOnOpen.length === 0) add(`Rooks to the ${fileName(free)}`, `The ${fileName(free)} is ${R.openFiles.includes(free) ? "open" : "half-open"}. Rooks love open files: they get into the enemy camp from there.`, [String.fromCharCode(97 + free) + (me === "w" ? 1 : 8)]);
+    if (R.oCastled && R.myKingSide !== R.oKingSide && R.oKingSide !== "centre") add("Race to their king", `Your kings are on opposite sides. Push the pawns on the ${R.oKingSide}side towards their king and open lines, fast.`, []);
+    if (R.breaks.length) { const b = R.breaks.find(x => "cdef".includes(x.file)) || R.breaks[0]; add(`The ${b.file}-pawn break`, `Pushing your ${b.file}-pawn would hit their pawn on ${b.hit.sq} and open lines for your pieces. Prepare it, then strike.`, [b.to]); }
+    const iso = R.isoMine.find(p => "cdef".includes(p.sq[0]));
+    if (iso) add(`Your pawn on ${iso.sq} stands alone`, "An isolated pawn gives you space and open lines but becomes weak in an endgame. Keep pieces on the board and play for an attack.", [iso.sq]);
+    if (R.rim.length) add("Bring your knight back to the centre", `A knight on ${R.rim[0].sq} sees half the squares it could. Find it a central square.`, [R.rim[0].sq]);
+    if (R.bishopPair) add("You have the two bishops", "Open the position: the bishops get stronger the more lines are open.", []);
+    q = "What is my worst piece, and where would it be happy?";
+  } else {
+    head = "Endgame: kings and pawns decide";
+    add("Bring your king forward", "In the endgame the king is a fighting piece. March it towards the centre and the pawns.", [R.king && R.king.sq]);
+    if (R.passedMine.length){ const p = R.passedMine.sort((a, b) => (me === "w" ? b.r - a.r : a.r - b.r))[0]; add(`Push your passed pawn on ${p.sq}`, "Nothing can stop it by pawn. Escort it with your king and put a rook behind it.", [p.sq]); }
+    if (R.passedTheirs.length) add(`Stop their pawn on ${R.passedTheirs[0].sq}`, "Their passed pawn is the biggest danger. Put a piece in front of it, ideally your king.", [R.passedTheirs[0].sq]);
+    if (R.matDiff >= 2) add("Trade pieces, not pawns", "You're ahead. Every piece trade makes your extra material count more.", []);
+    else if (R.matDiff <= -2) add("Keep pieces on, trade pawns", "You're behind. Fewer pawns means more drawing chances.", []);
+    q = "Where does my king need to be in five moves?";
+  }
+  if (!goals.length) add("Improve your worst piece", "Nothing urgent. Find the piece doing the least and give it a better square.", []);
+  delete marks[undefined];
+  return {head, goals, q, marks, phase: R.phase};
+}
+/* the card in the side panel */
+function planCardHTML(P, opt = {}){
+  return `<div class="plan ${opt.fresh ? "new" : ""}"><div class="plan-h"><span class="plan-ic">${icon("target", 20)}</span><div><small>Sparring partner</small><b>${esc(P.head)}</b></div>${opt.close ? `<button class="plan-x" data-planx aria-label="Hide">${icon("xmark", 16)}</button>` : ""}</div>
+    <ol class="plan-g">${P.goals.map(g => `<li><b>${esc(g.t)}</b><span>${esc(g.d)}</span></li>`).join("")}</ol>
+    <div class="plan-q">${icon("bubble", 16)}<span>${esc(P.q)}</span></div></div>`;
 }
 
 /* ===== Learn: curriculum player ===== */
@@ -4892,12 +5047,15 @@ const Av3D = (() => {
   }
   let TIER = 2;
   const flat = c => c;
+  let TOONG = null;
+  function toonGrad(){ if (TOONG) return TOONG; const d = new Uint8Array([105, 105, 105, 255, 185, 185, 185, 255, 255, 255, 255, 255]); const t = new T.DataTexture(d, 3, 1, T.RGBAFormat); t.minFilter = t.magFilter = T.NearestFilter; t.generateMipmaps = false; t.needsUpdate = true; return TOONG = t; }
   function M(kind, color, o = {}){
     const key = [TIER, kind, color, o.side || 0, o.map ? o.map.uuid : "", o.em || 0, o.op || 1, o.emMap ? o.emMap.uuid : ""].join("|"); if (MAT[key]) return MAT[key];
     const c = new T.Color(color); let m;
     if (kind === "glow") m = new T.MeshBasicMaterial({color: c, transparent: true, opacity: o.op || 1, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false});
-    else if (TIER < 2 && kind === "wood") m = TIER === 0 ? new T.MeshBasicMaterial({color: 0x9a6a3a, toneMapped: false}) : new T.MeshPhongMaterial({color: 0x9a6a3a, shininess: 40});
-    else if (TIER === 0) m = new T.MeshBasicMaterial({color: kind === "gem" || kind === "gold" ? c.clone().offsetHSL(0, .05, .06) : c, map: o.map || null, toneMapped: false});
+    else if (TIER < 2 && kind === "wood") m = TIER === 0 ? new T.MeshToonMaterial({color: new T.Color(0x9a6a3a).multiplyScalar(.37), gradientMap: toonGrad(), toneMapped: false}) : new T.MeshPhongMaterial({color: 0x9a6a3a, shininess: 40});
+    /* Paper: cel-shaded like a cartoon, three clean tones of light, so faces and folds still read */
+    else if (TIER === 0) m = new T.MeshToonMaterial({color: (kind === "gem" || kind === "gold" ? c.clone().offsetHSL(0, .05, .08) : c.clone().offsetHSL(0, .03, 0)).multiplyScalar(.37), map: o.map || null, gradientMap: toonGrad(), emissive: o.em ? c : 0x000000, emissiveIntensity: o.em || 0, toneMapped: false});
     else if (TIER === 1) m = new T.MeshPhongMaterial({color: c, map: o.map || null, shininess: kind === "cloth" ? 28 : kind === "flesh" ? 18 : kind === "hair" ? 55 : kind === "metal" || kind === "gold" ? 140 : 90, specular: kind === "gold" ? 0x8a6a20 : kind === "metal" ? 0x777777 : 0x3a3a3a, emissive: o.em ? c : 0x000000, emissiveIntensity: o.em ? .35 : 0});
     else {
       const P = TIER >= 3 ? T.MeshPhysicalMaterial : T.MeshStandardMaterial, b = {color: c, envMap: ENV, envMapIntensity: 1, map: o.map || null};
@@ -5156,9 +5314,9 @@ const Av3D = (() => {
     if (a.brows !== "none") H.eyes.forEach(([x, y]) => { const s = Math.sign(x), b = place(new T.Group(), x, y + .082, .004); head.add(b);
       const m = mesh(caps(a.brows === "thick" ? .019 : .012, .065), browM, 0, 0, 0, b); m.rotation.z = Math.PI / 2 + ({soft: -s * .12, straight: 0, angry: s * .38, thick: -s * .05}[a.brows] || 0); });
     if (a.nose !== "none"){ const n = place(new T.Group(), 0, -.035, a.nose === "pointed" ? 0 : -.006); head.add(n);
-      if (a.nose === "button") mesh(sph(.028, 12, 10), rig.skin, 0, 0, 0, n);
-      else if (a.nose === "round") mesh(sph(.042, 14, 10), rig.skin, 0, 0, 0, n).scale.set(1, .85, .8);
-      else { const c = mesh(cone(.03, .085, 12), rig.skin, 0, -.01, .03, n); c.rotation.x = Math.PI / 2 + .35; } }
+      if (a.nose === "button") mesh(sph(.033, 14, 10), rig.skin, 0, 0, 0, n, true);
+      else if (a.nose === "round") mesh(sph(.05, 16, 12), rig.skin, 0, 0, 0, n, true).scale.set(1.05, .85, .8);
+      else { const c = mesh(cone(.036, .1, 14), rig.skin, 0, -.01, .035, n, true); c.rotation.x = Math.PI / 2 + .35; } }
     { const mg = place(new T.Group(), 0, H.mouth, .004), mk = a.mouth; head.add(mg);
       if (mk === "neutral"){ const m = mesh(caps(.009, .06), dark, 0, 0, 0, mg); m.rotation.z = Math.PI / 2; }
       else if (mk === "laugh"){ const m = mesh(sph(.05, 16, 10, ), M("dark", 0x3a1414), 0, -.005, -.01, mg); m.scale.set(1.1, .7, .45); mesh(sph(.025, 10, 8), M("flesh", 0xd65a6a), 0, -.025, .005, mg).scale.set(1.2, .6, .5); mesh(box(.07, .016, .01), M("skin", 0xffffff), 0, .018, .006, mg); }
@@ -5178,8 +5336,7 @@ const Av3D = (() => {
   }
   function eyeParts(e, c, a, rig){
     const sh = {almond: [1.18, .8], sleepy: [1.05, 1], wide: [1.15, 1.2]}[a.eyeshape] || [1, 1.1];
-    if (TIER === 0){ mesh(sph(.045, 16, 12), M("dark", 0x1d1a17), 0, 0, 0, e).scale.set(sh[0], sh[1] * 1.1, .5); mesh(sph(.014, 8, 6), M("glow", 0xffffff), .014, .018, .022, e); }
-    else {
+    {
       mesh(sph(.05, 18, 14), M("skin", 0xfbfaf6), 0, 0, 0, e).scale.set(sh[0], sh[1], .5);
       mesh(sph(.032, 16, 12), M(a.eyes === "gold" || a.eyes === "glow" ? "gem" : "dark", c), 0, 0, .017, e).scale.set(1, 1.05, .45);
       mesh(sph(.017, 10, 8), M("dark", 0x0d0b0a), 0, 0, .027, e).scale.set(1, 1, .5);
@@ -5363,10 +5520,10 @@ const Av3D = (() => {
 
   /* ---------- views ---------- */
   function frameCam(cam, mode, aspect, spill, pet){
-    const F = {full: [1.16, 3.05, 6.6, 0], head: [1.82, .95, 3.4, .1], torso: [1.28, 1.35, 4.4, 0], legs: [.62, 1.25, 4.2, 0], bust: [1.68, 1.15, 4, .1], cage: [1.04, 2.6, 6.3, 0]}[mode] || [1.08, 2.85, 6.6, 0];
+    const F = {full: [1.16, 3.05, 6.6, 0], head: [1.82, .95, 3.4, .1], face: [1.8, .74, 3.2, .1], hair: [1.88, 1.02, 3.4, .1], torso: [1.28, 1.35, 4.4, 0], legs: [.62, 1.25, 4.2, 0], bust: [1.68, 1.15, 4, .1], cage: [1.04, 2.6, 6.3, 0]}[mode] || [1.08, 2.85, 6.6, 0];
     let [ty, hgt, d] = F; const wid = (mode === "full" || mode === "cage" ? hgt * .7 : mode === "torso" || mode === "legs" ? hgt * .85 : hgt * .95) + (pet && mode === "full" ? .8 : 0);
     const tanH = Math.max(hgt / 2 / d, wid / 2 / d / Math.max(.2, aspect)) * (1 + 2 * (spill || 0));
-    cam.fov = 2 * Math.atan(tanH) * 180 / Math.PI; cam.aspect = aspect; cam.position.set(pet && mode === "full" ? .25 : 0, ty + d * .1, d); cam.lookAt(pet && mode === "full" ? .25 : 0, ty, 0); cam.updateProjectionMatrix();
+    cam.fov = 2 * Math.atan(tanH) * 180 / Math.PI; cam.aspect = aspect; cam.position.set(pet && mode === "full" ? .25 : mode === "face" ? .85 : mode === "hair" ? 1.55 : 0, ty + d * (mode === "hair" ? .2 : .1), mode === "face" ? d * .96 : mode === "hair" ? d * .9 : d); cam.lookAt(pet && mode === "full" ? .25 : 0, ty, 0); cam.updateProjectionMatrix();
   }
   function addPet(rig, cfg){
     const b = typeof BOTS !== "undefined" && BOTS.find(x => x.id === cfg.pet); if (!b) return;
@@ -5718,6 +5875,8 @@ const WGROUPS = [
   ["figure", "Figure", null], ["pet", "Pet", "pet"], ["frame", "Border", ["frame"]]];
 const SW_NAME = {fur: "Fur colour", skin: "Skin", hairC: "Hair colour", shirtC: "Colour", coatC: "Colour", pantsC: "Colour", shoesC: "Colour", capeC: "Colour"};
 const SLOT_NAME = Object.fromEntries(AV_SLOTS);
+/* face details get a close, slightly turned camera so a nose or an eyebrow actually shows */
+const FACEISH = ["eyes", "eyeshape", "brows", "nose", "mouth", "beard", "cheeks", "glasses", "paint", "mask", "ears"];
 const HEADISH = ["hair", "head", "eyes", "glasses", "mask", "ears", "paint", "shape", "eyeshape", "brows", "nose", "mouth", "beard", "cheeks"];
 /* a short reason for a locked item, e.g. "Win 10 games" or "150 trophies" */
 function itemReqShort(it){
@@ -5783,7 +5942,7 @@ Views.awards = {
     const count = slots => { const its = AV_ITEMS.filter(i => slots.includes(i.slot)); let u = its.filter(itemUnlocked).length, all = its.length;
       slots.filter(x => x.startsWith("sw:")).forEach(x => { const l = AV_COLORS[x.slice(3)]; all += l.length; u += l.filter(c => itemUnlocked({req: c[3]})).length; }); return [u, all]; };
     const chips = WGROUPS.map(([k, t, slots]) => { const [u, all] = slots === "pet" ? [caughtBots().length, BOTS.length] : slots ? count(slots) : [AV_CLASSES.filter(classUnlocked).length, AV_CLASSES.length]; return `<button class="chip ${k === this.grp ? "on" : ""}" data-grp="${k}">${t} <span>${u}/${all}</span></button>`; }).join("");
-    const pv = (cfg, slot) => Av3D.tag(Object.assign({}, cfg, slot === "aura" ? {} : {aura: "none"}, {pet: "none"}), {w: 104, h: 104, mode: HEADISH.includes(slot) ? "head" : ["shirt", "coat"].includes(slot) ? "torso" : ["pants", "shoes"].includes(slot) ? "legs" : "full", tier, rank: -1, fill: true});
+    const pv = (cfg, slot) => Av3D.tag(Object.assign({}, cfg, slot === "aura" ? {} : {aura: "none"}, {pet: "none"}), {w: 104, h: 104, mode: FACEISH.includes(slot) ? "face" : slot === "hair" || slot === "head" ? "hair" : HEADISH.includes(slot) ? "head" : ["shirt", "coat"].includes(slot) ? "torso" : ["pants", "shoes"].includes(slot) ? "legs" : "full", tier, rank: -1, fill: true});
     const card = (inner, name, on, ok, why, data) => `<button class="wi ${on ? "on" : ""} ${ok ? "" : "locked"}" ${data}><div class="wi-pv">${inner}<span class="wi-on">✓</span>${ok ? "" : `<span class="wi-lock">${LOCK_SVG}</span>`}</div><b>${esc(name)}</b>${ok ? "" : `<small>${esc(why)}</small>`}</button>`;
     let grid = "";
     if (!g[2]) grid = `<div class="wgrid">${AV_CLASSES.map(c => card(pv(Object.assign({}, av, {cls: c.k}), "cls"), c.name, av.cls === c.k, classUnlocked(c), `${c.need.tro} trophies`, `data-cls="${c.k}"`)).join("")}</div>`;
@@ -6180,7 +6339,7 @@ function repL(name, src, trap){
 const REP_LINES = (list) => ({lines: list.filter(l => !l.trap), traps: list.filter(l => l.trap).map(l => { const o = Object.assign({}, l, {text: "A trap to know. Step through it and see what goes wrong."}); delete o.trap; return o; })});
 
 THEORY.push(Object.assign({
-  id: "myrep-w", name: "Your White repertoire: 1.e4 and the Scotch", group: "mine", side: "w", eco: "C45 · B21 · C02 · B12",
+  id: "myrep-w", short: "White: 1.e4 and the Scotch", tag: "Open the centre at once and attack.", name: "Your White repertoire: 1.e4 and the Scotch", group: "mine", side: "w", eco: "C45 · B21 · C02 · B12",
   intro: "One idea against everything: 1.e4, then d4 as soon as it is safe. Against 1...e5 that is the Scotch Game; against the other answers you get the same thing, an open centre and fast development, with lines that are short to learn and easy to play.",
   sections: [
     {h: "Why this fits you", p: ["You already play 1.e4 and you like to push d4 early. That instinct is right, only the order is often wrong: when d4 comes before your knight is out, your e4 pawn hangs and your opponent gets it for free. The Scotch is exactly your plan in the right order: 2.Nf3 first, then 3.d4, and you take back with the knight.",
@@ -6216,7 +6375,7 @@ THEORY.push(Object.assign({
 ])));
 
 THEORY.push(Object.assign({
-  id: "myrep-be4", name: "Your Black repertoire against 1.e4: 1...e5 and the Two Knights", group: "mine", side: "b", eco: "C55 · C57 · C65 · C45",
+  id: "myrep-be4", short: "Black vs 1.e4: Two Knights", tag: "Hit back with your knights, never wait.", name: "Your Black repertoire against 1.e4: 1...e5 and the Two Knights", group: "mine", side: "b", eco: "C55 · C57 · C65 · C45",
   intro: "You answer 1.e4 with 1...e5 and develop your knights before anything else. Against the Italian you play the Two Knights (3...Nf6), the sharpest, most active answer; against everything else the same rule: knights out, then ...d5 when it works.",
   sections: [
     {h: "Why this fits you", p: ["As Black you already score well, and 1...e5 keeps the games open, where your tactics count. The Two Knights doesn't wait for White's attack: it hits e4 right away and makes White prove something.",
@@ -6252,7 +6411,7 @@ THEORY.push(Object.assign({
 ])));
 
 THEORY.push(Object.assign({
-  id: "myrep-bd4", name: "Your Black repertoire against 1.d4 and the rest", group: "mine", side: "b", eco: "D35 · D37 · D02 · A29",
+  id: "myrep-bd4", short: "Black vs 1.d4: Queen's Gambit Declined", tag: "Solid setup, ten moves on autopilot.", name: "Your Black repertoire against 1.d4 and the rest", group: "mine", side: "b", eco: "D35 · D37 · D02 · A29",
   intro: "Against 1.d4 you play 1...d5 and the Queen's Gambit Declined setup: ...e6, ...Nf6, ...Be7, castle. Solid where your opponents expect you to be wild, and with one great trap. Against the London and other systems: ...c5 and ...Qb6. Against 1.Nc3, 1.c4 and 1.Nf3 you go back to what you know.",
   sections: [
     {h: "Why this fits you", p: ["Against 1.d4 you lost when the position got slow and you started forcing things. The QGD gives you a setup you can play on autopilot for ten moves, and then a clear break (...c5 or ...e5) when it's time to open the game.",
@@ -6290,7 +6449,7 @@ Views.theory = {
     this.main.innerHTML = `<div class="page" style="max-width:900px"><h1 class="h-title">Opening Theory</h1><p class="muted">Deep dives into the openings that matter: the ideas, the pawn structures, the plans for both sides, typical mistakes, and the main lines on a board you can step through.</p>
       ${suggest.length ? `<div class="unit" style="margin-top:12px;border:1px solid var(--go)"><div class="muted" style="font-size:12px;font-weight:800;letter-spacing:.06em">FOR YOUR REPERTOIRE</div><div class="row" style="margin-top:6px">${[...new Set(suggest)].map(t => `<button class="btn sm go" data-th="${t.id}">${esc(t.name)}</button>`).join("")}</div></div>` : ""}
       <button class="unit rep-promo" data-rep><span class="rep-pi">${icon("target", 30)}</span><span class="grow"><b>Your openings</b><span class="muted">A repertoire built from your own games: why it fits you, what to play when they deviate, and a drill.</span></span><span class="rep-go">›</span></button>
-      ${grp.map(([g, t]) => `<h2 class="h-sec" style="margin-top:16px">${t}</h2><div class="tiles">${THEORY.filter(a => a.group === g).map(a => `<button class="tile th-tile" data-th="${a.id}">${read[a.id] ? `<span class="pill go">Read</span>` : a.eco ? `<span class="pill">${esc(a.eco)}</span>` : ""}<h3>${esc(a.name)}</h3><p>${esc(a.intro.slice(0, 140))}${a.intro.length > 140 ? "…" : ""}</p><span class="dim" style="font-size:12px">${a.sections.length} sections · ${a.lines.length + (a.traps || []).length} lines</span></button>`).join("")}</div>`).join("")}</div>`;
+      ${grp.map(([g, t]) => `<h2 class="h-sec" style="margin-top:16px">${t}</h2><div class="th-cards">${THEORY.filter(a => a.group === g).map(a => `<button class="th-card" data-th="${a.id}">${miniBoard(thFen(a), a.side || "w")}<span class="th-c"><b>${esc(a.short || a.name)}</b><span>${esc(thLine(a))}</span><small>${a.lines.length + (a.traps || []).length} line${a.lines.length + (a.traps || []).length === 1 ? "" : "s"}${read[a.id] ? ` · <i class="th-read">✓ read</i>` : ""}</small></span></button>`).join("")}</div>`).join("")}</div>`;
     $$("[data-th]", this.main).forEach(b => b.onclick = () => this.open(b.dataset.th, 0)); const rp = $("[data-rep]", this.main); if (rp) rp.onclick = () => App.go("repertoire");
   },
   open(id, li){
@@ -6344,6 +6503,21 @@ Views.theory = {
     $("#thx").onclick = () => { if (this.li < this.lines.length - 1){ this.li++; this.go(0); } else App.go("analysis", {fen: t.fen(), back: {route: "theory", arg: {id: this.A.id, line: this.li}}}); };
   }
 };
+
+/* the opening at a glance: a small board of its key position, a name and one short line */
+function thFen(a){
+  if (a.fen) return a.fen; const L = (a.lines || []).map(l => l.san.split(" ")); if (!L.length) return new Chess().fen();
+  let n = 0; while (n < 10 && L.every(x => x[n] && x[n] === L[0][n])) n++; if (n < 3) n = Math.min(L[0].length, a.group === "mine" ? 6 : 6);
+  const g = new Chess(); L[0].slice(0, n).forEach(m => g.move(m)); return g.fen();
+}
+function thLine(a){ const t = a.tag || String(a.intro || "").split(/(?<=[.!?:])\s/)[0]; return t.length > 90 ? t.slice(0, 88).replace(/\s\S*$/, "") + "…" : t; }
+function miniBoard(fen, o = "w"){
+  const rows = fen.split(" ")[0].split("/"); let html = "";
+  rows.forEach((row, r) => { let f = 0; for (const ch of row){ if (/\d/.test(ch)){ f += +ch; continue; }
+    const x = o === "w" ? f : 7 - f, y = o === "w" ? r : 7 - r, c = ch === ch.toUpperCase() ? "w" : "b";
+    html += `<i class="pc ${c}${ch.toLowerCase()}" style="left:${x * 12.5}%;top:${y * 12.5}%"></i>`; f++; } });
+  return `<span class="mini">${html}</span>`;
+}
 
 /* ===== Analysis board: free play with live engine lines ===== */
 Views.analysis = {
