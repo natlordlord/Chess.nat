@@ -8333,17 +8333,32 @@ const Push = {
   },
   /* after a tap that didn't end with notifications on: say what happened and how to fix it */
   explain(r){
-    if (r.ok) return; const ios = this.isIOS(), android = /Android/i.test(navigator.userAgent), app = this.standalone();
+    if (r.ok) return; document.querySelectorAll(".dsheet").forEach(x => { if (x.querySelector("[data-retry]")) x.remove(); });
+    const ios = this.isIOS(), android = /Android/i.test(navigator.userAgent), app = this.standalone();
     const ol = items => `<ol class="howto">${items.map(x => `<li><span>${x}</span></li>`).join("")}</ol>`;
     const how = ios ? ol(["Open <b>Settings</b> on your iPhone", "<b>Notifications</b> → <b>Chess.nat</b>", "Turn on <b>Allow Notifications</b>"]) + `<p class="muted" style="font-size:13px;margin-top:10px">Chess.nat not in the list? Remove the app from your home screen, open chess-nat.vercel.app in Safari and add it again with Share → Add to Home Screen.</p>`
-      : android && app ? ol(["Press and hold the <b>Chess.nat</b> icon on your home screen", "Tap <b>App info</b> (the ⓘ)", "Tap <b>Notifications</b>", "Turn on <b>All Chess.nat notifications</b>", "Come back here, it switches on by itself"])
+      : android && app ? ol(["Press and hold the <b>Chess.nat</b> icon on your home screen", "Tap <b>App info</b> (the ⓘ)", "Tap <b>Notifications</b>", "Turn on <b>All Chess.nat notifications</b>", "Come back here and tap <b>Try again</b>"])
         + `<p class="muted" style="font-size:13px;margin-top:10px">Or: phone <b>Settings</b> → <b>Apps</b> → <b>Chess.nat</b> → <b>Notifications</b>. If it's on there but nothing arrives: Chrome → ⋮ → <b>Settings</b> → <b>Notifications</b> → allow <b>chess-nat.vercel.app</b>.</p>`
-      : android ? ol(["Tap the <b>icon left of the address</b> at the top (the lock or the sliders)", "Tap <b>Permissions</b> (or <b>Site settings</b>)", "Set <b>Notifications</b> to <b>Allow</b>", "Come back here, it switches on by itself"])
+      : android ? ol(["Tap the <b>icon left of the address</b> at the top (the lock or the sliders)", "Tap <b>Permissions</b> (or <b>Site settings</b>)", "Set <b>Notifications</b> to <b>Allow</b>", "Come back here and tap <b>Try again</b>"])
         + `<p class="muted" style="font-size:13px;margin-top:10px">Or: Chrome → ⋮ → <b>Settings</b> → <b>Site settings</b> → <b>Notifications</b> → <b>chess-nat.vercel.app</b> → Allow. Also check phone Settings → Apps → <b>Chrome</b> → Notifications is on.</p>`
       : `<p class="muted" style="margin-top:8px">Click the <b>lock icon</b> next to the address, set <b>Notifications</b> to <b>Allow</b>, then come back here.</p>`;
     detailSheet(`<div style="text-align:center"><div class="pa-bell">${icon("bell", 46)}</div><div style="font:900 21px var(--display);margin-top:6px">${r.error === "denied" ? "Notifications are blocked" : "Your phone didn't ask"}</div>
-      <p class="muted" style="margin:8px 0 0">${r.error === "denied" ? "Notifications for Chess.nat are switched off on this device. Here's how to switch them on:" : "The system question didn't come up. You can switch them on yourself:"}</p>${how}<p class="dim" style="font-size:11.5px;margin-top:10px">Status: ${esc(String(r.error))}${r.msg ? " · " + esc(r.msg) : ""}</p></div>`);
+      <p class="muted" style="margin:8px 0 0">${r.error === "denied" ? "Notifications for Chess.nat are switched off on this device. Here's how to switch them on:" : "The system question didn't come up. You can switch them on yourself:"}</p>${how}
+      <div class="tryrow"><button class="btn go big" data-retry style="width:100%">${icon("refresh", 18)} Done it? Try again</button><p class="tryout muted" style="margin:8px 0 0;font-size:13.5px"></p></div>
+      <p class="dim" style="font-size:11.5px;margin-top:10px">Status: ${esc(String(r.error))}${r.msg ? " · " + esc(r.msg) : ""}</p></div>`);
+    /* after changing the setting: one tap here, no need to close and reopen the app */
+    const sh = [...document.querySelectorAll(".dsheet")].pop(), btn = sh && sh.querySelector("[data-retry]"), out = sh && sh.querySelector(".tryout");
+    if (btn) btn.onclick = () => { btn.disabled = true; out.textContent = "Checking…";
+      this.turnOn().then(async res => {
+        btn.disabled = false;
+        if (res.ok){ out.innerHTML = `<b style="color:var(--go)">Notifications are on ✓</b> A test one is on its way.`; Sound.cheer(1); toast("Notifications on 🔔"); this.test();
+          setTimeout(() => { sh.classList.add("out"); setTimeout(() => sh.remove(), 200); if (App.route === "me" && Views.me.push) Views.me.push(); }, 2200); }
+        else if (Notification.permission === "denied") out.innerHTML = `<b style="color:var(--bad)">Still blocked.</b> ${android ? "Check both places: the site setting in Chrome <i>and</i> Chrome's own notifications in your phone settings." : "The setting hasn't changed yet. Check the steps above."}`;
+        else out.innerHTML = "Your phone didn't show the question. Tap again, or allow it in the settings above.";
+      }); };
   },
+  /* a notification sent from the phone itself, so you can see they really arrive */
+  async test(){ try { const reg = await navigator.serviceWorker.ready; await reg.showNotification("Chess.nat", {body: "Notifications work ✓ You'll hear from us when it's your move.", icon: "/icons/icon-192.png", badge: "/icons/badge-96.png", tag: "test"}); } catch(e) {} },
   /* every app start: if notifications aren't on yet, ask */
   async auto(){
     if (this._asked) return; this._asked = true;
