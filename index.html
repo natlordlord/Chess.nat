@@ -43,7 +43,9 @@ html.app-mode{touch-action:manipulation}
 html.app-mode .nav,html.app-mode .btn,html.app-mode .tabbar,html.app-mode .tile,html.app-mode .sheet,html.app-mode .pbar,html.app-mode .board{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 /* iOS 26 blurs the top of a home-screen app ("scroll edge effect") unless a fixed, solid-coloured bar
    covers the top edge. This bar sits behind the status bar in the page colour, so iOS uses that colour instead. */
-html.app-mode .edge-top{position:fixed;top:0;left:0;right:0;height:max(var(--sat),12px);background:var(--bg);z-index:95;pointer-events:none}
+/* It must take touches (no pointer-events:none): WebKit only skips the blur when the top edge hit-tests to an opaque box. */
+html.app-mode .edge-top{position:fixed;top:0;left:0;right:0;height:max(var(--sat),12px);background:var(--bg);z-index:95}
+html.app-mode{background:var(--bg)}
 html.app-mode .rail{height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
 .install-hint{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tab-h,0px) + env(safe-area-inset-bottom,0px) + 12px);z-index:90;width:min(440px,calc(100% - 24px));display:flex;align-items:center;gap:12px;background:var(--panel-3);border:1px solid var(--line);border-radius:12px;padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
 .install-hint img{border-radius:9px;flex:none}
