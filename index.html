@@ -1365,7 +1365,8 @@ const Notify = {
     (o.actions || []).forEach((x, i) => el.querySelector(`[data-a="${i}"]`).onclick = e => { e.stopPropagation(); this.close(cur); x.fn && x.fn(); });
     /* tap opens, swipe up dismisses */
     let y0 = null, dy = 0;
-    el.addEventListener("pointerdown", e => { y0 = e.clientY; dy = 0; el.classList.add("drag"); clearTimeout(cur.timer); });
+    /* a press on one of the buttons is only that button: never also the tap on the whole card */
+    el.addEventListener("pointerdown", e => { if (e.target.closest(".ntf-b")){ y0 = null; return; } y0 = e.clientY; dy = 0; el.classList.add("drag"); clearTimeout(cur.timer); });
     el.addEventListener("pointermove", e => { if (y0 == null) return; dy = Math.min(0, e.clientY - y0); el.style.transform = `translate(-50%, ${dy}px)`; });
     const up = () => { if (y0 == null) return; y0 = null; el.classList.remove("drag"); el.style.transform = "";
       if (dy < -30) return this.close(cur); if (Math.abs(dy) < 6 && o.onTap){ this.close(cur); o.onTap(); return; } cur.timer = setTimeout(() => this.close(cur), 1800); };
