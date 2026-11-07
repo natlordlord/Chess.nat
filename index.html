@@ -7885,7 +7885,8 @@ const Social = (() => {
     if (started || !sb) return; started = true;
     await site.sessionReady; const s = site.getSession(); if (!s) return; me = s.user.id;
     await ensurePlayer(); requireId();
-    beat(); setInterval(beat, 60000); document.addEventListener("visibilitychange", () => { if (!document.hidden) beat(); });
+    beat(); setInterval(beat, 60000); document.addEventListener("visibilitychange", () => { if (!document.hidden) beat(); hereLoop(); });
+    window.addEventListener("pagehide", () => here(false)); hereLoop();
     listen(); setInterval(pollInvites, 30000); pollInvites();
   }
   async function ensurePlayer(){
@@ -7956,6 +7957,11 @@ const Social = (() => {
   }
   const card = () => ({flame: typeof flameCount === "function" ? flameCount() : 0, flame_day: (S.flame && S.flame.last) || null, rating: S.puzzle.r, avatar: myAvatar(), trophies: typeof achCount === "function" ? achCount() : 0, ratings: typeof RATED_CATS !== "undefined" ? Object.fromEntries(RATED_CATS.filter(([k]) => (S.ratings || {})[k]).map(([k]) => [k, S.ratings[k].r])) : null});
   function beat(){ if (!player || document.hidden) return; sb.from("chess_players").update(Object.assign({last_seen: new Date().toISOString()}, card())).eq("id", me).then(() => {}, () => {}); }
+  /* "I'm in the app": while the app is on screen the server sends no phone notifications (the app shows its own cards).
+     Every 25 s while visible; cleared as soon as the app goes to the background. */
+  function here(on){ if (!player) return; sb.from("chess_players").update({active_at: on ? new Date().toISOString() : null}).eq("id", me).then(() => {}, () => {}); }
+  let hereT = null;
+  function hereLoop(){ clearInterval(hereT); if (document.hidden){ here(false); return; } here(true); hereT = setInterval(() => { if (!document.hidden) here(true); }, 25000); }
   let syncT = null; function syncCard(){ if (!player) return; clearTimeout(syncT); syncT = setTimeout(() => sb.from("chess_players").update(card()).eq("id", me).then(() => {}, () => {}), 1500); }
 
   async function load(force){

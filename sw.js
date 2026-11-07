@@ -5,7 +5,7 @@
      refreshed in the background.
    - Supabase (login, saves, live games) and the coach voice clips are never touched.
    Bump VERSION to throw away all cached files. */
-const VERSION = "chessnat-v6";
+const VERSION = "chessnat-v7";
 const SHELL = [
   "/", "/config.js", "/platform.js", "/pwa.js", "/manifest.webmanifest", "/favicon.svg",
   "/vendor/chess.js", "/vendor/supabase.js", "/vendor/three.min.js", "/engine/sf.js",
@@ -23,12 +23,21 @@ self.addEventListener("install", e => {
 });
 
 /* push: show it, put the flame on the icon, and open the right screen on tap */
+const IOS_SW = /iPhone|iPad|iPod|Macintosh/.test(self.navigator.userAgent) && /Safari/.test(self.navigator.userAgent) && !/Chrome|CriOS|Android/.test(self.navigator.userAgent);
 self.addEventListener("push", e => {
   let d = {}; try { d = e.data ? e.data.json() : {}; } catch(_) { d = {title: "Chess.nat", body: e.data ? e.data.text() : ""}; }
+  /* the app is open and in front: it shows its own card, so no phone notification (Android and desktop; on iPhone the server already holds it back) */
+  if (!IOS_SW && d.kind !== "test") return e.waitUntil(self.clients.matchAll({type: "window", includeUncontrolled: true}).then(cs => {
+    if (cs.some(c => c.visibilityState === "visible" && c.focused)) return;
+    return showIt(d);
+  }));
+  e.waitUntil(showIt(d));
+});
+function showIt(d){
   const jobs = [self.registration.showNotification(d.title || "Chess.nat", {body: d.body || "", icon: "/icons/icon-192.png", badge: "/icons/badge-96.png", vibrate: [60, 40, 60], tag: d.tag || d.kind || "chessnat", renotify: true, data: {url: d.url || "/"}})];
   if (d.badge != null && self.navigator && self.navigator.setAppBadge) jobs.push(self.navigator.setAppBadge(d.badge).catch(() => {}));
-  e.waitUntil(Promise.all(jobs));
-});
+  return Promise.all(jobs);
+}
 self.addEventListener("notificationclick", e => {
   e.notification.close(); const url = new URL((e.notification.data && e.notification.data.url) || "/", self.location.origin).href;
   e.waitUntil(self.clients.matchAll({type: "window", includeUncontrolled: true}).then(cs => {
