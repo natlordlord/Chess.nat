@@ -1149,6 +1149,12 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 @keyframes yourturn{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--go) 80%,transparent)}35%{box-shadow:0 0 0 6px color-mix(in srgb,var(--go) 70%,transparent)}100%{box-shadow:0 0 0 0 transparent}}
 .inc-tog.on{border-color:var(--go);color:var(--go)}
 .card-over:not(.endcard) .end-ic{display:none}
+/* swipe back: the page underneath slides in from the left */
+.swipe-under{position:absolute;z-index:0;overflow:hidden;background:var(--bg);pointer-events:none}
+.swipe-under-in{position:absolute;inset:0;will-change:transform}
+.swipe-under .swipe-snap{position:absolute;inset:0;height:100%}
+.swipe-under::after{content:"";position:absolute;inset:0;background:#000;opacity:var(--dim,0)}
+#main.swiping{position:relative;z-index:1;background:var(--bg)}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -7124,6 +7130,7 @@ const App = {
     if (!back && this.view && this.route !== r){ this.stack.push({r: this.route, arg: this.arg}); if (this.stack.length > 30) this.stack.shift(); }
     if (TAB_OF && ["home", "learn", "puzzles", "play"].includes(r) && !back) this.stack = this.stack.filter(x => x.r !== r);
     this.arg = arg;
+    if (this.view && this.route !== r) this.snapshot();
     if (this.view && this.view.unmount) this.view.unmount();
     Voice.stop();
     this.route = r; this.view = Views[r];
@@ -7133,6 +7140,18 @@ const App = {
     this.view.mount(main, arg);
   },
   refresh(){ renderRail(); if (["home", "stats", "settings", "learn", "train"].includes(this.route)) this.go(this.route); },
+  /* a picture of the page you're leaving, so swiping back can show it underneath before it's rebuilt */
+  snaps: {},
+  snapshot(){ try {
+    const main = $("#main"); if (!main || !main.firstElementChild) return; const c = main.cloneNode(true);
+    const src = main.querySelectorAll("canvas"), dst = c.querySelectorAll("canvas");
+    src.forEach((cv, i) => { const d = dst[i]; if (!d || !cv.width) return; try { const im = new Image(); im.src = cv.toDataURL(); im.style.cssText = getComputedStyle(cv).cssText ? "" : ""; im.className = cv.className; im.width = cv.clientWidth; im.height = cv.clientHeight; d.replaceWith(im); } catch(e) {} });
+    c.querySelectorAll("[id]").forEach(n => n.removeAttribute("id")); c.removeAttribute("id");
+    c.querySelectorAll(".overlay,.dsheet").forEach(n => n.remove());
+    this.snaps[this.route] = {node: c, scroll: main.scrollTop, ts: Date.now()};
+    const ks = Object.keys(this.snaps); if (ks.length > 8) delete this.snaps[ks.sort((a, b) => this.snaps[a].ts - this.snaps[b].ts)[0]];
+  } catch(e) {} },
+  backTarget(){ const p = this.stack[this.stack.length - 1]; if (p) return p.r; return this.route !== "home" ? (TAB_OF[this.route] && Views[TAB_OF[this.route]] && TAB_OF[this.route] !== this.route ? TAB_OF[this.route] : "home") : null; },
   back(){ const p = this.stack.pop(); if (p) this.go(p.r, p.arg, true); else if (this.route !== "home") this.go(TAB_OF[this.route] && Views[TAB_OF[this.route]] && TAB_OF[this.route] !== this.route ? TAB_OF[this.route] : "home", undefined, true); },
   busy(){ return ["jlevel", "puzzles", "rush", "bots", "friend", "review", "lesson", "analysis", "coords", "local", "linkgame", "endgames", "repdrill"].includes(this.route); }
 };
@@ -7381,17 +7400,33 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) upda
   }, {passive: true});
   document.addEventListener("touchmove", e => {
     if (!s) return; const t = e.touches[0], dx = t.clientX - s.x, dy = t.clientY - s.y;
-    if (!s.on){ if (Math.abs(dy) > 14 && Math.abs(dy) > dx) { s = null; return; } if (dx < 10) return; s.on = true; s.el.style.transition = "none"; s.el.classList.add("swiping"); }
-    e.preventDefault(); s.dx = Math.max(0, dx); s.el.style.transform = `translateX(${s.dx}px)`; s.el.style.opacity = String(1 - Math.min(.5, s.dx / window.innerWidth));
+    if (!s.on){ if (Math.abs(dy) > 14 && Math.abs(dy) > dx) { s = null; return; } if (dx < 10) return; s.on = true; s.el.style.transition = "none"; s.el.classList.add("swiping"); s.under = overlay() ? null : under(); }
+    e.preventDefault(); s.dx = Math.max(0, dx); s.el.style.transform = `translateX(${s.dx}px)`;
+    if (s.under) moveUnder(s.under, s.dx / window.innerWidth); else s.el.style.opacity = String(1 - Math.min(.5, s.dx / window.innerWidth));
   }, {passive: false});
+  /* the page you're going back to, shown underneath while you swipe (a picture taken when you left it) */
+  function under(){
+    const main = $("#main"), app = main && main.parentElement; if (!app) return null;
+    const r = App.backTarget && App.backTarget(), snap = r && App.snaps && App.snaps[r];
+    const u = document.createElement("div"); u.className = "swipe-under";
+    const mr = main.getBoundingClientRect(), ar = app.getBoundingClientRect();
+    Object.assign(u.style, {top: (mr.top - ar.top) + "px", left: (mr.left - ar.left) + "px", width: mr.width + "px", height: mr.height + "px"});
+    const inner = document.createElement("div"); inner.className = "swipe-under-in"; u.appendChild(inner);
+    if (snap){ const c = snap.node.cloneNode(true); c.className = "main swipe-snap"; c.style.overflow = "hidden"; inner.appendChild(c); app.insertBefore(u, main); c.scrollTop = snap.scroll; }
+    else app.insertBefore(u, main);
+    moveUnder(u, 0); return u;
+  }
+  function moveUnder(u, p){ p = Math.min(1, Math.max(0, p)); u.firstChild.style.transform = `translateX(${-28 * (1 - p)}%)`; u.style.setProperty("--dim", String(.38 * (1 - p))); }
   const end = () => {
     if (!s) return; const st = s; s = null; if (!st.on) return;
     const v = (st.dx || 0) / Math.max(1, performance.now() - st.t), go = (st.dx || 0) > window.innerWidth * .28 || (st.dx > 40 && v > .45);
     st.el.style.transition = "transform .2s ease-out, opacity .2s ease-out";
-    if (go){ st.el.style.transform = `translateX(${window.innerWidth}px)`; st.el.style.opacity = "0";
-      setTimeout(() => { const ov = overlay(); st.el.style.transition = st.el.style.transform = st.el.style.opacity = ""; st.el.classList.remove("swiping");
-        if (ov){ if (ov.id === "sheet") ov.hidden = true; else ov.remove(); } else App.back(); }, 190); }
-    else { st.el.style.transform = ""; st.el.style.opacity = ""; setTimeout(() => { st.el.style.transition = ""; st.el.classList.remove("swiping"); }, 210); }
+    if (st.under){ st.under.firstChild.style.transition = "transform .2s ease-out"; st.under.style.transition = "--dim .2s"; }
+    if (go){ st.el.style.transform = `translateX(${window.innerWidth}px)`; if (!st.under) st.el.style.opacity = "0"; else moveUnder(st.under, 1);
+      setTimeout(() => { const ov = overlay(); if (ov){ if (ov.id === "sheet") ov.hidden = true; else ov.remove(); } else { st.el.style.visibility = "hidden"; App.back(); }
+        st.el.style.transition = st.el.style.transform = st.el.style.opacity = ""; st.el.classList.remove("swiping");
+        requestAnimationFrame(() => { st.el.style.visibility = ""; if (st.under) st.under.remove(); }); }, 200); }
+    else { st.el.style.transform = ""; st.el.style.opacity = ""; if (st.under) moveUnder(st.under, 0); setTimeout(() => { st.el.style.transition = ""; st.el.classList.remove("swiping"); if (st.under) st.under.remove(); }, 210); }
   };
   document.addEventListener("touchend", end); document.addEventListener("touchcancel", end);
 })();
