@@ -2171,7 +2171,11 @@ function cheerFor({diff = 0, streak = 0, ms = 99999}){
   return {tier, word, slug};
 }
 function fmtSec(ms){ const s = Math.round(ms / 1000); return s < 60 ? s + "s" : Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
-function celebrate(board, info, extra = {}){ const c = cheerFor(info); board.cheer({tier: c.tier, word: c.word, ...extra}); Sound.cheer(c.tier, c.slug); return c; }
+/* a puzzle that ends in mate is announced as one: "Checkmate!" on the board and from the announcer */
+function pzMate(R){ try { return !!(R && R.g && R.g.in_checkmate()); } catch(e){ return false; } }
+function sayMate(){ setTimeout(() => Voice.say("Checkmate!"), 350); }
+function celebrate(board, info, extra = {}){ const c = cheerFor(info); if (info.mate){ c.word = "Checkmate!"; c.tier = Math.max(c.tier, 2); sayMate(); }
+  board.cheer({tier: c.tier, word: c.word, ...extra}); Sound.cheer(c.tier, c.slug); return c; }
 /* puzzle rating while solving: hidden by default like chess.com, tap to show (remembered) */
 function pzRatingChip(p, reveal){ const show = reveal || S.settings.showPzRating; return `<button class="pill pzr ${show ? "on" : ""}" data-pzr title="${show ? "Hide the puzzle rating while solving" : "Show the puzzle rating"}">${show ? "Puzzle " + p.r : "👁 Show puzzle rating"}</button>`; }
 document.addEventListener("click", e => { const t = e.target.closest && e.target.closest("[data-pzr]"); if (!t) return; S.settings.showPzRating = !S.settings.showPzRating; save(); const v = App.view; if (v && v.panel && v.lastState !== undefined) v.panel(v.lastState); });
@@ -2241,7 +2245,7 @@ Views.puzzles = {
     S.puzzle.hist.push([Date.now(), S.puzzle.r]);
     recordThemes(p, ok); markSeen(p); if (ok) rmFailed(p); else addFailed(p);
     this.delta = d; this.session.push({ok, d, r: p.r});
-    if (ok){ const c = celebrate(this.board, {diff: p.r - old, streak: S.puzzle.streak, ms: R.elapsed()}, {delta: d, sub: `Puzzle rated <b>${p.r}</b> · ⏱ ${fmtSec(ms)}${speed >= 1.08 ? " fast!" : ""}`, streak: S.puzzle.streak}); this.cheerTier = c.tier; }
+    if (ok){ const c = celebrate(this.board, {diff: p.r - old, streak: S.puzzle.streak, ms: R.elapsed(), mate: pzMate(R)}, {delta: d, sub: `Puzzle rated <b>${p.r}</b> · ⏱ ${fmtSec(ms)}${speed >= 1.08 ? " fast!" : ""}`, streak: S.puzzle.streak}); this.cheerTier = c.tier; }
     else this.board.float((d >= 0 ? "+" : "") + d, d < 0);
     logPuzzle("rated", R, ok, d);
     save();
@@ -2257,7 +2261,7 @@ Views.puzzles = {
     this.revRes = srsResult(p.id, ok); this.delta = 0;
     recordThemes(p, ok); brainNote(p.th, ok, p.r, S.puzzle.r, .5);
     this.session.push({ok, d: 0, r: p.r, rev: 1});
-    if (ok){ celebrate(this.board, {diff: 0, streak: 0, ms: R.elapsed()}, {sub: this.revRes && this.revRes.mastered ? "Mastered! It leaves your review list." : "Remembered!"}); } else this.board.float("again", true);
+    if (ok){ celebrate(this.board, {diff: 0, streak: 0, ms: R.elapsed(), mate: pzMate(R)}, {sub: this.revRes && this.revRes.mastered ? "Mastered! It leaves your review list." : "Remembered!"}); } else this.board.float("again", true);
     logPuzzle("review", R, ok, 0); save(); renderRail();
   },
   panel(state){
@@ -2323,7 +2327,8 @@ Views.rush = {
         onReady: () => this.panel(),
         onWrong: (R, first, m) => { this.log.push({ok: false, r: R.p.r}); this.strikes++; recordThemes(R.p, false); addFailed(R.p); logPuzzle("rush", R, false); this.panel(); setTimeout(() => { if (this.strikes >= 3) this.finish(); else this.next(); }, 700); },
         onSolved: (R) => { this.score++; this.log.push({ok: true, r: R.p.r}); recordThemes(R.p, true); this.panel();
-          if (this.score % 5 === 0){ const t = this.score >= 30 ? 4 : this.score >= 15 ? 3 : 2; const [w, sl] = rnd(CHEERS[t]); board.cheer({tier: t, word: w, sub: `<b>${this.score}</b> solved`}); Sound.cheer(t, sl); } setTimeout(() => this.next(), 260); }
+          if (pzMate(R) && this.score % 5 !== 0){ board.cheer({tier: 1, word: "Checkmate!"}); sayMate(); }
+          if (this.score % 5 === 0){ const t = this.score >= 30 ? 4 : this.score >= 15 ? 3 : 2; const [w, sl] = rnd(CHEERS[t]); if (pzMate(R)) sayMate(); board.cheer({tier: t, word: pzMate(R) ? "Checkmate!" : w, sub: `<b>${this.score}</b> solved`}); Sound.cheer(t, sl); } setTimeout(() => this.next(), 260); }
       });
       if (this.left != null){ this.end = Date.now() + this.left; this.tick = setInterval(() => { const ms = this.end - Date.now(); const c = $("#rclock"); if (c) { c.textContent = fmtClock(Math.max(0, ms)); c.classList.toggle("low", ms < 20000); } if (ms <= 0) this.finish(); }, 200); }
       this.next(); this.panel();
@@ -2368,7 +2373,7 @@ Views.daily = {
   },
   unmount(){ this.R && this.R.stop(); },
   finish(clean){
-    if (clean && this.R && this.R.p) celebrate(this.board, {diff: this.R.p.r - S.puzzle.r, ms: this.R.elapsed()}, {sub: `Daily puzzle rated <b>${this.R.p.r}</b>`});
+    if (clean && this.R && this.R.p) celebrate(this.board, {diff: this.R.p.r - S.puzzle.r, ms: this.R.elapsed(), mate: pzMate(this.R)}, {sub: `Daily puzzle rated <b>${this.R.p.r}</b>`});
     const k = todayKey();
     if (!S.daily.done[k]){
       const y = new Date(Date.now() - 864e5); const yk = y.getFullYear() + "-" + String(y.getMonth()+1).padStart(2,"0") + "-" + String(y.getDate()).padStart(2,"0");
@@ -2444,7 +2449,7 @@ Views.train = {
       onRefute: R => this.panel("wrong"),
       onHint: (R) => { if (R.hint === 1 && !R.failed){ R.failed = true; this.bad++; recordThemes(R.p, false); addFailed(R.p); logPuzzle("train", R, false); } this.panel("hint"); },
       onSolutionStart: (R, first) => { if (first){ this.bad++; recordThemes(R.p, false); addFailed(R.p); logPuzzle("train", R, false); } this.panel("solution"); },
-      onSolved: (R, clean) => { if (clean){ this.ok++; this.run_++; recordThemes(R.p, true); brainNote(R.p.th, true, R.p.r, S.puzzle.r, .7); srsResult(R.p.id, true, true); rmFailed(R.p); logPuzzle("train", R, true); celebrate(board, {diff: R.p.r - S.puzzle.r, streak: this.run_, ms: R.elapsed()}, {sub: `Puzzle rated <b>${R.p.r}</b>`, streak: this.run_}); } else this.run_ = 0; save(); this.panel(clean ? "solved" : "done"); if (clean && S.settings.autoNext) this.t = setTimeout(() => this.next(), 1800); }
+      onSolved: (R, clean) => { if (clean){ this.ok++; this.run_++; recordThemes(R.p, true); brainNote(R.p.th, true, R.p.r, S.puzzle.r, .7); srsResult(R.p.id, true, true); rmFailed(R.p); logPuzzle("train", R, true); celebrate(board, {diff: R.p.r - S.puzzle.r, streak: this.run_, ms: R.elapsed(), mate: pzMate(R)}, {sub: `Puzzle rated <b>${R.p.r}</b>`, streak: this.run_}); } else this.run_ = 0; save(); this.panel(clean ? "solved" : "done"); if (clean && S.settings.autoNext) this.t = setTimeout(() => this.next(), 1800); }
     });
     this.next();
   },
@@ -4402,7 +4407,8 @@ Views.jlevel = {
   solvedOne(){
     const sp = this.sp, st = this.st; this.panel();
     if (st.solved >= sp.n){ this.win(); return; }
-    this.board.cheer({tier: 1, word: rnd(["Nice!", "Good!", "Yes!"]), sub: `<b>${st.solved}</b> of ${sp.n}`}); Sound.cheer(1);
+    const mate = pzMate(this.R); if (mate) sayMate();
+    this.board.cheer({tier: 1, word: mate ? "Checkmate!" : rnd(["Nice!", "Good!", "Yes!"]), sub: `<b>${st.solved}</b> of ${sp.n}`}); Sound.cheer(1);
     this.t = setTimeout(() => this.next(), sp.type === "timed" ? 450 : 1100);
   },
   stars(){ const sp = this.sp, st = this.st;
