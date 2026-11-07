@@ -2624,7 +2624,7 @@ const Engine = {w: null, ok: false, q: [], cur: null, failed: false,
     w.postMessage("setoption name Skill Level value " + (j.skill == null ? 20 : j.skill));
     w.postMessage("setoption name MultiPV value " + (j.multipv || 1));
     w.postMessage("position fen " + j.fen);
-    w.postMessage(j.movetime ? "go movetime " + j.movetime : "go depth " + (j.depth || 12));
+    w.postMessage(j.movetime && j.depth ? "go depth " + j.depth + " movetime " + j.movetime : j.movetime ? "go movetime " + j.movetime : "go depth " + (j.depth || 12));
     j.to = setTimeout(() => { if (this.cur === j){ w.postMessage("stop"); } }, (j.movetime || 0) + 15000);
   },
   run(job){ this.init(); if (this.failed) return Promise.resolve(null); return new Promise(res => { this.q.push(Object.assign({res}, job)); this.pump(); }); },
@@ -2696,6 +2696,7 @@ function jsBotMove(g, bot){
 function tunedBot(bot, level){
   if (!level || level === "normal") return bot;
   const b = Object.assign({}, bot);
+  if (b.kind === "sf") b.rEff = (b.rEff || b.r) + (level === "relaxed" ? -250 : level === "tough" ? 200 : 0);
   if (level === "relaxed"){ b.blunder = Math.min(.6, (b.blunder || 0) + .15); b.see = (b.see == null ? 1 : b.see) * .6; b.noise = (b.noise || 0) * 1.5 + 30; if (b.kind === "sf"){ b.skill = Math.max(0, (b.skill || 0) - 4); b.depth = Math.max(1, (b.depth || 4) - 2); b.blunder = (b.blunder || 0) + .08; } }
   if (level === "tough"){ b.blunder = (b.blunder || 0) * .4; b.see = 1; b.noise = (b.noise || 0) * .5; if (b.kind === "sf"){ b.skill = Math.min(20, (b.skill || 0) + 3); b.depth = (b.depth || 4) + 2; } }
   return b;
@@ -2715,25 +2716,81 @@ function bookMove(g, bot){
   if (!cands.length) return null; const u = rnd(cands);
   return g.moves({verbose: true}).find(m => m.from + m.to + (m.promotion || "") === u) || null;
 }
-async function botChooseMove(g, bot){
-  const fen = g.fen();
-  const bk = bookMove(g, bot); if (bk) return bk;
+/* ===== How a bot plays like a person of its rating =====
+   The engine looks at the best few moves. The bot then picks among them with a "temperature" in centipawns:
+   cool = almost always the best move, hot = often a worse one. On top, weaker bots sometimes don't check
+   your reply at all and play what looks good on the surface (that's how people hang pieces).
+   The clock matters like it does for people: bullet runs hotter than rapid, and time trouble makes
+   every bot sloppier. Rating → style is one smooth curve, calibrated offline: the average centipawn loss of each
+   rating matches human blitz play, and bots 300 points apart score about 75–85 % against each other. */
+const BOT_TC_HEAT = {bullet: 1.3, blitz: 1, rapid: .85, none: .85};
+function botStyle(bot){
+  const r = bot.rEff || bot.r;
+  if (bot.engine || r >= 3000) return {depth: bot.depth || 16, T: 0, blind: 0, mpv: 1};
+  const x = (r - 900) / 100;
+  /* depth grows smoothly: 3.6 means depth 3 or 4 at random, so neighbours have no jumps between them */
+  const d = clamp(3 + x * .28, 2, 10), depth = Math.floor(d) + (Math.random() < d % 1 ? 1 : 0);
+  /* below 900 people hang pieces much more often, so the curve gets steeper there */
+  if (x < 0) return {depth, T: BOT_CAL.T0 * Math.exp(-x * .22), blind: clamp(BOT_CAL.B0 - x * .08, 0, .5), mpv: 6};
+  return {depth, T: BOT_CAL.T0 * Math.exp(-x * BOT_CAL.kT), blind: clamp(BOT_CAL.B0 * Math.exp(-x * BOT_CAL.kB), 0, .3), mpv: 6};
+}
+/* the constants of that curve (see botStyle) */
+const BOT_CAL = {T0: 120, kT: .11, B0: .1, kB: .2};
+let BOT_INFO = null; /* what the last bot move looked like, for its thinking time */
+function lineCp(l){ return l.mate != null ? (l.mate > 0 ? 10000 - l.mate * 10 : -10000 - l.mate * 10) : l.cp; }
+async function botChooseMove(g, bot, ctx = {}){
+  const fen = g.fen(), legal = g.moves({verbose: true}); BOT_INFO = {forced: legal.length === 1};
+  const bk = bookMove(g, bot); if (bk){ BOT_INFO.book = true; return bk; }
+  if (legal.length === 1) return legal[0];
   if (bot.kind === "sf"){
-    if (Math.random() < (bot.blunder || 0)){ return rnd(g.moves({verbose: true})); }
-    const r = await Engine.run({fen, skill: bot.skill, depth: bot.depth, multipv: 1});
-    if (r && r.best){ const mv = g.moves({verbose: true}).find(m => m.from + m.to + (m.promotion || "") === r.best); if (mv) return mv; }
+    const st = botStyle(bot), heat = (BOT_TC_HEAT[ctx.cat || "none"] || 1) * (ctx.pressure || 1);
+    /* not checking the reply: a 1-ply grab, chance grows in time trouble */
+    if (st.blind && Math.random() < Math.min(.45, st.blind * heat)){ BOT_INFO.blind = true; return jsBotMove(g, {kind: "search", depth: 0, noise: 40}); }
+    const r = await Engine.run({fen, skill: 20, depth: st.depth, multipv: Math.min(st.mpv, legal.length), movetime: ctx.maxMs || 2500});
+    const ls = r && r.lines && r.lines.length ? r.lines.filter(l => l && l.move) : [];
+    if (ls.length){
+      const cps = ls.map(lineCp), top = cps[0];
+      BOT_INFO.gap = ls.length > 1 ? top - cps[1] : 999; BOT_INFO.close = cps.filter(c => top - c <= 30).length; BOT_INFO.eval = top;
+      let k = 0;
+      if (st.T > 0){ const T = st.T * heat, w = cps.map(c => Math.exp(-Math.min(2000, top - c) / T)), sum = w.reduce((a, b) => a + b, 0); let u = Math.random() * sum; for (k = 0; k < w.length - 1; k++){ u -= w[k]; if (u <= 0) break; } }
+      const mv = legal.find(m => m.from + m.to + (m.promotion || "") === ls[k].move); if (mv){ BOT_INFO.loss = top - cps[k]; return mv; }
+    }
+    if (r && r.best){ const mv = legal.find(m => m.from + m.to + (m.promotion || "") === r.best); if (mv) return mv; }
     return jsBotMove(g, {kind: "search", depth: 2, q: true, noise: 10});
   }
-  return jsBotMove(g, bot);
+  return jsBotMove(g, Object.assign({}, bot, ctx.pressure > 1.2 ? {blunder: Math.min(.6, (bot.blunder || 0) * ctx.pressure), noise: (bot.noise || 0) * ctx.pressure} : {}));
 }
+/* how long a person of this level would sit on this move, in ms.
+   Base: the time left spread over the moves still to come, plus most of the increment.
+   Then: book and forced moves are quick, an obvious recapture is quick, a close decision takes longer,
+   and a random human spread on top. Never so long that the bot runs out of time. */
+function botThinkMs(clk, side, ply, info, r = 1200){
+  info = info || {};
+  const ln = Math.exp((Math.random() + Math.random() + Math.random() - 1.5) * .55);
+  let m = 1;
+  if (info.forced) m = .2; else if (info.book) m = .35; else if (info.blind) m = .5;
+  else if (info.gap >= 250) m = .35; else if (info.gap >= 90) m = .65; else if (info.close >= 3 && Math.abs(info.eval || 0) < 300) m = 1.6;
+  if (ply < 10 && !info.book) m *= .6;
+  if (Math.abs(info.eval || 0) > 600 && !info.forced) m *= .6; /* clearly winning or lost: people play faster */
+  if (!clk) return clamp(650 * m * ln, 250, 2200);
+  const left = clk[side], inc = clk.inc || 0, movesLeft = Math.max(16, 38 - ply / 3);
+  /* weaker players use less of their clock: about 60 % at 600, about 85 % from 1600 up */
+  const base = (left / movesLeft) * clamp(.62 + (r - 600) / 4000, .62, .88) * 1.12 + inc * .8;
+  let t = base * m * ln;
+  t = Math.min(t, left * (left < 20000 ? .08 : .15), base * 3);
+  return Math.max(left < 4000 ? 60 : 140, t);
+}
+/* time trouble: below a fifth of the starting time (and under 20 s) the bot gets hotter, up to double at the flag */
+function botPressure(clk, side, tc){ if (!clk) return 1; const left = clk[side], start = (tc && tc[0] ? tc[0] * 60000 : 300000), lim = Math.min(20000, start * .2) + (clk.inc || 0) * 3;
+  return left >= lim ? 1 : 1 + (1 - left / lim); }
 
 /* ===== Bots ===== */
 const BOTS = [
   {id:"nova",   name:"Nova",   r:250,  kind:"random", hue:200, tag:"Beginner", bio:"Just learned how the pieces move. Leaves things hanging all the time.", lesson:"Practice spotting free pieces."},
-  {id:"pip",    name:"Pip",    r:400,  kind:"search", depth:0, noise:150, blunder:.35, hue:30, tag:"Beginner", bio:"Grabs anything that isn't nailed down and never checks what you can do back.", lesson:"Punish greedy captures."},
-  {id:"bruno",  name:"Bruno",  r:550,  kind:"search", depth:0, noise:110, blunder:.25, hue:12, tag:"Beginner", bio:"Brings his queen out early and loves cheap threats.", lesson:"Develop pieces and defend f7/f2."},
-  {id:"lia",    name:"Lia",    r:700,  kind:"search", depth:1, see:.6, noise:90, blunder:.18, hue:300, tag:"Novice", bio:"Sometimes checks your reply, often forgets.", lesson:"Look for back-rank mates."},
-  {id:"theo",   name:"Theo",   r:850,  kind:"search", depth:1, see:.8, noise:70, blunder:.12, hue:160, tag:"Novice", bio:"Thinks one move ahead. Falls for forks and pins.", lesson:"Use forks and pins."},
+  {id:"pip",    name:"Pip",    r:400,  kind:"sf", depth:0, noise:150, blunder:.35, hue:30, tag:"Beginner", bio:"Grabs anything that isn't nailed down and never checks what you can do back.", lesson:"Punish greedy captures."},
+  {id:"bruno",  name:"Bruno",  r:550,  kind:"sf", depth:0, noise:110, blunder:.25, hue:12, tag:"Beginner", bio:"Brings his queen out early and loves cheap threats.", lesson:"Develop pieces and defend f7/f2."},
+  {id:"lia",    name:"Lia",    r:700,  kind:"sf", depth:1, see:.6, noise:90, blunder:.18, hue:300, tag:"Novice", bio:"Sometimes checks your reply, often forgets.", lesson:"Look for back-rank mates."},
+  {id:"theo",   name:"Theo",   r:850,  kind:"sf", depth:1, see:.8, noise:70, blunder:.12, hue:160, tag:"Novice", bio:"Thinks one move ahead. Falls for forks and pins.", lesson:"Use forks and pins."},
   {id:"mara",   name:"Mara",   r:1000, kind:"sf", skill:0, depth:1, blunder:.1, hue:340, tag:"Intermediate", bio:"Trades pieces happily and likes endgames.", lesson:"Convert extra material."},
   {id:"oskar",  name:"Oskar",  r:1200, kind:"sf", skill:0, depth:3, blunder:.06, hue:220, tag:"Intermediate", bio:"Plays the London System and castles early.", lesson:"Build a plan in quiet positions."},
   {id:"selin",  name:"Selin",  r:1400, kind:"sf", skill:0, depth:4, blunder:.04, hue:50, tag:"Intermediate", bio:"Sharp tactician who loves sacrifices.", lesson:"Check every capture and check."},
@@ -2931,12 +2988,13 @@ Views.bots = {
     G.thinking = true; this.bars(); G.board.setArrows([]);
     const t0 = Date.now();
     await sleep(30);
-    /* under a clock, strong bots think less deeply so they don't burn all their time */
-    let tb = G.tuned || G.bot; if (G.clk && tb.kind === "sf"){ const left = G.clk[G.color === "w" ? "b" : "w"]; tb = Object.assign({}, tb, {depth: Math.min(tb.depth || 8, left < 15000 ? 5 : G.opt.tc[0] <= 2 ? 8 : G.opt.tc[0] <= 5 ? 11 : 14)}); }
-    const mv = await botChooseMove(G.g, tb);
-    /* under a clock the bot plays at a human-like pace for the time control */
-    const botC = G.color === "w" ? "b" : "w", budget = G.clk ? Math.min(2500, Math.max(150, G.clk[botC] / 40 + G.clk.inc * .6)) : 950;
-    const wait = Math.max(0, (G.clk ? budget * (.4 + Math.random() * .6) : 250 + Math.random() * 400) - (Date.now() - t0)); await sleep(wait);
+    /* strength and pace like a person: hotter in bullet and in time trouble, quick on obvious moves, slower on close ones */
+    const tb = G.tuned || G.bot, botC = G.color === "w" ? "b" : "w";
+    const cat = G.clk && typeof tcCat === "function" ? tcCat(G.opt.tc) || "blitz" : "none";
+    /* a slow phone must not eat the bot's clock: the engine stops early when time is short */
+    const mv = await botChooseMove(G.g, tb, {cat, pressure: botPressure(G.clk, botC, G.opt.tc), maxMs: G.clk ? clamp(G.clk[botC] / 30, 120, 3000) : 2000});
+    const think = botThinkMs(G.clk, botC, G.g.history().length, BOT_INFO, tb.rEff || tb.r);
+    const wait = Math.max(0, think - (Date.now() - t0)); await sleep(wait);
     if (G.dead || !mv || G.over) return;
     const m = G.g.move(mv); G.thinking = false; this.clockMoved(m.color);
     if (G.view != null) G.view = null;
@@ -3909,10 +3967,10 @@ BOTS.push(
 );
 /* more opponents, each with one fixed strength, so there's always one just above you */
 BOTS.push(
-  {id: "bea",    name: "Bea",    r: 325,  kind: "search", depth: 0, noise: 140, blunder: .3,  hue: 55,  tag: "Beginner", bio: "Moves fast and forgets her pieces in the middle of the board.", lesson: "Take what's free."},
-  {id: "rudi",   name: "Rudi",   r: 475,  kind: "search", depth: 0, noise: 120, blunder: .28, hue: 85,  tag: "Beginner", bio: "Pushes pawns everywhere and never castles.", lesson: "Attack the uncastled king."},
-  {id: "kim",    name: "Kim",    r: 625,  kind: "search", depth: 1, see: .5, noise: 100, blunder: .22, hue: 280, tag: "Novice", bio: "Loves checks, even pointless ones.", lesson: "Stay calm when you're checked."},
-  {id: "omar",   name: "Omar",   r: 775,  kind: "search", depth: 1, see: .7, noise: 80, blunder: .15, hue: 20,  tag: "Novice", bio: "Defends well but forgets about back-rank mates.", lesson: "Look at the back rank."},
+  {id: "bea",    name: "Bea",    r: 325,  kind: "sf", depth: 0, noise: 140, blunder: .3,  hue: 55,  tag: "Beginner", bio: "Moves fast and forgets her pieces in the middle of the board.", lesson: "Take what's free."},
+  {id: "rudi",   name: "Rudi",   r: 475,  kind: "sf", depth: 0, noise: 120, blunder: .28, hue: 85,  tag: "Beginner", bio: "Pushes pawns everywhere and never castles.", lesson: "Attack the uncastled king."},
+  {id: "kim",    name: "Kim",    r: 625,  kind: "sf", depth: 1, see: .5, noise: 100, blunder: .22, hue: 280, tag: "Novice", bio: "Loves checks, even pointless ones.", lesson: "Stay calm when you're checked."},
+  {id: "omar",   name: "Omar",   r: 775,  kind: "sf", depth: 1, see: .7, noise: 80, blunder: .15, hue: 20,  tag: "Novice", bio: "Defends well but forgets about back-rank mates.", lesson: "Look at the back rank."},
   {id: "fritz",  name: "Fritz",  r: 925,  kind: "sf", skill: 0, depth: 1, blunder: .13, hue: 140, tag: "Novice", bio: "Solid and slow. Waits for you to make a mistake.", lesson: "Make a plan, don't just wait."},
   {id: "ines",   name: "Ines",   r: 1050, kind: "sf", skill: 0, depth: 1, blunder: .09, hue: 320, tag: "Intermediate", bio: "Sets little traps in the opening.", lesson: "Check what the last move threatens."},
   {id: "jonas",  name: "Jonas",  r: 1150, kind: "sf", skill: 0, depth: 2, blunder: .075, hue: 200, tag: "Intermediate", bio: "Attacks the king whenever he can.", lesson: "Defend first, then counter."},
