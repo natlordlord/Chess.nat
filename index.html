@@ -1042,6 +1042,19 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 .ptog{display:flex;align-items:center;gap:10px;font-weight:700;font-size:14px}
 .ptog input{width:18px;height:18px;accent-color:var(--go)}
 .ptog select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:4px 8px;font:inherit}
+.pa-bell{display:inline-grid;place-items:center;width:76px;height:76px;border-radius:50%;background:color-mix(in srgb,var(--go) 22%,transparent);color:var(--go);animation:ring 1.6s ease-in-out infinite;transform-origin:50% 10%}
+@keyframes ring{0%,60%,100%{transform:rotate(0)}10%,30%{transform:rotate(14deg)}20%,40%{transform:rotate(-14deg)}}
+.swiping{box-shadow:-12px 0 30px rgba(0,0,0,.35);will-change:transform}
+/* chat: messenger layout */
+.bub.fail{opacity:.5}
+@media (max-width:900px){
+  body.chatting .tabbar,body.chatting .mtop{display:none!important}
+  body.chatting{overflow:hidden}
+  body.chatting .chatv{position:fixed;left:0;right:0;top:var(--vvt,0px);height:var(--vvh,100dvh);z-index:30;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 6px) 12px max(8px,env(safe-area-inset-bottom,0px));max-width:none}
+}
+.chat-msgs{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.chat-msgs>:first-child{margin-top:auto}
+.chat-h .grow{flex:1;min-width:0}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -6609,8 +6622,13 @@ function openSheet(){
 /* ===== Router ===== */
 const App = {
   route: "home", view: null,
-  go(r, arg){
+  stack: [],
+  go(r, arg, back){
     if (!Views[r]) r = "home";
+    /* remember where you came from, so a swipe (or back) returns there */
+    if (!back && this.view && this.route !== r){ this.stack.push({r: this.route, arg: this.arg}); if (this.stack.length > 30) this.stack.shift(); }
+    if (TAB_OF && ["home", "learn", "puzzles", "play"].includes(r) && !back) this.stack = this.stack.filter(x => x.r !== r);
+    this.arg = arg;
     if (this.view && this.view.unmount) this.view.unmount();
     Voice.stop();
     this.route = r; this.view = Views[r];
@@ -6620,6 +6638,7 @@ const App = {
     this.view.mount(main, arg);
   },
   refresh(){ renderRail(); if (["home", "stats", "settings", "learn", "train"].includes(this.route)) this.go(this.route); },
+  back(){ const p = this.stack.pop(); if (p) this.go(p.r, p.arg, true); else if (this.route !== "home") this.go(TAB_OF[this.route] && Views[TAB_OF[this.route]] && TAB_OF[this.route] !== this.route ? TAB_OF[this.route] : "home", undefined, true); },
   busy(){ return ["jlevel", "puzzles", "rush", "bots", "friend", "review", "lesson", "analysis", "coords", "local", "linkgame", "endgames"].includes(this.route); }
 };
 
@@ -6852,6 +6871,35 @@ function flameCelebrate(n){
 }
 setTimeout(updateBadge, 1500);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) updateBadge(); });
+
+/* ===== Swipe from the left edge to go back (and to close sheets), like a native app ===== */
+(() => {
+  const EDGE = 30;
+  let s = null;
+  const overlay = () => document.querySelector(".dsheet:not(.out)") || (($("#sheet") && !$("#sheet").hidden) ? $("#sheet") : null);
+  const target = () => overlay() ? (overlay().querySelector(".dcard") || overlay().firstElementChild || overlay()) : $("#main");
+  const canBack = () => overlay() || (App.route !== "home" && !App.busy());
+  document.addEventListener("touchstart", e => {
+    if (e.touches.length !== 1) return; const t = e.touches[0];
+    if (t.clientX > EDGE || !canBack()) return;
+    s = {x: t.clientX, y: t.clientY, t: performance.now(), on: false, el: target()};
+  }, {passive: true});
+  document.addEventListener("touchmove", e => {
+    if (!s) return; const t = e.touches[0], dx = t.clientX - s.x, dy = t.clientY - s.y;
+    if (!s.on){ if (Math.abs(dy) > 14 && Math.abs(dy) > dx) { s = null; return; } if (dx < 10) return; s.on = true; s.el.style.transition = "none"; s.el.classList.add("swiping"); }
+    e.preventDefault(); s.dx = Math.max(0, dx); s.el.style.transform = `translateX(${s.dx}px)`; s.el.style.opacity = String(1 - Math.min(.5, s.dx / window.innerWidth));
+  }, {passive: false});
+  const end = () => {
+    if (!s) return; const st = s; s = null; if (!st.on) return;
+    const v = (st.dx || 0) / Math.max(1, performance.now() - st.t), go = (st.dx || 0) > window.innerWidth * .28 || (st.dx > 40 && v > .45);
+    st.el.style.transition = "transform .2s ease-out, opacity .2s ease-out";
+    if (go){ st.el.style.transform = `translateX(${window.innerWidth}px)`; st.el.style.opacity = "0";
+      setTimeout(() => { const ov = overlay(); st.el.style.transition = st.el.style.transform = st.el.style.opacity = ""; st.el.classList.remove("swiping");
+        if (ov){ if (ov.id === "sheet") ov.hidden = true; else ov.remove(); } else App.back(); }, 190); }
+    else { st.el.style.transform = ""; st.el.style.opacity = ""; setTimeout(() => { st.el.style.transition = ""; st.el.classList.remove("swiping"); }, 210); }
+  };
+  document.addEventListener("touchend", end); document.addEventListener("touchcancel", end);
+})();
 
 /* ===== Account page (website only) ===== */
 Views.account = {
@@ -7237,15 +7285,25 @@ Views.chat = {
     $$("[data-c]", this.main).forEach(b => b.onclick = () => App.go("chat", {id: b.dataset.c}));
     const g = $("#gof"); if (g) g.onclick = e => { e.preventDefault(); App.go("friends"); };
   },
+  unmount(){ document.body.classList.remove("chatting"); if (this._vv){ visualViewport.removeEventListener("resize", this._vv); visualViewport.removeEventListener("scroll", this._vv); this._vv = null; } },
+  /* like a messenger: full screen, input pinned to the bottom, always showing the newest message, even with the keyboard open */
+  fit(){ const box = $("#cmsgs"), vv = window.visualViewport; if (vv) document.documentElement.style.setProperty("--vvh", vv.height + "px"), document.documentElement.style.setProperty("--vvt", vv.offsetTop + "px"); if (box) box.scrollTop = box.scrollHeight; },
   async open(id){
     const p = Social.P(id), main = this.main;
+    document.body.classList.add("chatting");
+    if (window.visualViewport && !this._vv){ this._vv = () => this.fit(); visualViewport.addEventListener("resize", this._vv); visualViewport.addEventListener("scroll", this._vv); }
     main.innerHTML = `<div class="chatv"><div class="chat-h"><button class="btn sm ghost" id="cback" aria-label="Back">‹</button>${Social.face(p, 38)}<div class="grow"><b>${esc(p.name)}</b><small>${esc(Social.seen(p))}</small></div><button class="btn sm" id="cinv">⚔ Play</button></div>
       <div class="chat-msgs" id="cmsgs"><p class="dim" style="text-align:center">Loading…</p></div>
       <div class="chat-quick">${["GG 🤝", "Rematch?", "Nice move! 👏", "😂", "Play now?", "Good luck!"].map(q => `<button class="chip" data-q="${esc(q)}">${esc(q)}</button>`).join("")}</div>
       <form class="chat-in" id="cform"><input id="ctext" maxlength="500" placeholder="Message ${esc(p.name)}" autocomplete="off"><button class="btn go" type="submit">Send</button></form></div>`;
     $("#cback").onclick = () => App.go("chat"); $("#cinv").onclick = () => Social.invite(id, [10, 0]);
     const sendT = async t => { const m = await Chat.send(id, t); if (m) this.add(m); };
-    $("#cform").onsubmit = e => { e.preventDefault(); const t = $("#ctext").value; $("#ctext").value = ""; sendT(t); $("#ctext").focus(); };
+    $("#ctext").onfocus = () => setTimeout(() => this.fit(), 250);
+    this.fit();
+    $("#cform").onsubmit = e => { e.preventDefault(); const t = $("#ctext").value; if (!t.trim()) return; $("#ctext").value = "";
+      /* show it right away, then swap in the saved message */
+      const tmp = {id: "t" + Date.now(), from_id: Social.me, body: t.trim().slice(0, 500), created_at: new Date().toISOString()}; this.add(tmp);
+      Chat.send(id, t).then(m => { const el = document.querySelector(`[data-mid="${tmp.id}"]`); if (m && el) el.dataset.mid = m.id; else if (!m && el) el.classList.add("fail"); }); $("#ctext").focus(); };
     $$("[data-q]", main).forEach(b => b.onclick = () => sendT(b.dataset.q));
     const msgs = await Chat.thread(id); if (this.id !== id || App.route !== "chat") return;
     const box = $("#cmsgs"); box.innerHTML = msgs.length ? "" : `<p class="dim" style="text-align:center">No messages yet. Say hi!</p>`; msgs.forEach(m => this.add(m, true)); box.scrollTop = box.scrollHeight;
@@ -7255,7 +7313,7 @@ Views.chat = {
     const box = $("#cmsgs"); if (!box) return; const p0 = box.querySelector("p.dim"); if (p0) p0.remove();
     if (box.querySelector(`[data-mid="${m.id}"]`)) return;
     const mine = m.from_id === Social.me, d = document.createElement("div"); d.className = "bub " + (mine ? "me" : "them"); d.dataset.mid = m.id;
-    d.innerHTML = `<span>${esc(m.body)}</span><small>${chatTime(m.created_at)}</small>`; box.appendChild(d); box.scrollTop = box.scrollHeight;
+    d.innerHTML = `<span>${esc(m.body)}</span><small>${chatTime(m.created_at)}</small>`; box.appendChild(d); box.scrollTop = box.scrollHeight; requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
     if (!quiet && !mine) Sound.tone([[880, .05, .04]], "sine", .06);
   }
 };
@@ -7284,29 +7342,57 @@ const Push = {
   },
   async disable(){ const P = this.prefs(); P.on = false; save(); try { const reg = await navigator.serviceWorker.ready, sub = await reg.pushManager.getSubscription(); if (sub){ await Social.sb.from("chess_push").delete().eq("endpoint", sub.endpoint); await sub.unsubscribe(); } } catch(e) {} },
   async sync(){ if (!this.prefs().on || !this.supported() || Notification.permission !== "granted") return; try { const reg = await navigator.serviceWorker.ready, sub = await reg.pushManager.getSubscription(); if (sub) await this.store(sub); } catch(e) {} },
-  /* the settings card, used on the profile page */
+  /* make sure this device has a subscription and the server knows it (no questions once allowed) */
+  async ensure(){
+    if (!this.supported() || Notification.permission !== "granted") return;
+    const P = this.prefs(); if (!P.on){ P.on = true; save(); }
+    try { const reg = await navigator.serviceWorker.ready; let sub = await reg.pushManager.getSubscription();
+      if (!sub) sub = await reg.pushManager.subscribe({userVisibleOnly: true, applicationServerKey: this.key()});
+      const site = window.ChessSite; if (site && site.getSession && site.getSession()) await this.store(sub); } catch(e) { console.warn("push", e); }
+    updateBadge();
+  },
+  /* every app start: if notifications aren't on yet, ask */
+  async auto(){
+    if (this._asked) return; this._asked = true;
+    if (!this.supported()){ if (this.isIOS() && !this.standalone()) this.iosHint(); return; }
+    if (Notification.permission === "granted") return this.ensure();
+    if (Notification.permission === "denied") return;
+    const go = () => { if (App.busy && App.busy()) return setTimeout(go, 4000); this.ask(); }; setTimeout(go, 1200);
+  },
+  ask(){
+    if (document.querySelector(".pushask")) return;
+    const el = document.createElement("div"); el.className = "dsheet pushask";
+    el.innerHTML = `<div class="dcard" style="text-align:center"><div class="grab"></div><div class="pa-bell">${icon("bell", 46)}</div>
+      <div style="font:900 22px var(--display);margin-top:6px">Turn on notifications</div>
+      <p class="muted" style="margin:6px 0 14px">So you never miss a challenge, a message from a friend or your flame going out.</p>
+      <button class="btn go" id="paOn" style="width:100%;padding:13px;font-size:16px">Turn on</button><button class="btn ghost" id="paNo" style="width:100%;margin-top:6px">Not now</button></div>`;
+    document.body.appendChild(el);
+    const close = () => { el.classList.add("out"); setTimeout(() => el.remove(), 200); };
+    el.querySelector("#paNo").onclick = close;
+    el.querySelector("#paOn").onclick = async () => { const p = await Notification.requestPermission().catch(() => "default"); close();
+      if (p === "granted"){ await this.ensure(); toast("Notifications on 🔔"); Sound.cheer(1); } };
+  },
+  iosHint(){
+    try { const k = "chessnat-ioshint", d = todayKey(); if (localStorage.getItem(k) === d) return; localStorage.setItem(k, d); } catch(e) { return; }
+    setTimeout(() => detailSheet(`<div style="text-align:center"><div class="pa-bell">${icon("bell", 46)}</div><div style="font:900 21px var(--display);margin-top:6px">Get Chess.nat as an app</div>
+      <p class="muted" style="margin:8px 0 0">Tap <b>Share</b> <span style="font-size:18px">⎋</span> and then <b>Add to Home Screen</b>. Open Chess.nat from there and you'll get challenges, messages and your flame as notifications.</p></div>`), 2500);
+  },
+  /* the profile shows only whether it's on */
   card(){
-    const P = this.prefs(), on = P.on && this.supported() && Notification.permission === "granted";
-    const ios = this.isIOS() && !this.standalone();
-    return `<div class="unit pushcard"><div class="row" style="gap:10px;flex-wrap:nowrap">${icon("bell", 26)}<div class="grow"><h3 style="margin:0">Notifications</h3><p class="muted" style="margin:2px 0 0;font-size:13px">${on ? "On for this device." : "Game invites, messages, friend requests and a daily flame reminder."}</p></div>${on ? `<button class="btn sm" id="pOff">Turn off</button>` : ios ? "" : `<button class="btn go" id="pOn">Turn on</button>`}</div>
-      ${ios ? `<p class="muted" style="font-size:13px;margin:10px 0 0">On iPhone, notifications only work in the app: tap <b>Share</b> → <b>Add to Home Screen</b>, open Chess.nat from your home screen and turn them on there.</p>` : ""}
-      ${on ? `<div class="pprefs">${[["invites", "Game invites"], ["messages", "Chat messages"], ["friends", "Friend requests and cages"], ["hearts", "Hearts"], ["remind", "Daily flame reminder"]].map(([k, t]) => `<label class="ptog"><input type="checkbox" data-pk="${k}" ${P[k] ? "checked" : ""}><span>${t}</span></label>`).join("")}
-        <label class="ptog">Remind me at <select id="pHour">${Array.from({length: 24}, (_, h) => `<option value="${h}" ${h === P.hour ? "selected" : ""}>${String(h).padStart(2, "0")}:00</option>`).join("")}</select></label></div>` : ""}</div>`;
+    const on = this.supported() && Notification.permission === "granted", blocked = this.supported() && Notification.permission === "denied", ios = this.isIOS() && !this.standalone();
+    return `<div class="unit pushcard"><div class="row" style="gap:10px;flex-wrap:nowrap">${icon("bell", 26)}<div class="grow"><h3 style="margin:0">Notifications</h3><p class="muted" style="margin:2px 0 0;font-size:13px">${on ? "On ✓" : blocked ? "Blocked. Allow notifications for Chess.nat in your phone or browser settings." : ios ? "Add Chess.nat to your Home Screen (Share → Add to Home Screen) and open it from there." : "Off"}</p></div>${!on && !blocked && !ios ? `<button class="btn go" id="pOn">Turn on</button>` : ""}</div></div>`;
   },
   wire(el, redraw){
-    const on = el.querySelector("#pOn"), off = el.querySelector("#pOff");
-    if (on) on.onclick = async () => { on.disabled = true; const r = await this.enable(); on.disabled = false;
-      if (r.error === "signin") toast("Sign in first, then turn notifications on.", 3000); else if (r.error === "denied") toast("Notifications are blocked. Allow them in your browser or phone settings.", 4000); else if (r.error === "unsupported") toast("This browser can't show notifications.", 3000); else if (r.error) toast(r.error, 3500); else { toast("Notifications on 🔔"); } redraw(); };
-    if (off) off.onclick = async () => { await this.disable(); toast("Notifications off"); redraw(); };
-    el.querySelectorAll("[data-pk]").forEach(c => c.onchange = () => { this.prefs()[c.dataset.pk] = c.checked; save(); this.sync(); });
-    const h = el.querySelector("#pHour"); if (h) h.onchange = () => { this.prefs().hour = +h.value; save(); this.sync(); };
+    const on = el.querySelector("#pOn");
+    if (on) on.onclick = async () => { const p = await Notification.requestPermission().catch(() => "default"); if (p === "granted"){ await this.ensure(); toast("Notifications on 🔔"); } redraw(); };
   }
 };
 /* a tap on a notification opens the right screen */
 if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message", e => { const u = e.data && e.data.nav; if (!u) return; try { const h = new URL(u, location.origin).hash.slice(1); routeHash(h); } catch(x) {} });
 function routeHash(h){ if (!h) return; if (h.startsWith("chat-")) App.go("chat", {id: h.slice(5)}); else if (Views[h]) App.go(h); }
 window.addEventListener("hashchange", () => { const h = location.hash.slice(1); if (h.startsWith("chat-") && App.route !== "chat") routeHash(h); });
-if (window.ChessSite && window.ChessSite.ready) setTimeout(async () => { await window.ChessSite.sessionReady; if (!window.ChessSite.getSession()) return; Chat.start(); Push.sync(); const h = location.hash.slice(1); if (h.startsWith("chat-")) routeHash(h); }, 1800);
+setTimeout(() => Push.auto(), 1500);
+if (window.ChessSite && window.ChessSite.ready) setTimeout(async () => { await window.ChessSite.sessionReady; if (!window.ChessSite.getSession()) return; Chat.start(); Push.ensure(); const h = location.hash.slice(1); if (h.startsWith("chat-")) routeHash(h); }, 1800);
 
 boot();
 </script>
