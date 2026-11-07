@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Chess.nat">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="format-detection" content="telephone=no">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="apple-touch-startup-image" media="(device-width:440px) and (device-height:956px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/icons/splash-1320x2868.png">
@@ -44,7 +44,7 @@ html.app-mode .nav,html.app-mode .btn,html.app-mode .tabbar,html.app-mode .tile,
 /* iOS 26 blurs the top of a home-screen app ("scroll edge effect") unless a fixed, solid-coloured bar
    covers the top edge. This bar sits behind the status bar in the page colour, so iOS uses that colour instead. */
 /* It must take touches (no pointer-events:none): WebKit only skips the blur when the top edge hit-tests to an opaque box. */
-html.app-mode .edge-top{position:fixed;top:0;left:0;right:0;height:max(var(--sat),12px);background:var(--bg);z-index:95}
+html.app-mode .edge-top{position:fixed;top:0;left:0;right:0;height:var(--sat);background:var(--bg);z-index:95}
 html.app-mode{background:var(--bg)}
 html.app-mode .rail{height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
 .install-hint{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tab-h,0px) + env(safe-area-inset-bottom,0px) + 12px);z-index:90;width:min(440px,calc(100% - 24px));display:flex;align-items:center;gap:12px;background:var(--panel-3);border:1px solid var(--line);border-radius:12px;padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
@@ -1302,6 +1302,11 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 .fl-sh{display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:1px 7px 1px 4px;border-radius:999px;background:rgba(124,196,255,.14);color:#9fd2ff;font-weight:800;vertical-align:middle}
 .fl-sh.off{background:none;padding:0;color:var(--muted);font-weight:600}
 .fc-s svg{vertical-align:-2px}
+/* friend nicknames */
+.nk-ed{display:inline-grid;place-items:center;width:26px;height:26px;margin:-4px 0 -4px 4px;border:0;border-radius:8px;background:none;color:var(--muted);cursor:pointer;vertical-align:middle}
+.nk-ed:hover,.nk-ed:active{background:var(--panel-3);color:var(--fg)}
+.chat-who{background:none;border:0;color:inherit;text-align:left;padding:0;cursor:pointer;min-width:0;display:flex;flex-direction:column}
+.chat-who b{display:flex;align-items:center;gap:5px}.chat-pen{color:var(--muted);display:inline-flex}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -1372,6 +1377,8 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const rnd = a => a[Math.floor(Math.random() * a.length)];
 const todayKey = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); };
+/* the name you gave a friend yourself (only you see it), else the name they picked */
+function nickOf(id, name){ return (id && S.nick && S.nick[id]) || name; }
 function hashStr(s){ let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 /* short message at the bottom: slides up, fades out, a new one replaces the old one */
 function toast(t, ms = 2200){
@@ -1457,7 +1464,7 @@ const DEF = () => ({
   puzzle:{r:800, n:0, w:0, streak:0, best:0, peak:800, hist:[]},
   rush:{best3:0, best5:0, bestS:0, runs:[]},
   daily:{last:"", streak:0, best:0, done:{}},
-  themes:{}, failed:[], seen:[], recent:[], tperf:{}, srs:[],
+  themes:{}, failed:[], seen:[], recent:[], tperf:{}, srs:[], nick:{},
   bots:{}, games:[], journey: {level: 1, best: {}}, lessons:{}, xp:0, h2h:{}, linkGames:{},
   day:{k:"", pz:0, ls:0, gm:0, rush:0, daily:0}, plan:{streak:0, best:0, last:""},
   settings:{sound:true, voice:true, coords:true, legal:true, autoNext:true, board:"green", anim:true, coach:false, threats:false, openings:true},
@@ -1511,6 +1518,7 @@ function mergeProgress(a, b){
   m.lessons = {}; new Set([...Object.keys(a.lessons || {}), ...Object.keys(b.lessons || {})]).forEach(k => { const x = (a.lessons || {})[k] || {}, y = (b.lessons || {})[k] || {};
     m.lessons[k] = {done: !!(x.done || y.done), stars: Math.max(x.stars || 0, y.stars || 0), ts: Math.max(x.ts || 0, y.ts || 0)}; });
   m.xp = Math.max(a.xp || 0, b.xp || 0);
+  m.nick = Object.assign({}, older.nick || {}, newer.nick || {}); Object.keys(m.nick).forEach(k => { if (!m.nick[k]) delete m.nick[k]; });
   { const fa = a.flame || {}, fb = b.flame || {}; const w = (fa.last || "") > (fb.last || "") ? fa : (fb.last || "") > (fa.last || "") ? fb : ((fa.n || 0) >= (fb.n || 0) ? fa : fb); m.flame = Object.assign({}, w, {best: Math.max(fa.best || 0, fb.best || 0, w.n || 0)}); }
   m.rush = Object.assign({}, newer.rush, {best3: Math.max(a.rush.best3 || 0, b.rush.best3 || 0), best5: Math.max(a.rush.best5 || 0, b.rush.best5 || 0), bestS: Math.max(a.rush.bestS || 0, b.rush.bestS || 0)});
   { const rr = new Map(); [...(a.rush.runs || []), ...(b.rush.runs || [])].forEach(r => rr.set(JSON.stringify(r), r)); m.rush.runs = [...rr.values()].slice(-50); }
@@ -7315,9 +7323,9 @@ Views.friend = {
     const s = this.st; if (!s) return; const peers = this.peersInfo();
     if (!s.host && !s.seat){ const h = peers.find(p => p.presence.host) || peers.find(p => p.presence.seat === "w" || p.presence.seat === "b"); if (h){ s.tc = h.presence.tc; s.gameNo = h.presence.gameNo; s.rev = h.presence.rev || 0; const taken = peers.filter(p => p.presence.seat && p.presence.seat !== "spec").map(p => p.presence.seat); const free = h.presence.seat === "w" ? "b" : "w"; s.seat = taken.includes(free) ? "spec" : free; this.board.setOrientation(s.seat === "b" ? "b" : "w"); if (s.tc && s.tc[0]) s.clk = [s.tc[0] * 60000, s.tc[0] * 60000]; this.publish(); } }
     const o = this.opp();
-    if (o && !this.hadOpp){ this.hadOpp = true; if (s.seat !== "spec"){ toast((o.presence.name || "Your friend") + " joined"); Sound.play("GenericNotify", .7); } }
+    if (o && !this.hadOpp){ this.hadOpp = true; if (s.seat !== "spec"){ toast(nickOf(o.by, o.presence.name || "Your friend") + " joined"); Sound.play("GenericNotify", .7); } }
     if (!o) this.hadOpp = false;
-    peers.forEach(p => { const sy = p.presence.say; if (sy && sy.n && this.lastSay[p.peer] !== sy.n){ const first = this.lastSay[p.peer] == null; this.lastSay[p.peer] = sy.n; if (!first || Date.now() - (sy.ts || 0) < 15000){ this.chat.push({who: p.presence.name || "Friend", t: String(sy.t || "").slice(0, 140), me: false}); Sound.tone([[880, .08, .07], [1175, .12]], "sine", .08); } } });
+    peers.forEach(p => { const sy = p.presence.say; if (sy && sy.n && this.lastSay[p.peer] !== sy.n){ const first = this.lastSay[p.peer] == null; this.lastSay[p.peer] = sy.n; if (!first || Date.now() - (sy.ts || 0) < 15000){ this.chat.push({who: nickOf(p.by, p.presence.name || "Friend"), t: String(sy.t || "").slice(0, 140), me: false}); Sound.tone([[880, .08, .07], [1175, .12]], "sine", .08); } } });
     if (o){
       const op = o.presence;
       if (op.gameNo > s.gameNo && s.seat !== "spec"){ this.newGame(op.gameNo, op.seat === "w" ? "b" : "w", true); return; }
@@ -7393,7 +7401,7 @@ Views.friend = {
       dayTick("gm"); S.games.push(rec); save(); logEvent("game", {opponent: oppName, mode: "friend", color: s.seat, result: s.result.res, why: s.result.why, pgn, moves: s.moves.length, timeControl: tcLabel(s.tc || [0,0])});
       Sound.play(draw ? "GenericNotify" : win ? "Victory" : "Defeat", .8);
       this.board.cancelPremove();
-      this.endCard(oppName);
+      this.endCard(nickOf(o && o.by, oppName));
       /* signed-in opponent: the result decides who sits in whose cage */
       if (typeof Social !== "undefined" && o && o.by) Social.gameOver({id: s.code + ":" + s.gameNo, seat: s.seat, opp: o.by, oppName, result: s.result.res, why: s.result.why, moves: s.moves.length}).then(m => { if (m && this.st === s){ s.cageMsg = m; this.render(); this.endExtras(); } });
     }
@@ -7422,8 +7430,8 @@ Views.friend = {
     const s = this.st; if (!s || !$("#sp")) return; const o = this.opp(); const my = s.seat === "b" ? 1 : 0;
     const prevChi = $("#chi") ? $("#chi").value : "", chiFocus = document.activeElement && document.activeElement.id === "chi";
     const cap = capturedFrom(s.g); const me = s.seat === "b" ? "b" : "w";
-    const oppP = o ? o.presence : null; const timed = s.tc && s.tc[0];
-    const hh = oppP && S.h2h && S.h2h[oppP.name || "Friend"];
+    const oppP = o ? Object.assign({}, o.presence, {name: nickOf(o.by, o.presence.name)}) : null; const timed = s.tc && s.tc[0];
+    const hh = oppP && S.h2h && S.h2h[o.presence.name || "Friend"];
     $("#topbar").innerHTML = `<div class="av" style="background:#5C8BB0;color:#fff">${oppP ? esc((oppP.name || "?")[0].toUpperCase()) : "?"}</div><span class="nm">${oppP ? esc(oppP.name || "Friend") : "Waiting for opponent…"}</span>${oppP && oppP.rating ? `<span class="rt">(${oppP.rating})</span>` : ""}${capsHTML(me === "w" ? cap.byBlack : cap.byWhite, me, me === "w" ? -cap.diff : cap.diff)}${timed ? `<span class="clock" id="clkOp">${fmtClock(s.clk ? s.clk[1 - my] : s.tc[0] * 60000)}</span>` : ""}`;
     $("#botbar").innerHTML = youBar(capsHTML(me === "w" ? cap.byWhite : cap.byBlack, me === "w" ? "b" : "w", me === "w" ? cap.diff : -cap.diff)) + (timed ? `<span class="clock" id="clkMe">${fmtClock(s.clk ? s.clk[my] : s.tc[0] * 60000)}</span>` : "");
     const h = s.g.history(); let mv = ""; for (let i = 0; i < h.length; i += 2) mv += `<span class="n">${i / 2 + 1}.</span><span class="m">${esc(h[i])}</span><span class="m">${h[i+1] ? esc(h[i+1]) : ""}</span>`;
@@ -7626,6 +7634,7 @@ const ICONS = {
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   puzzle: '<path d="M10 3h4v3a2 2 0 1 0 4 0V3h3v7h-3a2 2 0 1 0 0 4h3v7h-7v-3a2 2 0 1 0-4 0v3H3v-7h3a2 2 0 1 0 0-4H3V3z"/>',
   bolt: '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+  pen: '<path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
   calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8 15l2.5 2.5L16 13"/>',
   target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>',
   book: '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M8 7h7M8 11h7"/>',
@@ -8006,7 +8015,12 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) upda
 (() => {
   /* Android has its own back gesture (handled through the browser history), so this is for iPhone and iPad */
   const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  if (!IOS) return;
+  /* iOS has its own swipe-back in Safari, and from iOS 26 also in home-screen apps. Ours on top of it showed
+     two pages sliding at once, so ours only runs in home-screen apps on iOS 25 and older. */
+  const ua = navigator.userAgent, ver = Math.max(+((ua.match(/OS (\d+)_/) || [])[1] || 0), +((ua.match(/Version\/(\d+)/) || [])[1] || 0));
+  const ios26 = ver >= 26 || !!(window.CSS && CSS.supports && CSS.supports("anchor-name: --x"));
+  const standalone = navigator.standalone === true || (window.matchMedia && matchMedia("(display-mode: standalone)").matches);
+  if (!IOS || !standalone || ios26) return;
   const EDGE = 30;
   let s = null;
   const overlay = () => document.querySelector(".dsheet:not(.out)") || (($("#sheet") && !$("#sheet").hidden) ? $("#sheet") : null);
@@ -8136,7 +8150,19 @@ const Social = (() => {
   const D = {friends: [], players: {}, duels: [], gifts: []};
   const ok = () => !!(sb && me);
   const pair = (x, y) => x < y ? {a: x, b: y} : {a: y, b: x};
-  const P = id => D.players[id] || {id, name: "Player", rating: null};
+  /* a friend shows under the name you gave them; their own name stays in realName */
+  const P = id => { const p = D.players[id] || {id, name: "Player", rating: null}, nk = id !== me && S.nick && S.nick[id]; return nk ? Object.assign({}, p, {name: nk, realName: p.name}) : p; };
+  /* give a friend your own name for them: only you see it, everywhere in the app */
+  function rename(id, done){
+    const p = D.players[id] || {name: "Player"}, cur = (S.nick || {})[id] || "";
+    const sh = detailSheet(`<div style="font:900 20px var(--display)">What's their name?</div><p class="muted" style="margin:4px 0 12px">${esc(p.name)}${p.handle ? ` · @${esc(p.handle)}` : ""}. Only you see the name you give them.</p>
+      <form id="nkf" class="row" style="gap:8px;flex-wrap:nowrap"><input id="nki" maxlength="24" value="${esc(cur)}" placeholder="e.g. ${esc(p.name)}" autocomplete="off" style="flex:1;min-width:0"><button class="btn go">Save</button></form>
+      ${cur ? `<button class="btn ghost" id="nkr" style="width:100%;margin-top:8px">Show their own name again</button>` : ""}`);
+    const inp = sh.el.querySelector("#nki"); setTimeout(() => { inp.focus(); inp.select(); }, 250);
+    const fin = v => { S.nick = S.nick || {}; if (v) S.nick[id] = v; else delete S.nick[id]; save(); sh.close(); toast(v ? `Saved. ${p.name} now shows as ${v}.` : "Their own name is back."); if (done) done(); else if (App.view && App.view.draw) App.view.draw(); };
+    sh.el.querySelector("#nkf").onsubmit = e => { e.preventDefault(); fin(inp.value.trim().replace(/\s+/g, " ").slice(0, 24)); };
+    const r = sh.el.querySelector("#nkr"); if (r) r.onclick = () => fin("");
+  }
   const isOnline = p => p && p.last_seen && Date.now() - new Date(p.last_seen).getTime() < ONLINE_MS;
   const seen = p => { if (!p || !p.last_seen) return ""; const m = (Date.now() - new Date(p.last_seen).getTime()) / 60000;
     return isOnline(p) ? "Online" : m < 60 ? `Last seen ${Math.max(1, Math.round(m))} min ago` : m < 1440 ? `Last seen ${Math.round(m / 60)} h ago` : `Last seen ${Math.round(m / 1440)} d ago`; };
@@ -8373,7 +8399,7 @@ const Social = (() => {
 
   /* the opponent has the app in the background: send "Your move" as a push (server checks friendship and rate) */
   async function nudge(id, code){ try { if (sb && me) await sb.rpc("nudge_turn", {target: id, code}); } catch(e) {} }
-  return {nudge, requireId, autoId, create, setHandle, suggestHandle, cleanHandle, syncCard, start, load, setName, request, accept, remove, heart, invite, gameOver, friendChip, wire, cages, standings, rel, P, seen, isOnline, face, dot,
+  return {rename, nudge, requireId, autoId, create, setHandle, suggestHandle, cleanHandle, syncCard, start, load, setName, request, accept, remove, heart, invite, gameOver, friendChip, wire, cages, standings, rel, P, seen, isOnline, face, dot,
     get me(){ return me; }, get player(){ return player; }, get data(){ return D; }, sb};
 })();
 
@@ -8400,7 +8426,7 @@ Views.friends = {
     const other = r => r.a === me.id ? r.b : r.a;
     const friends = D.friends.filter(r => r.status === "accepted").map(other).sort((x, y) => (Social.isOnline(Social.P(y)) - Social.isOnline(Social.P(x))) || Social.P(x).name.localeCompare(Social.P(y).name));
     const incoming = D.friends.filter(r => r.status === "pending" && r.requested_by !== me.id).map(other), sent = D.friends.filter(r => r.status === "pending" && r.requested_by === me.id).map(other);
-    const person = (id, right) => { const p = Social.P(id), o = st[id]; return `<div class="li fr">${Social.face(p, 42)}<div class="grow"><div class="t">${Social.dot(p)}${esc(p.name)}${p.rating ? ` <span class="muted">(${p.rating})</span>` : ""}</div><div class="s">${p.handle ? `@${esc(p.handle)} · ` : ""}${p.ratings && p.ratings.blitz ? `Blitz ${p.ratings.blitz} · ` : ""}${esc(Social.seen(p))}${o ? ` · score ${o.w}:${o.l}${o.cage === "mine" ? " · 🔒 in your cage" : o.cage === "theirs" ? " · you're in their cage" : ""}` : ""}</div></div>${right}</div>`; };
+    const person = (id, right) => { const p = Social.P(id), o = st[id], fr = friends.includes(id); return `<div class="li fr">${Social.face(p, 42)}<div class="grow"><div class="t">${Social.dot(p)}${esc(p.name)}${fr ? `<button class="nk-ed" data-nk="${id}" aria-label="Give ${esc(p.name)} a name" title="Give them a name only you see">${icon("pen", 14)}</button>` : ""}${p.rating ? ` <span class="muted">(${p.rating})</span>` : ""}</div><div class="s">${p.realName ? `${esc(p.realName)} · ` : ""}${p.handle ? `@${esc(p.handle)} · ` : ""}${p.ratings && p.ratings.blitz ? `Blitz ${p.ratings.blitz} · ` : ""}${esc(Social.seen(p))}${o ? ` · score ${o.w}:${o.l}${o.cage === "mine" ? " · 🔒 in your cage" : o.cage === "theirs" ? " · you're in their cage" : ""}` : ""}</div></div>${right}</div>`; };
     const TCS = [1, 3, 5, 10, 15], inc = S.invInc !== false; this.tc = [this.tc[0], inc ? 2 : 0]; S.invTc = this.tc.slice();
     main.innerHTML = `<div class="page" style="max-width:760px"><h1 class="h-title">Friends</h1>
       <div class="unit" style="margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">${Social.face(me, 54)}<div style="flex:1;min-width:180px"><div class="muted" style="font-size:12px;font-weight:800;letter-spacing:.06em">YOUR PLAYER CARD</div>${this.renaming ? `<form id="rnf" style="display:flex;flex-direction:column;gap:6px;margin-top:4px"><input type="text" id="rnv" maxlength="24" value="${esc(me.name)}" placeholder="Name"><div class="hdl-in ${me.handle_changes >= 1 ? "locked" : ""}"><span>@</span><input type="text" id="rnh" maxlength="21" autocapitalize="off" spellcheck="false" value="${esc(me.handle)}" ${me.handle_changes >= 1 ? "disabled" : ""}></div><p class="dim" style="margin:0;font-size:12px">${me.handle_changes >= 1 ? "Your player ID is fixed. Your name you can change any time." : "You can change your player ID once. Your name any time."}</p><div class="row"><button class="btn sm go" type="submit">Save</button><button class="btn sm" type="button" id="rnx">Cancel</button></div></form><p id="rnerr" style="color:var(--bad);font-size:13px;margin:4px 0 0"></p>` : `<div style="font:900 22px var(--display)">${esc(me.name)}</div><div class="hdl">@${esc(me.handle)} <button class="btn sm ghost" id="cpid">Copy ID</button></div>`}</div>${this.renaming ? "" : `<button class="btn sm" id="ren">Change</button>`}</div>
@@ -8427,6 +8453,7 @@ Views.friends = {
     if ($("#inctog")) $("#inctog").onclick = () => { S.invInc = S.invInc === false; save(); this.draw(); };
     $$("[data-acc]", main).forEach(b => b.onclick = async () => { await Social.accept(b.dataset.acc); this.draw(); });
     $$("[data-rm]", main).forEach(b => b.onclick = async () => { await Social.remove(b.dataset.rm); this.draw(); });
+    $$("[data-nk]", main).forEach(b => b.onclick = e => { e.stopPropagation(); Social.rename(b.dataset.nk, () => this.draw()); });
     $$("[data-rmf]", main).forEach(b => b.onclick = async () => { if (!b.dataset.armed){ b.dataset.armed = 1; b.classList.add("armed"); b.innerHTML = "Remove?"; return; } await Social.remove(b.dataset.rmf); this.draw(); });
     $$("[data-inv]", main).forEach(b => b.onclick = () => Social.invite(b.dataset.inv, this.tc));
     $$("[data-bat]", main).forEach(b => b.onclick = () => Social.invite(b.dataset.bat, "battle"));
@@ -8519,10 +8546,11 @@ Views.chat = {
     const p = Social.P(id), main = this.main;
     document.body.classList.add("chatting");
     if (window.visualViewport && !this._vv){ this._vv = () => this.fit(); visualViewport.addEventListener("resize", this._vv); visualViewport.addEventListener("scroll", this._vv); }
-    main.innerHTML = `<div class="chatv"><div class="chat-h"><button class="btn sm ghost" id="cback" aria-label="Back">‹</button>${Social.face(p, 38)}<div class="grow"><b>${esc(p.name)}</b><small>${esc(Social.seen(p))}</small></div><button class="fa fa-play on" id="cinv" aria-label="Play a game">${icon("knight", 20)}<span>Play</span></button></div>
+    main.innerHTML = `<div class="chatv"><div class="chat-h"><button class="btn sm ghost" id="cback" aria-label="Back">‹</button>${Social.face(p, 38)}<button class="grow chat-who" id="cwho" title="Give them a name only you see"><b>${esc(p.name)} <span class="chat-pen">${icon("pen", 13)}</span></b><small>${p.realName ? esc(p.realName) + " · " : ""}${esc(Social.seen(p))}</small></button><button class="fa fa-play on" id="cinv" aria-label="Play a game">${icon("knight", 20)}<span>Play</span></button></div>
       <div class="chat-msgs" id="cmsgs"><p class="dim" style="text-align:center">Loading…</p></div>
       <div class="chat-quick">${["GG 🤝", "Rematch?", "Nice move! 👏", "😂", "Play now?", "Good luck!"].map(q => `<button class="chip" data-q="${esc(q)}">${esc(q)}</button>`).join("")}</div>
       <form class="chat-in" id="cform"><input id="ctext" maxlength="500" placeholder="Message ${esc(p.name)}" autocomplete="off"><button class="csend" type="submit" aria-label="Send">${icon("send", 22)}</button></form></div>`;
+    $("#cwho").onclick = () => Social.rename(id, () => this.open(id));
     $("#cback").onclick = () => App.go("chat"); $("#cinv").onclick = () => Social.invite(id, S.invTc || [10, 2]);
     const sendT = async t => { const m = await Chat.send(id, t); if (m) this.add(m); };
     $("#ctext").onfocus = () => { this._kb = Date.now(); this.settle(); };
