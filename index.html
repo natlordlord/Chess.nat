@@ -1931,9 +1931,10 @@ function makeBoard(wrap, opts = {}){
     if (B.sel && B.sel !== sq && curDests.some(d => d.to === sq)){ attempt(B.sel, sq); return; }
     const pc = preColor(), canPre = pc && B.pieces[sq] && B.pieces[sq].code[0] === pc && !B.canPick(sq);
     if (B.pieces[sq] && (B.canPick(sq) || canPre)){
+      const again = B.sel === sq;
       B.sel = sq; B.selPre = !!canPre; B.paint();
       const p = B.pieces[sq].el; const r = el.getBoundingClientRect();
-      drag = {from: sq, el: p, x: e.clientX, y: e.clientY, moved: false, r};
+      drag = {from: sq, el: p, x: e.clientX, y: e.clientY, moved: false, r, again};
       try { el.setPointerCapture(e.pointerId); } catch(_) {}
     } else { const hadPre = B.pre.length > 0; if (hadPre) B.cancelPremove(); else { B.sel = null; B.selPre = false; B.paint(); } if (!hadPre) B.onTapEmpty && B.onTapEmpty(sq); }
   });
@@ -1951,7 +1952,8 @@ function makeBoard(wrap, opts = {}){
       else if (to){ const c = r.c || "y"; const i = B.userArrows.findIndex(a => a[0] === r.from && a[1] === to); if (i >= 0 && B.userArrows[i][2] === c) B.userArrows.splice(i, 1); else { if (i >= 0) B.userArrows.splice(i, 1); B.userArrows.push([r.from, to, c]); } }
       B.paint(); return; }
     if (!drag) return; const d = drag; drag = null; d.el.classList.remove("lift");
-    if (!d.moved){ return; }
+    /* tapping the selected piece again puts it down: the dots go away */
+    if (!d.moved){ if (d.again){ B.sel = null; B.selPre = false; B.paint(); } return; }
     const to = e ? sqFromPoint(e.clientX, e.clientY) : null;
     place(d.el, d.from);
     if (to && to !== d.from) attempt(d.from, to); else { B.paint(); }
