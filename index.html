@@ -1050,7 +1050,7 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 .bub.fail{opacity:.5}
 @media (max-width:900px){
   body.chatting .tabbar,body.chatting .mtop{display:none!important}
-  body.chatting .app{top:var(--vvt,0px);bottom:auto;height:var(--vvh,100%);min-height:0}
+  body.chatting .app{top:0;bottom:auto;height:var(--vvh,100%);min-height:0}
   body.chatting .chatv{height:100%;display:flex;flex-direction:column}
   body.chatting .chat-msgs{flex:1;min-height:0}
   body.chatting .chat-in,body.chatting .chat-quick{flex:none}
@@ -7789,10 +7789,12 @@ Views.chat = {
      in home-screen apps; then we fall back to the usual keyboard height so the input is never hidden behind it. */
   fit(){
     const box = $("#cmsgs"), vv = window.visualViewport, r = document.documentElement.style;
-    if (vv){ let h = vv.height, t = vv.offsetTop;
+    if (vv){ let h = vv.height;
       const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-      if (this._kb && ios && Date.now() - this._kb > 700 && window.innerHeight - h < 120){ h = window.innerHeight - Math.round(screen.height * 0.43); t = 0; }
-      r.setProperty("--vvh", Math.round(h) + "px"); r.setProperty("--vvt", Math.round(t) + "px"); }
+      if (this._kb && ios && Date.now() - this._kb > 700 && window.innerHeight - h < 120){ h = window.innerHeight - Math.round(screen.height * 0.43); }
+      r.setProperty("--vvh", Math.round(h) + "px"); }
+    /* iOS slides the page up when the keyboard opens; keep it at the top so the chat stays where you can see it */
+    if (window.scrollY || document.documentElement.scrollTop) window.scrollTo(0, 0);
     if (box) box.scrollTop = box.scrollHeight;
   },
   /* keep fitting while the keyboard animates in or out */
