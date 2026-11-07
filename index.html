@@ -912,8 +912,7 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 /* ===== you, always visible ===== */
 .mtop{display:none}
 @media (max-width:900px){
-  body:not(.busy) .mtop{display:flex;position:sticky;top:0;z-index:40;align-items:center;gap:8px;height:58px;padding:0 max(10px,env(safe-area-inset-right,0px)) 0 max(10px,env(safe-area-inset-left,0px));padding-top:env(safe-area-inset-top,0px);box-sizing:content-box;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-  body:not(.busy) .main{min-height:calc(100dvh - var(--tab-h) - 58px)}
+  body:not(.busy) .mtop{display:flex;position:relative;flex:none;z-index:40;align-items:center;gap:8px;height:56px;padding:0 max(10px,var(--sar,0px)) 0 max(10px,var(--sal,0px));background:var(--bg);border-bottom:1px solid var(--line)}
 }
 .mtop button{border:0;background:none;color:var(--fg);cursor:pointer;font:inherit;padding:0}
 .mt-me{width:44px;height:44px;display:grid;place-items:center;flex:none}
@@ -1032,7 +1031,7 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 .chat-in{display:flex;gap:8px;padding:6px 0 4px}
 .chat-in input{flex:1;min-width:0;background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:22px;padding:10px 14px;font:600 15px var(--body)}
 .chat-in .btn{border-radius:22px}
-@media (max-width:900px){.chatv{height:calc(100dvh - var(--tab-h) - 58px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));padding:8px 12px}}
+@media (max-width:900px){.chatv{height:100%;padding:6px 12px 6px}}
 .chatpop{position:fixed;z-index:140;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);width:min(420px,calc(100% - 24px));display:flex;gap:10px;align-items:center;background:var(--panel-3,#2b2926);border:1px solid var(--line);border-radius:14px;padding:10px 12px;box-shadow:0 14px 40px rgba(0,0,0,.5);cursor:pointer;animation:achin .35s cubic-bezier(.3,1.5,.5,1)}
 .chatpop .grow{display:flex;flex-direction:column;min-width:0}.chatpop span{font-size:13.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chatpop.out{animation:achout .4s forwards}
@@ -1049,9 +1048,10 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 .bub.fail{opacity:.5}
 @media (max-width:900px){
   body.chatting .tabbar,body.chatting .mtop{display:none!important}
-  body.chatting{overflow:hidden}
-  body.chatting .chatv{position:fixed;left:0;right:0;top:var(--vvt,0px);height:var(--vvh,100dvh);z-index:30;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 6px) 12px max(8px,env(safe-area-inset-bottom,0px));max-width:none}
+  body.chatting .app{bottom:auto;height:var(--vvh,100%)}
+  body.chatting .main{overflow:hidden}
 }
+
 .chat-msgs{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .chat-msgs>:first-child{margin-top:auto}
 .chat-h .grow{flex:1;min-width:0}
@@ -7285,9 +7285,9 @@ Views.chat = {
     $$("[data-c]", this.main).forEach(b => b.onclick = () => App.go("chat", {id: b.dataset.c}));
     const g = $("#gof"); if (g) g.onclick = e => { e.preventDefault(); App.go("friends"); };
   },
-  unmount(){ document.body.classList.remove("chatting"); if (this._vv){ visualViewport.removeEventListener("resize", this._vv); visualViewport.removeEventListener("scroll", this._vv); this._vv = null; } },
+  unmount(){ document.body.classList.remove("chatting"); document.documentElement.style.removeProperty("--vvh"); window.scrollTo(0, 0); if (this._vv){ visualViewport.removeEventListener("resize", this._vv); visualViewport.removeEventListener("scroll", this._vv); this._vv = null; } },
   /* like a messenger: full screen, input pinned to the bottom, always showing the newest message, even with the keyboard open */
-  fit(){ const box = $("#cmsgs"), vv = window.visualViewport; if (vv) document.documentElement.style.setProperty("--vvh", vv.height + "px"), document.documentElement.style.setProperty("--vvt", vv.offsetTop + "px"); if (box) box.scrollTop = box.scrollHeight; },
+  fit(){ const box = $("#cmsgs"), vv = window.visualViewport; if (vv) document.documentElement.style.setProperty("--vvh", vv.height + "px"); if (window.scrollY) window.scrollTo(0, 0); if (box) box.scrollTop = box.scrollHeight; },
   async open(id){
     const p = Social.P(id), main = this.main;
     document.body.classList.add("chatting");
