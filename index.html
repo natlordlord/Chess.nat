@@ -1156,6 +1156,36 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 .swipe-under::after{content:"";position:absolute;inset:0;background:#000;opacity:var(--dim,0)}
 #main.swiping{position:relative;z-index:1;background:var(--bg)}
 
+/* ===== Friend actions: big, clear buttons with our own icons ===== */
+.fr-list .li.fr{flex-wrap:wrap;row-gap:10px}
+.fr-act{display:flex;gap:8px;align-items:stretch;margin-left:auto}
+.fa{position:relative;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:56px;height:56px;padding:0 8px;border-radius:14px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);font:800 11px var(--body);cursor:pointer;transition:transform .12s,background .15s}
+.fa small{font:800 10.5px var(--body);color:var(--muted);letter-spacing:.02em}
+.fa:active{transform:scale(.94)}
+.fa:hover{background:var(--panel-3)}
+.fa svg{flex:none}
+.fa .cbadge{position:absolute;top:-6px;right:-6px;margin:0}
+.fa-play{flex-direction:row;gap:7px;padding:0 16px;font:900 15px var(--display);background:var(--panel-3)}
+.fa-play.on{background:var(--go);border-color:transparent;color:#fff;box-shadow:0 3px 0 color-mix(in srgb,var(--go) 55%,#000)}
+.fa-heart{color:#e0566b}.fa-heart small{color:#e0566b}
+.fa-x{min-width:40px;width:40px;background:none;border-color:transparent;color:var(--muted)}
+.fa-x.armed{width:auto;padding:0 12px;color:#fff;background:var(--bad);font:800 13px var(--body)}
+@media (max-width:600px){
+  .fr-act{width:100%;margin-left:0}
+  .fr-act .fa-play{flex:1}
+  .fa{height:52px}
+}
+/* chat: send button and read receipts */
+.csend{flex:none;width:46px;height:46px;border-radius:50%;border:0;background:var(--go);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 3px 0 color-mix(in srgb,var(--go) 55%,#000)}
+.csend:active{transform:scale(.93)}
+.chat-h .fa-play{height:42px;padding:0 14px;font-size:14px}
+.bub small{display:inline-flex;align-items:center;gap:4px}
+.bub .tick{display:inline-flex;font-style:normal;opacity:.75}
+.bub .tick .t2{opacity:0}
+.bub.me[data-read="1"] .tick{opacity:1;color:#d9ffb3}
+.bub.me[data-read="1"] .tick .t2{opacity:1}
+.seen{align-self:flex-end;font-size:11.5px;font-weight:800;color:var(--muted);margin:-2px 4px 2px}
+
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
 .pc.wr{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMTcuOTMgMjAuNDFjNC45LS43NCA5LjU4LS41NyAxNC4xNCAwTTE0LjE4IDkuNjZjLTEuMDYgOC43NyAxLjEgMTAuNjggMy43NSAxMC43NWwtMy4zMSAxOC4xNmgyMC43NmwtMy4zMS0xOC4xNmMyLjY0LS4wNyA0LjgtMS45OCAzLjc1LTEwLjc1bC0zLjYxLS41My0xLjA3IDMuNjUtMy4xNS0uMS0uNTItMy43NmgtNC45NEwyMiAxMi42OGwtMy4xNS4xLTEuMDctMy42NXoiLz48cGF0aCBkPSJNMTcuOTMgMjAuNDFjNi44MyAwIDEzLjEyLjQxIDE0Ljk1IDE2LjU4bDIuMzIuMzgtMy4xMy0xNi40M2MtLjAzLS4zLTYuMDktMS44Mi0xNC4xNC0uNTMiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Im0xNC43OCAxMC4yMiAyLjI3LS4yOWMtMS45MS4zMi0yLjMgNS4zLTIuMyA1LjMtLjI1LS4xOC0uMi00LjkuMDMtNS4wMW0xMC41LS42N2MtMS42NSAwLTIuNTIgMi43NS0yLjUyIDIuNzVsLjMzLTIuNzN6bTcuNC4yNy45Mi4xMWMtLjc4LjUtMS41OSAyLTEuNTkgMnptLTE0LjIgMTEuMTQgMi42MS0uMjljLTIuNjIuMy00Ljg5IDEzLjExLTQuODkgMTMuMTF6Ii8+PHBhdGggZD0iTTM0LjAxIDkuNGMuMzYgNi4zNi0xLjk1IDEwLjYtOC4wNCAxMC41M2w0Ljc4LjU3YzcuNTIuMyA1LjEtMTAuOCA1LjA3LTEwLjg0eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuMiIgZD0iTTI1IDM2LjQ2cy05LjEzLjA0LTExLjcgMS42MmMtMS43MiAxLjA2LTIuMTMgMy42NS0xLjkgNi4zMmgyNy4yYy4yMy0yLjY3LS4xOC01LjI2LTEuOS02LjMyQzM0LjEyIDM2LjUgMjUgMzYuNDYgMjUgMzYuNDZ6Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI1IDM3LjE1UzE2LjI5IDM3IDEzLjM4IDM4LjhjLS4zNy4yMy0uNy44NC0uOTYgMS40LjI2LS4zNC41LS42Mi44OS0uODZDMTUuODcgMzcuNzggMjUgMzcuNzMgMjUgMzcuNzNzOS4xMy4wNSAxMS43IDEuNjJjLjM4LjI0LjU4LjUzLjg1Ljg3YTMgMyAwIDAgMC0xLjE1LTEuNkMzMy42NSAzNy4xNSAyNSAzNy4xNiAyNSAzNy4xNnoiLz48L3N2Zz4=')}
@@ -7028,6 +7058,15 @@ Views.local = {
 
 /* ===== Icons (own line set) ===== */
 const ICONS = {
+  /* own icons for the friend actions and the chat */
+  bubble: '<path d="M4.5 6.5a3 3 0 0 1 3-3h9a3 3 0 0 1 3 3v6.5a3 3 0 0 1-3 3H11l-4.5 4v-4h-0a2 2 0 0 1-2-2z"/><circle cx="9" cy="10" r=".6" fill="currentColor"/><circle cx="12" cy="10" r=".6" fill="currentColor"/><circle cx="15" cy="10" r=".6" fill="currentColor"/>',
+  swords: '<path d="M4 4l9.5 9.5M4 4h3.5l9 9M4 4v3.5l9 9"/><path d="M20 4l-6.5 6.5M20 4h-3.5l-3.2 3.2M20 4v3.5l-3.2 3.2"/><path d="M11.5 15.5l-4 4M8.5 12.5l-4 4M6 18l-2 2M12.5 11.5l4 4M15.5 8.5l4 4M18 18l2 2"/>',
+  heart: '<path d="M12 20s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.6-7.5 10-7.5 10z"/>',
+  knight: '<path d="M6 20.5h12"/><path d="M8 20.5c0-3 1.4-5 3.6-6.6-1.7.7-3.4.9-4.6.1-.8-.5-.9-1.6-.2-2.3l3.7-3.9-.6-2.6 2.4 1.3c1-1.5 2.6-2.4 4.5-2.4 1.6 2.4 2.7 5.5 2.7 9.3v7.1"/><circle cx="13.3" cy="9.6" r=".9" fill="currentColor" stroke="none"/>',
+  bolt: '<path d="M13 3L5 13.5h6L10 21l8-10.5h-6z"/>',
+  xmark: '<path d="M6 6l12 12M18 6L6 18"/>',
+  more: '<circle cx="5.5" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="18.5" cy="12" r="1.3" fill="currentColor"/>',
+  send: '<path d="M4 12l16-8-6 16-2.6-6.6z"/><path d="M11.4 13.4L20 4"/>',
   list: '<path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
   refresh: '<path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/>',
@@ -7733,7 +7772,12 @@ Views.friends = {
       ${incoming.length ? `<h2 class="h-sec">Friend requests</h2><div class="list">${incoming.map(id => person(id, `<button class="btn sm" data-rm="${id}">Decline</button><button class="btn sm go" data-acc="${id}">Accept</button>`)).join("")}</div>` : ""}
       <h2 class="h-sec" style="margin-top:16px">Your friends <span class="muted" style="font-weight:600">${friends.filter(id => Social.isOnline(Social.P(id))).length} online</span></h2>
       ${friends.length ? `<div class="row" style="margin:0 0 8px"><span class="muted" style="font-size:13px">Invite with:</span>${TCS.map(m => `<button class="btn sm ${m === this.tc[0] ? "go" : ""}" data-tcs="${m}">${m} min</button>`).join("")}<button class="btn sm inc-tog ${inc ? "on" : ""}" id="inctog" aria-pressed="${inc}" title="Every move adds 2 seconds to your clock">${inc ? "✓ " : ""}+2 s per move</button></div>
-        <div class="list">${friends.map(id => person(id, `${st[id] && st[id].cage === "mine" ? `<button class="btn sm" data-h="${id}" aria-label="Send a heart">❤️</button>` : ""}<button class="btn sm" data-chat="${id}" aria-label="Chat">💬${typeof Chat !== "undefined" && Chat.unread[id] ? `<span class="cbadge">${Chat.unread[id]}</span>` : ""}</button><button class="btn sm" data-bat="${id}" aria-label="Puzzle Battle">⚔</button><button class="btn sm ${Social.isOnline(Social.P(id)) ? "go" : ""}" data-inv="${id}">Invite</button><button class="btn sm ghost" data-rmf="${id}" aria-label="Remove friend">✕</button>`)).join("")}</div>`
+        <div class="list fr-list">${friends.map(id => person(id, `<div class="fr-act">
+          <button class="fa fa-play ${Social.isOnline(Social.P(id)) ? "on" : ""}" data-inv="${id}" aria-label="Play a game">${icon("knight", 22)}<span>Play</span></button>
+          <button class="fa" data-chat="${id}" aria-label="Chat">${icon("bubble", 24)}${typeof Chat !== "undefined" && Chat.unread[id] ? `<span class="cbadge">${Chat.unread[id]}</span>` : ""}<small>Chat</small></button>
+          <button class="fa" data-bat="${id}" aria-label="Puzzle Battle">${icon("bolt", 24)}<small>Battle</small></button>
+          ${st[id] && st[id].cage === "mine" ? `<button class="fa fa-heart" data-h="${id}" aria-label="Send a heart">${icon("heart", 24)}<small>Heart</small></button>` : ""}
+          <button class="fa fa-x" data-rmf="${id}" aria-label="Remove friend">${icon("xmark", 18)}</button></div>`)).join("")}</div>`
         : `<div class="unit"><p class="muted" style="margin:0">No friends yet. Search for their player ID above, or play them live and tap “Add as friend” after the game.</p></div>`}
       ${sent.length ? `<h2 class="h-sec" style="margin-top:16px">Requests you sent</h2><div class="list">${sent.map(id => person(id, `<button class="btn sm" data-rm="${id}">Cancel</button>`)).join("")}</div>` : ""}
       <p class="muted" style="margin-top:16px;font-size:13.5px">Beat a friend in a live game and they go into your cage in the <a href="#" id="gotr">Cages</a>. Lose and you're in theirs, until you win again.</p></div>`;
@@ -7747,7 +7791,7 @@ Views.friends = {
     if ($("#inctog")) $("#inctog").onclick = () => { S.invInc = S.invInc === false; save(); this.draw(); };
     $$("[data-acc]", main).forEach(b => b.onclick = async () => { await Social.accept(b.dataset.acc); this.draw(); });
     $$("[data-rm]", main).forEach(b => b.onclick = async () => { await Social.remove(b.dataset.rm); this.draw(); });
-    $$("[data-rmf]", main).forEach(b => b.onclick = async () => { if (!b.dataset.armed){ b.dataset.armed = 1; b.textContent = "Remove?"; return; } await Social.remove(b.dataset.rmf); this.draw(); });
+    $$("[data-rmf]", main).forEach(b => b.onclick = async () => { if (!b.dataset.armed){ b.dataset.armed = 1; b.classList.add("armed"); b.innerHTML = "Remove?"; return; } await Social.remove(b.dataset.rmf); this.draw(); });
     $$("[data-inv]", main).forEach(b => b.onclick = () => Social.invite(b.dataset.inv, this.tc));
     $$("[data-bat]", main).forEach(b => b.onclick = () => Social.invite(b.dataset.bat, "battle"));
     $$("[data-chat]", main).forEach(b => b.onclick = () => App.go("chat", {id: b.dataset.chat}));
@@ -7780,12 +7824,14 @@ const Chat = (() => {
     if (started || !sb()) return; await Social.start(); if (!me()) return; started = true;
     const {data} = await sb().from("chess_messages").select("from_id,to_id,body,created_at,read_at").or(`from_id.eq.${me()},to_id.eq.${me()}`).order("created_at", {ascending: false}).limit(300);
     (data || []).forEach(m => { const o = m.from_id === me() ? m.to_id : m.from_id; if (!last[o]) last[o] = m; if (m.to_id === me() && !m.read_at) unread[o] = (unread[o] || 0) + 1; });
-    ch = sb().channel("chat-" + me()).on("postgres_changes", {event: "INSERT", schema: "public", table: "chess_messages", filter: `to_id=eq.${me()}`}, p => incoming(p.new)).subscribe();
+    ch = sb().channel("chat-" + me()).on("postgres_changes", {event: "INSERT", schema: "public", table: "chess_messages", filter: `to_id=eq.${me()}`}, p => incoming(p.new))
+      /* your friend opened the chat: your messages turn to "read" */
+      .on("postgres_changes", {event: "UPDATE", schema: "public", table: "chess_messages", filter: `from_id=eq.${me()}`}, p => { const v = Views.chat; if (p.new && p.new.read_at && App.route === "chat" && v.seen) v.seen(p.new); }).subscribe();
     refreshBadges();
   }
   function incoming(m){
     const o = m.from_id; last[o] = m;
-    const v = Views.chat; if (App.route === "chat" && v.id === o && !document.hidden){ v.add(m); markRead(o); return; }
+    const v = Views.chat; if (App.route === "chat" && v.id === o && !document.hidden){ v.add(m); markRead(o, true); return; }
     unread[o] = (unread[o] || 0) + 1; refreshBadges(); Sound.tone([[880, .05, .04], [1175, .09]], "sine", .08);
     const el = document.createElement("div"); el.className = "chatpop"; el.innerHTML = `${Social.face(Social.P(o), 34)}<div class="grow"><b>${esc(Social.P(o).name)}</b><span>${esc(m.body)}</span></div>`;
     document.body.appendChild(el); el.onclick = () => { el.remove(); App.go("chat", {id: o}); }; setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 400); }, 4500);
@@ -7794,7 +7840,7 @@ const Chat = (() => {
   function refreshBadges(){ if (typeof renderTop === "function") renderTop(); const b = $("#railchat"); if (b) b.textContent = total() || ""; }
   async function thread(o){ const {data} = await sb().from("chess_messages").select("*").or(`and(from_id.eq.${me()},to_id.eq.${o}),and(from_id.eq.${o},to_id.eq.${me()})`).order("created_at", {ascending: false}).limit(80); return (data || []).reverse(); }
   async function send(o, body){ body = String(body || "").trim().slice(0, 500); if (!body) return null; const {data, error} = await sb().from("chess_messages").insert({to_id: o, body}).select().single(); if (error){ toast(/row-level/.test(error.message) ? "You can only message friends." : error.message, 3000); return null; } last[o] = data; return data; }
-  async function markRead(o){ if (!unread[o]) return; unread[o] = 0; refreshBadges(); await sb().from("chess_messages").update({read_at: new Date().toISOString()}).eq("to_id", me()).eq("from_id", o).is("read_at", null); }
+  async function markRead(o, force){ if (!unread[o] && !force) return; unread[o] = 0; refreshBadges(); await sb().from("chess_messages").update({read_at: new Date().toISOString()}).eq("to_id", me()).eq("from_id", o).is("read_at", null); }
   const total = () => Object.values(unread).reduce((a, b) => a + b, 0);
   return {start, thread, send, markRead, total, unread, last};
 })();
@@ -7838,10 +7884,10 @@ Views.chat = {
     const p = Social.P(id), main = this.main;
     document.body.classList.add("chatting");
     if (window.visualViewport && !this._vv){ this._vv = () => this.fit(); visualViewport.addEventListener("resize", this._vv); visualViewport.addEventListener("scroll", this._vv); }
-    main.innerHTML = `<div class="chatv"><div class="chat-h"><button class="btn sm ghost" id="cback" aria-label="Back">‹</button>${Social.face(p, 38)}<div class="grow"><b>${esc(p.name)}</b><small>${esc(Social.seen(p))}</small></div><button class="btn sm" id="cinv">⚔ Play</button></div>
+    main.innerHTML = `<div class="chatv"><div class="chat-h"><button class="btn sm ghost" id="cback" aria-label="Back">‹</button>${Social.face(p, 38)}<div class="grow"><b>${esc(p.name)}</b><small>${esc(Social.seen(p))}</small></div><button class="fa fa-play on" id="cinv" aria-label="Play a game">${icon("knight", 20)}<span>Play</span></button></div>
       <div class="chat-msgs" id="cmsgs"><p class="dim" style="text-align:center">Loading…</p></div>
       <div class="chat-quick">${["GG 🤝", "Rematch?", "Nice move! 👏", "😂", "Play now?", "Good luck!"].map(q => `<button class="chip" data-q="${esc(q)}">${esc(q)}</button>`).join("")}</div>
-      <form class="chat-in" id="cform"><input id="ctext" maxlength="500" placeholder="Message ${esc(p.name)}" autocomplete="off"><button class="btn go" type="submit">Send</button></form></div>`;
+      <form class="chat-in" id="cform"><input id="ctext" maxlength="500" placeholder="Message ${esc(p.name)}" autocomplete="off"><button class="csend" type="submit" aria-label="Send">${icon("send", 22)}</button></form></div>`;
     $("#cback").onclick = () => App.go("chat"); $("#cinv").onclick = () => Social.invite(id, S.invTc || [10, 2]);
     const sendT = async t => { const m = await Chat.send(id, t); if (m) this.add(m); };
     $("#ctext").onfocus = () => { this._kb = Date.now(); this.settle(); };
@@ -7854,16 +7900,26 @@ Views.chat = {
     $$("[data-q]", main).forEach(b => b.onclick = () => sendT(b.dataset.q));
     const msgs = await Chat.thread(id); if (this.id !== id || App.route !== "chat") return;
     const box = $("#cmsgs"); box.innerHTML = msgs.length ? "" : `<p class="dim" style="text-align:center">No messages yet. Say hi!</p>`; msgs.forEach(m => this.add(m, true)); box.scrollTop = box.scrollHeight;
-    Chat.markRead(id);
+    Chat.markRead(id, true);
+    if (!this._visR){ this._visR = () => { if (!document.hidden && App.route === "chat" && this.id) Chat.markRead(this.id, true); }; document.addEventListener("visibilitychange", this._visR); }
   },
   add(m, quiet){
     const box = $("#cmsgs"); if (!box) return; const p0 = box.querySelector("p.dim"); if (p0) p0.remove();
     if (box.querySelector(`[data-mid="${m.id}"]`)) return;
     const mine = m.from_id === Social.me, d = document.createElement("div"); d.className = "bub " + (mine ? "me" : "them"); d.dataset.mid = m.id;
-    d.innerHTML = `<span>${esc(m.body)}</span><small>${chatTime(m.created_at)}</small>`; box.appendChild(d); box.scrollTop = box.scrollHeight; requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
+    if (mine && m.read_at) d.dataset.read = "1";
+    d.innerHTML = `<span>${esc(m.body)}</span><small>${chatTime(m.created_at)}${mine ? `<i class="tick">${TICK1}</i>` : ""}</small>`; box.appendChild(d); this.readLine(); box.scrollTop = box.scrollHeight; requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
     if (!quiet && !mine) Sound.tone([[880, .05, .04]], "sine", .06);
   }
 };
+/* sent: one tick. read: two green ticks, and "Read" under your newest read message */
+const TICK1 = `<svg viewBox="0 0 18 12" width="16" height="11" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path class="t1" d="M1.5 6.5l3.5 3.5 7-8"/><path class="t2" d="M7.5 9.5l.5.5 7-8"/></svg>`;
+Views.chat.seen = function(m){ const el = document.querySelector(`.bub.me[data-mid="${m.id}"]`); if (el) el.dataset.read = "1";
+  /* everything before a read message has been read too */
+  const all = [...document.querySelectorAll(".bub.me")], i = el ? all.indexOf(el) : -1; all.slice(0, i + 1).forEach(b => b.dataset.read = "1"); this.readLine(); };
+Views.chat.readLine = function(){ const box = $("#cmsgs"); if (!box) return; const old = box.querySelector(".seen"); if (old) old.remove();
+  const bubs = [...box.querySelectorAll(".bub")], lastMine = bubs.filter(b => b.classList.contains("me")).pop(); if (!lastMine || lastMine.dataset.read !== "1") return;
+  const tag = document.createElement("div"); tag.className = "seen"; tag.textContent = "Read"; lastMine.after(tag); };
 function chatTime(t){ const d = new Date(t), now = new Date(); return d.toDateString() === now.toDateString() ? d.toLocaleTimeString("en-GB", {hour: "2-digit", minute: "2-digit"}) : d.toLocaleDateString("en-GB", {day: "numeric", month: "short"}); }
 
 /* ---------- push notifications ---------- */
