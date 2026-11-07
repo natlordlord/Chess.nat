@@ -1307,6 +1307,53 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 .nk-ed:hover,.nk-ed:active{background:var(--panel-3);color:var(--fg)}
 .chat-who{background:none;border:0;color:inherit;text-align:left;padding:0;cursor:pointer;min-width:0;display:flex;flex-direction:column}
 .chat-who b{display:flex;align-items:center;gap:5px}.chat-pen{color:var(--muted);display:inline-flex}
+/* level and XP */
+.lvchip{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 6px;border-radius:999px;background:linear-gradient(180deg,#8fd16a,#4f9a2e);color:#fff;font:900 14px var(--display);box-shadow:0 0 0 2px var(--panel),0 2px 6px rgba(0,0,0,.3);flex:none}
+.lvchip.big{min-width:44px;height:44px;font-size:20px}
+.lvchip.off{background:var(--panel-3);color:var(--muted)}
+.lvchip.sm{position:absolute;left:-6px;top:-6px;min-width:19px;height:19px;padding:0 4px;font-size:10.5px;z-index:3;box-shadow:0 0 0 2px var(--bg)}
+.mt-me{position:relative}
+.lvcard{display:flex;align-items:center;gap:12px;text-align:left;width:100%}
+.lvc-h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.lvc-h b{font:900 17px var(--display)}.lvc-x{margin-left:auto;font-size:12px;color:var(--muted);font-weight:700}
+.lvbar{margin-top:6px;height:8px}.lvbar i{background:linear-gradient(90deg,#6fbf47,#a8e06a)}
+.lvc-n{font-size:12.5px;margin-top:5px}
+.lvcard.cmp .lvc-h b{font-size:15px}
+.hr-lv{display:block;width:100%;margin:10px 0 2px;padding:10px 12px;border:0;border-radius:12px;background:rgba(0,0,0,.18);color:var(--fg);cursor:pointer}
+.me-lv{display:block;width:100%;margin:12px 0 0;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--fg);cursor:pointer;text-align:left}
+@media (min-width:1100px){ .mepage>.me-lv{grid-column:1/-1;margin-top:12px} }
+.me-title{display:inline-flex;align-items:center;gap:5px;margin:2px 0 4px;padding:2px 10px;border:1px solid rgba(255,207,64,.35);border-radius:999px;background:rgba(255,207,64,.1);color:#ffd970;font:800 12.5px var(--body);cursor:pointer}
+.xpchip{position:fixed;right:max(14px,var(--sar,0px));top:calc(var(--sat,0px) + 64px);z-index:120;padding:5px 11px;border-radius:999px;background:rgba(32,30,27,.92);border:1px solid rgba(143,209,106,.5);color:#bfe9a3;font:700 13px var(--body);pointer-events:none;opacity:0;transform:translateY(-6px) scale(.9);transition:opacity .2s,transform .25s cubic-bezier(.2,1.4,.4,1)}
+.xpchip b{color:#d9ffbf;font-weight:900}
+.xpchip.in{opacity:1;transform:none}.xpchip.out{opacity:0;transform:translateY(-8px)}
+@media (min-width:901px){ .xpchip{top:18px;right:22px} }
+.lvup{position:fixed;inset:0;z-index:210;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 50% 40%,rgba(111,191,71,.28),rgba(0,0,0,.7) 70%);animation:dsin .25s}
+.lvup.out{animation:dsout .26s forwards}
+.lvup-in{position:relative;width:min(380px,100%);padding:26px 20px 18px;border-radius:22px;background:var(--panel);border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.5);text-align:center}
+.lvup-burst{position:absolute;left:50%;top:-38px;width:150px;height:150px;margin-left:-75px;border-radius:50%;background:conic-gradient(from 0deg,#a8e06a,#ffd34a,#9fe8ff,#ff9be0,#a8e06a);filter:blur(18px);opacity:.55;animation:lvspin 6s linear infinite}
+@keyframes lvspin{to{transform:rotate(360deg)}}
+.lvup-n{position:relative;width:96px;height:96px;margin:-62px auto 6px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,#8fd16a,#3f8a22);box-shadow:0 0 0 4px var(--panel),0 0 30px rgba(143,209,106,.6);animation:lvpop .6s cubic-bezier(.2,1.6,.4,1)}
+.lvup-n span{font:800 10px var(--body);letter-spacing:.14em;color:rgba(255,255,255,.8)}.lvup-n b{font:900 40px/1 var(--display);color:#fff}
+@keyframes lvpop{0%{transform:scale(.3)}100%{transform:scale(1)}}
+.lvup h3{font:900 24px var(--display);margin:4px 0 12px}
+.lvr-list{display:flex;flex-direction:column;gap:8px;text-align:left}
+.lvr{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;background:var(--panel-2)}
+.lvr>div{flex:1;min-width:0}.lvr small{display:block;color:var(--muted);font-weight:700;font-size:11.5px}.lvr b{font:900 16px var(--display)}
+.lvr-ic{width:54px;height:54px;display:grid;place-items:center;flex:none}
+.lvr-t{border-radius:50%;background:rgba(255,207,64,.15);color:#ffd34a}
+.lvr-sw{display:block;width:40px;height:40px;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(255,255,255,.25),0 2px 6px rgba(0,0,0,.4)}
+.lvr-sw.sm{display:inline-block;width:14px;height:14px;vertical-align:-2px;margin-right:5px}
+.ttl-list{display:flex;flex-direction:column;gap:6px}
+.ttl{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);font:inherit;cursor:pointer;text-align:left}
+.ttl.on{border-color:#ffd34a;background:rgba(255,207,64,.1)}.ttl.lock{opacity:.5;cursor:default}.ttl span{color:var(--muted);font-size:12.5px;font-weight:700}
+.lvroad{display:flex;flex-direction:column;gap:6px}
+.lvrow{display:flex;align-items:center;gap:10px;padding:6px 4px;font-size:14px}.lvrow.got{opacity:.65}
+.lvhow{display:grid;gap:6px;font-size:14px}.lvhow b{color:#bfe9a3}
+.avb-lv>svg.avf,.avb-lv>svg.avf-b{position:absolute;left:-60%;top:-60%;width:220%;height:220%;pointer-events:none;overflow:visible}
+.avb-lv>svg.avf{z-index:1}.avb-lv>svg.avf-b{z-index:0}
+.invcard{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border:1px solid rgba(143,209,106,.35);background:linear-gradient(135deg,rgba(111,191,71,.14),rgba(111,191,71,.03))}
+.invcard h3{margin:0}.invcard p{margin:4px 0 0;font-size:13.5px}
+.inv-ic{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:rgba(111,191,71,.2);color:#a8e06a;flex:none}
+.invcard .btn{display:inline-flex;align-items:center;gap:6px}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -2161,7 +2208,7 @@ function PuzzleRunner(board, hooks = {}){
 const THEME_LESSON = {fork: "u4-fork", pin: "u4-pin", skewer: "u4-skewer", discoveredAttack: "u4-discovered", doubleCheck: "u4-discovered", backRankMate: "u3-backrank", hangingPiece: "u2-hanging", mateIn1: "u1-check", earlyMate: "u3-scholar", attackingF2F7: "u3-scholar", deflection: "u6-deflect", attraction: "u6-deflect", capturingDefender: "u6-defender", intermezzo: "u6-defender", sacrifice: "u6-sac", queenSac: "u6-sac", smotheredMate: "u6-mates", anastasiaMate: "u6-mates", arabianMate: "u6-mates", matingNet: "u6-mates", pawnEndgame: "u7-kp", opposition: "u7-kp", rookEndgame: "u7-rook", promotion: "u7-promo", underPromotion: "u7-promo", opening: "u5-principles"};
 function learnLink(p){ for (const i of p.th){ const k = PZ.themes[i] && PZ.themes[i][0]; const id = THEME_LESSON[k]; const L = id && typeof lessonById === "function" && lessonById(id); if (L) return `<button class="btn sm" style="margin-top:10px" onclick="App.go('lesson',{id:'${id}'})">📖 Learn: ${esc(L.title)}</button>`; } return ""; }
 function themeNames(p){ return p.th.map(themeLabel).filter(Boolean); }
-function recordThemes(p, ok){ dayTick("pz"); p.th.forEach(i => { const k = PZ.themes[i][0]; const t = S.themes[k] || (S.themes[k] = {n:0, ok:0}); t.n++; if (ok) t.ok++; }); }
+function recordThemes(p, ok){ dayTick("pz"); if (typeof addXP === "function") addXP(ok ? XP.puzzle : XP.puzzleMiss); p.th.forEach(i => { const k = PZ.themes[i][0]; const t = S.themes[k] || (S.themes[k] = {n:0, ok:0}); t.n++; if (ok) t.ok++; }); }
 function markSeen(p){ S.seen.push(p.id); }
 function addFailed(p){ if (!S.failed.some(a => a[0] === p.id)) S.failed.push(encodeP(p)); srsAdd(p); }
 function rmFailed(p){ S.failed = S.failed.filter(a => a[0] !== p.id); }
@@ -2386,7 +2433,7 @@ Views.daily = {
     if (!S.daily.done[k]){
       const y = new Date(Date.now() - 864e5); const yk = y.getFullYear() + "-" + String(y.getMonth()+1).padStart(2,"0") + "-" + String(y.getDate()).padStart(2,"0");
       S.daily.streak = S.daily.done[yk] ? S.daily.streak + 1 : 1; S.daily.best = Math.max(S.daily.best, S.daily.streak);
-      dayTick("daily"); S.daily.done[k] = clean ? "clean" : "solved"; S.daily.last = k; recordThemes(this.p, clean); if (!clean) addFailed(this.p);
+      dayTick("daily"); if (typeof addXP === "function") addXP(XP.daily); S.daily.done[k] = clean ? "clean" : "solved"; S.daily.last = k; recordThemes(this.p, clean); if (!clean) addFailed(this.p);
       logPuzzle("daily", this.R, clean); save(); renderRail();
     }
     this.panel(clean ? "solved" : "done");
@@ -2587,7 +2634,7 @@ function motifOf(fen, san){
 /* called from the game review: each game counts once */
 function brainFromGame(key, errs){
   brainInit(); if (!S.brainG) S.brainG = []; if (S.brainG.includes(key)) return [];
-  S.brainG.push(key); if (S.brainG.length > 200) S.brainG = S.brainG.slice(-200);
+  S.brainG.push(key); if (S.brainG.length > 200) S.brainG = S.brainG.slice(-200); if (typeof addXP === "function") addXP(XP.review);
   const found = [];
   errs.filter(e => ["mistake", "blunder", "miss"].includes(e.cls) && e.best && e.fen).forEach(e => { motifOf(e.fen, e.best).forEach(k => { brainNote([k], false, S.puzzle.r, S.puzzle.r, 1.5); if (!found.includes(k)) found.push(k); }); });
   return found;
@@ -3048,7 +3095,7 @@ Views.bots = {
     const pgn = G.g.pgn();
     clearInterval(this.ctick); G.rating = G.opt.rated && G.opt.tc && G.g.history().length >= 2 ? rateGame(tcCat(G.opt.tc), G.bot.r, score, {opp: G.bot.name}) : null;
     const rec = {id: Date.now().toString(36), mode: "bot", opp: G.bot.name, oppR: G.bot.r, color: me, result: res, why, pgn, ts: Date.now(), moves: G.g.history().length, tc: G.opt.tc || null, rated: !!G.rating, rdelta: G.rating ? G.rating.delta : null, takebacks: G.takebacks, warns: G.warns, hints: G.hintsUsed || 0, tips: !!G.opt.tips, opening: !!G.opt.openSan};
-    dayTick("gm"); S.games.push(rec); save();
+    dayTick("gm"); S.games.push(rec); save(); if (G.g.history().length >= 4) addXP(XP.game + (score === 1 ? XP.win : 0));
     logEvent("game", {opponent: G.bot.name, opponentRating: G.bot.r, color: me, result: res, why, pgn, moves: rec.moves, takebacks: G.takebacks, coachWarnings: G.warns});
     G.chat = score === 1 ? rnd(BOT_LINES.lose) : score === 0 ? rnd(BOT_LINES.win) : rnd(BOT_LINES.draw);
     if (G.journey){ rec.mode = "journey"; save(); this.journeyEnd(G, score, pgn, rec); return; }
@@ -3503,7 +3550,7 @@ Views.lesson = {
   },
   complete(){
     const L = this.L; const prev = S.lessons[L.id]; const first = !(prev && prev.done);
-    dayTick("ls"); S.lessons[L.id] = {done: true, stars: Math.max(this.stars, prev ? prev.stars || 0 : 0), ts: Date.now()}; if (first) S.xp = (S.xp || 0) + 100;
+    dayTick("ls"); S.lessons[L.id] = {done: true, stars: Math.max(this.stars, prev ? prev.stars || 0 : 0), ts: Date.now()}; if (first) addXP(100);
     logEvent("lesson", {id: L.id, title: L.title, stars: this.stars}); save(); renderRail();
     Sound.play("Victory", .7); Voice.say("Lesson complete! Great job.");
     const nx = nextLesson();
@@ -4457,7 +4504,7 @@ Views.jlevel = {
 function journeyComplete(L, stars){
   const J = jState(), before = J.level, prevBest = J.best[L] || 0;
   J.best[L] = Math.max(prevBest, stars); if (L >= J.level) J.level = L + 1;
-  S.xp = (S.xp || 0) + 10 + 5 * Math.max(0, stars - prevBest); save();
+  addXP(10 + 5 * Math.max(0, stars - prevBest));
   logEvent("journey", {level: L, stars, world: worldName(L), type: levelSpec(L).type});
   return {from: before, to: J.level, newWorld: worldIdx(J.level) > worldIdx(before)};
 }
@@ -5149,7 +5196,7 @@ botPortrait = function(b, size = 96){ const t = typeof tierOf === "function" ? t
 /* ---------- the player's avatar state ---------- */
 function myAvatar(){ const a = S.avatar = Object.assign({}, AV_DEFAULT, S.avatar || {});
   /* old trophy borders became rank borders */
-  if (!AV_ITEMS.some(i => i.slot === "frame" && i.id === a.frame)) a.frame = "auto";
+  if (!AV_ITEMS.some(i => i.slot === "frame" && i.id === a.frame) && !/^lv|^recruit$/.test(a.frame || "")) a.frame = "auto";
   if (a.pet !== "none" && !(S.bots[a.pet] && S.bots[a.pet].w > 0)) a.pet = "none";
   return a; }
 function classUnlocked(c){
@@ -5168,6 +5215,7 @@ function itemUnlocked(it){
   if (typeof it.req === "string" && it.req.startsWith("c:")){ const c = AV_CLASSES.find(x => x.k === it.req.slice(2)); return !!c && classUnlocked(c); }
   if (typeof it.req === "string" && it.req.startsWith("n:")) return (typeof achCount === "function" ? achCount() : 0) >= +it.req.slice(2);
   if (typeof it.req === "string" && it.req.startsWith("t:")) return typeof achHas === "function" && achHas(it.req.slice(2));
+  if (typeof it.req === "string" && it.req.startsWith("l:")) return typeof playerLevel === "function" && playerLevel() >= +it.req.slice(2);
   return false;
 }
 function itemReqText(it){
@@ -5175,6 +5223,7 @@ function itemReqText(it){
   if (it.req.startsWith("n:")) return `Collect ${it.req.slice(2)} trophies`;
   if (it.req.startsWith("r:")) return `Reach ${it.req.slice(2)} puzzle rating`;
   if (it.req.startsWith("c:")) return `Unlock the ${it.req.slice(2)} figure`;
+  if (it.req.startsWith("l:")) return `Reach level ${it.req.slice(2)}`;
   const a = typeof achById === "function" ? achById(it.req.slice(2)) : null; return a ? `Trophy: ${a.name}` : "Locked";
 }
 /* turn the figure by dragging; solid bodies get real thickness from stacked layers */
@@ -6047,7 +6096,7 @@ const Ach = {
     if (!fresh.length) return;
     const items = AV_ITEMS.filter(i => itemUnlocked(i) && !before.has(i.slot + ":" + i.id));
     S.ach.newItems = (S.ach.newItems || 0) + items.length;
-    save();
+    save(); if (typeof addXP === "function") setTimeout(() => addXP(fresh.reduce((t, a) => t + 20 * a.tier, 0)), 1500);
     if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard();
     this.show(fresh, items); if (typeof renderRail === "function") renderRail();
   },
@@ -6136,6 +6185,177 @@ Views.awards = {
   }
 };
 
+/* ===== Level and XP: separate from your rank. Rank says how strong you are, level says how much you've played.
+   Everything gives XP: puzzles, games, lessons, the daily puzzle, your flame, trophies, reviews, inviting friends.
+   Every level up brings something: a border, a title or a new colour. ===== */
+const LV_CAP = 100;
+function lvNeed(L){ return 80 + 20 * L; }                       /* XP from level L to L+1 */
+function lvOf(xp){ let L = 1, rest = Math.max(0, xp || 0); while (L < LV_CAP && rest >= lvNeed(L)){ rest -= lvNeed(L); L++; } return {L, into: rest, need: L >= LV_CAP ? 0 : lvNeed(L)}; }
+function playerLevel(){ return lvOf(S.xp).L; }
+const XP = {puzzle: 8, puzzleMiss: 2, game: 20, win: 15, daily: 25, flame: 15, review: 20, recruit: 500};
+
+/* ---- the rewards ---- */
+const LV_FRAMES = [[2, "lvwood", "Wooden ring"], [5, "lvcopper", "Copper ring"], [10, "lvlaurel", "Laurel"], [15, "lvsteel", "Steel ring"], [20, "lvsilver", "Silver laurel"],
+  [30, "lvgold", "Golden laurel"], [40, "lvsapphire", "Sapphire ring"], [50, "lvruby", "Ruby crown"], [60, "lvamethyst", "Amethyst halo"], [75, "lvwings", "Golden wings"], [100, "lvcelestial", "Celestial"]];
+const LV_TITLES = [[1, "Newcomer"], [3, "Pawn Pusher"], [6, "Fork Finder"], [9, "Pin Spotter"], [12, "Tactician"], [16, "Endgame Explorer"], [21, "Strategist"], [25, "Attacker"],
+  [31, "Knight Rider"], [35, "Bishop's Eye"], [41, "Rook Lifter"], [45, "Royal Guard"], [50, "Club Champion"], [60, "Mastermind"], [75, "Living Legend"], [90, "Board Wizard"], [100, "Immortal"]];
+/* new colours, each one behind a level */
+const LV_COLORS = [
+  ["cloth", "neon", "Neon green", "#39d97a", 4], ["hairC", "neonpink", "Neon pink", "#ff4fb3", 7], ["cloth", "royal", "Royal purple", "#5b2a9a", 8], ["fur", "midnightfur", "Midnight", "#3a3f5c", 11],
+  ["cloth", "midnight", "Midnight blue", "#1d2547", 13], ["hairC", "silverhair", "Silver", "#c9ced6", 14], ["cloth", "coral", "Coral", "#ff7a63", 17], ["skin", "moon", "Moonlight", "#c9d6ff", 18],
+  ["cloth", "rosegold", "Rose gold", "#c98b7a", 19], ["fur", "mintchip", "Mint chip", "#7fd1b3", 22], ["cloth", "electric", "Electric blue", "#1e90ff", 23], ["hairC", "ocean", "Ocean", "#1b7f9e", 24],
+  ["cloth", "lava", "Lava", "#e2401c", 26], ["skin", "lavender", "Lavender", "#cbb6ee", 27], ["fur", "sunsetfur", "Sunset", "#ff9a6b", 28], ["cloth", "ice", "Ice", "#bfeaff", 29],
+  ["hairC", "sunset", "Sunset", "#ff7f50", 32], ["cloth", "galaxy", "Galaxy", "#3b1f6b", 33], ["fur", "frostfur", "Frost", "#dbefff", 34], ["cloth", "emeraldc", "Emerald", "#14915a", 36],
+  ["skin", "copperskin", "Copper", "#b8693a", 37], ["hairC", "galaxyhair", "Galaxy", "#4b2a8f", 38], ["cloth", "platinumc", "Platinum", "#d9dee5", 39], ["fur", "goldenfur", "Honey", "#e3b04b", 42],
+  ["cloth", "blackgold", "Black gold", "#2b2416", 43], ["hairC", "ember", "Ember", "#b8321c", 44], ["cloth", "pearl", "Pearl", "#f3efe6", 46], ["skin", "marble", "Marble", "#e7e3dc", 47],
+  ["cloth", "ruby", "Ruby", "#9b1030", 48], ["hairC", "aurora", "Aurora", "#3fd6b8", 49], ["cloth", "obsidianc", "Obsidian", "#141418", 55], ["fur", "cosmicfur", "Cosmic", "#5d3fa8", 65],
+  ["cloth", "sunfire", "Sunfire", "#ffb31a", 70], ["skin", "starlight", "Starlight", "#fff1c2", 80], ["hairC", "phoenix", "Phoenix", "#ff5a1f", 85], ["cloth", "diamondc", "Diamond", "#bdf1ff", 95]];
+LV_COLORS.forEach(([key, id, name, hex, L]) => { const list = AV_COLORS[key === "skin" || key === "hairC" || key === "fur" ? key : "cloth"]; if (!list.some(c => c[0] === id)) list.push([id, name, hex, "l:" + L]); });
+LV_FRAMES.forEach(([L, id, name]) => AV_ITEMS.push({slot: "frame", id, name, req: "l:" + L}));
+AV_ITEMS.push({slot: "frame", id: "recruit", name: "Recruiter", req: "t:recruit-1"});
+const LV_FRAME_IDS = new Set([...LV_FRAMES.map(f => f[1]), "recruit"]);
+function lvRewards(L){
+  const out = [];
+  LV_FRAMES.filter(f => f[0] === L).forEach(f => out.push({kind: "frame", id: f[1], name: f[2]}));
+  LV_TITLES.filter(t => t[0] === L && L > 1).forEach(t => out.push({kind: "title", name: t[1]}));
+  LV_COLORS.filter(c => c[4] === L).forEach(c => out.push({kind: "color", key: c[0], id: c[1], name: c[2], hex: c[3]}));
+  return out;
+}
+function nextReward(L){ for (let k = L + 1; k <= LV_CAP; k++){ const r = lvRewards(k); if (r.length) return {L: k, r: r[0]}; } return null; }
+function myTitle(){ const own = LV_TITLES.filter(t => t[0] <= playerLevel()); const pick = S.title && own.find(t => t[1] === S.title); return (pick || own[own.length - 1] || [1, "Newcomer"])[1]; }
+
+/* ---- earning XP ---- */
+let xpChip = null, xpSum = 0, xpT = null;
+function addXP(n, why){
+  if (!n) return; brainLvInit();
+  const before = playerLevel(); S.xp = (S.xp || 0) + n; const after = playerLevel();
+  if (after > (S.lvlSeen || before)){ for (let L = Math.max(before, S.lvlSeen || before) + 1; L <= after; L++) lvQueue.push(L); S.lvlSeen = after; setTimeout(lvNext, 900); }
+  save();
+  if (why !== "quiet") xpFloat(n);
+  if (typeof Social !== "undefined" && Social.syncCard && after > before) Social.syncCard();
+}
+/* a small "+8 XP" by the top bar, added up when several come quickly */
+function xpFloat(n){
+  xpSum += n; if (!xpChip || !xpChip.isConnected){ xpChip = document.createElement("div"); xpChip.className = "xpchip"; document.body.appendChild(xpChip); }
+  xpChip.innerHTML = `<b>+${xpSum}</b> XP`; xpChip.classList.remove("out"); xpChip.classList.add("in");
+  clearTimeout(xpT); xpT = setTimeout(() => { xpChip.classList.add("out"); xpSum = 0; }, 1600);
+}
+/* first start with levels: give XP for what you've already done, without a flood of level-ups */
+function brainLvInit(){
+  if (S.lvlV) return; S.lvlV = 1;
+  const past = (S.puzzle.n || 0) * 6 + (S.games || []).length * 25 + (typeof achCount === "function" ? achCount() : 0) * 20 + ((S.flame && S.flame.best) || 0) * 15;
+  S.xp = (S.xp || 0) + past; S.lvlSeen = playerLevel(); S.lvlWelcome = playerLevel() > 1 ? 1 : 2;
+}
+/* ---- the level-up moment ---- */
+const lvQueue = [];
+function rewardHTML(r, L){
+  if (r.kind === "frame") return `<div class="lvr"><span class="lvr-ic">${avatarBadge(Object.assign({}, myAvatar(), {frame: r.id}), 54)}</span><div><small>New border</small><b>${esc(r.name)}</b></div><button class="btn sm go" data-eq="${r.id}">Wear it</button></div>`;
+  if (r.kind === "title") return `<div class="lvr"><span class="lvr-ic lvr-t">${icon("crown", 24)}</span><div><small>New title</small><b>${esc(r.name)}</b></div><button class="btn sm" data-ti="${esc(r.name)}">Use it</button></div>`;
+  return `<div class="lvr"><span class="lvr-ic"><i class="lvr-sw" style="background:${r.hex}"></i></span><div><small>New colour · ${r.key === "skin" ? "skin" : r.key === "hairC" ? "hair" : r.key === "fur" ? "capybara fur" : "clothes"}</small><b>${esc(r.name)}</b></div></div>`;
+}
+function lvNext(){
+  if (document.querySelector(".lvup") || !lvQueue.length) return;
+  const L = lvQueue.shift(), rw = lvRewards(L), nx = nextReward(L);
+  const el = document.createElement("div"); el.className = "lvup";
+  el.innerHTML = `<div class="lvup-in"><div class="lvup-burst"></div><div class="lvup-n"><span>LEVEL</span><b>${L}</b></div><h3>Level up!</h3>
+    ${rw.length ? `<div class="lvr-list">${rw.map(r => rewardHTML(r, L)).join("")}</div>` : `<p class="muted">Keep going: ${nx ? `the next reward comes at <b>level ${nx.L}</b>.` : "you've reached the top."}</p>`}
+    <button class="btn go big" data-lvok style="width:100%;margin-top:14px">${lvQueue.length ? "Next" : "Nice!"}</button></div>`;
+  document.body.appendChild(el); Sound.cheer(L % 10 === 0 ? 4 : 3);
+  const close = () => { el.classList.add("out"); setTimeout(() => { el.remove(); lvNext(); }, 260); };
+  el.querySelector("[data-lvok]").onclick = close;
+  el.querySelectorAll("[data-eq]").forEach(b => b.onclick = () => { S.avatar = Object.assign({}, S.avatar || {}, {frame: b.dataset.eq}); save(); renderRail(); if (typeof renderTop === "function") renderTop(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); b.textContent = "Wearing ✓"; b.disabled = true; });
+  el.querySelectorAll("[data-ti]").forEach(b => b.onclick = () => { S.title = b.dataset.ti; save(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); b.textContent = "Using ✓"; b.disabled = true; });
+}
+/* the one-time hello for people who already played before levels existed */
+setTimeout(() => { brainLvInit(); if (S.lvlWelcome === 1){ S.lvlWelcome = 2; save();
+  if (typeof Notify !== "undefined") Notify.show({key: "lvwelcome", icon: `<span class="lvchip big">${playerLevel()}</span>`, label: "New: Levels", title: `You're level ${playerLevel()}!`, text: "Counted from everything you've played. Every level up brings a border, a title or a colour.", ms: 7000, actions: [{label: "See", primary: true, fn: () => App.go("me")}]}); } }, 2500);
+
+/* ---- the level borders ---- */
+const LVF = {
+  lvwood:     {a: "#b07a45", b: "#6e4523", dk: "#3d2410", w: 7},
+  lvcopper:   {a: "#f0a36b", b: "#a3532a", dk: "#55260f", w: 7, rivets: 4},
+  lvlaurel:   {a: "#cfd6c4", b: "#7b8a6a", dk: "#2f3a24", w: 6, laurel: "#5fae4e", laurelDk: "#2b5e22"},
+  lvsteel:    {a: "#e4e9ef", b: "#7f8894", dk: "#33383f", w: 8, rivets: 8},
+  lvsilver:   {a: "#ffffff", b: "#9aa4b0", dk: "#4a525c", w: 7, laurel: "#dfe5ec", laurelDk: "#6f7a86"},
+  lvgold:     {a: "#ffe58a", b: "#c9921c", dk: "#6b4a07", w: 8, laurel: "#ffd34a", laurelDk: "#8a5f08", star: 1},
+  lvsapphire: {a: "#9fd0ff", b: "#1f4fbf", dk: "#0d2463", w: 8, gems: "#3f8cff"},
+  lvruby:     {a: "#ffe58a", b: "#c9921c", dk: "#6b4a07", w: 8, gems: "#e0234e", crown: 1},
+  lvamethyst: {a: "#e7c6ff", b: "#7b3fc4", dk: "#3a1466", w: 8, gems: "#b56bff", glow: "#b56bff"},
+  lvwings:    {a: "#fff0a8", b: "#d49a1c", dk: "#6b4a07", w: 8, wings: 1, glow: "#ffd34a", gems: "#ffffff"},
+  lvcelestial:{a: "#ffffff", b: "#7b5cff", dk: "#241a5c", w: 9, wings: 1, glow: "#9fe8ff", rainbow: 1, stars: 1, crown: 1},
+  recruit:    {a: "#8ff0d8", b: "#1d8f7a", dk: "#0b3d34", w: 7, gems: "#ffd34a", banner: 1},
+};
+function levelFrameSVG(id, lv, compact){
+  const F = LVF[id]; if (!F) return {back: "", front: ""};
+  const u = "l" + Math.random().toString(36).slice(2, 7), sw = compact ? Math.max(5, F.w - 1) : F.w;
+  const defs = `<linearGradient id="g${u}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${F.a}"/><stop offset=".55" stop-color="${F.b}"/><stop offset="1" stop-color="${F.a}"/></linearGradient>
+    ${F.rainbow ? `<linearGradient id="r${u}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9be0"/><stop offset=".33" stop-color="#ffe58a"/><stop offset=".66" stop-color="#9fe8ff"/><stop offset="1" stop-color="#b98cff"/></linearGradient>` : ""}
+    ${F.glow ? `<radialGradient id="h${u}"><stop offset=".55" stop-color="${F.glow}" stop-opacity=".55"/><stop offset="1" stop-color="${F.glow}" stop-opacity="0"/></radialGradient>` : ""}`;
+  const stroke = F.rainbow ? `url(#r${u})` : `url(#g${u})`;
+  let back = "", front = "";
+  if (!compact){
+    if (F.glow) back += `<circle cx="50" cy="50" r="86" fill="url(#h${u})"/>`;
+    if (F.wings){ const wing = s => `<g transform="translate(${s > 0 ? 98 : 2} 44) scale(${s * 1.05} 1.05)">${[0, 1, 2, 3].map(i => `<path d="M0 ${-6 + i * 7} C14 ${-16 + i * 6} 30 ${-22 + i * 9} ${44 - i * 7} ${-26 + i * 12} C${30 - i * 5} ${-8 + i * 9} 14 ${2 + i * 6} 0 ${8 + i * 6}Z" fill="${i % 2 ? F.a : F.b}" stroke="${F.dk}" stroke-width="1.2"/>`).join("")}</g>`; back += wing(1) + wing(-1); }
+    if (F.stars) back += [[-20, 8], [118, 14], [112, 96], [-14, 92], [50, -28]].map(([x, y], i) => `<path class="cr-spark" style="animation-delay:${i * .4}s" d="M${x} ${y - 6} L${x + 1.5} ${y - 1.5} L${x + 6} ${y} L${x + 1.5} ${y + 1.5} L${x} ${y + 6} L${x - 1.5} ${y + 1.5} L${x - 6} ${y} L${x - 1.5} ${y - 1.5}Z" fill="#fff"/>`).join("");
+  }
+  /* the ring itself */
+  front += `<circle cx="50" cy="50" r="${50 - sw / 2 + 1}" fill="none" stroke="${stroke}" stroke-width="${sw}"/><circle cx="50" cy="50" r="${50 - sw + 1.2}" fill="none" stroke="${F.dk}" stroke-width="1"/><circle cx="50" cy="50" r="50.5" fill="none" stroke="${F.dk}" stroke-width="1"/>`;
+  if (id === "lvwood") front += [30, 75, 140, 200, 260, 320].map(a => `<path d="M50 ${2 + sw * .2} q3 ${sw * .3} 0 ${sw * .6}" stroke="${F.dk}" stroke-width=".9" fill="none" opacity=".6" transform="rotate(${a} 50 50)"/>`).join("");
+  if (F.rivets) front += Array.from({length: F.rivets}, (_, i) => `<circle cx="50" cy="${1 + sw / 2}" r="${compact ? 1.6 : 2}" fill="${F.a}" stroke="${F.dk}" stroke-width=".8" transform="rotate(${i * 360 / F.rivets + 22.5} 50 50)"/>`).join("");
+  /* laurel: two branches climbing up both sides, leaves lying along the ring */
+  if (F.laurel && !compact){ const leaf = (a, s, o) => `<ellipse cx="50" cy="${o}" rx="2.8" ry="7" fill="${F.laurel}" stroke="${F.laurelDk}" stroke-width=".9" transform="rotate(${a} 50 50) rotate(${s * 62} 50 ${o})"/>`;
+    front += [100, 118, 136, 154, 172].map((a, i) => leaf(a, -1, -4) + leaf(a + 8, 1, 4.5) + leaf(-a, 1, -4) + leaf(-a - 8, -1, 4.5)).join(""); }
+  if (F.gems) front += [0, 60, 120, 180, 240, 300].map(a => `<path d="M50 ${-2 + sw / 2} l3.6 3.6 -3.6 3.6 -3.6 -3.6Z" fill="${F.gems}" stroke="${F.dk}" stroke-width=".9" transform="rotate(${a + 30} 50 50)"/>`).join("");
+  if (F.star && !compact) front += `<path d="M50 -14 L53.5 -5 L63 -5 L55.5 1 L58.5 10 L50 4.5 L41.5 10 L44.5 1 L37 -5 L46.5 -5Z" fill="${F.a}" stroke="${F.dk}" stroke-width="1.2"/>`;
+  if (F.crown && !compact) front += `<g transform="translate(50 -6)"><path d="M-16 6 L-18 -10 L-8 -2 L0 -14 L8 -2 L18 -10 L16 6Z" fill="url(#g${u})" stroke="${F.dk}" stroke-width="1.4"/><circle cx="0" cy="-2" r="2.6" fill="${F.gems || "#e0234e"}" stroke="${F.dk}" stroke-width=".8"/></g>`;
+  if (F.banner && !compact) front += `<g transform="translate(50 -9)"><path d="M-20 -6 H20 L16 0 L20 6 H-20 L-16 0Z" fill="url(#g${u})" stroke="${F.dk}" stroke-width="1.2"/><path d="M0 -4 L1.4 -1.2 L4.4 -1.2 L2 .8 L2.9 3.8 L0 2 L-2.9 3.8 L-2 .8 L-4.4 -1.2 L-1.4 -1.2Z" fill="#fff"/></g>`;
+  /* the level plate at the bottom */
+  if (lv) front += `<g transform="translate(50 ${compact ? 99 : 101})"><rect x="${compact ? -15 : -13}" y="${compact ? -10 : -9}" width="${compact ? 30 : 26}" height="${compact ? 20 : 18}" rx="${compact ? 10 : 9}" fill="${F.dk}" stroke="${F.a}" stroke-width="2"/><text x="0" y="${compact ? 5.5 : 5}" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="${compact ? 15 : 13}" fill="#fff">${lv}</text></g>`;
+  const sv = (cls, body) => `<svg class="${cls} avf-lv ${compact ? "cmp" : ""}" viewBox="-60 -60 220 220" aria-hidden="true">${body}</svg>`;
+  return {back: back ? sv("avf-b", `<defs>${defs}</defs>${back}`) : "", front: sv("avf", `<defs>${defs}</defs>${front}`)};
+}
+/* avatars wearing a level border: same picture, our ring around it, with the player's level on the plate */
+{ const base = avatarBadge;
+  avatarBadge = function(cfg, size = 36, rating){
+    const a = Object.assign({}, AV_DEFAULT, cfg || {});
+    if (!LV_FRAME_IDS.has(a.frame)) return base(cfg, size, rating);
+    /* your own figure (wardrobe previews included) carries no rating or level of its own; friends' figures do */
+    const mine = !cfg || cfg === S.avatar || (cfg._r == null && cfg._lv == null);
+    const lv = a._lv || (mine ? playerLevel() : 0), d = Math.round(size), compact = size < 52, F = levelFrameSVG(a.frame, lv, compact);
+    const r = rating != null ? rating : a._r != null ? a._r : (mine ? S.puzzle.r : null), fi = frameTier(Object.assign({}, a, {frame: "auto"}), r);
+    return `<span class="avb avb-lv" style="width:${d}px;height:${d}px">${F.back}<span class="avb-c">${Av3D.tag(Object.assign({}, a, {aura: "none", pet: "none"}), {w: d, h: d, mode: "bust", tier: avTier(cfg), rank: fi, fb: avatarSVG(Object.assign({}, a, {aura: "none"}), {head: true, size: d})})}</span>${F.front}</span>`;
+  };
+}
+/* ---- referral trophies: a friend you invited joined, became your friend and played you ---- */
+[[1, 3, "Recruiter"], [3, 4, "Talent Scout"], [10, 5, "Club Founder"]].forEach(([n, t, nm]) => achDef("recruit-" + n, "friends", nm, `Invite ${n === 1 ? "a friend" : n + " friends"} with your link. Counts once they've accepted and played you.`, t, () => ((S.stat || {}).recruits || 0) >= n, () => [(S.stat || {}).recruits || 0, n]));
+if (typeof ACH_BY !== "undefined") ACH.forEach(a => { ACH_BY[a.id] = a; });
+
+/* ---- the level card for the profile and home ---- */
+function levelCardHTML(compact){
+  const s = lvOf(S.xp), nx = nextReward(s.L), pct = s.need ? Math.round(s.into / s.need * 100) : 100;
+  return `<div class="lvcard ${compact ? "cmp" : ""}"><span class="lvchip">${s.L}</span><div class="grow"><div class="lvc-h"><b>Level ${s.L}</b><span class="muted">${esc(myTitle())}</span><span class="lvc-x">${s.need ? `${s.into} / ${s.need} XP` : "Max level"}</span></div>
+    <div class="bar lvbar"><i style="width:${pct}%"></i></div>${nx && !compact ? `<div class="dim lvc-n">Next reward at level ${nx.L}: <b>${esc(nx.r.name)}</b>${nx.r.kind === "frame" ? " border" : nx.r.kind === "title" ? " title" : " colour"}</div>` : ""}</div></div>`;
+}
+/* choose which of your titles shows under your name */
+function titleSheet(done){
+  const L = playerLevel(), cur = myTitle();
+  const sh = detailSheet(`<div style="font:900 20px var(--display)">Your title</div><p class="muted" style="margin:4px 0 12px">Shown under your name, also to your friends. New titles come with levels.</p>
+    <div class="ttl-list">${LV_TITLES.map(([n, t]) => n <= L ? `<button class="ttl ${t === cur ? "on" : ""}" data-t="${esc(t)}"><b>${esc(t)}</b>${t === cur ? "<span>✓</span>" : ""}</button>` : `<div class="ttl lock"><b>${esc(t)}</b><span>Level ${n}</span></div>`).join("")}</div>`);
+  sh.el.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { S.title = b.dataset.t; save(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); sh.close(); if (done) done(); });
+}
+/* the road of rewards and how to earn XP */
+function levelSheet(){
+  const L = playerLevel(), rows = [];
+  for (let k = 2; k <= LV_CAP && rows.length < 14; k++){ const r = lvRewards(k); if (!r.length || k < L - 3) continue; rows.push([k, r]); }
+  const lab = r => r.kind === "frame" ? `${esc(r.name)} border` : r.kind === "title" ? `Title “${esc(r.name)}”` : `<i class="lvr-sw sm" style="background:${r.hex}"></i>${esc(r.name)} colour`;
+  detailSheet(`${levelCardHTML()}
+    <div class="h-sec" style="margin-top:14px">Rewards</div><div class="lvroad">${rows.map(([k, r]) => `<div class="lvrow ${k <= L ? "got" : ""}"><span class="lvchip ${k <= L ? "" : "off"}">${k}</span><div class="grow">${r.map(lab).join(" · ")}</div>${k <= L ? "✓" : ""}</div>`).join("")}</div>
+    <div class="h-sec">How to earn XP</div><div class="lvhow">
+      <div><b>+${XP.puzzle}</b> solved puzzle <span class="dim">(+${XP.puzzleMiss} for trying)</span></div><div><b>+${XP.game}</b> game played, <b>+${XP.win}</b> more for a win</div>
+      <div><b>+100</b> new lesson</div><div><b>+${XP.daily}</b> daily puzzle</div><div><b>+${XP.flame}</b> lighting your flame</div><div><b>+${XP.review}</b> reviewing a game</div>
+      <div><b>+20 to +120</b> each trophy</div><div><b>+${XP.recruit}</b> each friend you invite who plays you</div></div>`);
+}
+
 /* ===== Your figure: wardrobe first (every item is a trophy reward), trophies second ===== */
 /* the wardrobe: who you are first (body, hair, face), then what you wear, then what you've earned */
 const WGROUPS = [
@@ -6154,6 +6374,7 @@ function itemReqShort(it){
   if (!it.req) return "";
   if (it.req.startsWith("n:")) return it.req.slice(2) + " trophies";
   if (it.req.startsWith("r:")) return it.req.slice(2) + " puzzle rating";
+  if (it.req.startsWith("l:")) return "Level " + it.req.slice(2);
   const a = achById(it.req.slice(2)); return a ? a.desc.replace(/\.$/, "") : "Locked";
 }
 function achProg(a){ if (!a || !a.prog) return null; try { const [c, g] = a.prog(); return {c: Math.min(c, g), g, p: Math.max(0, Math.min(1, c / g))}; } catch(e) { return null; } }
@@ -7398,7 +7619,7 @@ Views.friend = {
       const cat = tcCat(s.tc), oppRt = o && o.presence && o.presence.rt && o.presence.rt[cat];
       s.rating = cat && oppRt && s.moves.length >= 2 ? rateGame(cat, oppRt, win ? 1 : draw ? .5 : 0, {opp: oppName}) : null;
       const rec = {id: Date.now().toString(36), mode: "friend", opp: oppName, oppR: o ? o.presence.rating : null, color: s.seat, result: s.result.res, why: s.result.why, pgn, ts: Date.now(), moves: s.moves.length, tc: s.tc, rated: !!s.rating, rdelta: s.rating ? s.rating.delta : null};
-      dayTick("gm"); S.games.push(rec); save(); logEvent("game", {opponent: oppName, mode: "friend", color: s.seat, result: s.result.res, why: s.result.why, pgn, moves: s.moves.length, timeControl: tcLabel(s.tc || [0,0])});
+      dayTick("gm"); S.games.push(rec); save(); if (s.moves.length >= 4) addXP(XP.game + (win ? XP.win : 0)); logEvent("game", {opponent: oppName, mode: "friend", color: s.seat, result: s.result.res, why: s.result.why, pgn, moves: s.moves.length, timeControl: tcLabel(s.tc || [0,0])});
       Sound.play(draw ? "GenericNotify" : win ? "Victory" : "Defeat", .8);
       this.board.cancelPremove();
       this.endCard(nickOf(o && o.by, oppName));
@@ -7784,6 +8005,7 @@ Views.home = {
         <div class="bar lpbar hr-bar"><i style="width:${Math.round(rk.pct * 100)}%"></i></div>
         <div class="dim hr-sub">${rk.next ? "Next: " + esc(rk.next) + " at " + rk.nextAt + " · " : ""}better than ${betterThan(S.puzzle.r)}% of players</div>
         <button class="hr-flame" data-go="puzzles">${flameChip("big")}<span><b>${flameCount() ? flameCount() + "-day flame" : "Light your flame"}</b><small>${flameLitToday() ? "Lit today. Come back tomorrow." : `Play ${FLAME_GOAL - flameToday()} more puzzle${FLAME_GOAL - flameToday() === 1 ? "" : "s"} today${flameCount() ? " to keep it" : ""}`}${flameShields() ? ` <span class="fl-sh">${SHIELD_SVG}${flameShields()}</span>` : flameCount() ? ` <span class="fl-sh off">Shield at ${(Math.floor(flameCount() / 7) + 1) * 7} days</span>` : ""}</small></span><i class="hr-fdots">${[0, 1, 2].map(i => `<i class="${i < flameToday() ? "on" : ""}"></i>`).join("")}</i></button>
+        <button class="hr-lv" data-go="me" aria-label="Your level">${levelCardHTML(true)}</button>
         <div class="hr-goal"><span>Journey to 1600</span><div class="bar sm"><i style="width:${Math.round(pct * 100)}%"></i></div><b>${Math.round(pct * 100)}%</b></div>
       </div>
       <div class="unit" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><div style="min-width:180px"><div class="muted" style="font-weight:800;font-size:13px;letter-spacing:.06em">TODAY'S PLAN</div><div style="font:900 22px var(--display)">${planDone() ? "Done for today ✓" : PLAN.filter(([k, n]) => planVal(k) >= n).length + " of " + PLAN.length}</div><div class="dim" style="font-size:12.5px">${icon("flame", 14)} ${S.plan.streak} day streak · best ${S.plan.best}</div></div>
@@ -7917,7 +8139,7 @@ function friendsPending(){ if (typeof Social === "undefined" || !Social.me) retu
 /* phones: you on the left, your rank in the middle, friends on the right */
 function renderTop(){
   const t = $("#mtop"); if (!t) return; const rk = rankOf(S.puzzle.r), on = friendsOnline(), inc = friendsPending() + (typeof Chat !== "undefined" ? Chat.total() : 0);
-  t.innerHTML = `<button class="mt-me" data-r="me" aria-label="Your profile">${avatarBadge(myAvatar(), 36)}</button>
+  t.innerHTML = `<button class="mt-me" data-r="me" aria-label="Your profile">${avatarBadge(myAvatar(), 36)}${LV_FRAME_IDS.has(myAvatar().frame) ? "" : `<span class="lvchip sm">${playerLevel()}</span>`}</button>
     <button class="mt-rank" data-r="me" aria-label="Your rank">${crestSVG(rk.idx, "", 36)}<span class="mt-t"><b>${esc(rk.label)}</b><span class="mt-lp"><i style="width:${Math.round(rk.pct * 100)}%"></i></span><small>${rk.lp} LP · ${S.puzzle.r}</small></span></button>
     <button class="mt-fl" data-r="puzzles" aria-label="Your flame">${flameChip()}</button>
     ${Views.friends ? `<button class="mt-fr mt-more" id="mtmore" aria-label="More">${icon("more", 26)}<small>More</small></button>` : `<button class="mt-fr ${App.route === "friends" ? "on" : ""}" data-r="${typeof Chat !== "undefined" && Chat.total() ? "chat" : "friends"}" aria-label="Friends">${icon("users", 24)}${inc ? `<span class="badge">${inc}</span>` : on ? `<span class="odot on"></span>` : ""}<small>Friends</small></button>`}`;
@@ -7929,7 +8151,7 @@ function renderTop(){
 /* desktop rail: who you are sits at the top now */
 function railMe(){
   const rk = rankOf(S.puzzle.r), cur = App.route;
-  return `<button class="railme ${cur === "me" ? "on" : ""}" data-r="me"><span class="rm-av">${avatarBadge(myAvatar(), 46)}${flameChip("rmf")}</span><span class="rm-t"><b>${esc(S.name && S.name !== "You" ? S.name : "You")}</b><span class="rm-rk">${crestSVG(rk.idx, "", 20)}${esc(rk.label)} · ${rk.lp} LP</span></span></button>`;
+  return `<button class="railme ${cur === "me" ? "on" : ""}" data-r="me"><span class="rm-av">${avatarBadge(myAvatar(), 46)}${LV_FRAME_IDS.has(myAvatar().frame) ? "" : `<span class="lvchip sm">${playerLevel()}</span>`}${flameChip("rmf")}</span><span class="rm-t"><b>${esc(S.name && S.name !== "You" ? S.name : "You")}</b><span class="rm-rk">${crestSVG(rk.idx, "", 20)}${esc(rk.label)} · ${rk.lp} LP</span></span></button>`;
 }
 Views.me = {
   mount(main){
@@ -7940,10 +8162,12 @@ Views.me = {
       <div class="mehero"><button class="wstage mestage" id="mest" aria-label="Open the wardrobe"></button>
         <div class="meinfo">
           <div class="wname">${esc(S.name && S.name !== "You" ? S.name : "You")}</div>
+          <button class="me-title" id="metitle" title="Choose your title">${esc(myTitle())} ${icon("pen", 13)}</button>
           <div class="muted" style="font-weight:700">${handle ? esc(handle) : sess ? "No player ID yet" : "Playing without an account"}</div>
           <div class="row" style="gap:6px;margin-top:8px"><span class="pill go">${esc(cls.name)}</span><span class="pill">${esc(BODY_TIERS[tier].name)} body</span><span class="pill">${n} trophies</span></div>
         </div></div>
       <div class="merank">${crestSVG(rk.idx, rk.div, 76)}<div class="grow"><div class="mr-l">${esc(rk.label)}</div><div class="mr-lp"><b>${rk.lp} LP</b><span class="muted">${S.puzzle.r} puzzle rating</span></div><div class="bar lpbar"><i style="width:${Math.round(rk.pct * 100)}%"></i></div><div class="dim" style="font-size:12px;margin-top:3px">${rk.next ? "Next: " + esc(rk.next) + " at " + rk.nextAt : "Top of the ladder"} · better than ${betterThan(S.puzzle.r)}%</div></div></div>
+      <button class="me-lv" id="melv" aria-label="Your level and rewards">${levelCardHTML()}</button>
       <div class="mebtns">
         <button class="mb" data-go="awards" data-tab="wardrobe">${icon("user", 26)}<b>Wardrobe</b><small>Dress your figure</small></button>
         <button class="mb" data-go="awards" data-tab="trophies">${icon("trophy", 26)}<b>Trophies</b><small>${n} of ${ACH.length}</small></button>
@@ -7962,6 +8186,8 @@ Views.me = {
     /* tap your figure: straight into the wardrobe (a drag only turns it) */
     { const st = $("#mest"); let x0 = 0, y0 = 0; st.addEventListener("pointerdown", e => { x0 = e.clientX; y0 = e.clientY; }); st.onclick = e => { if (Math.hypot(e.clientX - x0, e.clientY - y0) > 8) return; App.go("awards", {tab: "wardrobe"}); }; }
     $$("[data-go]", main).forEach(b => b.onclick = () => App.go(b.dataset.go, b.dataset.tab ? {tab: b.dataset.tab} : undefined));
+    if ($("#metitle")) $("#metitle").onclick = () => titleSheet(() => this.mount(main));
+    if ($("#melv")) $("#melv").onclick = () => levelSheet();
     const mi = $("#meinst"); if (mi) mi.onclick = () => ChessInstall.run();
     this.friends(); this.push();
   },
@@ -8003,7 +8229,7 @@ function flameCelebrate(n, shield){
       const fl = flameState(); fl.n = fl.last === yesterdayKey() ? fl.n + 1 : 1; fl.best = Math.max(fl.best || 0, fl.n); fl.last = todayKey();
       /* every 7 days in a row earns a shield (max 2): it covers one missed day */
       const earn = fl.n % 7 === 0 && (fl.fz || 0) < 2; if (earn) fl.fz = (fl.fz || 0) + 1;
-      setTimeout(() => flameCelebrate(fl.n, earn), 700); updateBadge(); if (typeof renderTop === "function") renderTop();
+      setTimeout(() => flameCelebrate(fl.n, earn), 700); if (typeof addXP === "function") setTimeout(() => addXP(XP.flame), 3400); updateBadge(); if (typeof renderTop === "function") renderTop();
       if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard();
     }
   };
@@ -8179,12 +8405,29 @@ const Social = (() => {
     beat(); setInterval(beat, 60000); document.addEventListener("visibilitychange", () => { if (!document.hidden) beat(); hereLoop(); });
     window.addEventListener("pagehide", () => here(false)); hereLoop();
     listen(); setInterval(pollInvites, 30000); pollInvites();
+    /* now and then (at most weekly, four times in all) a friendly nudge to invite someone */
+    setTimeout(() => { const nag = S.invNag || {n: 0, ts: 0}; if (!player || !player.handle || (S.stat || {}).recruits || nag.n >= 4 || Date.now() - nag.ts < 7 * 864e5 || document.hidden || (S.puzzle.n || 0) < 5) return;
+      S.invNag = {n: nag.n + 1, ts: Date.now()}; save();
+      Notify.show({key: "invnag", icon: typeof achMedal === "function" && typeof achById === "function" && achById("recruit-1") ? achMedal(achById("recruit-1"), 44, true) : icon("users", 28), label: "Invite friends", title: "Bring a friend, win a trophy", text: "When they join with your link and play you, you get the Recruiter trophy and +500 XP.", ms: 9000, actions: [{label: "Later"}, {label: "Invite", primary: true, fn: () => shareInvite()}]}); }, 25000);
   }
   async function ensurePlayer(){
     const {data, error} = await sb.from("chess_players").select("*").eq("id", me).maybeSingle();
     if (error) return null;
     if (data){ player = data; D.players[me] = data; if (S.name === "You" || !S.name){ S.name = data.name; save(); if (typeof renderRail === "function") renderRail(); } return data; }
     return null;
+  }
+  /* invite links: chess-nat.vercel.app/?ref=<player id>. The link is remembered until this person creates a player. */
+  const REF_KEY = "chessnat-ref";
+  try { const r = new URLSearchParams(location.search).get("ref"); if (r && /^[a-z0-9_]{3,20}$/i.test(r)) localStorage.setItem(REF_KEY, r.toLowerCase()); } catch(e) {}
+  async function refId(){ let h = null; try { h = localStorage.getItem(REF_KEY); } catch(e) {} if (!h || !sb) return null;
+    const {data} = await sb.from("chess_players").select("id").eq("handle", h).maybeSingle(); try { localStorage.removeItem(REF_KEY); } catch(e) {}
+    return data && data.id !== me ? data.id : null; }
+  function inviteLink(){ return location.origin + "/?ref=" + encodeURIComponent((player && player.handle) || ""); }
+  async function shareInvite(){
+    if (!player || !player.handle){ requireId && requireId(); return; }
+    const url = inviteLink(), text = `Play chess with me on Chess.nat! My ID is @${player.handle}.`;
+    try { if (navigator.share){ await navigator.share({title: "Chess.nat", text, url}); return; } } catch(e){ if (e && e.name === "AbortError") return; }
+    try { await navigator.clipboard.writeText(text + " " + url); toast("Invite link copied. Send it to a friend!", 3000); } catch(e){ prompt("Copy your invite link:", url); }
   }
   /* the player ID: unique, lowercase, used to find an account */
   const cleanHandle = h => String(h || "").trim().replace(/^@/, "").toLowerCase();
@@ -8195,7 +8438,9 @@ const Social = (() => {
     name = String(name || "").trim().slice(0, 24); handle = cleanHandle(handle);
     if (name.length < 2) return {error: "Your name needs at least 2 characters."};
     if (!handleOk(handle)) return {error: "The ID needs 3 to 20 characters: letters a–z, numbers or _."};
-    const {data, error} = await sb.from("chess_players").insert({id: me, name, handle, rating: S.puzzle.r, avatar: myAvatar(), trophies: typeof achCount === "function" ? achCount() : 0}).select().single();
+    const ref = await refId();
+    const {data, error} = await sb.from("chess_players").insert(Object.assign({id: me, name, handle, rating: S.puzzle.r, avatar: myAvatar(), trophies: typeof achCount === "function" ? achCount() : 0}, ref ? {referred_by: ref} : {})).select().single();
+    if (!error && ref) setTimeout(() => request(ref).catch(() => {}), 800);
     if (error) return {error: /handle/.test(error.message) ? "That ID is already taken. Try another one." : /name/.test(error.message) && /duplicate|unique/i.test(error.message) ? "That name is already taken. Try another one." : error.message};
     player = data; D.players[me] = data; S.name = data.name; save(); if (typeof renderRail === "function") renderRail(); beat(); return {player: data};
   }
@@ -8239,14 +8484,15 @@ const Social = (() => {
     name = String(name || "").trim().slice(0, 24); if (name.length < 2) return {error: "Use at least 2 characters."};
     for (let i = 0; i < (retry ? 4 : 1); i++){
       const n = i ? name.slice(0, 21) + Math.floor(10 + Math.random() * 90) : name;
-      const q = player ? sb.from("chess_players").update({name: n}).eq("id", me).select().single() : sb.from("chess_players").insert({id: me, name: n, rating: S.puzzle.r}).select().single();
+      const ref = player ? null : await refId();
+      const q = player ? sb.from("chess_players").update({name: n}).eq("id", me).select().single() : sb.from("chess_players").insert(Object.assign({id: me, name: n, rating: S.puzzle.r}, ref ? {referred_by: ref} : {})).select().single();
       const {data, error} = await q;
       if (!error){ player = data; D.players[me] = data; S.name = data.name; save(); if (typeof renderRail === "function") renderRail(); return {player: data}; }
       if (!/duplicate|unique/i.test(error.message)) return {error: error.message};
     }
     return {error: "That name is taken. Try another one."};
   }
-  const card = () => ({flame: typeof flameCount === "function" ? flameCount() : 0, flame_day: (S.flame && S.flame.last) || null, rating: S.puzzle.r, avatar: myAvatar(), trophies: typeof achCount === "function" ? achCount() : 0, ratings: typeof RATED_CATS !== "undefined" ? Object.fromEntries(RATED_CATS.filter(([k]) => (S.ratings || {})[k]).map(([k]) => [k, S.ratings[k].r])) : null});
+  const card = () => ({flame: typeof flameCount === "function" ? flameCount() : 0, flame_day: (S.flame && S.flame.last) || null, rating: S.puzzle.r, avatar: Object.assign({}, myAvatar(), typeof playerLevel === "function" ? {_lv: playerLevel(), _title: myTitle()} : {}), trophies: typeof achCount === "function" ? achCount() : 0, ratings: typeof RATED_CATS !== "undefined" ? Object.fromEntries(RATED_CATS.filter(([k]) => (S.ratings || {})[k]).map(([k]) => [k, S.ratings[k].r])) : null});
   function beat(){ if (!player || document.hidden) return; sb.from("chess_players").update(Object.assign({last_seen: new Date().toISOString()}, card())).eq("id", me).then(() => {}, () => {}); }
   /* "I'm in the app": while the app is on screen the server sends no phone notifications (the app shows its own cards).
      Every 25 s while visible; cleared as soon as the app goes to the background. */
@@ -8264,13 +8510,17 @@ const Social = (() => {
         sb.from("chess_gifts").select("from_id,to_id,created_at").order("created_at", {ascending: false}).limit(1000)]);
       D.friends = f.data || []; D.duels = d.data || []; D.gifts = g.data || [];
       const ids = new Set(); D.friends.forEach(r => { ids.add(r.a); ids.add(r.b); }); D.duels.forEach(r => { ids.add(r.white); ids.add(r.black); }); ids.delete(me);
-      if (ids.size){ const {data} = await sb.from("chess_players").select("id,name,handle,rating,last_seen,avatar,trophies,ratings").in("id", [...ids]); (data || []).forEach(p => { D.players[p.id] = p; }); }
+      if (ids.size){ const {data} = await sb.from("chess_players").select("id,name,handle,rating,last_seen,avatar,trophies,ratings,referred_by").in("id", [...ids]); (data || []).forEach(p => { D.players[p.id] = p; }); }
       loaded = Date.now(); loading = null;
       /* numbers for the friend trophies */
       const stg = standings(); S.stat = S.stat || {};
       S.stat.friends = Math.max(S.stat.friends || 0, D.friends.filter(r => r.status === "accepted").length);
       S.stat.caged = Math.max(S.stat.caged || 0, Object.values(stg).filter(o => o.cage === "mine").length);
       S.stat.hearts = Math.max(S.stat.hearts || 0, D.gifts.filter(g => g.from_id === me).length);
+      /* friends you invited who accepted and have played you at least once */
+      const rec = D.friends.filter(r => r.status === "accepted").map(r => r.a === me ? r.b : r.a).filter(id => (D.players[id] || {}).referred_by === me && stg[id] && (stg[id].w + stg[id].l + stg[id].d) > 0).length;
+      S.stat.recruits = Math.max(S.stat.recruits || 0, rec);
+      if (S.stat.recruits > (S.recruitPaid || 0) && typeof addXP === "function"){ const n = S.stat.recruits - (S.recruitPaid || 0); S.recruitPaid = S.stat.recruits; addXP(n * XP.recruit); }
       if (!S.stat.breakout){ const seq = {}; D.duels.slice().sort((x, y) => new Date(x.created_at) - new Date(y.created_at)).forEach(r => { if (r.result === "1/2-1/2") return; const opp = r.white === me ? r.black : r.white, iWon = (r.result === "1-0") === (r.white === me); if (iWon && seq[opp] === "lost") S.stat.breakout = 1; seq[opp] = iWon ? "won" : "lost"; }); }
       if (typeof Ach !== "undefined") Ach.soon();
     })().catch(() => { loading = null; });
@@ -8399,7 +8649,7 @@ const Social = (() => {
 
   /* the opponent has the app in the background: send "Your move" as a push (server checks friendship and rate) */
   async function nudge(id, code){ try { if (sb && me) await sb.rpc("nudge_turn", {target: id, code}); } catch(e) {} }
-  return {rename, nudge, requireId, autoId, create, setHandle, suggestHandle, cleanHandle, syncCard, start, load, setName, request, accept, remove, heart, invite, gameOver, friendChip, wire, cages, standings, rel, P, seen, isOnline, face, dot,
+  return {shareInvite, inviteLink, rename, nudge, requireId, autoId, create, setHandle, suggestHandle, cleanHandle, syncCard, start, load, setName, request, accept, remove, heart, invite, gameOver, friendChip, wire, cages, standings, rel, P, seen, isOnline, face, dot,
     get me(){ return me; }, get player(){ return player; }, get data(){ return D; }, sb};
 })();
 
@@ -8426,10 +8676,11 @@ Views.friends = {
     const other = r => r.a === me.id ? r.b : r.a;
     const friends = D.friends.filter(r => r.status === "accepted").map(other).sort((x, y) => (Social.isOnline(Social.P(y)) - Social.isOnline(Social.P(x))) || Social.P(x).name.localeCompare(Social.P(y).name));
     const incoming = D.friends.filter(r => r.status === "pending" && r.requested_by !== me.id).map(other), sent = D.friends.filter(r => r.status === "pending" && r.requested_by === me.id).map(other);
-    const person = (id, right) => { const p = Social.P(id), o = st[id], fr = friends.includes(id); return `<div class="li fr">${Social.face(p, 42)}<div class="grow"><div class="t">${Social.dot(p)}${esc(p.name)}${fr ? `<button class="nk-ed" data-nk="${id}" aria-label="Give ${esc(p.name)} a name" title="Give them a name only you see">${icon("pen", 14)}</button>` : ""}${p.rating ? ` <span class="muted">(${p.rating})</span>` : ""}</div><div class="s">${p.realName ? `${esc(p.realName)} · ` : ""}${p.handle ? `@${esc(p.handle)} · ` : ""}${p.ratings && p.ratings.blitz ? `Blitz ${p.ratings.blitz} · ` : ""}${esc(Social.seen(p))}${o ? ` · score ${o.w}:${o.l}${o.cage === "mine" ? " · 🔒 in your cage" : o.cage === "theirs" ? " · you're in their cage" : ""}` : ""}</div></div>${right}</div>`; };
+    const person = (id, right) => { const p = Social.P(id), o = st[id], fr = friends.includes(id); return `<div class="li fr">${Social.face(p, 42)}<div class="grow"><div class="t">${Social.dot(p)}${esc(p.name)}${fr ? `<button class="nk-ed" data-nk="${id}" aria-label="Give ${esc(p.name)} a name" title="Give them a name only you see">${icon("pen", 14)}</button>` : ""}${p.rating ? ` <span class="muted">(${p.rating})</span>` : ""}</div><div class="s">${p.avatar && p.avatar._lv ? `Lv ${p.avatar._lv}${p.avatar._title ? " " + esc(p.avatar._title) : ""} · ` : ""}${p.realName ? `${esc(p.realName)} · ` : ""}${p.handle ? `@${esc(p.handle)} · ` : ""}${p.ratings && p.ratings.blitz ? `Blitz ${p.ratings.blitz} · ` : ""}${esc(Social.seen(p))}${o ? ` · score ${o.w}:${o.l}${o.cage === "mine" ? " · 🔒 in your cage" : o.cage === "theirs" ? " · you're in their cage" : ""}` : ""}</div></div>${right}</div>`; };
     const TCS = [1, 3, 5, 10, 15], inc = S.invInc !== false; this.tc = [this.tc[0], inc ? 2 : 0]; S.invTc = this.tc.slice();
     main.innerHTML = `<div class="page" style="max-width:760px"><h1 class="h-title">Friends</h1>
       <div class="unit" style="margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">${Social.face(me, 54)}<div style="flex:1;min-width:180px"><div class="muted" style="font-size:12px;font-weight:800;letter-spacing:.06em">YOUR PLAYER CARD</div>${this.renaming ? `<form id="rnf" style="display:flex;flex-direction:column;gap:6px;margin-top:4px"><input type="text" id="rnv" maxlength="24" value="${esc(me.name)}" placeholder="Name"><div class="hdl-in ${me.handle_changes >= 1 ? "locked" : ""}"><span>@</span><input type="text" id="rnh" maxlength="21" autocapitalize="off" spellcheck="false" value="${esc(me.handle)}" ${me.handle_changes >= 1 ? "disabled" : ""}></div><p class="dim" style="margin:0;font-size:12px">${me.handle_changes >= 1 ? "Your player ID is fixed. Your name you can change any time." : "You can change your player ID once. Your name any time."}</p><div class="row"><button class="btn sm go" type="submit">Save</button><button class="btn sm" type="button" id="rnx">Cancel</button></div></form><p id="rnerr" style="color:var(--bad);font-size:13px;margin:4px 0 0"></p>` : `<div style="font:900 22px var(--display)">${esc(me.name)}</div><div class="hdl">@${esc(me.handle)} <button class="btn sm ghost" id="cpid">Copy ID</button></div>`}</div>${this.renaming ? "" : `<button class="btn sm" id="ren">Change</button>`}</div>
+      <div class="unit invcard"><div class="inv-ic">${icon("users", 26)}</div><div class="grow"><h3>Invite friends</h3><p class="muted">Send your link. When a friend joins, accepts and plays you, you get the <b>Recruiter</b> trophy, its border and <b>+500 XP</b>.${(S.stat || {}).recruits ? ` You've brought <b>${S.stat.recruits}</b> so far.` : ""}</p></div><button class="btn go" id="invshare">${icon("send", 18)} Invite</button></div>
       <div class="unit"><h3>Add a friend</h3><form id="sf2" class="row" style="margin-top:8px"><input type="text" id="sq" placeholder="Player ID or name, e.g. @natlordlord" value="${esc(this.q)}" style="flex:1;min-width:160px"><button class="btn go" type="submit">Search</button></form><div id="sres"></div></div>
       ${incoming.length ? `<h2 class="h-sec">Friend requests</h2><div class="list">${incoming.map(id => person(id, `<button class="btn sm" data-rm="${id}">Decline</button><button class="btn sm go" data-acc="${id}">Accept</button>`)).join("")}</div>` : ""}
       <h2 class="h-sec" style="margin-top:16px">Your friends <span class="muted" style="font-weight:600">${friends.filter(id => Social.isOnline(Social.P(id))).length} online</span></h2>
@@ -8453,6 +8704,7 @@ Views.friends = {
     if ($("#inctog")) $("#inctog").onclick = () => { S.invInc = S.invInc === false; save(); this.draw(); };
     $$("[data-acc]", main).forEach(b => b.onclick = async () => { await Social.accept(b.dataset.acc); this.draw(); });
     $$("[data-rm]", main).forEach(b => b.onclick = async () => { await Social.remove(b.dataset.rm); this.draw(); });
+    if ($("#invshare")) $("#invshare").onclick = () => Social.shareInvite();
     $$("[data-nk]", main).forEach(b => b.onclick = e => { e.stopPropagation(); Social.rename(b.dataset.nk, () => this.draw()); });
     $$("[data-rmf]", main).forEach(b => b.onclick = async () => { if (!b.dataset.armed){ b.dataset.armed = 1; b.classList.add("armed"); b.innerHTML = "Remove?"; return; } await Social.remove(b.dataset.rmf); this.draw(); });
     $$("[data-inv]", main).forEach(b => b.onclick = () => Social.invite(b.dataset.inv, this.tc));
