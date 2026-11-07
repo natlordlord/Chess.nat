@@ -1294,6 +1294,14 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 .flame.rmf{position:absolute;right:-7px;bottom:-5px;gap:1px;padding:1px 5px 1px 3px;border-radius:999px;background:var(--panel-3);box-shadow:0 0 0 2px var(--panel-2)}
 .railme:hover .flame.rmf,.railme.on .flame.rmf{box-shadow:0 0 0 2px var(--panel-3)}
 .flame.rmf svg{width:13px;height:13px}.flame.rmf b{font-size:11px}
+/* training brain */
+.pzrev{background:rgba(124,196,255,.14);color:#9fd2ff;display:inline-flex;align-items:center;gap:6px}
+.pz-focus{display:flex;align-items:center;gap:6px;margin-bottom:8px;padding:6px 10px;border-radius:8px;background:rgba(255,179,71,.12);color:#ffc970;font-size:13px;font-weight:700}
+.pz-focus b{color:#fff}
+.pz-near{color:var(--go-hi)}
+.fl-sh{display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:1px 7px 1px 4px;border-radius:999px;background:rgba(124,196,255,.14);color:#9fd2ff;font-weight:800;vertical-align:middle}
+.fl-sh.off{background:none;padding:0;color:var(--muted);font-weight:600}
+.fc-s svg{vertical-align:-2px}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -1449,7 +1457,7 @@ const DEF = () => ({
   puzzle:{r:800, n:0, w:0, streak:0, best:0, peak:800, hist:[]},
   rush:{best3:0, best5:0, bestS:0, runs:[]},
   daily:{last:"", streak:0, best:0, done:{}},
-  themes:{}, failed:[], seen:[], recent:[],
+  themes:{}, failed:[], seen:[], recent:[], tperf:{}, srs:[],
   bots:{}, games:[], journey: {level: 1, best: {}}, lessons:{}, xp:0, h2h:{}, linkGames:{},
   day:{k:"", pz:0, ls:0, gm:0, rush:0, daily:0}, plan:{streak:0, best:0, last:""},
   settings:{sound:true, voice:true, coords:true, legal:true, autoNext:true, board:"green", anim:true, coach:false, threats:false, openings:true},
@@ -1491,6 +1499,9 @@ function mergeProgress(a, b){
   const pw = (pa.n || 0) > (pb.n || 0) ? a : (pb.n || 0) > (pa.n || 0) ? b : newer, po = pw === a ? b : a;
   m.puzzle = JSON.parse(JSON.stringify(pw.puzzle));
   m.themes = {}; new Set([...Object.keys(a.themes || {}), ...Object.keys(b.themes || {})]).forEach(k => { const x = (a.themes || {})[k], y = (b.themes || {})[k]; m.themes[k] = !x ? y : !y ? x : ((x.n || 0) >= (y.n || 0) ? x : y); });
+  m.tperf = JSON.parse(JSON.stringify(pw.tperf || {})); m.brainV = a.brainV || b.brainV;
+  { const sm = new Map(); [...(po.srs || []), ...(pw.srs || [])].forEach(x => { const o = sm.get(x.p[0]); if (!o || (x.st || 0) > (o.st || 0) || ((x.st || 0) === (o.st || 0) && x.due > o.due)) sm.set(x.p[0], x); }); m.srs = [...sm.values()]; }
+  m.brainG = [...new Set([...(a.brainG || []), ...(b.brainG || [])])].slice(-200);
   const seenW = new Set(pw.seen || []);
   m.seen = [...new Set([...(po.seen || []), ...(pw.seen || [])])];
   const fid = new Set((pw.failed || []).map(x => x[0]));
@@ -1684,8 +1695,7 @@ function varied(c){
   const phase = new Set(["opening", "middlegame", "endgame"].map(k => PZ.themeIdx[k]));
   const recentTh = new Set(S.recent.slice(-3).flatMap(r => r.th || []).filter(i => !phase.has(i)));
   let pool = c.filter(p => !p.th.some(i => recentTh.has(i))); if (pool.length < 3) pool = c;
-  if (Math.random() < .25){ const weak = Object.entries(S.themes).filter(([k, v]) => v.n >= 3 && PZ.themeIdx[k] != null).sort((a, b) => a[1].ok / a[1].n - b[1].ok / b[1].n)[0];
-    if (weak){ const wi = PZ.themeIdx[weak[0]]; const wp = pool.filter(p => p.th.includes(wi)); if (wp.length) return rnd(wp); } }
+  const w = brainWeakPick(pool); if (w) return w;
   return rnd(pool);
 }
 function themeLabel(i){ return PZ.themes[i] ? PZ.themes[i][1] : ""; }
@@ -2145,7 +2155,7 @@ function learnLink(p){ for (const i of p.th){ const k = PZ.themes[i] && PZ.theme
 function themeNames(p){ return p.th.map(themeLabel).filter(Boolean); }
 function recordThemes(p, ok){ dayTick("pz"); p.th.forEach(i => { const k = PZ.themes[i][0]; const t = S.themes[k] || (S.themes[k] = {n:0, ok:0}); t.n++; if (ok) t.ok++; }); }
 function markSeen(p){ S.seen.push(p.id); }
-function addFailed(p){ if (!S.failed.some(a => a[0] === p.id)) S.failed.push(encodeP(p)); }
+function addFailed(p){ if (!S.failed.some(a => a[0] === p.id)) S.failed.push(encodeP(p)); srsAdd(p); }
 function rmFailed(p){ S.failed = S.failed.filter(a => a[0] !== p.id); }
 function logPuzzle(mode, R, ok, delta){
   const p = R.p;
@@ -2173,7 +2183,7 @@ function sideToMoveText(c){ return c === "w" ? "White to move" : "Black to move"
 Views.puzzles = {
   mount(main){
     main.innerHTML = stageHTML();
-    const board = makeBoard($("#bw")); const V = this; V.board = board; V.session = []; V.firstLoad = true;
+    const board = makeBoard($("#bw")); const V = this; V.board = board; V.session = []; V.firstLoad = true; V.sinceRev = 2;
     $("#botbar").innerHTML = youBar();
     $("#topbar").innerHTML = `<span class="pill" id="pzinfo">Rated puzzle</span>`;
     V.R = PuzzleRunner(board, {
@@ -2194,12 +2204,16 @@ Views.puzzles = {
     clearTimeout(this.timer); this.R.stop();
     let p = null, resumed = false;
     try { if (Array.isArray(S.puzzle.cur)) { p = decodeP(S.puzzle.cur); resumed = true; } } catch(e) { p = null; }
+    this.review = resumed && !!S.puzzle.curRev;
+    /* a missed puzzle that is due comes back by itself, every few puzzles, not rated */
+    if (!p && this.sinceRev >= 3){ const due = srsDue()[0]; if (due){ p = decodeP(due.p); this.review = true; this.sinceRev = 0; S.puzzle.cur = due.p; S.puzzle.curRev = 1; save(); } }
     if (!p){
-      const target = S.puzzle.r + 25 + Math.round((Math.random() - .5) * 80);
+      this.review = false;
+      const target = brainTarget();
       p = await PZ.pick({target, spread: 50});
       if (!p || App.view !== this) return;
       if (Array.isArray(S.puzzle.cur)) { p = decodeP(S.puzzle.cur); resumed = true; }
-      else { S.puzzle.cur = encodeP(p); save(); }
+      else { S.puzzle.cur = encodeP(p); S.puzzle.curRev = 0; save(); }
     }
     if (App.view !== this) return;
     this.settled = false; this.delta = 0; this.resumed = resumed;
@@ -2210,7 +2224,10 @@ Views.puzzles = {
   },
   settle(ok, viaHint){
     if (this.settled) return; this.settled = true;
+    if (this.review) return this.settleReview(ok);
+    this.sinceRev++;
     const R = this.R, p = R.p, old = S.puzzle.r;
+    brainNote(p.th, ok, p.r, old, BR.focus && BR.focus.id === p.id ? 1.2 : 1);
     /* speed counts a little, along a square-root curve: solving in the expected time gives the normal points,
        quick solves up to +20 %, slow ones down to half. Misses are not affected. */
     const ms = R.elapsed(), T = (7 + 9 * Math.ceil(p.moves.length / 2)) * 1000;
@@ -2233,28 +2250,44 @@ Views.puzzles = {
     $("#botbar").innerHTML = youBar(); renderRail();
   },
   rankUp(b, a, up){ const o = this.board.overlay(`<div class="card-over"><div style="display:flex;justify-content:center;margin-bottom:8px">${emblem(a, 84)}</div><h3>${up ? "Promoted!" : "Demoted"}</h3><p>${esc(b.label)} → <b>${esc(a.label)}</b></p><button class="btn go wide" id="rkok">Keep going</button></div>`); if (up) Sound.play("Victory", .7); $("#rkok", o).onclick = () => this.board.overlay(null); },
+  /* a repeat from the review plan: no rating change, it just moves along the plan */
+  settleReview(ok){
+    const R = this.R, p = R.p;
+    S.puzzle.cur = null; S.puzzle.curRev = 0;
+    this.revRes = srsResult(p.id, ok); this.delta = 0;
+    recordThemes(p, ok); brainNote(p.th, ok, p.r, S.puzzle.r, .5);
+    this.session.push({ok, d: 0, r: p.r, rev: 1});
+    if (ok){ celebrate(this.board, {diff: 0, streak: 0, ms: R.elapsed()}, {sub: this.revRes && this.revRes.mastered ? "Mastered! It leaves your review list." : "Remembered!"}); } else this.board.float("again", true);
+    logPuzzle("review", R, ok, 0); save(); renderRail();
+  },
   panel(state){
     this.lastState = state;
     const R = this.R, p = R.p; const rk = rankOf(S.puzzle.r);
     { const rev = state === "solved" || state === "done" || state === "solution", show = rev || S.settings.showPzRating; const ti = $("#pzinfo");
-      if (ti && p){ ti.outerHTML = `<button class="pill pzr ${show ? "on" : ""}" id="pzinfo" data-pzr title="Tap to ${S.settings.showPzRating ? "hide" : "show"} the puzzle rating">Rated puzzle · ${show ? "<b>" + p.r + "</b>" : "rating hidden 👁"}</button>`; } }
+      if (ti && p){ ti.outerHTML = this.review ? `<span class="pill pzrev" id="pzinfo">${icon("refresh", 14)} Review · not rated</span>` : `<button class="pill pzr ${show ? "on" : ""}" id="pzinfo" data-pzr title="Tap to ${S.settings.showPzRating ? "hide" : "show"} the puzzle rating">Rated puzzle · ${show ? "<b>" + p.r + "</b>" : "rating hidden 👁"}</button>`; } }
     const head = `<div class="row" style="gap:12px;align-items:center">${emblem(rk, 56)}<div style="flex:1;min-width:0"><div style="font:900 30px var(--display);line-height:1;font-variant-numeric:tabular-nums">${S.puzzle.r}${this.delta ? `<span style="font-size:16px;margin-left:8px;color:${this.delta > 0 ? "var(--go-hi)" : "var(--bad)"}">${this.delta > 0 ? "+" : ""}${this.delta}</span>` : ""}</div><div class="muted" style="font-weight:700">${esc(rk.label)}${rk.idx < 7 ? ` · ${rk.lp} LP` : ` · ${rk.lp} LP`}</div></div></div>
       <div class="bar" style="margin-top:10px"><i style="width:${Math.round(rk.pct * 100)}%"></i></div>
-      <div class="dim" style="font-size:12px;margin-top:4px">${rk.next ? `Next: ${esc(rk.next)} at ${rk.nextAt}` : "Top of the ladder"} · Better than ${betterThan(S.puzzle.r)}% of players</div>`;
+      <div class="dim" style="font-size:12px;margin-top:4px">${rk.next && rk.nextAt - S.puzzle.r <= 30 && rk.nextAt > S.puzzle.r ? `<b class="pz-near">Only ${rk.nextAt - S.puzzle.r} points to ${esc(rk.next)}!</b>` : rk.next ? `Next: ${esc(rk.next)} at ${rk.nextAt}` : "Top of the ladder"} · Better than ${betterThan(S.puzzle.r)}% of players</div>`;
     let msg = "";
     const tm = p ? sideToMoveText(R.user) : "";
     if (state === "load") msg = this.resumed ? `<div class="msg hint"><div class="ic">↺</div><div><h4>Unfinished puzzle</h4><p>This one still counts. Solve it, or skip it as a miss.</p></div></div>` : `<div class="msg"><div class="ic">…</div><div><h4>Get ready</h4><p>Your opponent is about to move.</p></div></div>`;
-    if (state === "play") msg = `<div class="msg"><div class="ic" style="background:${R.user === "w" ? "#fff" : "#262421"};color:${R.user === "w" ? "#262421" : "#fff"}">${R.user === "w" ? "♔" : "♚"}</div><div><h4>${tm}</h4><p>Find the best move.</p></div></div>`;
+    const focus = !this.review && p && BR.focus && BR.focus.id === p.id && ["solved", "done", "solution"].includes(state) ? `<div class="pz-focus">${icon("target", 15)} Picked for your weak spot: <b>${esc(themeKeyLabel(BR.focus.k))}</b></div>` : "";
+    if (this.review && p && (state === "load" || state === "play")){ const it = srsList().find(x => x.p[0] === p.id); msg = `<div class="msg hint"><div class="ic">↺</div><div><h4>Review</h4><p>You missed this one before. Solve it again to lock the idea in. ${sideToMoveText(R.user)}. Not rated.</p></div></div>`; }
+    else if (state === "play") msg = `<div class="msg"><div class="ic" style="background:${R.user === "w" ? "#fff" : "#262421"};color:${R.user === "w" ? "#262421" : "#fff"}">${R.user === "w" ? "♔" : "♚"}</div><div><h4>${tm}</h4><p>Find the best move.</p></div></div>`;
     if (state === "wrong") msg = `<div class="msg no"><div class="ic">✕</div><div><h4>Incorrect</h4><p>${R.refute ? `After ${esc(R.refute.played)}, your opponent answers <b>${esc(R.refute.reply)}</b> (red arrow). ` : ""}Try again, or look at the solution.</p></div></div>`;
     if (state === "hint") msg = `<div class="msg hint"><div class="ic">?</div><div><h4>Hint</h4><p>${R.hint === 1 ? "The highlighted piece is the one to move." : "Follow the arrow."} Hints count as a miss.</p></div></div>`;
     if (state === "solution") msg = `<div class="msg hint"><div class="ic">!</div><div><h4>Solution</h4><p>Watch the line. This puzzle goes into your review list.</p></div></div>`;
     if (state === "solved") msg = `<div class="msg ok"><div class="ic">✓</div><div><h4>Correct! ${this.delta ? `<span style="color:var(--go-hi)">${this.delta > 0 ? "+" : ""}${this.delta}</span>` : ""}</h4><p>Solved in <b>${this.speed ? fmtSec(this.speed.ms) : "?"}</b>${this.speed && Math.abs(this.speed.f - 1) >= .05 ? ` (${this.speed.f > 1 ? "speed bonus" : "slower"} ×${this.speed.f.toFixed(2)})` : ""}. This puzzle was rated <b>${p ? p.r : ""}</b>${p && p.r > S.puzzle.r - this.delta ? `, ${p.r - (S.puzzle.r - this.delta)} above you` : ""}. ${p ? themeNames(p).slice(0, 3).map(esc).join(" · ") : ""}</p></div></div>`;
-    if (state === "done") msg = `<div class="msg"><div class="ic">✓</div><div><h4>Puzzle complete</h4><p>${p ? themeNames(p).slice(0, 3).map(esc).join(" · ") : ""}</p></div></div>`;
+    if (this.review && (state === "solved" || state === "done" || state === "solution" || state === "wrong")){ const r = this.revRes;
+      if (state === "solved") msg = `<div class="msg ok"><div class="ic">✓</div><div><h4>${r && r.mastered ? "Mastered!" : "Remembered!"}</h4><p>${r && r.mastered ? "Solved four times over three weeks. It leaves your review list." : r && r.days ? `It comes back in <b>${r.days} days</b> to make sure it sticks.` : ""}</p></div></div>`;
+      else if (state !== "wrong" || this.settled) msg = `<div class="msg no"><div class="ic">↺</div><div><h4>${state === "wrong" ? "Not yet" : "Study the idea"}</h4><p>No problem, that's what reviews are for. It comes back <b>tomorrow</b>.</p></div></div>`; }
+    if (state === "done" && !this.review) msg = `<div class="msg"><div class="ic">✓</div><div><h4>Puzzle complete</h4><p>${p ? themeNames(p).slice(0, 3).map(esc).join(" · ") : ""}</p></div></div>`;
     const reveal = state === "solved" || state === "done" || state === "solution";
     const learn = reveal && p ? learnLink(p) : "";
     const info = p ? `${learn}<div class="row" style="margin-top:10px">${pzRatingChip(p, reveal)}${reveal ? `<a class="pill" href="https://lichess.org/training/${esc(p.id)}" target="_blank" rel="noopener">Source #${esc(p.id)}</a>` : ""}</div>` : "";
-    const ses = this.session.slice(-24).map(s => `<span title="Puzzle ${s.r}: ${s.d > 0 ? "+" : ""}${s.d}" style="display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:24px;border-radius:4px;font:800 11px var(--body);background:${s.ok ? "var(--go)" : "var(--bad)"};color:#fff">${s.d > 0 ? "+" : ""}${s.d}</span>`).join("");
+    const ses = this.session.slice(-24).map(s => `<span title="${s.rev ? "Review" : "Puzzle " + s.r + ": " + (s.d > 0 ? "+" : "") + s.d}" style="display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:24px;border-radius:4px;font:800 11px var(--body);background:${s.ok ? "var(--go)" : "var(--bad)"};color:#fff;${s.rev ? "opacity:.6" : ""}">${s.rev ? "↺" : (s.d > 0 ? "+" : "") + s.d}</span>`).join("");
     const acc = S.puzzle.n ? Math.round(S.puzzle.w / S.puzzle.n * 100) : 0;
+    msg = focus + msg;
     $("#sp").innerHTML = (innerWidth <= 900 ? `<div style="margin-bottom:10px">${msg}</div>` + head + info : head + `<div style="margin-top:14px">${msg}</div>${info}`) + `
       <div class="h-sec">This session</div><div class="row" style="gap:4px">${ses || `<span class="dim">Your results will appear here.</span>`}</div>
       <div class="h-sec m-hide">Overall</div><div class="grid3 m-hide"><div class="stat"><b>${S.puzzle.n}</b><span>played</span></div><div class="stat"><b>${acc}%</b><span>solved</span></div><div class="stat"><b>${S.puzzle.streak}</b><span>streak (best ${S.puzzle.best})</span></div></div>`;
@@ -2377,7 +2410,7 @@ Views.train = {
         <div class="row"><label class="muted">From <input type="number" id="tlo" min="300" max="3000" step="50" value="${lo}" style="width:90px"></label><label class="muted">to <input type="number" id="thi" min="300" max="3100" step="50" value="${hi}" style="width:90px"></label>
         <button class="btn sm" data-pre="easy">Easy</button><button class="btn sm" data-pre="me">My level</button><button class="btn sm" data-pre="hard">Hard</button></div></div></div>
       <div class="tiles" style="margin-bottom:8px">
-        <button class="tile" data-k="__failed" style="border:1px solid var(--bad)"><h3>Failed puzzles</h3><p>${S.failed.length} puzzles you missed. Solve them cleanly to clear them.</p></button>
+        <button class="tile" data-k="__failed" style="border:1px solid var(--bad)"><h3>Failed puzzles</h3><p>${S.failed.length} puzzles you missed. They also come back by themselves between your rated puzzles${srsDue().length ? ` (${srsDue().length} due now)` : ""}.</p></button>
         <button class="tile" data-k="__weak" style="border:1px solid var(--warn)"><h3>My weakest themes</h3><p>${esc(weakThemes(3).map(w => themeKeyLabel(w.k)).join(", ") || "Play some puzzles first")}</p></button>
         <button class="tile" data-k="__mix"><h3>Random mix</h3><p>Anything goes, inside your range.</p></button>
         <button class="tile" data-go="coords"><h3>Coordinates</h3><p>Learn every square name. Best: ${S.coordsBest || 0}</p></button>
@@ -2407,11 +2440,11 @@ Views.train = {
     $("#topbar").innerHTML = `<span class="pill">Train · ${esc(title)}</span>`; this.title = title;
     this.R = PuzzleRunner(board, {
       onReady: () => this.panel("play"),
-      onWrong: (R, first) => { this.run_ = 0; if (first){ this.bad++; recordThemes(R.p, false); addFailed(R.p); logPuzzle("train", R, false); } this.panel("wrong"); },
+      onWrong: (R, first) => { this.run_ = 0; if (first){ this.bad++; recordThemes(R.p, false); brainNote(R.p.th, false, R.p.r, S.puzzle.r, .7); addFailed(R.p); logPuzzle("train", R, false); } this.panel("wrong"); },
       onRefute: R => this.panel("wrong"),
       onHint: (R) => { if (R.hint === 1 && !R.failed){ R.failed = true; this.bad++; recordThemes(R.p, false); addFailed(R.p); logPuzzle("train", R, false); } this.panel("hint"); },
       onSolutionStart: (R, first) => { if (first){ this.bad++; recordThemes(R.p, false); addFailed(R.p); logPuzzle("train", R, false); } this.panel("solution"); },
-      onSolved: (R, clean) => { if (clean){ this.ok++; this.run_++; recordThemes(R.p, true); rmFailed(R.p); logPuzzle("train", R, true); celebrate(board, {diff: R.p.r - S.puzzle.r, streak: this.run_, ms: R.elapsed()}, {sub: `Puzzle rated <b>${R.p.r}</b>`, streak: this.run_}); } else this.run_ = 0; save(); this.panel(clean ? "solved" : "done"); if (clean && S.settings.autoNext) this.t = setTimeout(() => this.next(), 1800); }
+      onSolved: (R, clean) => { if (clean){ this.ok++; this.run_++; recordThemes(R.p, true); brainNote(R.p.th, true, R.p.r, S.puzzle.r, .7); srsResult(R.p.id, true, true); rmFailed(R.p); logPuzzle("train", R, true); celebrate(board, {diff: R.p.r - S.puzzle.r, streak: this.run_, ms: R.elapsed()}, {sub: `Puzzle rated <b>${R.p.r}</b>`, streak: this.run_}); } else this.run_ = 0; save(); this.panel(clean ? "solved" : "done"); if (clean && S.settings.autoNext) this.t = setTimeout(() => this.next(), 1800); }
     });
     this.next();
   },
@@ -2431,7 +2464,137 @@ Views.train = {
     if ($("#th")) $("#th").onclick = () => this.R.showHint(); if ($("#ts")) $("#ts").onclick = () => this.R.showSolution();
   }
 };
-function weakThemes(n){ return Object.entries(S.themes).filter(([k, v]) => v.n >= 3 && PZ.themeIdx[k] != null && !["middlegame","opening","endgame"].includes(k)).map(([k, v]) => ({k, acc: v.ok / v.n, n: v.n})).sort((a, b) => a.acc - b.acc || b.n - a.n).slice(0, n); }
+
+/* ===== Training brain =====
+   1. Theme strength: per motif, how often you solve it compared with what your rating predicts for that puzzle.
+      Recent results weigh more (old ones fade), so improvement shows and luck with easy or hard puzzles evens out.
+   2. Difficulty: the next rated puzzle aims at about 62 % success. After two misses in a row an easier one
+      (about 75 %), on a run of five a harder one (about 50 %). Elo keeps the points fair either way.
+   3. Review: a missed puzzle comes back by itself after 1, 3, 7 and 21 days, inside the normal puzzle stream (not rated).
+   4. Your own games: a fork, mate or free piece you missed in a reviewed game counts against that motif too. */
+const BR_META = new Set(["opening", "middlegame", "endgame"]);
+const BR_DECAY = .88;                        /* each new result of a motif fades the older ones a little */
+const SRS_DAYS = [1, 3, 7, 21];
+const DAY_MS = 864e5;
+const BR = {lastWeak: null, focus: null};    /* focus: {id, k} when the puzzle on the board was picked for a weak spot */
+
+function expScore(me, pr){ return 1 / (1 + Math.pow(10, (pr - me) / 400)); }
+function thKey(i){ return typeof i === "number" ? (PZ.themes[i] || [])[0] : i; }
+
+/* one result for one or more motifs: solved or not, against what your rating predicted */
+function brainNote(th, ok, pr, me, w = 1){
+  if (!S.tperf) S.tperf = {};
+  const E = expScore(me, pr);
+  (th || []).forEach(i => { const k = thKey(i); if (!k || BR_META.has(k)) return;
+    const t = S.tperf[k] || (S.tperf[k] = {g: 0, w: 0, n: 0});
+    t.g = t.g * BR_DECAY + w * ((ok ? 1 : 0) - E); t.w = t.w * BR_DECAY + w; t.n++; t.ts = Date.now(); });
+}
+/* -1 … +1: below 0 you miss this motif more often than your rating says you should */
+function themeScore(k){ const t = S.tperf && S.tperf[k]; return t && t.w >= 1.8 ? t.g / t.w : null; }
+
+/* first run on an existing profile: rebuild theme strength from the last results, and put the
+   missed puzzles on the review plan (spread out, so nobody gets 60 repeats at once) */
+function brainInit(){
+  if (S.brainV) return; S.brainV = 1;
+  if (!S.tperf) S.tperf = {};
+  if (!Object.keys(S.tperf).length && S.recent.length){
+    let me = S.puzzle.r; const back = [];
+    for (let i = S.recent.length - 1; i >= 0; i--){ const r = S.recent[i]; me -= (r.mode === "rated" ? r.d || 0 : 0); back.unshift(me); }
+    S.recent.forEach((r, i) => { if (r.r) brainNote(r.th, r.ok, r.r, back[i]); });
+  }
+  if (!Array.isArray(S.srs)) S.srs = [];
+  if (!S.srs.length && S.failed.length){ const now = Date.now(); S.srs = S.failed.slice(-60).reverse().map((a, i) => ({p: a, due: now + Math.floor(i / 3) * DAY_MS / 2, st: 0})); }
+}
+
+/* weakest motifs first. Falls back to plain accuracy for motifs with too few recent results. */
+function weakThemes(n){
+  brainInit();
+  const out = [], have = new Set();
+  Object.keys(S.tperf || {}).forEach(k => { const s = themeScore(k); if (s != null && s < -.04 && PZ.themeIdx[k] != null) out.push({k, s}); });
+  out.sort((a, b) => a.s - b.s);
+  const res = out.slice(0, n).map(o => { have.add(o.k); const t = S.themes[o.k] || {n: 0, ok: 0}; return {k: o.k, acc: t.n ? t.ok / t.n : 0, n: t.n, score: o.s}; });
+  if (res.length < n){
+    Object.entries(S.themes).filter(([k, v]) => !have.has(k) && v.n >= 3 && PZ.themeIdx[k] != null && !BR_META.has(k) && v.ok / v.n < .6 && !(themeScore(k) > .04))
+      .map(([k, v]) => ({k, acc: v.ok / v.n, n: v.n, score: null})).sort((a, b) => a.acc - b.acc || b.n - a.n).slice(0, n - res.length).forEach(x => res.push(x));
+  }
+  return res;
+}
+
+/* how hard the next rated puzzle should be */
+function brainTarget(){
+  const me = S.puzzle.r, last = S.recent.filter(r => r.mode === "rated").slice(-2);
+  let gap = -85;                                              /* about 62 % */
+  if (last.length === 2 && !last[0].ok && !last[1].ok) gap = -190; /* two misses: win one back */
+  else if (S.puzzle.streak >= 5) gap = 0;                     /* on a run: push */
+  return me + gap + Math.round((Math.random() - .5) * 70);
+}
+
+/* inside PZ.pick: about every third puzzle trains one of your three weakest motifs, taking turns */
+function brainWeakPick(pool){
+  BR.focus = null;
+  if (Math.random() >= .35) return null;
+  const ws = weakThemes(3); if (!ws.length) return null;
+  const order = ws.filter(w => w.k !== BR.lastWeak).concat(ws.filter(w => w.k === BR.lastWeak));
+  for (const w of order){ const wi = PZ.themeIdx[w.k]; const wp = pool.filter(p => p.th.includes(wi)); if (wp.length){ const p = rnd(wp); BR.lastWeak = w.k; BR.focus = {id: p.id, k: w.k}; return p; } }
+  return null;
+}
+
+/* ---------- review plan for missed puzzles ---------- */
+function srsList(){ brainInit(); return S.srs; }
+function srsAdd(p){ const L = srsList(), enc = Array.isArray(p) ? p : encodeP(p), it = L.find(x => x.p[0] === enc[0]);
+  if (it){ it.st = 0; it.due = Date.now() + DAY_MS; } else { L.push({p: enc, due: Date.now() + DAY_MS, st: 0}); if (L.length > 300) L.splice(0, L.length - 300); } }
+function srsDue(){ const now = Date.now(); return srsList().filter(x => x.due <= now).sort((a, b) => a.due - b.due); }
+/* returns what happened, for the message on the panel */
+function srsResult(id, ok, onlyDue){
+  const L = srsList(), i = L.findIndex(x => x.p[0] === id); if (i < 0) return null; const it = L[i];
+  if (onlyDue && it.due > Date.now() + DAY_MS / 2) return null;
+  if (!ok){ it.st = 0; it.due = Date.now() + DAY_MS; return {again: true}; }
+  it.st++;
+  if (it.st >= SRS_DAYS.length){ L.splice(i, 1); rmFailed({id}); return {mastered: true}; }
+  it.due = Date.now() + SRS_DAYS[it.st] * DAY_MS; return {days: SRS_DAYS[it.st]};
+}
+
+/* ---------- your own games ---------- */
+const BR_VAL = {p: 1, n: 3, b: 3, r: 5, q: 9, k: 10};
+/* what the better move would have done: mate, a fork, or a free piece */
+function motifOf(fen, san){
+  try {
+    const g = new Chess(fen), mv = g.move(san); if (!mv) return [];
+    if (g.in_checkmate()){ const out = ["mateIn1"]; const kr = mv.color === "w" ? "8" : "1"; if ((mv.piece === "r" || mv.piece === "q") && mv.to[1] === kr) out.push("backRankMate"); return out; }
+    const out = [], mover = BR_VAL[mv.piece];
+    const f = g.fen().split(" "); f[1] = f[1] === "w" ? "b" : "w"; f[3] = "-";
+    const t = new Chess(); if (t.load(f.join(" "))){
+      const tg = t.moves({square: mv.to, verbose: true}).filter(m => m.captured).map(m => BR_VAL[m.captured]);
+      if (tg.filter(v => v === 10 || v > mover || (v >= 3 && mover <= 3)).length >= 2) out.push("fork");
+    }
+    if (mv.captured && BR_VAL[mv.captured] >= 3){ const back = g.moves({verbose: true}).some(m => m.to === mv.to); if (!back || BR_VAL[mv.captured] > mover) out.push("hangingPiece"); }
+    return out;
+  } catch(e){ return []; }
+}
+/* called from the game review: each game counts once */
+function brainFromGame(key, errs){
+  brainInit(); if (!S.brainG) S.brainG = []; if (S.brainG.includes(key)) return [];
+  S.brainG.push(key); if (S.brainG.length > 200) S.brainG = S.brainG.slice(-200);
+  const found = [];
+  errs.filter(e => ["mistake", "blunder", "miss"].includes(e.cls) && e.best && e.fen).forEach(e => { motifOf(e.fen, e.best).forEach(k => { brainNote([k], false, S.puzzle.r, S.puzzle.r, 1.5); if (!found.includes(k)) found.push(k); }); });
+  return found;
+}
+
+/* ---------- flame shield: one missed day does not kill your flame ---------- */
+const SHIELD_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5z" fill="#7cc4ff" stroke="#2b6ea6" stroke-width="1.5"/><path d="M12 7v10M8 10l8 4M16 10l-8 4" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>`;
+function dayNum(k){ const [y, m, d] = String(k).split("-").map(Number); return Math.round(new Date(y, m - 1, d).getTime() / DAY_MS); }
+function flameShields(){ return (S.flame && S.flame.fz) || 0; }
+/* when the app opens after missed days: shields cover the gap if there are enough of them */
+function flameRescue(){
+  const f = S.flame; if (!f || !f.n || !f.last || f.last === todayKey() || f.last === yesterdayKey()) return;
+  const missed = dayNum(todayKey()) - dayNum(f.last) - 1; if (missed < 1 || missed > (f.fz || 0)) return;
+  f.fz -= missed; f.last = yesterdayKey(); save(); updateBadge();
+  if (typeof renderTop === "function") renderTop();
+  if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard();
+  setTimeout(() => { if (typeof Notify !== "undefined") Notify.show({key: "shield", icon: SHIELD_SVG.replace(/14/g, "26"), label: "Flame shield", accent: "#7cc4ff", title: "Flame saved!", text: `${missed === 1 ? "A shield" : missed + " shields"} kept your ${f.n}-day flame alive. Play 3 puzzles today to keep it going.`, ms: 6000}); }, 1800);
+}
+setTimeout(flameRescue, 1200);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) flameRescue(); });
 
 /* ===== Engine: Stockfish 10 (GPL) running in a worker ===== */
 const Engine = {w: null, ok: false, q: [], cur: null, failed: false,
@@ -4457,6 +4620,8 @@ Views.review = {
     const mine = A.me; const acc = mine === "w" ? A.sum.accW : A.sum.accB;
     if (meta){ meta.review = {acc, counts: A.sum.counts[mine]}; save(); }
     const errs = A.moves.map((m, i) => ({m, i, c: A.cls[i]})).filter(x => x.m.color === mine && ["inaccuracy","mistake","blunder","miss"].includes(x.c)).map(x => ({ply: x.i + 1, played: x.m.san, cls: x.c, best: sanOf(A.fens[x.i], A.lines[x.i] && A.lines[x.i].best), fen: A.fens[x.i], evalBefore: A.evals[x.i], evalAfter: A.evals[x.i + 1]}));
+    { const key = meta && meta.id ? "g" + meta.id : "h" + hashStr(A.moves.map(m => m.san).join(" ")); const found = typeof brainFromGame === "function" ? brainFromGame(key, errs) : [];
+      if (found.length){ save(); setTimeout(() => Notify.show({key: "brain", icon: icon("target", 26), label: "Training updated", title: "Missed: " + found.map(themeKeyLabel).join(", "), text: "Your puzzles will bring more of " + (found.length > 1 ? "these" : "this") + " now.", ms: 5500}), 1600); } }
     logEvent("review", {gameId: meta && meta.id, won: meta ? meta.result !== "1/2-1/2" && meta.result !== "*" && ((meta.result === "1-0") === (meta.color === "w")) : false, opponent: meta ? meta.opp : (A.hdr.White + " vs " + A.hdr.Black), color: mine, accuracy: acc, counts: A.sum.counts[mine], mistakes: errs});
   },
   progress(n, tot){ const el = $("#anprog"); if (el) el.style.width = Math.round(n / tot * 100) + "%"; const tx = $("#antext"); if (tx) tx.textContent = `Analyzing… ${n}/${tot}`; },
@@ -7545,7 +7710,7 @@ Views.home = {
         <div class="hr-lp"><b>${rk.lp} LP</b><span>${S.puzzle.r} puzzle rating</span></div>
         <div class="bar lpbar hr-bar"><i style="width:${Math.round(rk.pct * 100)}%"></i></div>
         <div class="dim hr-sub">${rk.next ? "Next: " + esc(rk.next) + " at " + rk.nextAt + " · " : ""}better than ${betterThan(S.puzzle.r)}% of players</div>
-        <button class="hr-flame" data-go="puzzles">${flameChip("big")}<span><b>${flameCount() ? flameCount() + "-day flame" : "Light your flame"}</b><small>${flameLitToday() ? "Lit today. Come back tomorrow." : `Play ${FLAME_GOAL - flameToday()} more puzzle${FLAME_GOAL - flameToday() === 1 ? "" : "s"} today${flameCount() ? " to keep it" : ""}`}</small></span><i class="hr-fdots">${[0, 1, 2].map(i => `<i class="${i < flameToday() ? "on" : ""}"></i>`).join("")}</i></button>
+        <button class="hr-flame" data-go="puzzles">${flameChip("big")}<span><b>${flameCount() ? flameCount() + "-day flame" : "Light your flame"}</b><small>${flameLitToday() ? "Lit today. Come back tomorrow." : `Play ${FLAME_GOAL - flameToday()} more puzzle${FLAME_GOAL - flameToday() === 1 ? "" : "s"} today${flameCount() ? " to keep it" : ""}`}${flameShields() ? ` <span class="fl-sh">${SHIELD_SVG}${flameShields()}</span>` : flameCount() ? ` <span class="fl-sh off">Shield at ${(Math.floor(flameCount() / 7) + 1) * 7} days</span>` : ""}</small></span><i class="hr-fdots">${[0, 1, 2].map(i => `<i class="${i < flameToday() ? "on" : ""}"></i>`).join("")}</i></button>
         <div class="hr-goal"><span>Journey to 1600</span><div class="bar sm"><i style="width:${Math.round(pct * 100)}%"></i></div><b>${Math.round(pct * 100)}%</b></div>
       </div>
       <div class="unit" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><div style="min-width:180px"><div class="muted" style="font-weight:800;font-size:13px;letter-spacing:.06em">TODAY'S PLAN</div><div style="font:900 22px var(--display)">${planDone() ? "Done for today ✓" : PLAN.filter(([k, n]) => planVal(k) >= n).length + " of " + PLAN.length}</div><div class="dim" style="font-size:12.5px">${icon("flame", 14)} ${S.plan.streak} day streak · best ${S.plan.best}</div></div>
@@ -7752,9 +7917,9 @@ function flameChip(cls = ""){ const n = flameCount(), lit = flameLitToday();
 const FLAME_SVG = `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 22c4.4 0 7.5-3 7.5-7.1 0-3.8-2.6-6-4.2-9.3-.7 2.2-1.9 3.4-3.1 4.1.3-2.6-.8-5.5-3.2-8.2C8.6 6 4.5 9.4 4.5 14.6 4.5 19 7.6 22 12 22z" fill="currentColor"/><path d="M12 21c2.2 0 3.7-1.5 3.7-3.6 0-2-1.4-3.1-2.3-4.8-.4 1.2-1 1.8-1.7 2.2.2-1.4-.4-2.8-1.6-4.2-.6 2.2-2.4 3.8-2.4 6.6C7.7 19.4 9.6 21 12 21z" fill="#ffe08a"/></svg>`;
 /* the number on the app icon is your flame */
 function updateBadge(){ try { const n = flameCount(); if (navigator.setAppBadge){ if (n) navigator.setAppBadge(n).catch(() => {}); else navigator.clearAppBadge().catch(() => {}); } } catch(e) {} }
-function flameCelebrate(n){
+function flameCelebrate(n, shield){
   const el = document.createElement("div"); el.className = "flamecel";
-  el.innerHTML = `<div class="fc-in"><div class="fc-fire">${FLAME_SVG}</div><div class="fc-n">${n}</div><div class="fc-t">${n === 1 ? "Flame lit!" : n + "-day flame!"}</div><div class="fc-s">Come back tomorrow to keep it burning.</div></div>`;
+  el.innerHTML = `<div class="fc-in"><div class="fc-fire">${FLAME_SVG}</div><div class="fc-n">${n}</div><div class="fc-t">${n === 1 ? "Flame lit!" : n + "-day flame!"}</div><div class="fc-s">${shield ? `${SHIELD_SVG} <b>+1 flame shield.</b> It saves your flame if you miss a day.` : "Come back tomorrow to keep it burning."}</div></div>`;
   document.body.appendChild(el); Sound.cheer(n >= 7 ? 3 : 2);
   el.onclick = () => el.remove(); setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 400); }, 2600);
 }
@@ -7763,7 +7928,9 @@ function flameCelebrate(n){
     base(f, n);
     if (f === "pz" && !flameLitToday() && planVal("pz") >= FLAME_GOAL){
       const fl = flameState(); fl.n = fl.last === yesterdayKey() ? fl.n + 1 : 1; fl.best = Math.max(fl.best || 0, fl.n); fl.last = todayKey();
-      setTimeout(() => flameCelebrate(fl.n), 700); updateBadge(); if (typeof renderTop === "function") renderTop();
+      /* every 7 days in a row earns a shield (max 2): it covers one missed day */
+      const earn = fl.n % 7 === 0 && (fl.fz || 0) < 2; if (earn) fl.fz = (fl.fz || 0) + 1;
+      setTimeout(() => flameCelebrate(fl.n, earn), 700); updateBadge(); if (typeof renderTop === "function") renderTop();
       if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard();
     }
   };
