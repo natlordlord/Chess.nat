@@ -1130,6 +1130,26 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 .rep-prog{margin-top:12px}.rep-prog .bar{height:8px}.rep-prog span{font-size:12.5px;display:block;margin-top:4px}
 @media (max-width:900px){.rep-cards,.rep-probs{grid-template-columns:1fr}.rep-tn{font-size:26px}.rm-a{font-size:12.5px}.rm-y{font-size:13.5px}}
 
+/* ===== Game over card ===== */
+.endh{display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:12px}
+.end-ic{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:900 28px var(--display);background:var(--panel-3);color:var(--muted)}
+.endh.won .end-ic{background:var(--go);color:#fff;box-shadow:0 0 0 6px color-mix(in srgb,var(--go) 25%,transparent)}
+.endh.lost .end-ic{background:var(--bad);color:#fff}
+.end-badge{font-size:11.5px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:999px;background:var(--panel-3);color:var(--fg);margin-top:4px}
+.endh.won .end-badge{background:color-mix(in srgb,var(--go) 22%,var(--panel-3));color:var(--go)}
+.endh h3{margin:2px 0 0!important}
+.end-line{margin:0!important;font-size:14.5px;line-height:1.4}
+.end-last{display:flex;gap:6px;align-items:baseline;justify-content:center;flex-wrap:wrap;margin-top:6px;font-size:13.5px;color:var(--muted)}
+.end-last b{font:800 15px var(--mono);color:var(--fg)}
+.end-clk{display:grid;grid-template-columns:auto auto;gap:2px 12px;justify-content:center;font-size:13px;color:var(--muted);margin:-4px 0 12px}
+.end-clk b{font:800 14px var(--mono);color:var(--fg);text-align:right}
+.endcard .grid2{margin-top:6px}
+/* it's your move: the board glows once */
+.boardwrap.yourturn{animation:yourturn 1s ease-out}
+@keyframes yourturn{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--go) 80%,transparent)}35%{box-shadow:0 0 0 6px color-mix(in srgb,var(--go) 70%,transparent)}100%{box-shadow:0 0 0 0 transparent}}
+.inc-tog.on{border-color:var(--go);color:var(--go)}
+.card-over:not(.endcard) .end-ic{display:none}
+
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
 .pc.wr{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMTcuOTMgMjAuNDFjNC45LS43NCA5LjU4LS41NyAxNC4xNCAwTTE0LjE4IDkuNjZjLTEuMDYgOC43NyAxLjEgMTAuNjggMy43NSAxMC43NWwtMy4zMSAxOC4xNmgyMC43NmwtMy4zMS0xOC4xNmMyLjY0LS4wNyA0LjgtMS45OCAzLjc1LTEwLjc1bC0zLjYxLS41My0xLjA3IDMuNjUtMy4xNS0uMS0uNTItMy43NmgtNC45NEwyMiAxMi42OGwtMy4xNS4xLTEuMDctMy42NXoiLz48cGF0aCBkPSJNMTcuOTMgMjAuNDFjNi44MyAwIDEzLjEyLjQxIDE0Ljk1IDE2LjU4bDIuMzIuMzgtMy4xMy0xNi40M2MtLjAzLS4zLTYuMDktMS44Mi0xNC4xNC0uNTMiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Im0xNC43OCAxMC4yMiAyLjI3LS4yOWMtMS45MS4zMi0yLjMgNS4zLTIuMyA1LjMtLjI1LS4xOC0uMi00LjkuMDMtNS4wMW0xMC41LS42N2MtMS42NSAwLTIuNTIgMi43NS0yLjUyIDIuNzVsLjMzLTIuNzN6bTcuNC4yNy45Mi4xMWMtLjc4LjUtMS41OSAyLTEuNTkgMnptLTE0LjIgMTEuMTQgMi42MS0uMjljLTIuNjIuMy00Ljg5IDEzLjExLTQuODkgMTMuMTF6Ii8+PHBhdGggZD0iTTM0LjAxIDkuNGMuMzYgNi4zNi0xLjk1IDEwLjYtOC4wNCAxMC41M2w0Ljc4LjU3YzcuNTIuMyA1LjEtMTAuOCA1LjA3LTEwLjg0eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuMiIgZD0iTTI1IDM2LjQ2cy05LjEzLjA0LTExLjcgMS42MmMtMS43MiAxLjA2LTIuMTMgMy42NS0xLjkgNi4zMmgyNy4yYy4yMy0yLjY3LS4xOC01LjI2LTEuOS02LjMyQzM0LjEyIDM2LjUgMjUgMzYuNDYgMjUgMzYuNDZ6Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI1IDM3LjE1UzE2LjI5IDM3IDEzLjM4IDM4LjhjLS4zNy4yMy0uNy44NC0uOTYgMS40LjI2LS4zNC41LS42Mi44OS0uODZDMTUuODcgMzcuNzggMjUgMzcuNzMgMjUgMzcuNzNzOS4xMy4wNSAxMS43IDEuNjJjLjM4LjI0LjU4LjUzLjg1Ljg3YTMgMyAwIDAgMC0xLjE1LTEuNkMzMy42NSAzNy4xNSAyNSAzNy4xNiAyNSAzNy4xNnoiLz48L3N2Zz4=')}
@@ -1401,7 +1421,7 @@ function renderRailStatus(){ const el = $("#cloudStatus"); if (!el) return;
 
 /* ---------- sound ---------- */
 const Sound = {ac:null, buf:{}, loading:false,
-  init(){ if (this.ac) { if (this.ac.state === "suspended") this.ac.resume(); return; }
+  init(){ if (this.ac) { if (this.ac.state !== "running") this.ac.resume().catch(() => {}); return; }
     try { this.ac = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return; }
     if (this.loading) return; this.loading = true;
     ["Move","Capture","Check","Mate","Victory","Defeat","GenericNotify","cheer1","cheer2","cheer3","cheer4"].forEach(n => {
@@ -1426,9 +1446,14 @@ const Sound = {ac:null, buf:{}, loading:false,
     const t = ac.currentTime; f.frequency.setValueAtTime(back ? 1800 : 400, t); f.frequency.exponentialRampToValueAtTime(back ? 350 : 1600, t + .5); g.gain.value = .12;
     src.connect(f); f.connect(g); g.connect(ac.destination); src.start(); } catch(e) {} },
   wrong(){ this.tone([[311,.12,.08],[233,.24]], "triangle", .09); },
+  /* "it's your move": a clear two-note chime, plus a short buzz where the phone supports it */
+  yourTurn(){ this.tone([[740,.1,.06],[1109,.22]], "sine", .2); try { navigator.vibrate && navigator.vibrate([30, 40, 30]); } catch(e) {} },
   tick(){ this.tone([[1600,.05]], "sine", .05); },
   forMove(m, g){ if (g && g.in_checkmate && g.in_checkmate()) this.play("Mate", .95); else if (g && g.in_check && g.in_check()) this.play("Check"); else if (m && (m.flags.includes("c") || m.flags.includes("e"))) this.play("Capture"); else this.play("Move"); }
 };
+
+/* phones only allow sound after a touch, and pause it when the app goes to the background: wake it on every touch */
+["pointerdown", "touchend", "keydown"].forEach(ev => document.addEventListener(ev, () => { if (S && S.settings && S.settings.sound) Sound.init(); }, {passive: true, capture: true}));
 
 /* ---------- voice (lessons): pre-recorded neural voice clips, keyed by the text ---------- */
 const Voice = {
@@ -1624,7 +1649,9 @@ function makeBoard(wrap, opts = {}){
   wrap.innerHTML = `<div class="board" role="grid" aria-label="Chessboard"></div><svg class="arrows" viewBox="0 0 8 8" preserveAspectRatio="none"></svg><div class="fx"></div>`;
   const el = wrap.querySelector(".board"), svg = wrap.querySelector(".arrows"), fx = wrap.querySelector(".fx");
   const B = {o: opts.orientation || "w", pieces: {}, sel: null, selPre: false, last: null, check: null, marks: {}, threats: {}, arrows: [], dests: opts.dests || (() => []), canPick: opts.canPick || (() => false), onMove: opts.onMove || (() => {}), locked: false, onTapEmpty: opts.onTapEmpty, badges: [],
-    userArrows: [], userMarks: {}, premove: null, premoveFor: opts.premove || null, live: null, ply: null, el: wrap};
+    userArrows: [], userMarks: {}, pre: [], premoveFor: opts.premove || null, live: null, ply: null, el: wrap};
+  /* B.premove: the first queued premove (older code reads it) */
+  Object.defineProperty(B, "premove", {get: () => B.pre[0] || null, set: v => { B.pre = v ? [v] : []; }});
   const histOn = opts.history !== false; BoardNav.cur = histOn ? B : null;
   const squares = [];
   function buildSquares(){
@@ -1666,9 +1693,13 @@ function makeBoard(wrap, opts = {}){
     const fen = g.fen(); if (fen !== liveFen){ if (liveFen !== null){ B.userArrows = []; B.userMarks = {}; } liveFen = fen; }
     B.live = {g, last: last || null};
     if (B.ply != null){ B.ply = null; wrap.classList.remove("viewing"); }
+    /* premoves: while it's still the opponent's turn the board shows your queued moves already made;
+       once it's your turn the first one plays at once. If it's no longer legal, the whole queue is dropped and you're told. */
+    if (B.pre.length && preColor()){ render(preGame() || g, last); B.paint(); return; }
     render(g, last);
-    if (B.premove){ const pm = B.premove; setTimeout(() => { if (B.premove !== pm) return; B.premove = null;
-      if (B.ply == null && B.canPick(pm.from) && B.dests(pm.from).some(d => d.to === pm.to)) B.onMove(pm.from, pm.to, pm.promo); else B.paint(); }, 30); }
+    if (B.pre.length){ const pm = B.pre[0]; setTimeout(() => { if (B.pre[0] !== pm || B.ply != null) return;
+      if (B.canPick(pm.from) && B.dests(pm.from).some(d => d.to === pm.to)){ B.pre.shift(); B.onMove(pm.from, pm.to, pm.promo); }
+      else { B.pre = []; B.paint(); B.onPremoveFail && B.onPremoveFail(); } }, 20); }
   };
   let sfCache = null;
   function startFen(g){ if (sfCache && sfCache.g === g) return sfCache.f; const h = g.history({verbose: true}); for (let i = 0; i < h.length; i++) g.undo(); const f = g.fen(); h.forEach(m => g.move({from: m.from, to: m.to, promotion: m.promotion})); sfCache = {g, f}; return f; }
@@ -1684,14 +1715,15 @@ function makeBoard(wrap, opts = {}){
   };
   B.paint = () => {
     const dests = B.sel ? (B.selPre ? preDests(B.sel) : B.dests(B.sel)) : [];
-    const vw = B.ply != null, marks = vw ? {} : B.marks, threats = vw ? {} : B.threats, pm = B.premove;
+    const vw = B.ply != null, marks = vw ? {} : B.marks, threats = vw ? {} : B.threats, preSq = {};
+    if (!vw) B.pre.forEach((m, i) => { preSq[m.from] = preSq[m.from] || i + 1; preSq[m.to] = i + 1; });
     squares.forEach(d => { const sq = d.dataset.sq;
       d.classList.toggle("last", !!(B.last && (B.last.from === sq || B.last.to === sq)));
       d.classList.toggle("sel", B.sel === sq);
       d.classList.toggle("chk", B.check === sq);
       ["good","bad","hint","mark"].forEach(c => d.classList.toggle(c, marks[sq] === c));
       d.classList.toggle("thr", threats[sq] === "thr"); d.classList.toggle("tgt", threats[sq] === "tgt");
-      d.classList.toggle("pre", !!(pm && (pm.from === sq || pm.to === sq)));
+      d.classList.toggle("pre", !!preSq[sq]);
       ["um-r","um-g","um-b","um-y"].forEach(c => d.classList.toggle(c, B.userMarks[sq] === c.slice(3)));
       d.querySelectorAll(".dot,.cap").forEach(n => n.remove());
     });
@@ -1748,12 +1780,18 @@ function makeBoard(wrap, opts = {}){
   let drag = null, rdrag = null;
   /* premove: while the opponent is to move, your own pieces can queue a move; it plays as soon as it's your turn */
   function preColor(){ return B.premoveFor && B.ply == null && B.live ? B.premoveFor() : null; }
-  function preDests(sq){ const c = preColor(); if (!c || !B.live) return []; const f = B.live.g.fen().split(" "); f[1] = c; f[3] = "-"; const t = new Chess(); if (!t.load(f.join(" "))) return [];
+  /* the position with all queued premoves played (your colour to move each time, so they chain) */
+  function preGame(){ const c = preColor(); if (!c || !B.live) return null; let fen = B.live.g.fen(); const t = new Chess();
+    for (let i = 0; i < B.pre.length; i++){ const f = fen.split(" "); f[1] = c; f[3] = "-"; if (!t.load(f.join(" "))){ B.pre.length = i; break; }
+      const m = t.move({from: B.pre[i].from, to: B.pre[i].to, promotion: B.pre[i].promo || "q"}); if (!m){ B.pre.length = i; break; } fen = t.fen(); }
+    const f = fen.split(" "); f[1] = c; f[3] = "-"; const g = new Chess(); return g.load(f.join(" ")) ? g : null; }
+  function preDests(sq){ const t = preGame(); if (!t) return [];
     return t.moves({square: sq, verbose: true}).map(m => ({to: m.to, promotion: !!m.promotion})).filter((v, i, a) => a.findIndex(w => w.to === v.to) === i); }
-  B.cancelPremove = () => { if (B.premove || B.selPre){ B.premove = null; B.selPre = false; B.sel = null; B.paint(); } };
+  function showPre(){ const t = B.pre.length ? preGame() : null; render(t || B.live.g, B.live.last); B.paint(); }
+  B.cancelPremove = () => { if (B.pre.length || B.selPre){ const had = B.pre.length; B.pre = []; B.selPre = false; B.sel = null; if (had && B.live) render(B.live.g, B.live.last); B.paint(); } };
   async function attempt(from, to){
     if (B.selPre){ const m = preDests(from).find(d => d.to === to); B.sel = null; B.selPre = false;
-      if (m){ B.premove = {from, to, promo: m.promotion ? "q" : undefined}; Sound.play("Move", .25); } B.paint(); return; }
+      if (m && B.pre.length < 8){ B.pre.push({from, to, promo: m.promotion ? "q" : undefined}); Sound.play("Move", .25); showPre(); return; } B.paint(); return; }
     const ds = B.dests(from); const m = ds.find(d => d.to === to);
     if (!m){ B.sel = null; B.paint(); return; }
     let promo;
@@ -1775,12 +1813,11 @@ function makeBoard(wrap, opts = {}){
     if (B.sel && B.sel !== sq && curDests.some(d => d.to === sq)){ attempt(B.sel, sq); return; }
     const pc = preColor(), canPre = pc && B.pieces[sq] && B.pieces[sq].code[0] === pc && !B.canPick(sq);
     if (B.pieces[sq] && (B.canPick(sq) || canPre)){
-      if (canPre && B.premove) B.premove = null;
       B.sel = sq; B.selPre = !!canPre; B.paint();
       const p = B.pieces[sq].el; const r = el.getBoundingClientRect();
       drag = {from: sq, el: p, x: e.clientX, y: e.clientY, moved: false, r};
       try { el.setPointerCapture(e.pointerId); } catch(_) {}
-    } else { const hadPre = !!B.premove; B.premove = null; B.sel = null; B.selPre = false; B.paint(); if (!hadPre) B.onTapEmpty && B.onTapEmpty(sq); }
+    } else { const hadPre = B.pre.length > 0; if (hadPre) B.cancelPremove(); else { B.sel = null; B.selPre = false; B.paint(); } if (!hadPre) B.onTapEmpty && B.onTapEmpty(sq); }
   });
   el.addEventListener("pointermove", e => {
     if (rdrag){ const to = sqFromPoint(e.clientX, e.clientY); const pv = to && to !== rdrag.from ? [rdrag.from, to, rdrag.c || "y"] : null; if (JSON.stringify(pv) !== JSON.stringify(arrowPreview)){ arrowPreview = pv; drawArrows(); } return; }
@@ -2497,6 +2534,7 @@ Views.bots = {
     board.canPick = sq => { if (G.over || G.thinking || G.view != null || G.warn) return false; const p = G.g.get(sq); return p && p.color === color && G.g.turn() === color; };
     board.dests = sq => gameDests(G.g)(sq);
     board.onMove = (f, t, pr) => this.userMove(f, t, pr);
+    board.onPremoveFail = () => { Sound.yourTurn(); toast("Premove no longer possible. Your move!"); };
     if (opt.openSan && !fen) opt.openSan.split(" ").forEach(m => G.g.move(m));
     board.set(G.g, lastMv(G.g));
     document.onkeydown = e => { if (e.target.tagName === "INPUT") return; if (e.key === "ArrowLeft") this.nav(-1); if (e.key === "ArrowRight") this.nav(1); };
@@ -2604,7 +2642,7 @@ Views.bots = {
     Sound.play(score === 1 ? "Victory" : score === 0 ? "Defeat" : "GenericNotify", .8);
     const title = score === 1 ? "You won!" : score === 0 ? G.bot.name + " won" : "Draw";
     if (/on time/.test(why) && score === 0) G.chat = "Your flag fell! Watch the clock.";
-    const o = G.board.overlay(`<div class="card-over"><div style="display:flex;justify-content:center;margin-bottom:6px">${botAvatar(G.bot, 64)}</div><h3>${esc(title)}</h3><p>${esc(why)}</p>${G.rating ? ratingDeltaHTML(G.rating) : ""}${score === 1 ? pctCard(G.bot.r) : ""}${score === 1 && r.w === 1 ? `<div class="newtrophy">${botPortrait(G.bot, 56)}<div><b>New trophy!</b><span>${esc(G.bot.name)} is now locked in your cage.</span></div><button class="btn sm go" id="tro">See it</button></div>` : ""}<div class="grid2"><button class="btn go" id="rv">Game Review</button><button class="btn" id="rm">Rematch</button></div><button class="btn ghost sm" id="cl" style="margin-top:8px">View board</button></div>`);
+    const o = G.board.overlay(`<div class="card-over"><div style="display:flex;justify-content:center;margin-bottom:6px">${botAvatar(G.bot, 64)}</div>${endHead({res, why, me, g: G.g, opp: G.bot.name})}${G.rating ? ratingDeltaHTML(G.rating) : ""}${score === 1 ? pctCard(G.bot.r) : ""}${score === 1 && r.w === 1 ? `<div class="newtrophy">${botPortrait(G.bot, 56)}<div><b>New trophy!</b><span>${esc(G.bot.name)} is now locked in your cage.</span></div><button class="btn sm go" id="tro">See it</button></div>` : ""}<div class="grid2"><button class="btn go" id="rv">Game Review</button><button class="btn" id="rm">Rematch</button></div><button class="btn ghost sm" id="cl" style="margin-top:8px">View board</button></div>`);
     $("#rv", o).onclick = () => App.go("review", {pgn, meta: rec});
     $("#rm", o).onclick = () => this.start(G.bot, G.color === "w" ? "b" : "w", Object.assign({}, G.opt));
     if (score === 1) pctAnimate(o); if (G.rating) ratingAnimate(o);
@@ -2663,6 +2701,43 @@ Views.bots = {
 };
 function lastMv(g){ const h = g.history({verbose: true}); const l = h[h.length - 1]; return l ? {from: l.from, to: l.to} : null; }
 function sanOf(fen, uci){ if (!uci) return ""; const t = new Chess(fen); const m = t.move({from: uci.slice(0,2), to: uci.slice(2,4), promotion: uci[4] || "q"}); return m ? m.san : ""; }
+
+/* ===== Game over: one clear summary for every game (bots and live). What happened, how, and the last move. ===== */
+function endReason(why){
+  const w = String(why || "").toLowerCase();
+  if (w.includes("checkmate")) return {k: "mate", label: "Checkmate"};
+  if (w.includes("stalemate")) return {k: "stale", label: "Stalemate"};
+  if (w.includes("time")) return {k: "time", label: w.includes("no mating") ? "Time out · draw" : "Time out"};
+  if (w.includes("resign")) return {k: "resign", label: "Resignation"};
+  if (w.includes("repetition")) return {k: "rep", label: "Repetition"};
+  if (w.includes("insufficient")) return {k: "ins", label: "Insufficient material"};
+  if (w.includes("50")) return {k: "fifty", label: "50-move rule"};
+  if (w.includes("agreement")) return {k: "agree", label: "Draw agreed"};
+  if (w.includes("abandon") || w.includes("left")) return {k: "left", label: "Opponent left"};
+  return {k: "other", label: why ? String(why).replace(/^by /, "") : "Game over"};
+}
+/* material on the board for one side (pawns 1, pieces 3/3/5/9) */
+function materialOf(g, c){ const V = {p: 1, n: 3, b: 3, r: 5, q: 9, k: 0}; let t = 0; g.board().forEach(r => r.forEach(p => { if (p && p.color === c) t += V[p.type]; })); return t; }
+/* the head of the end card: result, how it ended, a sentence about it and the last move */
+function endHead(o){
+  const {res, why, me, g, opp} = o, R = endReason(why), draw = res === "1/2-1/2", won = !draw && (res === "1-0") === (me === "w");
+  const title = draw ? "Draw" : won ? "You won!" : "You lost";
+  const them = esc(opp || "Your opponent");
+  let line = "";
+  if (R.k === "mate") line = won ? `You checkmated ${them}.` : `${them} checkmated you.`;
+  else if (R.k === "time") line = draw ? "The clock ran out, but there was no mating material left." : won ? `${them} ran out of time.` : "You ran out of time.";
+  else if (R.k === "resign") line = won ? `${them} resigned.` : "You resigned.";
+  else if (R.k === "stale"){ const up = g ? materialOf(g, me) - materialOf(g, me === "w" ? "b" : "w") : 0;
+    line = "No legal move left, but no check: that's a draw." + (up >= 3 ? " You were ahead. Next time leave the king a free square before you close the net." : up <= -3 ? " A lucky escape, you were behind!" : ""); }
+  else if (R.k === "rep") line = "The same position came up three times.";
+  else if (R.k === "ins") line = "Neither side can still checkmate.";
+  else if (R.k === "fifty") line = "50 moves without a capture or a pawn move.";
+  else if (R.k === "agree") line = "You both agreed to a draw.";
+  else if (R.k === "left") line = `${them} left the game.`;
+  let last = "";
+  if (g){ const h = g.history(); if (h.length){ const i = h.length - 1, n = Math.floor(i / 2) + 1; last = `<div class="end-last"><span>Last move</span><b>${n}${i % 2 ? "..." : "."} ${esc(h[i])}</b><span class="dim">· ${Math.ceil(h.length / 2)} move${Math.ceil(h.length / 2) === 1 ? "" : "s"}</span></div>`; } }
+  return `<div class="endh ${draw ? "draw" : won ? "won" : "lost"}"><div class="end-ic">${draw ? "½" : won ? "★" : "✕"}</div><div class="end-badge">${esc(R.label)}</div><h3>${title}</h3>${line ? `<p class="end-line">${line}</p>` : ""}${last}</div>`;
+}
 
 /* ===== Learn: curriculum player ===== */
 const COACH = {name: "Coach Nat"};
@@ -6349,7 +6424,7 @@ Views.repdrill = {
 /* ===== Ranked play: a rating for each time control, from rated games against bots and friends ===== */
 const RATED_CATS = [["bullet", "Bullet", "bolt"], ["blitz", "Blitz", "flame"], ["friends", "Friends", "heart"], ["chat", "Chat", "chat"], ["rapid", "Rapid", "clock"]];
 const RATED_NAME = {bullet: "Bullet", blitz: "Blitz", rapid: "Rapid"};
-const BOT_TCS = [[[0, 0], "Unlimited"], [[1, 0], "Bullet"], [[2, 1], "Bullet"], [[3, 0], "Blitz"], [[3, 2], "Blitz"], [[5, 0], "Blitz"], [[10, 0], "Rapid"], [[15, 10], "Rapid"]];
+const BOT_TCS = [[[0, 0], "Unlimited"], [[1, 0], "Bullet"], [[2, 1], "Bullet"], [[3, 0], "Blitz"], [[3, 2], "Blitz"], [[5, 0], "Blitz"], [[5, 2], "Blitz"], [[10, 0], "Rapid"], [[10, 2], "Rapid"], [[15, 10], "Rapid"]];
 /* like the big sites: estimated game time = base + 40 × increment */
 function tcCat(tc){ if (!tc || !tc[0]) return null; const est = tc[0] * 60 + (tc[1] || 0) * 40; return est < 180 ? "bullet" : est < 600 ? "blitz" : "rapid"; }
 function startRating(){ return Math.max(400, Math.min(1500, Math.round(((S.puzzle && S.puzzle.r) || 800) - 300) / 10 * 10)); }
@@ -6557,7 +6632,7 @@ Views.blitz = {
 };
 
 /* ===== Play a Friend: live games over the artifact room (presence carries absolute game state) ===== */
-const TIME_CONTROLS = [[1,0,"Bullet"],[2,1,"Bullet"],[3,0,"Blitz"],[3,2,"Blitz"],[5,0,"Blitz"],[5,3,"Blitz"],[10,0,"Rapid"],[10,5,"Rapid"],[15,10,"Rapid"],[30,0,"Classical"],[0,0,"Unlimited"]];
+const TIME_CONTROLS = [[1,0,"Bullet"],[2,1,"Bullet"],[3,0,"Blitz"],[3,2,"Blitz"],[5,0,"Blitz"],[5,2,"Blitz"],[10,0,"Rapid"],[10,2,"Rapid"],[10,5,"Rapid"],[15,10,"Rapid"],[30,0,"Classical"],[0,0,"Unlimited"]];
 const tcLabel = tc => tc[0] === 0 ? "Unlimited" : tc[0] + (tc[1] ? " | " + tc[1] : " min");
 const QUICK_CHAT = ["Good luck! 🍀", "Nice move! 👏", "Oops 😅", "Hmm… 🤔", "Hurry up ⏰", "GG ❤️"];
 function newCode(){ const a = "abcdefghjkmnpqrstuvwxyz23456789"; let s = ""; for (let i = 0; i < 6; i++) s += a[Math.floor(Math.random() * a.length)]; return s; }
@@ -6574,7 +6649,7 @@ Views.friend = {
   unmount(){ this.leave(); },
   leave(){ const st = this.st; if (st && !st.result && !st.saved && (st.seat === "w" || st.seat === "b") && st.moves.length >= 4){ st.saved = true; const o = this.opp();
       S.games.push({id: Date.now().toString(36), mode: "friend", opp: o && o.presence.name || "Friend", color: st.seat, result: "*", why: "unfinished", pgn: st.g.pgn(), ts: Date.now(), moves: st.moves.length}); save(); }
-    clearInterval(this.tick); if (this.R){ try { this.R.leave(); } catch(e) {} } this.R = null; this.st = null; this.chat = []; document.onkeydown = null; },
+    clearInterval(this.tick); if (this._vis){ document.removeEventListener("visibilitychange", this._vis); this._vis = null; } if (this.R){ try { this.R.leave(); } catch(e) {} } this.R = null; this.st = null; this.chat = []; document.onkeydown = null; },
   menu(err){
     this.leave();
     try { if (location.hash !== "#friend") history.replaceState(null, "", "#friend"); } catch(e) {}
@@ -6634,13 +6709,16 @@ Views.friend = {
     board.canPick = sq => { const st = this.st; if (!st || st.result || !st.seat || st.seat === "spec" || !this.opp()) return false; const p = st.g.get(sq); return p && p.color === st.seat && st.g.turn() === st.seat; };
     board.dests = sq => gameDests(this.st.g)(sq);
     board.onMove = (f, t, pr) => this.move(f, t, pr);
+    board.onPremoveFail = () => { this.turnSignal(true); toast("Premove no longer possible. Your move!"); };
     board.set(s.g, lastMv(s.g));
+    /* tell the opponent when this app goes to the background, so a move can reach you as a push */
+    this._vis = () => { if (this.st){ this.publish(); if (!document.hidden) this.sync(); } }; document.addEventListener("visibilitychange", this._vis);
     R.onPeers(() => this.sync(), e => { toast("Connection lost: " + e.code); });
     if (R.onConnection) R.onConnection(ok => { this.online = ok; this.render(); });
     this.publish(); this.render();
     this.tick = setInterval(() => this.clocks(), 200);
   },
-  me(){ const s = this.st; return {app: "chessnat", v: 2, name: S.name, rating: S.puzzle.r, rt: Object.fromEntries(RATED_CATS.map(([k]) => [k, catRating(k).r])), seat: s.seat || "spec", host: s.host, tc: s.tc, gameNo: s.gameNo, rev: s.rev, moves: s.moves.join(" "), clk: s.clk, result: s.result, offer: s.offer, rematch: s.rematch, tb: s.tbReq, say: s.say}; },
+  me(){ const s = this.st; return {app: "chessnat", v: 2, name: S.name, rating: S.puzzle.r, rt: Object.fromEntries(RATED_CATS.map(([k]) => [k, catRating(k).r])), seat: s.seat || "spec", host: s.host, tc: s.tc, gameNo: s.gameNo, rev: s.rev, moves: s.moves.join(" "), clk: s.clk, result: s.result, offer: s.offer, rematch: s.rematch, tb: s.tbReq, say: s.say, away: !!document.hidden}; },
   publish(){ if (!this.R) return; liveSave(this.st); this.R.presence(this.me()).catch(e => toast("Couldn't send: " + (e.code || e.message))); },
   peersInfo(){ if (!this.R) return []; return this.R.peers().filter(p => !p.sameTab && p.presence && p.presence.app === "chessnat"); },
   opp(){ const s = this.st; if (!s || !s.seat) return null; const ps = this.peersInfo().filter(p => p.presence.seat === "w" || p.presence.seat === "b"); if (s.seat === "spec") return ps.find(p => p.presence.host) || ps[0] || null; return ps.find(p => p.presence.seat !== s.seat) || ps[0] || null; },
@@ -6662,6 +6740,7 @@ Views.friend = {
           for (let i = s.moves.length; i < theirs.length; i++){ const u = theirs[i]; const m = s.g.move({from: u.slice(0,2), to: u.slice(2,4), promotion: u[4] || undefined}); if (!m) break; s.moves.push(u); this.board.set(s.g, {from: m.from, to: m.to}); Sound.forMove(m, s.g); }
           if (op.clk && s.tc && s.tc[0]){ if (!s.clk) s.clk = op.clk.slice(); else { const oi = op.seat === "w" ? 0 : 1; s.clk[oi] = op.clk[oi]; } }
           s.lastAt = Date.now(); s.offer = null; s.tbReq = 0; this.publish();
+          if (s.g.turn() === s.seat && !s.g.game_over() && !this.board.pre.length) this.turnSignal();
           if (document.hidden && s.g.turn() === s.seat){ document.title = "● Your move · Chess.nat"; document.addEventListener("visibilitychange", () => { document.title = "Chess.nat"; }, {once: true}); }
         }
         if (op.result && !s.result){ s.result = op.result; this.finish(); }
@@ -6670,6 +6749,7 @@ Views.friend = {
         if (s.result && op.rematch > s.rematch) this.rematchAsked = true;
       }
     }
+    this.maybeNudge();
     this.render();
   },
   move(f, t, pr){
@@ -6680,8 +6760,16 @@ Views.friend = {
     this.board.set(s.g, {from: f, to: t}); Sound.forMove(m, s.g);
     if (s.g.game_over()){ const g = s.g; s.result = g.in_checkmate() ? {res: g.turn() === "w" ? "0-1" : "1-0", why: "by checkmate"} : {res: "1/2-1/2", why: g.in_stalemate() ? "by stalemate" : g.in_threefold_repetition() ? "by repetition" : g.insufficient_material() ? "by insufficient material" : "by the 50-move rule"}; this.publish(); this.finish(); }
     else this.publish();
+    this.maybeNudge();
     this.render();
   },
+  /* "your move" for me: a chime, a buzz and the board lights up once */
+  turnSignal(force){ const s = this.st; if (!s || s.result || s.seat === "spec") return; setTimeout(() => Sound.yourTurn(), force ? 0 : 160);
+    const bw = $("#bw"); if (bw){ bw.classList.remove("yourturn"); void bw.offsetWidth; bw.classList.add("yourturn"); } },
+  /* "your move" for them: if the opponent has the app in the background, the move reaches them as a push */
+  maybeNudge(){ const s = this.st, o = this.opp(); if (!s || s.result || !o || !o.by || !o.presence.away || s.seat === "spec") return;
+    if (s.g.turn() === s.seat || this.nudged === s.gameNo + ":" + s.moves.length) return;
+    this.nudged = s.gameNo + ":" + s.moves.length; if (typeof Social !== "undefined" && Social.nudge) Social.nudge(o.by, s.code); },
   acceptTakeback(){
     const s = this.st; const o = this.opp(); if (!o || !s.moves.length) return;
     const reqColor = o.presence.seat; const lastColor = s.moves.length % 2 === 1 ? "w" : "b";
@@ -6695,6 +6783,7 @@ Views.friend = {
     const my = s.seat === "b" ? 1 : 0;
     const set = (id, i) => { const el = $(id); if (!el) return; const v = this.timeLeft(i); el.textContent = fmtClock(v); const run = !s.result && (s.g.turn() === "w" ? 0 : 1) === i && s.moves.length >= 2; el.classList.toggle("run", run); el.classList.toggle("low", run && v < 20000); };
     set("#clkMe", my); set("#clkOp", 1 - my);
+    if (!s.result && s.moves.length >= 2 && s.seat !== "spec" && (s.g.turn() === "w" ? 0 : 1) === my){ const v = this.timeLeft(my); if (v > 0 && v < 10000){ const sec = Math.ceil(v / 1000); if (sec !== this.lastBeep){ this.lastBeep = sec; Sound.tone([[880, .04]], "sine", .05); } } }
     if (!s.result && s.moves.length >= 2 && s.seat !== "spec"){
       const turn = s.g.turn() === "w" ? 0 : 1;
       if (turn === my && this.timeLeft(my) <= 0){ s.result = {res: my === 0 ? "0-1" : "1-0", why: "on time"}; this.publish(); this.finish(); }
@@ -6715,14 +6804,31 @@ Views.friend = {
       const rec = {id: Date.now().toString(36), mode: "friend", opp: oppName, oppR: o ? o.presence.rating : null, color: s.seat, result: s.result.res, why: s.result.why, pgn, ts: Date.now(), moves: s.moves.length, tc: s.tc, rated: !!s.rating, rdelta: s.rating ? s.rating.delta : null};
       dayTick("gm"); S.games.push(rec); save(); logEvent("game", {opponent: oppName, mode: "friend", color: s.seat, result: s.result.res, why: s.result.why, pgn, moves: s.moves.length, timeControl: tcLabel(s.tc || [0,0])});
       Sound.play(draw ? "GenericNotify" : win ? "Victory" : "Defeat", .8);
+      this.board.cancelPremove();
+      this.endCard(oppName);
       /* signed-in opponent: the result decides who sits in whose cage */
-      if (typeof Social !== "undefined" && o && o.by) Social.gameOver({id: s.code + ":" + s.gameNo, seat: s.seat, opp: o.by, oppName, result: s.result.res, why: s.result.why, moves: s.moves.length}).then(m => { if (m && this.st === s){ s.cageMsg = m; this.render(); } });
+      if (typeof Social !== "undefined" && o && o.by) Social.gameOver({id: s.code + ":" + s.gameNo, seat: s.seat, opp: o.by, oppName, result: s.result.res, why: s.result.why, moves: s.moves.length}).then(m => { if (m && this.st === s){ s.cageMsg = m; this.render(); this.endExtras(); } });
     }
     this.render();
   },
+  endCard(oppName){
+    const s = this.st; if (!s || !s.result) return; const me = s.seat === "b" ? "b" : "w", my = me === "b" ? 1 : 0;
+    const clk = s.tc && s.tc[0] && s.clk ? `<div class="end-clk"><span>Your clock</span><b>${fmtClock(this.timeLeft(my))}</b><span>${esc(oppName)}</span><b>${fmtClock(this.timeLeft(1 - my))}</b></div>` : "";
+    const o = this.board.overlay(`<div class="card-over endcard">${endHead({res: s.result.res, why: s.result.why, me, g: s.g, opp: oppName})}${clk}<div id="endx"></div>
+      <div class="grid2"><button class="btn go" id="erm">Rematch</button><button class="btn" id="erv">Review</button></div><button class="btn ghost" id="ecl" style="margin-top:8px;width:100%">Close</button></div>`);
+    if (!o) return;
+    $("#erm", o).onclick = () => { this.board.overlay(null); const b = $("#frm"); if (b) b.click(); };
+    $("#erv", o).onclick = () => App.go("review", {pgn: s.g.pgn(), meta: S.games[S.games.length - 1]});
+    $("#ecl", o).onclick = () => this.board.overlay(null);
+    this.endExtras();
+  },
+  /* rating change and the cage news arrive a moment later: add them to the open card */
+  endExtras(){ const s = this.st, x = $("#endx"); if (!s || !x) return;
+    x.innerHTML = (s.rating ? ratingDeltaHTML(s.rating) : "") + (s.cageMsg ? `<div class="cage-msg ${s.cageMsg.cls}">${s.cageMsg.html}</div>` : "");
+    if (s.rating && !this.ratingShown){ this.ratingShown = true; try { ratingAnimate(x); } catch(e) {} } },
   newGame(no, seat){
     const s = this.st; Object.assign(s, {gameNo: no, seat, rev: 0, moves: [], g: new Chess(), result: null, offer: null, rematch: 0, tbReq: 0, saved: false, lastAt: Date.now(), clk: s.tc && s.tc[0] ? [s.tc[0] * 60000, s.tc[0] * 60000] : null});
-    this.rematchAsked = false; this.drawOffered = false; this.tbAsked = false; this.board.setOrientation(seat); this.board.set(s.g, null); this.board.overlay(null); this.publish(); this.render();
+    this.rematchAsked = false; this.drawOffered = false; this.tbAsked = false; this.ratingShown = false; this.nudged = null; this.board.setOrientation(seat); this.board.set(s.g, null); this.board.overlay(null); this.publish(); this.render();
   },
   render(){
     const s = this.st; if (!s || !$("#sp")) return; const o = this.opp(); const my = s.seat === "b" ? 1 : 0;
@@ -7551,17 +7657,19 @@ const Social = (() => {
       setTimeout(() => { Av3D.react(c.querySelector(".cage-in"), "wave"); c.classList.remove("hit"); void c.offsetWidth; c.classList.add("hit"); say.textContent = rnd(HEART_LINES); say.classList.remove("show"); void say.offsetWidth; say.classList.add("show"); }, 520);
       setTimeout(() => p.remove(), 2600);
       const sp = c.querySelector(".plate span:last-child"); const o = standings()[id]; if (sp && o) sp.textContent = `Score ${o.w}:${o.l}${o.d ? " · " + o.d + "½" : ""} · ❤️ ${o.sent} sent`; });
-    el.querySelectorAll("[data-pinv]").forEach(b => b.onclick = () => invite(b.dataset.pinv, [10, 0]));
+    el.querySelectorAll("[data-pinv]").forEach(b => b.onclick = () => invite(b.dataset.pinv, S.invTc || [10, 2]));
     wire(el, () => cages(el));
   }
 
-  return {create, setHandle, suggestHandle, cleanHandle, syncCard, start, load, setName, request, accept, remove, heart, invite, gameOver, friendChip, wire, cages, standings, rel, P, seen, isOnline, face, dot,
+  /* the opponent has the app in the background: send "Your move" as a push (server checks friendship and rate) */
+  async function nudge(id, code){ try { if (sb && me) await sb.rpc("nudge_turn", {target: id, code}); } catch(e) {} }
+  return {nudge, create, setHandle, suggestHandle, cleanHandle, syncCard, start, load, setName, request, accept, remove, heart, invite, gameOver, friendChip, wire, cages, standings, rel, P, seen, isOnline, face, dot,
     get me(){ return me; }, get player(){ return player; }, get data(){ return D; }, sb};
 })();
 
 /* ---------- the Friends page ---------- */
 Views.friends = {
-  async mount(main){ this.main = main; this.q = ""; this.tc = this.tc || [10, 0]; this.main.innerHTML = `<div class="page"><h1 class="h-title">Friends</h1><p class="dim">Loading…</p></div>`;
+  async mount(main){ this.main = main; this.q = ""; this.tc = this.tc || (S.invTc && S.invTc.slice()) || [10, 2]; this.main.innerHTML = `<div class="page"><h1 class="h-title">Friends</h1><p class="dim">Loading…</p></div>`;
     const site = window.ChessSite || {}; if (!site.ready){ this.main.innerHTML = `<div class="page"><h1 class="h-title">Friends</h1><p class="muted">Accounts aren't set up on this site.</p></div>`; return; }
     await site.sessionReady;
     if (!site.getSession()){ this.main.innerHTML = `<div class="page" style="max-width:640px"><h1 class="h-title">Friends</h1><div class="unit" style="margin-top:12px"><h3>Sign in to add friends</h3><p class="muted">With an account you get a player name, can add friends, see who's online, invite them to a game, and lock them up in your Cages when you beat them.</p><button class="btn go" id="fsi">Sign in</button></div></div>`; $("#fsi").onclick = () => App.go("account"); return; }
@@ -7583,13 +7691,13 @@ Views.friends = {
     const friends = D.friends.filter(r => r.status === "accepted").map(other).sort((x, y) => (Social.isOnline(Social.P(y)) - Social.isOnline(Social.P(x))) || Social.P(x).name.localeCompare(Social.P(y).name));
     const incoming = D.friends.filter(r => r.status === "pending" && r.requested_by !== me.id).map(other), sent = D.friends.filter(r => r.status === "pending" && r.requested_by === me.id).map(other);
     const person = (id, right) => { const p = Social.P(id), o = st[id]; return `<div class="li fr">${Social.face(p, 42)}<div class="grow"><div class="t">${Social.dot(p)}${esc(p.name)}${p.rating ? ` <span class="muted">(${p.rating})</span>` : ""}</div><div class="s">${p.handle ? `@${esc(p.handle)} · ` : ""}${p.ratings && p.ratings.blitz ? `Blitz ${p.ratings.blitz} · ` : ""}${esc(Social.seen(p))}${o ? ` · score ${o.w}:${o.l}${o.cage === "mine" ? " · 🔒 in your cage" : o.cage === "theirs" ? " · you're in their cage" : ""}` : ""}</div></div>${right}</div>`; };
-    const TCS = [[3, 0], [5, 0], [10, 0], [15, 10]];
+    const TCS = [1, 3, 5, 10, 15], inc = S.invInc !== false; this.tc = [this.tc[0], inc ? 2 : 0]; S.invTc = this.tc.slice();
     main.innerHTML = `<div class="page" style="max-width:760px"><h1 class="h-title">Friends</h1>
       <div class="unit" style="margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">${Social.face(me, 54)}<div style="flex:1;min-width:180px"><div class="muted" style="font-size:12px;font-weight:800;letter-spacing:.06em">YOUR PLAYER CARD</div>${this.renaming ? `<form id="rnf" style="display:flex;flex-direction:column;gap:6px;margin-top:4px"><input type="text" id="rnv" maxlength="24" value="${esc(me.name)}" placeholder="Name"><div class="hdl-in"><span>@</span><input type="text" id="rnh" maxlength="21" autocapitalize="off" spellcheck="false" value="${esc(me.handle)}"></div><div class="row"><button class="btn sm go" type="submit">Save</button><button class="btn sm" type="button" id="rnx">Cancel</button></div></form><p id="rnerr" style="color:var(--bad);font-size:13px;margin:4px 0 0"></p>` : `<div style="font:900 22px var(--display)">${esc(me.name)}</div><div class="hdl">@${esc(me.handle)} <button class="btn sm ghost" id="cpid">Copy ID</button></div>`}</div>${this.renaming ? "" : `<button class="btn sm" id="ren">Change</button>`}</div>
       <div class="unit"><h3>Add a friend</h3><form id="sf2" class="row" style="margin-top:8px"><input type="text" id="sq" placeholder="Player ID or name, e.g. @natlordlord" value="${esc(this.q)}" style="flex:1;min-width:160px"><button class="btn go" type="submit">Search</button></form><div id="sres"></div></div>
       ${incoming.length ? `<h2 class="h-sec">Friend requests</h2><div class="list">${incoming.map(id => person(id, `<button class="btn sm" data-rm="${id}">Decline</button><button class="btn sm go" data-acc="${id}">Accept</button>`)).join("")}</div>` : ""}
       <h2 class="h-sec" style="margin-top:16px">Your friends <span class="muted" style="font-weight:600">${friends.filter(id => Social.isOnline(Social.P(id))).length} online</span></h2>
-      ${friends.length ? `<div class="row" style="margin:0 0 8px"><span class="muted" style="font-size:13px">Invite with:</span>${TCS.map(tc => `<button class="btn sm ${tc[0] === this.tc[0] && tc[1] === this.tc[1] ? "go" : ""}" data-tcs="${tc.join(",")}">${tcLabel(tc)}</button>`).join("")}</div>
+      ${friends.length ? `<div class="row" style="margin:0 0 8px"><span class="muted" style="font-size:13px">Invite with:</span>${TCS.map(m => `<button class="btn sm ${m === this.tc[0] ? "go" : ""}" data-tcs="${m}">${m} min</button>`).join("")}<button class="btn sm inc-tog ${inc ? "on" : ""}" id="inctog" aria-pressed="${inc}" title="Every move adds 2 seconds to your clock">${inc ? "✓ " : ""}+2 s per move</button></div>
         <div class="list">${friends.map(id => person(id, `${st[id] && st[id].cage === "mine" ? `<button class="btn sm" data-h="${id}" aria-label="Send a heart">❤️</button>` : ""}<button class="btn sm" data-chat="${id}" aria-label="Chat">💬${typeof Chat !== "undefined" && Chat.unread[id] ? `<span class="cbadge">${Chat.unread[id]}</span>` : ""}</button><button class="btn sm" data-bat="${id}" aria-label="Puzzle Battle">⚔</button><button class="btn sm ${Social.isOnline(Social.P(id)) ? "go" : ""}" data-inv="${id}">Invite</button><button class="btn sm ghost" data-rmf="${id}" aria-label="Remove friend">✕</button>`)).join("")}</div>`
         : `<div class="unit"><p class="muted" style="margin:0">No friends yet. Search for their player ID above, or play them live and tap “Add as friend” after the game.</p></div>`}
       ${sent.length ? `<h2 class="h-sec" style="margin-top:16px">Requests you sent</h2><div class="list">${sent.map(id => person(id, `<button class="btn sm" data-rm="${id}">Cancel</button>`)).join("")}</div>` : ""}
@@ -7600,7 +7708,8 @@ Views.friends = {
     if ($("#cpid")) $("#cpid").onclick = async () => { try { await navigator.clipboard.writeText("@" + me.handle); toast("Copied @" + me.handle); } catch(e) { toast("@" + me.handle); } };
     $("#gotr").onclick = e => { e.preventDefault(); App.go("trophies"); };
     $("#sf2").onsubmit = e => { e.preventDefault(); this.search($("#sq").value); };
-    $$("[data-tcs]", main).forEach(b => b.onclick = () => { this.tc = b.dataset.tcs.split(",").map(Number); this.draw(); });
+    $$("[data-tcs]", main).forEach(b => b.onclick = () => { this.tc = [+b.dataset.tcs, this.tc[1]]; S.invTc = this.tc.slice(); save(); this.draw(); });
+    if ($("#inctog")) $("#inctog").onclick = () => { S.invInc = S.invInc === false; save(); this.draw(); };
     $$("[data-acc]", main).forEach(b => b.onclick = async () => { await Social.accept(b.dataset.acc); this.draw(); });
     $$("[data-rm]", main).forEach(b => b.onclick = async () => { await Social.remove(b.dataset.rm); this.draw(); });
     $$("[data-rmf]", main).forEach(b => b.onclick = async () => { if (!b.dataset.armed){ b.dataset.armed = 1; b.textContent = "Remove?"; return; } await Social.remove(b.dataset.rmf); this.draw(); });
@@ -7696,7 +7805,7 @@ Views.chat = {
       <div class="chat-msgs" id="cmsgs"><p class="dim" style="text-align:center">Loading…</p></div>
       <div class="chat-quick">${["GG 🤝", "Rematch?", "Nice move! 👏", "😂", "Play now?", "Good luck!"].map(q => `<button class="chip" data-q="${esc(q)}">${esc(q)}</button>`).join("")}</div>
       <form class="chat-in" id="cform"><input id="ctext" maxlength="500" placeholder="Message ${esc(p.name)}" autocomplete="off"><button class="btn go" type="submit">Send</button></form></div>`;
-    $("#cback").onclick = () => App.go("chat"); $("#cinv").onclick = () => Social.invite(id, [10, 0]);
+    $("#cback").onclick = () => App.go("chat"); $("#cinv").onclick = () => Social.invite(id, S.invTc || [10, 2]);
     const sendT = async t => { const m = await Chat.send(id, t); if (m) this.add(m); };
     $("#ctext").onfocus = () => { this._kb = Date.now(); this.settle(); };
     $("#ctext").onblur = () => { this._kb = false; setTimeout(() => this.settle(), 60); };
