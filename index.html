@@ -7349,6 +7349,7 @@ Views.local = {
 
 /* ===== Icons (own line set) ===== */
 const ICONS = {
+  download: '<path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 20h14"/>',
   /* own icons for the friend actions and the chat */
   bubble: '<path d="M4.5 6.5a3 3 0 0 1 3-3h9a3 3 0 0 1 3 3v6.5a3 3 0 0 1-3 3H11l-4.5 4v-4h-0a2 2 0 0 1-2-2z"/><circle cx="9" cy="10" r=".6" fill="currentColor"/><circle cx="12" cy="10" r=".6" fill="currentColor"/><circle cx="15" cy="10" r=".6" fill="currentColor"/>',
   swords: '<path d="M4 4l9.5 9.5M4 4h3.5l9 9M4 4v3.5l9 9"/><path d="M20 4l-6.5 6.5M20 4h-3.5l-3.2 3.2M20 4v3.5l-3.2 3.2"/><path d="M11.5 15.5l-4 4M8.5 12.5l-4 4M6 18l-2 2M12.5 11.5l4 4M15.5 8.5l4 4M18 18l2 2"/>',
@@ -7432,12 +7433,12 @@ function renderTabs(){
 }
 function openSheet(){
   const sh = $("#sheet"); const rk = rankOf(S.puzzle.r);
-  const items = [["journey", "Journey", "map"], ["theory", "Theory", "scroll"], ["blitz", "Blitz & Battle", "flame"], ["awards", "Trophies", "trophy"], ["me", "Profile", "user"], ["endgames", "Endgames", "crown"], ["rush", "Puzzle Rush", "bolt"], ["daily", "Daily Puzzle", "calendar"], ["train", "Train", "target"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"], ["coords", "Coordinates", "board"], ["settings", "Settings", "gear"], ["account", "Account", "users"]];
+  const items = [...(window.ChessInstall && ChessInstall.can() ? [["__install", "Get the app", "download"]] : []), ["journey", "Journey", "map"], ["theory", "Theory", "scroll"], ["blitz", "Blitz & Battle", "flame"], ["awards", "Trophies", "trophy"], ["me", "Profile", "user"], ["endgames", "Endgames", "crown"], ["rush", "Puzzle Rush", "bolt"], ["daily", "Daily Puzzle", "calendar"], ["train", "Train", "target"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"], ["coords", "Coordinates", "board"], ["settings", "Settings", "gear"], ["account", "Account", "users"]];
   sh.innerHTML = `<div class="panelx" role="dialog" aria-label="More"><div class="grab"></div><button class="rk" data-s="me">${emblem(rk, 36)}<span style="text-align:left"><div style="font-weight:900">${esc(rk.label)}</div><div class="muted" style="font-size:12px">${S.puzzle.r} puzzle rating · ${Cloud.status === "on" ? "synced to your account" : "saved on this device"}</div></span></button>${items.map(([k, n, ic]) => `<button data-s="${k}">${icon(ic, 26)}<span>${n}</span></button>`).join("")}</div>`;
   sh.hidden = false; sh.classList.remove("closing"); const px = $(".panelx", sh); px.style.transform = ""; px.classList.add("opening"); setTimeout(() => px.classList.remove("opening"), 300);
   const close = () => { if (sh.hidden || sh.classList.contains("closing")) return; sh.classList.add("closing"); px.style.transform = ""; setTimeout(() => { sh.hidden = true; sh.classList.remove("closing"); }, 220); };
   sh.onclick = e => { if (e.target === sh) close(); };
-  $$("[data-s]", sh).forEach(b => b.onclick = () => { if (px.dataset.dragged === "1") return; sh.hidden = true; App.go(b.dataset.s); });
+  $$("[data-s]", sh).forEach(b => b.onclick = () => { if (px.dataset.dragged === "1") return; sh.hidden = true; if (b.dataset.s === "__install"){ ChessInstall.run(); return; } App.go(b.dataset.s); });
   /* drag the sheet down to close it (from the handle, or anywhere while the list is scrolled to the top) */
   let d = null;
   const start = (y, fromGrab) => { d = {y, t: performance.now(), dy: 0, on: false, fromGrab}; px.dataset.dragged = "0"; };
@@ -7467,7 +7468,8 @@ const App = {
     if (this.view && this.view.unmount) this.view.unmount();
     Voice.stop();
     this.route = r; this.view = Views[r];
-    try { if (location.hash !== "#" + r) history.replaceState(null, "", "#" + r); } catch(e) {}
+    /* every screen is a history entry, so Android's back button and gesture step back inside the app */
+    try { if (location.hash !== "#" + r){ if (!back && this.view && !this._popping) history.pushState({r}, "", "#" + r); else history.replaceState({r}, "", "#" + r); } } catch(e) {}
     const main = $("#main"); main.innerHTML = ""; main.scrollTop = 0; window.scrollTo(0, 0);
     document.body.classList.toggle("busy", this.busy()); renderRail(); renderTabs(); const sh = $("#sheet"); if (sh) sh.hidden = true; sizeBoard();
     this.view.mount(main, arg);
@@ -7621,7 +7623,17 @@ function boot(){
   else if (h.startsWith("g-") && Views.friend) App.go("friend", {join: h.slice(2)});
   else if (h.startsWith("battle-") && h.length > 7) App.go("battle", {join: h.slice(7)});
   else App.go(Views[h] && h !== "lesson" ? h : "home");
-  window.addEventListener("hashchange", () => { const r = location.hash.slice(1); if (r !== App.route && Views[r] && r !== "lesson") App.go(r); if (r.startsWith("g-") && Views.friend && App.route !== "friend") App.go("friend", {join: r.slice(2)}); if (r.startsWith("m-")){ const p = parseLinkHash(r); const cur = App.route === "linkgame" && Views.linkgame.gid && p && p.gid === Views.linkgame.gid && p.moves.length === (Views.linkgame.rec.moves || []).length; if (!cur) App.go("linkgame", {hash: r}); } });
+  /* Android back: close what's open, otherwise go back one screen */
+  window.addEventListener("popstate", () => {
+    App._popping = true; setTimeout(() => { App._popping = false; }, 50);
+    const ov = document.querySelector(".dsheet:not(.out)"), sh = $("#sheet");
+    if (ov){ ov.remove(); history.pushState({r: App.route}, "", "#" + App.route); return; }
+    if (sh && !sh.hidden){ sh.hidden = true; history.pushState({r: App.route}, "", "#" + App.route); return; }
+    if (document.querySelector(".idsetup")){ history.pushState({r: App.route}, "", "#" + App.route); return; }
+    const want = location.hash.slice(1);
+    if (App.stack.length){ App.back(); } else if (want && want !== App.route && Views[want]) App.go(want, undefined, true); else if (App.route !== "home") App.go("home", undefined, true);
+  });
+  window.addEventListener("hashchange", () => { if (App._popping) return; const r = location.hash.slice(1); if (r !== App.route && Views[r] && r !== "lesson") App.go(r); if (r.startsWith("g-") && Views.friend && App.route !== "friend") App.go("friend", {join: r.slice(2)}); if (r.startsWith("m-")){ const p = parseLinkHash(r); const cur = App.route === "linkgame" && Views.linkgame.gid && p && p.gid === Views.linkgame.gid && p.moves.length === (Views.linkgame.rec.moves || []).length; if (!cur) App.go("linkgame", {hash: r}); } });
   document.addEventListener("pointerdown", () => Sound.init(), {once: true});
 }
 
@@ -7671,6 +7683,7 @@ Views.me = {
       <div id="mefr"></div><div id="mepush"></div>
       <h2 class="h-sec" style="margin-top:18px">More about you</h2>
       <div class="tiles"><button class="tile" data-go="repertoire">${icon("scroll", 36)}<h3>Your openings</h3><p>The repertoire that fits your style, with a drill.</p></button><button class="tile" data-go="profile">${icon("target", 36)}<h3>Play style</h3><p>Your strengths, weak spots and opening repertoire.</p></button>
+        ${window.ChessInstall && ChessInstall.can() ? `<button class="tile" id="meinst">${icon("download", 36)}<h3>Get the app</h3><p>On your home screen, full screen, with notifications. iPhone and Android.</p></button>` : ""}
         <button class="tile" data-go="stats">${icon("chart", 36)}<h3>Stats</h3><p>Rating history and puzzle themes.</p></button>
         <button class="tile" data-go="trophies">${icon("cage", 36)}<h3>Cages</h3><p>${caughtBots().length} bots caught.</p></button></div>
     </div>`;
@@ -7678,6 +7691,7 @@ Views.me = {
     /* tap your figure: straight into the wardrobe (a drag only turns it) */
     { const st = $("#mest"); let x0 = 0, y0 = 0; st.addEventListener("pointerdown", e => { x0 = e.clientX; y0 = e.clientY; }); st.onclick = e => { if (Math.hypot(e.clientX - x0, e.clientY - y0) > 8) return; App.go("awards", {tab: "wardrobe"}); }; }
     $$("[data-go]", main).forEach(b => b.onclick = () => App.go(b.dataset.go, b.dataset.tab ? {tab: b.dataset.tab} : undefined));
+    const mi = $("#meinst"); if (mi) mi.onclick = () => ChessInstall.run();
     this.friends(); this.push();
   },
   push(){ const el = $("#mepush"); if (!el || typeof Push === "undefined") return; el.innerHTML = `<h2 class="h-sec" style="margin-top:18px">Notifications</h2>${Push.card()}`; Push.wire(el, () => this.push()); },
@@ -7726,6 +7740,9 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) upda
 
 /* ===== Swipe from the left edge to go back (and to close sheets), like a native app ===== */
 (() => {
+  /* Android has its own back gesture (handled through the browser history), so this is for iPhone and iPad */
+  const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (!IOS) return;
   const EDGE = 30;
   let s = null;
   const overlay = () => document.querySelector(".dsheet:not(.out)") || (($("#sheet") && !$("#sheet").hidden) ? $("#sheet") : null);

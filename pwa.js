@@ -48,11 +48,24 @@
     }, true);
   }
 
-  /* ---- install hints (website only) ---- */
+  /* ---- install (website only) ----
+     Android/Chrome/Edge: the browser's own install prompt, kept so a button anywhere in the app can use it.
+     iPhone: Share → Add to Home Screen. Others: how to find "Install" in the browser menu. */
+  const isAndroid = /Android/i.test(ua);
+  const Install = window.ChessInstall = {ev: null, isApp, isIOS, isAndroid,
+    can(){ return !isApp; },
+    async run(){
+      if (this.ev){ const e = this.ev; this.ev = null; e.prompt(); try { await e.userChoice; } catch(x) {} return; }
+      const steps = isIOS ? `<li>Open chess-nat.vercel.app in <b>Safari</b></li><li>Tap ${shareIcon} <b>Share</b></li><li>Tap <b>Add to Home Screen</b></li>`
+        : isAndroid ? `<li>Open chess-nat.vercel.app in <b>Chrome</b></li><li>Tap <b>⋮</b> at the top right</li><li>Tap <b>Install app</b> (or <b>Add to Home screen</b>)</li>`
+        : `<li>In Chrome or Edge, click the <b>install icon</b> at the right end of the address bar</li><li>or open the browser menu and choose <b>Install Chess.nat</b></li>`;
+      if (typeof detailSheet === "function") detailSheet(`<div style="text-align:center"><img src="/icons/icon-192.png" alt="" width="64" height="64" style="border-radius:16px"><div style="font:900 21px var(--display);margin-top:8px">Get the app</div><p class="muted" style="margin:6px 0 0">Full screen, on your home screen, with notifications.</p></div><ol style="margin:12px 0 0;padding-left:20px;line-height:1.7">${steps}</ol>`);
+    }};
   if (isApp) return;
   const KEY = "chessnat-install-hint";
-  let seen = false; try { seen = !!localStorage.getItem(KEY); } catch(e) {}
-  const dismiss = el => { el.remove(); try { localStorage.setItem(KEY, "1"); } catch(e) {} };
+  /* the banner comes back a week after it was closed */
+  let seen = false; try { const t = +localStorage.getItem(KEY) || 0; seen = t > 1 && Date.now() - t < 7 * 864e5 || localStorage.getItem(KEY) === "1" && false; } catch(e) {}
+  const dismiss = el => { el.remove(); try { localStorage.setItem(KEY, String(Date.now())); } catch(e) {} };
   const shareIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>`;
   function banner(html, action){
     const el = document.createElement("div"); el.className = "install-hint"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Install Chess.nat");
@@ -64,9 +77,10 @@
     setTimeout(() => banner(`<b>Get the app</b><span>Tap ${shareIcon} Share, then <b>Add to Home Screen</b>.</span>`), 2500);
   }
   window.addEventListener("beforeinstallprompt", e => {
-    e.preventDefault(); if (seen) return;
+    e.preventDefault(); Install.ev = e; if (seen || document.querySelector(".install-hint")) return;
     const el = banner(`<b>Install Chess.nat</b><span>Play full screen from your home screen.</span>`, "Install");
-    el.querySelector("[data-act]").onclick = () => { e.prompt(); e.userChoice.finally(() => dismiss(el)); };
+    el.querySelector("[data-act]").onclick = () => { Install.ev = null; e.prompt(); e.userChoice.finally(() => dismiss(el)); };
   });
+  if (isAndroid && !seen) setTimeout(() => { if (!Install.ev && !document.querySelector(".install-hint")) { const el = banner(`<b>Get the app</b><span>Tap <b>⋮</b> in Chrome, then <b>Install app</b>.</span>`); } }, 6000);
   window.addEventListener("appinstalled", () => { const el = document.querySelector(".install-hint"); if (el) dismiss(el); });
 })();

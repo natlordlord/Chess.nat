@@ -5,7 +5,7 @@
      refreshed in the background.
    - Supabase (login, saves, live games) and the coach voice clips are never touched.
    Bump VERSION to throw away all cached files. */
-const VERSION = "chessnat-v5";
+const VERSION = "chessnat-v6";
 const SHELL = [
   "/", "/config.js", "/platform.js", "/pwa.js", "/manifest.webmanifest", "/favicon.svg",
   "/vendor/chess.js", "/vendor/supabase.js", "/vendor/three.min.js", "/engine/sf.js",
@@ -25,7 +25,7 @@ self.addEventListener("install", e => {
 /* push: show it, put the flame on the icon, and open the right screen on tap */
 self.addEventListener("push", e => {
   let d = {}; try { d = e.data ? e.data.json() : {}; } catch(_) { d = {title: "Chess.nat", body: e.data ? e.data.text() : ""}; }
-  const jobs = [self.registration.showNotification(d.title || "Chess.nat", {body: d.body || "", icon: "/icons/icon-192.png", badge: "/icons/icon-192.png", tag: d.tag || d.kind || "chessnat", renotify: true, data: {url: d.url || "/"}})];
+  const jobs = [self.registration.showNotification(d.title || "Chess.nat", {body: d.body || "", icon: "/icons/icon-192.png", badge: "/icons/badge-96.png", vibrate: [60, 40, 60], tag: d.tag || d.kind || "chessnat", renotify: true, data: {url: d.url || "/"}})];
   if (d.badge != null && self.navigator && self.navigator.setAppBadge) jobs.push(self.navigator.setAppBadge(d.badge).catch(() => {}));
   e.waitUntil(Promise.all(jobs));
 });
