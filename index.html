@@ -1453,7 +1453,7 @@ const Sound = {ac:null, buf:{}, loading:false,
 };
 
 /* phones only allow sound after a touch, and pause it when the app goes to the background: wake it on every touch */
-["pointerdown", "touchend", "keydown"].forEach(ev => document.addEventListener(ev, () => { if (S && S.settings && S.settings.sound) Sound.init(); }, {passive: true, capture: true}));
+["pointerdown", "touchend", "keydown"].forEach(ev => document.addEventListener(ev, e => { if (e.target && e.target.closest && e.target.closest(".pushask")) return; if (S && S.settings && S.settings.sound) Sound.init(); }, {passive: true, capture: true}));
 
 /* ---------- voice (lessons): pre-recorded neural voice clips, keyed by the text ---------- */
 const Voice = {
@@ -7861,16 +7861,37 @@ const Push = {
       const site = window.ChessSite; if (site && site.getSession && site.getSession()) await this.store(sub); } catch(e) { console.warn("push", e); }
     updateBadge();
   },
+  /* The system question must start inside the tap, before anything is awaited, or iOS silently skips it.
+     With the service worker already at hand, subscribing asks for permission and subscribes in one go (Apple's recommended way);
+     otherwise we ask for permission directly. */
+  prep(){ if (this._reg || !("serviceWorker" in navigator)) return; navigator.serviceWorker.getRegistration().then(r => { if (r) this._reg = r; }).catch(() => {}); },
+  turnOn(){
+    let first;
+    try { first = this._reg && this._reg.active ? this._reg.pushManager.subscribe({userVisibleOnly: true, applicationServerKey: this.key()}) : Notification.requestPermission(); }
+    catch(e){ try { first = Notification.requestPermission(); } catch(e2){ first = Promise.reject(e2); } }
+    return Promise.resolve(first).then(async () => {
+      if (Notification.permission !== "granted") return {error: Notification.permission};
+      await this.ensure(); return {ok: true};
+    }).catch(e => ({error: Notification.permission === "denied" ? "denied" : "failed", msg: e && (e.name || e.message)}));
+  },
+  /* after a tap that didn't end with notifications on: say what happened and how to fix it */
+  explain(r){
+    if (r.ok) return; const ios = this.isIOS();
+    const how = ios ? `<ol style="text-align:left;margin:10px 0 0;padding-left:20px;line-height:1.55"><li>Open <b>Settings</b> on your iPhone</li><li><b>Notifications</b> → <b>Chess.nat</b></li><li>Turn on <b>Allow Notifications</b></li></ol><p class="muted" style="font-size:13px;margin-top:10px">Chess.nat not in the list? Remove the app from your home screen, open chess-nat.vercel.app in Safari and add it again with Share → Add to Home Screen.</p>`
+      : `<p class="muted" style="margin-top:8px">Allow notifications for this site in your browser's site settings (the lock icon next to the address).</p>`;
+    detailSheet(`<div style="text-align:center"><div class="pa-bell">${icon("bell", 46)}</div><div style="font:900 21px var(--display);margin-top:6px">${r.error === "denied" ? "Notifications are blocked" : "Your phone didn't ask"}</div>
+      <p class="muted" style="margin:8px 0 0">${r.error === "denied" ? "Notifications for Chess.nat are switched off on this device. Here's how to switch them on:" : "The system question didn't come up. You can switch them on yourself:"}</p>${how}<p class="dim" style="font-size:11.5px;margin-top:10px">Status: ${esc(String(r.error))}${r.msg ? " · " + esc(r.msg) : ""}</p></div>`);
+  },
   /* every app start: if notifications aren't on yet, ask */
   async auto(){
     if (this._asked) return; this._asked = true;
     if (!this.supported()){ if (this.isIOS() && !this.standalone()) this.iosHint(); return; }
     if (Notification.permission === "granted") return this.ensure();
     if (Notification.permission === "denied") return;
-    const go = () => { if (App.busy && App.busy()) return setTimeout(go, 4000); this.ask(); }; setTimeout(go, 1200);
+    this.prep(); const go = () => { if (App.busy && App.busy()) return setTimeout(go, 4000); this.ask(); }; setTimeout(go, 1200);
   },
   ask(){
-    if (document.querySelector(".pushask")) return;
+    if (document.querySelector(".pushask")) return; this.prep();
     const el = document.createElement("div"); el.className = "dsheet pushask";
     el.innerHTML = `<div class="dcard" style="text-align:center"><div class="grab"></div><div class="pa-bell">${icon("bell", 46)}</div>
       <div style="font:900 22px var(--display);margin-top:6px">Turn on notifications</div>
@@ -7879,8 +7900,7 @@ const Push = {
     document.body.appendChild(el);
     const close = () => { el.classList.add("out"); setTimeout(() => el.remove(), 200); };
     el.querySelector("#paNo").onclick = close;
-    el.querySelector("#paOn").onclick = async () => { const p = await Notification.requestPermission().catch(() => "default"); close();
-      if (p === "granted"){ await this.ensure(); toast("Notifications on 🔔"); Sound.cheer(1); } };
+    el.querySelector("#paOn").onclick = () => { this.turnOn().then(r => { close(); if (r.ok){ toast("Notifications on 🔔"); Sound.cheer(1); } else setTimeout(() => this.explain(r), 250); }); };
   },
   iosHint(){
     try { const k = "chessnat-ioshint", d = todayKey(); if (localStorage.getItem(k) === d) return; localStorage.setItem(k, d); } catch(e) { return; }
@@ -7890,16 +7910,17 @@ const Push = {
   /* the profile shows only whether it's on */
   card(){
     const on = this.supported() && Notification.permission === "granted", blocked = this.supported() && Notification.permission === "denied", ios = this.isIOS() && !this.standalone();
-    return `<div class="unit pushcard"><div class="row" style="gap:10px;flex-wrap:nowrap">${icon("bell", 26)}<div class="grow"><h3 style="margin:0">Notifications</h3><p class="muted" style="margin:2px 0 0;font-size:13px">${on ? "On ✓" : blocked ? "Blocked. Allow notifications for Chess.nat in your phone or browser settings." : ios ? "Add Chess.nat to your Home Screen (Share → Add to Home Screen) and open it from there." : "Off"}</p></div>${!on && !blocked && !ios ? `<button class="btn go" id="pOn">Turn on</button>` : ""}</div></div>`;
+    return `<div class="unit pushcard"><div class="row" style="gap:10px;flex-wrap:nowrap">${icon("bell", 26)}<div class="grow"><h3 style="margin:0">Notifications</h3><p class="muted" style="margin:2px 0 0;font-size:13px">${on ? "On ✓" : blocked ? "Blocked. Allow notifications for Chess.nat in your phone or browser settings." : ios ? "Add Chess.nat to your Home Screen (Share → Add to Home Screen) and open it from there." : "Off"}</p></div>${!on && !blocked && !ios ? `<button class="btn go" id="pOn">Turn on</button>` : ""}${blocked ? `<button class="btn sm" id="pFix">How to fix</button>` : ""}</div></div>`;
   },
   wire(el, redraw){
     const on = el.querySelector("#pOn");
-    if (on) on.onclick = async () => { const p = await Notification.requestPermission().catch(() => "default"); if (p === "granted"){ await this.ensure(); toast("Notifications on 🔔"); } redraw(); };
+    const fx = el.querySelector("#pFix"); if (fx) fx.onclick = () => this.explain({error: "denied"});
+    this.prep(); if (on) on.onclick = () => { this.turnOn().then(r => { if (r.ok) toast("Notifications on 🔔"); else this.explain(r); redraw(); }); };
   }
 };
 /* a tap on a notification opens the right screen */
 if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message", e => { const u = e.data && e.data.nav; if (!u) return; try { const h = new URL(u, location.origin).hash.slice(1); routeHash(h); } catch(x) {} });
-function routeHash(h){ if (!h) return; if (h.startsWith("chat-")) App.go("chat", {id: h.slice(5)}); else if (Views[h]) App.go(h); }
+function routeHash(h){ if (!h) return; if (h.startsWith("g-") && Views.friend){ if (App.route !== "friend") App.go("friend", {join: h.slice(2)}); return; } if (h.startsWith("chat-")) App.go("chat", {id: h.slice(5)}); else if (Views[h]) App.go(h); }
 window.addEventListener("hashchange", () => { const h = location.hash.slice(1); if (h.startsWith("chat-") && App.route !== "chat") routeHash(h); });
 setTimeout(() => Push.auto(), 1500);
 if (window.ChessSite && window.ChessSite.ready) setTimeout(async () => { await window.ChessSite.sessionReady; if (!window.ChessSite.getSession()) return; Chat.start(); Push.ensure(); const h = location.hash.slice(1); if (h.startsWith("chat-")) routeHash(h); }, 1800);
