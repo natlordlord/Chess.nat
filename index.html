@@ -1050,7 +1050,10 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 .bub.fail{opacity:.5}
 @media (max-width:900px){
   body.chatting .tabbar,body.chatting .mtop{display:none!important}
-  body.chatting .app{bottom:auto;height:var(--vvh,100%)}
+  body.chatting .app{top:var(--vvt,0px);bottom:auto;height:var(--vvh,100%);min-height:0}
+  body.chatting .chatv{height:100%;display:flex;flex-direction:column}
+  body.chatting .chat-msgs{flex:1;min-height:0}
+  body.chatting .chat-in,body.chatting .chat-quick{flex:none}
   body.chatting .main{overflow:hidden}
 }
 
@@ -7671,9 +7674,20 @@ Views.chat = {
     $$("[data-c]", this.main).forEach(b => b.onclick = () => App.go("chat", {id: b.dataset.c}));
     const g = $("#gof"); if (g) g.onclick = e => { e.preventDefault(); App.go("friends"); };
   },
-  unmount(){ document.body.classList.remove("chatting"); document.documentElement.style.removeProperty("--vvh"); window.scrollTo(0, 0); if (this._vv){ visualViewport.removeEventListener("resize", this._vv); visualViewport.removeEventListener("scroll", this._vv); this._vv = null; } },
-  /* like a messenger: full screen, input pinned to the bottom, always showing the newest message, even with the keyboard open */
-  fit(){ const box = $("#cmsgs"), vv = window.visualViewport; if (vv) document.documentElement.style.setProperty("--vvh", vv.height + "px"); if (window.scrollY) window.scrollTo(0, 0); if (box) box.scrollTop = box.scrollHeight; },
+  unmount(){ document.body.classList.remove("chatting"); const r = document.documentElement.style; r.removeProperty("--vvh"); r.removeProperty("--vvt"); this._kb = false; window.scrollTo(0, 0); if (this._vv){ visualViewport.removeEventListener("resize", this._vv); visualViewport.removeEventListener("scroll", this._vv); this._vv = null; } },
+  /* like a messenger: the chat fills exactly the part of the screen you can see, so the input sits right on top of the keyboard.
+     The visible area comes from visualViewport (its height and how far iOS has panned). Some iOS versions don't report the keyboard
+     in home-screen apps; then we fall back to the usual keyboard height so the input is never hidden behind it. */
+  fit(){
+    const box = $("#cmsgs"), vv = window.visualViewport, r = document.documentElement.style;
+    if (vv){ let h = vv.height, t = vv.offsetTop;
+      const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      if (this._kb && ios && Date.now() - this._kb > 700 && window.innerHeight - h < 120){ h = window.innerHeight - Math.round(screen.height * 0.43); t = 0; }
+      r.setProperty("--vvh", Math.round(h) + "px"); r.setProperty("--vvt", Math.round(t) + "px"); }
+    if (box) box.scrollTop = box.scrollHeight;
+  },
+  /* keep fitting while the keyboard animates in or out */
+  settle(){ const end = Date.now() + 900; const tick = () => { this.fit(); if (Date.now() < end && App.route === "chat") requestAnimationFrame(tick); }; tick(); },
   async open(id){
     const p = Social.P(id), main = this.main;
     document.body.classList.add("chatting");
@@ -7684,7 +7698,8 @@ Views.chat = {
       <form class="chat-in" id="cform"><input id="ctext" maxlength="500" placeholder="Message ${esc(p.name)}" autocomplete="off"><button class="btn go" type="submit">Send</button></form></div>`;
     $("#cback").onclick = () => App.go("chat"); $("#cinv").onclick = () => Social.invite(id, [10, 0]);
     const sendT = async t => { const m = await Chat.send(id, t); if (m) this.add(m); };
-    $("#ctext").onfocus = () => setTimeout(() => this.fit(), 250);
+    $("#ctext").onfocus = () => { this._kb = Date.now(); this.settle(); };
+    $("#ctext").onblur = () => { this._kb = false; setTimeout(() => this.settle(), 60); };
     this.fit();
     $("#cform").onsubmit = e => { e.preventDefault(); const t = $("#ctext").value; if (!t.trim()) return; $("#ctext").value = "";
       /* show it right away, then swap in the saved message */
