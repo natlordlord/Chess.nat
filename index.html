@@ -2584,7 +2584,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794177279";
+const CHESSNAT_BUILD = "1794177527";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -2807,8 +2807,9 @@ function dayTick(f, n = 1){
 }
 /* ---------- Elo ---------- */
 function eloDelta(player, opp, score, n){
-  /* the first 10 puzzles find your level fast: everyone starts at 0 and climbs in big steps while they keep solving */
-  const K = n < 10 ? 200 : n < 25 ? 40 : n < 100 ? 28 : 20;
+  /* the first 10 puzzles find your level fast: everyone starts at 0 and climbs in big steps while they keep solving,
+     but only up to 800 (a big step may end a bit above it). From there it's the normal pace. */
+  const K = n < 10 && player < 800 ? 200 : n < 25 ? 40 : n < 100 ? 28 : 20;
   const E = 1 / (1 + Math.pow(10, (opp - player) / 400));
   return Math.round(K * (score - E));
 }
@@ -3598,6 +3599,7 @@ function themeNames(p){ return p.th.map(themeLabel).filter(Boolean); }
 const PZ_T = {};
 /* puzzles you really played: a skip in the first seconds (or before the puzzle even started) is not counted at all */
 /* how many of your last 10 rated puzzles you solved (0 until you have played 8) */
+const PZ_BOOST_MAX = 800;
 const pzForm = () => { const L = (S.recent || []).filter(r => r.mode === "rated").slice(-10); return L.length >= 8 ? L.filter(r => r.ok).length : 0; };
 const pzN = () => Math.max(0, (S.puzzle.n || 0) - (S.puzzle.void || 0));
 const pzQuick = p => { const t = PZ_T[p.id]; return !t || Date.now() - t < 6000; };
@@ -3701,9 +3703,12 @@ Views.puzzles = {
     const speed = ok ? clamp(1.2 - .2 * Math.sqrt(ms / T), .5, 1.2) : 1;
     /* on a run the rating moves faster: the 3rd solve in a row counts double, the 5th triple, the 8th and on four times.
        Someone much better than their rating gets there in a few minutes, not in hundreds of puzzles. A miss counts normally. */
-    /* and in form: 7 of your last 10 solved counts double, 8 triple, 9 or 10 four times (whichever is higher) */
-    const fm = pzForm(), run = ok ? Math.max(S.puzzle.streak >= 7 ? 4 : S.puzzle.streak >= 4 ? 3 : S.puzzle.streak >= 2 ? 2 : 1, fm >= 9 ? 4 : fm >= 8 ? 3 : fm >= 7 ? 2 : 1) : 1;
-    let d = eloDelta(old, p.r, ok ? 1 : 0, pzN()); if (ok && d > 0) d = Math.max(1, Math.round(d * speed * run));
+    /* and in form: 7 of your last 10 solved counts double, 8 triple, 9 or 10 four times (whichever is higher).
+       Only to get people up to where they belong: not in the first 10 puzzles (those already move fast), and never past 800.
+       From 800 on it's plain Elo again. */
+    const boostOn = ok && old < PZ_BOOST_MAX && pzN() >= 10;
+    const fm = pzForm(), run = !boostOn ? 1 : Math.max(S.puzzle.streak >= 7 ? 4 : S.puzzle.streak >= 4 ? 3 : S.puzzle.streak >= 2 ? 2 : 1, fm >= 9 ? 4 : fm >= 8 ? 3 : fm >= 7 ? 2 : 1);
+    let d = eloDelta(old, p.r, ok ? 1 : 0, pzN()); if (ok && d > 0){ const plain = Math.max(1, Math.round(d * speed)); d = Math.max(1, Math.round(d * speed * run)); if (run > 1 && old + d > PZ_BOOST_MAX) d = Math.max(plain, PZ_BOOST_MAX - old); }
     this.speed = ok ? {ms, f: speed} : null;
     const before = rankOf(old);
     S.puzzle.cur = null;
@@ -3996,9 +4001,12 @@ function weakThemes(n){
 function brainTarget(){
   const me = S.puzzle.r, last = S.recent.filter(r => r.mode === "rated").slice(-2);
   let gap = -85;                                              /* about 62 % */
+  /* catching up (under 800, after the first 10): on a run harder with every solve, in form a big jump. From 800 on: the normal steps */
+  const catchUp = me < (typeof PZ_BOOST_MAX !== "undefined" ? PZ_BOOST_MAX : 800) && (typeof pzN === "function" ? pzN() : S.puzzle.n || 0) >= 10;
   if (last.length === 2 && !last[0].ok && !last[1].ok) gap = -190; /* two misses: win one back */
-  else if (S.puzzle.streak >= 3) gap = Math.min(250, 60 * (S.puzzle.streak - 3));  /* on a run: harder with every solve (3 in a row: even, 5: +120, 7+: +250) */
-  if (gap !== -190){ const f = typeof pzForm === "function" ? pzForm() : 0; if (f >= 9) gap = Math.max(gap, 250); else if (f >= 8) gap = Math.max(gap, 150); }  /* too easy lately: jump up */
+  else if (catchUp && S.puzzle.streak >= 3) gap = Math.min(250, 60 * (S.puzzle.streak - 3));  /* 3 in a row: even, 5: +120, 7+: +250 */
+  else if (S.puzzle.streak >= 5) gap = 0;
+  if (gap !== -190 && catchUp){ const f = typeof pzForm === "function" ? pzForm() : 0; if (f >= 9) gap = Math.max(gap, 250); else if (f >= 8) gap = Math.max(gap, 150); }  /* too easy lately: jump up */
   if ((S.puzzle.n || 0) < 10) gap = 120;                       /* finding your level: always a little above, so a solver climbs quickly */
   return Math.max(350, me + gap + Math.round((Math.random() - .5) * 70));
 }
@@ -10231,6 +10239,7 @@ async function applyFixes(){
   data.forEach(f => { const q = f.puzzle; if (!q || S.pzFixIds.includes(f.id)) return; S.pzFixIds.push(f.id); const P = S.puzzle;
     if (q.void){ P.void = Math.min(P.n || 0, (P.void || 0) + q.void); S.stat = S.stat || {}; if (S.stat.pzReal != null) S.stat.pzReal = Math.max(P.w || 0, S.stat.pzReal - q.void); }
     if (q.r && (P.r || 0) < q.r){ P.r = q.r; P.peak = Math.max(P.peak || 0, q.r); }
+    if (q.set != null){ P.r = q.set; P.peak = Math.min(P.peak || q.set, Math.max(q.set, q.peak || 0)) || q.set; P.hist = (P.hist || []).concat([[Date.now(), P.r]]); }
     if (q.from && q.to){ const out = t => t >= q.from && t <= q.to; P.hist = (P.hist || []).filter(h => !out(h[0])); S.recent = (S.recent || []).filter(r => !out(r.ts || 0)); if (q.r) P.hist.push([Date.now(), P.r]); }
     changed = true; });
   if (!changed) return; const before = S.lvlSeen || 1; S.lvlSeen = playerLevel(); save();
