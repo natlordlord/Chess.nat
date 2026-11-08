@@ -35,8 +35,8 @@ self.addEventListener("push", e => {
 });
 function showIt(d){
   const jobs = [self.registration.showNotification(d.title || "Chess.nat", {body: d.body || "", icon: "/icons/icon-192.png", badge: "/icons/badge-96.png", vibrate: [60, 40, 60], tag: d.tag || d.kind || "chessnat", renotify: true, data: {url: d.url || "/"}})];
-  if (d.badge != null && self.navigator && self.navigator.setAppBadge) jobs.push(self.navigator.setAppBadge(d.badge).catch(() => {}));
-  return Promise.all(jobs);
+  /* the icon number counts the notifications waiting for you (not your flame); opening the app clears it */
+  return Promise.all(jobs).then(() => self.navigator && self.navigator.setAppBadge ? self.registration.getNotifications().then(ns => self.navigator.setAppBadge(ns.length || 1)).catch(() => {}) : null);
 }
 self.addEventListener("notificationclick", e => {
   e.notification.close(); const url = new URL((e.notification.data && e.notification.data.url) || "/", self.location.origin).href;
