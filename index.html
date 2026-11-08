@@ -2250,6 +2250,128 @@ html.i18n-wait body{visibility:hidden}
 /* camera & microphone card on the profile */
 .mp-card .mp-row{display:flex;align-items:center;gap:10px;padding:6px 0}
 .mp-card .pill.bad{background:var(--bad);color:#fff}
+/* ===== NatCoins, chests, shop, battle pass ===== */
+.natc{width:20px;height:20px;flex:none;vertical-align:-4px}
+.natchip{display:inline-flex;align-items:center;gap:5px;padding:5px 9px 5px 6px;border-radius:99px;background:var(--panel-3,#3a3835);border:0;color:var(--fg);font:900 14px var(--body);position:relative;flex:none;cursor:pointer}
+.natchip b{font-variant-numeric:tabular-nums}
+.natchip i{position:absolute;top:-8px;right:-10px;min-width:18px;height:18px;border-radius:9px;background:#e5484d;color:#fff;font:900 11px/18px var(--body);font-style:normal;text-align:center;padding:0 4px;box-shadow:0 0 0 2px var(--bg,#1f1d1a)}
+.natchip.bump{animation:natBump .45s ease-out}
+@keyframes natBump{30%{transform:scale(1.18)}}
+.rail-nat{padding:4px 12px 8px}
+#mtop .natchip{margin-left:auto}
+#mtop .natchip ~ .mt-fl{margin-left:6px}
+/* chest */
+.chest-svg{width:100%;height:100%;overflow:visible}
+.chest-svg .ch-lid{transform-origin:100px 92px;transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.chest-svg.open .ch-lid{transform:translateY(-34px) rotate(-18deg)}
+.chx{position:fixed;inset:0;z-index:9500;background:radial-gradient(circle at 50% 45%,color-mix(in srgb,var(--rc) 35%,#141218) 0%,#0c0b10 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity .25s, background .3s;user-select:none;-webkit-user-select:none;cursor:pointer;touch-action:manipulation}
+.chx.in{opacity:1}.chx.out{opacity:0}
+.chx-rays{position:absolute;inset:-50%;background:repeating-conic-gradient(from 0deg at 50% 50%,color-mix(in srgb,var(--rc) 30%,transparent) 0 8deg,transparent 8deg 22deg);animation:chxSpin 18s linear infinite;opacity:.55;pointer-events:none}
+@keyframes chxSpin{to{transform:rotate(360deg)}}
+.chx-top{position:absolute;top:max(14px,env(safe-area-inset-top));left:16px;right:16px;display:flex;justify-content:space-between;align-items:center;color:#fff;font:800 14px var(--body);z-index:2}
+.chx-skip{width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.12);color:#fff;display:grid;place-items:center}
+.chx-name{position:relative;font:900 clamp(30px,9vw,54px)/1 var(--display);color:var(--rc);text-shadow:0 4px 0 rgba(0,0,0,.4),0 0 30px color-mix(in srgb,var(--rc) 60%,transparent);letter-spacing:.02em;text-transform:uppercase;margin-bottom:10px}
+.chx.upg .chx-name{animation:chxPop .5s cubic-bezier(.3,1.8,.5,1)}
+@keyframes chxPop{0%{transform:scale(.4)}60%{transform:scale(1.25)}}
+.chx.upg::after{content:"";position:fixed;inset:0;background:var(--rc);animation:chxFlash .45s ease-out forwards;pointer-events:none}
+@keyframes chxFlash{from{opacity:.75}to{opacity:0}}
+.chx-box{position:relative;width:min(64vw,280px);aspect-ratio:200/180;filter:drop-shadow(0 0 28px color-mix(in srgb,var(--rc) 70%,transparent))}
+.chx-box.hit{animation:chxHit .32s ease-out}
+@keyframes chxHit{0%{transform:scale(1)}25%{transform:scale(.88,1.1) rotate(-4deg)}55%{transform:scale(1.08,.94) rotate(3deg)}100%{transform:scale(1)}}
+.chx.split .chx-box{animation:chxSplit .9s ease-out}
+@keyframes chxSplit{30%{transform:translateX(-30px) scale(.9)}50%{transform:translateX(30px) scale(.9)}100%{transform:none}}
+.chx-dots{display:flex;gap:8px;margin-top:18px}.chx-dots i{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.2)}.chx-dots i.on{background:var(--rc);box-shadow:0 0 10px var(--rc)}
+.chx-tip{margin-top:14px;color:#fff;font:900 22px var(--display);min-height:28px;animation:chxTip 1s ease-in-out infinite}
+@keyframes chxTip{50%{transform:scale(1.08)}}
+.chx.opened .chx-box,.chx.opened .chx-dots,.chx.opened .chx-name{opacity:.25;transition:opacity .4s}
+.chx-prize{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:3}
+.chx-card{pointer-events:auto;cursor:default;background:#1e1c22;border:3px solid var(--rc);border-radius:22px;padding:22px 22px 18px;min-width:min(86vw,300px);max-width:92vw;text-align:center;color:#fff;box-shadow:0 0 50px color-mix(in srgb,var(--rc) 55%,transparent);animation:chxCard .55s cubic-bezier(.3,1.6,.5,1)}
+@keyframes chxCard{from{transform:translateY(60px) scale(.6);opacity:0}}
+.chx-card small{display:block;color:rgba(255,255,255,.7);font-weight:700}
+.chx-card .pz-coin .natc{width:84px;height:84px}
+.chx-card .pz-n{display:block;font:900 44px var(--display);color:#ffd23f}
+.chx-card .pz-t{display:block;font:900 22px var(--display);margin-top:2px}
+.chx-card .pz-k{margin-top:10px}
+.chx-card.r-ultra{border-image:linear-gradient(90deg,#ff5fd2,#7a6bff,#30e0d2,#ffe066) 1;border-radius:0}
+.chx-cf{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
+.eur{display:flex;flex-direction:column;align-items:center;margin-top:8px;font:900 26px var(--display);color:#7ef08f}
+.eur small{font:600 11.5px var(--body);color:rgba(255,255,255,.55)!important;margin-top:2px}
+.eur.sm{font-size:14px;margin-top:2px;display:block;color:#5fcf73}
+/* item previews */
+.np-board{display:inline-grid;grid-template-columns:repeat(4,1fr);border-radius:10px;overflow:hidden;box-shadow:0 2px 0 rgba(0,0,0,.35);position:relative;flex:none}
+.np-board i{display:block}
+.np-board.bd-fx-stars::after,.np-board.bd-fx-neon::after,.np-board.bd-fx-gold::after,.np-board.bd-fx-lava::after,.np-board.bd-fx-aurora::after{content:"";position:absolute;inset:0;pointer-events:none}
+.np-board.bd-fx-stars::after{background:radial-gradient(1.5px 1.5px at 20% 30%,#fff,transparent),radial-gradient(1px 1px at 70% 60%,#fff,transparent),radial-gradient(1.5px 1.5px at 45% 80%,#fff,transparent),radial-gradient(1px 1px at 85% 15%,#fff,transparent)}
+.np-board.bd-fx-gold::after{background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.5) 45%,transparent 60%)}
+.np-board.bd-fx-neon::after{box-shadow:inset 0 0 12px #ff3df0,inset 0 0 4px #3dd9ff}
+.np-board.bd-fx-lava::after{box-shadow:inset 0 0 14px #ff6a1f}
+.np-board.bd-fx-aurora::after{background:linear-gradient(160deg,rgba(80,255,200,.35),transparent 50%,rgba(140,100,255,.3))}
+.np-song{display:inline-grid;place-items:center;border-radius:14px;background:radial-gradient(circle at 30% 25%,color-mix(in srgb,var(--rc) 80%,#fff),var(--rc) 55%,color-mix(in srgb,var(--rc) 50%,#000));color:#fff;flex:none}
+.np-skin{display:inline-grid;place-items:center;flex:none}
+.np-knife{display:inline-block;flex:none}.np-knife .knife-svg{width:100%;height:100%}
+.knife-svg .kn-shine{animation:knShine 3.2s ease-in-out infinite}
+@keyframes knShine{0%,40%{transform:skewX(-20deg) translateX(0)}80%,100%{transform:skewX(-20deg) translateX(320px)}}
+/* knife up close */
+.kinsp{text-align:center}
+.kinsp-stage{height:190px;display:grid;place-items:center;cursor:grab;touch-action:none;background:radial-gradient(circle,color-mix(in srgb,var(--rc) 35%,transparent),transparent 65%);margin:0 -10px 6px}
+.kinsp-rot{width:min(86vw,380px)}.kinsp-rot .knife-svg{width:100%;height:auto;filter:drop-shadow(0 10px 16px rgba(0,0,0,.5))}
+.kinsp .eur small{color:var(--muted)!important}
+/* profile knife */
+.me-knife{display:flex;align-items:center;gap:12px;width:100%;margin-top:12px;border:2px solid color-mix(in srgb,var(--rc) 60%,transparent);background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 14%,var(--panel)),var(--panel));cursor:pointer}
+.me-knife .mk-pic{width:130px;flex:none}.me-knife .mk-pic .knife-svg{width:100%;height:auto}
+.me-knife b{display:block;font:900 17px var(--display)}
+/* shop */
+.shop-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.shop-bal{display:flex;align-items:center;gap:8px;background:var(--panel);border-radius:14px;padding:8px 14px}
+.shop-bal .natc{width:30px;height:30px}.shop-bal b{font:900 24px var(--display)}.shop-bal small{color:var(--muted);font-weight:700}
+.shop-tabs{display:flex;gap:6px;margin:10px 0 14px}.shop-tabs button{flex:1;padding:10px;border-radius:12px;border:0;background:var(--panel);color:var(--muted);font:800 14px var(--body)}.shop-tabs button.on{background:var(--go);color:#fff}
+.shop-mine{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.shop-mine.has{border:2px solid var(--go);box-shadow:0 0 24px rgba(129,182,76,.25)}
+.sm-chest{width:92px;height:82px;position:relative;flex:none}.sm-chest i{position:absolute;top:-6px;right:-6px;background:#e5484d;color:#fff;font:900 13px var(--body);font-style:normal;border-radius:99px;padding:2px 8px}
+.shop-mine.has .sm-chest{animation:chxTip 1.4s ease-in-out infinite}
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.shop-i,.shop-c{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;border:2px solid color-mix(in srgb,var(--rc) 45%,transparent);background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 14%,var(--panel)),var(--panel));color:var(--fg);font:inherit;padding:12px 10px}
+.shop-i b,.shop-c b{font-size:14px;line-height:1.2}
+.shop-i .btn,.shop-c .btn{width:100%;justify-content:center;gap:6px;display:flex;align-items:center}
+.shop-i.lock .si-pic{filter:grayscale(.85) brightness(.6)}
+.shop-i.kn{cursor:pointer}
+.si-pic{min-height:64px;display:grid;place-items:center}
+.sc-pic{width:100px;height:90px}
+.shop-real{margin-top:16px;opacity:.75}
+.shop-odds{margin-top:12px}.shop-odds summary{cursor:pointer;font-weight:800}
+/* battle pass */
+.bp-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.bp-bar{height:12px;border-radius:6px;background:var(--panel-3,#3a3835);overflow:hidden;margin-bottom:4px}.bp-bar i{display:block;height:100%;background:linear-gradient(90deg,#81b64c,#ffd23f)}
+.bp-rows{display:flex;gap:8px;margin-top:10px}
+.bp-lab{display:grid;grid-template-rows:26px 96px 96px;gap:6px;flex:none;align-items:center;font-size:12px}.bp-lab .prem{color:#ffd23f}
+.bp-scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x proximity}
+.bp-tier{display:grid;grid-template-rows:26px 96px 96px;gap:6px;flex:none;width:92px;scroll-snap-align:center}
+.bp-n{display:grid;place-items:center;border-radius:8px;background:var(--panel-3,#3a3835);font:900 13px var(--body);color:var(--muted)}
+.bp-tier.got .bp-n{background:var(--go);color:#fff}.bp-tier.cur .bp-n{outline:2px solid #ffd23f}
+.bp-cell{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:12px;background:var(--panel);padding:6px 4px;font-size:13px;font-weight:800;text-align:center}
+.bp-cell .natc{width:26px;height:26px}
+.bp-cell small{font-size:10.5px;color:var(--muted);line-height:1.1}
+.bp-cell.prem{background:linear-gradient(180deg,rgba(255,210,63,.16),var(--panel))}
+.bp-cell.lock>*:not(.btn){opacity:.45}
+.bp-cell.got{outline:2px solid var(--go)}
+.bp-cell.can{outline:2px solid #ffd23f;animation:chxTip 1.4s ease-in-out infinite}
+.bp-cell .btn{padding:3px 8px;font-size:11.5px;margin-top:2px}
+.bp-ok{position:absolute;top:4px;right:6px;color:var(--go);font-weight:900}
+.pr-chest{width:44px;height:40px;display:block}
+/* boards: the extra touch of some designs */
+html[data-bfx] .board::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1}
+html[data-bfx="stars"] .board::after{background-image:radial-gradient(1.5px 1.5px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 33% 62%,#fff,transparent),radial-gradient(2px 2px at 58% 28%,#ffe9a8,transparent),radial-gradient(1px 1px at 76% 82%,#fff,transparent),radial-gradient(1.5px 1.5px at 88% 40%,#bfe3ff,transparent),radial-gradient(1px 1px at 22% 90%,#fff,transparent);animation:bdTwinkle 4s ease-in-out infinite;opacity:.8}
+@keyframes bdTwinkle{50%{opacity:.35}}
+html[data-bfx="neon"] .board::after{box-shadow:inset 0 0 22px rgba(255,61,240,.55),inset 0 0 6px #3dd9ff}
+html[data-bfx="lava"] .board::after{box-shadow:inset 0 0 30px rgba(255,90,20,.6);animation:bdLava 3s ease-in-out infinite}
+@keyframes bdLava{50%{box-shadow:inset 0 0 44px rgba(255,140,30,.75)}}
+html[data-bfx="frost"] .board::after{box-shadow:inset 0 0 26px rgba(255,255,255,.75)}
+html[data-bfx="gold"] .board::after{background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.28) 48%,transparent 60%);background-size:250% 100%;animation:bdGold 5s linear infinite}
+@keyframes bdGold{from{background-position:120% 0}to{background-position:-120% 0}}
+html[data-bfx="aurora"] .board::after{background:linear-gradient(160deg,rgba(80,255,200,.22),transparent 45%,rgba(140,100,255,.2));animation:bdTwinkle 6s ease-in-out infinite}
+html[data-bfx="petals"] .board::after{background-image:radial-gradient(3px 2px at 15% 20%,#ffc2d6,transparent),radial-gradient(3px 2px at 65% 45%,#ffd6e4,transparent),radial-gradient(3px 2px at 35% 75%,#ffc2d6,transparent);opacity:.8}
+.lv-nat{display:flex;align-items:center;gap:10px;justify-content:center;margin-top:12px;padding:10px;border-radius:14px;background:rgba(255,255,255,.06);flex-wrap:wrap}
+.lv-nat .lvn-c,.lv-nat .lvn-ch{display:flex;align-items:center;gap:6px;font-weight:900}.lv-nat .natc{width:24px;height:24px}.lv-nat .lvn-ch b{color:var(--rc)}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -2271,7 +2393,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794170871";
+const CHESSNAT_BUILD = "1794172155";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -2565,6 +2687,13 @@ function mergeProgress(a, b){
     m.lessons[k] = {done: !!(x.done || y.done), stars: Math.max(x.stars || 0, y.stars || 0), ts: Math.max(x.ts || 0, y.ts || 0)}; });
   m.xp = Math.max(a.xp || 0, b.xp || 0); m.xpMinus = Math.max(a.xpMinus || 0, b.xpMinus || 0);
   m.fixIds = [...new Set([...(a.fixIds || []), ...(b.fixIds || [])])];
+  /* NatCoins: earned and spent each only grow, the collection and the chests add up */
+  m.natE = Math.max(a.natE || 0, b.natE || 0); m.natS = Math.max(a.natS || 0, b.natS || 0); m.natV = Math.max(a.natV || 0, b.natV || 0) || undefined;
+  m.inv = [...new Set([...(a.inv || []), ...(b.inv || [])])];
+  { const cg = new Map(); [...(a.chG || []), ...(b.chG || [])].forEach(c => cg.set(c.id, c)); m.chG = [...cg.values()].sort((x, y) => x.t - y.t).slice(-400); }
+  m.chO = [...new Set([...(a.chO || []), ...(b.chO || [])])].slice(-600);
+  { const x = a.bp, y = b.bp; if (x && y && x.s === y.s) m.bp = {s: x.s, xp: Math.max(x.xp || 0, y.xp || 0), prem: !!(x.prem || y.prem), cf: [...new Set([...(x.cf || []), ...(y.cf || [])])], cp: [...new Set([...(x.cp || []), ...(y.cp || [])])]};
+    else if (x || y) m.bp = !x ? y : !y ? x : (x.s > y.s ? x : y); }
   m.pzFixIds = [...new Set([...(a.pzFixIds || []), ...(b.pzFixIds || [])])];
   m.nick = Object.assign({}, older.nick || {}, newer.nick || {}); Object.keys(m.nick).forEach(k => { if (!m.nick[k]) delete m.nick[k]; });
   { const fa = a.flame || {}, fb = b.flame || {}; const w = (fa.last || "") > (fb.last || "") ? fa : (fb.last || "") > (fa.last || "") ? fb : ((fa.n || 0) >= (fb.n || 0) ? fa : fb); m.flame = Object.assign({}, w, {best: Math.max(fa.best || 0, fb.best || 0, w.n || 0)}); }
@@ -6491,6 +6620,8 @@ function caughtBots(){ return BOTS.filter(b => S.bots[b.id] && S.bots[b.id].w > 
 function frameTier(cfg, rating){ const f = cfg && cfg.frame; const t = TIERS.findIndex(x => x.k === f); if (t >= 0) return t; const r = rating != null ? rating : null; return r == null ? -1 : rankOf(r).idx; }
 function itemUnlocked(it){
   if (!it.req) return true;
+  /* from a chest, the shop or the battle pass */
+  if (typeof it.req === "string" && it.req.startsWith("i:")) return !!(S.inv && S.inv.includes(it.req.slice(2)));
   if (typeof it.req === "string" && it.req.startsWith("r:")) return peakRating() >= +it.req.slice(2);
   if (typeof it.req === "string" && it.req.startsWith("c:")){ const c = AV_CLASSES.find(x => x.k === it.req.slice(2)); return !!c && classUnlocked(c); }
   if (typeof it.req === "string" && it.req.startsWith("n:")) return (typeof achCount === "function" ? achCount() : 0) >= +it.req.slice(2);
@@ -6502,6 +6633,7 @@ function itemUnlocked(it){
 }
 function itemReqText(it){
   if (!it.req) return "Free";
+  if (it.req.startsWith("i:")) return "From a chest or the shop";
   if (it.req.startsWith("n:")) return `Collect ${it.req.slice(2)} trophies`;
   if (it.req.startsWith("r:")) return `Reach ${it.req.slice(2)} puzzle rating`;
   if (it.req.startsWith("c:")) return `Unlock the ${it.req.slice(2)} figure`;
@@ -6758,7 +6890,7 @@ const Av3D = (() => {
     const root = new T.Group(), fig = new T.Group(); root.add(fig); fig.position.y = .2; rig.root = root; rig.fig = fig;
     const capy = a.shape === "capy", pig = a.shape === "pig", flw = a.shape === "flower";
     const skinHex = capy ? hx(avColor("fur", a.fur) || "#9b6b45") : pig ? hx(avColor("pig", a.pig) || "#f4a9b8") : flw ? 0x6fb35a : hx(avColor("skin", a.skin) || "#ebc3a3"),
-      skin = capy ? (a.fur === "goldfur" ? M("gold", skinHex) : M("hair", skinHex)) : pig ? (a.pig === "piggold" ? M("gold", skinHex) : M("flesh", skinHex)) : flw ? M("skin", skinHex) : a.skin === "goldskin" ? M("gold", skinHex) : a.skin === "obsidian" ? M("dark", skinHex) : M(a.skin === "ivory" ? "skin" : "flesh", skinHex), ol = true;
+      NG = typeof NAT_SKIN_MAT !== "undefined" ? NAT_SKIN_MAT : {}, nm = NG[capy ? a.fur : pig ? a.pig : flw ? "" : a.skin], skin = nm ? M(nm, skinHex) : capy ? (a.fur === "goldfur" ? M("gold", skinHex) : M("hair", skinHex)) : pig ? (a.pig === "piggold" ? M("gold", skinHex) : M("flesh", skinHex)) : flw ? M("skin", skinHex) : a.skin === "goldskin" ? M("gold", skinHex) : a.skin === "obsidian" ? M("dark", skinHex) : M(a.skin === "ivory" ? "skin" : "flesh", skinHex), ol = true;
     rig.skin = skin; rig.skinHex = skinHex;
     const cc = (slot, def) => { const v = avColor("cloth", a[CLOTH_SLOT[slot]]); return v ? hx(v) : def; };
     const B = {slim: .9, normal: 1, broad: 1.13}[a.build] || 1, hip = {short: .4, normal: .5, tall: .6}[a.height] || .5, F = a.sex === "f"; rig.F = F;
@@ -7875,7 +8007,7 @@ function lvNext(){
   const el = document.createElement("div"); el.className = "lvup";
   el.innerHTML = `<div class="lvup-in"><div class="lvup-burst"></div><div class="lvup-n"><span>LEVEL</span><b>${L}</b></div><h3>Level up!</h3>
     ${rw.length ? `<div class="lvr-list">${rw.map(r => rewardHTML(r, L)).join("")}</div>` : `<p class="muted">Keep going: ${nx ? `the next reward comes at <b>level ${nx.L}</b>.` : "you've reached the top."}</p>`}
-    <button class="btn go big" data-lvok style="width:100%;margin-top:14px">${lvQueue.length ? "Next" : "Nice!"}</button></div>`;
+    ${typeof natLvHTML === "function" ? natLvHTML(L) : ""}<button class="btn go big" data-lvok style="width:100%;margin-top:14px">${lvQueue.length ? "Next" : "Nice!"}</button></div>`;
   document.body.appendChild(el); Sound.levelUp(); if (typeof confettiBurst === "function") confettiBurst();
   const close = () => { el.classList.add("out"); setTimeout(() => { el.remove(); lvNext(); }, 260); };
   el.querySelector("[data-lvok]").onclick = close;
@@ -8009,6 +8141,7 @@ const WPV = {shape: ["bust"], hair: ["hair", {head: "none"}, .95], head: ["head"
 /* a short reason for a locked item, e.g. "Win 10 games" or "150 trophies" */
 function itemReqShort(it){
   if (!it.req) return "";
+  if (it.req.startsWith("i:")) return "Chest or shop";
   if (it.req.startsWith("n:")) return it.req.slice(2) + " trophies";
   if (it.req.startsWith("r:")) return it.req.slice(2) + " puzzle rating";
   if (it.req.startsWith("l:")) return "Level " + it.req.slice(2);
@@ -8274,6 +8407,7 @@ Views.awards = {
 function reqProgress(req){
   req = req || ""; const n = +req.slice(2);
   if (req.startsWith("t:")){ const a = achById(req.slice(2)), pr = achProg(a); return {c: pr ? pr.c : 0, g: pr ? pr.g : 0, txt: a ? a.desc : "Earn a trophy"}; }
+  if (req.startsWith("i:")) return {c: 0, g: 0, txt: "Find it in a chest, get it in the shop or the battle pass."};
   if (req.startsWith("n:")) return {c: achCount(), g: n, txt: `Collect ${n} trophies.`};
   if (req.startsWith("r:")) return {c: peakRating(), g: n, txt: `Reach ${n} puzzle rating once.`};
   if (req.startsWith("l:")) return {c: playerLevel(), g: n, txt: `Reach level ${n}. Everything you play gives XP.`};
@@ -10368,6 +10502,8 @@ Views.local = {
 
 /* ===== Icons (own line set) ===== */
 const ICONS = {
+  coin: `<circle cx="12" cy="12" r="9"/><path d="M9.5 15.5v-7l5 7v-7"/>`,
+  music: `<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>`,
   mic: `<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>`,
   trash: `<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/>`,
   video: `<rect x="3" y="6" width="13" height="12" rx="3"/><path d="M16 10.5l5-3v9l-5-3z"/>`,
@@ -10416,7 +10552,7 @@ const LOGO = `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="8"
 
 const NAV = [
   ["home", "Home", "home"], ["journey", "Journey", "map"], ["learn", "Learn", "book"], ["theory", "Theory", "scroll"], ["puzzles", "Puzzles", "puzzle"], ["rush", "Puzzle Rush", "bolt"], ["battle", "Puzzle Battle", "swords"], ["daily", "Daily Puzzle", "calendar"],
-  ["train", "Train", "target"], ["endgames", "Endgames", "crown"], ["online", "Play Online", "globe"], ["bots", "Play Bots", "bot"], ["blitz", "Blitz", "flame"], ["friends", "Friends", "heart"], ["chat", "Chat", "chat"], ["awards", "Trophies", "trophy"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["me", "Profile", "user"], ["stats", "Stats", "chart"],
+  ["train", "Train", "target"], ["endgames", "Endgames", "crown"], ["online", "Play Online", "globe"], ["bots", "Play Bots", "bot"], ["blitz", "Blitz", "flame"], ["friends", "Friends", "heart"], ["chat", "Chat", "chat"], ["awards", "Trophies", "trophy"], ["shop", "Shop", "coin"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["me", "Profile", "user"], ["stats", "Stats", "chart"],
 ];
 /* bottom of the rail, like chess.com: who you are, then a row of small icon buttons */
 function railAccount(){
@@ -10458,7 +10594,7 @@ function renderTabs(){
 }
 function openSheet(){
   const sh = $("#sheet"); const rk = rankOf(S.puzzle.r);
-  const items = [...(window.ChessInstall && ChessInstall.can() ? [["__install", "Get the app", "download"]] : []), ...(typeof News !== "undefined" && News.admin ? [["news", "News senden", "bell"]] : []), ["journey", "Journey", "map"], ["theory", "Theory", "scroll"], ["blitz", "Blitz & Battle", "flame"], ["awards", "Trophies", "trophy"], ["me", "Profile", "user"], ["endgames", "Endgames", "crown"], ["rush", "Puzzle Rush", "bolt"], ["battle", "Puzzle Battle", "swords"], ["daily", "Daily Puzzle", "calendar"], ["train", "Train", "target"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"], ["coords", "Coordinates", "board"], ["settings", "Settings", "gear"], ["account", "Account", "users"]];
+  const items = [...(window.ChessInstall && ChessInstall.can() ? [["__install", "Get the app", "download"]] : []), ...(typeof News !== "undefined" && News.admin ? [["news", "News senden", "bell"]] : []), ["journey", "Journey", "map"], ["theory", "Theory", "scroll"], ["blitz", "Blitz & Battle", "flame"], ["shop", "Shop & Battle Pass", "coin"], ["awards", "Trophies", "trophy"], ["me", "Profile", "user"], ["endgames", "Endgames", "crown"], ["rush", "Puzzle Rush", "bolt"], ["battle", "Puzzle Battle", "swords"], ["daily", "Daily Puzzle", "calendar"], ["train", "Train", "target"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"], ["coords", "Coordinates", "board"], ["settings", "Settings", "gear"], ["account", "Account", "users"]];
   sh.innerHTML = `<div class="panelx" role="dialog" aria-label="More"><div class="grab"></div><button class="rk" data-s="me">${emblem(rk, 36)}<span style="text-align:left"><div style="font-weight:900">${esc(rk.label)}</div><div class="muted" style="font-size:12px">${S.puzzle.r} puzzle rating · ${Cloud.status === "on" ? "synced to your account" : "saved on this device"}</div></span></button>${items.map(([k, n, ic]) => `<button data-s="${k}">${icon(ic, 26)}<span>${n}</span></button>`).join("")}</div>`;
   sh.hidden = false; sh.classList.remove("closing"); const px = $(".panelx", sh); px.style.transform = ""; px.classList.add("opening"); setTimeout(() => px.classList.remove("opening"), 300);
   const close = () => { if (sh.hidden || sh.classList.contains("closing")) return; sh.classList.add("closing"); px.style.transform = ""; setTimeout(() => { sh.hidden = true; sh.classList.remove("closing"); }, 220); };
@@ -10685,7 +10821,7 @@ function renderTop(){
   const t = $("#mtop"); if (!t) return; const rk = rankOf(S.puzzle.r), on = friendsOnline(), inc = friendsPending() + (typeof Chat !== "undefined" ? Chat.total() : 0);
   t.innerHTML = `<button class="mt-me" data-r="me" aria-label="Your profile">${avatarBadge(myAvatar(), 36)}${LV_FRAME_IDS.has(myAvatar().frame) ? "" : `<span class="lvchip sm">${playerLevel()}</span>`}</button>
     <button class="mt-rank" data-r="me" aria-label="Your rank">${crestSVG(rk.idx, "", 36)}<span class="mt-t"><b>${esc(rk.label)}</b><span class="mt-lp"><i style="width:${Math.round(rk.pct * 100)}%"></i></span><small>${rk.lp} LP · ${S.puzzle.r}</small></span></button>
-    <button class="mt-fl" data-r="puzzles" aria-label="Your flame">${flameChip()}</button>
+    ${typeof natChipHTML === "function" ? natChipHTML() : ""}<button class="mt-fl" data-r="puzzles" aria-label="Your flame">${flameChip()}</button>
     ${Views.friends ? `<button class="mt-fr mt-more" id="mtmore" aria-label="More">${icon("more", 26)}<small>More</small></button>` : `<button class="mt-fr ${App.route === "friends" ? "on" : ""}" data-r="${typeof Chat !== "undefined" && Chat.total() ? "chat" : "friends"}" aria-label="Friends">${icon("users", 24)}${inc ? `<span class="badge">${inc}</span>` : on ? `<span class="odot on"></span>` : ""}<small>Friends</small></button>`}`;
   $$("[data-r]", t).forEach(b => b.onclick = () => App.go(b.dataset.r));
   const mm = $("#mtmore"); if (mm) mm.onclick = () => openSheet();
@@ -10695,7 +10831,7 @@ function renderTop(){
 /* desktop rail: who you are sits at the top now */
 function railMe(){
   const rk = rankOf(S.puzzle.r), cur = App.route;
-  return `<button class="railme ${cur === "me" ? "on" : ""}" data-r="me"><span class="rm-av">${avatarBadge(myAvatar(), 46)}</span><span class="rm-t"><b>${esc(S.name && S.name !== "You" ? S.name : "You")}</b><span class="rm-rk">${crestSVG(rk.idx, "", 18)}${esc(rk.label)} · ${rk.lp} LP</span><span class="rm-lv"><span class="lvchip xs">${playerLevel()}</span>Level ${playerLevel()}${flameChip("rmf")}</span></span></button>`;
+  return `<button class="railme ${cur === "me" ? "on" : ""}" data-r="me"><span class="rm-av">${avatarBadge(myAvatar(), 46)}</span><span class="rm-t"><b>${esc(S.name && S.name !== "You" ? S.name : "You")}</b><span class="rm-rk">${crestSVG(rk.idx, "", 18)}${esc(rk.label)} · ${rk.lp} LP</span><span class="rm-lv"><span class="lvchip xs">${playerLevel()}</span>Level ${playerLevel()}${flameChip("rmf")}</span></span></button>${typeof natChipHTML === "function" ? `<div class="rail-nat">${natChipHTML()}</div>` : ""}`;
 }
 Views.me = {
   mount(main){
@@ -10714,8 +10850,10 @@ Views.me = {
       ${playerTypeCard(playerProfile().typeKey, true)}
       ${(a => `<div class="fp-act-row me-act"><div class="fp-st"><b>${fmtN(a.pz)}</b><span>Puzzles solved</span></div><div class="fp-st"><b>${fmtN(a.gp)}</b><span>Games played</span></div><div class="fp-st"><b>${a.st}</b><span>Best streak</span></div></div>`)(myActivity())}
       <button class="me-lv" id="melv" aria-label="Your level and rewards">${levelCardHTML()}</button>
+      ${typeof natItem === "function" ? (k => k ? `<button class="unit me-knife" id="meknife" style="--rc:${NAT_R[NAT_RI[k.r]].c}"><span class="mk-pic">${knifeSVG(k)}</span><span class="grow" style="text-align:left"><small style="color:${NAT_R[NAT_RI[k.r]].c};font-weight:900">${NAT_R[NAT_RI[k.r]].n.toUpperCase()} KNIFE</small><b>${esc(k.name)}</b><span class="eur sm">≈ ${fmtEur(k.eur)}</span></span></button>` : "")(S.knife && natHas(S.knife) ? natItem(S.knife) : null) : ""}
       <div class="mebtns">
         <button class="mb" data-go="awards" data-tab="wardrobe">${icon("user", 26)}<b>Wardrobe</b><small>Dress your figure</small></button>
+        <button class="mb" data-go="shop" data-tab="coll">${icon("coin", 26)}<b>Collection</b><small>${typeof natItems === "function" ? natItems().filter(i => natHas(i.id)).length + " of " + natItems().length : ""}</small></button>
         <button class="mb" data-go="awards" data-tab="trophies">${icon("trophy", 26)}<b>Trophies</b><small>${n} of ${ACH.length}</small></button>
         <button class="mb" data-go="friends">${icon("users", 26)}<b>Friends</b><small>${on ? on + " online" : "Add and challenge"}</small></button>
         <button class="mb" data-go="${typeof Views.account === "object" ? "account" : "settings"}">${icon("gear", 26)}<b>Account</b><small>${sess ? esc((sess.user.email || "").split("@")[0]) : "Sign in to sync"}</small></button>
@@ -10733,6 +10871,7 @@ Views.me = {
     /* tap your figure: straight into the wardrobe (a drag only turns it) */
     { const st = $("#mest"); let x0 = 0, y0 = 0; st.addEventListener("pointerdown", e => { x0 = e.clientX; y0 = e.clientY; }); st.onclick = e => { if (Math.hypot(e.clientX - x0, e.clientY - y0) > 8) return; App.go("awards", {tab: "wardrobe"}); }; }
     $$("[data-go]", main).forEach(b => b.onclick = () => App.go(b.dataset.go, b.dataset.tab ? {tab: b.dataset.tab} : undefined));
+    { const kb = $("#meknife", main); if (kb) kb.onclick = () => knifeInspect(natItem(S.knife)); }
     if ($("#metitle")) $("#metitle").onclick = () => titleSheet(() => this.mount(main));
     if ($("#melv")) $("#melv").onclick = () => levelSheet();
     $$("[data-lang]", main).forEach(b => b.onclick = () => { if (b.dataset.lang !== I18N.lang) I18N.set(b.dataset.lang); });
@@ -10864,6 +11003,395 @@ setTimeout(updateBadge, 1500);
   };
   document.addEventListener("touchend", end); document.addEventListener("touchcancel", end);
 })();
+
+/* ===== NatCoins, chests, shop, collection and battle pass =====
+   NatCoins (NAT) come with everything that gives XP (one NAT for every two XP), a level up adds a bonus and a chest.
+   Chests work like the drops in mobile brawlers: tap, tap, tap, and on every tap the chest may climb a rarity
+   (Rare → Super Rare → Epic → Mythic → Legendary → Ultra) or even split in two. The last tap opens it.
+   Everything is bought with NAT only. No real money anywhere (a seam for that comes later).
+   Knives show a made-up euro value for fun: they can't be sold or traded and have no real value. ===== */
+const NAT_R = [
+  {k: "rare", n: "Rare", c: "#5fd068", p: 46, coins: [40, 80], item: .25},
+  {k: "super", n: "Super Rare", c: "#3f9dff", p: 26, coins: [100, 180], item: .35},
+  {k: "epic", n: "Epic", c: "#b25cff", p: 14, coins: [220, 380], item: .5},
+  {k: "mythic", n: "Mythic", c: "#ff3d57", p: 8, coins: [500, 900], item: .7},
+  {k: "legend", n: "Legendary", c: "#ffd23f", p: 5, coins: [1500, 2500], item: 1},
+  {k: "ultra", n: "Ultra", c: "#ff6bd6", p: 1, coins: [5000, 5000], item: 1}];
+const NAT_RI = Object.fromEntries(NAT_R.map((r, i) => [r.k, i]));
+/* what an item is worth in the shop, and as NAT when you pull one you already have */
+const NAT_PRICE = {rare: 300, super: 600, epic: 1200, mythic: 3000, legend: 8000, ultra: 0};
+const NAT_DUP = {rare: 60, super: 150, epic: 350, mythic: 800, legend: 2000, ultra: 6000};
+
+/* ---- the collection ---- */
+const NAT_BOARDS = [
+  {id: "classic", name: "Classic Green", r: "", l: "#EEEED2", d: "#769656"},
+  {id: "walnut", name: "Walnut", r: "rare", l: "#ecd3ad", d: "#a9794f"},
+  {id: "slate", name: "Slate", r: "rare", l: "#dfe4e8", d: "#7d8b98"},
+  {id: "ocean", name: "Ocean", r: "super", l: "#d7eef5", d: "#3c86a8"},
+  {id: "candy", name: "Candy", r: "super", l: "#ffe6f1", d: "#ee8db5"},
+  {id: "sakura", name: "Sakura", r: "epic", l: "#fbecf1", d: "#c7819a", fx: "petals"},
+  {id: "neon", name: "Neon Night", r: "epic", l: "#5a62a8", d: "#2c3170", fx: "neon"},
+  {id: "lava", name: "Lava Field", r: "mythic", l: "#f6d4a6", d: "#b8371d", fx: "lava"},
+  {id: "ice", name: "Ice Palace", r: "mythic", l: "#f2faff", d: "#8cc4e6", fx: "frost"},
+  {id: "vault", name: "Gold Vault", r: "legend", l: "#f7e7ad", d: "#b88a1c", fx: "gold"},
+  {id: "galaxy", name: "Galaxy", r: "ultra", l: "#7a6cc4", d: "#3a2f80", fx: "stars"},
+  {id: "aurora", name: "Aurora · Season 1", r: "legend", l: "#d9fff3", d: "#2f8f8a", fx: "aurora", pass: 1}];
+const NAT_SONGS = [
+  {id: "lofi", name: "Lo-fi Study", r: "super", bpm: 78, key: 57, prog: [0, 5, 3, 4], mode: "minor", lead: "triangle"},
+  {id: "arcade", name: "Arcade Rush", r: "epic", bpm: 132, key: 60, prog: [0, 5, 3, 4], mode: "major", lead: "square"},
+  {id: "march", name: "Royal March", r: "mythic", bpm: 104, key: 55, prog: [0, 3, 4, 0], mode: "major", lead: "sawtooth"},
+  {id: "drive", name: "Midnight Drive", r: "legend", bpm: 96, key: 52, prog: [0, 5, 2, 6], mode: "minor", lead: "sawtooth"},
+  {id: "cosmic", name: "Cosmic Drift", r: "ultra", bpm: 70, key: 50, prog: [0, 3, 5, 4], mode: "dorian", lead: "sine"}];
+/* character skins: a new look for a figure, set where that figure's colour lives */
+const NAT_SKINS = [
+  {id: "rosepig", name: "Rose Gold Piggy", r: "rare", key: "pig", shape: "pig", hex: "#e7a59a"},
+  {id: "neonfur", name: "Neon Capybara", r: "super", key: "fur", shape: "capy", hex: "#39f08a"},
+  {id: "lavafur", name: "Lava Capybara", r: "epic", key: "fur", shape: "capy", hex: "#d8431f"},
+  {id: "crystalpetal", name: "Crystal Blossom", r: "epic", key: "petal", shape: "flower", hex: "#9fe8ff", mat: "gem"},
+  {id: "galaxypig", name: "Galaxy Piggy", r: "mythic", key: "pig", shape: "pig", hex: "#4b2a8f", mat: "gem"},
+  {id: "shadowskin", name: "Shadow", r: "mythic", key: "skin", shape: "human", hex: "#2d2a3a", mat: "dark"},
+  {id: "goldcapy", name: "Golden Capybara", r: "legend", key: "fur", shape: "capy", hex: "#e8b923", mat: "gold"},
+  {id: "diamondhuman", name: "Diamond", r: "ultra", key: "skin", shape: "human", hex: "#bdf1ff", mat: "gem"}];
+const NAT_SKIN_MAT = Object.fromEntries(NAT_SKINS.filter(s => s.mat).map(s => [s.id, s.mat]));
+NAT_SKINS.forEach(s => { const list = AV_COLORS[s.key]; if (list && !list.some(c => c[0] === s.id)) list.push([s.id, s.name, s.hex, "i:" + s.id]); });
+/* knives: blade shape × finish. The euro value is pretend, for bragging only. */
+const NAT_KNIVES = [
+  {id: "k-bay-camo", type: "bayonet", name: "Bayonet", fin: "Forest Camo", r: "mythic", eur: 180},
+  {id: "k-bow-rust", type: "bowie", name: "Bowie", fin: "Rust Steel", r: "mythic", eur: 140},
+  {id: "k-flip-glac", type: "flip", name: "Flip Knife", fin: "Glacier", r: "legend", eur: 900},
+  {id: "k-bfly-neb", type: "butterfly", name: "Butterfly", fin: "Nebula", r: "legend", eur: 1200},
+  {id: "k-kar-emb", type: "karambit", name: "Karambit", fin: "Ember", r: "legend", eur: 2400},
+  {id: "k-dag-obs", type: "dagger", name: "Dagger", fin: "Obsidian Galaxy", r: "ultra", eur: 7500},
+  {id: "k-bfly-roy", type: "butterfly", name: "Butterfly", fin: "Royal Gold", r: "ultra", eur: 9800},
+  {id: "k-kar-pri", type: "karambit", name: "Karambit", fin: "Aurora Prism", r: "ultra", eur: 12500},
+  {id: "k-bay-aur", type: "bayonet", name: "Bayonet", fin: "Season Aurora", r: "legend", eur: 3000, pass: 1}];
+/* every item in one list: {kind, id, name, r} */
+function natItems(){ return [...NAT_BOARDS.filter(b => b.r).map(b => Object.assign({kind: "board"}, b)), ...NAT_SONGS.map(s => Object.assign({kind: "song"}, s)),
+  ...NAT_SKINS.map(s => Object.assign({kind: "skin"}, s)), ...NAT_KNIVES.map(k => Object.assign({kind: "knife"}, k, {name: k.name + " | " + k.fin, type0: k.name}))]; }
+const natItem = id => natItems().find(i => i.id === id);
+const natHas = id => (S.inv || []).includes(id);
+const fmtNat = n => Math.round(n).toLocaleString("de-DE");
+const fmtEur = n => n.toLocaleString("de-DE") + " €";
+const NAT_COIN = `<svg class="natc" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="#f5b829" stroke="#b97f0f" stroke-width="1.6"/><circle cx="12" cy="12" r="7.2" fill="none" stroke="#fff3c4" stroke-width="1.2" opacity=".75"/><path d="M8.6 16.2V7.8h1.3l4.2 6V7.8h1.3v8.4h-1.3l-4.2-6v6z" fill="#8a5a06"/></svg>`;
+
+/* ---- the wallet: earned and spent are counted separately, so two phones add up instead of overwriting ---- */
+function natBal(){ return Math.max(0, (S.natE || 0) - (S.natS || 0)); }
+function natEarn(n, quiet){ if (!(n > 0)) return; S.natE = (S.natE || 0) + Math.round(n); save(); natChip(quiet ? 0 : Math.round(n)); }
+function natSpend(n){ if (natBal() < n) return false; S.natS = (S.natS || 0) + n; save(); natChip(); return true; }
+function natGive(id){ S.inv = S.inv || []; if (!S.inv.includes(id)) S.inv.push(id); save(); }
+/* chests: every chest has an id; opened ones are remembered by id */
+function chestGrant(floor, src){ S.chG = S.chG || []; const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6); S.chG.push({id, f: floor || 0, src: src || "", t: Date.now()}); if (S.chG.length > 400) S.chG = S.chG.slice(-400); save(); natChip(); return id; }
+function chestsWaiting(){ const o = new Set(S.chO || []); return (S.chG || []).filter(c => !o.has(c.id)); }
+
+/* ---- earning: XP pays NAT, a level up pays a bonus and a chest; a new season of the pass counts XP too ---- */
+(() => { const base = addXP;
+  addXP = function(n, why){ const before = playerLevel(); base(n, why); if (!(n > 0)) return;
+    natEarn(Math.max(1, Math.round(n / 2)), true);
+    passXP(n);
+    const after = playerLevel();
+    for (let L = before + 1; L <= after; L++){ natEarn(40 + 4 * L, true); chestGrant(L % 10 === 0 ? 2 : L % 5 === 0 ? 1 : 0, "level " + L); }
+    natChip(Math.max(1, Math.round(n / 2))); };
+})();
+/* on the level-up card: the NAT and the chest that came with it */
+function natLvHTML(L){ const f = L % 10 === 0 ? 2 : L % 5 === 0 ? 1 : 0;
+  return `<div class="lv-nat"><span class="lvn-c">${NAT_COIN}<b>+${40 + 4 * L}</b></span><span class="lvn-ch" style="--rc:${NAT_R[f].c}"><span class="pr-chest">${chestSVG(f)}</span><b>${NAT_R[f].n}${f ? "+" : ""} chest</b></span><button class="btn sm go" data-lvchest>Open</button></div>`; }
+document.addEventListener("click", e => { const b = e.target.closest("[data-lvchest]"); if (!b) return; const lv = b.closest(".lvup"); if (lv){ lvQueue.length = 0; lv.remove(); } chestOpen(); });
+/* the first start with NatCoins: something for everything you've already played */
+setTimeout(() => { if (S.natV) return; S.natV = 1; const L = playerLevel();
+  S.natE = (S.natE || 0) + 100 + 25 * L; chestGrant(0, "welcome"); chestGrant(1, "welcome"); chestGrant(2, "welcome"); save();
+  if (typeof Notify !== "undefined") Notify.show({key: "natwelcome", icon: NAT_COIN, label: "New: NatCoins & chests", title: `${fmtNat(100 + 25 * L)} NAT and 3 chests for you`, text: "Everything you play now earns NatCoins. Level ups bring chests. Open them in the shop.", ms: 8000, actions: [{label: "Open", fn: () => App.go("shop")}]});
+}, 4000);
+
+/* the coin counter in the top bar (and a small "+12" when NAT comes in) */
+function natChip(plus){
+  document.querySelectorAll(".natchip b").forEach(b => b.textContent = fmtNat(natBal()));
+  const n = chestsWaiting().length; document.querySelectorAll(".natchip i").forEach(i => { i.textContent = n || ""; i.hidden = !n; });
+  if (plus){ document.querySelectorAll(".natchip").forEach(c => { c.classList.remove("bump"); void c.offsetWidth; c.classList.add("bump"); }); }
+}
+function natChipHTML(){ const n = chestsWaiting().length; return `<button class="natchip" data-r="shop" aria-label="NatCoins and shop">${NAT_COIN}<b>${fmtNat(natBal())}</b><i ${n ? "" : "hidden"}>${n || ""}</i></button>`; }
+
+/* ---- rolling a chest ---- */
+function rollRarity(floor){ const pool = NAT_R.slice(floor || 0), tot = pool.reduce((a, r) => a + r.p, 0); let x = Math.random() * tot; for (const r of pool){ x -= r.p; if (x <= 0) return NAT_RI[r.k]; } return NAT_RI[pool[pool.length - 1].k]; }
+function rollReward(ri){
+  const R = NAT_R[ri]; const coins = R.coins[0] + Math.round(Math.random() * (R.coins[1] - R.coins[0]) / 10) * 10;
+  if (Math.random() < R.item){
+    const pool = natItems().filter(i => i.r === R.k && !i.pass), fresh = pool.filter(i => !natHas(i.id)), pick = (fresh.length ? fresh : pool)[Math.floor(Math.random() * (fresh.length || pool.length))];
+    if (pick) return natHas(pick.id) ? {kind: "dup", item: pick, coins: NAT_DUP[R.k]} : {kind: "item", item: pick};
+  }
+  return {kind: "coins", coins};
+}
+
+/* ---- the chest itself (SVG), coloured by rarity ---- */
+function chestSVG(ri, open){
+  const c = NAT_R[ri].c, dark = "rgba(0,0,0,.35)";
+  return `<svg class="chest-svg ${open ? "open" : ""}" viewBox="0 0 200 180" aria-hidden="true">
+    <defs><linearGradient id="chg${ri}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c}"/><stop offset="1" stop-color="${c}" stop-opacity=".72"/></linearGradient>
+      <linearGradient id="chm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6d0"/><stop offset=".5" stop-color="#e9b73a"/><stop offset="1" stop-color="#9b6a12"/></linearGradient></defs>
+    <ellipse cx="100" cy="168" rx="70" ry="9" fill="rgba(0,0,0,.35)"/>
+    <g class="ch-body"><rect x="30" y="86" width="140" height="78" rx="12" fill="url(#chg${ri})" stroke="${dark}" stroke-width="4"/>
+      <rect x="30" y="104" width="140" height="12" fill="url(#chm)" stroke="${dark}" stroke-width="2"/>
+      <rect x="86" y="96" width="28" height="38" rx="6" fill="url(#chm)" stroke="${dark}" stroke-width="3"/><circle cx="100" cy="112" r="5" fill="${dark}"/></g>
+    <g class="ch-lid"><path d="M30 92 Q30 40 100 38 Q170 40 170 92 Z" fill="url(#chg${ri})" stroke="${dark}" stroke-width="4"/>
+      <path d="M44 88 Q46 54 100 52 Q154 54 156 88" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="5" stroke-linecap="round"/>
+      <rect x="92" y="38" width="16" height="54" fill="url(#chm)" stroke="${dark}" stroke-width="2"/></g></svg>`;
+}
+
+/* ---- opening: tap until it opens ---- */
+function chestOpen(){
+  const list = chestsWaiting(); if (!list.length){ toast("No chests right now. Level ups and the battle pass bring new ones."); return; }
+  if (document.querySelector(".chx")) return;
+  const ch = list[0], TAPS = 4; let ri = ch.f || 0; const final = rollRarity(ch.f || 0);
+  /* spread the climbs over the taps, so the last ones can still surprise */
+  const steps = final - ri, at = new Set(); while (at.size < Math.min(steps, TAPS - 1)) at.add(1 + Math.floor(Math.random() * (TAPS - 1)));
+  const climbs = Array.from({length: TAPS}, (_, i) => at.has(i) ? 1 : 0); let extra = steps - [...at].length; for (let i = TAPS - 2; extra > 0 && i >= 0; i--){ climbs[i] += 1; extra--; }
+  const split = Math.random() < .1 ? 1 + Math.floor(Math.random() * (TAPS - 1)) : -1;
+  let tap = 0, done = false;
+  const el = document.createElement("div"); el.className = "chx"; el.style.setProperty("--rc", NAT_R[ri].c);
+  el.innerHTML = `<div class="chx-rays"></div><div class="chx-top"><span class="chx-left">${list.length > 1 ? `${list.length} chests` : "Last chest"}</span><button class="chx-skip" aria-label="Close">${icon("xmark", 20)}</button></div>
+    <div class="chx-name">${NAT_R[ri].n}</div><div class="chx-box">${chestSVG(ri)}</div><div class="chx-dots">${Array.from({length: TAPS}, () => "<i></i>").join("")}</div>
+    <div class="chx-tip">Tap!</div><div class="chx-prize"></div><canvas class="chx-cf"></canvas>`;
+  document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("in"));
+  const box = el.querySelector(".chx-box"), nm = el.querySelector(".chx-name"), tip = el.querySelector(".chx-tip"), dots = el.querySelectorAll(".chx-dots i");
+  const setR = r => { ri = r; el.style.setProperty("--rc", NAT_R[r].c); el.dataset.r = NAT_R[r].k; nm.textContent = NAT_R[r].n; box.innerHTML = chestSVG(r); };
+  setR(ri);
+  el.querySelector(".chx-skip").onclick = e => { e.stopPropagation(); if (done || tap === 0) close(); };
+  const close = () => { el.classList.add("out"); setTimeout(() => el.remove(), 260); natChip(); if (Views.shop && App.route === "shop") Views.shop.draw(); };
+  el.addEventListener("click", e => {
+    if (e.target.closest(".chx-skip, .chx-prize button")) return;
+    if (done) return;
+    const up = climbs[tap] || 0; dots[tap] && dots[tap].classList.add("on"); tap++;
+    box.classList.remove("hit"); void box.offsetWidth; box.classList.add("hit");
+    try { navigator.vibrate && navigator.vibrate(up ? [20, 40, 60] : 15); } catch(_) {}
+    if (up){ setR(Math.min(NAT_R.length - 1, ri + up)); el.classList.remove("upg"); void el.offsetWidth; el.classList.add("upg");
+      Sound.tone([[523 + ri * 90, .08, .05], [659 + ri * 90, .08, .05], [784 + ri * 90, .18]], "triangle", .12); tip.textContent = NAT_R[ri].n + "!"; }
+    else { Sound.tone([[330 + tap * 40, .07]], "square", .06); tip.textContent = tap < TAPS ? "Tap!" : ""; }
+    if (tap === split){ chestGrant(0, "split"); el.classList.add("split"); setTimeout(() => el.classList.remove("split"), 900); tip.textContent = "It split! +1 chest"; Sound.tone([[880, .06, .04], [1175, .12]], "sine", .12); }
+    if (tap >= TAPS){ done = true; setTimeout(reveal, 380); }
+  });
+  function reveal(){
+    S.chO = (S.chO || []).concat([ch.id]).slice(-600);
+    const rw = rollReward(ri), R = NAT_R[ri];
+    if (rw.kind === "coins" || rw.kind === "dup") natEarn(rw.coins, true); if (rw.kind === "item") natGive(rw.item.id);
+    save(); box.innerHTML = chestSVG(ri, true); el.classList.add("opened"); tip.textContent = "";
+    natBurst(el.querySelector(".chx-cf"), R.c, ri);
+    if (ri >= 3) Sound.cheer(4); else Sound.cheer(ri + 1);
+    const left = chestsWaiting().length;
+    const prize = el.querySelector(".chx-prize");
+    prize.innerHTML = `<div class="chx-card r-${R.k}">${rw.kind === "coins" ? `<div class="pz-coin">${NAT_COIN}</div><b class="pz-n">+${fmtNat(rw.coins)}</b><small>NatCoins</small>`
+      : `${natPreview(rw.item, 120)}<small class="pz-k">${natKindName(rw.item.kind)} · <span style="color:${R.c}">${R.n}</span></small><b class="pz-t">${esc(rw.item.name)}</b>${rw.item.kind === "knife" ? natEurLine(rw.item) : ""}
+        ${rw.kind === "dup" ? `<p class="dim" style="margin:6px 0 0">You have it already: +${fmtNat(rw.coins)} NAT instead</p>` : ""}`}
+      <div class="row" style="gap:8px;justify-content:center;margin-top:14px">${rw.kind === "item" ? `<button class="btn" data-use>${rw.item.kind === "knife" ? "Show it off" : "Use it"}</button>` : ""}<button class="btn go" data-next>${left ? `Next chest (${left})` : "Done"}</button></div></div>`;
+    const u = prize.querySelector("[data-use]"); if (u) u.onclick = () => { natEquip(rw.item); u.textContent = "✓"; u.disabled = true; };
+    prize.querySelector("[data-next]").onclick = () => { el.remove(); natChip(); if (left) chestOpen(); else if (Views.shop && App.route === "shop") Views.shop.draw(); };
+  }
+}
+function natKindName(k){ return {board: "Board", song: "Music", skin: "Character skin", knife: "Knife"}[k] || k; }
+function natEurLine(k){ return `<div class="eur">≈ ${fmtEur(k.eur)}<small>pretend value · not tradeable</small></div>`; }
+/* sparks from the chest */
+function natBurst(cv, color, ri){
+  const ctx = cv.getContext("2d"), dpr = Math.min(2, devicePixelRatio || 1); cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+  const C = [color, "#fff", "#ffe27a"], P = []; const n = 60 + ri * 40;
+  for (let i = 0; i < n; i++){ const a = Math.random() * Math.PI * 2, v = (4 + Math.random() * (8 + ri * 2)) * dpr; P.push({x: cv.width / 2, y: cv.height * .45, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 5 * dpr, s: (3 + Math.random() * 5) * dpr, c: C[i % 3], l: 1}); }
+  const step = () => { ctx.clearRect(0, 0, cv.width, cv.height); let alive = 0;
+    P.forEach(p => { if (p.l <= 0) return; alive++; p.vx *= .97; p.vy = p.vy * .97 + .35 * dpr; p.x += p.vx; p.y += p.vy; p.l -= .012; ctx.globalAlpha = Math.max(0, p.l); ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.s / 2, 0, 7); ctx.fill(); });
+    if (alive && cv.isConnected) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+
+/* ---- pictures of items ---- */
+function natPreview(it, size = 72){
+  if (it.kind === "board") return boardMini(it, size);
+  if (it.kind === "song") return `<span class="np-song" style="width:${size}px;height:${size}px;--rc:${NAT_R[NAT_RI[it.r]].c}">${icon("music", Math.round(size * .45))}</span>`;
+  if (it.kind === "skin") return `<span class="np-skin" style="width:${size}px;height:${size}px">${typeof avatarBadge === "function" ? avatarBadge(Object.assign({}, myAvatar(), {shape: it.shape, [it.key]: it.id, frame: "none"}), size) : ""}</span>`;
+  if (it.kind === "knife") return `<span class="np-knife" style="width:${Math.round(size * 1.6)}px;height:${size}px">${knifeSVG(it)}</span>`;
+  return "";
+}
+function boardMini(b, size){ let h = ""; for (let r = 0; r < 4; r++) for (let f = 0; f < 4; f++) h += `<i style="background:${(r + f) % 2 ? b.d : b.l}"></i>`; return `<span class="np-board bd-fx-${b.fx || "none"}" style="width:${size}px;height:${size}px">${h}</span>`; }
+
+/* ---- knives: blade shapes and finishes, drawn as SVG ---- */
+const KNIFE_FIN = {
+  "Forest Camo": {g: ["#4d5a2e", "#6b7a3a", "#3a4424"], camo: ["#2c3319", "#8a8f55", "#55602f"]},
+  "Rust Steel": {g: ["#8c5a3c", "#b9b2a6", "#6b4a35"]},
+  "Glacier": {g: ["#e8f8ff", "#8fd3ff", "#3d8fd1"]},
+  "Nebula": {g: ["#2b1660", "#8a3df0", "#ff7ad9"], stars: 1},
+  "Ember": {g: ["#ffe08a", "#ff6a1f", "#8f1b0c"]},
+  "Obsidian Galaxy": {g: ["#0b0b14", "#1d1840", "#3a1d6e"], stars: 2},
+  "Royal Gold": {g: ["#fff4c4", "#e8b52c", "#8a5a08"], shine: 1},
+  "Aurora Prism": {g: ["#ff5fd2", "#7a6bff", "#30e0d2", "#ffe066"], shine: 1},
+  "Season Aurora": {g: ["#c6fff1", "#2fc7a8", "#1d5b8f"], shine: 1}};
+const KNIFE_BLADE = {
+  karambit: "M40 64 C72 70 112 58 138 32 C150 20 158 10 162 2 C170 30 164 56 144 74 C120 96 82 102 50 96 Z",
+  butterfly: "M44 50 L166 46 C178 46 192 54 200 64 C190 72 176 78 160 80 L44 80 Z",
+  bayonet: "M44 48 L170 44 L204 64 L170 84 L44 80 Z",
+  flip: "M44 50 L146 42 C170 42 190 52 200 66 C184 78 160 84 140 84 L44 82 Z",
+  bowie: "M44 46 L156 42 C176 42 192 36 204 26 C204 52 194 74 170 86 L44 84 Z",
+  dagger: "M44 64 L118 42 L206 64 L118 86 Z"};
+const KNIFE_HANDLE = {
+  karambit: `<path d="M14 80 C14 70 22 64 40 66 L54 68 L52 94 L36 96 C22 98 14 92 14 80 Z" fill="#232326"/><circle cx="18" cy="82" r="10" fill="none" stroke="#3a3a40" stroke-width="5"/>`,
+  butterfly: `<rect x="2" y="52" width="46" height="13" rx="5" fill="#3a3a40"/><rect x="2" y="67" width="46" height="13" rx="5" fill="#26262a"/><rect x="8" y="56" width="34" height="3" rx="1.5" fill="#55555c"/><circle cx="9" cy="66" r="4" fill="#9a9aa2"/>`,
+  bayonet: `<rect x="4" y="52" width="40" height="26" rx="8" fill="#2b2b2f"/><path d="M8 58h32M8 65h32M8 72h32" stroke="#3d3d43" stroke-width="2"/><rect x="40" y="40" width="9" height="50" rx="3" fill="#55555c"/>`,
+  flip: `<rect x="2" y="54" width="46" height="26" rx="12" fill="#1f1f23"/><circle cx="40" cy="66" r="4" fill="#888"/><path d="M10 60h24" stroke="#333" stroke-width="3" stroke-linecap="round"/>`,
+  bowie: `<rect x="2" y="52" width="44" height="28" rx="9" fill="#5a3b22"/><circle cx="14" cy="66" r="2.5" fill="#d8c08a"/><circle cx="30" cy="66" r="2.5" fill="#d8c08a"/><rect x="42" y="38" width="9" height="56" rx="3" fill="#b39b62"/>`,
+  dagger: `<rect x="2" y="56" width="44" height="18" rx="7" fill="#1a1a1e"/><path d="M8 58l6 14M18 58l6 14M28 58l6 14" stroke="#2c2c33" stroke-width="2"/><rect x="42" y="42" width="9" height="46" rx="3" fill="#c9a43a"/>`};
+function knifeSVG(k, big){
+  const F = KNIFE_FIN[k.fin] || {g: ["#ccc", "#999", "#666"]}, uid = "kn" + k.id.replace(/\W/g, "") + (big ? "b" : "");
+  const stops = F.g.map((c, i) => `<stop offset="${i / (F.g.length - 1)}" stop-color="${c}"/>`).join("");
+  let pat = "";
+  if (F.camo) pat = Array.from({length: 9}, (_, i) => `<ellipse cx="${52 + i * 18}" cy="${50 + (i * 17) % 32}" rx="${10 + (i % 3) * 4}" ry="${5 + (i % 2) * 3}" fill="${F.camo[i % 3]}" opacity=".85" transform="rotate(${(i * 37) % 60 - 30} ${52 + i * 18} ${50 + (i * 17) % 32})"/>`).join("");
+  if (F.stars) pat = Array.from({length: 22}, (_, i) => `<circle cx="${48 + (i * 37) % 156}" cy="${44 + (i * 13) % 42}" r="${i % 3 ? .9 : 1.7}" fill="#fff" opacity=".9"/>`).join("");
+  return `<svg class="knife-svg" viewBox="0 0 210 110" aria-hidden="true"><defs><linearGradient id="${uid}" x1="0" y1="0" x2="1" y2="1">${stops}</linearGradient>
+      <linearGradient id="${uid}s" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <clipPath id="${uid}c"><path d="${KNIFE_BLADE[k.type]}"/></clipPath></defs>
+    <g>${KNIFE_HANDLE[k.type]}<path d="${KNIFE_BLADE[k.type]}" fill="url(#${uid})" stroke="rgba(0,0,0,.5)" stroke-width="1.5"/>
+      <g clip-path="url(#${uid}c)">${pat}<rect class="kn-shine" x="-60" y="30" width="40" height="80" fill="url(#${uid}s)" transform="skewX(-20)"/></g>
+      <path d="${KNIFE_BLADE[k.type]}" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.2" transform="translate(1,-1.5) scale(.995)"/></g></svg>`;
+}
+/* the knife up close: turn it with your finger, shine runs over the blade */
+function knifeInspect(k){
+  const R = NAT_R[NAT_RI[k.r]]; const pat = (hashStr(k.id + (S.name || "")) % 999) + 1;
+  detailSheet(`<div class="kinsp" style="--rc:${R.c}"><div class="kinsp-stage"><div class="kinsp-rot">${knifeSVG(k, true)}</div></div>
+    <small style="color:${R.c};font-weight:900;letter-spacing:.08em">${R.n.toUpperCase()} · KNIFE</small><h2 style="margin:4px 0 2px">${esc(k.type0 || k.name)} | ${esc(k.fin)}</h2>
+    <div class="dim">Pattern #${String(pat).padStart(3, "0")} · drop chance ${k.r === "ultra" ? "0.3 %" : k.r === "legend" ? "1.7 %" : "2.8 %"} per chest</div>
+    ${natEurLine(k)}<div class="row" style="gap:8px;justify-content:center;margin-top:12px">${natHas(k.id) ? `<button class="btn go" data-kshow>${S.knife === k.id ? "On your profile ✓" : "Show on my profile"}</button>` : ""}</div></div>`);
+  const sh = [...document.querySelectorAll(".dsheet")].pop(); if (!sh) return;
+  const rot = sh.querySelector(".kinsp-rot"), st = sh.querySelector(".kinsp-stage"); let a = -12, d = null, v = .4;
+  const loop = () => { if (!rot.isConnected) return; if (!d){ a += v; v *= .985; if (Math.abs(v) < .25) v = .25 * Math.sign(v || 1); } rot.style.transform = `perspective(600px) rotateY(${a}deg) rotateZ(-8deg)`; requestAnimationFrame(loop); }; loop();
+  st.onpointerdown = e => { d = {x: e.clientX, a}; st.setPointerCapture(e.pointerId); };
+  st.onpointermove = e => { if (!d) return; const na = d.a + (e.clientX - d.x) * .8; v = (na - a) * .3; a = na; };
+  st.onpointerup = st.onpointercancel = () => { d = null; };
+  const b = sh.querySelector("[data-kshow]"); if (b) b.onclick = () => { S.knife = k.id; save(); b.textContent = "On your profile ✓"; if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); };
+}
+
+/* ---- using things ---- */
+function natEquip(it){
+  if (it.kind === "board"){ S.settings.board = it.id; save(); natApplyBoard(); toast(`Board: ${it.name}`); }
+  else if (it.kind === "song"){ S.settings.song = it.id; S.settings.music = true; save(); NatMusic.sync(); toast(`Music in games: ${it.name}`); }
+  else if (it.kind === "skin"){ const a = myAvatar(); a.shape = it.shape; a[it.key] = it.id; save(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); renderRail(); if (typeof renderTop === "function") renderTop(); toast(`You're now: ${it.name}`); }
+  else if (it.kind === "knife"){ S.knife = it.id; save(); toast("Your knife is on your profile now"); }
+}
+function natApplyBoard(){
+  const b = NAT_BOARDS.find(x => x.id === (S.settings && S.settings.board)) || NAT_BOARDS[0], ok = b.id === "classic" || natHas(b.id), use = ok ? b : NAT_BOARDS[0], ds = document.documentElement.style;
+  ds.setProperty("--sq-l", use.l); ds.setProperty("--sq-d", use.d);
+  document.documentElement.dataset.bfx = use.fx || "";
+}
+setTimeout(natApplyBoard, 0);
+
+/* ---- music on the board: small synth loops, made right here (no recordings) ---- */
+const NatMusic = (() => {
+  let ac = null, gain = null, timer = 0, cur = null, step = 0, next = 0;
+  const SC = {major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10], dorian: [0, 2, 3, 5, 7, 9, 10]};
+  const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+  function note(t, m, dur, type, vol){ const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = hz(m); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + dur); o.connect(g).connect(gain); o.start(t); o.stop(t + dur + .05); }
+  function tick(){
+    const s = cur; if (!s) return; const sc = SC[s.mode] || SC.major, beat = 60 / s.bpm / 2;
+    while (next < ac.currentTime + .25){
+      const bar = Math.floor(step / 8) % s.prog.length, root = s.key + sc[s.prog[bar] % 7], i = step % 8, deg = d => s.key + 12 + sc[(s.prog[bar] + d) % 7] + (s.prog[bar] + d >= 7 ? 12 : 0);
+      if (i === 0){ [0, 2, 4].forEach(d => note(next, deg(d) - 12, beat * 8, "sine", .025)); note(next, root - 12, beat * 3, "triangle", .06); }
+      if (i === 4) note(next, root - 12, beat * 2, "triangle", .045);
+      const arp = [0, 2, 4, 2, 4, 6, 4, 2][i]; if (s.bpm > 90 || i % 2 === 0) note(next, deg(arp), beat * .9, s.lead, s.lead === "sine" ? .035 : .018);
+      if (s.bpm > 100 && i % 2 === 0) { const nb = ac.createBufferSource(), b = ac.createBuffer(1, 2200, ac.sampleRate), dd = b.getChannelData(0); for (let k = 0; k < dd.length; k++) dd[k] = (Math.random() * 2 - 1) * Math.pow(1 - k / dd.length, 6); nb.buffer = b; const g = ac.createGain(); g.gain.value = i === 0 || i === 4 ? .05 : .02; nb.connect(g).connect(gain); nb.start(next); }
+      step++; next += beat; }
+  }
+  function start(s){ if (typeof Sound === "undefined") return; Sound.init(); ac = Sound.ac; if (!ac) return;
+    if (!gain){ gain = ac.createGain(); gain.connect(ac.destination); } gain.gain.value = .7; cur = s; step = 0; next = ac.currentTime + .1; clearInterval(timer); timer = setInterval(tick, 90); }
+  function stop(){ clearInterval(timer); timer = 0; cur = null; if (gain && ac){ gain.gain.setTargetAtTime(0, ac.currentTime, .15); } }
+  /* plays on screens with a board, while the app is open; the equipped song only */
+  function sync(){ const s = NAT_SONGS.find(x => x.id === (S.settings && S.settings.song)); const on = s && natHas(s.id) && S.settings.music !== false && S.settings.sound && !document.hidden && !!document.querySelector("#bw .board");
+    if (!on){ if (cur) stop(); return; } if (!cur || cur.id !== s.id) start(s); }
+  function preview(s){ start(s); clearTimeout(preview._t); preview._t = setTimeout(() => { if (cur === s) { stop(); sync(); } }, 8000); }
+  document.addEventListener("visibilitychange", sync); window.addEventListener("chessnat:route", () => setTimeout(sync, 300));
+  return {sync, preview, stop, get playing(){ return cur && cur.id; }};
+})();
+
+/* ---- battle pass: a season per month, 30 tiers, 150 XP each ---- */
+const PASS_TIERS = 30, PASS_XP = 150, PASS_PRICE = 1500;
+function passSeason(){ const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); }
+function passState(){ const s = passSeason(); if (!S.bp || S.bp.s !== s) S.bp = {s, xp: 0, prem: false, cf: [], cp: []}; return S.bp; }
+function passXP(n){ const b = passState(); b.xp = (b.xp || 0) + n; }
+function passTier(){ return Math.min(PASS_TIERS, Math.floor((passState().xp || 0) / PASS_XP)); }
+/* what each tier gives: the free row and the premium row */
+function passReward(t, prem){
+  if (!prem){ if (t % 5 === 0) return {chest: t >= 25 ? 2 : t >= 15 ? 1 : 0}; return {coins: t % 2 ? 50 : 100}; }
+  if (t === 30) return {item: "k-bay-aur"}; if (t === 15) return {item: "aurora"};
+  if (t === 10 || t === 20) return {chest: t === 20 ? 3 : 2};
+  if (t % 5 === 0) return {chest: 1}; if (t % 3 === 0) return {chest: 0}; return {coins: 150};
+}
+function passRewardHTML(r){
+  if (r.coins) return `${NAT_COIN}<b>${r.coins}</b>`;
+  if (r.chest != null) return `<span class="pr-chest" style="--rc:${NAT_R[r.chest].c}">${chestSVG(r.chest)}</span><small>${NAT_R[r.chest].n}+</small>`;
+  const it = natItem(r.item); return it ? `${natPreview(it, 34)}<small>${esc(it.kind === "knife" ? it.name.split(" | ")[0] : it.name.split(" · ")[0])}</small>` : "";
+}
+function passClaim(t, prem){
+  const b = passState(), list = prem ? b.cp : b.cf; if (list.includes(t) || t > passTier() || (prem && !b.prem)) return false;
+  const r = passReward(t, prem); list.push(t);
+  if (r.coins) natEarn(r.coins); if (r.chest != null) chestGrant(r.chest, "pass"); if (r.item) natGive(r.item); save(); return r;
+}
+
+/* ---- the shop page ---- */
+const SHOP_CHESTS = [{id: "c1", name: "Chest", price: 300, floor: 0, n: 1}, {id: "c3", name: "Big Chest", price: 1000, floor: 2, n: 1, note: "Epic or better"}, {id: "c5", name: "Mega Chest", price: 3000, floor: 3, n: 1, note: "Mythic or better"}];
+function shopDaily(){ const seed = hashStr(todayKey() + "shop"); const pool = natItems().filter(i => i.kind !== "knife" && i.r !== "ultra" && !i.pass && !natHas(i.id));
+  const out = []; for (let k = 0; out.length < 4 && k < pool.length * 3; k++){ const it = pool[(seed + k * 7919) % pool.length]; if (it && !out.includes(it)) out.push(it); } return out; }
+Views.shop = {
+  mount(main, arg){ this.main = main; this.tab = (arg && arg.tab) || this.tab || "shop"; this.draw(); },
+  unmount(){},
+  draw(){
+    const t = this.tab, ch = chestsWaiting(), b = passState();
+    this.main.innerHTML = `<div class="page shop" style="max-width:860px">
+      <div class="shop-head"><h1 class="h-title">Shop</h1><div class="shop-bal">${NAT_COIN}<b>${fmtNat(natBal())}</b><small>NatCoins</small></div></div>
+      <div class="seg shop-tabs">${[["shop", "Shop"], ["pass", "Battle Pass"], ["coll", "Collection"]].map(([k, n]) => `<button class="${t === k ? "on" : ""}" data-tab="${k}">${n}</button>`).join("")}</div>
+      <div id="shopbody"></div></div>`;
+    $$("[data-tab]", this.main).forEach(x => x.onclick = () => { this.tab = x.dataset.tab; this.draw(); });
+    const body = $("#shopbody", this.main);
+    if (t === "shop") body.innerHTML = `
+      <div class="unit shop-mine ${ch.length ? "has" : ""}"><div class="sm-chest">${chestSVG(ch.length ? Math.max(...ch.map(c => c.f || 0)) : 0)}${ch.length ? `<i>${ch.length}</i>` : ""}</div>
+        <div class="grow"><h3 style="margin:0">${ch.length ? `${ch.length} chest${ch.length > 1 ? "s" : ""} waiting` : "No chests waiting"}</h3><p class="dim" style="margin:4px 0 0">Every level up brings a chest, every 5th a better one. Tap and it may climb up to Ultra or split in two.</p></div>
+        ${ch.length ? `<button class="btn go big" data-open>Open</button>` : ""}</div>
+      <h2 class="h-sec">Chests</h2><div class="shop-grid">${SHOP_CHESTS.map(c => `<div class="unit shop-c" style="--rc:${NAT_R[c.floor].c}"><div class="sc-pic">${chestSVG(c.floor)}</div><b>${c.name}</b><small class="dim">${c.note || "Any rarity"}</small><button class="btn go" data-buyc="${c.id}">${NAT_COIN} ${fmtNat(c.price)}</button></div>`).join("")}</div>
+      <h2 class="h-sec">Today's offers</h2><div class="shop-grid">${shopDaily().map(i => this.card(i, true)).join("") || `<p class="dim">You own everything that's on offer. Wow.</p>`}</div>
+      <h2 class="h-sec">Boards</h2><div class="shop-grid">${NAT_BOARDS.filter(x => x.r && x.r !== "ultra" && !x.pass).map(x => this.card(Object.assign({kind: "board"}, x), true)).join("")}</div>
+      <div class="unit shop-real"><b>Buy NatCoins with money</b><p class="dim" style="margin:4px 0 0">Not yet. Everything here comes from playing.</p></div>
+      <details class="unit shop-odds"><summary>Drop chances</summary><p class="dim" style="margin:8px 0">Each chest: ${NAT_R.map(r => `<b style="color:${r.c}">${r.n}</b> ${r.p} %`).join(" · ")}. Chests with a minimum rarity roll only among those. Knives come from Mythic chests and better. Items you already have turn into NatCoins.</p></details>`;
+    if (t === "coll") body.innerHTML = this.coll();
+    if (t === "pass") body.innerHTML = this.pass();
+    const o = $("[data-open]", body); if (o) o.onclick = () => chestOpen();
+    $$("[data-buyc]", body).forEach(x => x.onclick = () => this.buyChest(SHOP_CHESTS.find(c => c.id === x.dataset.buyc), x));
+    $$("[data-buy]", body).forEach(x => x.onclick = () => this.buyItem(natItem(x.dataset.buy), x));
+    $$("[data-eq]", body).forEach(x => x.onclick = () => { natEquip(natItem(x.dataset.eq)); this.draw(); });
+    $$("[data-kn]", body).forEach(x => x.onclick = () => knifeInspect(natItem(x.dataset.kn)));
+    $$("[data-play]", body).forEach(x => x.onclick = () => { const s = NAT_SONGS.find(y => y.id === x.dataset.play); NatMusic.preview(s); toast(`♪ ${s.name} (8 seconds)`); });
+    const mu = $("#musicon", body); if (mu) mu.onchange = () => { S.settings.music = mu.checked; save(); NatMusic.sync(); };
+    $$("[data-claim]", body).forEach(x => x.onclick = () => { const [tt, p] = x.dataset.claim.split(":"), r = passClaim(+tt, p === "p"); if (!r) return; Sound.tone([[784, .08, .05], [1047, .16]], "triangle", .12); toast(r.chest != null ? "Chest added. Open it in the shop." : r.item ? `${natItem(r.item).name} is yours!` : `+${r.coins} NAT`); this.draw(); });
+    const bp = $("[data-prem]", body); if (bp) bp.onclick = () => { if (!bp.dataset.armed){ bp.dataset.armed = 1; bp.innerHTML = `Buy for ${fmtNat(PASS_PRICE)} NAT? Tap again`; return; } if (!natSpend(PASS_PRICE)){ toast(`You need ${fmtNat(PASS_PRICE - natBal())} more NAT.`); return; } passState().prem = true; save(); Sound.cheer(3); this.draw(); };
+    const cur = $(".bp-tier.cur", body); if (cur) cur.scrollIntoView({block: "nearest", inline: "center"});
+  },
+  card(i, buy){ const R = NAT_R[NAT_RI[i.r]], own = natHas(i.id) || i.id === "classic", price = NAT_PRICE[i.r];
+    return `<div class="unit shop-i r-${i.r}" style="--rc:${R ? R.c : "#888"}"><div class="si-pic">${natPreview(i, 64)}</div><small style="color:${R ? R.c : ""};font-weight:800">${R ? R.n : "Free"}</small><b>${esc(i.name)}</b>
+      ${own ? `<button class="btn ${this.isOn(i) ? "" : "go"}" data-eq="${i.id}" ${this.isOn(i) ? "disabled" : ""}>${this.isOn(i) ? "In use ✓" : "Use"}</button>` : buy && price ? `<button class="btn go" data-buy="${i.id}">${NAT_COIN} ${fmtNat(price)}</button>` : `<span class="pill">Chest only</span>`}</div>`; },
+  isOn(i){ return i.kind === "board" ? (S.settings.board || "classic") === i.id : i.kind === "song" ? S.settings.song === i.id && S.settings.music !== false : i.kind === "skin" ? myAvatar()[i.key] === i.id && myAvatar().shape === i.shape : i.kind === "knife" ? S.knife === i.id : false; },
+  coll(){
+    const all = natItems(), own = all.filter(i => natHas(i.id)).length;
+    const sec = (title, kind, extra = "") => { const L = all.filter(i => i.kind === kind); return `<h2 class="h-sec">${title} <small class="dim">${L.filter(i => natHas(i.id)).length}/${L.length}</small></h2>${extra}<div class="shop-grid">${(kind === "board" ? [Object.assign({kind: "board"}, NAT_BOARDS[0])] : []).concat(L).map(i => {
+      const has = natHas(i.id) || i.id === "classic", R = NAT_R[NAT_RI[i.r]];
+      if (kind === "knife") return `<button class="unit shop-i kn ${has ? "" : "lock"}" style="--rc:${R.c}" data-kn="${i.id}"><div class="si-pic">${natPreview(i, 78)}</div><small style="color:${R.c};font-weight:800">${R.n}</small><b>${esc(i.name)}</b><span class="eur sm">≈ ${fmtEur(i.eur)}</span>${has ? (S.knife === i.id ? `<span class="pill go">On profile</span>` : "") : `<span class="pill">Not found yet</span>`}</button>`;
+      return `<div class="unit shop-i ${has ? "" : "lock"}" style="--rc:${R ? R.c : "#888"}"><div class="si-pic">${natPreview(i, 56)}</div><small style="color:${R ? R.c : ""};font-weight:800">${R ? R.n : "Free"}</small><b>${esc(i.name)}</b>
+        ${has ? `<div class="row" style="gap:6px;justify-content:center">${kind === "song" ? `<button class="btn sm" data-play="${i.id}">▶</button>` : ""}<button class="btn sm ${this.isOn(i) ? "" : "go"}" data-eq="${i.id}" ${this.isOn(i) ? "disabled" : ""}>${this.isOn(i) ? "In use ✓" : "Use"}</button></div>` : kind === "song" ? `<button class="btn sm" data-play="${i.id}">▶ Listen</button>` : `<span class="pill">${i.pass ? "Battle pass" : "Locked"}</span>`}</div>`; }).join("")}</div>`; };
+    return `<p class="dim">${own} of ${all.length} found.</p>
+      ${sec("Knives", "knife", `<p class="dim" style="margin:-4px 0 10px;font-size:13px">The euro values are pretend, just for fun. Knives can't be sold or traded and have no real value.</p>`)}
+      ${sec("Boards", "board")}${sec("Music in games", "song", `<label class="chk" style="margin:-4px 0 10px"><input type="checkbox" id="musicon" ${S.settings.music !== false ? "checked" : ""}> Play my music during games and puzzles</label>`)}${sec("Character skins", "skin")}`;
+  },
+  pass(){
+    const b = passState(), T = passTier(), into = (b.xp || 0) - T * PASS_XP, d = new Date(), end = new Date(d.getFullYear(), d.getMonth() + 1, 1), days = Math.ceil((end - d) / 864e5);
+    const tiers = Array.from({length: PASS_TIERS}, (_, i) => i + 1).map(t => { const f = passReward(t, false), p = passReward(t, true), got = t <= T;
+      const cell = (r, prem) => { const claimed = (prem ? b.cp : b.cf).includes(t), can = got && !claimed && (!prem || b.prem);
+        return `<div class="bp-cell ${prem ? "prem" : ""} ${claimed ? "got" : ""} ${can ? "can" : ""} ${prem && !b.prem ? "lock" : ""}">${passRewardHTML(r)}${can ? `<button class="btn sm go" data-claim="${t}:${prem ? "p" : "f"}">Claim</button>` : claimed ? `<span class="bp-ok">✓</span>` : ""}</div>`; };
+      return `<div class="bp-tier ${got ? "got" : ""} ${t === T + 1 ? "cur" : ""}"><div class="bp-n">${t}</div>${cell(f, false)}${cell(p, true)}</div>`; }).join("");
+    return `<div class="unit bp-head"><div class="grow"><small class="dim" style="font-weight:800;letter-spacing:.08em">SEASON ${esc(b.s)} · ${days} DAYS LEFT</small><h3 style="margin:2px 0 6px">Tier ${T} of ${PASS_TIERS}</h3>
+        <div class="bp-bar"><i style="width:${T >= PASS_TIERS ? 100 : Math.round(into / PASS_XP * 100)}%"></i></div><small class="dim">${T >= PASS_TIERS ? "Season complete!" : `${into} / ${PASS_XP} XP to tier ${T + 1}. Every XP counts.`}</small></div>
+        ${b.prem ? `<span class="pill go">Premium ✓</span>` : `<button class="btn go" data-prem>Premium: ${NAT_COIN} ${fmtNat(PASS_PRICE)}</button>`}</div>
+      <p class="dim" style="font-size:13px">Free row for everyone. Premium adds a reward on every tier, the Aurora board at tier 15 and the Bayonet | Season Aurora knife at tier 30.</p>
+      <div class="bp-rows"><div class="bp-lab"><span></span><b>Free</b><b class="prem">Premium</b></div><div class="bp-scroll">${tiers}</div></div>`;
+  }
+};
 
 /* ===== Accounts on the website: the sign-up / sign-in form, the account page and the first-start onboarding.
    The way in, in this order: get the app → allow notifications → create the account → confirm the email
