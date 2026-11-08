@@ -2016,7 +2016,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794151567";
+const CHESSNAT_BUILD = "1794151707";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -10216,7 +10216,9 @@ Views.account = {
         </form>
         <p class="muted" style="text-align:center">${mode === "up" ? `Already have an account? <a href="#" id="sw">Sign in</a>` : `New here? <a href="#" id="sw">Create an account</a> · <a href="#" id="fg">Forgot password</a>`}</p>
         <p class="dim" style="text-align:center;font-size:12.5px">${inApp ? "On iPhone the app keeps its own progress, separate from Safari. Sign in with the same account in both and everything stays in sync." : "You can also keep playing without an account. Progress then stays on this device."}</p></div>`;
-      const err = t => { $("#aerr").textContent = t || ""; };
+      /* the email service only sends a few mails per hour: say so plainly instead of "wait a minute" */
+      const RATE = /rate limit|only request this after|too many|429/i, RATE_TXT = "We can't send more emails right now (there's an hourly limit). Try again in about an hour, or sign in with your password.";
+      const err = t => { $("#aerr").textContent = t && RATE.test(t) ? RATE_TXT : (t || ""); };
       if (window.CHESSNAT_AUTH_ERROR){ err(window.CHESSNAT_AUTH_ERROR); window.CHESSNAT_AUTH_ERROR = null; }
       $("#sw").onclick = e => { e.preventDefault(); mode = this.mode = mode === "up" ? "in" : "up"; render(); };
       if ($("#fg")) $("#fg").onclick = async e => { e.preventDefault(); const em = $("#em").value.trim(); if (!em) return err("Enter your email first."); const r = await site.reset(em); err(r.error ? r.error.message : ""); if (!r.error) toast(inApp ? "Check your inbox. Set the new password there, then sign in here." : "Check your inbox for a reset link", inApp ? 4500 : 2200); };
@@ -10227,7 +10229,7 @@ Views.account = {
         if (r.error){ const m = r.error.message || "";
           if (m === "Invalid login credentials") return err("Wrong email or password. Forgot it? Use “Forgot password” below.");
           if (m === "Email not confirmed") return err("Please click the confirmation link in your email first, then sign in here.");
-          if (/rate limit|only request this after|too many/i.test(m)) return err("Too many emails in a short time. Wait a minute and try again.");
+          if (RATE.test(m)) return err(RATE_TXT);
           return err(m); }
         if (mode === "up" && r.data && r.data.user && Array.isArray(r.data.user.identities) && r.data.user.identities.length === 0){
           mode = this.mode = "in"; render(); $("#em").value = em; return $("#aerr").textContent = "This email already has an account. Sign in with your password."; }
