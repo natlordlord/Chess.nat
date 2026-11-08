@@ -129,6 +129,8 @@ a{color:var(--go-hi)}
 .pbar{height:48px}
 .pbar .who{display:flex;flex-direction:column;justify-content:center;min-width:0;gap:1px;line-height:1.15}
 .pbar .who .l1{display:flex;align-items:baseline;gap:6px;min-width:0;white-space:nowrap}
+.pbar .who .l1 .rkmini{margin-left:0;display:inline-flex;line-height:0;flex:none;align-self:baseline;position:relative;top:2px}.pbar .who .l1 .rkmini svg{display:block}
+.pbar .adv{font-weight:800;color:var(--go)}.pbar .adv.neg{color:var(--muted);font-weight:700}
 .pbar .who .l1 .nm{overflow:hidden;text-overflow:ellipsis}
 .pbar .who .l1 .rt{margin-left:0}
 .pbar .who .l2{display:flex;align-items:center;height:16px;min-height:16px}
@@ -2269,7 +2271,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794168798";
+const CHESSNAT_BUILD = "1794170871";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -2923,7 +2925,7 @@ function shapeBar(bar){
   if (!bar || bar.querySelector(":scope > .who")) return;
   const kids = [...bar.children]; const nm = kids.find(k => k.classList.contains("nm")); if (!nm) return;
   const who = document.createElement("div"); who.className = "who"; const l1 = document.createElement("div"); l1.className = "l1"; const l2 = document.createElement("div"); l2.className = "l2";
-  kids.forEach(k => { if (k.classList.contains("nm") || k.classList.contains("rt") || (k.classList.contains("pill") && !/thinking/.test(k.textContent))) l1.appendChild(k); else if (k.classList.contains("caps") || k.classList.contains("adv")) l2.appendChild(k); });
+  kids.forEach(k => { if (k.classList.contains("nm") || k.classList.contains("rt") || k.classList.contains("rkmini") || (k.classList.contains("pill") && !/thinking/.test(k.textContent))) l1.appendChild(k); else if (k.classList.contains("caps") || k.classList.contains("adv")) l2.appendChild(k); });
   who.append(l1, l2); const av = bar.querySelector(":scope > .av"); if (av) av.after(who); else bar.prepend(who);
 }
 new MutationObserver(ms => { ms.forEach(m => { const t = m.target; if (t.classList && t.classList.contains("pbar")) shapeBar(t); else if (t.querySelectorAll) t.querySelectorAll(".pbar").forEach(shapeBar); }); }).observe(document.documentElement, {childList: true, subtree: true});
@@ -3185,6 +3187,12 @@ function PuzzleRunner(board, hooks = {}){
   board.onMove = (from, to, promo) => R.userMove(from, to, promo);
   /* premove: while the reply is coming you can already queue your next move; it plays the moment it's your turn
      (a wrong premove counts like a wrong move). Not before the very first move, not after a mistake. */
+  /* how far ahead you are in material (+3), and what you've taken, under your name like in a game */
+  board._R = R;
+  if (!board._matWrap){ board._matWrap = true; const set0 = board.set;
+    board.set = (g, last) => { set0(g, last); const r = board._R; if (!r || !r.p || g !== r.g) return; const cap = capturedFrom(g), me = r.user;
+      window.__pzMat = {caps: me === "w" ? cap.byWhite : cap.byBlack, oc: me === "w" ? "b" : "w", adv: me === "w" ? cap.diff : -cap.diff};
+      const l2 = document.querySelector("#botbar .who .l2"); if (l2) l2.innerHTML = capsHTML(__pzMat.caps, __pzMat.oc, __pzMat.adv, true); }; }
   board.premoveFor = () => R.p && !R.done && !R.snap && R.idx >= 1 && R.g && R.g.turn() !== R.user ? R.user : null;
   R.start = async (p) => {
     clearTimeout(R.resetT); R.pendingReset = null; R.snap = false; board.cancelPremove && board.cancelPremove();
@@ -3259,7 +3267,7 @@ function PuzzleRunner(board, hooks = {}){
     }
     R.finish();
   };
-  R.stop = () => { R.p = null; R.locked = true; board.glow(null); board.cancelPremove && board.cancelPremove(); };
+  R.stop = () => { window.__pzMat = null; R.p = null; R.locked = true; board.glow(null); board.cancelPremove && board.cancelPremove(); };
   R.elapsed = () => Date.now() - R.t0;
   return R;
 }
@@ -3308,7 +3316,7 @@ function celebrate(board, info, extra = {}){ const c = cheerFor(info); if (info.
 function pzRatingChip(p, reveal){ const show = reveal || S.settings.showPzRating; return `<button class="pill pzr ${show ? "on" : ""}" data-pzr title="${show ? "Hide the puzzle rating while solving" : "Show the puzzle rating"}">${show ? "Puzzle " + p.r : "👁 Show puzzle rating"}</button>`; }
 document.addEventListener("click", e => { const t = e.target.closest && e.target.closest("[data-pzr]"); if (!t) return; S.settings.showPzRating = !S.settings.showPzRating; save(); const v = App.view; if (v && v.panel && v.lastState !== undefined) v.panel(v.lastState); });
 function stageHTML(){ return `<div class="stage"><div class="boardcol"><div class="pbar" id="topbar"></div><div id="bw"></div><div class="pbar" id="botbar"></div></div><aside class="side"><div class="scroll" id="sp"></div><div class="foot" id="sf"></div></aside></div>`; }
-function youBar(extra = ""){ const rk = rankOf(S.puzzle.r); return `<div class="av">${typeof avatarBadge === "function" ? avatarBadge(myAvatar(), 34) : emblem(rk, 34)}</div><span class="nm">${esc(S.name)}</span><span class="rt">(${S.puzzle.r})</span><span class="rkmini rkf fr-${(S.avatar && S.avatar.frame) || "none"}">${emblem(rk, 20)}</span>${extra}`; }
+function youBar(extra = ""){ const rk = rankOf(S.puzzle.r); return `<div class="av">${typeof avatarBadge === "function" ? avatarBadge(myAvatar(), 34) : emblem(rk, 34)}</div><span class="nm">${esc(S.name)}</span><span class="rt">(${S.puzzle.r})</span><span class="rkmini rkf fr-${(S.avatar && S.avatar.frame) || "none"}">${emblem(rk, 20)}</span>${!/class="caps"/.test(extra) && window.__pzMat ? capsHTML(__pzMat.caps, __pzMat.oc, __pzMat.adv, true) : ""}${extra}`; }
 function sideToMoveText(c){ return c === "w" ? "White to move" : "Black to move"; }
 
 /* ---------- Rated puzzles ---------- */
@@ -4017,7 +4025,7 @@ function capturedFrom(g){
   const mat = c => cnt[c].p + 3 * cnt[c].n + 3 * cnt[c].b + 5 * cnt[c].r + 9 * cnt[c].q;
   return {byWhite: lost("b"), byBlack: lost("w"), diff: mat("w") - mat("b")};
 }
-function capsHTML(list, color, adv){ return `<span class="caps">${list.map(t => `<i class="pc ${color}${t}" style="position:static;transform:none;width:16px;height:16px"></i>`).join("")}</span>${adv > 0 ? `<span class="adv">+${adv}</span>` : ""}`; }
+function capsHTML(list, color, adv, minus){ return `<span class="caps">${list.map(t => `<i class="pc ${color}${t}" style="position:static;transform:none;width:16px;height:16px"></i>`).join("")}</span>${adv > 0 ? `<span class="adv">+${adv}</span>` : minus && adv < 0 ? `<span class="adv neg">−${-adv}</span>` : ""}`; }
 
 Views.bots = {
   mount(main, arg){ this.main = main;
@@ -4496,7 +4504,7 @@ Views.lesson = {
   clearTimers(){ this.timers.forEach(t => clearTimeout(t)); this.timers = []; },
   later(fn, ms){ const t = setTimeout(() => { if (!this.dead) fn(); }, ms); this.timers.push(t); return t; },
   step(){
-    this.clearTimers(); Voice.stop(); this.board.premoveFor = null; this.board.cancelPremove && this.board.cancelPremove(); this.board.overlay(null); this.board.badge(null); this.board.setArrows([]); this.board.mark({}); this.board.setThreats({}); if (this.lastStep !== this.L.id + this.i){ this.gameFails = 0; this.lastStep = this.L.id + this.i; } if (this.unmountExtra){ this.unmountExtra(); this.unmountExtra = null; }
+    this.clearTimers(); Voice.stop(); window.__pzMat = null; this.board.premoveFor = null; this.board.cancelPremove && this.board.cancelPremove(); this.board.overlay(null); this.board.badge(null); this.board.setArrows([]); this.board.mark({}); this.board.setThreats({}); if (this.lastStep !== this.L.id + this.i){ this.gameFails = 0; this.lastStep = this.L.id + this.i; } if (this.unmountExtra){ this.unmountExtra(); this.unmountExtra = null; }
     const s = this.L.steps[this.i]; if (!s){ this.complete(); return; }
     this.state = {ok: false};
     const fn = this["s_" + s.t]; if (fn) fn.call(this, s); else { this.i++; this.step(); }
@@ -10483,7 +10491,7 @@ const App = {
     this.arg = arg;
     if (this.view && this.route !== r) this.snapshot();
     if (this.view && this.view.unmount) this.view.unmount();
-    Voice.stop(); Focus.set(false);
+    Voice.stop(); Focus.set(false); window.__pzMat = null;
     this.route = r; this.view = Views[r];
     /* every screen is a history entry, so Android's back button and gesture step back inside the app */
     try { if (location.hash !== "#" + r){ if (!back && this.view && !this._popping) history.pushState({r}, "", "#" + r); else history.replaceState({r}, "", "#" + r); } } catch(e) {}
