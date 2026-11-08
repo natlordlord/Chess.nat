@@ -2259,7 +2259,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794163563";
+const CHESSNAT_BUILD = "1794164510";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11869,6 +11869,7 @@ if (window.ChessSite && window.ChessSite.ready) setTimeout(async () => { await w
 const MEGA_SVG = `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12"/></svg>`;
 const PLAY_SVG = `<svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>`;
 const PAUSE_SVG = `<svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>`;
+const NEWS_VID = "🎥 Videobotschaft", NEWS_VOICE = "🎤 Sprachnachricht";
 const News = {
   admin: null,
   sb(){ return window.ChessSite && window.ChessSite.sb; },
@@ -11890,7 +11891,7 @@ const News = {
     const el = document.createElement("div"); el.className = "newsx";
     el.innerHTML = `<canvas class="newsx-cf"></canvas><div class="newsx-flash"></div><div class="newsx-in" role="dialog" aria-modal="true" aria-label="Neuigkeit">
       <div class="newsx-badge">${MEGA_SVG}<span>Neuigkeit</span></div>
-      <h2>${esc(n.title)}</h2>${n.body ? `<p>${esc(n.body)}</p>` : ""}
+      <h2>${esc(n.title)}</h2>${n.body && ![NEWS_VID, NEWS_VOICE, "📣"].includes(n.body) ? `<p>${esc(n.body)}</p>` : ""}
       ${n.video_url ? `<div class="newsx-vid"><video src="${esc(n.video_url)}" playsinline preload="auto"></video><button class="newsx-vplay" aria-label="Videobotschaft abspielen">${PLAY_SVG}</button><svg class="newsx-vring" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48"/></svg></div>
         ${o.mustListen ? `<div class="newsx-hint">Schau dir die Botschaft bis zum Ende an.</div>` : ""}` : ""}
       ${n.audio_url && !n.video_url ? `<div class="newsx-voice"><button class="newsx-play" aria-label="Sprachnachricht abspielen">${PLAY_SVG}</button><div class="grow"><div class="newsx-vt">Sprachnachricht</div><div class="newsx-bar"><i></i></div><div class="newsx-time">0:00</div></div></div>
@@ -12043,9 +12044,11 @@ Views.news = {
         const path = `voice-${Date.now()}.${ext}`, up = await sb.storage.from("news").upload(path, this.blob, {contentType: type, upsert: false});
         if (up.error){ $("#nmsg").textContent = "Upload fehlgeschlagen: " + up.error.message; $("#nsave").disabled = false; return; }
         url = sb.storage.from("news").getPublicUrl(path).data.publicUrl; }
-      let {data: nid, error} = await sb.rpc("news_post_v", {t: f.title || "Nachricht von Nathan", b: f.body, a: url, v: vurl});
+      /* the server wants some text: without one, the message says what it is (and the big screen hides that line) */
+      const body = f.body || (vurl ? NEWS_VID : url ? NEWS_VOICE : "📣");
+      let {data: nid, error} = await sb.rpc("news_post_v", {t: f.title || "Nachricht von Nathan", b: body, a: url, v: vurl});
       /* until the server knows video messages: text and voice still go out the old way */
-      if (error && !vurl && /news_post_v|function|PGRST202/i.test((error.code || "") + " " + (error.message || ""))) ({data: nid, error} = await sb.rpc("news_post", {t: f.title || "Nachricht von Nathan", b: f.body || " ", a: url})); if (error){ $("#nmsg").textContent = error.message; $("#nsave").disabled = $("#nsavepush").disabled = false; return; }
+      if (error && !vurl && /news_post_v|function|PGRST202/i.test((error.code || "") + " " + (error.message || ""))) ({data: nid, error} = await sb.rpc("news_post", {t: f.title || "Nachricht von Nathan", b: body, a: url})); if (error){ $("#nmsg").textContent = error.message; $("#nsave").disabled = $("#nsavepush").disabled = false; return; }
       let sent = null; if (push){ const r = await sb.rpc("news_broadcast", {nid}); if (!r.error) sent = r.data; }
       this.blob = null; this.vblob = null; S.newsSeen = {}; save(); await this.reload(); this.draw();
       toast(sent != null ? `Gespeichert und als Push an ${sent} Nutzer gesendet.` : "Gespeichert. Die Neuigkeit erscheint ab jetzt einmal täglich groß in der App.", 4000); };
