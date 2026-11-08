@@ -1606,14 +1606,6 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 .unl h3{position:relative;font:900 26px var(--display);margin:4px 0 2px}
 .unl p{position:relative;margin:0}
 /* goal on home */
-.goalcard{all:unset;box-sizing:border-box;display:flex;gap:12px;align-items:center;width:100%;cursor:pointer;border:1px solid #ffd34a55!important;background:linear-gradient(135deg,rgba(255,211,74,.08),transparent 60%),var(--panel)}
-.gc-pv{flex:none;width:72px;height:72px;border-radius:14px;background:var(--panel-2);display:flex;align-items:center;justify-content:center;overflow:hidden}
-.gc-l{display:flex;gap:5px;align-items:center;font:900 11px var(--body);letter-spacing:.08em;color:#ffd34a}
-.gc-n{font:900 19px var(--display);margin:1px 0}
-.gc-t{font-size:12.5px;color:var(--muted);margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.gc-p{font:700 11.5px var(--body);color:var(--muted);margin-top:3px}
-.gc-x{align-self:flex-start;flex:none;width:28px;height:28px;display:grid;place-items:center;border-radius:50%;color:var(--muted);font:700 20px var(--body)}
-.gc-x:hover{background:var(--panel-3)}
 
 /* ===== Game over card, compact (2026-11-08) ===== */
 .endcard{position:relative;padding:16px 18px 14px!important;width:min(330px,90%)}
@@ -2059,6 +2051,32 @@ html.i18n-wait body{visibility:hidden}
 .rc-h .pill{margin-left:auto;font-size:10.5px;padding:1px 7px}.rc-h .pill + .pill{margin-left:4px}
 .rc-p{font-size:11.5px;color:var(--muted);margin-top:4px}.rc-p a{color:var(--go-hi);font-weight:800}
 
+/* ===== the goal you track (home): a glowing card with a progress ring around the thing you want ===== */
+.goalcard{all:unset;box-sizing:border-box;position:relative;display:flex;gap:14px;align-items:center;width:100%;margin:0 0 12px;padding:14px 46px 14px 14px;border-radius:16px;cursor:pointer;overflow:hidden;
+  background:radial-gradient(130% 160% at 0% 0%,color-mix(in srgb,var(--gc) 20%,transparent),transparent 55%),var(--panel);border:1px solid color-mix(in srgb,var(--gc) 38%,var(--line));
+  box-shadow:0 4px 0 rgba(0,0,0,.22);transition:transform .12s,border-color .2s;-webkit-tap-highlight-color:transparent}
+.goalcard:active{transform:scale(.985)}
+@media (hover:hover){.goalcard:hover{border-color:var(--gc)}}
+.goalcard::after{content:"";position:absolute;top:0;bottom:0;left:-40%;width:30%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.06),transparent);animation:gcshine 5s ease-in-out infinite;pointer-events:none}
+@keyframes gcshine{0%,70%{left:-40%}100%{left:130%}}
+.goalcard .gc-pv{position:relative;flex:none;width:84px;height:84px;display:grid;place-items:center}
+.goalcard .gc-ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.goalcard .gc-ring circle{fill:none;stroke:var(--panel-3);stroke-width:5}
+.goalcard .gc-ring circle.on{stroke:var(--gc);stroke-linecap:round;filter:drop-shadow(0 0 4px color-mix(in srgb,var(--gc) 70%,transparent));transition:stroke-dashoffset .8s cubic-bezier(.3,1,.4,1)}
+.goalcard .gc-in{position:relative;width:68px;height:68px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:radial-gradient(circle at 50% 38%,color-mix(in srgb,var(--gc) 32%,var(--panel-2)),var(--panel-2) 75%)}
+.goalcard .gc-in .av3w{width:76px!important;height:76px!important;margin-top:6px}
+.goalcard .gc-emo{font-size:36px;line-height:1;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35));animation:gcemo 2.4s ease-in-out infinite}
+@keyframes gcemo{0%,100%{transform:rotate(-6deg) scale(1)}50%{transform:rotate(6deg) scale(1.08)}}
+.goalcard .gc-m{display:flex;flex-direction:column;flex:1;min-width:0}
+.goalcard .gc-l{display:flex;gap:5px;align-items:center;font:900 10.5px var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--gc)}
+.goalcard .gc-n{font:900 20px/1.15 var(--display);margin:3px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.goalcard .gc-t{font-size:13px;line-height:1.3;color:var(--muted);margin-bottom:9px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.goalcard .gc-bar{display:block;height:8px;border-radius:99px;background:var(--panel-3);overflow:hidden}
+.goalcard .gc-bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,color-mix(in srgb,var(--gc) 65%,#fff),var(--gc));box-shadow:0 0 10px color-mix(in srgb,var(--gc) 55%,transparent)}
+.goalcard .gc-p{display:flex;justify-content:space-between;font:800 11.5px var(--body);color:var(--muted);margin-top:5px}.gc-p b{color:var(--gc)}
+.goalcard .gc-x{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--muted);font:700 19px/1 var(--body);background:rgba(255,255,255,.05);transition:background .15s}
+.goalcard .gc-x:hover{background:var(--panel-3);color:var(--fg)}
+
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
 .pc.wr{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMTcuOTMgMjAuNDFjNC45LS43NCA5LjU4LS41NyAxNC4xNCAwTTE0LjE4IDkuNjZjLTEuMDYgOC43NyAxLjEgMTAuNjggMy43NSAxMC43NWwtMy4zMSAxOC4xNmgyMC43NmwtMy4zMS0xOC4xNmMyLjY0LS4wNyA0LjgtMS45OCAzLjc1LTEwLjc1bC0zLjYxLS41My0xLjA3IDMuNjUtMy4xNS0uMS0uNTItMy43NmgtNC45NEwyMiAxMi42OGwtMy4xNS4xLTEuMDctMy42NXoiLz48cGF0aCBkPSJNMTcuOTMgMjAuNDFjNi44MyAwIDEzLjEyLjQxIDE0Ljk1IDE2LjU4bDIuMzIuMzgtMy4xMy0xNi40M2MtLjAzLS4zLTYuMDktMS44Mi0xNC4xNC0uNTMiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Im0xNC43OCAxMC4yMiAyLjI3LS4yOWMtMS45MS4zMi0yLjMgNS4zLTIuMyA1LjMtLjI1LS4xOC0uMi00LjkuMDMtNS4wMW0xMC41LS42N2MtMS42NSAwLTIuNTIgMi43NS0yLjUyIDIuNzVsLjMzLTIuNzN6bTcuNC4yNy45Mi4xMWMtLjc4LjUtMS41OSAyLTEuNTkgMnptLTE0LjIgMTEuMTQgMi42MS0uMjljLTIuNjIuMy00Ljg5IDEzLjExLTQuODkgMTMuMTF6Ii8+PHBhdGggZD0iTTM0LjAxIDkuNGMuMzYgNi4zNi0xLjk1IDEwLjYtOC4wNCAxMC41M2w0Ljc4LjU3YzcuNTIuMyA1LjEtMTAuOCA1LjA3LTEwLjg0eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuMiIgZD0iTTI1IDM2LjQ2cy05LjEzLjA0LTExLjcgMS42MmMtMS43MiAxLjA2LTIuMTMgMy42NS0xLjkgNi4zMmgyNy4yYy4yMy0yLjY3LS4xOC01LjI2LTEuOS02LjMyQzM0LjEyIDM2LjUgMjUgMzYuNDYgMjUgMzYuNDZ6Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI1IDM3LjE1UzE2LjI5IDM3IDEzLjM4IDM4LjhjLS4zNy4yMy0uNy44NC0uOTYgMS40LjI2LS4zNC41LS42Mi44OS0uODZDMTUuODcgMzcuNzggMjUgMzcuNzMgMjUgMzcuNzNzOS4xMy4wNSAxMS43IDEuNjJjLjM4LjI0LjU4LjUzLjg1Ljg3YTMgMyAwIDAgMC0xLjE1LTEuNkMzMy42NSAzNy4xNSAyNSAzNy4xNiAyNSAzNy4xNnoiLz48L3N2Zz4=')}
@@ -2079,7 +2097,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794154412";
+const CHESSNAT_BUILD = "1794156057";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -8096,10 +8114,17 @@ function unlockPop(key, more, wasGoal){
 /* the goal card on the home screen */
 function goalCardHTML(){
   const g = S.track; if (!g) return "";
-  const pr = reqProgress(g.req), pct = pr.g ? Math.round(Math.min(1, pr.c / pr.g) * 100) : 0, av = myAvatar(), cfg = Object.assign({}, av, g.f ? {[g.f]: g.id} : {[g.slot]: g.id}, {pet: "none", aura: g.slot === "aura" ? g.id : "none"});
-  const [mode] = WPV[g.slot] || ["full"];
-  return `<button class="unit goalcard" data-goal><div class="gc-pv">${g.slot === "frame" ? avatarBadge(Object.assign({}, av, {frame: g.id}), 64, S.puzzle.r) : Av3D.tag(cfg, {w: 72, h: 72, mode: mode === "legs" ? "full" : mode, tier: bodyTier(), rank: -1})}</div>
-    <div class="grow"><div class="gc-l">${icon("target", 14)} YOUR GOAL</div><div class="gc-n">${esc(g.name)}</div><div class="gc-t">${esc(pr.txt)}</div>${pr.g ? `<div class="bar sm"><i style="width:${pct}%"></i></div><div class="gc-p">${pr.c.toLocaleString("en")} / ${pr.g.toLocaleString("en")}</div>` : ""}</div><span class="gc-x" data-untrack aria-label="Stop tracking">×</span></button>`;
+  const pr = reqProgress(g.req), pct = pr.g ? Math.round(Math.min(1, pr.c / pr.g) * 100) : 0, av = myAvatar();
+  /* an emote goal shows the emote in its rarity colour; everything else shows you wearing it */
+  const em = g.slot === "emote" && typeof EMOTE_BY !== "undefined" && EMOTE_BY[g.id], R = em ? EMOTE_RARITY[em.r] : null, col = R ? R.c1 : "#ffd34a";
+  const cfg = Object.assign({}, av, g.f ? {[g.f]: g.id} : {[g.slot]: g.id}, {pet: "none", aura: g.slot === "aura" ? g.id : "none"}), [mode] = WPV[g.slot] || ["full"];
+  const pv = em ? `<span class="gc-emo">${em.ic}</span>` : g.slot === "frame" ? avatarBadge(Object.assign({}, av, {frame: g.id}), 64, S.puzzle.r) : Av3D.tag(cfg, {w: 76, h: 76, mode: mode === "legs" ? "full" : mode, tier: bodyTier(), rank: -1});
+  const C = 2 * Math.PI * 41;
+  return `<button class="goalcard" data-goal style="--gc:${col}">
+    <span class="gc-pv"><svg class="gc-ring" viewBox="0 0 90 90"><circle cx="45" cy="45" r="41"/><circle class="on" cx="45" cy="45" r="41" style="stroke-dasharray:${C.toFixed(1)};stroke-dashoffset:${(C * (1 - pct / 100)).toFixed(1)}"/></svg><span class="gc-in">${pv}</span></span>
+    <span class="gc-m"><span class="gc-l">${icon("target", 13)} Your goal</span><span class="gc-n" ${em ? "data-notr" : ""}>${esc(g.name)}</span><span class="gc-t">${esc(pr.txt)}</span>
+      ${pr.g ? `<span class="gc-bar"><i style="width:${Math.max(4, pct)}%"></i></span><span class="gc-p"><span>${pr.c.toLocaleString("en")} / ${pr.g.toLocaleString("en")}</span><b>${pct}%</b></span>` : ""}</span>
+    <span class="gc-x" data-untrack aria-label="Stop tracking">×</span></button>`;
 }
 function goalWire(root){
   const b = root.querySelector("[data-goal]"); if (!b) return;
@@ -10169,7 +10194,7 @@ const App = {
 
 /* ===== Home ===== */
 function journeyTile(){ const J = jState(), L = J.level, sp = levelSpec(L), w = worldOf(L);
-  return `<button class="tile jtile" data-go="journey" style="grid-column:span 2"><span class="jt-deco" style="--sq-l:${w.l};--sq-d:${w.d}"><i class="pc wp"></i></span>${icon("map", 40)}<span class="pill go">Journey</span><h3>Level ${L} · ${esc(worldName(L))}</h3><p>${sp.type === "boss" ? "Boss game: " + esc(sp.bot.name) : QUESTS[sp.type] ? QUESTS[sp.type].name : "Puzzles about " + sp.r} · ${Object.values(J.best).reduce((a, b) => a + b, 0) - (J.best[0] || 0)} ★ collected</p></button>`; }
+  return `<button class="tile jtile" data-go="journey" style="grid-column:span 2"><span class="jt-deco" style="--sq-l:${w.l};--sq-d:${w.d}"><i class="pc wp"></i></span>${icon("map", 40)}<span class="pill go">Journey</span><h3>Level ${L} · ${esc(worldName(L))}</h3><p>${sp.type === "boss" ? "Boss game: " + esc(sp.bot.name) : QUESTS[sp.type] ? QUESTS[sp.type].name : "Puzzles about " + sp.r} · ${Math.max(0, J.level - 1)} levels done</p></button>`; }
 Views.home = {
   mount(main){
     if (typeof autoPlace === "function") autoPlace();
