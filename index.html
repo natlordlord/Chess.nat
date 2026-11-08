@@ -2125,7 +2125,7 @@ html.i18n-wait body{visibility:hidden}
 .authf label{display:flex;flex-direction:column;gap:5px;font:800 12.5px var(--body);color:var(--muted)}
 .authf input{width:100%;background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:600 16px var(--body)}
 .authf input:focus{outline:none;border-color:var(--go)}
-.aerr{color:var(--bad);margin:0;font-size:13px;min-height:0}.aerr:empty{display:none}
+.aerr{color:var(--bad);margin:0;font-size:13px;min-height:0}.aerr:empty{display:none}.aerr.info{color:var(--fg)}
 .auth-sw{text-align:center;color:var(--muted);font-size:14px;margin:12px 0 0}.auth-sw a{color:var(--go-hi);font-weight:800}
 .onb{position:fixed;inset:0;z-index:2600;display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) 16px max(16px,env(safe-area-inset-bottom,0px));
   background:radial-gradient(120% 70% at 50% 0%,rgba(127,178,74,.22),transparent 60%),var(--bg);overflow-y:auto;animation:fadein .25s}
@@ -2227,7 +2227,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794159751";
+const CHESSNAT_BUILD = "1794160263";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -10748,8 +10748,13 @@ function authForm(root, o = {}){
         if (m === "Invalid login credentials") return err("Wrong email or password. Forgot it? Use “Forgot password” below.");
         if (m === "Email not confirmed"){ if (o.onSignedUp) return o.onSignedUp(em, pw); return err("Please click the confirmation link in your email first, then sign in here."); }
         return err(m); }
+      /* "Create account" with an email that already has one: just sign in with what was typed; only if that password is wrong, switch to the sign-in form and say so calmly */
       if (mode === "up" && r.data && r.data.user && Array.isArray(r.data.user.identities) && r.data.user.identities.length === 0){
-        mode = "in"; render(); $("#em", root).value = em; return $("#aerr", root).textContent = "This email already has an account. Sign in with your password."; }
+        b.disabled = true; const s = await site.signIn(em, pw); b.disabled = false;
+        if (!s.error){ if (o.onSignedIn) o.onSignedIn(); return; }
+        mode = "in"; render(); $("#em", root).value = em; const a = $("#aerr", root); a.classList.add("info");
+        a.textContent = (s.error.message || "") === "Invalid login credentials" ? "You already have an account. That password didn't match, try again or use “Forgot password”." : "You already have an account. Enter your password to sign in.";
+        $("#pw", root).focus(); return; }
       if (mode === "up" && !r.data.session){ if (o.onSignedUp) o.onSignedUp(em, pw); return; }
       if (o.onSignedIn) o.onSignedIn(); };
   };
