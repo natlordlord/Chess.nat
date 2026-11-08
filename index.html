@@ -69,6 +69,8 @@ body[data-board="blue"]{--sq-l:#DEE3E6;--sq-d:#7A99B4}
 body[data-board="slate"]{--sq-l:#D6D9CF;--sq-d:#5E7166}
 *{box-sizing:border-box}
 html,body{height:100%;background:var(--bg)}
+/* the page never jumps sideways when a scrollbar comes or goes */
+html{scrollbar-gutter:stable}
 body{color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit}
 a{color:var(--go-hi)}
@@ -1955,6 +1957,32 @@ html.i18n-wait body{visibility:hidden}
 @keyframes unlturn{50%{transform:translateX(-50%) translateY(-3px)}}
 .lvr-pv{cursor:pointer;transition:transform .15s}.lvr-pv:hover{transform:scale(1.08)}.lvr-pv:active{transform:scale(.94)}
 
+/* ===== emote stage: two figures, VS, the 🕺 button (lobby and end cards) ===== */
+.emst{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:2px;margin:4px 0 10px;width:100%}
+.emst-p{display:flex;flex-direction:column;align-items:center;min-width:0}
+.emst-fig{position:relative;width:100%;height:150px}
+.emst.sm .emst-fig{height:112px}
+.emst-p b{font:800 13px var(--display);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.emst-mid{display:flex;flex-direction:column;align-items:center;gap:10px;align-self:center;padding-top:10px}
+.emst-mid span{font:italic 900 20px var(--display);color:var(--muted);letter-spacing:.02em}
+.emst-btn{width:46px;height:46px;border-radius:50%;border:0;font-size:22px;line-height:1;cursor:pointer;background:linear-gradient(135deg,#b45cff,#3aa0ff);box-shadow:0 0 0 2px rgba(255,255,255,.35),0 4px 0 rgba(0,0,0,.3);
+  touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:transform .12s;animation:emstb 2.6s ease-in-out infinite}
+.emst-btn:active{transform:scale(.9)}
+@keyframes emstb{0%,80%,100%{transform:none}88%{transform:rotate(-12deg) scale(1.08)}94%{transform:rotate(10deg) scale(1.08)}}
+.emst-wait{position:absolute;left:50%;top:50%;width:78px;height:78px;margin:-39px 0 0 -39px;border-radius:50%;border:3px dashed var(--line);display:grid;place-items:center;font:900 32px var(--display);color:var(--muted);animation:emwait 1.6s ease-in-out infinite}
+@keyframes emwait{50%{transform:scale(1.08);border-color:var(--muted)}}
+.lobby h3{margin:0 0 2px}
+.lobby .lb-hint{font:700 12px var(--body);color:var(--muted);margin:0 0 10px}
+.card-over.lobby,.card-over.has-emst{width:min(94%,400px)}
+.bh-txt.swap{animation:jcswap .25s ease-out}
+.bh-m{transition:border-color .15s,background .15s,transform .12s}.bh-m:active{transform:scale(.97)}
+/* on a phone the board is too small for an end card with figures: it becomes a full-screen card over everything */
+@media (max-width:700px){
+  .overlay:has(> .has-emst){position:fixed;inset:0;z-index:320;background:rgba(14,13,11,.86);backdrop-filter:blur(3px);padding:max(12px,env(safe-area-inset-top,0px)) 0 max(12px,env(safe-area-inset-bottom,0px))}
+  .overlay > .card-over.has-emst{width:min(94%,420px);padding:18px 18px 16px}
+  .overlay > .card-over.lobby{width:min(94%,420px)}
+}
+
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
 .pc.wr{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMTcuOTMgMjAuNDFjNC45LS43NCA5LjU4LS41NyAxNC4xNCAwTTE0LjE4IDkuNjZjLTEuMDYgOC43NyAxLjEgMTAuNjggMy43NSAxMC43NWwtMy4zMSAxOC4xNmgyMC43NmwtMy4zMS0xOC4xNmMyLjY0LS4wNyA0LjgtMS45OCAzLjc1LTEwLjc1bC0zLjYxLS41My0xLjA3IDMuNjUtMy4xNS0uMS0uNTItMy43NmgtNC45NEwyMiAxMi42OGwtMy4xNS4xLTEuMDctMy42NXoiLz48cGF0aCBkPSJNMTcuOTMgMjAuNDFjNi44MyAwIDEzLjEyLjQxIDE0Ljk1IDE2LjU4bDIuMzIuMzgtMy4xMy0xNi40M2MtLjAzLS4zLTYuMDktMS44Mi0xNC4xNC0uNTMiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Im0xNC43OCAxMC4yMiAyLjI3LS4yOWMtMS45MS4zMi0yLjMgNS4zLTIuMyA1LjMtLjI1LS4xOC0uMi00LjkuMDMtNS4wMW0xMC41LS42N2MtMS42NSAwLTIuNTIgMi43NS0yLjUyIDIuNzVsLjMzLTIuNzN6bTcuNC4yNy45Mi4xMWMtLjc4LjUtMS41OSAyLTEuNTkgMnptLTE0LjIgMTEuMTQgMi42MS0uMjljLTIuNjIuMy00Ljg5IDEzLjExLTQuODkgMTMuMTF6Ii8+PHBhdGggZD0iTTM0LjAxIDkuNGMuMzYgNi4zNi0xLjk1IDEwLjYtOC4wNCAxMC41M2w0Ljc4LjU3YzcuNTIuMyA1LjEtMTAuOCA1LjA3LTEwLjg0eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuMiIgZD0iTTI1IDM2LjQ2cy05LjEzLjA0LTExLjcgMS42MmMtMS43MiAxLjA2LTIuMTMgMy42NS0xLjkgNi4zMmgyNy4yYy4yMy0yLjY3LS4xOC01LjI2LTEuOS02LjMyQzM0LjEyIDM2LjUgMjUgMzYuNDYgMjUgMzYuNDZ6Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI1IDM3LjE1UzE2LjI5IDM3IDEzLjM4IDM4LjhjLS4zNy4yMy0uNy44NC0uOTYgMS40LjI2LS4zNC41LS42Mi44OS0uODZDMTUuODcgMzcuNzggMjUgMzcuNzMgMjUgMzcuNzNzOS4xMy4wNSAxMS43IDEuNjJjLjM4LjI0LjU4LjUzLjg1Ljg3YTMgMyAwIDAgMC0xLjE1LTEuNkMzMy42NSAzNy4xNSAyNSAzNy4xNiAyNSAzNy4xNnoiLz48L3N2Zz4=')}
@@ -1975,7 +2003,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794149074";
+const CHESSNAT_BUILD = "1794149522";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -3886,7 +3914,10 @@ Views.bots = {
     Sound.play(score === 1 ? "Victory" : score === 0 ? "Defeat" : "GenericNotify", .8);
     const title = score === 1 ? "You won!" : score === 0 ? G.bot.name + " won" : "Draw";
     if (/on time/.test(why) && score === 0) G.chat = "Your flag fell! Watch the clock.";
-    const o = G.board.overlay(`<div class="card-over"><div style="display:flex;justify-content:center;margin-bottom:6px">${botAvatar(G.bot, 64)}</div>${endHead({res, why, me, g: G.g, opp: G.bot.name})}${G.rating ? ratingDeltaHTML(G.rating) : ""}${score === 1 ? pctCard(G.bot.r) : ""}${score === 1 && r.w === 1 ? `<div class="newtrophy">${botPortrait(G.bot, 56)}<div><b>New trophy!</b><span>${esc(G.bot.name)} is now locked in your cage.</span></div><button class="btn sm go" id="tro">See it</button></div>` : ""}<div class="grid2"><button class="btn go" id="rv">Game Review</button><button class="btn" id="rm">Rematch</button></div><button class="btn ghost sm" id="cl" style="margin-top:8px">View board</button></div>`);
+    const o = G.board.overlay(`<div class="card-over has-emst">${endHead({res, why, me, g: G.g, opp: G.bot.name})}${EmoStage.html({cls: "sm", opName: G.bot.name, opCfg: botCfg(G.bot)})}${G.rating ? ratingDeltaHTML(G.rating) : ""}${score === 1 ? pctCard(G.bot.r) : ""}${score === 1 && r.w === 1 ? `<div class="newtrophy">${botPortrait(G.bot, 56)}<div><b>New trophy!</b><span>${esc(G.bot.name)} is now locked in your cage.</span></div><button class="btn sm go" id="tro">See it</button></div>` : ""}<div class="grid2"><button class="btn go" id="rv">Game Review</button><button class="btn" id="rm">Rematch</button></div><button class="btn ghost sm" id="cl" style="margin-top:8px">View board</button></div>`);
+    /* you and the bot after the game: the winner dances, you can dance at it, it dances back */
+    const em = EmoStage.mount(o, {opCfg: botCfg(G.bot), opTier: botTierOf(G.bot), opName: G.bot.name, win: score === 1 ? "me" : score === 0 ? "op" : "draw",
+      send: () => setTimeout(() => { if (em && em.stages.op && o.isConnected) em.stages.op.emote(score === 0 ? "flex" : ["wave", "cheer", "dance"][Math.floor(Math.random() * 3)]); }, 1300)});
     $("#rv", o).onclick = () => App.go("review", {pgn, meta: rec});
     $("#rm", o).onclick = () => this.start(G.bot, G.color === "w" ? "b" : "w", Object.assign({}, G.opt));
     if (score === 1) pctAnimate(o); if (G.rating) ratingAnimate(o);
@@ -7943,34 +7974,40 @@ window.addEventListener("chessnat:route", () => setTimeout(closetCheck, 700));
 
 /* ===== The emote stage: you and your opponent side by side, before a game (the lobby) and after it.
    Hold 🕺 and slide to dance; against a friend the other phone sees it live. The winner dances first. ===== */
+/* what a player sends about their figure so the other side can draw it (with the trophy count for the body) */
+function avPub(){ const a = Object.assign({}, myAvatar()); delete a.petCfg; a._n = typeof achCount === "function" ? achCount() : 0; return a; }
 const EmoStage = {
   html(o = {}){
     return `<div class="emst ${o.cls || ""}"><div class="emst-p me"><div class="emst-fig" data-es="me"></div><b>${esc(o.meName || S.name || "You")}</b></div>
-      <div class="emst-mid">${o.mid || "VS"}</div>
-      <div class="emst-p op"><div class="emst-fig" data-es="op">${o.opCfg ? "" : `<div class="emst-wait">?</div>`}</div><b class="emst-opn">${esc(o.opName || "…")}</b></div>
-      <button class="emst-btn" data-esw aria-label="Emotes">🕺</button></div>`;
+      <div class="emst-mid"><span>${o.mid || "VS"}</span><button class="emst-btn" data-esw aria-label="Emotes">🕺</button></div>
+      <div class="emst-p op"><div class="emst-fig" data-es="op">${o.opCfg ? "" : `<div class="emst-wait">?</div>`}</div><b class="emst-opn">${esc(o.opName || "…")}</b></div></div>`;
   },
-  /* o: {meCfg, opCfg, opName, opTier, send(id), win: "me" | "op" | null} */
+  /* o: {meCfg, opCfg, opName, opTier, send(e), win: "me" | "op" | null} */
   mount(root, o = {}){
     const box = root && root.querySelector(".emst"); if (!box) return null;
     const meEl = box.querySelector('[data-es="me"]'), opEl = box.querySelector('[data-es="op"]');
     const st = {me: null, op: null}, seen = {n: null};
-    const make = (el, cfg, tier) => Av3D.stage(el, Object.assign({}, cfg, {pet: "none", aura: "none"}), {tier, mode: "full", rank: -1, fps: 40});
+    const clean = c => Object.assign({}, c, {pet: "none", aura: "none"});
+    const make = (el, cfg, tier) => Av3D.stage(el, clean(cfg), {tier, mode: "full", rank: -1, fps: 40, yaw: el === opEl ? -.35 : .35});
     st.me = make(meEl, o.meCfg || myAvatar(), bodyTier());
     const api = {
-      setOp(cfg, name, tier){ if (!cfg) return; if (!st.op){ opEl.innerHTML = ""; st.op = make(opEl, cfg, tier != null ? tier : (typeof avTier === "function" ? avTier(cfg) : 2)); } else st.op.set(Object.assign({}, cfg, {pet: "none", aura: "none"}), tier); const n = box.querySelector(".emst-opn"); if (n && name) n.textContent = name; },
-      /* the other player danced: play it on their figure (their song only if mine isn't on) */
-      opEmote(e){ if (!e || !e.id || e.n === seen.n) return; const first = seen.n == null; seen.n = e.n; if (first && Date.now() - (e.ts || 0) > 8000) return; if (!st.op) return;
-        if (EMOTE_BY[e.id]){ st.op.emote(e.id); Songs.play(e.id); } else st.op.emote(e.id); },
-      meEmote(id){ if (EMOTE_BY[id]) playEmote(st.me, id); else st.me.emote(id); },
+      setOp(cfg, name, tier){ if (!cfg) return; const t = tier != null ? tier : avTier(cfg);
+        if (!st.op){ opEl.innerHTML = ""; st.op = make(opEl, cfg, t); } else st.op.set(clean(cfg), t);
+        const n = box.querySelector(".emst-opn"); if (n && name) n.textContent = name; },
+      /* the other player danced: same emote, same song, on their figure */
+      opEmote(e){ if (!e || !e.id || e.n === seen.n) return; const first = seen.n == null; seen.n = e.n; if (first && Date.now() - (e.ts || 0) > 8000) return; if (st.op) playEmote(st.op, e.id); },
+      meEmote(id){ playEmote(st.me, id); },
       get stages(){ return st; }
     };
     if (o.opCfg) api.setOp(o.opCfg, o.opName, o.opTier);
     const btn = box.querySelector("[data-esw]");
     if (btn) wheelTrigger(btn, document.body, id => { api.meEmote(id); if (o.send) o.send({id, n: Date.now() % 1e9, ts: Date.now()}); });
-    /* the winner dances first: their signature emote, or a cheer */
-    if (o.win){ setTimeout(() => { if (o.win === "me"){ const sig = myAvatar().emote; if (sig && EMOTE_BY[sig] && itemUnlocked({req: EMOTE_BY[sig].req})) api.meEmote(sig); else st.me.emote("cheer"); if (st.op) setTimeout(() => st.op.emote("hit"), 400); }
-      else if (o.win === "op" && st.op){ const sig = o.opCfg && o.opCfg.emote; if (sig && EMOTE_BY[sig]) st.op.emote(sig); else st.op.emote("cheer"); setTimeout(() => st.me.emote("hit"), 400); } }, 700); }
+    /* the winner dances first (their signature emote, or a cheer), the loser shakes their head */
+    if (o.win) setTimeout(() => { if (!box.isConnected) return;
+      const sigOf = c => c && c.emote && EMOTE_BY[c.emote] ? c.emote : null;
+      if (o.win === "me"){ const s = sigOf(myAvatar()); if (s && itemUnlocked({req: EMOTE_BY[s].req})) api.meEmote(s); else st.me.emote("cheer"); if (st.op) setTimeout(() => st.op.emote("hit"), 400); }
+      else if (o.win === "op" && st.op){ const s = sigOf(o.opCfg); if (s) st.op.emote(s); else st.op.emote("cheer"); setTimeout(() => st.me.emote("hit"), 400); }
+      else if (o.win === "draw"){ st.me.emote("wave"); if (st.op) st.op.emote("wave"); } }, 800);
     return api;
   }
 };
@@ -8769,6 +8806,8 @@ Views.battle = {
   cfg(){ return BATTLE_MODES[this.mode] && this.mode !== "duel" ? BATTLE_MODES[this.mode] : BATTLE_MODES.sprint; },
   unmount(){ this.dead = true; this.cleanup(); },
   cleanup(){ clearInterval(this.tick); clearInterval(this.botT); clearTimeout(this.botStep); this.R && this.R.stop(); if (this.room){ try { this.room.leave(); } catch(e) {} this.room = null; } if (this.unsub){ try { this.unsub(); } catch(e) {} this.unsub = null; } },
+  statsHTML(mode){ const st = mode === "duel" ? (S.duel || {}) : (S.battle || {});
+    return `<span class="pill">${st.n || 0} played</span><span class="pill go">${st.w || 0} won</span>${mode === "duel" ? (st.steals ? `<span class="pill">${fmtPts(st.steals)} stolen</span>` : "") : `<span class="pill">best ${st.best || 0}</span>`}`; },
   /* the battle hub: pick a mode, then a bot or a friend */
   menu(){
     this.cleanup(); document.body.classList.remove("busy"); if (typeof renderTop === "function") renderTop();
@@ -8778,14 +8817,18 @@ Views.battle = {
     this.main.innerHTML = `<div class="page bh-page" style="max-width:760px"><h1 class="h-title">Puzzle Battle</h1>
       <div class="bh-modes">${Object.entries(BATTLE_MODES).map(([k, m]) => `<button class="bh-m ${k === mode ? "on" : ""}" data-bm="${k}">${icon(m.ic, 24)}<b>${m.name}</b><small>${m.sub}</small></button>`).join("")}</div>
       <p class="muted bh-txt">${M.text}</p>
-      <div class="bh-stats"><span class="pill">${st.n || 0} played</span><span class="pill go">${st.w || 0} won</span>${mode === "duel" ? (st.steals ? `<span class="pill">${fmtPts(st.steals)} stolen</span>` : "") : `<span class="pill">best ${st.best || 0}</span>`}</div>
+      <div class="bh-stats">${this.statsHTML(mode)}</div>
       <h2 class="h-sec">Against a friend</h2>
       <div class="unit bh-fr">${online ? `<div id="bfr" class="list"><p class="dim">Loading friends…</p></div>` : `<p class="muted" style="margin:0">Sign in to challenge your friends directly. Or share a code below.</p>`}
         <div class="row bh-code"><button class="btn sm" id="bnew">Create a code</button><input type="text" id="bcode" placeholder="Code" maxlength="12" autocapitalize="off"><button class="btn sm" id="bjoin">Join</button></div></div>
       <h2 class="h-sec">Against a bot</h2>
       <div class="bh-bots">${[["Warm-up", pr - 250], ["Even", pr], ["Hard", pr + 250]].map(([t, r]) => { const br = Math.max(300, Math.round(r / 10) * 10); return `<button class="bh-b" data-bb="${br}">${botAvatar({id: "battle" + br, r: br, hue: (br / 7) % 360}, 44)}<b>${t}</b><small>solves like ${br}</small></button>`; }).join("")}</div></div>`;
-    $$("[data-bm]", this.main).forEach(b => b.onclick = () => { S.bmode = b.dataset.bm; save(); Sound.tap(); this.menu(); });
-    const go = (how, x) => { if (mode === "duel"){ if (how === "bot") App.go("duel", {bot: x}); else App.go("duel", {join: x.code, host: x.host}); } else { this.mode = mode; if (how === "bot") this.vsBot(x); else this.joinRoom(x.code, x.host); } };
+    /* switching the mode only changes the cards and the text: the page stays where it is, nothing reloads */
+    $$("[data-bm]", this.main).forEach(b => b.onclick = () => { const k = b.dataset.bm; if (S.bmode === k || (!S.bmode && k === "duel")) return; S.bmode = k; save(); Sound.tap();
+      $$("[data-bm]", this.main).forEach(x => x.classList.toggle("on", x === b));
+      const t = $(".bh-txt", this.main); if (t){ t.textContent = BATTLE_MODES[k].text; t.classList.remove("swap"); void t.offsetWidth; t.classList.add("swap"); }
+      const sx = $(".bh-stats", this.main); if (sx) sx.innerHTML = this.statsHTML(k); });
+    const go = (how, x) => { const mode = S.bmode && BATTLE_MODES[S.bmode] ? S.bmode : "duel"; if (mode === "duel"){ if (how === "bot") App.go("duel", {bot: x}); else App.go("duel", {join: x.code, host: x.host}); } else { this.mode = mode; if (how === "bot") this.vsBot(x); else this.joinRoom(x.code, x.host); } };
     $$("[data-bb]", this.main).forEach(b => b.onclick = () => go("bot", +b.dataset.bb));
     $("#bnew").onclick = () => go("room", {code: newCode(), host: true});
     $("#bjoin").onclick = () => { const c = $("#bcode").value.trim().toLowerCase(); if (/^[a-z0-9]{4,12}$/.test(c)) go("room", {code: c, host: false}); else toast("Enter the code your friend sent you."); };
@@ -8907,7 +8950,7 @@ Views.duel = {
   unmount(){ this.dead = true; this.cleanup(); },
   cleanup(){
     [this.cdI, this.stealI].forEach(clearInterval); [this.nextT, this.graceT, this.stealT, this.stealHostT].forEach(clearTimeout); this.graceT = null;
-    (this.botTs || []).forEach(clearTimeout); this.botTs = [];
+    (this.botTs || []).forEach(clearTimeout); this.botTs = []; this.emoApi = null; this.botEmo = null; this.readyRaw = null;
     if (this.R) this.R.stop();
     if (this.room){ try { this.room.leave(); } catch(e) {} this.room = null; }
     if (this.unsub){ try { this.unsub(); } catch(e) {} this.unsub = null; }
@@ -8951,6 +8994,7 @@ Views.duel = {
     else if (this.out === "solved"){ st = `<b>Solved!</b><span>Checking who was faster…</span>`; }
     else if (this.out === "wrong"){ st = `<b>Wrong move</b><span>Wait for ${esc(this.oppName)}…</span>`; }
     else if (k >= 0 && this.R && this.R.p){ st = `<b>${sideToMoveText(this.R.user)}</b><span>First to solve takes the point · puzzle rated ${this.R.p.r}</span>`; }
+    else if (this.room && this.oppAv) st = this.side === "h" ? `<b>${esc(this.oppName)} is here</b><span>Dance a little, then tap Start duel.</span>` : `<b>${esc(this.oppName)} is here</b><span>The duel starts when ${esc(this.oppName)} taps Start.</span>`;
     else st = `<b>Waiting…</b><span>${this.room ? "The duel starts as soon as you're both here." : ""}</span>`;
     $("#sp").innerHTML = `<div class="dl-score"><div class="dl-p"><small>YOU</small><b class="me">${fmtPts(t[my])}</b></div><div class="dl-mid"><small>FIRST TO ${DUEL_TO}</small><div class="dl-dots">${dots}</div></div><div class="dl-p"><small>${esc((this.oppName || "").toUpperCase())}</small><b>${fmtPts(t[op])}</b></div></div>
       ${st ? `<div class="dl-st ${cls}">${st}</div>` : ""}`;
@@ -9017,7 +9061,18 @@ Views.duel = {
   publish(){ if (!this.room || this.side !== "h") return; const M = this.M; Object.assign(this.me, {mid: M.mid, list: M.raw, k: M.k, res: M.res, steal: M.steal, over: M.over}); this.room.presence(this.me).catch(() => {}); },
   startMatch(raw){
     this.M = {mid: Date.now(), raw, list: raw.map(decodeP), res: [], k: -1, steal: null, over: false}; this.ev = {h: {}, g: {}};
-    this.board.overlay(null); this.bars(); this.publish(); this.nextRound();
+    this.board.overlay(null); this.emoApi = null; this.bars(); this.publish(); this.nextRound();
+  },
+  /* my emote goes to the other phone through the room */
+  sendEmo(e){ if (!this.room || !this.me) return; this.me.emo = e; this.room.presence(this.me).catch(() => {}); },
+  /* the lobby: both figures, the room code, dance while you wait; the host starts the duel */
+  lobby(code, host){
+    const ov = this.board.overlay(`<div class="card-over lobby"><h3 id="lbt">Puzzle Duel</h3><p class="lb-hint">Hold 🕺 and slide: your opponent sees it live.</p>${EmoStage.html({opName: "…"})}
+      <div class="bcode" style="margin:0 0 10px">${esc(code)}</div>
+      ${host ? `<div class="grid2"><button class="btn" id="dcopy">Copy invite link</button><button class="btn go" id="dstart" disabled>Start duel</button></div>` : `<p class="muted" id="dwait" style="margin:0">Joining the duel…</p>`}</div>`);
+    this.emoApi = EmoStage.mount(ov, {send: e => this.sendEmo(e)}); this.lobbyOp = false;
+    if ($("#dcopy", ov)) $("#dcopy", ov).onclick = async () => { const url = location.origin + location.pathname + "#duel-" + code; try { await navigator.clipboard.writeText(url); toast("Link copied"); } catch(e) { toast(url, 5000); } };
+    if ($("#dstart", ov)) $("#dstart", ov).onclick = () => { if (this.readyRaw){ const raw = this.readyRaw; this.readyRaw = null; this.startMatch(raw); } };
   },
 
   /* ---------- the end ---------- */
@@ -9035,10 +9090,15 @@ Views.duel = {
     Sound.play(win ? "Victory" : draw ? "GenericNotify" : "Defeat", .8); if (win){ Sound.cheer(t[op] === 0 ? 4 : 3); if (typeof confettiBurst === "function") confettiBurst(); }
     if (typeof Ach !== "undefined") Ach.soon();
     this.panel();
-    const o = this.board.overlay(`<div class="card-over dl-end ${win ? "won" : draw ? "" : "lost"}"><div class="end-ic">${win ? "★" : draw ? "½" : "✕"}</div><h3>${win ? (t[op] === 0 ? "Flawless win!" : "You won the duel!") : draw ? "Draw" : esc(this.oppName) + " won"}</h3>
+    const opCfg = this.room ? this.oppAv : botCfg({id: "duel" + this.botR, r: this.botR, hue: (this.botR / 7) % 360}), opTier = this.room ? null : botTierOf({r: this.botR});
+    const o = this.board.overlay(`<div class="card-over dl-end has-emst ${win ? "won" : draw ? "" : "lost"}"><div class="end-ic">${win ? "★" : draw ? "½" : "✕"}</div><h3>${win ? (t[op] === 0 ? "Flawless win!" : "You won the duel!") : draw ? "Draw" : esc(this.oppName) + " won"}</h3>
       <div class="bres"><div><b>${fmtPts(t[my])}</b><span>You</span></div><span class="muted">:</span><div><b>${fmtPts(t[op])}</b><span>${esc(this.oppName)}</span></div></div>
+      ${EmoStage.html({cls: "sm", opName: this.oppName, opCfg})}
       <div class="dl-rew"><span class="pill go">+${xp} XP</span>${steals ? `<span class="pill">${fmtPts(steals)} stolen</span>` : ""}<span class="pill">${D.w || 0} duel win${D.w === 1 ? "" : "s"}</span></div>
       <div class="grid2"><button class="btn go" id="dagain">${this.room ? "Rematch" : "Play again"}</button><button class="btn" id="dmenu">Menu</button></div></div>`);
+    this.emoApi = EmoStage.mount(o, {opCfg, opTier, opName: this.oppName, win: win ? "me" : draw ? "draw" : "op", send: e => { this.sendEmo(e); if (this.botEmo) this.botEmo(e); }});
+    /* the bot answers your dance with one of its own */
+    if (!this.room) this.emoApi && (this.botEmo = e => setTimeout(() => this.emoApi && this.emoApi.stages.op && this.emoApi.stages.op.emote(["wave", "cheer", "dance", "flex"][Math.floor(Math.random() * 4)]), 1200));
     $("#dagain", o).onclick = () => { if (this.room) this.rematch(); else this.vsBot(this.botR); };
     $("#dmenu", o).onclick = () => App.go("battle");
   },
@@ -9068,11 +9128,10 @@ Views.duel = {
     const api = window.claude && await window.claude.use("room"); if (!api){ toast("Live duels need the website with an account."); return App.go("battle"); }
     whenPuzzles(async () => { if (this.dead) return;
       this.screen("Waiting…", `<i class="pc bp"></i>`); this.M = {mid: 0, raw: [], list: [], res: [], k: -1, steal: null, over: false}; this.ev = {h: {}, g: {}}; this.panel();
-      const ov = this.board.overlay(`<div class="card-over"><h3>Puzzle Duel</h3><div class="bcode">${esc(code)}</div><p class="muted">${host ? "Waiting for your friend. The duel starts as soon as they join." : "Joining the duel…"}</p>${host ? `<button class="btn go" id="dcopy">Copy invite link</button>` : ""}</div>`);
-      if ($("#dcopy", ov)) $("#dcopy", ov).onclick = async () => { const url = location.origin + location.pathname + "#duel-" + code; try { await navigator.clipboard.writeText(url); toast("Link copied"); } catch(e) { toast(url, 5000); } };
+      this.readyRaw = null; this.lobby(code, host);
       try { this.room = await api.join("duel-" + code); } catch(e) { toast("Couldn't connect. Check your internet and try again."); return App.go("battle"); }
       if (this.dead) return this.cleanup();
-      this.me = {app: "duel", v: 1, name: S.name, rating: S.puzzle.r, avatar: typeof myAvatar === "function" ? myAvatar() : null, host};
+      this.me = {app: "duel", v: 1, name: S.name, rating: S.puzzle.r, avatar: avPub(), host};
       await this.room.presence(this.me);
       this.unsub = this.room.onPeers(({peers}) => this.peers(peers));
     });
@@ -9080,10 +9139,14 @@ Views.duel = {
   peers(peers){
     if (this.dead) return; const o = peers.find(p => !p.isMe && p.presence && p.presence.app === "duel"); if (!o) return;
     const P = o.presence;
+    if (P.avatar) this.oppAv = P.avatar;
+    if (this.emoApi){ if (P.avatar && !this.lobbyOp && document.querySelector("#main .overlay .lobby")){ this.lobbyOp = true; this.emoApi.setOp(P.avatar, P.name); Sound.play("GenericNotify", .5);
+        this.panel(); const t = $("#lbt"); if (t) t.textContent = (P.name || "Your friend") + " is here!"; const w = $("#dwait"); if (w) w.textContent = "Waiting for " + (P.name || "the host") + " to start…"; }
+      if (P.emo) this.emoApi.opEmote(P.emo); }
     if (P.name && P.name !== this.oppName){ this.oppName = P.name; this.oppFace = P.avatar && typeof avatarBadge === "function" ? avatarBadge(P.avatar, 34) : this.oppFace; this.bars(); this.panel(); }
     if (this.side === "h"){
       /* the guest is here: build puzzles that fit both of us, then start */
-      if (!this.M.mid && !this.building){ this.building = true; duelList(duelBase(S.puzzle.r, P.rating)).then(raw => { this.building = false; if (!this.dead) this.startMatch(raw); }); }
+      if (!this.M.mid && !this.building && !this.readyRaw){ this.building = true; duelList(duelBase(S.puzzle.r, P.rating)).then(raw => { this.building = false; if (this.dead) return; this.readyRaw = raw; const b = $("#dstart"); if (b) b.disabled = false; else this.startMatch(raw); }); }
       if (P.ev && P.ev.seq && P.ev.seq !== this.lastSeq && P.mid === this.M.mid){ this.lastSeq = P.ev.seq; this.onEv("g", P.ev); }
       if (P.again && P.again !== this.againSeen && this.M.over){ this.againSeen = P.again; toast(esc(this.oppName) + " wants a rematch!", 3000); }
       return;
@@ -9249,7 +9312,7 @@ Views.friend = {
     this.publish(); this.render();
     this.tick = setInterval(() => this.clocks(), 200);
   },
-  me(){ const s = this.st; return {app: "chessnat", v: 2, name: S.name, rating: S.puzzle.r, rt: Object.fromEntries(RATED_CATS.map(([k]) => [k, catRating(k).r])), seat: s.seat || "spec", host: s.host, tc: s.tc, gameNo: s.gameNo, rev: s.rev, moves: s.moves.join(" "), clk: s.clk, result: s.result, offer: s.offer, rematch: s.rematch, tb: s.tbReq, say: s.say, away: !!document.hidden}; },
+  me(){ const s = this.st; return {app: "chessnat", v: 2, name: S.name, rating: S.puzzle.r, rt: Object.fromEntries(RATED_CATS.map(([k]) => [k, catRating(k).r])), seat: s.seat || "spec", host: s.host, tc: s.tc, gameNo: s.gameNo, rev: s.rev, moves: s.moves.join(" "), clk: s.clk, result: s.result, offer: s.offer, rematch: s.rematch, tb: s.tbReq, say: s.say, away: !!document.hidden, av: avPub(), emo: s.emo || null}; },
   publish(){ if (!this.R) return; liveSave(this.st); this.R.presence(this.me()).catch(e => toast("Couldn't send: " + (e.code || e.message))); },
   peersInfo(){ if (!this.R) return []; return this.R.peers().filter(p => !p.sameTab && p.presence && p.presence.app === "chessnat"); },
   opp(){ const s = this.st; if (!s || !s.seat) return null; const ps = this.peersInfo().filter(p => p.presence.seat === "w" || p.presence.seat === "b"); if (s.seat === "spec") return ps.find(p => p.presence.host) || ps[0] || null; return ps.find(p => p.presence.seat !== s.seat) || ps[0] || null; },
@@ -9261,6 +9324,7 @@ Views.friend = {
     if (o && !this.hadOpp){ this.hadOpp = true; if (s.seat !== "spec"){ toast(nickOf(o.by, o.presence.name || "Your friend") + " joined"); Sound.play("GenericNotify", .7); } }
     if (!o) this.hadOpp = false;
     peers.forEach(p => { const sy = p.presence.say; if (sy && sy.n && this.lastSay[p.peer] !== sy.n){ const first = this.lastSay[p.peer] == null; this.lastSay[p.peer] = sy.n; if (!first || Date.now() - (sy.ts || 0) < 15000){ this.chat.push({who: nickOf(p.by, p.presence.name || "Friend"), t: String(sy.t || "").slice(0, 140), me: false}); Sound.tone([[880, .08, .07], [1175, .12]], "sine", .08); } } });
+    if (o && o.presence.emo && this.emoApi) this.emoApi.opEmote(o.presence.emo);
     if (o){
       const op = o.presence;
       if (op.gameNo > s.gameNo && s.seat !== "spec"){ this.newGame(op.gameNo, op.seat === "w" ? "b" : "w", true); return; }
@@ -9345,10 +9409,12 @@ Views.friend = {
   endCard(oppName){
     const s = this.st; if (!s || !s.result) return; const me = s.seat === "b" ? "b" : "w", my = me === "b" ? 1 : 0;
     const clk = s.tc && s.tc[0] && s.clk ? `${fmtClock(this.timeLeft(my))} – ${fmtClock(this.timeLeft(1 - my))}` : "";
-    const o = this.board.overlay(`<div class="card-over endcard"><button class="end-x" id="ecl" aria-label="Close">${icon("xmark", 18)}</button>${endHead({res: s.result.res, why: s.result.why, me, g: s.g, opp: oppName, clk})}<div id="endx"></div>
+    const o = this.board.overlay(`<div class="card-over endcard has-emst"><button class="end-x" id="ecl" aria-label="Close">${icon("xmark", 18)}</button>${endHead({res: s.result.res, why: s.result.why, me, g: s.g, opp: oppName, clk})}${s.seat !== "spec" ? EmoStage.html({cls: "sm", opName: oppName, opCfg: this.oppAv()}) : ""}<div id="endx"></div>
       <div class="grid2"><button class="btn go" id="erm">Rematch</button><button class="btn" id="erv">Review</button></div></div>`);
     if (!o) return;
-    const shut = () => { this.board.overlay(null); this.render(); };
+    const dr = s.result.res === "1/2-1/2", won = !dr && (s.result.res === "1-0") === (me === "w");
+    this.emoApi = s.seat !== "spec" ? EmoStage.mount(o, {opCfg: this.oppAv(), opName: oppName, win: dr ? "draw" : won ? "me" : "op", send: e => this.emote(e)}) : null;
+    const shut = () => { this.board.overlay(null); this.emoApi = null; this.render(); };
     $("#erm", o).onclick = () => { shut(); const b = $("#frm"); if (b) b.click(); };
     $("#erv", o).onclick = () => App.go("review", {pgn: s.g.pgn(), meta: S.games[S.games.length - 1]});
     $("#ecl", o).onclick = shut;
@@ -9360,14 +9426,36 @@ Views.friend = {
     x.innerHTML = (s.rating ? ratingDeltaHTML(s.rating) : "") + (s.cageMsg ? `<div class="cage-mini ${s.cageMsg.cls}">${s.cageMsg.short || s.cageMsg.html}</div>` : "");
     if (typeof Social !== "undefined") Social.wire(x, () => this.endExtras());
     if (s.rating && !this.ratingShown){ this.ratingShown = true; try { ratingAnimate(x); } catch(e) {} } },
+  oppAv(){ const o = this.opp(); return o && o.presence.av || null; },
+  emote(e){ if (!this.st) return; this.st.emo = e; this.publish(); },
+  /* the lobby: before the first move both figures stand on the board, you can dance at each other.
+     It goes away with the first move, or when you tap Play. */
+  lobby(){
+    const s = this.st; if (!s || !this.board) return; const o = this.opp();
+    const want = !s.result && !s.moves.length && s.seat !== "spec" && !this.lobbyShut;
+    const open = document.querySelector("#main .overlay .lobby");
+    if (!want){ if (open){ this.board.overlay(null); this.emoApi = null; } return; }
+    const oName = o ? nickOf(o.by, o.presence.name || "Your friend") : null, myTurn = s.seat === "w";
+    if (!open){
+      const ov = this.board.overlay(`<div class="card-over lobby"><h3 id="lbt"></h3><p class="lb-hint">Hold 🕺 and slide: your opponent sees it live.</p>${EmoStage.html({opName: oName || "…", opCfg: o && o.presence.av})}
+        <button class="btn go" id="lbgo" style="width:100%"></button></div>`);
+      this.lobbyOpp = o && o.presence.av ? o.peer : null;
+      this.emoApi = EmoStage.mount(ov, {opCfg: o && o.presence.av, opName: oName, send: e => this.emote(e)});
+      $("#lbgo", ov).onclick = () => { this.lobbyShut = true; this.board.overlay(null); this.emoApi = null; this.render(); };
+    } else if (o && o.presence.av && this.lobbyOpp !== o.peer && this.emoApi){ this.lobbyOpp = o.peer; this.emoApi.setOp(o.presence.av, oName); Sound.play("GenericNotify", .5); }
+    const t = $("#lbt"), b = $("#lbgo");
+    if (t) t.textContent = o ? (myTurn ? "You start with White" : oName + " starts with White") : (s.host ? "Waiting for your friend…" : "Waiting for the host…");
+    if (b){ b.textContent = o ? (myTurn ? "Play" : "To the board") : "To the board"; }
+  },
   /* is the game-over card on the board? then the panel below doesn't repeat it */
   endOpen(){ return !!document.querySelector("#main .overlay .endcard"); },
   newGame(no, seat){
     const s = this.st; Object.assign(s, {gameNo: no, seat, rev: 0, moves: [], g: new Chess(), result: null, offer: null, rematch: 0, tbReq: 0, saved: false, lastAt: Date.now(), clk: s.tc && s.tc[0] ? [s.tc[0] * 60000, s.tc[0] * 60000] : null});
-    this.rematchAsked = false; this.drawOffered = false; this.tbAsked = false; this.ratingShown = false; this.nudged = null; this.board.setOrientation(seat); this.board.set(s.g, null); this.board.overlay(null); this.publish(); this.render();
+    this.rematchAsked = false; this.drawOffered = false; this.tbAsked = false; this.ratingShown = false; this.nudged = null; this.lobbyShut = false; this.emoApi = null; s.emo = null; this.board.setOrientation(seat); this.board.set(s.g, null); this.board.overlay(null); this.publish(); this.render();
   },
   render(){
     const s = this.st; if (!s || !$("#sp")) return; const o = this.opp(); const my = s.seat === "b" ? 1 : 0;
+    this.lobby();
     const prevChi = $("#chi") ? $("#chi").value : "", chiFocus = document.activeElement && document.activeElement.id === "chi";
     const cap = capturedFrom(s.g); const me = s.seat === "b" ? "b" : "w";
     const oppP = o ? Object.assign({}, o.presence, {name: nickOf(o.by, o.presence.name)}) : null; const timed = s.tc && s.tc[0];
@@ -9604,7 +9692,7 @@ function icon(n, size = 22){ return `<svg viewBox="0 0 24 24" width="${size}" he
 const LOGO = `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="8" r="5" fill="#7FB24A"/><path d="M10.5 15h11l-1.6 6.5h-7.8z" fill="#7FB24A"/><path d="M8 27c0-2.8 2.2-4.5 4.4-4.5h7.2c2.2 0 4.4 1.7 4.4 4.5v1H8z" fill="#7FB24A"/></svg>`;
 
 const NAV = [
-  ["home", "Home", "home"], ["journey", "Journey", "map"], ["learn", "Learn", "book"], ["theory", "Theory", "scroll"], ["puzzles", "Puzzles", "puzzle"], ["rush", "Puzzle Rush", "bolt"], ["daily", "Daily Puzzle", "calendar"],
+  ["home", "Home", "home"], ["journey", "Journey", "map"], ["learn", "Learn", "book"], ["theory", "Theory", "scroll"], ["puzzles", "Puzzles", "puzzle"], ["rush", "Puzzle Rush", "bolt"], ["battle", "Puzzle Battle", "swords"], ["daily", "Daily Puzzle", "calendar"],
   ["train", "Train", "target"], ["endgames", "Endgames", "crown"], ["bots", "Play Bots", "bot"], ["blitz", "Blitz", "flame"], ["awards", "Trophies", "trophy"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["me", "Profile", "user"], ["stats", "Stats", "chart"],
 ];
 /* bottom of the rail, like chess.com: who you are, then a row of small icon buttons */
@@ -9627,7 +9715,7 @@ function renderRail(){
   const rail = $("#rail"); if (!rail) return; const rk = rankOf(S.puzzle.r); const cur = App.route;
   const dailyOpen = !S.daily.done[todayKey()];
   rail.innerHTML = `<a class="brand" href="#home">${LOGO}<span>Chess<b>.nat</b></span></a>${typeof railMe === "function" ? railMe() : ""}
-    ${NAV.map(([k, t, ic]) => `<button class="nav ${cur === k || (k === "friend" && (cur === "local" || cur === "linkgame")) || (k === "bots" && cur === "trophies") || (k === "blitz" && (cur === "battle" || cur === "duel")) ? "on" : ""}" data-r="${k}">${icon(ic)}<span>${t}</span>${k === "daily" && dailyOpen ? `<span class="badge">1</span>` : ""}</button>`).join("")}
+    ${NAV.map(([k, t, ic]) => `<button class="nav ${cur === k || (k === "friend" && (cur === "local" || cur === "linkgame")) || (k === "bots" && cur === "trophies") || (k === "battle" && cur === "duel") ? "on" : ""}" data-r="${k}">${icon(ic)}<span>${t}</span>${k === "daily" && dailyOpen ? `<span class="badge">1</span>` : ""}</button>`).join("")}
     <div class="grow"></div>
     ${railAccount()}`;
   $$("[data-r]", rail).forEach(b => b.onclick = () => App.go(b.dataset.r));
@@ -9647,7 +9735,7 @@ function renderTabs(){
 }
 function openSheet(){
   const sh = $("#sheet"); const rk = rankOf(S.puzzle.r);
-  const items = [...(window.ChessInstall && ChessInstall.can() ? [["__install", "Get the app", "download"]] : []), ...(typeof News !== "undefined" && News.admin ? [["news", "News senden", "bell"]] : []), ["journey", "Journey", "map"], ["theory", "Theory", "scroll"], ["blitz", "Blitz & Battle", "flame"], ["awards", "Trophies", "trophy"], ["me", "Profile", "user"], ["endgames", "Endgames", "crown"], ["rush", "Puzzle Rush", "bolt"], ["daily", "Daily Puzzle", "calendar"], ["train", "Train", "target"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"], ["coords", "Coordinates", "board"], ["settings", "Settings", "gear"], ["account", "Account", "users"]];
+  const items = [...(window.ChessInstall && ChessInstall.can() ? [["__install", "Get the app", "download"]] : []), ...(typeof News !== "undefined" && News.admin ? [["news", "News senden", "bell"]] : []), ["journey", "Journey", "map"], ["theory", "Theory", "scroll"], ["blitz", "Blitz & Battle", "flame"], ["awards", "Trophies", "trophy"], ["me", "Profile", "user"], ["endgames", "Endgames", "crown"], ["rush", "Puzzle Rush", "bolt"], ["battle", "Puzzle Battle", "swords"], ["daily", "Daily Puzzle", "calendar"], ["train", "Train", "target"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"], ["coords", "Coordinates", "board"], ["settings", "Settings", "gear"], ["account", "Account", "users"]];
   sh.innerHTML = `<div class="panelx" role="dialog" aria-label="More"><div class="grab"></div><button class="rk" data-s="me">${emblem(rk, 36)}<span style="text-align:left"><div style="font-weight:900">${esc(rk.label)}</div><div class="muted" style="font-size:12px">${S.puzzle.r} puzzle rating · ${Cloud.status === "on" ? "synced to your account" : "saved on this device"}</div></span></button>${items.map(([k, n, ic]) => `<button data-s="${k}">${icon(ic, 26)}<span>${n}</span></button>`).join("")}</div>`;
   sh.hidden = false; sh.classList.remove("closing"); const px = $(".panelx", sh); px.style.transform = ""; px.classList.add("opening"); setTimeout(() => px.classList.remove("opening"), 300);
   const close = () => { if (sh.hidden || sh.classList.contains("closing")) return; sh.classList.add("closing"); px.style.transform = ""; setTimeout(() => { sh.hidden = true; sh.classList.remove("closing"); }, 220); };
