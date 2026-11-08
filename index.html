@@ -2016,7 +2016,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794150791";
+const CHESSNAT_BUILD = "1794151567";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -2158,6 +2158,12 @@ const todayKey = () => { const d = new Date(); return d.getFullYear() + "-" + St
 function nickOf(id, name){ return (id && S.nick && S.nick[id]) || name; }
 function hashStr(s){ let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 /* short message at the bottom: slides up, fades out, a new one replaces the old one */
+/* Focus: while a game or duel is running, trophies, level-ups and unlock cards wait.
+   They all come the moment the game is over (or you leave it). */
+const Focus = {on: false, q: new Map(),
+  set(v){ if (this.on === !!v) return; this.on = !!v; if (!v){ const q = [...this.q.values()]; this.q.clear(); q.forEach((f, i) => setTimeout(() => { try { f(); } catch(e) {} }, 1600 + i * 300)); } },
+  /* returns true when the thing was put aside for later (one per key) */
+  later(key, f){ if (!this.on) return false; this.q.set(key, f); return true; }};
 function toast(t, ms = 2200){
   document.querySelectorAll(".toast").forEach(o => { o.classList.add("out"); setTimeout(() => o.remove(), 250); });
   const el = document.createElement("div"); el.className = "toast"; el.textContent = t; document.body.appendChild(el);
@@ -3809,7 +3815,7 @@ Views.bots = {
     G.g.header("White", me === "w" ? S.name : G.bot.name, "Black", me === "b" ? S.name : G.bot.name, "Result", "*", "Event", "Chess.nat vs " + G.bot.name, "Date", todayKey().replace(/-/g, "."));
     S.games.push({id: Date.now().toString(36), mode: G.journey ? "journey" : "bot", opp: G.bot.name, oppR: G.bot.r, color: me, result: "*", why: "unfinished", pgn: G.g.pgn(), ts: Date.now(), moves: G.g.history().length, takebacks: G.takebacks, warns: G.warns, hints: G.hintsUsed || 0, tips: !!G.opt.tips, opening: !!G.opt.openSan}); save();
   },
-  start(bot, color, opt, fen){ document.body.classList.add("busy");
+  start(bot, color, opt, fen){ document.body.classList.add("busy"); Focus.set(true);
     this.stopGame();
     this.main.innerHTML = stageHTML();
     const G = this.G = {tuned: tunedBot(bot, opt.level), bot, color, opt, g: new Chess(fen || undefined), view: null, over: false, thinking: false, chat: rnd(BOT_LINES.hi), dead: false, hintsUsed: 0, takebacks: 0, warns: 0, startFen: fen || null};
@@ -3913,7 +3919,7 @@ Views.bots = {
     this.finish(res, why); return true;
   },
   finish(res, why){
-    const G = this.G; G.over = true; G.result = res;
+    const G = this.G; G.over = true; G.result = res; setTimeout(() => Focus.set(false), 1800);
     const me = G.color; const score = res === "1/2-1/2" ? .5 : (res === "1-0") === (me === "w") ? 1 : 0;
     const r = S.bots[G.bot.id] || (S.bots[G.bot.id] = {w: 0, d: 0, l: 0}); if (score === 1) r.w++; else if (score === 0) r.l++; else r.d++; r.streakL = score === 0 ? (r.streakL || 0) + 1 : 0;
     G.g.header("White", me === "w" ? S.name : G.bot.name, "Black", me === "b" ? S.name : G.bot.name, "Result", res, "Event", "Chess.nat vs " + G.bot.name, "Date", todayKey().replace(/-/g, "."));
@@ -7379,6 +7385,7 @@ const Ach = {
         const v = Object.values(R); return {reviewed: v.length, brilliant: v.reduce((s, r) => s + r.b, 0), great: v.reduce((s, r) => s + r.g, 0), bestAcc: v.reduce((m, r) => Math.max(m, r.a), 0), cleanGames: v.filter(r => r.w && !r.x).length}; })()};
   },
   check(){
+    if (Focus.later("ach", () => this.check())) return;
     this.init(); this.derive();
     const before = new Set(AV_ITEMS.filter(itemUnlocked).map(i => i.slot + ":" + i.id)), fresh = [];
     for (let pass = 0; pass < 3; pass++){ let n = 0; ACH.forEach(a => { if (S.ach.got[a.id]) return; let ok = false; try { ok = a.test(); } catch(e) {} if (ok){ S.ach.got[a.id] = Date.now(); fresh.push(a); n++; } }); if (!n) break; }
@@ -7551,6 +7558,7 @@ function rewardHTML(r, L){
 }
 function lvNext(){
   if (document.querySelector(".lvup") || !lvQueue.length) return;
+  if (Focus.later("lv", lvNext)) return;
   const L = lvQueue.shift(), rw = lvRewards(L), nx = nextReward(L);
   const el = document.createElement("div"); el.className = "lvup";
   el.innerHTML = `<div class="lvup-in"><div class="lvup-burst"></div><div class="lvup-n"><span>LEVEL</span><b>${L}</b></div><h3>Level up!</h3>
@@ -7951,6 +7959,7 @@ const CLOSET_QUIET = ["play", "friend", "battle", "rush", "jlevel", "linkgame", 
 /* look for new unlocks; the first run only remembers what you already have */
 function closetCheck(){
   if (!S.ach || typeof achCount !== "function") return;
+  if (Focus.later("closet", closetCheck)) return;
   if (CLOSET_QUIET.includes(App.route) || document.querySelector(".lvup, .rkup, .unl")){ clearTimeout(closetCheck._t); closetCheck._t = setTimeout(closetCheck, 8000); return; }
   const now = closetKeys(); if (!Array.isArray(S.itemSeen)){ S.itemSeen = now; save(); return; }
   const seen = new Set(S.itemSeen), fresh = now.filter(k => !seen.has(k)); if (!fresh.length) return;
@@ -8886,7 +8895,7 @@ Views.battle = {
     this.panel();
   },
   begin(list){
-    this.list = list.map(decodeP); this.k = 0; this.score = 0; this.strikes = 0; this.done = false; this.over = false; this.opp = {score: 0, strikes: 0, done: false};
+    Focus.set(true); this.list = list.map(decodeP); this.k = 0; this.score = 0; this.strikes = 0; this.done = false; this.over = false; this.opp = {score: 0, strikes: 0, done: false};
     const ov = this.board.overlay(`<div class="card-over"><h3 class="bcount">3</h3><p>Get ready…</p></div>`); let n = 3; Sound.play("GenericNotify", .6);
     const cd = setInterval(() => { n--; const h = ov.querySelector(".bcount"); if (n > 0){ if (h) h.textContent = n; Sound.play("Move", .6); } else { clearInterval(cd); this.board.overlay(null); this.end = Date.now() + this.cfg().ms; this.tick = setInterval(() => this.clock(), 200); this.next(); this.onStart && this.onStart(); } }, 1000);
   },
@@ -8908,6 +8917,7 @@ Views.battle = {
     $("#bq").onclick = () => { const b = $("#bq"); if (!this.over && this.end && !b.dataset.armed){ b.dataset.armed = 1; b.textContent = "Tap again to leave"; return; } this.menu(); };
   },
   result(){
+    setTimeout(() => Focus.set(false), 1800);
     const win = this.score > this.opp.score, draw = this.score === this.opp.score;
     S.battle = S.battle || {}; const B = S.battle, prevBest = B.best || 0; B.n = (B.n || 0) + 1; if (win) B.w = (B.w || 0) + 1; else if (draw) B.d = (B.d || 0) + 1; else B.l = (B.l || 0) + 1; B.best = Math.max(B.best || 0, this.score);
     B.hist = (B.hist || []).concat([{s: this.score, o: this.opp.score, n: this.oppName, ts: Date.now()}]).slice(-30); save(); logEvent("battle", {score: this.score, opponentScore: this.opp.score, opponent: this.oppName, won: win});
@@ -9097,7 +9107,7 @@ Views.duel = {
   publish(){ if (!this.room || this.side !== "h") return; const M = this.M; Object.assign(this.me, {mid: M.mid, list: M.raw, k: M.k, res: M.res, steal: M.steal, over: M.over}); this.room.presence(this.me).catch(() => {}); },
   startMatch(raw){
     this.M = {mid: Date.now(), raw, list: raw.map(decodeP), res: [], k: -1, steal: null, over: false}; this.ev = {h: {}, g: {}};
-    this.board.overlay(null); this.emoApi = null; this.bars(); this.publish(); this.nextRound();
+    this.board.overlay(null); this.emoApi = null; Focus.set(true); this.bars(); this.publish(); this.nextRound();
   },
   /* my emote goes to the other phone through the room */
   sendEmo(e){ if (!this.room || !this.me) return; this.me.emo = e; this.room.presence(this.me).catch(() => {}); },
@@ -9113,7 +9123,7 @@ Views.duel = {
 
   /* ---------- the end ---------- */
   result(){
-    if (this.shown === this.M.mid) return; this.shown = this.M.mid;
+    if (this.shown === this.M.mid) return; this.shown = this.M.mid; setTimeout(() => Focus.set(false), 1800);
     clearInterval(this.stealI); this.R.locked = true;
     const t = this.totals(), my = this.side, op = this.other(my), win = t[my] > t[op], draw = t[my] === t[op];
     const steals = this.M.res.filter(r => r.who === my && (r.why === "steal" || r.why === "half")).reduce((a, r) => a + r.p[my === "h" ? 0 : 1], 0);
@@ -9189,7 +9199,7 @@ Views.duel = {
     }
     /* guest: follow the host */
     if (!P.mid || !P.list) return;
-    if (P.mid !== this.M.mid){ this.M = {mid: P.mid, raw: P.list, list: P.list.map(decodeP), res: [], k: -1, steal: null, over: false}; this.me.mid = P.mid; this.me.ev = null; this.shown = null; this.board.overlay(null); }
+    if (P.mid !== this.M.mid){ this.M = {mid: P.mid, raw: P.list, list: P.list.map(decodeP), res: [], k: -1, steal: null, over: false}; this.me.mid = P.mid; this.me.ev = null; this.shown = null; this.board.overlay(null); this.emoApi = null; if (!P.over) Focus.set(true); }
     const M = this.M, had = M.res.length; M.res = (P.res || []).slice(); M.over = !!P.over;
     const stealNew = P.steal && (!M.steal || M.steal.k !== P.steal.k); M.steal = P.steal || null;
     if (P.k > M.k){ M.k = P.k; this.playRound(M.k); }
@@ -9422,6 +9432,7 @@ Views.friend = {
     }
   },
   finish(){
+    setTimeout(() => Focus.set(false), 1800);
     const s = this.st; if (!s || s.saved) return; s.saved = true; liveSave(s);
     const o = this.opp(); const oppName = o ? (o.presence.name || "Friend") : "Friend";
     s.g.header("White", s.seat === "w" ? S.name : oppName, "Black", s.seat === "b" ? S.name : oppName, "Result", s.result.res, "Event", "Chess.nat live " + tcLabel(s.tc || [0,0]), "Date", todayKey().replace(/-/g, "."));
@@ -9491,7 +9502,7 @@ Views.friend = {
   },
   render(){
     const s = this.st; if (!s || !$("#sp")) return; const o = this.opp(); const my = s.seat === "b" ? 1 : 0;
-    this.lobby();
+    this.lobby(); Focus.set(!!(o && !s.result && s.moves.length && s.seat !== "spec"));
     const prevChi = $("#chi") ? $("#chi").value : "", chiFocus = document.activeElement && document.activeElement.id === "chi";
     const cap = capturedFrom(s.g); const me = s.seat === "b" ? "b" : "w";
     const oppP = o ? Object.assign({}, o.presence, {name: nickOf(o.by, o.presence.name)}) : null; const timed = s.tc && s.tc[0];
@@ -9804,7 +9815,7 @@ const App = {
     this.arg = arg;
     if (this.view && this.route !== r) this.snapshot();
     if (this.view && this.view.unmount) this.view.unmount();
-    Voice.stop();
+    Voice.stop(); Focus.set(false);
     this.route = r; this.view = Views[r];
     /* every screen is a history entry, so Android's back button and gesture step back inside the app */
     try { if (location.hash !== "#" + r){ if (!back && this.view && !this._popping) history.pushState({r}, "", "#" + r); else history.replaceState({r}, "", "#" + r); } } catch(e) {}
@@ -11304,6 +11315,7 @@ const Ranks = {
     if (App.route === "friends" && Views.friends.draw && (passed.length || lost.length || now !== was)) Views.friends.draw();
   },
   popPassed(x, n){
+    if (Focus.later("rk", () => this.popPassed(x, n))) return;
     const p = Social.P(x.id), me = Social.player || {id: Social.me}, el = document.createElement("div"); el.className = "rkup";
     el.innerHTML = `<div class="rkup-in"><div class="rkup-l">${icon(x.b.ic, 16)} ${esc(x.b.t)}</div><div class="rkup-faces"><div class="rkup-me">${Social.face(me, 84)}</div><div class="rkup-arrow">↑</div><div class="rkup-them">${Social.face(p, 64)}</div></div>
       <h3>You passed ${esc(p.name)}!</h3><p class="muted">${n > 1 ? `And ${n - 1} more. ` : ""}You're ahead in ${esc(x.b.t.toLowerCase())} now.</p>
