@@ -2571,7 +2571,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794175640";
+const CHESSNAT_BUILD = "1794176100";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -6687,7 +6687,7 @@ function avParts(a){
     flame: `<g class="av-flicker"><path d="M144 146 C128 132 136 114 136 102 C144 112 150 104 150 88 C162 104 166 124 156 146 Z" fill="#ff6a1f" ${st}/><path d="M145 144 C140 132 144 124 145 116 C151 124 154 134 151 144 Z" fill="#ffd34a"/></g>`,
     orb: `<circle cx="146" cy="134" r="13" fill="#ffcf40" ${st}/><path d="M133 134 H159" stroke="${ink}" stroke-width="2.5"/><path d="M146 121 V147" stroke="${ink}" stroke-width="2.5" opacity=".0"/><path d="M146 121 v-6 M142 116 h8" stroke="${ink}" stroke-width="3"/><circle cx="146" cy="113" r="0" fill="none"/><path d="M143 108 h6 v-4 h3 v-3 h-3 v-4 h-6 v4 h-3 v3 h3 z" fill="#ffcf40" ${st}/>`,
   };
-  P.right = RIGHT[a.right] || ""; P.left = LEFT[a.left] || "";
+  P.right = RIGHT[a.right] || (typeof natKnife2D === "function" ? natKnife2D(a.right, st) : ""); P.left = LEFT[a.left] || "";
   const AURA = {
     glow: `<circle cx="100" cy="118" r="98" fill="url(#avAuraG)" class="av-pulse"/>`,
     green: `<circle cx="100" cy="118" r="98" fill="url(#avAuraGreen)" class="av-pulse"/><circle cx="100" cy="118" r="90" fill="none" stroke="#81B64C" stroke-width="3" stroke-dasharray="6 10" class="av-spin"/>`,
@@ -7424,7 +7424,7 @@ const Av3D = (() => {
   }
   /* hand items point up; the item group already undoes the arm's tilt */
   function buildItem(rig, k, A, side){
-    const g = A.item, ol = true;
+    let g = A.item; const ol = true;
     if (k === "none" || !k) return;
     if (k === "stick"){ const s = mesh(cyl(.025, .03, .9, 8), M("wood", 0xffffff), 0, .25, .02, g); s.rotation.z = .08; }
     else if (k === "woodsword"){ mesh(box(.08, .5, .025), M("wood", 0xffffff), 0, .38, 0, g, ol); mesh(box(.22, .04, .05), M("wood", 0xffffff), 0, .12, 0, g); mesh(cyl(.025, .025, .14, 8), M("leather", 0x4a3020), 0, .02, 0, g); }
@@ -7439,6 +7439,21 @@ const Av3D = (() => {
       mesh(extr("shield", [[-.2, .2], [.2, .2], [.2, -.02], [0, -.26], [-.2, -.02]], .04, .02), M("metal", 0x5c8bb0), 0, 0, 0, sg, ol); mesh(box(.04, .38, .02), M("cloth", 0xffffff), 0, -.01, .04, sg); mesh(box(.3, .04, .02), M("cloth", 0xffffff), 0, .06, .04, sg); }
     else if (k === "torch"){ mesh(cyl(.028, .022, .5, 8), M("wood", 0xffffff), 0, .18, 0, g); mesh(cyl(.05, .035, .08, 10), M("metal", 0x4b5563), 0, .44, 0, g); flames(rig, g, [0, .5, 0], .1, 20); rig.light = [g, 0xff8a2a]; }
     else if (k === "flame"){ mesh(sph(.07), M("glow", 0xffb347), 0, .14, .04, g); flames(rig, g, [0, .14, .04], .09, 18); sprite(rig, g, glowTex(), 0xff8a2a, .5, 0, .14, .04, .7); }
+    /* knives from chests: blade shape by type, colour by finish; the rarest shimmer through the colours */
+    else if (typeof k === "string" && k.startsWith("k-") && typeof NAT_KNIVES !== "undefined"){ const kn = NAT_KNIVES.find(x => x.id === k); if (!kn) return;
+      const g0 = g; { const kg = new T.Group(); kg.scale.setScalar(1.75); kg.position.set(0, -.02, .02); g0.add(kg); g = kg; }
+      const F = KNIFE_FIN[kn.fin] || {g: ["#ccc", "#999", "#666"]}, col = new T.Color(F.g[Math.floor(F.g.length / 2)]).getHex(), ultra = kn.r === "ultra";
+      const SH = {karambit: [[-.025, 0], [.03, 0], [.07, .1], [.085, .22], [.05, .32], [.055, .2], [.025, .1], [-.02, .05]],
+        butterfly: [[-.026, 0], [.026, 0], [.026, .26], [.012, .33], [-.026, .3]], bayonet: [[-.03, 0], [.03, 0], [.03, .27], [0, .37], [-.03, .27]],
+        flip: [[-.028, 0], [.03, 0], [.034, .22], [.01, .33], [-.028, .26]], bowie: [[-.032, 0], [.032, 0], [.036, .26], [-.01, .36], [-.02, .3], [-.032, .28]],
+        dagger: [[-.03, 0], [.03, 0], [.018, .24], [0, .36], [-.018, .24]]}[kn.type] || [[-.03, 0], [.03, 0], [0, .34]];
+      const bm = kn.fin === "Royal Gold" ? M("gold", col) : ultra || kn.r === "legend" ? M("gem", col, {em: ultra ? .5 : .25}) : M("metal", col);
+      const bl = mesh(extr("knife-" + kn.type, SH, .012, .006), bm, 0, .12, 0, g, ol);
+      mesh(cyl(.024, .026, .13, 10), M("leather", kn.type === "bowie" ? 0x5a3b22 : 0x1f1f23), 0, .05, 0, g);
+      if (kn.type !== "karambit" && kn.type !== "butterfly") mesh(box(.12, .026, .05), M(kn.type === "dagger" ? "gold" : "metal", kn.type === "dagger" ? 0xc9a43a : 0x55555c), 0, .12, 0, g);
+      if (kn.type === "karambit") mesh(tor(.035, .01, 6, 16), M("metal", 0x3a3a40), 0, -.03, 0, g);
+      if (ultra){ const hues = F.g.map(c => new T.Color(c)); rig.tick.push((dt, t) => { const i = (t * .6) % hues.length, a = hues[Math.floor(i)], b = hues[(Math.floor(i) + 1) % hues.length]; bm.color.copy(a).lerp(b, i % 1); if (bm.emissive) bm.emissive.copy(bm.color).multiplyScalar(.35); }); sparkles(rig, g, [0, .3, 0], .12, 5); }
+    }
     else if (k === "orb"){ const m = M("gold", 0xe0b13a); mesh(sph(.1, 24, 16), m, 0, .14, .03, g, ol); mesh(tor(.1, .012, 6, 24), M("gem", 0x2f6fb5), 0, .14, .03, g).rotation.x = Math.PI / 2; mesh(box(.022, .1, .022), m, 0, .28, .03, g); mesh(box(.07, .022, .022), m, 0, .28, .03, g); }
   }
   function flames(rig, parent, at, spread, n, len = .4){
@@ -8596,7 +8611,7 @@ function reqProgress(req){
 }
 /* every unlockable thing as "slot:id" (items) or "slot:field:id" (colours) */
 function closetKeys(){
-  const out = []; AV_ITEMS.forEach(i => { if (i.slot !== "frame" || !/^(auto)$/.test(i.id)) if (itemUnlocked(i)) out.push(i.slot + ":" + i.id); });
+  const out = []; AV_ITEMS.forEach(i => { if (String(i.req || "").startsWith("i:")) return; /* chest things have their own big moment */ if (i.slot !== "frame" || !/^(auto)$/.test(i.id)) if (itemUnlocked(i)) out.push(i.slot + ":" + i.id); });
   Object.entries(CHROMA_DEF).forEach(([k, [f, list]]) => { const [slot, id] = k.split(":"); list.forEach(c => { if (itemUnlocked({req: c[1] && /^[tnrlcf]:/.test(c[1]) ? c[1] : 0})) out.push(slot + ":" + id + ":" + f + ":" + c[0]); }); });
   return out;
 }
@@ -11265,6 +11280,12 @@ const NAT_KNIVES = [
   {id: "k-bfly-roy", type: "butterfly", name: "Butterfly", fin: "Royal Gold", r: "ultra", eur: 9800},
   {id: "k-kar-pri", type: "karambit", name: "Karambit", fin: "Aurora Prism", r: "ultra", eur: 12500},
   {id: "k-bay-aur", type: "bayonet", name: "Bayonet", fin: "Season Aurora", r: "legend", eur: 3000, pass: 1}];
+/* knives can be held: they are right-hand items of your figure (owned ones only) */
+NAT_KNIVES.forEach(k => { if (!AV_ITEMS.some(i => i.slot === "right" && i.id === k.id)) AV_ITEMS.push({slot: "right", id: k.id, name: k.name + " | " + k.fin, req: "i:" + k.id}); });
+/* the flat (paper) figure: a small knife in the hand */
+function natKnife2D(id, st){ const k = NAT_KNIVES.find(x => x.id === id); if (!k) return ""; const F = KNIFE_FIN[k.fin] || {g: ["#ccc", "#999", "#666"]}, gid = "k2" + id.replace(/\W/g, "");
+  const blade = k.type === "karambit" ? "M58 140 C70 128 80 110 76 92 C86 108 82 132 64 146 Z" : k.type === "dagger" ? "M60 140 L56 112 L62 92 L68 112 L64 140 Z" : "M57 140 L57 104 L64 92 L68 102 L66 140 Z";
+  return `<defs><linearGradient id="${gid}" x1="0" y1="1" x2="1" y2="0">${F.g.map((c, i) => `<stop offset="${i / (F.g.length - 1)}" stop-color="${c}"/>`).join("")}</linearGradient></defs><path d="${blade}" fill="url(#${gid})" ${st}/><path d="M60 142 v20" stroke="#1f1f23" stroke-width="7" stroke-linecap="round"/>${k.type === "karambit" ? `<circle cx="61" cy="168" r="5" fill="none" stroke="#3a3a40" stroke-width="3"/>` : `<path d="M50 142 H72" stroke="#55555c" stroke-width="4" stroke-linecap="round"/>`}`; }
 /* every item in one list: {kind, id, name, r} */
 function natItems(){ return [...NAT_BOARDS.filter(b => b.r).map(b => Object.assign({kind: "board"}, b)), ...NAT_SONGS.map(s => Object.assign({kind: "song"}, s)),
   ...NAT_SKINS.map(s => Object.assign({kind: "skin"}, s)), ...NAT_PSETS.map(s => Object.assign({kind: "pieces"}, s)), ...NAT_GLOWS.map(s => Object.assign({kind: "glow"}, s)), ...NAT_KNIVES.map(k => Object.assign({kind: "knife"}, k, {name: k.name + " | " + k.fin, type0: k.name}))]; }
@@ -11553,14 +11574,14 @@ function knifeInspect(k){
   detailSheet(`<div class="kinsp" style="--rc:${R.c}"><div class="kinsp-stage"><div class="kinsp-rot">${knifeSVG(k, true)}</div></div>
     <small style="color:${R.c};font-weight:900;letter-spacing:.08em">${R.n.toUpperCase()} · KNIFE</small><h2 style="margin:4px 0 2px">${esc(k.type0 || k.name)} | ${esc(k.fin)}</h2>
     <div class="dim">Pattern #${String(pat).padStart(3, "0")} · drop chance ${k.r === "ultra" ? "0.3 %" : k.r === "legend" ? "1.7 %" : "2.8 %"} per chest</div>
-    ${natEurLine(k)}<div class="row" style="gap:8px;justify-content:center;margin-top:12px">${natHas(k.id) ? `<button class="btn go" data-kshow>${S.knife === k.id ? "On your profile ✓" : "Show on my profile"}</button>` : ""}</div></div>`);
+    ${natEurLine(k)}<div class="row" style="gap:8px;justify-content:center;margin-top:12px">${natHas(k.id) ? `<button class="btn go" data-kshow>${S.knife === k.id && myAvatar().right === k.id ? "In your hand ✓" : "Hold it"}</button>` : ""}</div></div>`);
   const sh = [...document.querySelectorAll(".dsheet")].pop(); if (!sh) return;
   const rot = sh.querySelector(".kinsp-rot"), st = sh.querySelector(".kinsp-stage"); let a = -12, d = null, v = .4;
   const loop = () => { if (!rot.isConnected) return; if (!d){ a += v; v *= .985; if (Math.abs(v) < .25) v = .25 * Math.sign(v || 1); } rot.style.transform = `perspective(600px) rotateY(${a}deg) rotateZ(-8deg)`; requestAnimationFrame(loop); }; loop();
   st.onpointerdown = e => { d = {x: e.clientX, a}; st.setPointerCapture(e.pointerId); };
   st.onpointermove = e => { if (!d) return; const na = d.a + (e.clientX - d.x) * .8; v = (na - a) * .3; a = na; };
   st.onpointerup = st.onpointercancel = () => { d = null; };
-  const b = sh.querySelector("[data-kshow]"); if (b) b.onclick = () => { S.knife = k.id; save(); b.textContent = "On your profile ✓"; if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); };
+  const b = sh.querySelector("[data-kshow]"); if (b) b.onclick = () => { natEquip(natItem(k.id)); b.textContent = "In your hand ✓"; };
 }
 
 /* ---- using things ---- */
@@ -11568,7 +11589,7 @@ function natEquip(it){
   if (it.kind === "board"){ S.settings.board = it.id; save(); natApplyBoard(); toast(`Board: ${it.name}`); }
   else if (it.kind === "song"){ S.settings.song = it.id; S.settings.music = true; save(); NatMusic.sync(); toast(`Music in games: ${it.name}`); }
   else if (it.kind === "skin"){ const a = myAvatar(); a.shape = it.shape; a[it.key] = it.id; save(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); renderRail(); if (typeof renderTop === "function") renderTop(); toast(`You're now: ${it.name}`); }
-  else if (it.kind === "knife"){ S.knife = it.id; save(); toast("Your knife is on your profile now"); }
+  else if (it.kind === "knife"){ S.knife = it.id; const a = myAvatar(); a.right = it.id; save(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); renderRail(); if (typeof renderTop === "function") renderTop(); toast("Your figure holds it now, and it's on your profile"); }
   else if (it.kind === "glow"){ S.settings.glow = S.settings.glow === it.id ? "" : it.id; save(); natApplyBoard(); toast(S.settings.glow ? `Glow: ${it.name}` : "Classic gold glow"); }
   else if (it.kind === "pieces"){ S.settings.pset = S.settings.pset === it.id ? "" : it.id; save(); natApplyBoard(); toast(S.settings.pset ? `Pieces: ${it.name}` : "Classic pieces"); }
 }
