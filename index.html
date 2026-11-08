@@ -1537,7 +1537,7 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 .fp-rm{color:#ff8a8a}
 .fp-rm.armed{background:var(--bad);color:#fff}
 /* leaderboard */
-.lb-chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-bottom:8px}
+.lb-chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-bottom:8px;position:relative;scroll-behavior:smooth}
 .lb-chips::-webkit-scrollbar{display:none}
 .lb-chips .chip{flex:none;display:inline-flex;align-items:center;gap:5px}
 .lb-row{cursor:pointer}
@@ -1797,7 +1797,7 @@ button.ptype{cursor:pointer}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794144097";
+const CHESSNAT_BUILD = "1794144335";
 /* ===== Speech text helpers (shared by the page and the voice build script) ===== */
 const PIECE_WORD = {K: "king", Q: "queen", R: "rook", B: "bishop", N: "knight"};
 function speechNorm(t){ return String(t || "").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, " ").trim(); }
@@ -10302,12 +10302,15 @@ const Ranks = {
         : `<div class="li"><div class="grow muted">Nobody on this board yet.</div></div>`}</div>
       ${L.length >= 3 ? `<p class="dim lb-note">${icon("crown", 14)} The top three wear the friends' crowns and borders, as long as they hold the spot.</p>` : `<p class="dim lb-note">With three or more of you on a board, the top three win crowns and borders.</p>`}`;
   },
+  /* the chosen board slides to the middle of the row, so the ones next to it are always in view */
+  center(ch, smooth){ const on = ch && ch.querySelector(".chip.on"); if (!on) return; const left = on.offsetLeft - (ch.clientWidth - on.offsetWidth) / 2;
+    try { ch.scrollTo({left: Math.max(0, left), behavior: smooth ? "smooth" : "auto"}); } catch(e) { ch.scrollLeft = Math.max(0, left); } },
   /* switching boards redraws only the board itself: the page and the row of options stay where they are */
   wire(root){
-    const w = root.querySelector("#lbwrap"); if (!w) return;
+    const w = root.querySelector("#lbwrap"); if (!w) return; if (!w._c){ w._c = 1; this.center(w.querySelector(".lb-chips"), false); }
     w.querySelectorAll("[data-lb]").forEach(b => b.onclick = () => { if (S.lbBoard === b.dataset.lb) return; S.lbBoard = b.dataset.lb; save(); Sound.play("Move", .35);
       const ch = w.querySelector(".lb-chips"), sl = ch ? ch.scrollLeft : 0, h = w.offsetHeight; w.style.minHeight = h + "px";
-      w.innerHTML = this.inner(); const ch2 = w.querySelector(".lb-chips"); if (ch2) ch2.scrollLeft = sl; this.wire(root); });
+      w.innerHTML = this.inner(); const ch2 = w.querySelector(".lb-chips"); if (ch2){ ch2.scrollLeft = sl; this.center(ch2, true); } this.wire(root); });
     w.querySelectorAll("[data-lbp]").forEach(r => r.onclick = () => App.go("fprofile", {id: r.dataset.lbp}));
   },
   /* after each friends refresh: who did I pass, who passed me, and do I hold a crown */
