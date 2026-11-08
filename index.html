@@ -2028,6 +2028,33 @@ html.i18n-wait body{visibility:hidden}
 .vc-x{display:none;width:30px;height:30px;border-radius:50%;border:0;background:rgba(20,19,17,.85);color:var(--muted);font:900 13px var(--body);cursor:pointer}
 .vc-wrap.on .vc-x{display:block}
 .vc-wrap:not(.on) .vc-lab{display:none}
+/* ===== play online ===== */
+.on-sub{margin:-4px 0 12px}
+.on-rcs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}
+.on-rc{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:10px 12px;border-radius:12px;border:2px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer;text-align:left;font:inherit;min-width:0;transition:border-color .15s,transform .12s}
+.on-rc:active{transform:scale(.97)}.on-rc.on{border-color:var(--go)}
+.on-rc svg{color:var(--muted)}.on-rc span{display:flex;flex-direction:column}.on-rc small{font:800 11px var(--body);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.on-rc b{font:900 24px var(--display);line-height:1.1}.on-rc em{font-style:normal;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.on-tcs{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+.on-tc{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:14px 6px 12px;border-radius:12px;border:0;background:var(--panel-2);color:var(--fg);cursor:pointer;font:inherit;box-shadow:inset 0 -4px 0 rgba(0,0,0,.25);transition:transform .12s,background .15s}
+.on-tc:active{transform:translateY(2px);box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
+@media (hover:hover){.on-tc:hover{background:var(--panel-3)}}
+.on-tc b{font:900 19px var(--display)}.on-tc small{font-size:11.5px;color:var(--muted);font-weight:700}
+.on-n{font-style:normal;font-size:10.5px;font-weight:800;color:var(--go-hi);min-height:13px}
+.on-n.hot::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--go-hi);margin-right:4px;vertical-align:1px;animation:jnhalo 1.6s infinite}
+.on-few{margin:8px 2px 0;font-size:12.5px}
+.on-pos{width:26px;text-align:center;font:900 15px var(--display);color:var(--muted)}.on-r{font:900 17px var(--display)}
+.on-how{margin-top:16px}.on-how summary{cursor:pointer}.on-how p{font-size:14px;line-height:1.5;color:var(--muted)}.on-how b{color:var(--fg)}
+.on-search{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding-top:28px}
+.on-radar{position:relative;width:min(70vw,260px);aspect-ratio:1;margin-bottom:10px}
+.on-radar i{position:absolute;inset:0;border-radius:50%;border:2px solid var(--go);opacity:0;animation:onping 2.7s ease-out infinite}
+.on-radar i:nth-child(2){animation-delay:.9s}.on-radar i:nth-child(3){animation-delay:1.8s}
+@keyframes onping{0%{transform:scale(.3);opacity:.8}100%{transform:scale(1);opacity:0}}
+.on-me{position:absolute;inset:14%}
+.on-st{margin:0;font:900 22px var(--display)}.on-tcl{margin:0}
+.on-meta{display:flex;gap:12px;justify-content:center;font:800 13px var(--body);color:var(--muted)}
+.on-meta span:first-child{color:var(--fg);font-variant-numeric:tabular-nums}
+.on-tip{max-width:360px;font-size:13px;min-height:36px;margin:6px 0 10px}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -2049,7 +2076,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794152390";
+const CHESSNAT_BUILD = "1794152835";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -9416,6 +9443,95 @@ const VoiceChat = (() => {
   return {create, ok};
 })();
 
+/* ===== Play online: rated games against real people.
+   Pick a time control, the server looks for the player closest to your rating (and widens the search the longer you wait),
+   then you play a normal live game. The result goes to the server, which keeps the official rating (Glicko, like lichess):
+   a 100-point gap means the stronger player is expected to score about 64 %, 200 points 76 %, 400 points 91 %. ===== */
+const ONLINE_TC = [["1+0", "1 min"], ["2+1", "2 | 1"], ["3+0", "3 min"], ["3+2", "3 | 2"], ["5+0", "5 min"], ["10+0", "10 min"], ["15+10", "15 | 10"]];
+const onlineCat = tc => { const [m, i] = tc.split("+").map(Number), t = m * 60 + i * 40; return t < 180 ? "bullet" : t < 480 ? "blitz" : "rapid"; };
+const ONLINE_CAT = {bullet: ["Bullet", "bolt"], blitz: ["Blitz", "flame"], rapid: ["Rapid", "clock"]};
+const onlineSb = () => window.ChessSite && window.ChessSite.sb;
+const onlineMe = () => typeof Social !== "undefined" && Social.me;
+/* my official ratings, kept so the app can show them offline too */
+function onlineRating(cat){ const o = (S.online || {})[cat]; return o || null; }
+async function onlineLoadMe(){ const sb = onlineSb(); if (!sb || !onlineMe()) return null;
+  const {data, error} = await sb.rpc("ranked_me"); if (error || !Array.isArray(data)) return null;
+  S.online = S.online || {}; data.forEach(x => { S.online[x.cat] = x; }); save(); return S.online; }
+
+Views.online = {
+  mount(main, arg){ this.main = main; this.dead = false; this.cat = this.cat || "blitz"; if (arg && arg.tc) this.search(arg.tc); else this.menu(); },
+  unmount(){ this.dead = true; this.stop(); },
+  stop(){ clearInterval(this.poll); clearInterval(this.lob); clearInterval(this.clock); this.poll = this.lob = this.clock = null;
+    if (this.searching){ this.searching = null; const sb = onlineSb(); if (sb) sb.rpc("ranked_leave").then(() => {}, () => {}); } },
+  ratingCard(cat){ const o = onlineRating(cat), [name, ic] = ONLINE_CAT[cat], prov = !o || o.games < 10 || o.rd > 110;
+    return `<button class="on-rc ${this.cat === cat ? "on" : ""}" data-oc="${cat}">${icon(ic, 20)}<span><small>${name}</small><b>${o ? o.r : "–"}${o && prov ? "?" : ""}</b></span><em>${o ? o.games + (o.games === 1 ? " game" : " games") : "not played yet"}</em></button>`; },
+  menu(){
+    this.stop(); document.body.classList.remove("busy"); if (typeof renderTop === "function") renderTop();
+    const signed = !!(onlineSb() && onlineMe());
+    this.main.innerHTML = `<div class="page on-page" style="max-width:760px"><h1 class="h-title">Play online</h1>
+      <p class="muted on-sub">Rated games against real people. You get an opponent as close to your strength as possible. Your official rating grows here.</p>
+      ${signed ? `<div class="on-rcs">${Object.keys(ONLINE_CAT).map(c => this.ratingCard(c)).join("")}</div>
+        <h2 class="h-sec">Find a game</h2>
+        <div class="on-tcs">${ONLINE_TC.map(([tc, lab]) => `<button class="on-tc" data-otc="${tc}"><b>${lab}</b><small>${ONLINE_CAT[onlineCat(tc)][0]}</small><i class="on-n" data-on="${tc}"></i></button>`).join("")}</div>
+        <p class="dim on-few" id="onfew"></p>
+        <h2 class="h-sec">Best players · <span id="oncat">${ONLINE_CAT[this.cat][0]}</span></h2><div class="list on-top" id="ontop"><p class="dim">Loading…</p></div>`
+      : `<div class="unit"><h3 style="margin:0 0 6px">Sign in to play online</h3><p class="muted" style="margin:0 0 12px">Online games are rated on our server, so you need an account. It's free.</p><button class="btn go" id="onsign">Sign in</button></div>`}
+      <details class="unit on-how"><summary><b>How the rating works</b></summary>
+        <p>Everyone starts at about 1200. Win against someone and you go up, lose and you go down. How much depends on the gap: beating a stronger player brings a lot, beating a weaker one only a little.</p>
+        <p>A 100-point gap means the stronger player scores about 64 %, 200 points about 76 %, 400 points about 91 %. We look for the opponent closest to you, so most games are close to 50 : 50. If nobody is close, the search slowly widens.</p>
+        <p>We use Glicko, the system lichess uses: while you're new your rating moves fast (the "?" next to it), after about 10 games it settles. Bullet, Blitz and Rapid each have their own rating.</p>
+        <p>Games that end before both players moved don't count. If your opponent leaves, you win after a minute.</p></details></div>`;
+    if (!signed){ const b = $("#onsign"); if (b) b.onclick = () => App.go(typeof Views.account === "object" ? "account" : "settings"); return; }
+    $$("[data-otc]", this.main).forEach(b => b.onclick = () => this.search(b.dataset.otc));
+    $$("[data-oc]", this.main).forEach(b => b.onclick = () => { this.cat = b.dataset.oc; $$("[data-oc]", this.main).forEach(x => x.classList.toggle("on", x === b)); $("#oncat").textContent = ONLINE_CAT[this.cat][0]; this.top(); });
+    onlineLoadMe().then(r => { if (r && !this.dead && $(".on-rcs")) $(".on-rcs").innerHTML = Object.keys(ONLINE_CAT).map(c => this.ratingCard(c)).join("");
+      $$("[data-oc]", this.main).forEach(b => b.onclick = () => { this.cat = b.dataset.oc; $$("[data-oc]", this.main).forEach(x => x.classList.toggle("on", x === b)); $("#oncat").textContent = ONLINE_CAT[this.cat][0]; this.top(); }); });
+    this.top(); this.lobby(); this.lob = setInterval(() => this.lobby(), 5000);
+  },
+  /* how many people are searching right now, per time control */
+  async lobby(){ const sb = onlineSb(); if (!sb || this.dead) return; const {data} = await sb.rpc("ranked_lobby"); if (this.dead || !data) return;
+    let any = 0; $$("[data-on]", this.main).forEach(el => { const n = data[el.dataset.on] || 0; any += n; el.textContent = n ? n + " searching" : ""; el.classList.toggle("hot", !!n); });
+    const f = $("#onfew"); if (f) f.textContent = any ? "" : "Right now nobody else is searching. Start a search anyway: the moment someone comes online, you're matched."; },
+  async top(){ const sb = onlineSb(), el = $("#ontop"); if (!sb || !el) return; const cat = this.cat; const {data} = await sb.rpc("ranked_top", {c: cat, n: 20});
+    if (this.dead || this.cat !== cat || !$("#ontop")) return;
+    $("#ontop").innerHTML = data && data.length ? data.map((p, i) => `<div class="li"><span class="on-pos">${i + 1}</span><div class="grow"><div class="t">${esc(p.name)}${p.id === onlineMe() ? ` <span class="pill go">you</span>` : ""}</div><div class="s">${p.games} games</div></div><b class="on-r">${p.r}</b></div>`).join("")
+      : `<p class="dim" style="margin:0">Nobody has 5 rated ${ONLINE_CAT[cat][0]} games yet. Be the first on the list.</p>`; },
+  /* the search: ask the server every 2 seconds, it keeps your place and widens the window */
+  search(tc){
+    this.stop(); const sb = onlineSb(); if (!sb || !onlineMe()){ this.menu(); return; }
+    const cat = onlineCat(tc), lab = (ONLINE_TC.find(x => x[0] === tc) || [0, tc])[1], loc = typeof catRating === "function" ? catRating(cat) : null;
+    const hint = loc && loc.n ? Math.round(loc.r) : null, t0 = Date.now(); this.searching = tc;
+    document.body.classList.add("busy");
+    this.main.innerHTML = `<div class="page on-search"><div class="on-radar"><i></i><i></i><i></i><div class="on-me" id="onme"></div></div>
+      <h2 class="on-st" id="onst">Looking for an opponent…</h2><p class="muted on-tcl">${ONLINE_CAT[cat][0]} · ${lab}</p>
+      <div class="on-meta"><span id="ontime">0:00</span><span id="onwin"></span></div>
+      <p class="dim on-tip" id="ontip"></p>
+      <button class="btn big" id="oncancel" style="width:100%;max-width:340px">Cancel</button></div>`;
+    try { const st = Av3D.stage($("#onme"), Object.assign({}, myAvatar(), {pet: "none", aura: "none"}), {tier: bodyTier(), mode: "full", rank: -1, fps: 30}); setTimeout(() => st.emote("wave"), 600); } catch(e) {}
+    $("#oncancel").onclick = () => this.menu();
+    this.clock = setInterval(() => { const s = Math.floor((Date.now() - t0) / 1000), el = $("#ontime"); if (el) el.textContent = Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }, 500);
+    const ask = async () => {
+      if (this.searching !== tc || this.dead) return;
+      const {data, error} = await sb.rpc("ranked_queue", {tc, hint}); if (this.searching !== tc || this.dead) return;
+      if (error){ $("#onst").textContent = "Couldn't reach the server"; $("#ontip").textContent = "Check your internet. We keep trying."; return; }
+      if (data.status === "matched") return this.found(data.match, tc);
+      const w = $("#onwin"); if (w) w.textContent = "your rating " + data.r + (data.rd > 110 ? "?" : "") + " · searching ±" + data.window;
+      const tip = $("#ontip"); if (tip) tip.textContent = data.searching > 1 ? (data.searching - 1) + " other " + (data.searching === 2 ? "player is" : "players are") + " searching. The search widens until it finds a fair match."
+        : data.waited > 25 ? "Nobody else is searching " + lab + " right now. Stay here: as soon as someone starts a search, you're matched. Or play a bot meanwhile." : "Searching for someone close to your rating…";
+      if (data.waited > 25 && !$("#onbot")){ $("#oncancel").insertAdjacentHTML("beforebegin", `<button class="btn" id="onbot" style="width:100%;max-width:340px;margin-bottom:8px">Play a bot meanwhile</button>`); $("#onbot").onclick = () => { this.stop(); App.go("blitz"); }; }
+    };
+    ask(); this.poll = setInterval(ask, 2000);
+  },
+  /* matched: both open the same live room; white hosts it */
+  found(m, tc){
+    this.searching = null; clearInterval(this.poll); clearInterval(this.clock); this.poll = this.clock = null;
+    const white = m.white === onlineMe(); Sound.play("GenericNotify", .8); try { navigator.vibrate && navigator.vibrate([40, 40, 80]); } catch(e) {}
+    const st = $("#onst"); if (st) st.textContent = "Opponent found!";
+    const [mi, inc] = tc.split("+").map(Number); Views.friend.cfg = {tc: [mi, inc], color: white ? "w" : "b"};
+    setTimeout(() => { if (!this.dead) App.go("friend", {join: m.room, host: white, ranked: Object.assign({}, m, {tc})}); }, 700);
+  }
+};
+
 /* ===== Play a Friend: live games over the artifact room (presence carries absolute game state) ===== */
 const TIME_CONTROLS = [[1,0,"Bullet"],[2,1,"Bullet"],[3,0,"Blitz"],[3,2,"Blitz"],[5,0,"Blitz"],[5,2,"Blitz"],[10,0,"Rapid"],[10,2,"Rapid"],[10,5,"Rapid"],[15,10,"Rapid"],[30,0,"Classical"],[0,0,"Unlimited"]];
 const tcLabel = tc => tc[0] === 0 ? "Unlimited" : tc[0] + (tc[1] ? " | " + tc[1] : " min");
@@ -9430,9 +9546,12 @@ function linkList(){
   return `<div class="list" style="margin-top:10px">${gs.map(([id, r]) => { const g = new Chess(); (r.moves || []).forEach(u => g.move({from: u.slice(0,2), to: u.slice(2,4), promotion: u[4] || undefined})); const my = g.turn() === r.color; return `<div class="li" data-lgid="${id}" style="cursor:pointer"><span class="pill ${r.result ? "" : my ? "go" : ""}">${r.result ? r.result : my ? "Your move" : "Waiting"}</span><div class="grow"><div class="t">vs ${esc(r.opp || "Friend")}</div><div class="s">${(r.moves || []).length} moves · ${new Date(r.ts).toLocaleDateString("en-GB")}</div></div><span class="muted">›</span></div>`; }).join("")}</div>`;
 }
 Views.friend = {
-  mount(main, arg){ this.main = main; this.cfg = this.cfg || {tc: [10, 0], color: "r"}; if (arg && arg.join) this.join(arg.join, !!arg.host); else this.menu(); },
+  mount(main, arg){ this.main = main; this.cfg = this.cfg || {tc: [10, 0], color: "r"}; this.ranked = arg && arg.ranked || null; if (arg && arg.join) this.join(arg.join, !!arg.host); else this.menu(); },
   unmount(){ this.leave(); },
-  leave(){ const st = this.st; if (st && !st.result && !st.saved && (st.seat === "w" || st.seat === "b") && st.moves.length >= 4){ st.saved = true; const o = this.opp();
+  leave(){ const st = this.st;
+    if (this.ranked && st && !st.result && (st.seat === "w" || st.seat === "b")) this.rankedReport(st.moves.length < 2 ? "void" : st.seat === "w" ? "0-1" : "1-0", st.moves.length < 2 ? "aborted" : "left the game");
+    clearTimeout(this.abortT); clearTimeout(this.goneT); this.goneT = null;
+    if (st && !st.result && !st.saved && (st.seat === "w" || st.seat === "b") && st.moves.length >= 4){ st.saved = true; const o = this.opp();
       S.games.push({id: Date.now().toString(36), mode: "friend", opp: o && o.presence.name || "Friend", color: st.seat, result: "*", why: "unfinished", pgn: st.g.pgn(), ts: Date.now(), moves: st.moves.length}); save(); }
     if (this.vcx){ this.vcx.destroy(); this.vcx = null; }
     clearInterval(this.tick); if (this._vis){ document.removeEventListener("visibilitychange", this._vis); this._vis = null; } if (this.R){ try { this.R.leave(); } catch(e) {} } this.R = null; this.st = null; this.chat = []; document.onkeydown = null; },
@@ -9502,6 +9621,9 @@ Views.friend = {
     /* tell the opponent when this app goes to the background, so a move can reach you as a push */
     this._vis = () => { if (this.st){ this.publish(); if (!document.hidden) this.sync(); } }; document.addEventListener("visibilitychange", this._vis);
     R.onPeers(() => this.sync(), e => { toast("Connection lost: " + e.code); });
+    /* rated online game: if it never really starts (nobody shows up, no moves), it doesn't count */
+    if (this.ranked){ clearTimeout(this.abortT); this.abortT = setTimeout(() => { const st = this.st; if (!st || st.result || !this.ranked || st.moves.length >= 2) return;
+      this.rankedReport("void", "aborted"); const r = this.ranked; this.ranked = null; toast(this.opp() ? "The game didn't start in time. It doesn't count." : "Your opponent didn't show up. The game doesn't count.", 3500); App.go("online", {tc: r.tc}); }, 75000); }
     if (R.onConnection) R.onConnection(ok => { this.online = ok; this.render(); });
     this.publish(); this.render();
     this.tick = setInterval(() => this.clocks(), 200);
@@ -9520,6 +9642,11 @@ Views.friend = {
     peers.forEach(p => { const sy = p.presence.say; if (sy && sy.n && this.lastSay[p.peer] !== sy.n){ const first = this.lastSay[p.peer] == null; this.lastSay[p.peer] = sy.n; if (!first || Date.now() - (sy.ts || 0) < 15000){ this.chat.push({who: nickOf(p.by, p.presence.name || "Friend"), t: String(sy.t || "").slice(0, 140), me: false}); Sound.tone([[880, .08, .07], [1175, .12]], "sine", .08); } } });
     if (o && o.presence.emo && this.emoApi) this.emoApi.opEmote(o.presence.emo);
     if (this.vcx && s.seat !== "spec") this.vcx.peer(o ? o.presence : null);
+    if (this.ranked && !s.result && s.moves.length >= 2 && (s.seat === "w" || s.seat === "b")){
+      if (!o && !this.goneT){ toast("Your opponent left. If they don't come back within a minute, you win.", 4000);
+        this.goneT = setTimeout(() => { this.goneT = null; const st = this.st; if (!st || st.result || this.opp()) return; st.result = {res: st.seat === "w" ? "1-0" : "0-1", why: "by abandonment"}; this.publish(); this.finish(); }, 60000); }
+      else if (o && this.goneT){ clearTimeout(this.goneT); this.goneT = null; }
+    }
     if (o){
       const op = o.presence;
       if (op.gameNo > s.gameNo && s.seat !== "spec"){ this.newGame(op.gameNo, op.seat === "w" ? "b" : "w", true); return; }
@@ -9591,8 +9718,9 @@ Views.friend = {
       S.h2h = S.h2h || {}; const hh = S.h2h[oppName] || (S.h2h[oppName] = {w: 0, d: 0, l: 0}); if (win) hh.w++; else if (draw) hh.d++; else hh.l++; hh.ts = Date.now();
       /* timed games against a friend count for the rating of that time control */
       const cat = tcCat(s.tc), oppRt = o && o.presence && o.presence.rt && o.presence.rt[cat];
-      s.rating = cat && oppRt && s.moves.length >= 2 ? rateGame(cat, oppRt, win ? 1 : draw ? .5 : 0, {opp: oppName}) : null;
-      const rec = {id: Date.now().toString(36), mode: "friend", opp: oppName, oppR: o ? o.presence.rating : null, color: s.seat, result: s.result.res, why: s.result.why, pgn, ts: Date.now(), moves: s.moves.length, tc: s.tc, rated: !!s.rating, rdelta: s.rating ? s.rating.delta : null};
+      s.rating = !this.ranked && cat && oppRt && s.moves.length >= 2 ? rateGame(cat, oppRt, win ? 1 : draw ? .5 : 0, {opp: oppName}) : null;
+      if (this.ranked){ clearTimeout(this.abortT); clearTimeout(this.goneT); this.goneT = null; if (s.moves.length < 2){ this.rankedReport("void", "aborted"); toast("Ended before both moved: this game doesn't count.", 3200); } else this.rankedReport(s.result.res, s.result.why, true); }
+      const rec = {id: Date.now().toString(36), mode: this.ranked ? "online" : "friend", opp: oppName, oppR: o ? o.presence.rating : null, color: s.seat, result: s.result.res, why: s.result.why, pgn, ts: Date.now(), moves: s.moves.length, tc: s.tc, rated: !!s.rating, rdelta: s.rating ? s.rating.delta : null};
       dayTick("gm"); S.games.push(rec); save(); if (s.moves.length >= 4) addXP(XP.game + (win ? XP.win : 0)); logEvent("game", {opponent: oppName, mode: "friend", color: s.seat, result: s.result.res, why: s.result.why, pgn, moves: s.moves.length, timeControl: tcLabel(s.tc || [0,0])});
       Sound.play(draw ? "GenericNotify" : win ? "Victory" : "Defeat", .8);
       this.board.cancelPremove();
@@ -9611,7 +9739,8 @@ Views.friend = {
     const dr = s.result.res === "1/2-1/2", won = !dr && (s.result.res === "1-0") === (me === "w");
     this.emoApi = s.seat !== "spec" ? EmoStage.mount(o, {opCfg: this.oppAv(), opName: oppName, win: dr ? "draw" : won ? "me" : "op", send: e => this.emote(e)}) : null;
     const shut = () => { this.board.overlay(null); this.emoApi = null; this.render(); };
-    $("#erm", o).onclick = () => { shut(); const b = $("#frm"); if (b) b.click(); };
+    if (this.ranked){ $("#erm", o).textContent = "New opponent"; $("#erm", o).onclick = () => App.go("online", {tc: this.ranked.tc}); }
+    else $("#erm", o).onclick = () => { shut(); const b = $("#frm"); if (b) b.click(); };
     $("#erv", o).onclick = () => App.go("review", {pgn: s.g.pgn(), meta: S.games[S.games.length - 1]});
     $("#ecl", o).onclick = shut;
     o.onclick = e => { if (e.target === o) shut(); };
@@ -9623,6 +9752,17 @@ Views.friend = {
     if (typeof Social !== "undefined") Social.wire(x, () => this.endExtras());
     if (s.rating && !this.ratingShown){ this.ratingShown = true; try { ratingAnimate(x); } catch(e) {} } },
   oppAv(){ const o = this.opp(); return o && o.presence.av || null; },
+  /* tell the server how a rated online game ended; when both sides agree (or you lost), the official ratings change */
+  async rankedReport(res, why, show){
+    const m = this.ranked, sb = onlineSb(); if (!m || !sb || m.reported) return; m.reported = true; const s = this.st, mine = m.white === onlineMe() ? "w" : "b";
+    const put = x => { if (!x || x.status !== "done" || !s || this.st !== s) return false; const before = mine === "w" ? x.rw_before : x.rb_before, after = mine === "w" ? x.rw_after : x.rb_after;
+      s.rating = {cat: x.cat, before, after, delta: after - before, provisional: false, online: true}; onlineLoadMe(); this.endExtras(); this.render(); return true; };
+    let {data, error} = await sb.rpc("ranked_report", {mid: m.id, res, why: why || null}); if (error || !show) return;
+    if (put(data)) return;
+    if (data && data.status === "disputed"){ toast("You and your opponent saw different results. This game doesn't count.", 4000); return; }
+    /* waiting for the other side to confirm */
+    for (let i = 0; i < 15 && this.st === s; i++){ await new Promise(r => setTimeout(r, 2000)); const q = await sb.from("chess_matches").select("*").eq("id", m.id).single(); if (q.data && put(q.data)) return; if (q.data && q.data.status !== "live") return; }
+  },
   emote(e){ if (!this.st) return; this.st.emo = e; this.publish(); },
   /* the lobby: before the first move both figures stand on the board, you can dance at each other.
      It goes away with the first move, or when you tap Play. */
@@ -9684,14 +9824,16 @@ Views.friend = {
     const chf = $("#chf"); if (chf){ chf.onsubmit = e => { e.preventDefault(); const v = $("#chi").value.trim(); $("#chi").value = ""; if (v){ this.send(v); } }; if (prevChi) $("#chi").value = prevChi; if (chiFocus) $("#chi").focus(); }
     const playing = o && !s.result && s.seat !== "spec";
     $("#sf").innerHTML = `<button class="btn" id="fx">Leave</button><button class="btn" id="ff" aria-label="Flip board">⇅</button>${BoardNav.html()}` +
-      (playing ? (this.tbAsked ? `<button class="btn go" id="ftba">Allow takeback</button>` : `<button class="btn" id="ftb" ${s.tbReq || !s.moves.length ? "disabled" : ""}>Takeback</button>`) + (this.drawOffered ? `<button class="btn go" id="fda">Accept draw</button>` : `<button class="btn" id="fdo" ${s.offer ? "disabled" : ""}>Draw</button>`) + `<button class="btn" id="frs">Resign</button>` : "") +
-      (s.result && s.seat !== "spec" ? `<button class="btn go" id="frm" style="flex:1" ${s.rematch ? "disabled" : ""}>${s.rematch ? "Waiting…" : this.rematchAsked ? "Accept rematch" : "Rematch"}</button><button class="btn" id="frv">Review</button>` : "");
+      (playing ? (this.ranked ? "" : this.tbAsked ? `<button class="btn go" id="ftba">Allow takeback</button>` : `<button class="btn" id="ftb" ${s.tbReq || !s.moves.length ? "disabled" : ""}>Takeback</button>`) + (this.drawOffered ? `<button class="btn go" id="fda">Accept draw</button>` : `<button class="btn" id="fdo" ${s.offer ? "disabled" : ""}>Draw</button>`) + `<button class="btn" id="frs">Resign</button>` : "") +
+      (s.result && s.seat !== "spec" && this.ranked ? `<button class="btn go" id="frn" style="flex:1">New opponent</button>` : "") +
+      (s.result && s.seat !== "spec" && !this.ranked ? `<button class="btn go" id="frm" style="flex:1" ${s.rematch ? "disabled" : ""}>${s.rematch ? "Waiting…" : this.rematchAsked ? "Accept rematch" : "Rematch"}</button><button class="btn" id="frv">Review</button>` : "");
     $("#fx").onclick = () => { try { sessionStorage.removeItem(LIVE_KEY); } catch(e) {} this.menu(); }; $("#ff").onclick = () => this.board.flip();
     if ($("#ftb")) $("#ftb").onclick = () => { s.tbReq = s.moves.length; this.publish(); toast("Takeback requested"); this.render(); };
     if ($("#ftba")) $("#ftba").onclick = () => this.acceptTakeback();
     if ($("#fdo")) $("#fdo").onclick = () => { s.offer = "draw"; this.publish(); toast("Draw offered"); this.render(); };
     if ($("#fda")) $("#fda").onclick = () => { s.result = {res: "1/2-1/2", why: "by agreement"}; this.publish(); this.finish(); };
     if ($("#frs")) $("#frs").onclick = () => { const b = $("#frs"); if (!b.dataset.armed){ b.dataset.armed = "1"; b.textContent = "Sure?"; b.style.background = "var(--bad)"; return; } s.result = {res: s.seat === "w" ? "0-1" : "1-0", why: "by resignation"}; this.publish(); this.finish(); };
+    if ($("#frn")) $("#frn").onclick = () => App.go("online", {tc: this.ranked.tc});
     if ($("#frm")) $("#frm").onclick = () => { if (this.rematchAsked){ const o2 = this.opp(); this.newGame(s.gameNo + 1, o2 && o2.presence.seat === "w" ? "w" : "b"); } else { s.rematch = 1; this.publish(); this.render(); } };
     if ($("#frv")) $("#frv").onclick = () => App.go("review", {pgn: s.g.pgn(), meta: S.games[S.games.length - 1]});
     if (typeof Social !== "undefined") Social.wire($("#sp"), () => this.render());
@@ -9866,6 +10008,7 @@ const ICONS = {
   target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>',
   book: '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M8 7h7M8 11h7"/>',
   bot: '<rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M9 17h6"/><circle cx="12" cy="3.5" r="1.2"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9s1.2-6.4 3.8-9z"/>',
   users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.8"/><path d="M16 14.6c2.8.2 4.8 1.9 5.4 5.4"/>',
   review: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8 11l2 2 4-4"/>',
   chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
@@ -9889,7 +10032,7 @@ const LOGO = `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="8"
 
 const NAV = [
   ["home", "Home", "home"], ["journey", "Journey", "map"], ["learn", "Learn", "book"], ["theory", "Theory", "scroll"], ["puzzles", "Puzzles", "puzzle"], ["rush", "Puzzle Rush", "bolt"], ["battle", "Puzzle Battle", "swords"], ["daily", "Daily Puzzle", "calendar"],
-  ["train", "Train", "target"], ["endgames", "Endgames", "crown"], ["bots", "Play Bots", "bot"], ["blitz", "Blitz", "flame"], ["awards", "Trophies", "trophy"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["me", "Profile", "user"], ["stats", "Stats", "chart"],
+  ["train", "Train", "target"], ["endgames", "Endgames", "crown"], ["online", "Play Online", "globe"], ["bots", "Play Bots", "bot"], ["blitz", "Blitz", "flame"], ["awards", "Trophies", "trophy"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["me", "Profile", "user"], ["stats", "Stats", "chart"],
 ];
 /* bottom of the rail, like chess.com: who you are, then a row of small icon buttons */
 function railAccount(){
@@ -9919,7 +10062,7 @@ function renderRail(){
 }
 
 const TABS = [["home", "Home", "home"], ["learn", "Learn", "book"], ["puzzles", "Puzzles", "puzzle"], ["play", "Play", "bot"], ["more", "More", "menu"]];
-const TAB_OF = {repertoire: "learn", repdrill: "learn", blitz: "play", battle: "play", theory: "learn", awards: "more", journey: "home", jlevel: "home", home: "home", learn: "learn", lesson: "learn", puzzles: "puzzles", rush: "puzzles", daily: "puzzles", train: "puzzles", coords: "puzzles", play: "play", bots: "play", friend: "play", local: "play", linkgame: "play", endgames: "play", trophies: "play", friends: "friends", chat: "friends", profile: "more", me: "more", review: "more", analysis: "more", stats: "more", settings: "more", account: "more"};
+const TAB_OF = {online: "play", repertoire: "learn", repdrill: "learn", blitz: "play", battle: "play", theory: "learn", awards: "more", journey: "home", jlevel: "home", home: "home", learn: "learn", lesson: "learn", puzzles: "puzzles", rush: "puzzles", daily: "puzzles", train: "puzzles", coords: "puzzles", play: "play", bots: "play", friend: "play", local: "play", linkgame: "play", endgames: "play", trophies: "play", friends: "friends", chat: "friends", profile: "more", me: "more", review: "more", analysis: "more", stats: "more", settings: "more", account: "more"};
 Object.assign(TAB_OF, {friends: "friends", fprofile: "friends", chat: "friends", duel: "play"});
 function renderTabs(){
   let t = $("#tabbar"); if (!t) return; const cur = TAB_OF[App.route] || "home"; const dailyOpen = !S.daily.done[todayKey()];
@@ -9989,7 +10132,7 @@ const App = {
   } catch(e) {} },
   backTarget(){ const p = this.stack[this.stack.length - 1]; if (p) return p.r; return this.route !== "home" ? (TAB_OF[this.route] && Views[TAB_OF[this.route]] && TAB_OF[this.route] !== this.route ? TAB_OF[this.route] : "home") : null; },
   back(){ const p = this.stack.pop(); if (p) this.go(p.r, p.arg, true); else if (this.route !== "home") this.go(TAB_OF[this.route] && Views[TAB_OF[this.route]] && TAB_OF[this.route] !== this.route ? TAB_OF[this.route] : "home", undefined, true); },
-  busy(){ return ["jlevel", "puzzles", "rush", "bots", "friend", "duel", "review", "lesson", "analysis", "coords", "local", "linkgame", "endgames", "repdrill"].includes(this.route); }
+  busy(){ return (this.route === "online" && this.view && this.view.searching) || ["jlevel", "puzzles", "rush", "bots", "friend", "duel", "review", "lesson", "analysis", "coords", "local", "linkgame", "endgames", "repdrill"].includes(this.route); }
 };
 
 /* ===== Home ===== */
@@ -10053,6 +10196,7 @@ Views.play = {
     main.innerHTML = `<div class="page"><h1 class="h-title">Play</h1>
       <div class="unit" style="display:flex;gap:12px;align-items:center;margin-top:10px">${botAvatar(rec, 56)}<div style="flex:1;min-width:0"><div class="muted" style="font-size:12px;font-weight:800">RECOMMENDED BOT</div><div style="font:900 20px var(--display)">${esc(rec.name)} <span class="muted">${rec.r}</span></div><div class="muted" style="font-size:13px">${esc(rec.lesson)}</div></div><button class="btn go" id="prec">Play</button></div>
       <div class="tiles">
+        <button class="tile" data-go="online" style="border:1px solid var(--go)">${icon("globe", 40)}<h3>Play Online</h3><p>Rated games against real people. Your official rating.</p></button>
         <button class="tile" data-go="bots">${icon("bot", 40)}<h3>Play Bots</h3><p>${BOTS.length} bots from ${BOTS[0].r} to ${BOTS[BOTS.length - 1].r}.</p></button>
         <button class="tile" data-go="battle">${icon("swords", 40)}<h3>Puzzle Battle</h3><p>Duel, Sprint or Survival against friends or bots.</p></button>
         <button class="tile" data-go="blitz">${icon("flame", 40)}<h3>Blitz & Ranked</h3><p>Rated games on the clock and Puzzle Battles.</p></button>
