@@ -73,14 +73,15 @@
     el.querySelector(".ih-x").onclick = () => dismiss(el);
     document.body.appendChild(el); return el;
   }
+  const onb = () => window.Onboard && window.Onboard.active();
   if (isIOS && isSafari && !seen){
-    setTimeout(() => banner(`<b>Get the app</b><span>Tap ${shareIcon} Share, then <b>Add to Home Screen</b>.</span>`), 2500);
+    setTimeout(() => !onb() && banner(`<b>Get the app</b><span>Tap ${shareIcon} Share, then <b>Add to Home Screen</b>.</span>`), 2500);
   }
   window.addEventListener("beforeinstallprompt", e => {
-    e.preventDefault(); Install.ev = e; if (seen || document.querySelector(".install-hint")) return;
+    e.preventDefault(); Install.ev = e; if (seen || onb() || document.querySelector(".install-hint")) return;
     const el = banner(`<b>Install Chess.nat</b><span>Play full screen from your home screen.</span>`, "Install");
     el.querySelector("[data-act]").onclick = () => { Install.ev = null; e.prompt(); e.userChoice.finally(() => dismiss(el)); };
   });
-  if (isAndroid && !seen) setTimeout(() => { if (!Install.ev && !document.querySelector(".install-hint")) { const el = banner(`<b>Get the app</b><span>Tap <b>⋮</b> in Chrome, then <b>Install app</b>.</span>`); } }, 6000);
+  if (isAndroid && !seen) setTimeout(() => { if (!onb() && !Install.ev && !document.querySelector(".install-hint")) { const el = banner(`<b>Get the app</b><span>Tap <b>⋮</b> in Chrome, then <b>Install app</b>.</span>`); } }, 6000);
   window.addEventListener("appinstalled", () => { const el = document.querySelector(".install-hint"); if (el) dismiss(el); });
 })();

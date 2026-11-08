@@ -4,11 +4,26 @@
 (function(){
   const CFG = window.CHESSNAT_CONFIG || {};
   const ready = !!(CFG.supabaseUrl && CFG.supabaseAnonKey && window.supabase && !/YOUR-/.test(CFG.supabaseUrl));
-  const sb = ready ? window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, {auth: {persistSession: true, autoRefreshToken: true, detectSessionInUrl: true}}) : null;
+  /* PKCE: a link from an email (confirm, sign in) only signs in the app or browser that asked for it.
+     Forwarded to someone else, it confirms the email but never opens your account on their phone. */
+  const sb = ready ? window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, {auth: {persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "pkce"}}) : null;
+  /* what the address says when someone comes back from an email link (read before anything changes it) */
+  const AUTH_IN = (() => { try { const q = new URLSearchParams(location.search), h = new URLSearchParams((location.hash || "").replace(/^#/, ""));
+    return {code: q.get("code"), recovery: h.get("type") === "recovery" && h.get("access_token") ? {access_token: h.get("access_token"), refresh_token: h.get("refresh_token")} : null}; } catch(e) { return {}; } })();
   let session = null, booted = false, reloading = false;
   /* getSession() waits until the client has restored the saved session (and read any sign-in link in the URL).
      supabase-js also announces that restore as "SIGNED_IN", so events before boot must never trigger a reload. */
-  const sessionReady = sb ? sb.auth.getSession().then(r => { session = r.data.session; return session; }).catch(() => null).finally(() => { booted = true; }) : Promise.resolve(null);
+  const sessionReady = sb ? sb.auth.getSession().then(r => { session = r.data.session; return session; }).catch(() => null).finally(() => { booted = true;
+    try {
+      /* never leave a sign-in code or token in the address bar (a shared link must not carry it) */
+      if (AUTH_IN.code || AUTH_IN.recovery){ const q = new URLSearchParams(location.search); q.delete("code"); const qs = q.toString(); history.replaceState(null, "", location.pathname + (qs ? "?" + qs : "") + (AUTH_IN.recovery ? "#account" : (location.hash && !/access_token|type=/.test(location.hash) ? location.hash : ""))); }
+      /* the email was confirmed in a browser that didn't start the sign-up: tell the person to go back to the app */
+      if (AUTH_IN.code && !session) window.CHESSNAT_CONFIRMED = true;
+    } catch(e) {}
+  }) : Promise.resolve(null);
+  /* a password-reset link: sign in with it on this device only to set a new password */
+  if (sb && AUTH_IN.recovery){ try { sessionStorage.setItem("chessnat-recovery", "1"); } catch(e) {}
+    sessionReady.then(() => sb.auth.setSession(AUTH_IN.recovery)).catch(() => {}); }
   if (sb) sb.auth.onAuthStateChange((ev, s) => {
     const before = session && session.user.id, after = s && s.user.id;
     session = s;
@@ -97,11 +112,13 @@
     return null;
   }};
   window.ChessSite = {sb, ready, sessionReady, getSession: () => session,
-    async signUp(email, password){ return sb.auth.signUp({email, password, options: {emailRedirectTo: location.origin + location.pathname}}); },
+    async signUp(email, password){ return sb.auth.signUp({email, password, options: {emailRedirectTo: location.origin + "/"}}); },
     async signIn(email, password){ return sb.auth.signInWithPassword({email, password}); },
-    async magic(email){ return sb.auth.signInWithOtp({email, options: {emailRedirectTo: location.origin + location.pathname}}); },
+    async resend(email){ return sb.auth.resend({type: "signup", email, options: {emailRedirectTo: location.origin + "/"}}); },
+    async newPassword(password){ const r = await sb.auth.updateUser({password}); if (!r.error){ try { sessionStorage.removeItem("chessnat-recovery"); } catch(e) {} } return r; },
     async google(){ return sb.auth.signInWithOAuth({provider: "google", options: {redirectTo: location.origin + location.pathname}}); },
-    async reset(email){ return sb.auth.resetPasswordForEmail(email, {redirectTo: location.origin + location.pathname + "#account"}); },
+    async reset(email){ const imp = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, {auth: {flowType: "implicit", persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: "chessnat-reset"}});
+      return imp.auth.resetPasswordForEmail(email, {redirectTo: location.origin + "/"}); },
     async signOut(){ await sb.auth.signOut(); }
   };
 })();
