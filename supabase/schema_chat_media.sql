@@ -25,3 +25,9 @@ begin
          else left(new.body, 140) end,
     '/#chat-' || new.from_id::text);
   return new; end $$;
+
+-- 2026-11-08: photos and short videos too (bucket up to 50 MB, image and video types; push says "📷 Photo" / "🎬 Video")
+update storage.buckets set file_size_limit = 52428800,
+  allowed_mime_types = array['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/mpeg', 'audio/aac', 'application/json',
+    'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'video/mp4', 'video/quicktime', 'video/webm']
+where id = 'chess-chat';

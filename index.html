@@ -2182,6 +2182,18 @@ html.i18n-wait body{visibility:hidden}
 .dx:active{transform:scale(.92)}
 .dfoot{position:sticky;bottom:calc(-16px - env(safe-area-inset-bottom,0px));z-index:3;margin:12px -16px calc(-16px - env(safe-area-inset-bottom,0px));padding:10px 16px calc(16px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--panel) 30%)}
 .dfoot .btn{margin:0}
+/* chat: photos, videos and the + menu */
+.att{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.att-b{display:flex;flex-direction:column;align-items:center;gap:4px;padding:18px 10px;border-radius:16px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);font:inherit;cursor:pointer;transition:transform .12s}
+.att-b:active{transform:scale(.96)}.att-b span{font-size:34px;line-height:1.1}.att-b b{font:900 15px var(--display)}.att-b small{color:var(--muted);font-size:12px}
+.bub.media .mm{display:block;position:relative;border:0;padding:0;margin:0 0 2px;border-radius:12px;overflow:hidden;background:rgba(0,0,0,.25);cursor:pointer;min-width:160px;min-height:120px}
+.mm img{display:block;max-width:min(260px,62vw);max-height:340px;width:auto;height:auto}
+.mm video{display:block;max-width:min(260px,62vw);max-height:360px;background:#000}
+.mm-load{position:absolute;inset:0;display:grid;place-items:center;color:rgba(255,255,255,.7)}
+.mm-load:empty::before{content:"";width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;animation:spin 1s linear infinite}
+.phview{position:fixed;inset:0;z-index:3200;background:rgba(0,0,0,.92);display:grid;place-items:center;opacity:0;transition:opacity .2s;padding:max(12px,env(safe-area-inset-top,0px)) 12px max(12px,env(safe-area-inset-bottom,0px))}
+.phview.in{opacity:1}.phview img{max-width:100%;max-height:100%;border-radius:8px}
+.phview .dx{position:absolute;top:max(14px,env(safe-area-inset-top,0px));right:14px;width:40px;height:40px}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -2203,7 +2215,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794159323";
+const CHESSNAT_BUILD = "1794159602";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11439,7 +11451,7 @@ Views.chat = {
     main.innerHTML = `<div class="chatv"><div class="chat-h"><button class="btn sm ghost" id="cback" aria-label="Back">‹</button>${Social.face(p, 38)}<button class="grow chat-who" id="cwho" title="Give them a name only you see"><b>${esc(p.name)} <span class="chat-pen">${icon("pen", 13)}</span></b><small>${p.realName ? esc(p.realName) + " · " : ""}${esc(Social.seen(p))}</small></button><button class="fa fa-play on" id="cinv" aria-label="Play a game">${icon("knight", 20)}<span>Play</span></button></div>
       <div class="chat-msgs" id="cmsgs"><p class="dim" style="text-align:center">Loading…</p></div>
       <div class="chat-quick">${["GG 🤝", "Rematch?", "Nice move! 👏", "😂", "Play now?", "Good luck!"].map(q => `<button class="chip" data-q="${esc(q)}">${esc(q)}</button>`).join("")}</div>
-      <form class="chat-in" id="cform"><button class="cplus" type="button" id="cgame" aria-label="Share a game">${icon("board", 20)}</button><input id="ctext" maxlength="500" placeholder="${esc(typeof I18N !== "undefined" ? I18N.t("Message " + p.name) : "Message " + p.name)}" autocomplete="off"><button class="csend cmic" type="button" id="cmic" aria-label="Hold to record a voice message">${ChatMedia.MIC}</button><button class="csend" type="submit" id="csub" aria-label="Send" hidden>${icon("send", 22)}</button></form></div>`;
+      <form class="chat-in" id="cform"><button class="cplus" type="button" id="cgame" aria-label="Send a photo, video or game"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button><input id="ctext" maxlength="500" placeholder="${esc(typeof I18N !== "undefined" ? I18N.t("Message " + p.name) : "Message " + p.name)}" autocomplete="off"><button class="csend cmic" type="button" id="cmic" aria-label="Hold to record a voice message">${ChatMedia.MIC}</button><button class="csend" type="submit" id="csub" aria-label="Send" hidden>${icon("send", 22)}</button></form></div>`;
     ChatMedia.wire(id, m => this.add(m));
     $("#cwho").onclick = () => Social.rename(id, () => this.open(id));
     $("#cback").onclick = () => App.go("chat"); $("#cinv").onclick = () => Social.invite(id, S.invTc || [10, 2]);
@@ -11480,18 +11492,25 @@ const ChatMedia = (() => {
   const MIC = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>`;
   const PLAY = `<svg viewBox="0 0 24 24" width="18" height="18"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>`, PAUSE = `<svg viewBox="0 0 24 24" width="18" height="18"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>`;
   const sb = () => Social.sb, me = () => Social.me, urls = {}, games = {}, tr = x => typeof I18N !== "undefined" ? I18N.t(x) : x;  /* bubbles aren't translated by the page, so their words are */
-  const parse = body => { const m = /^(🎤 voice|♟ game)\|([^|]+)\|(.*)$/.exec(body || ""); return m ? {k: m[1].startsWith("🎤") ? "voice" : "game", path: m[2], x: m[3]} : null; };
+  const parse = body => { const m = /^(🎤 voice|♟ game|🖼 media)\|([^|]+)\|(.*)$/.exec(body || ""); return m ? {k: m[1].startsWith("🎤") ? "voice" : m[1].startsWith("🖼") ? "media" : "game", path: m[2], x: m[3]} : null; };
   const fmt = s => Math.floor(s / 60) + ":" + String(Math.round(s % 60)).padStart(2, "0");
-  const label = body => { const p = parse(body); return !p ? body : p.k === "voice" ? "🎤 " + tr("Voice message") + " (" + fmt(+p.x || 0) + ")" : "♟ " + p.x; };
+  const label = body => { const p = parse(body); return !p ? body : p.k === "voice" ? "🎤 " + tr("Voice message") + " (" + fmt(+p.x || 0) + ")" : p.k === "media" ? (/^video/.test(p.x) ? "🎬 " + tr("Video") : "📷 " + tr("Photo")) : "♟ " + p.x; };
   async function file(path){ if (urls[path]) return urls[path]; const {data, error} = await sb().storage.from(BUCKET).download(path); if (error || !data) throw error || new Error("missing"); return urls[path] = {blob: data, url: URL.createObjectURL(data)}; }
   /* a little waveform that is always the same for the same message */
   const bars = path => { let h = 0; for (const c of path) h = (h * 31 + c.charCodeAt(0)) >>> 0; return Array.from({length: 26}, (_, i) => { h = (h * 1103515245 + 12345) >>> 0; return 25 + (h % 70) * (0.55 + 0.45 * Math.sin(i / 3)); }); };
   function html(body, mine){ const p = parse(body); if (!p) return null;
+    if (p.k === "media") return /^video/.test(p.x) ? `<div class="mm mm-v"><video playsinline controls preload="metadata"></video><span class="mm-load"></span></div>` : `<button class="mm mm-i" aria-label="Open photo"><span class="mm-load"></span></button>`;
     if (p.k === "voice") return `<div class="vm"><button class="vm-p" aria-label="Play">${PLAY}</button><span class="vm-w">${bars(p.path).map(v => `<i style="height:${Math.max(18, Math.min(100, v)).toFixed(0)}%"></i>`).join("")}</span><span class="vm-t">${fmt(+p.x || 0)}</span></div>`;
     const g = games[p.path];
     return `<div class="gm"><span class="gm-b">${g ? miniBoard(g.fen, g.o) : `<span class="gm-ph">♟</span>`}</span><div class="gm-i"><b data-notr>${esc(p.x)}</b><small>${g ? esc(g.sub) : tr("Shared game")}</small><button class="btn sm ${mine ? "" : "go"} gm-go">${tr("Watch game")}</button></div></div>`; }
   let playing = null;
   function bind(el, body){ const p = parse(body); if (!p) return;
+    if (p.k === "media"){ const box = el.querySelector(".mm");
+      file(p.path).then(f => { const ld = box.querySelector(".mm-load"); if (ld) ld.remove();
+        if (/^video/.test(p.x)){ const v = box.querySelector("video"); v.src = f.url; }
+        else { const im = new Image(); im.src = f.url; im.alt = ""; box.appendChild(im); box.onclick = () => viewPhoto(f.url); } })
+        .catch(() => { const ld = box.querySelector(".mm-load"); if (ld) ld.textContent = "⚠️"; });
+      return; }
     if (p.k === "voice"){ const btn = el.querySelector(".vm-p"), w = el.querySelectorAll(".vm-w i"), t = el.querySelector(".vm-t"), total = +p.x || 0;
       btn.onclick = async () => {
         if (playing && playing.el === el){ playing.a.pause(); return; }
@@ -11557,7 +11576,14 @@ const ChatMedia = (() => {
     };
     mic.addEventListener("pointerdown", e => { e.preventDefault(); if (rec && rec.locked){ finish("send"); return; } if (rec) return; try { mic.setPointerCapture && mic.setPointerCapture(e.pointerId); } catch(x) {} begin(e); });
     mic.addEventListener("contextmenu", e => e.preventDefault());
-    $("#cgame").onclick = () => pickGame(g => shareGame(g, send));
+    /* the + : a photo or video (camera or library, the phone asks), or one of your games */
+    const pick = document.createElement("input"); pick.type = "file"; pick.accept = "image/*,video/*"; pick.hidden = true; form.appendChild(pick);
+    pick.onchange = () => { const f = pick.files && pick.files[0]; pick.value = ""; if (f) sendMedia(f, send); };
+    $("#cgame").onclick = () => {
+      const sh = detailSheet(`<div class="gp-h"><h3>Send</h3></div><div class="att">
+        <button class="att-b" data-att="media"><span>📷</span><b>Photo or video</b><small>Camera or library</small></button>
+        <button class="att-b" data-att="game"><span>♟</span><b>A game</b><small>One of your last games</small></button></div>`);
+      sh.el.querySelectorAll("[data-att]").forEach(b => b.onclick = () => { sh.close(); if (b.dataset.att === "media") pick.click(); else pickGame(g => shareGame(g, send)); }); };
   }
   /* share a game: pick one of your last games */
   function pickGame(done){
@@ -11575,6 +11601,28 @@ const ChatMedia = (() => {
       const path = await upload("json", new Blob([JSON.stringify(j)], {type: "application/json"}), "application/json"); await send(`♟ game|${path}|${title.replace(/\|/g, "/").slice(0, 80)}`); }
     catch(e){ toast("Couldn't share the game. Check your internet.", 3000); }
   }
+  /* photos are made smaller on the phone (long side 1600 px, JPEG); videos go as they are, up to 50 MB */
+  async function sendMedia(f, send){
+    const video = /^video\//.test(f.type), image = /^image\//.test(f.type);
+    if (!video && !image){ toast("Only photos and videos."); return; }
+    if (video && f.size > 50 * 1048576){ toast("That video is too big (max 50 MB). Record a shorter one.", 3500); return; }
+    toast(video ? "Sending video…" : "Sending photo…", 1600);
+    try {
+      let blob = f, type = f.type, ext = (f.name.split(".").pop() || "").toLowerCase();
+      if (image && !/gif/.test(type)){ blob = await shrink(f); type = "image/jpeg"; ext = "jpg"; }
+      if (video && !ext) ext = /quicktime/.test(type) ? "mov" : /webm/.test(type) ? "webm" : "mp4";
+      if (video && type === "video/quicktime" && !ext) ext = "mov";
+      const path = await upload(ext || (video ? "mp4" : "jpg"), blob, type || (video ? "video/mp4" : "image/jpeg")); urls[path] = {blob, url: URL.createObjectURL(blob)};
+      await send(`🖼 media|${path}|${video ? "video" : "image"}`);
+    } catch(e){ toast("Couldn't send it. Check your internet.", 3000); }
+  }
+  async function shrink(f){
+    const bmp = await (window.createImageBitmap ? createImageBitmap(f).catch(() => null) : null) || await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = URL.createObjectURL(f); });
+    const w = bmp.width, h = bmp.height, k = Math.min(1, 1600 / Math.max(w, h)), c = document.createElement("canvas"); c.width = Math.round(w * k); c.height = Math.round(h * k);
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height); return await new Promise(res => c.toBlob(b => res(b || f), "image/jpeg", .82));
+  }
+  function viewPhoto(url){ const v = document.createElement("div"); v.className = "phview"; v.innerHTML = `<img src="${url}" alt=""><button class="dx" aria-label="Close">${icon("xmark", 20)}</button>`;
+    document.body.appendChild(v); requestAnimationFrame(() => v.classList.add("in")); v.onclick = () => { v.classList.remove("in"); setTimeout(() => v.remove(), 200); }; }
   return {MIC, html, bind, wire, label, parse};
 })();
 /* sent: one tick. read: two green ticks, and "Read" under your newest read message */
@@ -11828,7 +11876,7 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) setT
 window.addEventListener("chessnat:route", () => setTimeout(() => News.daily(), 800));
 if (window.ChessSite && window.ChessSite.sessionReady) window.ChessSite.sessionReady.then(() => News.isAdmin());
 
-const NEWS_DRAFT = {t: "Großmeister Mischa ist dabei! ♟️", b: "Die Legende Mischa spielt ab jetzt auf Chess.nat. Wir sind stolz, ihn in unserer Community zu haben. Willkommen, Mischa!"};
+const NEWS_DRAFT = {t: "🛡️ NatGuard ist da", b: "Yasemin hat einen Exploit gefunden: Übersprungene Puzzles gaben trotzdem XP. Respekt für den Fund! 😄 Die Lücke ist zu: Ab sofort wacht NatGuard, unser Anti-Cheat, über Chess.nat. XP gibt's nur noch für echte Versuche. Yasemin behält ihre Level als Finderlohn. Bugs gern melden! 🐛"};
 Views.news = {
   async mount(main){
     this.main = main; this.rec = null; this.blob = null; main.innerHTML = `<div class="page" style="max-width:640px"><h1 class="h-title">News</h1><p class="dim">Loading…</p></div>`;
