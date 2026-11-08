@@ -11,7 +11,7 @@
       ]
     },
     {
-      "source": "/(index.html|config.js|platform.js|pwa.js|voice/index.json|puzzles/index.json)",
+      "source": "/(index.html|config.js|platform.js|pwa.js|version.json|voice/index.json|puzzles/index.json)",
       "headers": [
         {
           "key": "Cache-Control",
