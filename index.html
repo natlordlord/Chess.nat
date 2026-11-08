@@ -1537,7 +1537,7 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 .fp-rm{color:#ff8a8a}
 .fp-rm.armed{background:var(--bad);color:#fff}
 /* leaderboard */
-.lb-chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-bottom:8px;position:relative;scroll-behavior:smooth}
+.lb-chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-bottom:8px;position:relative}
 .lb-chips::-webkit-scrollbar{display:none}
 .lb-chips .chip{flex:none;display:inline-flex;align-items:center;gap:5px}
 .lb-row{cursor:pointer}
@@ -1807,7 +1807,7 @@ button.ptype{cursor:pointer}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794144455";
+const CHESSNAT_BUILD = "1794144519";
 /* ===== Speech text helpers (shared by the page and the voice build script) ===== */
 const PIECE_WORD = {K: "king", Q: "queen", R: "rook", B: "bishop", N: "knight"};
 function speechNorm(t){ return String(t || "").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, " ").trim(); }
@@ -10306,8 +10306,10 @@ const Ranks = {
   inner(){
     const b = this.board(), L = this.list(b);
     const medal = r => r === 1 ? "🥇" : r === 2 ? "🥈" : r === 3 ? "🥉" : r;
-    return `<div class="chips lb-chips">${RANK_BOARDS.map(x => `<button class="chip ${x.k === b.k ? "on" : ""}" data-lb="${x.k}">${icon(x.ic, 15)} ${x.t}</button>`).join("")}</div>
-      <div class="list lb-list">${L.length ? L.map(x => { const p = x.me ? Object.assign({}, Social.player || {}, {name: "You"}) : Social.P(x.id);
+    return `<div class="chips lb-chips">${RANK_BOARDS.map(x => `<button class="chip ${x.k === b.k ? "on" : ""}" data-lb="${x.k}">${icon(x.ic, 15)} ${x.t}</button>`).join("")}</div><div class="lb-body">${this.body(b, L, medal)}</div>`;
+  },
+  body(b, L, medal){
+    return `<div class="list lb-list">${L.length ? L.map(x => { const p = x.me ? Object.assign({}, Social.player || {}, {name: "You"}) : Social.P(x.id);
         return `<div class="li lb-row ${x.me ? "me" : ""} ${x.rank <= 3 ? "top top" + x.rank : ""}" ${x.me ? "" : `data-lbp="${x.id}"`}><span class="lb-r">${medal(x.rank)}</span>${Social.face(x.me ? Social.player || {id: Social.me} : p, 36)}<div class="grow"><div class="t">${esc(p.name)}</div></div><b class="lb-v">${b.fmt(x.v)}</b></div>`; }).join("")
         : `<div class="li"><div class="grow muted">Nobody on this board yet.</div></div>`}</div>
       ${L.length >= 3 ? `<p class="dim lb-note">${icon("crown", 14)} The top three wear the friends' crowns and borders, as long as they hold the spot.</p>` : `<p class="dim lb-note">With three or more of you on a board, the top three win crowns and borders.</p>`}`;
@@ -10318,9 +10320,11 @@ const Ranks = {
   /* switching boards redraws only the board itself: the page and the row of options stay where they are */
   wire(root){
     const w = root.querySelector("#lbwrap"); if (!w) return; if (!w._c){ w._c = 1; this.center(w.querySelector(".lb-chips"), false); }
+    /* switching boards: the row of options stays put and only glides to the chosen one; just the list below changes */
     w.querySelectorAll("[data-lb]").forEach(b => b.onclick = () => { if (S.lbBoard === b.dataset.lb) return; S.lbBoard = b.dataset.lb; save(); Sound.play("Move", .35);
-      const ch = w.querySelector(".lb-chips"), sl = ch ? ch.scrollLeft : 0, h = w.offsetHeight; w.style.minHeight = h + "px";
-      w.innerHTML = this.inner(); const ch2 = w.querySelector(".lb-chips"); if (ch2){ ch2.scrollLeft = sl; this.center(ch2, true); } this.wire(root); });
+      w.querySelectorAll("[data-lb]").forEach(x => x.classList.toggle("on", x === b)); this.center(w.querySelector(".lb-chips"), true);
+      const body = w.querySelector(".lb-body"), h = body.offsetHeight; body.style.minHeight = h + "px"; const bd = this.board(), L = this.list(bd);
+      body.innerHTML = this.body(bd, L, r => r === 1 ? "🥇" : r === 2 ? "🥈" : r === 3 ? "🥉" : r); body.querySelectorAll("[data-lbp]").forEach(r => r.onclick = () => App.go("fprofile", {id: r.dataset.lbp})); });
     w.querySelectorAll("[data-lbp]").forEach(r => r.onclick = () => App.go("fprofile", {id: r.dataset.lbp}));
   },
   /* after each friends refresh: who did I pass, who passed me, and do I hold a crown */
