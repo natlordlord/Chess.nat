@@ -2203,7 +2203,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794158660";
+const CHESSNAT_BUILD = "1794159062";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -2495,7 +2495,8 @@ function mergeProgress(a, b){
   m.recent = [...rs.values()].sort((x, y) => (x.ts || 0) - (y.ts || 0)).slice(-150);
   m.lessons = {}; new Set([...Object.keys(a.lessons || {}), ...Object.keys(b.lessons || {})]).forEach(k => { const x = (a.lessons || {})[k] || {}, y = (b.lessons || {})[k] || {};
     m.lessons[k] = {done: !!(x.done || y.done), stars: Math.max(x.stars || 0, y.stars || 0), ts: Math.max(x.ts || 0, y.ts || 0)}; });
-  m.xp = Math.max(a.xp || 0, b.xp || 0);
+  m.xp = Math.max(a.xp || 0, b.xp || 0); m.xpMinus = Math.max(a.xpMinus || 0, b.xpMinus || 0);
+  m.fixIds = [...new Set([...(a.fixIds || []), ...(b.fixIds || [])])];
   m.nick = Object.assign({}, older.nick || {}, newer.nick || {}); Object.keys(m.nick).forEach(k => { if (!m.nick[k]) delete m.nick[k]; });
   { const fa = a.flame || {}, fb = b.flame || {}; const w = (fa.last || "") > (fb.last || "") ? fa : (fb.last || "") > (fa.last || "") ? fb : ((fa.n || 0) >= (fb.n || 0) ? fa : fb); m.flame = Object.assign({}, w, {best: Math.max(fa.best || 0, fb.best || 0, w.n || 0)}); }
   m.rush = Object.assign({}, newer.rush, {best3: Math.max(a.rush.best3 || 0, b.rush.best3 || 0), best5: Math.max(a.rush.best5 || 0, b.rush.best5 || 0), bestS: Math.max(a.rush.bestS || 0, b.rush.bestS || 0)});
@@ -3124,7 +3125,7 @@ function PuzzleRunner(board, hooks = {}){
     hooks.onStart && hooks.onStart(R);
     await sleep(hooks.fast ? 250 : 520);
     if (R.p !== p) return;
-    R.playUci(p.moves[0]); R.idx = 1; R.locked = false; R.t0 = Date.now();
+    R.playUci(p.moves[0]); R.idx = 1; R.locked = false; R.t0 = Date.now(); PZ_T[p.id] = R.t0;
     /* your pieces glow until your first move, so you know at once which side you play */
     board.glow(R.user);
     hooks.onReady && hooks.onReady(R);
@@ -3195,7 +3196,14 @@ function PuzzleRunner(board, hooks = {}){
 const THEME_LESSON = {fork: "u4-fork", pin: "u4-pin", skewer: "u4-skewer", discoveredAttack: "u4-discovered", doubleCheck: "u4-discovered", backRankMate: "u3-backrank", hangingPiece: "u2-hanging", mateIn1: "u1-check", earlyMate: "u3-scholar", attackingF2F7: "u3-scholar", deflection: "u6-deflect", attraction: "u6-deflect", capturingDefender: "u6-defender", intermezzo: "u6-defender", sacrifice: "u6-sac", queenSac: "u6-sac", smotheredMate: "u6-mates", anastasiaMate: "u6-mates", arabianMate: "u6-mates", matingNet: "u6-mates", pawnEndgame: "u7-kp", opposition: "u7-kp", rookEndgame: "u7-rook", promotion: "u7-promo", underPromotion: "u7-promo", opening: "u5-principles"};
 function learnLink(p){ for (const i of p.th){ const k = PZ.themes[i] && PZ.themes[i][0]; const id = THEME_LESSON[k]; const L = id && typeof lessonById === "function" && lessonById(id); if (L) return `<button class="btn sm" style="margin-top:10px" onclick="App.go('lesson',{id:'${id}'})">📖 Learn: ${esc(L.title)}</button>`; } return ""; }
 function themeNames(p){ return p.th.map(themeLabel).filter(Boolean); }
-function recordThemes(p, ok){ dayTick("pz"); if (typeof addXP === "function") addXP(ok ? XP.puzzle : XP.puzzleMiss); p.th.forEach(i => { const k = PZ.themes[i][0]; const t = S.themes[k] || (S.themes[k] = {n:0, ok:0}); t.n++; if (ok) t.ok++; }); }
+/* when each puzzle was put on the board: skipping or tapping through puzzles in a second earns nothing */
+const PZ_T = {};
+function recordThemes(p, ok){
+  const el = Date.now() - (PZ_T[p.id] || 0), real = ok ? el >= 1200 : el >= 6000;
+  if (real){ dayTick("pz"); S.stat = S.stat || {}; S.stat.pzReal = (S.stat.pzReal || 0) + 1; }
+  if (typeof addXP === "function" && real){ if (ok) addXP(XP.puzzle);
+    /* XP for a miss: for really trying, at most 40 a day */
+    else { const d = todayKey(), m = S.stat.missXp && S.stat.missXp.d === d ? S.stat.missXp : (S.stat.missXp = {d, n: 0}); if (m.n < 40){ m.n += XP.puzzleMiss; addXP(XP.puzzleMiss); } } } p.th.forEach(i => { const k = PZ.themes[i][0]; const t = S.themes[k] || (S.themes[k] = {n:0, ok:0}); t.n++; if (ok) t.ok++; }); }
 function markSeen(p){ S.seen.push(p.id); }
 function addFailed(p){ if (!S.failed.some(a => a[0] === p.id)) S.failed.push(encodeP(p)); srsAdd(p); }
 function rmFailed(p){ S.failed = S.failed.filter(a => a[0] !== p.id); }
@@ -7470,7 +7478,7 @@ const ROM = ["", "I", "II", "III", "IV", "V", "VI"];
   /* puzzles solved */
   [[10, 1], [25, 1], [50, 1], [100, 2], [250, 2], [500, 3], [1000, 3], [2500, 4], [5000, 5], [10000, 6]].forEach(([n, t]) =>
     achDef("pz-" + n, "puzzles", `${n.toLocaleString("en")} Puzzles`, `Solve ${n.toLocaleString("en")} puzzles.`, t, () => S.puzzle.w >= n, () => [S.puzzle.w, n]));
-  [[50, 1], [250, 2], [1000, 3], [3000, 4]].forEach(([n, t]) => achDef("pzplayed-" + n, "puzzles", `Puzzle Addict ${ROM[t]}`, `Play ${n.toLocaleString("en")} puzzles, solved or not.`, t, () => S.puzzle.n >= n, () => [S.puzzle.n, n]));
+  [[50, 1], [250, 2], [1000, 3], [3000, 4]].forEach(([n, t]) => achDef("pzplayed-" + n, "puzzles", `Puzzle Addict ${ROM[t]}`, `Play ${n.toLocaleString("en")} puzzles, solved or not.`, t, () => pzPlayed() >= n, () => [pzPlayed(), n]));
   [[5, 2], [20, 3], [100, 4]].forEach(([n, t]) => achDef("pzup-" + n, "puzzles", `Punching Up ${ROM[t - 1]}`, `Solve ${n} puzzles rated 300+ above you.`, t, () => (S.stat.pzUp || 0) >= n, () => [S.stat.pzUp || 0, n]));
   [[10, 1], [50, 2], [200, 3], [1000, 4]].forEach(([n, t]) => achDef("train-" + n, "puzzles", `Trainer ${ROM[t]}`, `Solve ${n} puzzles in Train.`, t, () => (S.stat.trainOk || 0) >= n, () => [S.stat.trainOk || 0, n]));
   /* every tactic theme, six levels each */
@@ -7554,6 +7562,8 @@ const ROM = ["", "I", "II", "III", "IV", "V", "VI"];
   achDef("trophy-500", "fun", "Living Legend", "Collect 500 trophies.", 6, () => achCount() >= 500, () => [achCount(), 500]);
   AV_CLASSES.slice(1).forEach((c, i) => achDef("class-" + c.k, "fun", `Become a ${c.name}`, `Unlock the ${c.name} figure. ${c.txt}`, i + 2, () => classUnlocked(c)));
 })();
+/* puzzles really played: counted from now on; before this counter existed every puzzle counted */
+function pzPlayed(){ S.stat = S.stat || {}; if (S.stat.pzReal == null) S.stat.pzReal = Math.max(0, (S.puzzle.n || 0) - (S.pzMinus || 0)); return S.stat.pzReal; }
 const ACH_BY = Object.fromEntries(ACH.map(a => [a.id, a]));
 function achById(id){ return ACH_BY[id] || null; }
 function achHas(id){ return !!(S.ach && S.ach.got && S.ach.got[id]); }
@@ -7688,7 +7698,9 @@ Views.awards = {
 const LV_CAP = 100;
 function lvNeed(L){ return 80 + 20 * L; }                       /* XP from level L to L+1 */
 function lvOf(xp){ let L = 1, rest = Math.max(0, xp || 0); while (L < LV_CAP && rest >= lvNeed(L)){ rest -= lvNeed(L); L++; } return {L, into: rest, need: L >= LV_CAP ? 0 : lvNeed(L)}; }
-function playerLevel(){ return lvOf(S.xp).L; }
+/* XP you have: everything earned minus corrections (e.g. after XP was farmed with a trick) */
+function xpNet(){ return Math.max(0, (S.xp || 0) - (S.xpMinus || 0)); }
+function playerLevel(){ return lvOf(xpNet()).L; }
 const XP = {puzzle: 8, puzzleMiss: 2, game: 20, win: 15, daily: 25, flame: 15, review: 20, recruit: 500};
 
 /* ---- the rewards ---- */
@@ -7845,7 +7857,7 @@ if (typeof ACH_BY !== "undefined") ACH.forEach(a => { ACH_BY[a.id] = a; });
 
 /* ---- the level card for the profile and home ---- */
 function levelCardHTML(compact){
-  const s = lvOf(S.xp), nx = nextReward(s.L), pct = s.need ? Math.round(s.into / s.need * 100) : 100;
+  const s = lvOf(xpNet()), nx = nextReward(s.L), pct = s.need ? Math.round(s.into / s.need * 100) : 100;
   return `<div class="lvcard ${compact ? "cmp" : ""}"><span class="lvchip">${s.L}</span><div class="grow"><div class="lvc-h"><b>Level ${s.L}</b><span class="muted">${esc(myTitle())}</span><span class="lvc-x">${s.need ? `${s.into} / ${s.need} XP` : "Max level"}</span></div>
     <div class="bar lvbar"><i style="width:${pct}%"></i></div>${nx && !compact ? `<div class="dim lvc-n">Next reward at level ${nx.L}: <b>${esc(nx.r.name)}</b>${nx.r.kind === "frame" ? " border" : nx.r.kind === "title" ? " title" : nx.r.kind === "item" ? "" : " colour"}</div>` : ""}</div></div>`;
 }
@@ -9701,6 +9713,17 @@ Views.online = {
 };
 /* keep the official ratings fresh on this device (profile and rating cards show them) */
 setTimeout(() => { onlineLoadMe().catch(() => {}); }, 6000);
+/* corrections from the team (e.g. XP farmed by tapping through puzzles): each one is applied once on every device */
+async function applyFixes(){
+  const sb = onlineSb(); if (!sb || !onlineMe()) return; const {data, error} = await sb.from("chess_fixes").select("id,xp,pz"); if (error || !data || !data.length) return;
+  S.fixIds = S.fixIds || []; let changed = false;
+  data.forEach(f => { if (S.fixIds.includes(f.id)) return; S.fixIds.push(f.id); S.xpMinus = (S.xpMinus || 0) + (f.xp || 0);
+    if (f.pz){ S.pzMinus = (S.pzMinus || 0) + f.pz; S.stat = S.stat || {}; if (S.stat.pzReal != null) S.stat.pzReal = Math.max(0, S.stat.pzReal - f.pz); } changed = true; });
+  if (!changed) return; S.lvlSeen = playerLevel(); save(); if (typeof renderTop === "function") renderTop(); if (typeof renderRail === "function") renderRail();
+  if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard();
+}
+setTimeout(() => { applyFixes().catch(() => {}); }, 7000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(() => applyFixes().catch(() => {}), 3000); });
 
 /* ===== Play a Friend: live games over the artifact room (presence carries absolute game state) ===== */
 const TIME_CONTROLS = [[1,0,"Bullet"],[2,1,"Bullet"],[3,0,"Blitz"],[3,2,"Blitz"],[5,0,"Blitz"],[5,2,"Blitz"],[10,0,"Rapid"],[10,2,"Rapid"],[10,5,"Rapid"],[15,10,"Rapid"],[30,0,"Classical"],[0,0,"Unlimited"]];
@@ -10965,7 +10988,7 @@ const Social = (() => {
     }
     return {error: "That name is taken. Try another one."};
   }
-  const card = () => ({flame: typeof flameCount === "function" ? flameCount() : 0, flame_day: (S.flame && S.flame.last) || null, rating: S.puzzle.r, avatar: Object.assign({}, myAvatar(), typeof playerLevel === "function" ? {_lv: playerLevel(), _title: myTitle(), _xp: S.xp || 0} : {}, {_jr: Object.keys((S.journey && S.journey.best) || {}).length, _champ: S.champ ? S.champ.rank : null, _st: myActivity(), _pt: typeof playerProfile === "function" ? playerProfile().typeKey : null}), trophies: typeof achCount === "function" ? achCount() : 0, ratings: typeof RATED_CATS !== "undefined" ? Object.fromEntries(RATED_CATS.filter(([k]) => (S.ratings || {})[k]).map(([k]) => [k, S.ratings[k].r])) : null});
+  const card = () => ({flame: typeof flameCount === "function" ? flameCount() : 0, flame_day: (S.flame && S.flame.last) || null, rating: S.puzzle.r, avatar: Object.assign({}, myAvatar(), typeof playerLevel === "function" ? {_lv: playerLevel(), _title: myTitle(), _xp: xpNet() || 0} : {}, {_jr: Object.keys((S.journey && S.journey.best) || {}).length, _champ: S.champ ? S.champ.rank : null, _st: myActivity(), _pt: typeof playerProfile === "function" ? playerProfile().typeKey : null}), trophies: typeof achCount === "function" ? achCount() : 0, ratings: typeof RATED_CATS !== "undefined" ? Object.fromEntries(RATED_CATS.filter(([k]) => (S.ratings || {})[k]).map(([k]) => [k, S.ratings[k].r])) : null});
   function beat(){ if (!player || document.hidden) return; sb.from("chess_players").update(Object.assign({last_seen: new Date().toISOString()}, card())).eq("id", me).then(() => {}, () => {}); }
   /* "I'm in the app": while the app is on screen the server sends no phone notifications (the app shows its own cards).
      Every 25 s while visible; cleared as soon as the app goes to the background. */
@@ -11950,7 +11973,7 @@ const RANK_BOARDS = [
   {k: "solved", t: "Solved", ic: "target", of: p => ((p.avatar || {})._st || {}).pz, mine: () => myActivity().pz, fmt: v => fmtN(v) + " solved"},
   {k: "games", t: "Games", ic: "knight", of: p => ((p.avatar || {})._st || {}).gp, mine: () => myActivity().gp, fmt: v => fmtN(v) + (v === 1 ? " game" : " games")},
   {k: "journey", t: "Journey", ic: "map", of: p => (p.avatar || {})._jr, mine: () => Object.keys((S.journey && S.journey.best) || {}).length, fmt: v => v + (v === 1 ? " stop" : " stops")},
-  {k: "level", t: "Level", ic: "crown", of: p => { const a = p.avatar || {}; return a._xp != null ? a._xp : a._lv ? lvXpAt(a._lv) : null; }, mine: () => S.xp || 0, fmt: v => "Lv " + lvOf(v).L},
+  {k: "level", t: "Level", ic: "crown", of: p => { const a = p.avatar || {}; return a._xp != null ? a._xp : a._lv ? lvXpAt(a._lv) : null; }, mine: () => xpNet(), fmt: v => "Lv " + lvOf(v).L},
   {k: "blitz", t: "Blitz", ic: "flame", of: p => (p.ratings || {}).blitz, mine: () => ((S.ratings || {}).blitz || {}).r, fmt: v => v},
   {k: "rapid", t: "Rapid", ic: "clock", of: p => (p.ratings || {}).rapid, mine: () => ((S.ratings || {}).rapid || {}).r, fmt: v => v},
   {k: "bullet", t: "Bullet", ic: "bolt", of: p => (p.ratings || {}).bullet, mine: () => ((S.ratings || {}).bullet || {}).r, fmt: v => v},
