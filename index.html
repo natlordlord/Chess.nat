@@ -1440,6 +1440,28 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 .rm-lv .flame.rmf{position:static;margin-left:4px;padding:0;background:none;box-shadow:none!important}
 .rm-lv .flame.rmf svg{width:13px;height:13px}.rm-lv .flame.rmf b{font-size:11.5px}
 .mt-me .lvchip.sm{left:auto;top:auto;right:-5px;bottom:-4px}
+/* journey path v2: bottom to top, fixed positions, a drawn line, the 3D pawn */
+.jpath{overflow-x:hidden!important;overflow-y:auto;overscroll-behavior:contain;padding:0!important;touch-action:pan-y}
+.jtrack{position:relative;width:100%;max-width:440px;margin:0 auto}
+.jline{position:absolute;left:0;top:0;width:100%;overflow:visible;pointer-events:none}
+.jline path{fill:none;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.jl-done{stroke:var(--go);stroke-width:10px;opacity:.55}
+.jl-ahead{stroke:#4a4642;stroke-width:6px;stroke-dasharray:1 14}
+.jn{position:absolute;transform:translate(-50%,-50%);z-index:2}
+.jn:active{transform:translate(-50%,-50%) scale(.94)}
+.jn.done{background:linear-gradient(180deg,var(--go-hi),var(--go));box-shadow:0 5px 0 var(--go-deep),0 8px 16px rgba(0,0,0,.25)}
+.jn.now{animation:none;box-shadow:0 6px 0 #b7790c,0 0 0 8px rgba(255,214,94,.18),0 0 30px rgba(255,200,70,.45)}
+.jn.boing{animation:jnboing .42s ease-out}
+.jn.boing2{animation:jnboing2 .7s ease-out}
+@keyframes jnboing{0%{transform:translate(-50%,-50%) scale(1,1)}25%{transform:translate(-50%,-44%) scale(1.12,.84)}60%{transform:translate(-50%,-52%) scale(.97,1.04)}100%{transform:translate(-50%,-50%)}}
+@keyframes jnboing2{0%{transform:translate(-50%,-50%)}18%{transform:translate(-50%,-38%) scale(1.22,.7)}45%{transform:translate(-50%,-56%) scale(.92,1.1)}70%{transform:translate(-50%,-48%) scale(1.04,.96)}100%{transform:translate(-50%,-50%)}}
+.jn.boing2::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:4px solid rgba(255,214,94,.8);animation:jnring .7s ease-out forwards}
+@keyframes jnring{to{inset:-34px;opacity:0;border-width:1px}}
+.jn-sep{position:absolute;left:18px;right:18px;margin:0;transform:translateY(-50%)}
+.jn-end{position:absolute;left:0;right:0;transform:translateY(-50%)}
+.jpawn{position:absolute;width:96px;height:140px;z-index:3;pointer-events:none;transform:translate(-50%,-100%)}
+.jpawn-cv{width:96px;height:140px;display:block;filter:drop-shadow(0 6px 6px rgba(0,0,0,.35))}
+.jgo .btn.counting{background:var(--go-deep)}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -1461,7 +1483,7 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794103918";
+const CHESSNAT_BUILD = "1794105024";
 /* ===== Speech text helpers (shared by the page and the voice build script) ===== */
 const PIECE_WORD = {K: "king", Q: "queen", R: "rook", B: "bishop", N: "knight"};
 function speechNorm(t){ return String(t || "").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, " ").trim(); }
@@ -4454,39 +4476,63 @@ Views.journey = {
   mount(main, arg){
     this.main = main; const J = jState();
     this.w = arg && arg.world != null ? arg.world : worldIdx(J.level);
-    this.sel = null; this.draw(arg && arg.anim);
+    this.sel = null; this.auto = !!(arg && arg.auto); this.draw(arg && arg.anim);
   },
-  unmount(){ clearTimeout(this.t); },
+  unmount(){ clearTimeout(this.t); clearTimeout(this.t2); JPawn.stop(); },
   draw(anim){
     const J = jState(), wi = this.w, w = WORLDS[wi % WORLDS.length], first = wi * PER_WORLD + 1, last = first + PER_WORLD - 1, maxW = worldIdx(J.level);
-    const fresh = anim && anim.to === J.level ? anim.to - 1 : null;     /* the level you just finished: its tick pops in */
     if (this.sel == null || this.sel < first || this.sel > last) this.sel = J.level <= last ? J.level : last;
     const doneN = clamp(J.level - first, 0, PER_WORLD);
-    let nodes = "";
+    /* the path runs from the bottom (level 1 of the world) to the top; every stop has fixed coordinates so the line and the pawn can find it */
+    const GAP = 96, PAD = 130, H = PAD * 2 + (PER_WORLD - 1) * GAP;
+    const pos = L => { const k = L - first; return {x: 50 + Math.sin(k * .85) * 26, y: H - PAD - k * GAP}; };
+    this.pos = pos; this.first = first; this.last = last;
+    let nodes = "", seps = "";
     for (let L = first; L <= last; L++){
-      const sp = levelSpec(L), k = L - first, x = Math.round(Math.sin(k * .9) * 34);   /* the path swings left and right */
-      const state = L < J.level ? "done" : L === J.level ? "now" : "ahead", big = sp.type === "boss";
+      const sp = levelSpec(L), {x, y} = pos(L), state = L < J.level ? "done" : L === J.level ? "now" : "ahead", big = sp.type === "boss";
       let icon = sp.type === "boss" ? `<i class="pc ${sp.piece}"></i>` : QUESTS[sp.type] ? QUESTS[sp.type].icon : "";
       if (state === "done") icon = CHECK_SVG;
-      if (state === "now" && !icon) icon = `<i class="pc wp"></i>`;
-      nodes += `<div class="jn-row" style="--x:${x}%">${state === "now" ? `<div class="jn-start">${L === J.level && J.level === first && !doneN ? "Start" : "Level " + L}</div>` : ""}
-        <button class="jn ${state} ${big ? "big" : ""} ${L === this.sel ? "sel" : ""} ${L === fresh ? "fresh" : ""}" data-lv="${L}" aria-label="Level ${L}${state === "done" ? ", done" : state === "now" ? ", next" : ""}">${icon}</button></div>`;
-      if (sp.type === "boss" && !sp.world && L < last) nodes += `<div class="jn-sep"><span>${state === "done" ? "✓ " : ""}Section ${Math.round((k + 1) / 16) + 1}</span></div>`;
+      nodes += `<button class="jn ${state} ${big ? "big" : ""} ${L === this.sel ? "sel" : ""}" data-lv="${L}" style="left:${x}%;top:${y}px" aria-label="Level ${L}${state === "done" ? ", done" : state === "now" ? ", next" : ""}">${icon}</button>`;
+      if (sp.type === "boss" && !sp.world && L < last) seps += `<div class="jn-sep" style="top:${y - GAP / 2}px"><span>${state === "done" ? "✓ " : ""}Section ${Math.round((L - first + 1) / 16) + 1}</span></div>`;
     }
+    /* the line between the stops: smooth curves, green up to where you are, dotted grey after */
+    const curve = (a, b) => { const A = pos(a), B = pos(b); let d = ""; for (let L = a; L < b; L++){ const p = pos(L), q = pos(L + 1), my = (p.y + q.y) / 2; d += (L === a ? `M${p.x} ${p.y}` : "") + ` C${p.x} ${my} ${q.x} ${my} ${q.x} ${q.y}`; } return d; };
+    const cur = clamp(J.level, first, last);
+    const svg = `<svg class="jline" viewBox="0 0 100 ${H}" preserveAspectRatio="none" style="height:${H}px">${cur > first ? `<path class="jl-done" d="${curve(first, cur)}"/>` : ""}${cur < last ? `<path class="jl-ahead" d="${curve(cur, last)}"/>` : ""}</svg>`;
     this.main.innerHTML = `<div class="jpage" style="--wl:${w.l};--wd:${w.d}">
       <div class="jhead"><button class="btn sm nv" id="jprev" ${wi <= 0 ? "disabled" : ""} aria-label="Previous world">‹</button>
         <div class="jhead-t"><small>World ${wi + 1}</small><b>${esc(worldName(first))}</b></div>
         <button class="btn sm nv" id="jnext" ${wi >= maxW ? "disabled" : ""} aria-label="Next world">›</button></div>
       <div class="jhead-p"><div class="bar"><i style="width:${Math.round(doneN / PER_WORLD * 100)}%"></i></div><span><b>${doneN}</b> / ${PER_WORLD} ✓</span></div>
-      <div class="jpath" id="jpath">${nodes}${J.level > last ? `<div class="jn-end">🏆 World complete!</div>` : `<div class="jn-end dim">🏆 World boss at the end</div>`}</div>
+      <div class="jpath" id="jpath"><div class="jtrack" style="height:${H}px"><div class="jn-end" style="top:${pos(last).y - 92}px">🏆 ${J.level > last ? "World complete!" : esc(w.boss)}</div>${svg}${seps}${nodes}</div></div>
       <div class="jgo" id="jcard"></div></div>`;
     this.card();
     $("#jprev").onclick = () => { this.w = Math.max(0, wi - 1); this.sel = null; this.draw(); };
     $("#jnext").onclick = () => { this.w = Math.min(maxW, wi + 1); this.sel = null; this.draw(); };
     $$(".jn[data-lv]", this.main).forEach(b => b.onclick = () => { this.sel = +b.dataset.lv; $$(".jn.sel", this.main).forEach(x => x.classList.remove("sel")); b.classList.add("sel"); this.card(); Sound.play("Move", .25); });
-    /* bring the next stop into view */
-    const now = $(".jn.now", this.main) || $(".jn.sel", this.main); if (now) requestAnimationFrame(() => now.scrollIntoView({block: "center"}));
-    if (fresh) Sound.play("GenericNotify", .5);
+    /* centre the current stop (or the one you just finished) */
+    const path = $("#jpath"), focusL = J.level <= last ? J.level : last;
+    const centre = L => { const y = pos(L).y; path.scrollTop = Math.max(0, y - path.clientHeight / 2); };
+    requestAnimationFrame(() => centre(anim && anim.to === J.level && anim.to - 1 >= first ? anim.to - 1 : focusL));
+    /* the 3D pawn: stands on your stop and bounces; after a finished level it jumps from the old stop to the new one */
+    if (J.level <= last){
+      const track = $(".jtrack", this.main), jump = anim && anim.to === J.level && anim.to - 1 >= first;
+      JPawn.mount(track, jump ? pos(J.level - 1) : pos(J.level), node => $(`.jn[data-lv="${node}"]`, this.main));
+      if (jump){ const from = J.level - 1, to = J.level; this.t = setTimeout(() => { if (App.view !== this) return;
+        path.scrollTo({top: Math.max(0, (pos(from).y + pos(to).y) / 2 - path.clientHeight / 2), behavior: "smooth"});
+        JPawn.jump(pos(to), to, () => this.autoGo(to)); }, 650); }
+      else JPawn.idle(J.level);
+    } else JPawn.stop();
+  },
+  /* after a finished level: the pawn has landed, the next level starts by itself unless you touch the map */
+  autoGo(L){
+    if (!this.auto) return; this.auto = false; const b = $("#jplay"); if (!b) return;
+    let n = 2; b.textContent = `Starting level ${L} in ${n}…`; b.classList.add("counting");
+    const stopIt = () => { clearTimeout(this.t2); b.textContent = "Start level " + L; b.classList.remove("counting"); this.main.removeEventListener("pointerdown", cancel, true); };
+    const cancel = e => { if (e.target.closest("#jplay")) return; stopIt(); };
+    this.main.addEventListener("pointerdown", cancel, true);
+    const tick = () => { n--; if (App.view !== this || !b.isConnected) return; if (n <= 0){ this.main.removeEventListener("pointerdown", cancel, true); this.start(L); return; } b.textContent = `Starting level ${L} in ${n}…`; this.t2 = setTimeout(tick, 900); };
+    this.t2 = setTimeout(tick, 900);
   },
   card(){
     const J = jState(), L = this.sel, sp = levelSpec(L), st = J.best[L] || 0, locked = L > J.level, done = L < J.level, q = QUESTS[sp.type];
@@ -4607,12 +4653,78 @@ function journeyResultCard(board, sp, stars, res){
     <p>${res.newWorld ? `New world unlocked: <b>${esc(worldName(nl))}</b> ✨` : next ? `Next: <b>level ${nl}</b>${what ? " · " + what : ""}` : "Replay finished."}</p>
     <div class="grid2"><button class="btn" id="jmap">Map</button><button class="btn go" id="jcont">${next ? "Next level" : "Map"}</button></div></div>`);
   /* finished a new level: the next one starts by itself after a moment */
-  const goNext = () => { clearTimeout(auto); if (next) Views.journey.start(nl); else App.go("journey"); };
-  const auto = next ? setTimeout(() => { if ($("#jcont")) goNext(); }, 2600) : null;
+  const goNext = () => { clearTimeout(auto); if (next && worldIdx(nl) === worldIdx(sp.L) && nl === res.to) App.go("journey", {anim: {from: Math.min(sp.L, res.from), to: res.to}, auto: true}); else if (next) Views.journey.start(nl); else App.go("journey"); };
+  const auto = next ? setTimeout(() => { if ($("#jcont")) goNext(); }, 1800) : null;
   if (auto) $("#jcont", ov).insertAdjacentHTML("beforeend", `<i class="jautobar"></i>`);
   $("#jcont", ov).onclick = goNext;
   $("#jmap", ov).onclick = () => { clearTimeout(auto); App.go("journey", {anim: {from: Math.min(sp.L, res.from), to: res.to}}); };
 }
+
+/* ===== The Journey pawn: a real 3D pawn that stands on your stop, bounces on it like on a trampoline,
+   and after a finished level jumps over to the next stop. The stop gives way under it when it lands. ===== */
+const JPawn = (() => {
+  const W = 96, H = 140;                       /* css px of the little stage */
+  let T = null, R = null, scene = null, cam = null, pawn = null, cv = null, wrap = null, raf = 0, nodeOf = null;
+  let at = null, act = null, lastT = 0, nextHop = 0, curL = null;
+  function setup(){
+    if (R) return true; T = window.THREE; if (!T) return false;
+    cv = document.createElement("canvas"); cv.className = "jpawn-cv";
+    try { R = new T.WebGLRenderer({canvas: cv, antialias: true, alpha: true}); } catch(e){ R = null; return false; }
+    R.setClearColor(0, 0); R.outputEncoding = T.sRGBEncoding;
+    scene = new T.Scene(); cam = new T.PerspectiveCamera(26, W / H, .1, 50); cam.position.set(0, 1.7, 5.2); cam.lookAt(0, .72, 0);
+    scene.add(new T.HemisphereLight(0xffffff, 0x5a4a38, .55)); const d = new T.DirectionalLight(0xffffff, 1.05); d.position.set(-3, 3, 2.5); scene.add(d);
+    /* a classic Staunton pawn, turned on a lathe, toon shaded with an ink outline like the figures */
+    const prof = [[0, 0], [.46, 0], [.48, .06], [.44, .12], [.34, .16], [.3, .2], [.22, .26], [.17, .5], [.27, .55], [.28, .6], [.18, .63], [.14, .66]].map(([x, y]) => new T.Vector2(x, y));
+    const g = new T.Group();
+    const grad = new T.DataTexture(new Uint8Array([88, 88, 88, 255, 170, 170, 170, 255, 245, 245, 245, 255]), 3, 1, T.RGBAFormat); grad.minFilter = grad.magFilter = T.NearestFilter; grad.needsUpdate = true;
+    const mat = new T.MeshToonMaterial({color: 0xeee6d3, gradientMap: grad}), ink = new T.MeshBasicMaterial({color: 0x2b2925, side: T.BackSide});
+    const body = new T.LatheGeometry(prof, 40), head = new T.SphereGeometry(.24, 32, 20);
+    const add = (geo, y, s) => { const m = new T.Mesh(geo, mat); m.position.y = y; g.add(m); const o = new T.Mesh(geo, ink); o.position.y = y; o.scale.setScalar(s); g.add(o); };
+    add(body, 0, 1.045); add(head, .86, 1.06);
+    pawn = g; scene.add(g);
+    return true;
+  }
+  /* where the pawn stands: its feet a little above the middle of the stop */
+  function place(p){ if (!wrap) return; wrap.style.left = p.x + "%"; wrap.style.top = (p.y - 6) + "px"; }
+  function mount(track, p, nodeFn){
+    stop(); nodeOf = nodeFn; at = {x: p.x, y: p.y};
+    wrap = document.createElement("div"); wrap.className = "jpawn"; track.appendChild(wrap); place(at);
+    Av3D.load().then(() => { if (!wrap || !wrap.isConnected) return; if (!setup()) return;
+      const d = Math.min(2, window.devicePixelRatio || 1); R.setPixelRatio(d); R.setSize(W, H, false); wrap.appendChild(cv); start(); }).catch(() => {});
+  }
+  function idle(L){ curL = L; act = null; nextHop = performance.now() + 500; }
+  /* jump to the next stop: an arc with a spin, stretch on take-off, a big squash on landing */
+  function jump(p, L, done){ curL = L; act = {k: "jump", t0: performance.now(), d: 900, from: {x: at.x, y: at.y}, to: {x: p.x, y: p.y}, done}; Sound.play("Move", .5); }
+  function boing(L, big){ const n = nodeOf && nodeOf(L); if (!n) return; n.classList.remove("boing", "boing2"); void n.offsetWidth; n.classList.add(big ? "boing2" : "boing"); }
+  function start(){ lastT = 0; if (!raf) raf = requestAnimationFrame(loop); }
+  function loop(now){
+    raf = 0; if (!wrap || !wrap.isConnected || !R){ return; }
+    let lift = 0, sq = 0, spin = 0, tilt = 0;
+    if (act && act.k === "jump"){
+      const u = Math.min(1, (now - act.t0) / act.d), e = u < .5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
+      at = {x: act.from.x + (act.to.x - act.from.x) * e, y: act.from.y + (act.to.y - act.from.y) * e};
+      lift = Math.sin(Math.PI * u) * 110; spin = e * Math.PI * 2; tilt = Math.sin(Math.PI * u) * (act.to.x > act.from.x ? -.25 : .25);
+      sq = u < .12 ? .22 * (1 - u / .12) : u > .9 ? -.12 * ((u - .9) / .1) : -.08;
+      if (u >= 1){ const done = act.done; at = {x: act.to.x, y: act.to.y}; act = {k: "land", t0: now, d: 650, big: true}; boing(curL, true); Sound.play("Capture", .6); if (done) done(); }
+    } else if (act && act.k === "land"){
+      const u = Math.min(1, (now - act.t0) / act.d); sq = Math.exp(-u * 5) * Math.cos(u * 18) * (act.big ? .34 : .18);
+      if (u >= 1){ act = null; nextHop = now + 1400; }
+    } else if (now > nextHop){
+      act = {k: "hop", t0: now, d: 560};
+    }
+    if (act && act.k === "hop"){
+      const u = Math.min(1, (now - act.t0) / act.d); lift = Math.sin(Math.PI * u) * 20; sq = u < .15 ? .16 * (1 - u / .15) : -.05 * Math.sin(Math.PI * u);
+      if (u >= 1){ act = {k: "land", t0: now, d: 420, big: false}; boing(curL, false); }
+    }
+    place(at); wrap.style.transform = `translate(-50%, calc(-100% - ${lift}px))`;
+    /* squash and stretch keep the volume: wide and flat when it lands, thin and tall when it springs */
+    pawn.scale.set(1 + sq * .55, 1 - sq, 1 + sq * .55); pawn.rotation.y = .5 + spin + now / 4000; pawn.rotation.z = tilt;
+    R.render(scene, cam);
+    raf = requestAnimationFrame(loop);
+  }
+  function stop(){ if (raf) cancelAnimationFrame(raf); raf = 0; if (wrap) wrap.remove(); wrap = null; act = null; }
+  return {mount, idle, jump, stop};
+})();
 
 /* ===== Opening names: recognise the opening from the position (Lichess opening database, CC0) ===== */
 const OPENING_FAMILIES = {
