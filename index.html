@@ -2227,7 +2227,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794160930";
+const CHESSNAT_BUILD = "1794162112";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -3224,6 +3224,8 @@ function themeNames(p){ return p.th.map(themeLabel).filter(Boolean); }
 /* when each puzzle was put on the board: skipping or tapping through puzzles in a second earns nothing */
 const PZ_T = {};
 /* puzzles you really played: a skip in the first seconds (or before the puzzle even started) is not counted at all */
+/* how many of your last 10 rated puzzles you solved (0 until you have played 8) */
+const pzForm = () => { const L = (S.recent || []).filter(r => r.mode === "rated").slice(-10); return L.length >= 8 ? L.filter(r => r.ok).length : 0; };
 const pzN = () => Math.max(0, (S.puzzle.n || 0) - (S.puzzle.void || 0));
 const pzQuick = p => { const t = PZ_T[p.id]; return !t || Date.now() - t < 6000; };
 function recordThemes(p, ok){
@@ -3326,7 +3328,8 @@ Views.puzzles = {
     const speed = ok ? clamp(1.2 - .2 * Math.sqrt(ms / T), .5, 1.2) : 1;
     /* on a run the rating moves faster: the 3rd solve in a row counts double, the 5th triple, the 8th and on four times.
        Someone much better than their rating gets there in a few minutes, not in hundreds of puzzles. A miss counts normally. */
-    const run = ok ? (S.puzzle.streak >= 7 ? 4 : S.puzzle.streak >= 4 ? 3 : S.puzzle.streak >= 2 ? 2 : 1) : 1;
+    /* and in form: 7 of your last 10 solved counts double, 8 triple, 9 or 10 four times (whichever is higher) */
+    const fm = pzForm(), run = ok ? Math.max(S.puzzle.streak >= 7 ? 4 : S.puzzle.streak >= 4 ? 3 : S.puzzle.streak >= 2 ? 2 : 1, fm >= 9 ? 4 : fm >= 8 ? 3 : fm >= 7 ? 2 : 1) : 1;
     let d = eloDelta(old, p.r, ok ? 1 : 0, pzN()); if (ok && d > 0) d = Math.max(1, Math.round(d * speed * run));
     this.speed = ok ? {ms, f: speed} : null;
     const before = rankOf(old);
@@ -3565,7 +3568,7 @@ Views.train = {
    1. Theme strength: per motif, how often you solve it compared with what your rating predicts for that puzzle.
       Recent results weigh more (old ones fade), so improvement shows and luck with easy or hard puzzles evens out.
    2. Difficulty: the next rated puzzle aims at about 62 % success. After two misses in a row an easier one
-      (about 75 %), on a run harder with every solve. On a run the rating also moves faster (x2 from the 3rd solve in a row up to x4).
+      (about 75 %), on a run or in form (8+ of the last 10) clearly harder. Then the rating also moves faster (x2 up to x4).
    3. Review: a missed puzzle comes back by itself after 1, 3, 7 and 21 days, inside the normal puzzle stream (not rated).
    4. Your own games: a fork, mate or free piece you missed in a reviewed game counts against that motif too. */
 const BR_META = new Set(["opening", "middlegame", "endgame"]);
@@ -3622,6 +3625,7 @@ function brainTarget(){
   let gap = -85;                                              /* about 62 % */
   if (last.length === 2 && !last[0].ok && !last[1].ok) gap = -190; /* two misses: win one back */
   else if (S.puzzle.streak >= 3) gap = Math.min(250, 60 * (S.puzzle.streak - 3));  /* on a run: harder with every solve (3 in a row: even, 5: +120, 7+: +250) */
+  if (gap !== -190){ const f = typeof pzForm === "function" ? pzForm() : 0; if (f >= 9) gap = Math.max(gap, 250); else if (f >= 8) gap = Math.max(gap, 150); }  /* too easy lately: jump up */
   if ((S.puzzle.n || 0) < 10) gap = 120;                       /* finding your level: always a little above, so a solver climbs quickly */
   return Math.max(350, me + gap + Math.round((Math.random() - .5) * 70));
 }
