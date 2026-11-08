@@ -2221,15 +2221,21 @@ html.i18n-wait body{visibility:hidden}
 .nv-done{display:flex;gap:14px;align-items:center}
 .nv-circle{width:120px;height:120px;border-radius:50%;overflow:hidden;flex:none;border:3px solid var(--go)}
 .nv-circle video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
-.nv-rec{position:fixed;inset:0;z-index:9000;background:rgba(10,10,10,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;opacity:0;transition:opacity .2s;touch-action:none}
-.nv-rec.on{opacity:1}.nv-rec.out{opacity:0}
+.nv-rec{position:fixed;inset:0;z-index:9000;background:rgba(10,10,10,.86);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;opacity:0;transition:opacity .2s;touch-action:none;animation:nvIn .2s forwards}
+@keyframes nvIn{to{opacity:1}}.nv-rec.out{animation:none;opacity:0}
 .nv-live{position:relative;width:min(78vw,300px);aspect-ratio:1;transform:translateX(var(--dx,0px))}
 .nv-live video{width:100%;height:100%;object-fit:cover;border-radius:50%;transform:scaleX(-1);background:#111}
 .nv-live svg{position:absolute;inset:-8px;width:calc(100% + 16px);height:calc(100% + 16px);transform:rotate(-90deg)}
 .nv-live circle{fill:none;stroke:#e5484d;stroke-width:3;stroke-dasharray:302;stroke-dashoffset:302;stroke-linecap:round}
 .nv-bar{display:flex;align-items:center;gap:10px;color:#fff;font:700 15px var(--body)}
 .nv-tip,.nv-lock{color:rgba(255,255,255,.65);font-weight:600;font-size:13px}
-.nv-btns{display:none;gap:10px}.nv-rec.locked .nv-btns{display:flex}.nv-rec.locked .nv-tip,.nv-rec.locked .nv-lock{display:none}
+.nv-btns{display:flex;gap:16px;align-items:center}
+.nv-go{width:72px;height:72px;border-radius:50%;border:4px solid #fff;background:#e5484d;position:relative;flex:none;transition:transform .15s}
+.nv-go:active{transform:scale(.94)}
+.nv-rec.rec .nv-go::after{content:"";position:absolute;inset:0;margin:auto;width:24px;height:24px;border-radius:5px;background:#fff}
+.nv-rec:not(.rec) .nv-bar .rec-dot,.nv-rec:not(.rec) .nv-t{opacity:.35}
+.nv-tip{display:none}.nv-tap{display:none;color:rgba(255,255,255,.75);font-weight:600;font-size:13px}.nv-rec.ready:not(.rec) .nv-tap{display:inline}.nv-rec.rec:not(.locked) .nv-tip{display:inline}
+.nv-wait{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font:700 15px var(--body)}
 /* news history: swipe left to delete */
 .nh-wrap{position:relative;overflow:hidden;border-radius:14px;transition:max-height .25s,opacity .25s;max-height:400px}
 .nh-wrap.gone{max-height:0;opacity:0}
@@ -2259,7 +2265,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794164510";
+const CHESSNAT_BUILD = "1794164747";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -12001,7 +12007,7 @@ Views.news = {
     await this.reload(); this.draw();
   },
   async reload(){ this.list = await News.history(); this.cur = this.list[0] || null; },
-  unmount(){ this.stopRec(); this.vcancel && this.vcancel(); },
+  unmount(){ this.stopRec(); this.vcancel && this.vcancel(); this.vcamOff(); },
   draw(){
     const n = this.cur, main = this.main, draft = this.tpl || (!n ? NEWS_DRAFT : {t: "", b: ""}); this.tpl = null;
     const when = d => new Date(d).toLocaleString("de-DE", {day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"});
@@ -12097,36 +12103,53 @@ Views.news = {
     hold.addEventListener("contextmenu", e => e.preventDefault());
     hold.addEventListener("pointerdown", e => { e.preventDefault(); try { hold.setPointerCapture(e.pointerId); } catch(_) {} this.vrecord(e, hold); });
   },
+  /* one camera for the whole visit to this page: asked for once, paused (light off) between recordings, closed when you leave */
+  async vcam(){
+    clearTimeout(this.vcamT);
+    const s = this.vstream; if (s && s.getTracks().every(t => t.readyState === "live")){ s.getTracks().forEach(t => t.enabled = true); return s; }
+    this.vstream = await navigator.mediaDevices.getUserMedia({video: {facingMode: "user", width: {ideal: 640}, height: {ideal: 640}}, audio: {echoCancellation: true, noiseSuppression: true}});
+    return this.vstream;
+  },
+  vcamPause(){ const s = this.vstream; if (!s) return; s.getTracks().forEach(t => t.enabled = false);
+    clearTimeout(this.vcamT); this.vcamT = setTimeout(() => this.vcamOff(), 3 * 6e4); },
+  vcamOff(){ clearTimeout(this.vcamT); if (this.vstream){ this.vstream.getTracks().forEach(t => t.stop()); this.vstream = null; } },
+  /* holding the button: records while held. If the phone first asked for the camera (or you already let go),
+     nothing starts by itself: the round preview opens and you tap the red button to start and to stop. Cancel is always there. */
   async vrecord(e0, hold){
-    const R = {x0: e0.clientX, y0: e0.clientY, up: false, cancel: false, lock: false, stream: null, mr: null, t0: 0, chunks: []};
-    const ov = document.createElement("div"); ov.className = "nv-rec";
-    ov.innerHTML = `<div class="nv-live"><video playsinline muted autoplay></video><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48"/></svg></div>
-      <div class="nv-bar"><span class="rec-dot"></span><b class="nv-t">0:00</b><span class="nv-tip">‹ nach links verwerfen</span><span class="nv-lock">▲ freihändig</span></div>
-      <div class="nv-btns"><button class="btn" data-x>Verwerfen</button><button class="btn go" data-ok>Fertig</button></div>`;
+    const R = {x0: e0.clientX, y0: e0.clientY, up: false, lock: false, mr: null, t0: 0, chunks: [], done: false};
+    const ov = document.createElement("div"); ov.className = "nv-rec on";
+    ov.innerHTML = `<div class="nv-live"><video playsinline muted autoplay></video><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48"/></svg><div class="nv-wait">Kamera startet…</div></div>
+      <div class="nv-bar"><span class="rec-dot"></span><b class="nv-t">0:00</b><span class="nv-tip">‹ nach links verwerfen · ▲ freihändig</span><span class="nv-tap">Tippe auf den roten Knopf</span></div>
+      <div class="nv-btns"><button class="btn" data-x>Abbrechen</button><button class="nv-go" data-go aria-label="Aufnahme starten"></button><button class="btn go" data-ok>Fertig</button></div>`;
     document.body.appendChild(ov);
-    const fin = keep => { if (R.done) return; R.done = true; clearInterval(R.tick); hold.onpointermove = hold.onpointerup = hold.onpointercancel = null;
-      const short = Date.now() - R.t0 < 800;
-      if (R.mr && R.mr.state !== "inactive"){ R.keep = keep && !short; R.mr.stop(); } else { if (R.stream) R.stream.getTracks().forEach(t => t.stop()); ov.remove(); }
-      if (keep && short && R.t0) toast("Halte den Knopf gedrückt, solange du sprichst."); };
+    const go = ov.querySelector("[data-go]"), okb = ov.querySelector("[data-ok]"), tt = ov.querySelector(".nv-t"), ring = ov.querySelector(".nv-live circle");
+    const close = () => { ov.classList.remove("on"); ov.classList.add("out"); setTimeout(() => ov.remove(), 220); this.vcamPause(); };
+    const fin = keep => { if (R.done) return; R.done = true; clearInterval(R.tick); hold.onpointermove = hold.onpointerup = hold.onpointercancel = null; this.vcancel = null;
+      if (R.mr && R.mr.state !== "inactive"){ const short = Date.now() - R.t0 < 800; R.keep = keep && !short; if (keep && short) toast("Zu kurz. Halte den Knopf gedrückt, solange du sprichst."); R.mr.stop(); }
+      else close(); };
     this.vcancel = () => fin(false);
-    hold.onpointermove = e => { if (R.lock || R.done) return; const dx = e.clientX - R.x0, dy = e.clientY - R.y0;
+    ov.querySelector("[data-x]").onclick = () => fin(false);
+    okb.onclick = () => fin(true);
+    hold.onpointermove = e => { if (R.lock || R.done || !R.mr) return; const dx = e.clientX - R.x0, dy = e.clientY - R.y0;
       ov.style.setProperty("--dx", Math.min(0, dx) + "px");
       if (dx < -110){ fin(false); toast("Verworfen."); } else if (dy < -80){ R.lock = true; ov.classList.add("locked"); } };
-    hold.onpointerup = hold.onpointercancel = () => { R.up = true; if (!R.lock) fin(true); };
-    ov.querySelector("[data-x]").onclick = () => fin(false); ov.querySelector("[data-ok]").onclick = () => fin(true);
-    try { R.stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: "user", width: {ideal: 640}, height: {ideal: 640}}, audio: {echoCancellation: true, noiseSuppression: true}}); }
-    catch(err){ ov.remove(); R.done = true; toast(err && err.name === "NotAllowedError" ? "Kamera blockiert. Erlaube sie für Chess.nat in den Einstellungen." : "Keine Kamera gefunden. Du kannst auch ein Video wählen.", 4000); return; }
-    if (R.done){ R.stream.getTracks().forEach(t => t.stop()); return; }
-    ov.querySelector("video").srcObject = R.stream;
-    const type = ["video/mp4;codecs=avc1,mp4a", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"].find(t => window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || "";
-    try { R.mr = new MediaRecorder(R.stream, Object.assign({videoBitsPerSecond: 1200000}, type ? {mimeType: type} : {})); } catch(err){ R.stream.getTracks().forEach(t => t.stop()); ov.remove(); toast("Video aufnehmen geht in diesem Browser nicht. Wähle ein Video.", 4000); return; }
-    R.mr.ondataavailable = e => { if (e.data && e.data.size) R.chunks.push(e.data); };
-    R.mr.onstop = () => { R.stream.getTracks().forEach(t => t.stop()); ov.classList.add("out"); setTimeout(() => ov.remove(), 220);
-      if (R.keep && R.chunks.length){ this.vblob = new Blob(R.chunks, {type: (R.mr.mimeType || type || "video/mp4").split(";")[0]}); this.blob = null; this.voiceUI(); this.videoUI(); } };
-    R.mr.start(250); R.t0 = Date.now(); ov.classList.add("on"); try { navigator.vibrate && navigator.vibrate(30); } catch(_) {}
-    const ring = ov.querySelector(".nv-live circle"), tt = ov.querySelector(".nv-t");
-    R.tick = setInterval(() => { const s = (Date.now() - R.t0) / 1000; tt.textContent = Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0"); ring.style.strokeDashoffset = 302 * (1 - Math.min(1, s / 60)); if (s >= 60) fin(true); }, 200);
-    if (R.up && !R.lock) fin(true);
+    hold.onpointerup = hold.onpointercancel = () => { R.up = true; if (R.mr && !R.lock) fin(true); };
+    const start = stream => {
+      const type = ["video/mp4;codecs=avc1,mp4a", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"].find(t => window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || "";
+      try { R.mr = new MediaRecorder(stream, Object.assign({videoBitsPerSecond: 1200000}, type ? {mimeType: type} : {})); } catch(err){ fin(false); toast("Video aufnehmen geht in diesem Browser nicht. Wähle ein Video.", 4000); return; }
+      R.mr.ondataavailable = e => { if (e.data && e.data.size) R.chunks.push(e.data); };
+      R.mr.onstop = () => { close(); if (R.keep && R.chunks.length){ this.vblob = new Blob(R.chunks, {type: (R.mr.mimeType || type || "video/mp4").split(";")[0]}); this.blob = null; this.voiceUI(); this.videoUI(); } };
+      R.mr.start(250); R.t0 = Date.now(); ov.classList.add("rec"); go.setAttribute("aria-label", "Aufnahme beenden"); try { navigator.vibrate && navigator.vibrate(30); } catch(_) {}
+      R.tick = setInterval(() => { const s = (Date.now() - R.t0) / 1000; tt.textContent = Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0"); ring.style.strokeDashoffset = 302 * (1 - Math.min(1, s / 60)); if (s >= 60) fin(true); }, 200); };
+    const asked = Date.now(); let stream;
+    try { stream = await this.vcam(); }
+    catch(err){ R.done = true; ov.remove(); toast(err && err.name === "NotAllowedError" ? "Kamera blockiert. Erlaube sie für Chess.nat in den Einstellungen." : "Keine Kamera gefunden. Du kannst auch ein Video wählen.", 4000); return; }
+    if (R.done){ this.vcamPause(); return; }
+    ov.querySelector("video").srcObject = stream; ov.querySelector(".nv-wait").remove();
+    go.onclick = () => { if (!R.mr) start(stream); else fin(true); };
+    /* still holding and no question popped up in between: record right away. Otherwise wait for the red button. */
+    if (!R.up && Date.now() - asked < 700) start(stream);
+    else { ov.classList.add("ready"); R.lock = true; }
   },
   /* record with the microphone, or pick an audio file */
   voiceUI(){
