@@ -2481,6 +2481,12 @@ html[data-bfx="petals"] .board::after{background-image:radial-gradient(3px 2px a
 .bph-tier{margin-top:16px}
 @media (min-width:700px){.bph-art{width:180px;height:130px;transform:none;right:20px;top:14px}.bph-txt>small,.bph-txt h2,.bph-tier,.bph-buy{max-width:calc(100% - 210px)}}
 @media (max-width:699px){.bph-art{right:14px;width:118px}.bph-knife{width:118px;left:0;top:36px}.bph-board{left:14px}}
+.shop-practice{display:flex;flex-direction:column;gap:10px;border:2px dashed rgba(255,255,255,.18)}
+.shop-practice small{display:block;margin-top:2px}
+.sp-btns{display:flex;flex-wrap:wrap;gap:6px}
+.sp-btns .btn.sm{display:inline-flex;align-items:center;gap:6px}
+.sp-dot{width:10px;height:10px;border-radius:50%;background:var(--rc);box-shadow:0 0 8px var(--rc)}
+.pz-practice{margin-top:12px;font:800 12px var(--body);color:#ffd23f;background:rgba(255,210,63,.12);border-radius:99px;padding:4px 12px;display:inline-block}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -2502,7 +2508,7 @@ html[data-bfx="petals"] .board::after{background-image:radial-gradient(3px 2px a
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794173071";
+const CHESSNAT_BUILD = "1794173294";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11287,10 +11293,11 @@ const ChestSfx = (() => {
 })();
 
 /* ---- opening: tap anywhere, again and again. It charges up, may climb, then bursts open ---- */
-function chestOpen(){
-  const list = chestsWaiting(); if (!list.length){ toast("No chests right now. Level ups and the battle pass bring new ones."); return; }
+/* o.practice: the team's practice chest. Same show, nothing is given or used up. o.force: the rarity it ends on */
+function chestOpen(o = {}){
+  const P0 = !!o.practice, list = P0 ? [{id: "practice", f: o.floor || 0}] : chestsWaiting(); if (!list.length){ toast("No chests right now. Level ups and the battle pass bring new ones."); return; }
   if (document.querySelector(".chx")) return;
-  const ch = list[0], TAPS = 4; let ri = ch.f || 0; const final = rollRarity(ch.f || 0);
+  const ch = list[0], TAPS = 4; let ri = ch.f || 0; const final = o.force != null ? Math.max(ri, o.force) : rollRarity(ch.f || 0);
   /* spread the climbs over the taps (the last tap can still surprise) */
   const steps = final - ri, at = new Set(); while (at.size < Math.min(steps, TAPS)) at.add(Math.floor(Math.random() * TAPS));
   const climbs = Array.from({length: TAPS}, (_, i) => at.has(i) ? 1 : 0); let extra = steps - at.size; for (let i = TAPS - 1; extra > 0 && i >= 0; i--){ climbs[i] += 1; extra--; }
@@ -11298,7 +11305,7 @@ function chestOpen(){
   let tap = 0, phase = "charge", busy = false, energy = .15, shakeT = 0, shakeA = 0;
   const el = document.createElement("div"); el.className = "chx";
   el.innerHTML = `<div class="chx-bg"></div><div class="chx-rays"></div><canvas class="chx-cf"></canvas>
-    <div class="chx-top"><span class="chx-left">${list.length > 1 ? `${list.length} chests` : "Last chest"}</span><button class="chx-skip" aria-label="Close">${icon("xmark", 20)}</button></div>
+    <div class="chx-top"><span class="chx-left">${P0 ? "Practice · nothing is given" : list.length > 1 ? `${list.length} chests` : "Last chest"}</span><button class="chx-skip" aria-label="Close">${icon("xmark", 20)}</button></div>
     <div class="chx-stage"><div class="chx-name"></div><div class="chx-wrap"><div class="chx-glow"></div><div class="chx-ring"></div><div class="chx-box">${chestSVG(ri)}</div><div class="chx-leak"><i></i><i></i><i></i><i></i><i></i></div></div>
       <div class="chx-dots">${Array.from({length: TAPS}, () => "<i></i>").join("")}</div></div>
     <div class="chx-tip">Tap!</div><div class="chx-prize"></div><div class="chx-flash"></div>`;
@@ -11329,6 +11336,7 @@ function chestOpen(){
   $e(".chx-skip").onclick = e => { e.stopPropagation(); if (phase === "prize" || tap === 0) close(); };
   el.addEventListener("pointerdown", e => {
     if (e.target.closest(".chx-skip, .chx-prize button")) return;
+    if (phase === "prize" && P0){ phase = "gone"; close(); return; }
     if (phase === "prize"){ const left = chestsWaiting().length; el.classList.add("out"); setTimeout(() => { el.remove(); natChip(); if (left) chestOpen(); else if (Views.shop && App.route === "shop") Views.shop.draw(); }, 200); phase = "gone"; return; }
     if (phase !== "charge" || busy || !el.classList.contains("landed")) return;
     const i = tap, up = climbs[i] || 0; dots[i] && dots[i].classList.add("on"); tap++; lvl(tap); energy = .15 + tap * .2;
@@ -11342,15 +11350,14 @@ function chestOpen(){
         el.classList.remove("upg"); void el.offsetWidth; el.classList.add("upg"); shake(26, 520); burst(60 + ri * 15, 13, [NAT_R[ri].c, "#fff", "#ffe27a"]);
         tip.textContent = NAT_R[ri].n + "!"; busy = false; if (tap >= TAPS) openUp(); }, 560); }
     else if (tap >= TAPS){ busy = true; openUp(); }
-    if (i + 1 === split && !up){ chestGrant(0, "split"); el.classList.add("split"); setTimeout(() => el.classList.remove("split"), 900); tip.textContent = "It split! +1 chest"; ChestSfx.stinger(0); }
+    if (i + 1 === split && !up){ if (!P0) chestGrant(0, "split"); el.classList.add("split"); setTimeout(() => el.classList.remove("split"), 900); tip.textContent = "It split! +1 chest"; ChestSfx.stinger(0); }
   });
   /* the final charge, then the burst */
   function openUp(){
     phase = "final"; busy = true; tip.textContent = ""; el.classList.add("final"); energy = 1.4; ChestSfx.riser(5, 1); shake(10, 1000);
     setTimeout(() => {
-      phase = "open"; S.chO = (S.chO || []).concat([ch.id]).slice(-600);
-      const rw = rollReward(ri), R = NAT_R[ri];
-      if (rw.kind === "coins" || rw.kind === "dup") natEarn(rw.coins, true); if (rw.kind === "item") natGive(rw.item.id); save();
+      phase = "open"; const rw = rollReward(ri), R = NAT_R[ri];
+      if (!P0){ S.chO = (S.chO || []).concat([ch.id]).slice(-600); if (rw.kind === "coins" || rw.kind === "dup") natEarn(rw.coins, true); if (rw.kind === "item") natGive(rw.item.id); save(); }
       ChestSfx.explode(ri); el.classList.remove("final"); el.classList.add("opened"); box.innerHTML = chestSVG(ri, true); shake(40, 700);
       const fl = $e(".chx-flash"); fl.classList.remove("go"); void fl.offsetWidth; fl.classList.add("go");
       burst(140 + ri * 50, 18 + ri * 2, [R.c, "#fff", "#ffe27a", R.c]);
@@ -11358,9 +11365,9 @@ function chestOpen(){
       const prize = $e(".chx-prize");
       prize.innerHTML = `<div class="chx-card r-${R.k}">${rw.kind === "coins" ? `<div class="pz-coin">${NAT_COIN}</div><b class="pz-n">+${fmtNat(rw.coins)}</b><small>NatCoins</small>`
         : `<div class="pz-pic">${natPreview(rw.item, 130)}</div><small class="pz-k">${natKindName(rw.item.kind)} · <span style="color:${R.c}">${R.n}</span></small><b class="pz-t">${esc(rw.item.name)}</b>${rw.item.kind === "knife" ? natEurLine(rw.item) : ""}
-          ${rw.kind === "dup" ? `<p class="dim" style="margin:6px 0 0">You have it already: +${fmtNat(rw.coins)} NAT instead</p>` : ""}${rw.kind === "item" ? `<button class="btn sm pz-use" data-use>${rw.item.kind === "knife" ? "Show it off" : "Use it"}</button>` : ""}`}</div>`;
+          ${rw.kind === "dup" ? `<p class="dim" style="margin:6px 0 0">You have it already: +${fmtNat(rw.coins)} NAT instead</p>` : ""}${rw.kind === "item" && !P0 ? `<button class="btn sm pz-use" data-use>${rw.item.kind === "knife" ? "Show it off" : "Use it"}</button>` : ""}`}${P0 ? `<div class="pz-practice">Practice: not added to your account</div>` : ""}</div>`;
       const u = prize.querySelector("[data-use]"); if (u) u.onclick = e => { e.stopPropagation(); natEquip(rw.item); u.textContent = "✓"; u.disabled = true; };
-      setTimeout(() => { phase = "prize"; busy = false; const left = chestsWaiting().length; tip.textContent = left ? `Tap for the next chest (${left})` : "Tap to continue"; tip.classList.add("cont"); }, 900);
+      setTimeout(() => { phase = "prize"; busy = false; const left = chestsWaiting().length; tip.textContent = P0 ? "Tap to close" : left ? `Tap for the next chest (${left})` : "Tap to continue"; tip.classList.add("cont"); }, 900);
     }, 1050);
   }
 }
@@ -11515,6 +11522,8 @@ Views.shop = {
       <div class="unit shop-mine ${ch.length ? "has" : ""}"><div class="sm-chest">${chestSVG(ch.length ? Math.max(...ch.map(c => c.f || 0)) : 0)}${ch.length ? `<i>${ch.length}</i>` : ""}</div>
         <div class="grow"><h3 style="margin:0">${ch.length ? `${ch.length} chest${ch.length > 1 ? "s" : ""} waiting` : "No chests waiting"}</h3><p class="dim" style="margin:4px 0 0">Every level up brings a chest, every 5th a better one. Tap and it may climb up to Ultra or split in two.</p></div>
         ${ch.length ? `<button class="btn go big" data-open>Open</button>` : ""}</div>
+      ${typeof News !== "undefined" && News.admin ? `<div class="unit shop-practice"><div class="grow"><b>Practice chest</b><small class="dim">Only you see this. Full show, nothing is added to your account, nothing is used up.</small></div>
+        <div class="sp-btns"><button class="btn go" data-prac="-1">Random · 0 NAT</button>${NAT_R.map((r, i) => `<button class="btn sm" data-prac="${i}" style="--rc:${r.c}"><i class="sp-dot"></i>${r.n}</button>`).join("")}</div></div>` : ""}
       <h2 class="h-sec">Chests</h2><div class="shop-grid">${SHOP_CHESTS.map(c => `<div class="unit shop-c" style="--rc:${NAT_R[c.floor].c}"><div class="sc-pic">${chestSVG(c.floor)}</div><b>${c.name}</b><small class="dim">${c.note || "Any rarity"}</small><button class="btn go" data-buyc="${c.id}">${NAT_COIN} ${fmtNat(c.price)}</button></div>`).join("")}</div>
       <h2 class="h-sec">Today's offers</h2><div class="shop-grid">${shopDaily().map(i => this.card(i, true)).join("") || `<p class="dim">You own everything that's on offer. Wow.</p>`}</div>
       <h2 class="h-sec">Boards</h2><div class="shop-grid">${NAT_BOARDS.filter(x => x.r && x.r !== "ultra" && !x.pass).map(x => this.card(Object.assign({kind: "board"}, x), true)).join("")}</div>
@@ -11523,6 +11532,7 @@ Views.shop = {
     if (t === "coll") body.innerHTML = this.coll();
     if (t === "pass") body.innerHTML = this.pass();
     const o = $("[data-open]", body); if (o) o.onclick = () => chestOpen();
+    $$("[data-prac]", body).forEach(x => x.onclick = () => { const k = +x.dataset.prac; chestOpen(k < 0 ? {practice: true} : {practice: true, force: k}); });
     $$("[data-buyc]", body).forEach(x => x.onclick = () => this.buyChest(SHOP_CHESTS.find(c => c.id === x.dataset.buyc), x));
     $$("[data-buy]", body).forEach(x => x.onclick = () => this.buyItem(natItem(x.dataset.buy), x));
     $$("[data-eq]", body).forEach(x => x.onclick = () => { natEquip(natItem(x.dataset.eq)); this.draw(); });
