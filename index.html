@@ -2372,6 +2372,56 @@ html[data-bfx="aurora"] .board::after{background:linear-gradient(160deg,rgba(80,
 html[data-bfx="petals"] .board::after{background-image:radial-gradient(3px 2px at 15% 20%,#ffc2d6,transparent),radial-gradient(3px 2px at 65% 45%,#ffd6e4,transparent),radial-gradient(3px 2px at 35% 75%,#ffc2d6,transparent);opacity:.8}
 .lv-nat{display:flex;align-items:center;gap:10px;justify-content:center;margin-top:12px;padding:10px;border-radius:14px;background:rgba(255,255,255,.06);flex-wrap:wrap}
 .lv-nat .lvn-c,.lv-nat .lvn-ch{display:flex;align-items:center;gap:6px;font-weight:900}.lv-nat .natc{width:24px;height:24px}.lv-nat .lvn-ch b{color:var(--rc)}
+/* ===== chest opening v2: charge, climb, burst ===== */
+.chx{background:#07060a;--lvl:0}
+.chx .chx-bg{position:absolute;inset:0;background:radial-gradient(circle at 50% 46%,color-mix(in srgb,var(--rc) calc(18% + var(--lvl) * 9%),#0c0b10) 0%,#07060a calc(55% + var(--lvl) * 6%));transition:background .4s}
+.chx .chx-rays{opacity:calc(.15 + var(--lvl) * .15);animation-duration:calc(30s - var(--lvl) * 5s);transition:opacity .4s}
+.chx.final .chx-rays{opacity:.95;animation-duration:2.5s}
+.chx-cf{z-index:1}
+.chx-stage{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;will-change:transform}
+.chx-name{min-height:1.1em;opacity:0;transform:scale(.6);transition:opacity .25s,transform .25s}
+.chx.landed .chx-name{opacity:1;transform:none}
+.chx-wrap{position:relative;width:min(64vw,280px);aspect-ratio:200/180}
+.chx-box{width:100%;height:100%;filter:drop-shadow(0 0 calc(10px + var(--lvl) * 12px) var(--rc)) brightness(calc(1 + var(--lvl) * .08));transform:translateY(-120vh);transition:filter .3s}
+.chx.landed .chx-box{animation:chxLand .5s cubic-bezier(.5,0,.75,0) forwards, chxBob 2.4s .9s ease-in-out infinite}
+@keyframes chxLand{0%{transform:translateY(-120vh) scale(.8)}85%{transform:translateY(0) scale(1.15,.82)}100%{transform:translateY(0) scale(1)}}
+@keyframes chxBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.chx.landed .chx-box.hit{animation:chxHit2 .34s ease-out, chxBob 2.4s .4s ease-in-out infinite}
+@keyframes chxHit2{0%{transform:scale(1)}20%{transform:scale(1.2,.78)}45%{transform:scale(.88,1.16) translateY(-14px)}75%{transform:scale(1.05,.96)}100%{transform:scale(1)}}
+.chx-glow{position:absolute;inset:-30%;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--rc) 85%,#fff) 0%,var(--rc) 25%,transparent 62%);opacity:calc(.12 + var(--lvl) * .14);transform:scale(calc(.7 + var(--lvl) * .12));transition:opacity .3s,transform .3s;animation:chxPulse calc(1.6s - var(--lvl) * .25s) ease-in-out infinite;pointer-events:none}
+@keyframes chxPulse{50%{filter:brightness(1.5)}}
+.chx-leak{position:absolute;inset:0;pointer-events:none}
+.chx-leak i{position:absolute;left:50%;top:48%;width:6px;height:70%;margin-left:-3px;transform-origin:50% 0;background:linear-gradient(var(--rc),transparent);opacity:calc((var(--lvl) - 1) * .22);filter:blur(1px);border-radius:3px}
+.chx-leak i:nth-child(1){transform:rotate(150deg)}.chx-leak i:nth-child(2){transform:rotate(180deg) scaleY(1.3)}.chx-leak i:nth-child(3){transform:rotate(210deg)}.chx-leak i:nth-child(4){transform:rotate(120deg) scaleY(.8)}.chx-leak i:nth-child(5){transform:rotate(240deg) scaleY(.8)}
+.chx-ring{position:absolute;left:50%;top:50%;width:40px;height:40px;margin:-20px;border-radius:50%;border:6px solid var(--rc);opacity:0;pointer-events:none}
+.chx.upg .chx-ring{animation:chxRing .7s ease-out}
+@keyframes chxRing{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(14);border-width:1px}}
+.chx.upg .chx-name{animation:chxSlam .6s cubic-bezier(.2,1.8,.4,1)}
+@keyframes chxSlam{0%{transform:scale(3);opacity:0;filter:blur(6px)}60%{transform:scale(.9);opacity:1;filter:none}100%{transform:scale(1)}}
+.chx.upg::after{animation-duration:.6s}
+.chx.charging .chx-box{filter:drop-shadow(0 0 60px var(--rc)) brightness(1.8)}
+.chx.charging .chx-glow{opacity:1;transform:scale(1.5);animation-duration:.18s}
+.chx.final .chx-box{animation:chxRattle .09s linear infinite;filter:drop-shadow(0 0 70px var(--rc)) brightness(2)}
+@keyframes chxRattle{0%{transform:rotate(-3deg) scale(1.05)}50%{transform:rotate(3deg) scale(1.1)}100%{transform:rotate(-3deg) scale(1.05)}}
+.chx.final .chx-glow{opacity:1;transform:scale(2.2);animation-duration:.15s}
+.chx.final .chx-leak i{opacity:1;width:10px}
+.chx-flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:5}
+.chx-flash.go{animation:chxWhite 1s ease-out}
+@keyframes chxWhite{0%{opacity:1}100%{opacity:0}}
+.chx.opened .chx-stage{opacity:.18;transition:opacity .5s .2s}
+.chx.opened .chx-rays{opacity:.9;animation-duration:8s}
+.chx-prize{z-index:4}
+.chx-card{animation:chxCard2 .8s cubic-bezier(.2,1.5,.4,1)}
+@keyframes chxCard2{0%{transform:scale(.1) rotate(-25deg);opacity:0}60%{transform:scale(1.08) rotate(3deg);opacity:1}100%{transform:none}}
+.chx-card .pz-pic{animation:chxFloat 2.6s ease-in-out infinite}
+@keyframes chxFloat{50%{transform:translateY(-6px) rotate(-2deg)}}
+.chx-card .pz-use{margin-top:12px}
+.chx-tip{position:absolute;bottom:max(34px,env(safe-area-inset-bottom));left:0;right:0;text-align:center;z-index:6;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+.chx-tip.cont{font-size:16px;opacity:.85}
+.chx-dots{z-index:2}
+.chx-card.r-ultra{border:3px solid transparent;border-radius:22px;border-image:none;background:linear-gradient(#1e1c22,#1e1c22) padding-box,linear-gradient(90deg,#ff5fd2,#7a6bff,#30e0d2,#ffe066,#ff5fd2) border-box;background-size:100% 100%,300% 100%;animation:chxCard2 .8s cubic-bezier(.2,1.5,.4,1),chxUltra 3s linear infinite}
+@keyframes chxUltra{to{background-position:0 0,300% 0}}
+.chx-card.r-legend{box-shadow:0 0 60px rgba(255,210,63,.6),0 0 0 1px rgba(255,255,255,.2) inset}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -2393,7 +2443,7 @@ html[data-bfx="petals"] .board::after{background-image:radial-gradient(3px 2px a
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794172155";
+const CHESSNAT_BUILD = "1794172658";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11136,67 +11186,126 @@ function chestSVG(ri, open){
       <rect x="92" y="38" width="16" height="54" fill="url(#chm)" stroke="${dark}" stroke-width="2"/></g></svg>`;
 }
 
-/* ---- opening: tap until it opens ---- */
+/* ---- chest sounds: built live, no samples. Every tap charges up a little more; a climb hits hard; the opening explodes ---- */
+const ChestSfx = (() => {
+  let comp = null;
+  const A = () => { if (!S.settings.sound || typeof Sound === "undefined") return null; Sound.init(); const ac = Sound.ac; if (!ac) return null;
+    if (!comp){ comp = ac.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 6; comp.connect(ac.destination); } return ac; };
+  const noise = (ac, dur) => { const b = ac.createBuffer(1, Math.ceil(ac.sampleRate * dur), ac.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; const s = ac.createBufferSource(); s.buffer = b; return s; };
+  const env = (ac, g, t, a, peak, dur) => { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); };
+  /* a deep hit: the body of every tap */
+  function thump(lvl, t0){ const ac = A(); if (!ac) return; const t = t0 || ac.currentTime;
+    const o = ac.createOscillator(), g = ac.createGain(); o.type = "sine"; o.frequency.setValueAtTime(160 - lvl * 12, t); o.frequency.exponentialRampToValueAtTime(38, t + .4); env(ac, g, t, .005, .55 + lvl * .08, .45 + lvl * .05); o.connect(g).connect(comp); o.start(t); o.stop(t + .6);
+    const n = noise(ac, .12), f = ac.createBiquadFilter(), ng = ac.createGain(); f.type = "lowpass"; f.frequency.value = 900 + lvl * 300; env(ac, ng, t, .002, .35, .12); n.connect(f).connect(ng).connect(comp); n.start(t); }
+  /* the charge: a rising whoosh that gets higher and wider with every tap */
+  function riser(lvl, dur){ const ac = A(); if (!ac) return; const t = ac.currentTime;
+    const n = noise(ac, dur + .1), bp = ac.createBiquadFilter(), g = ac.createGain(); bp.type = "bandpass"; bp.Q.value = 3; bp.frequency.setValueAtTime(300 + lvl * 120, t); bp.frequency.exponentialRampToValueAtTime(2200 + lvl * 900, t + dur);
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.18 + lvl * .05, t + dur * .9); g.gain.exponentialRampToValueAtTime(.0001, t + dur + .08); n.connect(bp).connect(g).connect(comp); n.start(t);
+    [0, 7].forEach(dt => { const o = ac.createOscillator(), og = ac.createGain(); o.type = "sawtooth"; o.detune.value = dt; o.frequency.setValueAtTime(110 * Math.pow(1.26, lvl), t); o.frequency.exponentialRampToValueAtTime(220 * Math.pow(1.26, lvl), t + dur);
+      const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.setValueAtTime(400, t); lp.frequency.exponentialRampToValueAtTime(2400 + lvl * 500, t + dur);
+      og.gain.setValueAtTime(.0001, t); og.gain.exponentialRampToValueAtTime(.05 + lvl * .015, t + dur * .95); og.gain.exponentialRampToValueAtTime(.0001, t + dur + .05); o.connect(lp).connect(og).connect(comp); o.start(t); o.stop(t + dur + .1); }); }
+  /* a bright bell on top of each tap: the notes climb a chord */
+  function bell(i, ri){ const ac = A(); if (!ac) return; const t = ac.currentTime, base = 523 * Math.pow(2, ri / 12 * 2), f = base * [1, 1.26, 1.5, 2, 2.52][Math.min(4, i)];
+    [1, 2.01, 3.02].forEach((h, k) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = "sine"; o.frequency.value = f * h; env(ac, g, t, .004, [.16, .05, .03][k], 1.1 - k * .3); o.connect(g).connect(comp); o.start(t); o.stop(t + 1.2); }); }
+  /* the rarity climbs: a big chord with a sub drop */
+  function stinger(ri){ const ac = A(); if (!ac) return; const t = ac.currentTime + .02, root = 110 * Math.pow(2, (ri * 2) / 12);
+    [0, 4, 7, 12, 16].forEach((s, k) => [-8, 8].forEach(dt => { const o = ac.createOscillator(), g = ac.createGain(), lp = ac.createBiquadFilter(); o.type = k < 3 ? "sawtooth" : "square"; o.frequency.value = root * Math.pow(2, s / 12) * 2; o.detune.value = dt;
+      lp.type = "lowpass"; lp.frequency.setValueAtTime(500, t); lp.frequency.exponentialRampToValueAtTime(5000, t + .12); lp.frequency.exponentialRampToValueAtTime(900, t + 1.4); env(ac, g, t, .02, .05, 1.6); o.connect(lp).connect(g).connect(comp); o.start(t); o.stop(t + 1.7); }));
+    const s = ac.createOscillator(), sg = ac.createGain(); s.type = "sine"; s.frequency.setValueAtTime(90, t); s.frequency.exponentialRampToValueAtTime(30, t + .9); env(ac, sg, t, .005, .8, 1); s.connect(sg).connect(comp); s.start(t); s.stop(t + 1.1);
+    const n = noise(ac, 1), hp = ac.createBiquadFilter(), ng = ac.createGain(); hp.type = "highpass"; hp.frequency.value = 3000; env(ac, ng, t, .005, .22, 1); n.connect(hp).connect(ng).connect(comp); n.start(t); }
+  /* the opening: boom, crash, fanfare, sparkles */
+  function explode(ri){ const ac = A(); if (!ac) return; const t = ac.currentTime;
+    const s = ac.createOscillator(), sg = ac.createGain(); s.type = "sine"; s.frequency.setValueAtTime(120, t); s.frequency.exponentialRampToValueAtTime(26, t + 1.4); env(ac, sg, t, .004, 1, 1.5); s.connect(sg).connect(comp); s.start(t); s.stop(t + 1.6);
+    const n = noise(ac, 2.2), hp = ac.createBiquadFilter(), ng = ac.createGain(); hp.type = "highpass"; hp.frequency.setValueAtTime(800, t); hp.frequency.exponentialRampToValueAtTime(5000, t + 2); env(ac, ng, t, .003, .5, 2.1); n.connect(hp).connect(ng).connect(comp); n.start(t);
+    const root = 262 * Math.pow(2, (ri * 2) / 12), arp = [0, 4, 7, 12, 16, 19, 24];
+    arp.forEach((st, k) => { const tt = t + .12 + k * .065, o = ac.createOscillator(), g = ac.createGain(); o.type = "triangle"; o.frequency.value = root * Math.pow(2, st / 12); env(ac, g, tt, .005, .14, .9); o.connect(g).connect(comp); o.start(tt); o.stop(tt + 1); });
+    [0, 4, 7, 12].forEach(st => [-6, 6].forEach(dt => { const tt = t + .6, o = ac.createOscillator(), g = ac.createGain(), lp = ac.createBiquadFilter(); o.type = "sawtooth"; o.frequency.value = root * Math.pow(2, st / 12); o.detune.value = dt; lp.type = "lowpass"; lp.frequency.value = 2600; env(ac, g, tt, .08, .045, 2.4); o.connect(lp).connect(g).connect(comp); o.start(tt); o.stop(tt + 2.5); }));
+    for (let k = 0; k < 10 + ri * 3; k++){ const tt = t + .3 + Math.random() * 1.6, o = ac.createOscillator(), g = ac.createGain(); o.type = "sine"; o.frequency.value = 1800 + Math.random() * 2600; env(ac, g, tt, .003, .04, .4); o.connect(g).connect(comp); o.start(tt); o.stop(tt + .45); } }
+  /* the chest lands */
+  function land(){ thump(2); }
+  return {thump, riser, bell, stinger, explode, land};
+})();
+
+/* ---- opening: tap anywhere, again and again. It charges up, may climb, then bursts open ---- */
 function chestOpen(){
   const list = chestsWaiting(); if (!list.length){ toast("No chests right now. Level ups and the battle pass bring new ones."); return; }
   if (document.querySelector(".chx")) return;
   const ch = list[0], TAPS = 4; let ri = ch.f || 0; const final = rollRarity(ch.f || 0);
-  /* spread the climbs over the taps, so the last ones can still surprise */
-  const steps = final - ri, at = new Set(); while (at.size < Math.min(steps, TAPS - 1)) at.add(1 + Math.floor(Math.random() * (TAPS - 1)));
-  const climbs = Array.from({length: TAPS}, (_, i) => at.has(i) ? 1 : 0); let extra = steps - [...at].length; for (let i = TAPS - 2; extra > 0 && i >= 0; i--){ climbs[i] += 1; extra--; }
-  const split = Math.random() < .1 ? 1 + Math.floor(Math.random() * (TAPS - 1)) : -1;
-  let tap = 0, done = false;
-  const el = document.createElement("div"); el.className = "chx"; el.style.setProperty("--rc", NAT_R[ri].c);
-  el.innerHTML = `<div class="chx-rays"></div><div class="chx-top"><span class="chx-left">${list.length > 1 ? `${list.length} chests` : "Last chest"}</span><button class="chx-skip" aria-label="Close">${icon("xmark", 20)}</button></div>
-    <div class="chx-name">${NAT_R[ri].n}</div><div class="chx-box">${chestSVG(ri)}</div><div class="chx-dots">${Array.from({length: TAPS}, () => "<i></i>").join("")}</div>
-    <div class="chx-tip">Tap!</div><div class="chx-prize"></div><canvas class="chx-cf"></canvas>`;
+  /* spread the climbs over the taps (the last tap can still surprise) */
+  const steps = final - ri, at = new Set(); while (at.size < Math.min(steps, TAPS)) at.add(Math.floor(Math.random() * TAPS));
+  const climbs = Array.from({length: TAPS}, (_, i) => at.has(i) ? 1 : 0); let extra = steps - at.size; for (let i = TAPS - 1; extra > 0 && i >= 0; i--){ climbs[i] += 1; extra--; }
+  const split = Math.random() < .1 ? Math.floor(Math.random() * (TAPS - 1)) + 1 : -1;
+  let tap = 0, phase = "charge", busy = false, energy = .15, shakeT = 0, shakeA = 0;
+  const el = document.createElement("div"); el.className = "chx";
+  el.innerHTML = `<div class="chx-bg"></div><div class="chx-rays"></div><canvas class="chx-cf"></canvas>
+    <div class="chx-top"><span class="chx-left">${list.length > 1 ? `${list.length} chests` : "Last chest"}</span><button class="chx-skip" aria-label="Close">${icon("xmark", 20)}</button></div>
+    <div class="chx-stage"><div class="chx-name"></div><div class="chx-wrap"><div class="chx-glow"></div><div class="chx-ring"></div><div class="chx-box">${chestSVG(ri)}</div><div class="chx-leak"><i></i><i></i><i></i><i></i><i></i></div></div>
+      <div class="chx-dots">${Array.from({length: TAPS}, () => "<i></i>").join("")}</div></div>
+    <div class="chx-tip">Tap!</div><div class="chx-prize"></div><div class="chx-flash"></div>`;
   document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("in"));
-  const box = el.querySelector(".chx-box"), nm = el.querySelector(".chx-name"), tip = el.querySelector(".chx-tip"), dots = el.querySelectorAll(".chx-dots i");
+  const $e = s => el.querySelector(s), box = $e(".chx-box"), nm = $e(".chx-name"), tip = $e(".chx-tip"), dots = el.querySelectorAll(".chx-dots i"), stage = $e(".chx-stage"), cv = $e(".chx-cf");
   const setR = r => { ri = r; el.style.setProperty("--rc", NAT_R[r].c); el.dataset.r = NAT_R[r].k; nm.textContent = NAT_R[r].n; box.innerHTML = chestSVG(r); };
-  setR(ri);
-  el.querySelector(".chx-skip").onclick = e => { e.stopPropagation(); if (done || tap === 0) close(); };
+  const lvl = n => el.style.setProperty("--lvl", n);
+  setR(ri); lvl(0);
+  setTimeout(() => { el.classList.add("landed"); ChestSfx.land(); shake(14, 260); }, 380);
+  /* the energy: sparks pulled into the chest, more with every tap; shaking the whole stage */
+  const ctx = cv.getContext("2d"), dpr = Math.min(2, devicePixelRatio || 1); let W, H; const size = () => { W = cv.width = innerWidth * dpr; H = cv.height = innerHeight * dpr; }; size();
+  const P = [], B = [];
+  function shake(a, ms){ shakeA = Math.max(shakeA, a); shakeT = performance.now() + ms; }
+  function burst(n, sp, cols){ for (let i = 0; i < n; i++){ const a = Math.random() * Math.PI * 2, v = (sp * .35 + Math.random() * sp) * dpr; B.push({x: W / 2, y: H * .46, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 3 * dpr, s: (2 + Math.random() * 6) * dpr, c: cols[i % cols.length], l: 1, d: .008 + Math.random() * .01}); } }
+  const loop = now => { if (!el.isConnected) return; ctx.clearRect(0, 0, W, H); const cx = W / 2, cy = H * .46, col = NAT_R[ri].c;
+    if (phase !== "open" && Math.random() < energy){ const a = Math.random() * Math.PI * 2, r = Math.max(W, H) * (.45 + Math.random() * .2); P.push({x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r, t: 0, sp: .012 + energy * .03 + Math.random() * .01}); }
+    ctx.globalCompositeOperation = "lighter";
+    for (let i = P.length - 1; i >= 0; i--){ const p = P[i]; p.t += p.sp; const k = Math.min(1, p.t), x = p.x + (cx - p.x) * k * k, y = p.y + (cy - p.y) * k * k; if (k >= 1){ P.splice(i, 1); continue; }
+      ctx.globalAlpha = .25 + k * .75; ctx.fillStyle = k > .8 ? "#fff" : col; ctx.beginPath(); ctx.arc(x, y, (1.5 + k * 3) * dpr, 0, 7); ctx.fill(); }
+    for (let i = B.length - 1; i >= 0; i--){ const p = B[i]; p.vx *= .975; p.vy = p.vy * .975 + .22 * dpr; p.x += p.vx; p.y += p.vy; p.l -= p.d; if (p.l <= 0){ B.splice(i, 1); continue; }
+      ctx.globalAlpha = p.l; ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.s / 2, 0, 7); ctx.fill(); }
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over";
+    const sh = now < shakeT ? shakeA * ((shakeT - now) / 300) : (phase === "charge" ? energy * 3 : 0);
+    stage.style.transform = sh > .3 ? `translate(${(Math.random() - .5) * sh}px,${(Math.random() - .5) * sh}px)` : ""; if (now >= shakeT) shakeA = 0;
+    requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
   const close = () => { el.classList.add("out"); setTimeout(() => el.remove(), 260); natChip(); if (Views.shop && App.route === "shop") Views.shop.draw(); };
-  el.addEventListener("click", e => {
+  $e(".chx-skip").onclick = e => { e.stopPropagation(); if (phase === "prize" || tap === 0) close(); };
+  el.addEventListener("pointerdown", e => {
     if (e.target.closest(".chx-skip, .chx-prize button")) return;
-    if (done) return;
-    const up = climbs[tap] || 0; dots[tap] && dots[tap].classList.add("on"); tap++;
+    if (phase === "prize"){ const left = chestsWaiting().length; el.classList.add("out"); setTimeout(() => { el.remove(); natChip(); if (left) chestOpen(); else if (Views.shop && App.route === "shop") Views.shop.draw(); }, 200); phase = "gone"; return; }
+    if (phase !== "charge" || busy || !el.classList.contains("landed")) return;
+    const i = tap, up = climbs[i] || 0; dots[i] && dots[i].classList.add("on"); tap++; lvl(tap); energy = .15 + tap * .2;
     box.classList.remove("hit"); void box.offsetWidth; box.classList.add("hit");
-    try { navigator.vibrate && navigator.vibrate(up ? [20, 40, 60] : 15); } catch(_) {}
-    if (up){ setR(Math.min(NAT_R.length - 1, ri + up)); el.classList.remove("upg"); void el.offsetWidth; el.classList.add("upg");
-      Sound.tone([[523 + ri * 90, .08, .05], [659 + ri * 90, .08, .05], [784 + ri * 90, .18]], "triangle", .12); tip.textContent = NAT_R[ri].n + "!"; }
-    else { Sound.tone([[330 + tap * 40, .07]], "square", .06); tip.textContent = tap < TAPS ? "Tap!" : ""; }
-    if (tap === split){ chestGrant(0, "split"); el.classList.add("split"); setTimeout(() => el.classList.remove("split"), 900); tip.textContent = "It split! +1 chest"; Sound.tone([[880, .06, .04], [1175, .12]], "sine", .12); }
-    if (tap >= TAPS){ done = true; setTimeout(reveal, 380); }
+    ChestSfx.thump(tap); ChestSfx.bell(tap, ri); shake(6 + tap * 4, 220);
+    burst(10 + tap * 6, 6 + tap, [NAT_R[ri].c, "#fff"]);
+    try { navigator.vibrate && navigator.vibrate(up ? [30, 60, 90] : 18 + tap * 8); } catch(_) {}
+    tip.textContent = "";
+    if (up){ busy = true; ChestSfx.riser(tap, .55); el.classList.add("charging");
+      setTimeout(() => { el.classList.remove("charging"); setR(Math.min(NAT_R.length - 1, ri + up)); ChestSfx.stinger(ri);
+        el.classList.remove("upg"); void el.offsetWidth; el.classList.add("upg"); shake(26, 520); burst(60 + ri * 15, 13, [NAT_R[ri].c, "#fff", "#ffe27a"]);
+        tip.textContent = NAT_R[ri].n + "!"; busy = false; if (tap >= TAPS) openUp(); }, 560); }
+    else if (tap >= TAPS){ busy = true; openUp(); }
+    if (i + 1 === split && !up){ chestGrant(0, "split"); el.classList.add("split"); setTimeout(() => el.classList.remove("split"), 900); tip.textContent = "It split! +1 chest"; ChestSfx.stinger(0); }
   });
-  function reveal(){
-    S.chO = (S.chO || []).concat([ch.id]).slice(-600);
-    const rw = rollReward(ri), R = NAT_R[ri];
-    if (rw.kind === "coins" || rw.kind === "dup") natEarn(rw.coins, true); if (rw.kind === "item") natGive(rw.item.id);
-    save(); box.innerHTML = chestSVG(ri, true); el.classList.add("opened"); tip.textContent = "";
-    natBurst(el.querySelector(".chx-cf"), R.c, ri);
-    if (ri >= 3) Sound.cheer(4); else Sound.cheer(ri + 1);
-    const left = chestsWaiting().length;
-    const prize = el.querySelector(".chx-prize");
-    prize.innerHTML = `<div class="chx-card r-${R.k}">${rw.kind === "coins" ? `<div class="pz-coin">${NAT_COIN}</div><b class="pz-n">+${fmtNat(rw.coins)}</b><small>NatCoins</small>`
-      : `${natPreview(rw.item, 120)}<small class="pz-k">${natKindName(rw.item.kind)} · <span style="color:${R.c}">${R.n}</span></small><b class="pz-t">${esc(rw.item.name)}</b>${rw.item.kind === "knife" ? natEurLine(rw.item) : ""}
-        ${rw.kind === "dup" ? `<p class="dim" style="margin:6px 0 0">You have it already: +${fmtNat(rw.coins)} NAT instead</p>` : ""}`}
-      <div class="row" style="gap:8px;justify-content:center;margin-top:14px">${rw.kind === "item" ? `<button class="btn" data-use>${rw.item.kind === "knife" ? "Show it off" : "Use it"}</button>` : ""}<button class="btn go" data-next>${left ? `Next chest (${left})` : "Done"}</button></div></div>`;
-    const u = prize.querySelector("[data-use]"); if (u) u.onclick = () => { natEquip(rw.item); u.textContent = "✓"; u.disabled = true; };
-    prize.querySelector("[data-next]").onclick = () => { el.remove(); natChip(); if (left) chestOpen(); else if (Views.shop && App.route === "shop") Views.shop.draw(); };
+  /* the final charge, then the burst */
+  function openUp(){
+    phase = "final"; busy = true; tip.textContent = ""; el.classList.add("final"); energy = 1.4; ChestSfx.riser(5, 1); shake(10, 1000);
+    setTimeout(() => {
+      phase = "open"; S.chO = (S.chO || []).concat([ch.id]).slice(-600);
+      const rw = rollReward(ri), R = NAT_R[ri];
+      if (rw.kind === "coins" || rw.kind === "dup") natEarn(rw.coins, true); if (rw.kind === "item") natGive(rw.item.id); save();
+      ChestSfx.explode(ri); el.classList.remove("final"); el.classList.add("opened"); box.innerHTML = chestSVG(ri, true); shake(40, 700);
+      const fl = $e(".chx-flash"); fl.classList.remove("go"); void fl.offsetWidth; fl.classList.add("go");
+      burst(140 + ri * 50, 18 + ri * 2, [R.c, "#fff", "#ffe27a", R.c]);
+      try { navigator.vibrate && navigator.vibrate([60, 40, 120]); } catch(_) {}
+      const prize = $e(".chx-prize");
+      prize.innerHTML = `<div class="chx-card r-${R.k}">${rw.kind === "coins" ? `<div class="pz-coin">${NAT_COIN}</div><b class="pz-n">+${fmtNat(rw.coins)}</b><small>NatCoins</small>`
+        : `<div class="pz-pic">${natPreview(rw.item, 130)}</div><small class="pz-k">${natKindName(rw.item.kind)} · <span style="color:${R.c}">${R.n}</span></small><b class="pz-t">${esc(rw.item.name)}</b>${rw.item.kind === "knife" ? natEurLine(rw.item) : ""}
+          ${rw.kind === "dup" ? `<p class="dim" style="margin:6px 0 0">You have it already: +${fmtNat(rw.coins)} NAT instead</p>` : ""}${rw.kind === "item" ? `<button class="btn sm pz-use" data-use>${rw.item.kind === "knife" ? "Show it off" : "Use it"}</button>` : ""}`}</div>`;
+      const u = prize.querySelector("[data-use]"); if (u) u.onclick = e => { e.stopPropagation(); natEquip(rw.item); u.textContent = "✓"; u.disabled = true; };
+      setTimeout(() => { phase = "prize"; busy = false; const left = chestsWaiting().length; tip.textContent = left ? `Tap for the next chest (${left})` : "Tap to continue"; tip.classList.add("cont"); }, 900);
+    }, 1050);
   }
 }
 function natKindName(k){ return {board: "Board", song: "Music", skin: "Character skin", knife: "Knife"}[k] || k; }
 function natEurLine(k){ return `<div class="eur">≈ ${fmtEur(k.eur)}<small>pretend value · not tradeable</small></div>`; }
-/* sparks from the chest */
-function natBurst(cv, color, ri){
-  const ctx = cv.getContext("2d"), dpr = Math.min(2, devicePixelRatio || 1); cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
-  const C = [color, "#fff", "#ffe27a"], P = []; const n = 60 + ri * 40;
-  for (let i = 0; i < n; i++){ const a = Math.random() * Math.PI * 2, v = (4 + Math.random() * (8 + ri * 2)) * dpr; P.push({x: cv.width / 2, y: cv.height * .45, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 5 * dpr, s: (3 + Math.random() * 5) * dpr, c: C[i % 3], l: 1}); }
-  const step = () => { ctx.clearRect(0, 0, cv.width, cv.height); let alive = 0;
-    P.forEach(p => { if (p.l <= 0) return; alive++; p.vx *= .97; p.vy = p.vy * .97 + .35 * dpr; p.x += p.vx; p.y += p.vy; p.l -= .012; ctx.globalAlpha = Math.max(0, p.l); ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.s / 2, 0, 7); ctx.fill(); });
-    if (alive && cv.isConnected) requestAnimationFrame(step); };
-  requestAnimationFrame(step);
-}
 
 /* ---- pictures of items ---- */
 function natPreview(it, size = 72){
