@@ -2582,7 +2582,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794176208";
+const CHESSNAT_BUILD = "1794176912";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11791,11 +11791,13 @@ const authInApp = () => !!(window.ChessApp && window.ChessApp.isApp);
 const authHad = () => { try { return localStorage.getItem("chessnat-hadacct") === "1"; } catch(e) { return false; } };
 const authRef = () => { try { return new URLSearchParams(location.search).get("ref") || localStorage.getItem("chessnat-ref"); } catch(e) { return null; } };
 /* the form, used on the account page and in the onboarding. o: {mode, onSignedUp(email, pw), onSignedIn(), compact} */
+/* older versions kept the last typed email on the phone: remove it */
+try { localStorage.removeItem("chessnat-email"); } catch(e) {}
 function authForm(root, o = {}){
   const site = window.ChessSite; let mode = o.mode || (authHad() ? "in" : "up");
   const render = () => {
     root.innerHTML = `<form class="authf" id="af">
-        <label>Email<input type="email" id="em" required autocomplete="email" inputmode="email" placeholder="you@example.com"></label>
+        <label>Email<input type="email" id="em" name="${mode === "up" ? "new-email-" + Date.now().toString(36) : "email"}" required autocomplete="${mode === "up" ? "off" : "username"}" inputmode="email" placeholder="you@example.com" value=""></label>
         <label>Password<input type="password" id="pw" minlength="6" required autocomplete="${mode === "up" ? "new-password" : "current-password"}" placeholder="${mode === "up" ? "At least 6 characters" : ""}"></label>
         <p class="aerr" id="aerr"></p>
         <button class="btn go big" type="submit" id="asub">${mode === "up" ? "Create account" : "Sign in"}</button>
@@ -11809,7 +11811,7 @@ function authForm(root, o = {}){
       const r = await site.reset(em); err(r.error ? r.error.message : ""); if (!r.error) toast("Check your inbox: open the link, set a new password, then sign in here.", 4500); };
     if ($("#gg", root)) $("#gg", root).onclick = () => site.google();
     $("#af", root).onsubmit = async e => { e.preventDefault(); err(""); const em = $("#em", root).value.trim(), pw = $("#pw", root).value, b = $("#asub", root); b.disabled = true;
-      try { localStorage.setItem("chessnat-email", em); } catch(x) {}
+      /* the email is never kept on the phone by the app */
       const r = mode === "up" ? await site.signUp(em, pw) : await site.signIn(em, pw); b.disabled = false;
       if (r.error){ const m = r.error.message || "";
         if (m === "Invalid login credentials") return err("Wrong email or password. Forgot it? Use “Forgot password” below.");
