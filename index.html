@@ -1807,7 +1807,7 @@ button.ptype{cursor:pointer}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794144519";
+const CHESSNAT_BUILD = "1794144652";
 /* ===== Speech text helpers (shared by the page and the voice build script) ===== */
 const PIECE_WORD = {K: "king", Q: "queen", R: "rook", B: "bishop", N: "knight"};
 function speechNorm(t){ return String(t || "").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, " ").trim(); }
@@ -8852,7 +8852,7 @@ function renderTabs(){
   const tabs = Views.friends ? TABS.map(x => x[0] === "more" ? ["friends", "Friends", "users"] : x) : TABS;
   const fb = Views.friends && typeof friendsPending === "function" ? friendsPending() + (typeof Chat !== "undefined" ? Chat.total() : 0) : 0, fo = Views.friends && typeof friendsOnline === "function" ? friendsOnline() : 0;
   t.innerHTML = tabs.map(([k, n, ic]) => `<button class="${cur === k ? "on" : ""}" data-t="${k}">${icon(ic, 24)}<span>${n}</span>${k === "puzzles" && dailyOpen ? `<i class="dot"></i>` : ""}${k === "friends" ? (fb ? `<i class="tbadge">${fb}</i>` : fo ? `<i class="dot on"></i>` : "") : ""}</button>`).join("");
-  $$("[data-t]", t).forEach(b => b.onclick = () => (Sound.tap(), 0) || b.dataset.t === "more" ? openSheet() : b.dataset.t === "friends" && typeof Chat !== "undefined" && Chat.total() && App.route !== "chat" ? App.go("chat") : App.go(b.dataset.t));
+  $$("[data-t]", t).forEach(b => b.onclick = () => (Sound.tap(), 0) || b.dataset.t === "more" ? openSheet() : App.go(b.dataset.t, b.dataset.t === "friends" ? {tab: "friends"} : undefined));
 }
 function openSheet(){
   const sh = $("#sheet"); const rk = rankOf(S.puzzle.r);
