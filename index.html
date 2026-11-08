@@ -1796,6 +1796,37 @@ button.ptype{cursor:pointer}
 .gift-count.bump b{display:inline-block;animation:gcbump .25s cubic-bezier(.3,1.8,.5,1)}
 .gift-count.out{opacity:0;transition:opacity .25s}
 @keyframes gcbump{0%{transform:scale(1.5)}100%{transform:none}}
+/* ===== Puzzle Battle hub and Puzzle Duel (2026-11-08) ===== */
+.bh-modes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.bh-m{display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 6px;border-radius:14px;border:1.5px solid var(--line);background:var(--panel);color:var(--muted);font:inherit;cursor:pointer}
+.bh-m b{font:900 17px var(--display);color:var(--fg)}.bh-m small{font-size:12px}
+.bh-m.on{border-color:var(--go);background:color-mix(in srgb,var(--go) 14%,var(--panel));color:var(--go)}
+.bh-txt{margin:12px 2px 8px;font-size:14px;line-height:1.45}
+.bh-stats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.bh-code{margin-top:12px;flex-wrap:nowrap}.bh-code input{flex:1;min-width:0;text-transform:lowercase}
+.bh-bots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.bh-b{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border-radius:14px;border:1px solid var(--line);background:var(--panel);color:var(--fg);font:inherit;cursor:pointer}
+.bh-b svg,.bh-b .av3w{border-radius:12px}.bh-b b{font:900 16px var(--display)}.bh-b small{color:var(--muted);font-size:11.5px}
+.dl-score{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:12px;border-radius:14px;background:var(--panel-2);border:1px solid var(--line)}
+.dl-p{display:flex;flex-direction:column;align-items:center;min-width:0}.dl-p small{font:800 11px var(--body);letter-spacing:.06em;color:var(--muted);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dl-p b{font:900 46px var(--display);line-height:1.05}.dl-p b.me{color:var(--go-hi)}
+.dl-mid{display:flex;flex-direction:column;align-items:center;gap:6px}.dl-mid small{font:800 10.5px var(--body);letter-spacing:.07em;color:var(--muted)}
+.dl-dots{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;max-width:150px}
+.dl-d{width:12px;height:12px;border-radius:50%;background:var(--panel-3);display:block}
+.dl-d.now{box-shadow:0 0 0 2px var(--go)}.dl-d.me{background:var(--go)}.dl-d.opp{background:var(--bad)}.dl-d.tie{background:#8a8580}
+.dl-d.half{background-image:linear-gradient(90deg,transparent 50%,var(--panel-3) 50%)}
+.dl-st{margin-top:12px;padding:12px 14px;border-radius:14px;background:var(--panel);border:1px solid var(--line)}
+.dl-st b{display:block;font:900 19px var(--display)}.dl-st span{display:block;color:var(--muted);font-size:13.5px;margin-top:2px}
+.dl-st.good{border-color:var(--go);background:color-mix(in srgb,var(--go) 14%,var(--panel))}.dl-st.good b{color:var(--go-hi)}
+.dl-st.bad{border-color:color-mix(in srgb,var(--bad) 60%,var(--line))}
+.dl-st.steal{border-color:#ffb020;background:color-mix(in srgb,#ffb020 14%,var(--panel));animation:dlpulse 1s ease-in-out infinite alternate}.dl-st.steal b{color:#ffc24a}
+@keyframes dlpulse{from{box-shadow:0 0 0 0 rgba(255,176,32,.0)}to{box-shadow:0 0 0 4px rgba(255,176,32,.35)}}
+.dl-bar{height:8px;border-radius:5px;background:var(--panel-3);margin-top:10px;overflow:hidden}.dl-bar i{display:block;height:100%;width:100%;background:#ffb020;transition:width .1s linear}
+.dl-bar.opp i{background:var(--bad)}
+.dl-cd small{display:block;font:800 12px var(--body);letter-spacing:.08em;color:var(--muted)}
+.dl-cd .bcount{font-size:72px!important;line-height:1}.bcount.pop{animation:gcbump .35s cubic-bezier(.3,1.8,.5,1)}
+.dl-end .end-ic{margin:0 auto 6px}.dl-end.won .end-ic{background:var(--go);color:#fff}.dl-end.lost .end-ic{background:var(--bad);color:#fff}
+.dl-rew{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:4px 0 12px}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -1817,7 +1848,7 @@ button.ptype{cursor:pointer}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794144760";
+const CHESSNAT_BUILD = "1794145353";
 /* ===== Speech text helpers (shared by the page and the voice build script) ===== */
 const PIECE_WORD = {K: "king", Q: "queen", R: "rook", B: "bishop", N: "knight"};
 function speechNorm(t){ return String(t || "").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, " ").trim(); }
@@ -8216,33 +8247,49 @@ function ratingsCards(){
 /* ===== Puzzle Battle: the same puzzles for both players, 3 minutes, 3 strikes, highest score wins =====
    Against a friend it runs over a live room; against a bot, the bot solves at a pace that fits its rating. */
 const BATTLE_MS = 180000, BATTLE_N = 45;
-async function battleList(){
+/* the battle modes. Sprint: as many as you can in 3 minutes. Survival: no clock, 3 lives, harder puzzles that climb fast. */
+const BATTLE_MODES = {
+  duel:   {name: "Duel", sub: "First to 5", ic: "swords", text: "The same puzzle for both of you, round after round. First to solve takes the point. Go wrong and the other one gets 10 seconds to steal it."},
+  sprint: {name: "Sprint", sub: "3 minutes", ic: "clock", text: "The same puzzles, 3 minutes, 3 mistakes and you're out. Whoever solves more wins.", ms: 180000, from: -250, step: 45},
+  surv:   {name: "Survival", sub: "3 lives", ic: "flame", text: "Harder puzzles that get tougher fast. Three mistakes and you're out. Whoever gets further wins.", ms: 900000, from: 0, step: 75},
+};
+/* puzzles fit the weaker of the two players, so nobody gets buried */
+async function battleList(mode, oppR){
+  const m = BATTLE_MODES[mode] || BATTLE_MODES.sprint, me = S.puzzle.r > 0 ? S.puzzle.r : 600, op = oppR > 0 ? oppR : me, base = Math.max(350, Math.min(me, op) + m.from);
   const used = new Set(), out = [];
-  for (let k = 0; k < BATTLE_N; k++){ const p = await PZ.pick({target: Math.min(2900, 500 + k * 55), spread: 40, exclude: used}); if (!p) break; used.add(p.id); out.push(encodeP(p)); }
+  for (let k = 0; k < BATTLE_N; k++){ const p = await PZ.pick({target: Math.min(2900, base + k * m.step), spread: 40, exclude: used}); if (!p) break; used.add(p.id); out.push(encodeP(p)); }
   return out;
 }
 Views.battle = {
-  mount(main, arg){ this.main = main; this.dead = false; if (arg && arg.join) this.joinRoom(arg.join, !!arg.host); else if (arg && arg.bot) this.vsBot(arg.bot); else this.menu(); },
+  mount(main, arg){ this.main = main; this.dead = false; if (arg && arg.mode) this.mode = arg.mode; if (!["sprint", "surv"].includes(this.mode)) this.mode = "sprint";
+    if (arg && arg.join) this.joinRoom(arg.join, !!arg.host); else if (arg && arg.bot) this.vsBot(arg.bot); else this.menu(); },
+  cfg(){ return BATTLE_MODES[this.mode] && this.mode !== "duel" ? BATTLE_MODES[this.mode] : BATTLE_MODES.sprint; },
   unmount(){ this.dead = true; this.cleanup(); },
   cleanup(){ clearInterval(this.tick); clearInterval(this.botT); clearTimeout(this.botStep); this.R && this.R.stop(); if (this.room){ try { this.room.leave(); } catch(e) {} this.room = null; } if (this.unsub){ try { this.unsub(); } catch(e) {} this.unsub = null; } },
+  /* the battle hub: pick a mode, then a bot or a friend */
   menu(){
-    this.cleanup(); const B = S.battle || {}, pr = S.puzzle.r;
+    this.cleanup(); document.body.classList.remove("busy"); if (typeof renderTop === "function") renderTop();
+    const mode = S.bmode && BATTLE_MODES[S.bmode] ? S.bmode : "duel", M = BATTLE_MODES[mode], pr = S.puzzle.r > 0 ? S.puzzle.r : 600;
     const online = typeof Social !== "undefined" && Social.me && Social.player;
-    this.main.innerHTML = `<div class="page" style="max-width:760px"><h1 class="h-title">Puzzle Battle</h1><p class="muted">The same puzzles for both players. 3 minutes, 3 mistakes and you're out. Whoever solves more wins. The puzzles get harder as you go.</p>
-      <div class="row" style="margin:10px 0"><span class="pill">${B.n || 0} battles</span><span class="pill go">${B.w || 0} wins</span><span class="pill">best score ${B.best || 0}</span></div>
-      <div class="tiles">
-        ${[["Warm-up", pr - 250], ["Even match", pr], ["Hard", pr + 250]].map(([t, r]) => `<button class="tile" data-bb="${Math.max(300, r)}">${icon("bot", 36)}<h3>vs Bot: ${t}</h3><p>A bot that solves like a ${Math.max(300, r)} player.</p></button>`).join("")}
-      </div>
-      <h2 class="h-sec" style="margin-top:16px">Against a friend</h2>
-      <div class="unit">${online ? `<p class="muted" style="margin:0 0 8px">Invite a friend from your list, or share a battle code.</p><div id="bfr" class="list"><p class="dim">Loading friends…</p></div>` : `<p class="muted" style="margin:0 0 8px">Share a battle code, or sign in to invite friends directly.</p>`}
-        <div class="row" style="margin-top:10px"><button class="btn go" id="bnew">Create a battle code</button><input type="text" id="bcode" placeholder="Code" maxlength="12" style="width:110px;text-transform:lowercase"><button class="btn" id="bjoin">Join</button></div></div></div>`;
-    $$("[data-bb]", this.main).forEach(b => b.onclick = () => this.vsBot(+b.dataset.bb));
-    $("#bnew").onclick = () => this.joinRoom(newCode(), true);
-    $("#bjoin").onclick = () => { const c = $("#bcode").value.trim().toLowerCase(); if (/^[a-z0-9]{4,12}$/.test(c)) this.joinRoom(c, false); else toast("Enter the code your friend sent you."); };
-    if (online) Social.load(true).then(() => { const el = $("#bfr"); if (!el || this.dead) return; const D = Social.data, me = Social.me;
+    const st = mode === "duel" ? (S.duel || {}) : (S.battle || {});
+    this.main.innerHTML = `<div class="page bh-page" style="max-width:760px"><h1 class="h-title">Puzzle Battle</h1>
+      <div class="bh-modes">${Object.entries(BATTLE_MODES).map(([k, m]) => `<button class="bh-m ${k === mode ? "on" : ""}" data-bm="${k}">${icon(m.ic, 24)}<b>${m.name}</b><small>${m.sub}</small></button>`).join("")}</div>
+      <p class="muted bh-txt">${M.text}</p>
+      <div class="bh-stats"><span class="pill">${st.n || 0} played</span><span class="pill go">${st.w || 0} won</span>${mode === "duel" ? (st.steals ? `<span class="pill">${fmtPts(st.steals)} stolen</span>` : "") : `<span class="pill">best ${st.best || 0}</span>`}</div>
+      <h2 class="h-sec">Against a friend</h2>
+      <div class="unit bh-fr">${online ? `<div id="bfr" class="list"><p class="dim">Loading friends…</p></div>` : `<p class="muted" style="margin:0">Sign in to challenge your friends directly. Or share a code below.</p>`}
+        <div class="row bh-code"><button class="btn sm" id="bnew">Create a code</button><input type="text" id="bcode" placeholder="Code" maxlength="12" autocapitalize="off"><button class="btn sm" id="bjoin">Join</button></div></div>
+      <h2 class="h-sec">Against a bot</h2>
+      <div class="bh-bots">${[["Warm-up", pr - 250], ["Even", pr], ["Hard", pr + 250]].map(([t, r]) => { const br = Math.max(300, Math.round(r / 10) * 10); return `<button class="bh-b" data-bb="${br}">${botAvatar({id: "battle" + br, r: br, hue: (br / 7) % 360}, 44)}<b>${t}</b><small>solves like ${br}</small></button>`; }).join("")}</div></div>`;
+    $$("[data-bm]", this.main).forEach(b => b.onclick = () => { S.bmode = b.dataset.bm; save(); Sound.tap(); this.menu(); });
+    const go = (how, x) => { if (mode === "duel"){ if (how === "bot") App.go("duel", {bot: x}); else App.go("duel", {join: x.code, host: x.host}); } else { this.mode = mode; if (how === "bot") this.vsBot(x); else this.joinRoom(x.code, x.host); } };
+    $$("[data-bb]", this.main).forEach(b => b.onclick = () => go("bot", +b.dataset.bb));
+    $("#bnew").onclick = () => go("room", {code: newCode(), host: true});
+    $("#bjoin").onclick = () => { const c = $("#bcode").value.trim().toLowerCase(); if (/^[a-z0-9]{4,12}$/.test(c)) go("room", {code: c, host: false}); else toast("Enter the code your friend sent you."); };
+    if (online) Social.load().then(() => { const el = $("#bfr"); if (!el || this.dead) return; const D = Social.data, me = Social.me;
       const fr = D.friends.filter(r => r.status === "accepted").map(r => r.a === me ? r.b : r.a).sort((x, y) => Social.isOnline(Social.P(y)) - Social.isOnline(Social.P(x)));
-      el.innerHTML = fr.length ? fr.map(id => { const p = Social.P(id); return `<div class="li fr">${Social.face(p, 36)}<div class="grow"><div class="t">${Social.dot(p)}${esc(p.name)}</div><div class="s">${esc(Social.seen(p))}</div></div><button class="btn sm ${Social.isOnline(p) ? "go" : ""}" data-binv="${id}">Invite</button></div>`; }).join("") : `<p class="dim" style="margin:0">No friends yet. Add them on the Friends page.</p>`;
-      $$("[data-binv]", el).forEach(b => b.onclick = () => Social.invite(b.dataset.binv, "battle")); });
+      el.innerHTML = fr.length ? fr.map(id => { const p = Social.P(id); return `<div class="li fr">${Social.face(p, 36)}<div class="grow"><div class="t">${Social.dot(p)}${esc(p.name)}</div><div class="s">${esc(Social.seen(p))}</div></div><button class="btn sm ${Social.isOnline(p) ? "go" : ""}" data-binv="${id}">Challenge</button></div>`; }).join("") : `<p class="muted" style="margin:0">No friends yet. Add them under Friends.</p>`;
+      $$("[data-binv]", el).forEach(b => b.onclick = () => Social.invite(b.dataset.binv, {battle: mode})); });
   },
   /* ---------- shared game screen ---------- */
   screen(oppName, oppFace){
@@ -8259,7 +8306,7 @@ Views.battle = {
   begin(list){
     this.list = list.map(decodeP); this.k = 0; this.score = 0; this.strikes = 0; this.done = false; this.over = false; this.opp = {score: 0, strikes: 0, done: false};
     const ov = this.board.overlay(`<div class="card-over"><h3 class="bcount">3</h3><p>Get ready…</p></div>`); let n = 3; Sound.play("GenericNotify", .6);
-    const cd = setInterval(() => { n--; const h = ov.querySelector(".bcount"); if (n > 0){ if (h) h.textContent = n; Sound.play("Move", .6); } else { clearInterval(cd); this.board.overlay(null); this.end = Date.now() + BATTLE_MS; this.tick = setInterval(() => this.clock(), 200); this.next(); this.onStart && this.onStart(); } }, 1000);
+    const cd = setInterval(() => { n--; const h = ov.querySelector(".bcount"); if (n > 0){ if (h) h.textContent = n; Sound.play("Move", .6); } else { clearInterval(cd); this.board.overlay(null); this.end = Date.now() + this.cfg().ms; this.tick = setInterval(() => this.clock(), 200); this.next(); this.onStart && this.onStart(); } }, 1000);
   },
   next(){ if (this.done) return; const p = this.list[this.k++]; if (!p){ this.meDone(); return; } this.R.start(p); },
   clock(){ const ms = this.end - Date.now(), c = $("#bclock"); if (c){ c.textContent = fmtClock(Math.max(0, ms)); c.classList.toggle("low", ms < 20000); }
@@ -8268,7 +8315,7 @@ Views.battle = {
   maybeEnd(){ if (this.over || !this.done || !this.opp.done) return; this.over = true; clearInterval(this.tick); clearInterval(this.botT); clearTimeout(this.botStep); this.result(); },
   panel(){
     const x = (n, s) => `<span class="bx ${n < s ? "on" : ""}">✕</span>`;
-    const ms = this.end ? Math.max(0, this.end - Date.now()) : BATTLE_MS;
+    const ms = this.end ? Math.max(0, this.end - Date.now()) : this.cfg().ms;
     const me = $("#bsMe"), op = $("#bsOpp"), ok = $("#bkOpp"); if (me) me.textContent = this.score || 0; if (op) op.textContent = this.opp ? this.opp.score : 0; if (ok && this.opp) ok.innerHTML = [0, 1, 2].map(n => x(n, this.opp.strikes)).join("");
     $("#sp").innerHTML = `<div class="bpanel"><div><div class="muted" style="font-weight:800;font-size:12px">YOU</div><div class="bbig">${this.score || 0}</div><div>${[0, 1, 2].map(n => x(n, this.strikes || 0)).join("")}</div></div>
       <div class="clock run" id="bclock">${fmtClock(ms)}</div>
@@ -8295,7 +8342,7 @@ Views.battle = {
     this.cleanup(); this.botR = botR; this.room = null; this.oppName = "Bot " + botR;
     whenPuzzles(async () => {
       this.screen(this.oppName, botAvatar({id: "battle" + botR, r: botR, hue: (botR / 7) % 360}, 34));
-      const list = await battleList(); if (this.dead) return;
+      const list = await battleList(this.mode, botR); if (this.dead) return;
       this.onStart = () => this.botRun(); this.begin(list);
     });
   },
@@ -8317,7 +8364,7 @@ Views.battle = {
       try { this.room = await api.join("battle-" + code); } catch(e) { toast("Couldn't connect. Check your internet and try again."); return this.menu(); }
       if (this.dead) return this.cleanup();
       this.me = {app: "battle", v: 1, name: S.name, rating: S.puzzle.r, avatar: typeof myAvatar === "function" ? myAvatar() : null, host, go: 0, score: 0, strikes: 0, done: false};
-      if (host){ this.me.list = await battleList(); }
+      this.me.mode = this.mode;
       await this.room.presence(this.me);
       this.unsub = this.room.onPeers(({peers}) => this.peers(peers));
     });
@@ -8327,13 +8374,244 @@ Views.battle = {
     if (this.dead) return; const o = peers.find(p => !p.isMe && p.presence && p.presence.app === "battle"); if (!o) return;
     const P = o.presence; if (P.name && P.name !== this.oppName){ this.oppName = P.name; $("#topbar .nm") && ($("#topbar .nm").textContent = P.name); const av = $("#topbar .av"); if (av && P.avatar && typeof avatarBadge === "function") av.innerHTML = avatarBadge(P.avatar, 34); }
     /* the host starts (and restarts) the battle; the guest follows the host's list */
-    if (this.host && !this.go){ this.go = Date.now(); this.me.go = this.go; this.room.presence(this.me); this.board.overlay(null); this.begin(this.me.list); return; }
-    if (!this.host && P.host && P.go && P.go !== this.go && P.list){ this.go = P.go; this.me.go = P.go; this.board.overlay(null); this.begin(P.list); return; }
+    /* the host builds puzzles that fit both players once the guest is here, then starts */
+    if (this.host && !this.go){ this.go = -1; battleList(this.mode, P.rating).then(list => { if (this.dead) return; this.me.list = list; this.go = Date.now(); this.me.go = this.go; this.room.presence(this.me); this.board.overlay(null); this.begin(list); }); return; }
+    if (this.host && this.go === -1) return;
+    if (!this.host && P.host && P.go && P.go !== this.go && P.list){ if (P.mode && BATTLE_MODES[P.mode]) this.mode = P.mode; this.go = P.go; this.me.go = P.go; this.board.overlay(null); this.begin(P.list); return; }
     if (this.opp && this.end){ this.opp.score = P.score || 0; this.opp.strikes = P.strikes || 0; if (P.done) this.opp.done = true; this.panel(); this.maybeEnd(); }
   },
   async rematch(){ if (!this.host){ toast("Waiting for the host to start the rematch…"); this.board.overlay(null); return; }
-    this.me.list = await battleList(); this.me.score = 0; this.me.strikes = 0; this.me.done = false; this.go = Date.now(); this.me.go = this.go; await this.room.presence(this.me); this.board.overlay(null); this.begin(this.me.list); }
+    const o = this.room.peers().find(p => !p.isMe && p.presence && p.presence.app === "battle"); this.me.list = await battleList(this.mode, o && o.presence.rating); this.me.score = 0; this.me.strikes = 0; this.me.done = false; this.go = Date.now(); this.me.go = this.go; await this.room.presence(this.me); this.board.overlay(null); this.begin(this.me.list); }
 };
+
+/* ===== Puzzle Duel: two players, the same puzzle, round after round.
+   3, 2, 1 and both start. Whoever solves it first takes the point. Whoever plays a wrong move is out of
+   that round, and the other one gets 10 seconds to steal it: solved = 1 point, a correct start = ½, nothing = no point.
+   First to 5 wins. Against a friend the host's device keeps score; against a bot everything runs here. ===== */
+const DUEL_TO = 5, DUEL_ROUNDS = 11, STEAL_MS = 10000;
+/* the puzzles fit the weaker of the two players, then climb a little each round */
+function duelBase(a, b){ const r = x => x > 0 ? x : 600; return Math.max(350, Math.round(Math.min(r(a), r(b)) - 150)); }
+async function duelList(base){
+  const used = new Set(), out = [];
+  for (let k = 0; k < DUEL_ROUNDS; k++){ const p = await PZ.pick({target: base + k * 40, spread: 60, exclude: used}); if (!p) break; used.add(p.id); out.push(encodeP(p)); }
+  return out;
+}
+const fmtPts = n => (Math.floor(n) || (n % 1 ? "" : "0")) + (n % 1 ? "½" : "");
+
+Views.duel = {
+  mount(main, arg){ this.main = main; this.dead = false;
+    if (arg && arg.join) this.joinRoom(arg.join, !!arg.host); else if (arg && arg.bot) this.vsBot(arg.bot); else setTimeout(() => App.go("battle"), 0); },
+  unmount(){ this.dead = true; this.cleanup(); },
+  cleanup(){
+    [this.cdI, this.stealI].forEach(clearInterval); [this.nextT, this.graceT, this.stealT, this.stealHostT].forEach(clearTimeout); this.graceT = null;
+    (this.botTs || []).forEach(clearTimeout); this.botTs = [];
+    if (this.R) this.R.stop();
+    if (this.room){ try { this.room.leave(); } catch(e) {} this.room = null; }
+    if (this.unsub){ try { this.unsub(); } catch(e) {} this.unsub = null; }
+  },
+  other(s){ return s === "h" ? "g" : "h"; },
+  totals(){ const t = {h: 0, g: 0}; (this.M ? this.M.res : []).forEach(r => { t.h += r.p[0]; t.g += r.p[1]; }); return t; },
+
+  /* ---------- the screen ---------- */
+  screen(oppName, oppFace){
+    this.main.innerHTML = stageHTML(); this.oppName = oppName; this.oppFace = oppFace;
+    const board = this.board = makeBoard($("#bw"));
+    this.R = PuzzleRunner(board, {fast: true, noRetry: true,
+      onReady: R => { if (this.cur === this.M.k){ this.t0 = Date.now(); this.panel(); } },
+      onWrong: (R, first) => { if (!first || !["play", "steal"].includes(this.out)) return; const part = Math.max(0, (R.idx - 1) >> 1);
+        this.out = "wrong"; R.locked = true; recordThemes(R.p, false); this.report({k: this.cur, wrong: true, part}); this.panel(); },
+      onSolved: R => { if (!["play", "steal"].includes(this.out)) return; this.out = "solved"; recordThemes(R.p, true);
+        this.report({k: this.cur, solved: true, dt: Date.now() - (this.t0 || Date.now())}); this.panel(); }});
+    this.bars(); this.panel();
+  },
+  bars(){
+    const t = this.totals(), my = this.side || "h", op = this.other(my);
+    $("#botbar").innerHTML = youBar(`<span class="bscore" id="bsMe">${fmtPts(t[my])}</span>`);
+    $("#topbar").innerHTML = `<div class="av">${this.oppFace || ""}</div><span class="nm">${esc(this.oppName || "Opponent")}</span><span class="bscore opp" id="bsOpp">${fmtPts(t[op])}</span>`;
+  },
+  panel(){
+    if (!$("#sp") || !this.M) return;
+    const t = this.totals(), my = this.side, op = this.other(my), M = this.M, k = M.k, res = M.res.find(r => r.k === k);
+    const dots = M.list.slice(0, Math.max(M.res.length + 1, 7)).map((_, i) => { const r = M.res.find(x => x.k === i); if (!r) return `<i class="dl-d ${i === k ? "now" : ""}"></i>`;
+      const mine = r.p[my === "h" ? 0 : 1], theirs = r.p[my === "h" ? 1 : 0]; return `<i class="dl-d ${mine > theirs ? "me" : theirs > mine ? "opp" : "tie"} ${mine === .5 || theirs === .5 ? "half" : ""}"></i>`; }).join("");
+    const steal = M.steal && M.steal.k === k ? M.steal.who : null;
+    let st = "", cls = "";
+    if (M.over) st = "";
+    else if (this.counting) { st = `<b>Round ${k + 1}</b><span>Get ready…</span>`; }
+    else if (res){ const mine = res.p[my === "h" ? 0 : 1], theirs = res.p[my === "h" ? 1 : 0];
+      cls = mine > theirs ? "good" : theirs > mine ? "bad" : "";
+      st = mine > theirs ? `<b>${mine === 1 ? "+1 for you!" : "+½ for you"}</b><span>${res.why === "steal" ? "Stolen! Nice." : res.why === "half" ? "A good start counts for half." : "You were faster."}</span>`
+        : theirs > mine ? `<b>${esc(this.oppName)} ${theirs === 1 ? "+1" : "+½"}</b><span>${res.why === "steal" ? "They stole it." : res.why === "half" ? "They had the right start." : "They were faster."}</span>`
+        : `<b>No point</b><span>${res.why === "both" ? "You both went wrong." : "Nobody solved it."}</span>`; }
+    else if (steal === my && this.out === "steal"){ cls = "steal"; st = `<b>Your chance!</b><span>${esc(this.oppName)} went wrong. Solve it now to steal the point.</span><div class="dl-bar"><i id="dlbar"></i></div>`; }
+    else if (steal === op){ cls = "bad"; st = `<b>Wrong move</b><span>${esc(this.oppName)} has 10 seconds to steal it.</span><div class="dl-bar opp"><i id="dlbar"></i></div>`; }
+    else if (this.out === "solved"){ st = `<b>Solved!</b><span>Checking who was faster…</span>`; }
+    else if (this.out === "wrong"){ st = `<b>Wrong move</b><span>Wait for ${esc(this.oppName)}…</span>`; }
+    else if (k >= 0 && this.R && this.R.p){ st = `<b>${sideToMoveText(this.R.user)}</b><span>First to solve takes the point · puzzle rated ${this.R.p.r}</span>`; }
+    else st = `<b>Waiting…</b><span>${this.room ? "The duel starts as soon as you're both here." : ""}</span>`;
+    $("#sp").innerHTML = `<div class="dl-score"><div class="dl-p"><small>YOU</small><b class="me">${fmtPts(t[my])}</b></div><div class="dl-mid"><small>FIRST TO ${DUEL_TO}</small><div class="dl-dots">${dots}</div></div><div class="dl-p"><small>${esc((this.oppName || "").toUpperCase())}</small><b>${fmtPts(t[op])}</b></div></div>
+      ${st ? `<div class="dl-st ${cls}">${st}</div>` : ""}`;
+    $("#sf").innerHTML = `<button class="btn" id="dq" style="flex:1">${M.over ? "Battle menu" : "Leave duel"}</button>`;
+    $("#dq").onclick = () => { const b = $("#dq"); if (!M.over && !b.dataset.armed){ b.dataset.armed = 1; b.textContent = "Tap again to leave"; return; } App.go("battle"); };
+    const bs = $("#bsMe"), bo = $("#bsOpp"); if (bs) bs.textContent = fmtPts(t[my]); if (bo) bo.textContent = fmtPts(t[op]);
+    if (this.stealEnd) this.stealBar();
+  },
+  stealBar(){ const b = $("#dlbar"); if (!b || !this.stealEnd) return; b.style.width = Math.max(0, Math.min(100, (this.stealEnd - Date.now()) / STEAL_MS * 100)) + "%"; },
+
+  /* ---------- a round on this device ---------- */
+  playRound(k){
+    if (this.dead) return; clearInterval(this.cdI); clearInterval(this.stealI); this.stealEnd = 0;
+    this.cur = k; this.out = "count"; this.counting = true; this.R.stop(); this.board.overlay(null); this.panel();
+    let n = 3; const ov = this.board.overlay(`<div class="card-over dl-cd"><small>ROUND ${k + 1}</small><h3 class="bcount">3</h3></div>`); Sound.play("Move", .6);
+    this.cdI = setInterval(() => { n--; const h = ov && ov.querySelector(".bcount");
+      if (n > 0){ if (h){ h.textContent = n; h.classList.remove("pop"); void h.offsetWidth; h.classList.add("pop"); } Sound.play("Move", .6); return; }
+      clearInterval(this.cdI); if (this.dead || this.cur !== k) return; this.board.overlay(null); this.counting = false; this.out = "play"; this.t0 = Date.now();
+      Sound.play("GenericNotify", .5); this.R.start(this.M.list[k]); this.panel(); if (this.botRound) this.botRound(k); }, 750);
+  },
+  /* the other player went wrong: 10 seconds for me */
+  onSteal(){
+    const s = this.M.steal; if (!s || s.k !== this.cur) return; clearInterval(this.stealI); this.stealEnd = Date.now() + STEAL_MS;
+    if (s.who === this.side && this.out === "play"){ this.out = "steal"; Sound.cheer && Sound.cheer(1); try { navigator.vibrate && navigator.vibrate([20, 40, 20]); } catch(e) {} }
+    this.stealI = setInterval(() => { this.stealBar(); if (Date.now() < this.stealEnd) return; clearInterval(this.stealI); this.stealEnd = 0;
+      if (this.out === "steal"){ this.out = "timeout"; this.R.locked = true; this.report({k: this.cur, timeout: true, part: Math.max(0, ((this.R.idx || 1) - 1) >> 1)}); } this.panel(); }, 100);
+    this.panel();
+  },
+  /* a round was scored: show it, and the loser sees the solution */
+  onRes(r){
+    clearInterval(this.stealI); this.stealEnd = 0; (this.botTs || []).forEach(clearTimeout); this.botTs = [];
+    const my = this.side, mine = r.p[my === "h" ? 0 : 1], theirs = r.p[my === "h" ? 1 : 0];
+    if (mine > theirs){ Sound.xp ? Sound.xp() : Sound.right(); } else if (theirs > mine) Sound.play("Defeat", .35);
+    if (this.R && this.R.p && !this.R.done && this.out !== "solved"){ this.R.locked = true; try { this.R.showSolution(); } catch(e) {} }
+    this.bars(); this.panel();
+  },
+
+  /* ---------- what happened on my board ---------- */
+  report(e){ if (this.side === "h") this.onEv("h", e); else if (this.room){ this.seq = (this.seq || 0) + 1; this.me.ev = Object.assign({seq: this.seq}, e); this.room.presence(this.me).catch(() => {}); } },
+
+  /* ---------- the host keeps score ---------- */
+  onEv(s, e){ if (!this.M || this.M.over) return; this.ev[s][e.k] = e; this.resolve(e.k); },
+  resolve(k){
+    const M = this.M; if (M.k !== k || M.res.find(r => r.k === k)) return;
+    const a = this.ev.h[k] || {}, b = this.ev.g[k] || {}, steal = M.steal && M.steal.k === k ? M.steal.who : null;
+    if (steal){ const e = steal === "h" ? a : b; if (e.solved) this.award(k, steal, 1, "steal"); else if (e.wrong || e.timeout) this.award(k, steal, e.part > 0 ? .5 : 0, e.part > 0 ? "half" : "none"); return; }
+    if (a.solved && b.solved) return this.award(k, a.dt <= b.dt ? "h" : "g", 1, "fast");
+    if (a.solved || b.solved){ if (!this.graceT) this.graceT = setTimeout(() => { this.graceT = null; if (M.res.find(r => r.k === k)) return; const a2 = this.ev.h[k] || {}, b2 = this.ev.g[k] || {};
+      this.award(k, a2.solved && b2.solved ? (a2.dt <= b2.dt ? "h" : "g") : a2.solved ? "h" : "g", 1, "fast"); }, 450); return; }
+    if (a.wrong && b.wrong) return this.award(k, null, 0, "both");
+    if (a.wrong || b.wrong){ const who = a.wrong ? "g" : "h"; M.steal = {k, who}; this.publish(); this.onSteal(); if (this.botSteal && who === "g") this.botSteal(k);
+      clearTimeout(this.stealHostT); this.stealHostT = setTimeout(() => { if (M.res.find(r => r.k === k)) return; const e = this.ev[who][k] || {}; this.award(k, who, e.part > 0 ? .5 : 0, e.part > 0 ? "half" : "none"); }, STEAL_MS + 2500); }
+  },
+  award(k, who, pts, why){
+    const M = this.M; if (M.res.find(r => r.k === k)) return; clearTimeout(this.graceT); this.graceT = null; clearTimeout(this.stealHostT);
+    M.res.push({k, who, why, p: [who === "h" ? pts : 0, who === "g" ? pts : 0]}); M.steal = null; this.publish(); this.onRes(M.res[M.res.length - 1]);
+    clearTimeout(this.nextT); this.nextT = setTimeout(() => this.nextRound(), 2800);
+  },
+  nextRound(){
+    const M = this.M, t = this.totals(); if (this.dead || M.over) return;
+    if (t.h >= DUEL_TO || t.g >= DUEL_TO || M.k + 1 >= M.list.length){ M.over = true; this.publish(); this.result(); return; }
+    M.k++; M.steal = null; this.publish(); this.playRound(M.k);
+  },
+  publish(){ if (!this.room || this.side !== "h") return; const M = this.M; Object.assign(this.me, {mid: M.mid, list: M.raw, k: M.k, res: M.res, steal: M.steal, over: M.over}); this.room.presence(this.me).catch(() => {}); },
+  startMatch(raw){
+    this.M = {mid: Date.now(), raw, list: raw.map(decodeP), res: [], k: -1, steal: null, over: false}; this.ev = {h: {}, g: {}};
+    this.board.overlay(null); this.bars(); this.publish(); this.nextRound();
+  },
+
+  /* ---------- the end ---------- */
+  result(){
+    if (this.shown === this.M.mid) return; this.shown = this.M.mid;
+    clearInterval(this.stealI); this.R.locked = true;
+    const t = this.totals(), my = this.side, op = this.other(my), win = t[my] > t[op], draw = t[my] === t[op];
+    const steals = this.M.res.filter(r => r.who === my && (r.why === "steal" || r.why === "half")).reduce((a, r) => a + r.p[my === "h" ? 0 : 1], 0);
+    S.duel = S.duel || {}; const D = S.duel; D.n = (D.n || 0) + 1; if (win) D.w = (D.w || 0) + 1; else if (draw) D.d = (D.d || 0) + 1; else D.l = (D.l || 0) + 1;
+    D.steals = (D.steals || 0) + steals; if (win && t[op] === 0) D.flawless = (D.flawless || 0) + 1; if (win && this.room) D.wf = (D.wf || 0) + 1;
+    D.hist = (D.hist || []).concat([{me: t[my], op: t[op], n: this.oppName, ts: Date.now()}]).slice(-30); save();
+    const xp = win ? 50 : draw ? 20 : 10; if (typeof addXP === "function") addXP(xp);
+    logEvent("duel", {score: t[my], opponentScore: t[op], opponent: this.oppName, won: win});
+    if (typeof Track !== "undefined") Track.push("done", "duel", {w: win ? 1 : 0});
+    Sound.play(win ? "Victory" : draw ? "GenericNotify" : "Defeat", .8); if (win){ Sound.cheer(t[op] === 0 ? 4 : 3); if (typeof confettiBurst === "function") confettiBurst(); }
+    if (typeof Ach !== "undefined") Ach.soon();
+    this.panel();
+    const o = this.board.overlay(`<div class="card-over dl-end ${win ? "won" : draw ? "" : "lost"}"><div class="end-ic">${win ? "★" : draw ? "½" : "✕"}</div><h3>${win ? (t[op] === 0 ? "Flawless win!" : "You won the duel!") : draw ? "Draw" : esc(this.oppName) + " won"}</h3>
+      <div class="bres"><div><b>${fmtPts(t[my])}</b><span>You</span></div><span class="muted">:</span><div><b>${fmtPts(t[op])}</b><span>${esc(this.oppName)}</span></div></div>
+      <div class="dl-rew"><span class="pill go">+${xp} XP</span>${steals ? `<span class="pill">${fmtPts(steals)} stolen</span>` : ""}<span class="pill">${D.w || 0} duel win${D.w === 1 ? "" : "s"}</span></div>
+      <div class="grid2"><button class="btn go" id="dagain">${this.room ? "Rematch" : "Play again"}</button><button class="btn" id="dmenu">Menu</button></div></div>`);
+    $("#dagain", o).onclick = () => { if (this.room) this.rematch(); else this.vsBot(this.botR); };
+    $("#dmenu", o).onclick = () => App.go("battle");
+  },
+
+  /* ---------- against a bot (everything runs here; I'm the host) ---------- */
+  vsBot(botR){
+    this.cleanup(); this.room = null; this.side = "h"; this.botR = botR; this.shown = null;
+    whenPuzzles(async () => { if (this.dead) return;
+      this.screen("Bot " + botR, botAvatar({id: "duel" + botR, r: botR, hue: (botR / 7) % 360}, 34));
+      this.M = {mid: 0, raw: [], list: [], res: [], k: -1, steal: null, over: false}; this.panel();
+      const raw = await duelList(duelBase(S.puzzle.r, botR)); if (this.dead) return;
+      this.botRound = k => this.botPlan(k); this.botSteal = k => this.botStealPlan(k); this.startMatch(raw); });
+  },
+  botChance(p){ return Math.max(.1, Math.min(.95, 1 / (1 + Math.pow(10, (p.r - this.botR) / 380)))); },
+  botPlan(k){
+    const p = this.M.list[k], ch = this.botChance(p), think = (2600 + p.moves.length * 800) * (.55 + Math.random() * .9) * Math.max(.6, Math.min(1.8, (p.r + 400) / (this.botR + 400)));
+    this.botTs = [setTimeout(() => { if (this.M.k !== k) return; if (Math.random() < ch) this.onEv("g", {k, solved: true, dt: think}); else this.onEv("g", {k, wrong: true, part: p.moves.length > 3 && Math.random() < .4 ? 1 : 0}); }, think)];
+  },
+  botStealPlan(k){
+    (this.botTs || []).forEach(clearTimeout); const p = this.M.list[k], ok = Math.random() < this.botChance(p) * .85, at = ok ? 2500 + Math.random() * 6500 : STEAL_MS;
+    this.botTs = [setTimeout(() => { if (this.M.k !== k) return; this.onEv("g", ok ? {k, solved: true} : {k, timeout: true, part: p.moves.length > 3 && Math.random() < .35 ? 1 : 0}); }, at)];
+  },
+
+  /* ---------- against a friend, over a live room ---------- */
+  async joinRoom(code, host){
+    this.cleanup(); this.code = code; this.side = host ? "h" : "g"; this.botRound = this.botSteal = null; this.shown = null; this.seq = 0; this.lastSeq = 0;
+    const api = window.claude && await window.claude.use("room"); if (!api){ toast("Live duels need the website with an account."); return App.go("battle"); }
+    whenPuzzles(async () => { if (this.dead) return;
+      this.screen("Waiting…", `<i class="pc bp"></i>`); this.M = {mid: 0, raw: [], list: [], res: [], k: -1, steal: null, over: false}; this.ev = {h: {}, g: {}}; this.panel();
+      const ov = this.board.overlay(`<div class="card-over"><h3>Puzzle Duel</h3><div class="bcode">${esc(code)}</div><p class="muted">${host ? "Waiting for your friend. The duel starts as soon as they join." : "Joining the duel…"}</p>${host ? `<button class="btn go" id="dcopy">Copy invite link</button>` : ""}</div>`);
+      if ($("#dcopy", ov)) $("#dcopy", ov).onclick = async () => { const url = location.origin + location.pathname + "#duel-" + code; try { await navigator.clipboard.writeText(url); toast("Link copied"); } catch(e) { toast(url, 5000); } };
+      try { this.room = await api.join("duel-" + code); } catch(e) { toast("Couldn't connect. Check your internet and try again."); return App.go("battle"); }
+      if (this.dead) return this.cleanup();
+      this.me = {app: "duel", v: 1, name: S.name, rating: S.puzzle.r, avatar: typeof myAvatar === "function" ? myAvatar() : null, host};
+      await this.room.presence(this.me);
+      this.unsub = this.room.onPeers(({peers}) => this.peers(peers));
+    });
+  },
+  peers(peers){
+    if (this.dead) return; const o = peers.find(p => !p.isMe && p.presence && p.presence.app === "duel"); if (!o) return;
+    const P = o.presence;
+    if (P.name && P.name !== this.oppName){ this.oppName = P.name; this.oppFace = P.avatar && typeof avatarBadge === "function" ? avatarBadge(P.avatar, 34) : this.oppFace; this.bars(); this.panel(); }
+    if (this.side === "h"){
+      /* the guest is here: build puzzles that fit both of us, then start */
+      if (!this.M.mid && !this.building){ this.building = true; duelList(duelBase(S.puzzle.r, P.rating)).then(raw => { this.building = false; if (!this.dead) this.startMatch(raw); }); }
+      if (P.ev && P.ev.seq && P.ev.seq !== this.lastSeq && P.mid === this.M.mid){ this.lastSeq = P.ev.seq; this.onEv("g", P.ev); }
+      if (P.again && P.again !== this.againSeen && this.M.over){ this.againSeen = P.again; toast(esc(this.oppName) + " wants a rematch!", 3000); }
+      return;
+    }
+    /* guest: follow the host */
+    if (!P.mid || !P.list) return;
+    if (P.mid !== this.M.mid){ this.M = {mid: P.mid, raw: P.list, list: P.list.map(decodeP), res: [], k: -1, steal: null, over: false}; this.me.mid = P.mid; this.me.ev = null; this.shown = null; this.board.overlay(null); }
+    const M = this.M, had = M.res.length; M.res = (P.res || []).slice(); M.over = !!P.over;
+    const stealNew = P.steal && (!M.steal || M.steal.k !== P.steal.k); M.steal = P.steal || null;
+    if (P.k > M.k){ M.k = P.k; this.playRound(M.k); }
+    if (stealNew) this.onSteal();
+    if (M.res.length > had) this.onRes(M.res[M.res.length - 1]);
+    if (M.over) this.result(); else this.panel();
+  },
+  async rematch(){
+    if (this.side !== "h"){ this.me.again = Date.now(); this.room.presence(this.me).catch(() => {}); toast("Asked for a rematch. The host starts it.", 2600); this.board.overlay(null); return; }
+    const o = this.room.peers().find(p => !p.isMe && p.presence && p.presence.app === "duel");
+    const raw = await duelList(duelBase(S.puzzle.r, o && o.presence.rating)); this.shown = null; this.lastSeq = 0; this.startMatch(raw);
+  }
+};
+
+/* trophies for duels */
+(function addDuelAch(){
+  if (typeof achDef !== "function") return;
+  achDef("duel-1", "speed", "First Duel", "Play a Puzzle Duel.", 1, () => ((S.duel || {}).n || 0) >= 1, () => [(S.duel || {}).n || 0, 1]);
+  [[1, 2, "Duelist"], [10, 3, "Duel Master"], [50, 5, "Duel Legend"]].forEach(([n, t, nm]) => achDef("duelw-" + n, "speed", nm, `Win ${n} Puzzle Duel${n > 1 ? "s" : ""}.`, t, () => ((S.duel || {}).w || 0) >= n, () => [(S.duel || {}).w || 0, n]));
+  achDef("duel-flawless", "speed", "Flawless", "Win a Puzzle Duel 5 : 0.", 4, () => ((S.duel || {}).flawless || 0) >= 1, () => [(S.duel || {}).flawless || 0, 1]);
+  [[5, 2, "Pickpocket"], [25, 4, "Master Thief"]].forEach(([n, t, nm]) => achDef("duel-steal-" + n, "speed", nm, `Steal ${n} points in Puzzle Duels after your opponent slipped.`, t, () => ((S.duel || {}).steals || 0) >= n, () => [Math.floor((S.duel || {}).steals || 0), n]));
+  achDef("duel-friend", "friends", "Friendly Fire", "Beat a friend in a Puzzle Duel.", 3, () => ((S.duel || {}).wf || 0) >= 1, () => [(S.duel || {}).wf || 0, 1]);
+  ACH.forEach(a => { ACH_BY[a.id] = a; });
+})();
 
 /* ===== Blitz hub: your ratings, quick rated games, Puzzle Battle, and how to play fast ===== */
 THEORY.push({
@@ -8846,7 +9124,7 @@ function renderRail(){
   const rail = $("#rail"); if (!rail) return; const rk = rankOf(S.puzzle.r); const cur = App.route;
   const dailyOpen = !S.daily.done[todayKey()];
   rail.innerHTML = `<a class="brand" href="#home">${LOGO}<span>Chess<b>.nat</b></span></a>${typeof railMe === "function" ? railMe() : ""}
-    ${NAV.map(([k, t, ic]) => `<button class="nav ${cur === k || (k === "friend" && (cur === "local" || cur === "linkgame")) || (k === "bots" && cur === "trophies") || (k === "blitz" && cur === "battle") ? "on" : ""}" data-r="${k}">${icon(ic)}<span>${t}</span>${k === "daily" && dailyOpen ? `<span class="badge">1</span>` : ""}</button>`).join("")}
+    ${NAV.map(([k, t, ic]) => `<button class="nav ${cur === k || (k === "friend" && (cur === "local" || cur === "linkgame")) || (k === "bots" && cur === "trophies") || (k === "blitz" && (cur === "battle" || cur === "duel")) ? "on" : ""}" data-r="${k}">${icon(ic)}<span>${t}</span>${k === "daily" && dailyOpen ? `<span class="badge">1</span>` : ""}</button>`).join("")}
     <div class="grow"></div>
     ${railAccount()}`;
   $$("[data-r]", rail).forEach(b => b.onclick = () => App.go(b.dataset.r));
@@ -8855,7 +9133,7 @@ function renderRail(){
 
 const TABS = [["home", "Home", "home"], ["learn", "Learn", "book"], ["puzzles", "Puzzles", "puzzle"], ["play", "Play", "bot"], ["more", "More", "menu"]];
 const TAB_OF = {repertoire: "learn", repdrill: "learn", blitz: "play", battle: "play", theory: "learn", awards: "more", journey: "home", jlevel: "home", home: "home", learn: "learn", lesson: "learn", puzzles: "puzzles", rush: "puzzles", daily: "puzzles", train: "puzzles", coords: "puzzles", play: "play", bots: "play", friend: "play", local: "play", linkgame: "play", endgames: "play", trophies: "play", friends: "friends", chat: "friends", profile: "more", me: "more", review: "more", analysis: "more", stats: "more", settings: "more", account: "more"};
-Object.assign(TAB_OF, {friends: "friends", fprofile: "friends", chat: "friends"});
+Object.assign(TAB_OF, {friends: "friends", fprofile: "friends", chat: "friends", duel: "play"});
 function renderTabs(){
   let t = $("#tabbar"); if (!t) return; const cur = TAB_OF[App.route] || "home"; const dailyOpen = !S.daily.done[todayKey()];
   /* with accounts (website), Friends sits bottom right and "More" moves to the top bar */
@@ -8924,7 +9202,7 @@ const App = {
   } catch(e) {} },
   backTarget(){ const p = this.stack[this.stack.length - 1]; if (p) return p.r; return this.route !== "home" ? (TAB_OF[this.route] && Views[TAB_OF[this.route]] && TAB_OF[this.route] !== this.route ? TAB_OF[this.route] : "home") : null; },
   back(){ const p = this.stack.pop(); if (p) this.go(p.r, p.arg, true); else if (this.route !== "home") this.go(TAB_OF[this.route] && Views[TAB_OF[this.route]] && TAB_OF[this.route] !== this.route ? TAB_OF[this.route] : "home", undefined, true); },
-  busy(){ return ["jlevel", "puzzles", "rush", "bots", "friend", "review", "lesson", "analysis", "coords", "local", "linkgame", "endgames", "repdrill"].includes(this.route); }
+  busy(){ return ["jlevel", "puzzles", "rush", "bots", "friend", "duel", "review", "lesson", "analysis", "coords", "local", "linkgame", "endgames", "repdrill"].includes(this.route); }
 };
 
 /* ===== Home ===== */
@@ -8965,6 +9243,7 @@ Views.home = {
         <button class="tile" data-go="awards">${icon("trophy", 40)}<h3>Trophies</h3><p>${typeof achCount === "function" ? achCount() + " of " + ACH.length : ""} unlocked. Dress up your avatar.</p></button>
         <button class="tile" data-go="profile">${icon("user", 40)}<h3>My Chess Profile</h3><p>Your player type, mistakes and the openings that fit you.</p></button>
         <button class="tile" data-go="bots">${icon("bot", 40)}<h3>Play Bots</h3><p>${BOTS.length} bots from ${BOTS[0].r} to ${BOTS[BOTS.length - 1].r}, with coach tips.</p></button>
+        <button class="tile" data-go="battle">${icon("swords", 40)}<h3>Puzzle Battle</h3><p>Duel, Sprint or Survival against friends or bots.</p></button>
         <button class="tile" data-go="blitz">${icon("flame", 40)}<h3>Blitz & Ranked</h3><p>Rated bullet, blitz and rapid. Puzzle Battles.</p></button>
         <button class="tile" data-go="endgames">${icon("crown", 40)}<h3>Endgames</h3><p>Win it or survive it. With blitz clock.</p></button>
         <button class="tile" data-go="friend">${icon("users", 40)}<h3>Play a Friend</h3><p>Send a link, set the clock, play.</p></button>
@@ -8988,6 +9267,7 @@ Views.play = {
       <div class="unit" style="display:flex;gap:12px;align-items:center;margin-top:10px">${botAvatar(rec, 56)}<div style="flex:1;min-width:0"><div class="muted" style="font-size:12px;font-weight:800">RECOMMENDED BOT</div><div style="font:900 20px var(--display)">${esc(rec.name)} <span class="muted">${rec.r}</span></div><div class="muted" style="font-size:13px">${esc(rec.lesson)}</div></div><button class="btn go" id="prec">Play</button></div>
       <div class="tiles">
         <button class="tile" data-go="bots">${icon("bot", 40)}<h3>Play Bots</h3><p>${BOTS.length} bots from ${BOTS[0].r} to ${BOTS[BOTS.length - 1].r}.</p></button>
+        <button class="tile" data-go="battle">${icon("swords", 40)}<h3>Puzzle Battle</h3><p>Duel, Sprint or Survival against friends or bots.</p></button>
         <button class="tile" data-go="blitz">${icon("flame", 40)}<h3>Blitz & Ranked</h3><p>Rated games on the clock and Puzzle Battles.</p></button>
         <button class="tile" data-go="endgames">${icon("crown", 40)}<h3>Endgames</h3><p>Win it or survive it, blitz style.</p></button>
         <button class="tile" data-go="friend">${icon("users", 40)}<h3>Play a Friend</h3><p>${myLink ? myLink + " game" + (myLink > 1 ? "s" : "") + " waiting for your move" : "By link, live, or on one device."}</p></button>
@@ -9061,6 +9341,7 @@ function boot(){
   if (h.startsWith("m-")) App.go("linkgame", {hash: h});
   else if (h.startsWith("g-") && Views.friend) App.go("friend", {join: h.slice(2)});
   else if (h.startsWith("battle-") && h.length > 7) App.go("battle", {join: h.slice(7)});
+  else if (h.startsWith("duel-") && h.length > 5) App.go("duel", {join: h.slice(5)});
   else App.go(Views[h] && h !== "lesson" ? h : "home");
   /* Android back: close what's open, otherwise go back one screen */
   window.addEventListener("popstate", () => {
@@ -9524,10 +9805,12 @@ const Social = (() => {
     b.addEventListener("contextmenu", e => e.preventDefault());
     b.onclick = e => { e.stopPropagation(); if (long){ long = false; return; } send(giftKind()); };
   }
+  /* tc: [minutes, increment] for a game, "battle" (a sprint) or {battle: "duel" | "sprint" | "surv"} */
   async function invite(id, tc){
-    const battle = tc === "battle", code = newCode(); const {error} = await sb.from("chess_invites").insert({from_id: me, to_id: id, code, tc: battle ? "battle" : tc.join("+")});
+    const bm = tc === "battle" ? "sprint" : tc && tc.battle ? tc.battle : null, code = newCode();
+    const {error} = await sb.from("chess_invites").insert({from_id: me, to_id: id, code, tc: bm ? (bm === "sprint" ? "battle" : "b:" + bm) : tc.join("+")});
     if (error){ toast("Couldn't send the invite: " + error.message, 3500); return; }
-    if (battle) App.go("battle", {join: code, host: true}); else { Views.friend.cfg = {tc: tc.slice(), color: "r"}; App.go("friend", {join: code, host: true}); }
+    if (bm === "duel") App.go("duel", {join: code, host: true}); else if (bm) App.go("battle", {join: code, host: true, mode: bm}); else { Views.friend.cfg = {tc: tc.slice(), color: "r"}; App.go("friend", {join: code, host: true}); }
     toast("Invite sent to " + P(id).name + ". Waiting for them to join…", 3500);
   }
 
@@ -9573,11 +9856,11 @@ const Social = (() => {
   async function showInvite(r){
     if (!r || shownInv.has(r.id) || r.status !== "open" || Date.now() - new Date(r.created_at).getTime() > INVITE_MS) return; shownInv.add(r.id);
     if (!D.players[r.from_id]) await load(true);
-    const p = P(r.from_id), battle = r.tc === "battle", tc = battle ? [3, 0] : (r.tc || "10+0").split("+").map(Number);
+    const p = P(r.from_id), bm = r.tc === "battle" ? "sprint" : /^b:/.test(r.tc || "") ? r.tc.slice(2) : null, battle = !!bm, tc = battle ? [3, 0] : (r.tc || "10+0").split("+").map(Number);
     const set = st => sb.from("chess_invites").update({status: st}).eq("id", r.id).then(() => {}, () => {});
-    const join = () => { set("accepted"); if (battle) App.go("battle", {join: r.code}); else App.go("friend", {join: r.code}); };
-    Notify.show({key: "inv:" + r.id, cls: "ntf-invite", accent: "var(--go)", icon: face(p, 44), label: battle ? "Puzzle Battle" : "Challenge", title: `${esc(p.name)} ${battle ? "wants a Puzzle Battle" : "wants to play"}`,
-      text: battle ? "3 minutes · same puzzles" : esc(tcLabel(tc)) + " · live game", ms: Math.min(INVITE_MS, 20000), sound: () => Sound.play("GenericNotify", .8), onTap: join,
+    const join = () => { set("accepted"); if (bm === "duel") App.go("duel", {join: r.code}); else if (bm) App.go("battle", {join: r.code, mode: bm}); else App.go("friend", {join: r.code}); };
+    Notify.show({key: "inv:" + r.id, cls: "ntf-invite", accent: "var(--go)", icon: face(p, 44), label: battle ? "Puzzle Battle" : "Challenge", title: `${esc(p.name)} ${bm === "duel" ? "wants a Puzzle Duel" : battle ? "wants a Puzzle Battle" : "wants to play"}`,
+      text: bm === "duel" ? "First to 5 · same puzzle each round" : bm === "surv" ? "Survival · 3 lives, harder puzzles" : battle ? "3 minutes · same puzzles" : esc(tcLabel(tc)) + " · live game", ms: Math.min(INVITE_MS, 20000), sound: () => Sound.play("GenericNotify", .8), onTap: join,
       actions: [{label: "Later", fn: () => set("declined")}, {label: "Play", primary: true, fn: join}]});
   }
 
@@ -9734,9 +10017,13 @@ function playSheet(id){
   const sh = detailSheet(`<div class="ps-h">${Social.face(p, 46)}<div><div class="muted" style="font:800 11px var(--body);letter-spacing:.06em">PLAY WITH</div><div style="font:900 21px var(--display)">${esc(p.name)}</div></div></div><div id="psb"></div>`);
   const body = sh.el.querySelector("#psb");
   const step1 = () => { body.innerHTML = `<div class="ps-opts"><button class="ps-o go" data-k="game"><span class="ps-ic">${icon("knight", 30)}</span><b>Live game</b><small>A real game, you against ${esc(p.name)}</small></button>
-      <button class="ps-o" data-k="battle"><span class="ps-ic">${icon("bolt", 30)}</span><b>Puzzle Battle</b><small>3 minutes, same puzzles. Whoever solves more wins.</small></button></div>`;
+      <button class="ps-o" data-k="battle"><span class="ps-ic">${icon("bolt", 30)}</span><b>Puzzle Battle</b><small>Duel, Sprint or Survival. The same puzzles for both of you.</small></button></div>`;
     body.querySelector('[data-k="game"]').onclick = () => { Sound.play("Move", .5); step2(); };
-    body.querySelector('[data-k="battle"]').onclick = () => { sh.close(); Social.invite(id, "battle"); }; };
+    body.querySelector('[data-k="battle"]').onclick = () => { Sound.play("Move", .5); stepB(); }; };
+  /* which battle: the three modes */
+  const stepB = () => { body.innerHTML = `<button class="ps-back" data-back>‹ Back</button><div class="ps-lbl">Which battle?</div><div class="ps-opts">${Object.entries(BATTLE_MODES).map(([k, m]) => `<button class="ps-o ${k === "duel" ? "go" : ""}" data-bm="${k}"><span class="ps-ic">${icon(m.ic, 28)}</span><b>${m.name} · ${m.sub}</b><small>${m.text}</small></button>`).join("")}</div>`;
+    body.querySelector("[data-back]").onclick = step1;
+    body.querySelectorAll("[data-bm]").forEach(b => b.onclick = () => { sh.close(); Social.invite(id, {battle: b.dataset.bm}); }); };
   const step2 = () => { const i = inc(); tc = [tc[0], i ? 2 : 0];
     body.innerHTML = `<button class="ps-back" data-back>‹ Back</button><div class="ps-lbl">How long?</div><div class="ps-tcs">${TCS.map(([m, n]) => `<button class="ps-tc ${m === tc[0] ? "on" : ""}" data-m="${m}"><b>${m}</b><small>min · ${n}</small></button>`).join("")}</div>
       <button class="ps-inc ${i ? "on" : ""}" data-inc><span class="ps-box">${i ? "✓" : ""}</span>+2 seconds for every move</button>
