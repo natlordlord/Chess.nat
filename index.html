@@ -2443,7 +2443,7 @@ html[data-bfx="petals"] .board::after{background-image:radial-gradient(3px 2px a
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794172658";
+const CHESSNAT_BUILD = "1794172753";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11473,6 +11473,19 @@ Views.shop = {
     const bp = $("[data-prem]", body); if (bp) bp.onclick = () => { if (!bp.dataset.armed){ bp.dataset.armed = 1; bp.innerHTML = `Buy for ${fmtNat(PASS_PRICE)} NAT? Tap again`; return; } if (!natSpend(PASS_PRICE)){ toast(`You need ${fmtNat(PASS_PRICE - natBal())} more NAT.`); return; } passState().prem = true; save(); Sound.cheer(3); this.draw(); };
     const cur = $(".bp-tier.cur", body); if (cur) cur.scrollIntoView({block: "nearest", inline: "center"});
   },
+  /* buying: tap once to see the price question, tap again to buy. A chest opens right away. */
+  arm(btn, label){ if (btn.dataset.armed) return true; btn.dataset.armed = 1; btn.classList.add("armed"); btn.textContent = label; setTimeout(() => { if (btn.isConnected && btn.dataset.armed){ delete btn.dataset.armed; this.draw(); } }, 4000); return false; },
+  buyChest(c, btn){ if (!c) return;
+    if (natBal() < c.price){ toast(`You need ${fmtNat(c.price - natBal())} more NAT.`); return; }
+    if (!this.arm(btn, `Buy for ${fmtNat(c.price)} NAT? Tap again`)) return;
+    if (!natSpend(c.price)){ toast(`You need ${fmtNat(c.price - natBal())} more NAT.`); return; }
+    for (let k = 0; k < (c.n || 1); k++) chestGrant(c.floor, "shop"); this.draw(); chestOpen(); },
+  buyItem(it, btn){ if (!it) return; const price = NAT_PRICE[it.r];
+    if (natHas(it.id)){ natEquip(it); this.draw(); return; }
+    if (natBal() < price){ toast(`You need ${fmtNat(price - natBal())} more NAT.`); return; }
+    if (!this.arm(btn, `Buy for ${fmtNat(price)} NAT? Tap again`)) return;
+    if (!natSpend(price)){ toast(`You need ${fmtNat(price - natBal())} more NAT.`); return; }
+    natGive(it.id); Sound.cheer(3); toast(`${it.name} is yours!`); natEquip(it); this.draw(); },
   card(i, buy){ const R = NAT_R[NAT_RI[i.r]], own = natHas(i.id) || i.id === "classic", price = NAT_PRICE[i.r];
     return `<div class="unit shop-i r-${i.r}" style="--rc:${R ? R.c : "#888"}"><div class="si-pic">${natPreview(i, 64)}</div><small style="color:${R ? R.c : ""};font-weight:800">${R ? R.n : "Free"}</small><b>${esc(i.name)}</b>
       ${own ? `<button class="btn ${this.isOn(i) ? "" : "go"}" data-eq="${i.id}" ${this.isOn(i) ? "disabled" : ""}>${this.isOn(i) ? "In use ✓" : "Use"}</button>` : buy && price ? `<button class="btn go" data-buy="${i.id}">${NAT_COIN} ${fmtNat(price)}</button>` : `<span class="pill">Chest only</span>`}</div>`; },
