@@ -1764,6 +1764,18 @@ button.ptype{cursor:pointer}
 .bs-go{position:sticky;bottom:10px;margin-top:16px;z-index:5}
 .bs-go .btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
 @media (max-width:420px){.bs-tcs small{font-size:9.5px}.bl-th .muted:not(.bl-cnt){display:none}}
+/* the one cage page: bots part */
+.cg-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.cg-h .h-sec{margin:0}
+.cg-h .muted{font-size:13px;font-weight:700}
+.cg-next{display:flex;align-items:center;gap:12px;width:100%;margin-top:10px;padding:10px 12px;border-radius:14px;border:1.5px solid color-mix(in srgb,var(--go) 50%,var(--line));background:color-mix(in srgb,var(--go) 10%,var(--panel));color:var(--fg);font:inherit;text-align:left;cursor:pointer}
+.cg-next svg,.cg-next .av3w{flex:none;border-radius:12px}
+.cg-next .grow{flex:1;min-width:0}
+.cg-next small{display:block;font:800 10.5px var(--body);letter-spacing:.07em;color:var(--go)}
+.cg-next b{display:block;font:900 18px var(--display)}.cg-next b em{font-style:normal;color:var(--muted)}
+.cg-bots{margin-top:12px}
+.cg-btns{display:flex;gap:6px;margin-top:8px}
+.cg-btns .btn{flex:1;padding-left:4px;padding-right:4px;white-space:nowrap}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -1785,7 +1797,7 @@ button.ptype{cursor:pointer}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794143755";
+const CHESSNAT_BUILD = "1794144097";
 /* ===== Speech text helpers (shared by the page and the voice build script) ===== */
 const PIECE_WORD = {K: "king", Q: "queen", R: "rook", B: "bishop", N: "knight"};
 function speechNorm(t){ return String(t || "").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, " ").trim(); }
@@ -3423,7 +3435,7 @@ Views.bots = {
     const nr = next ? rec(next.id) : null;
     this.main.innerHTML = `<div class="page bl-page"><div class="bl-head"><h1 class="h-title">Play Bots</h1><button class="btn sm" data-gocage>${icon("cage", 17)} Cages <span class="muted">${caughtBots().length}</span></button></div>
       ${next ? `<div class="unit bl-hero"><div class="bl-hero-top">${botAvatar(next, 76)}<div class="grow"><small>YOUR NEXT OPPONENT</small><b>${esc(next.name)} <em>${next.r}</em></b><span class="pill">${esc(next.tag)}</span></div></div>
-        <p class="muted">${esc(next.bio)}${nr.l ? ` You've lost ${nr.l}× to ${esc(next.name)}. Win once and ${esc(next.name)} goes into your cage.` : ` Win once and ${esc(next.name)} goes into your cage.`}</p>
+        <p class="muted">${esc(next.bio)} ${nr.w ? `Already in your cage. A win here warms you up for the next one.` : nr.l ? `You've lost ${nr.l}× to ${esc(next.name)}. Win once and ${esc(next.name)} goes into your cage.` : `Win once and ${esc(next.name)} goes into your cage.`}</p>
         <button class="btn go big" data-bot="${next.id}" style="width:100%">${icon("knight", 20)} Play ${esc(next.name)}</button></div>` : ""}
       ${tiers.map(t => { const won = t.bots.filter(b => rec(b.id).w).length, op = this.open[t.tag] != null ? this.open[t.tag] : t.tag === openTag;
         return `<div class="bl-tier ${op ? "open" : ""}"><button class="bl-th" data-tier="${esc(t.tag)}"><b>${esc(t.tag)}</b><span class="muted">${t.bots[0].r}–${t.bots[t.bots.length - 1].r}</span><span class="bl-prog"><i style="width:${Math.round(won / t.bots.length * 100)}%"></i></span><span class="muted bl-cnt">${won}/${t.bots.length}</span><span class="bl-chev">›</span></button>
@@ -3431,7 +3443,7 @@ Views.bots = {
     $$("[data-bot]", this.main).forEach(t => t.onclick = () => { Sound.tap(); this.setup(BOTS.find(b => b.id === t.dataset.bot)); });
     $$("[data-tier]", this.main).forEach(t => t.onclick = () => { const tag = t.dataset.tier, box = t.closest(".bl-tier"), op = !box.classList.contains("open"); this.open[tag] = op; box.classList.toggle("open", op); Sound.tap();
       const l = box.querySelector(".bl-list"); l.innerHTML = op ? tiers.find(x => x.tag === tag).bots.map(row).join("") : ""; $$("[data-bot]", l).forEach(b => b.onclick = () => { Sound.tap(); this.setup(BOTS.find(x => x.id === b.dataset.bot)); }); });
-    this.main.querySelector("[data-gocage]").onclick = () => App.go("trophies");
+    this.main.querySelector("[data-gocage]").onclick = () => App.go("friends", {tab: "cages"});
   },
   /* before the game: colour, time, rated or not. Everything else waits behind "Help and options". */
   setup(bot){
@@ -3609,7 +3621,7 @@ Views.bots = {
     $("#rv", o).onclick = () => App.go("review", {pgn, meta: rec});
     $("#rm", o).onclick = () => this.start(G.bot, G.color === "w" ? "b" : "w", Object.assign({}, G.opt));
     if (score === 1) pctAnimate(o); if (G.rating) ratingAnimate(o);
-    $("#cl", o).onclick = () => G.board.overlay(null); if ($("#tro", o)) $("#tro", o).onclick = () => App.go("trophies");
+    $("#cl", o).onclick = () => G.board.overlay(null); if ($("#tro", o)) $("#tro", o).onclick = () => App.go("friends", {tab: "cages"});
     this.panel();
   },
   /* boss game in the Journey: a win clears the level, anything else is another try */
@@ -4599,27 +4611,28 @@ function botPortrait(b, size = 96){
 
 /* ---------- trophy hall: every bot you beat lives in a cage, and you can feed it ---------- */
 const CAGE_LINES = ["Hey! Not again…", "Yuck!", "I'll beat you next time!", "Rematch? Please?", "That's not food!", "Okay, okay, you win.", "I demand a rematch!", "Why me?"];
+/* the bots in your cages. There is one cage page: Friends → Cages (friends on top, bots below).
+   This old address only forwards there. */
+function nextToCatch(){ const won = b => S.bots[b.id] && S.bots[b.id].w > 0, r = recommendBot(); return r && !won(r) ? r : BOTS.find(b => !won(b) && (!r || b.r > r.r)) || BOTS.find(b => !won(b)); }
 Views.trophies = {
-  mount(main){ this.main = main; this.draw(); },
-  draw(){
-    S.trophy = S.trophy || {fed: {}};
-    const caught = BOTS.filter(b => S.bots[b.id] && S.bots[b.id].w > 0), next = BOTS.find(b => !(S.bots[b.id] && S.bots[b.id].w > 0));
-    this.main.innerHTML = `<div class="page"><button class="btn ghost sm" id="tback">‹ Bots</button><h1 class="h-title" style="margin-top:6px">Bot cages</h1><p class="muted">Every bot you beat ends up in a cage. Stronger bots, more epic trophies. <b>${caught.length} of ${BOTS.length}</b> caught.</p>
-      ${next ? `<div class="unit" style="display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap">${botAvatar(next, 52)}<div style="flex:1;min-width:180px"><div class="muted" style="font-size:12px;font-weight:800;letter-spacing:.06em">NEXT TO CATCH</div><div style="font:900 20px var(--display)">${esc(next.name)} <span class="muted">${next.r}</span></div><div class="muted" style="font-size:13px">${esc(tierOf(next.r).name)} trophy</div></div><button class="btn go" id="tnext">Play ${esc(next.name)}</button></div>` : ""}
-      ${caught.length ? "" : `<div class="unit"><p class="muted" style="margin:0">Your cages are still empty. Beat ${next ? esc(next.name) : "a bot"} to lock up your first one.</p></div>`}
-      <div class="cages">${caught.map(b => { const r = S.bots[b.id] || {}, got = r.w > 0, t = tierOf(b.r), fed = S.trophy.fed[b.id] || 0, out = got && myAvatar().pet === b.id;
+  mount(main){ this.main = main; setTimeout(() => { if (App.route === "trophies") App.go("friends", {tab: "cages"}); }, 0); },
+  /* the bot part of the cage page */
+  section(el){
+    this.el = el; if (!el) return; S.trophy = S.trophy || {fed: {}};
+    const caught = BOTS.filter(b => S.bots[b.id] && S.bots[b.id].w > 0), next = nextToCatch();
+    el.innerHTML = `<div class="cg-h"><h2 class="h-sec">Bots</h2><span class="muted">${caught.length} of ${BOTS.length} caught</span></div>
+      ${next ? `<button class="cg-next" data-play="${next.id}">${botAvatar(next, 44)}<span class="grow"><small>NEXT TO CATCH</small><b>${esc(next.name)} <em>${next.r}</em></b></span><span class="btn sm go">Play</span></button>` : ""}
+      ${caught.length ? `<div class="cages cg-bots">${caught.map(b => { const r = S.bots[b.id] || {}, t = tierOf(b.r), fed = S.trophy.fed[b.id] || 0, out = myAvatar().pet === b.id;
         const bar = t.k === "wood" ? undefined : parseInt(t.a.slice(1), 16);
-        return `<div class="cage ${got ? "got" : "empty"} ${out ? "out" : ""} tier-${t.k}" data-cb="${b.id}">
-          <div class="cage-in ${got && !out ? "c3" : ""}">${out ? `<div class="cage-out">Flying with you<br>as your fairy</div>` : got ? Av3D.tag(botCfg(b), {w: 150, h: 150, live: "cage", fps: 30, mode: "cage", tier: botTierOf(b), rank: -1, bar, fill: true, fb: avatarSVG(botCfg(b), {size: 100})}) : `<div class="cage-q">?</div>`}<div class="bars"></div><div class="drops" id="drop-${b.id}"></div><div class="say" id="say-${b.id}"></div></div>
-          <div class="plate"><b>${got ? esc(b.name) : "???"}</b><span>${b.r} · ${t.name}</span>${got ? `<span>${r.w} win${r.w > 1 ? "s" : ""}${fed ? ` · fed ${fed}×` : ""}</span>` : `<span>Not caught yet</span>`}</div>
-          ${got ? `<div class="row cage-btns">${out ? "" : `<button class="btn sm" data-feed="${b.id}">Feed 💩</button>`}${petsOpen() ? `<button class="btn sm ${out ? "go" : ""}" data-pet="${b.id}">${out ? "Back in the cage" : "Let out as fairy"}</button>` : ""}</div>` : `<button class="btn sm" data-play="${b.id}">Challenge</button>`}</div>`; }).join("")}</div>
-      ${typeof Social !== "undefined" ? `<button class="unit fr-botcages" id="tfr"><span class="ptype-pc">${icon("users", 28)}</span><span class="grow"><b>Friends' cages</b><span class="muted">Friends you've beaten, with hearts and 💩</span></span><span class="ptype-go">›</span></button>` : ""}</div>`;
-    $("#tback").onclick = () => App.go("bots"); if ($("#tfr")) $("#tfr").onclick = () => App.go("friends", {tab: "cages"});
-    if ($("#tnext")) $("#tnext").onclick = () => { App.go("bots"); Views.bots.setup(next); };
-    $$("[data-play]", this.main).forEach(x => x.onclick = () => { App.go("bots"); Views.bots.setup(BOTS.find(b => b.id === x.dataset.play)); });
-    $$("[data-feed]", this.main).forEach(x => x.onclick = () => this.feed(x.dataset.feed));
-    $$("[data-pet]", this.main).forEach(x => x.onclick = () => { const av = myAvatar(), id = x.dataset.pet; const was = av.pet === id; av.pet = was ? "none" : id; save(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard();
-      toast(was ? "Back in the cage." : (BOTS.find(b => b.id === id) || {}).name + " is your fairy now. It flies around you.", 2600); Sound.play(was ? "Capture" : "Move", .7); this.draw(); });
+        return `<div class="cage got ${out ? "out" : ""} tier-${t.k}" data-cb="${b.id}">
+          <div class="cage-in ${out ? "" : "c3"}">${out ? `<div class="cage-out">Flying with you<br>as your fairy</div>` : Av3D.tag(botCfg(b), {w: 130, h: 130, live: "cage", fps: 30, mode: "cage", tier: botTierOf(b), rank: -1, bar, fill: true, fb: avatarSVG(botCfg(b), {size: 90})})}<div class="bars"></div><div class="drops" id="drop-${b.id}"></div><div class="say" id="say-${b.id}"></div></div>
+          <div class="plate"><b>${esc(b.name)}</b><span>${b.r} · ${t.name}</span><span class="pl-fed">${r.w} win${r.w > 1 ? "s" : ""}${fed ? ` · fed ${fed}×` : ""}</span></div>
+          <div class="cg-btns">${out ? "" : `<button class="btn sm" data-feed="${b.id}" aria-label="Feed">💩 Feed</button>`}${petsOpen() ? `<button class="btn sm ${out ? "go" : ""}" data-pet="${b.id}">${out ? "Back in" : "🧚 Fairy"}</button>` : ""}</div></div>`; }).join("")}</div>`
+        : `<p class="muted" style="margin:8px 0 0">Your bot cages are still empty. Beat ${next ? esc(next.name) : "a bot"} to lock up your first one.</p>`}`;
+    $$("[data-play]", el).forEach(x => x.onclick = () => { App.go("bots"); Views.bots.setup(BOTS.find(b => b.id === x.dataset.play)); });
+    $$("[data-feed]", el).forEach(x => x.onclick = () => this.feed(x.dataset.feed));
+    $$("[data-pet]", el).forEach(x => x.onclick = () => { const av = myAvatar(), id = x.dataset.pet; const was = av.pet === id; av.pet = was ? "none" : id; save(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard();
+      toast(was ? "Back in the cage." : (BOTS.find(b => b.id === id) || {}).name + " is your fairy now. It flies around you.", 2600); Sound.play(was ? "Capture" : "Move", .7); this.section(el); });
   },
   feed(id){
     S.trophy.fed[id] = (S.trophy.fed[id] || 0) + 1; save();
@@ -4628,7 +4641,7 @@ Views.trophies = {
     Sound.tone([[300, .06, .04], [180, .12]], "triangle", .12);
     setTimeout(() => { Sound.play("Capture", .5); Av3D.react(c.querySelector(".cage-in"), "hit"); c.classList.remove("hit"); void c.offsetWidth; c.classList.add("hit"); say.textContent = rnd(CAGE_LINES); say.classList.remove("show"); void say.offsetWidth; say.classList.add("show"); }, 520);
     setTimeout(() => p.remove(), 2600);
-    const plate = $(`.cage[data-cb="${id}"] .plate span:last-child`); if (plate){ const r = S.bots[id]; plate.textContent = `${r.w} win${r.w > 1 ? "s" : ""} · fed ${S.trophy.fed[id]}×`; }
+    const plate = $(`.cage[data-cb="${id}"] .pl-fed`); if (plate){ const r = S.bots[id]; plate.textContent = `${r.w} win${r.w > 1 ? "s" : ""} · fed ${S.trophy.fed[id]}×`; }
   }
 };
 
@@ -8873,6 +8886,8 @@ const App = {
     const main = $("#main"); main.innerHTML = ""; main.scrollTop = 0; window.scrollTo(0, 0);
     document.body.classList.toggle("busy", this.busy()); renderRail(); renderTabs(); const sh = $("#sheet"); if (sh) sh.hidden = true; sizeBoard();
     this.view.mount(main, arg);
+    /* going back: land where you were on that page */
+    if (back){ const sn = this.snaps[r]; if (sn && sn.scroll){ const put = () => { if (this.route === r && main.scrollHeight > sn.scroll) main.scrollTop = sn.scroll; }; put(); requestAnimationFrame(put); setTimeout(put, 120); } }
     if (!back) try { window.dispatchEvent(new Event("chessnat:route")); } catch(e) {}
   },
   refresh(){ renderRail(); if (["home", "stats", "settings", "learn", "train"].includes(this.route)) this.go(this.route); },
@@ -9093,7 +9108,7 @@ Views.me = {
       <div class="tiles"><button class="tile" data-go="repertoire">${icon("scroll", 36)}<h3>Your openings</h3><p>The repertoire that fits your style, with a drill.</p></button><button class="tile" data-go="profile">${icon("target", 36)}<h3>Play style</h3><p>Your strengths, weak spots and opening repertoire.</p></button>
         ${window.ChessInstall && ChessInstall.can() ? `<button class="tile" id="meinst">${icon("download", 36)}<h3>Get the app</h3><p>On your home screen, full screen, with notifications. iPhone and Android.</p></button>` : ""}
         <button class="tile" data-go="stats">${icon("chart", 36)}<h3>Stats</h3><p>Rating history and puzzle themes.</p></button>
-        <button class="tile" data-go="trophies">${icon("cage", 36)}<h3>Cages</h3><p>${caughtBots().length} bots caught.</p></button></div>
+        <button class="tile" data-go="friends" data-tab="cages">${icon("cage", 36)}<h3>Cages</h3><p>${caughtBots().length} bots caught.</p></button></div>
     </div>`;
     this.stage = heroStage($("#mest"), av, {tier}); $("#mest").insertAdjacentHTML("beforeend", `<span class="me-dress">${icon("user", 14)} Wardrobe</span>`);
     /* tap your figure: straight into the wardrobe (a drag only turns it) */
@@ -9580,7 +9595,7 @@ const Social = (() => {
     const giftLine = (o, who) => `Score ${o.w}:${o.l}${o.d ? " · " + o.d + "½" : ""} · ${who === "mine" ? `❤️ ${o.sent}${o.poopSent ? ` · 💩 ${o.poopSent}` : ""} sent` : `❤️ ${o.got}${o.poopGot ? ` · 💩 ${o.poopGot}` : ""} received`}`;
     const cage = (o, who, inside, btn) => `<div class="cage got person ${who}" data-pc="${o.id}"><div class="cage-in c3">${Av3D.tag(Object.assign({}, cfgOf(inside), {aura: "none", pet: "none", back: "none"}), {w: 120, h: 132, live: "cage", fps: 30, tier: avTier(cfgOf(inside)), mode: "cage", fill: true, fb: avatarSVG(cfgOf(inside), {size: 100})})}<div class="bars"></div><div class="drops" id="pdrop-${o.id}"></div><div class="say" id="psay-${o.id}"></div></div>
       <div class="plate"><b>${dot(P(o.id))}${esc(who === "mine" ? P(o.id).name : "You")}</b><span>${who === "mine" ? "In your cage" : "In " + esc(P(o.id).name) + "'s cage"}</span><span class="pl-gifts">${giftLine(o, who)}</span></div>${btn}</div>`;
-    el.innerHTML = `<h2 class="h-sec" style="margin-top:18px">Friends</h2>
+    el.innerHTML = `<h2 class="h-sec" style="margin-top:16px">Friends</h2>
       ${!mine.length && !theirs.length ? `<div class="unit"><p class="muted" style="margin:0">Beat a signed-in friend in a live game and they land in your cage. If they beat you back, you're in theirs. <a href="#" data-gof>Find friends</a></p></div>` : ""}
       ${mine.length ? `<p class="muted" style="margin:10px 0 0;font-size:13.5px">Tap <b>Send ❤️</b> for a heart. Hold it to throw 💩 instead.</p><div class="cages">${mine.map(o => cage(o, "mine", P(o.id), `<button class="btn sm go" data-ph="${o.id}" title="Tap for a heart, hold for poop">Send ❤️</button>`)).join("")}</div>` : ""}
       ${theirs.length ? `<p class="muted" style="margin:14px 0 0">Locked up! Win your next game against them to break out.</p><div class="cages">${theirs.map(o => cage(o, "theirs", meP, rel(o.id) === "friend" ? `<button class="btn sm" data-pinv="${o.id}">Challenge ${esc(P(o.id).name)}</button>` : `<button class="btn sm" data-addf="${o.id}">Add as friend</button>`)).join("")}</div>` : ""}`;
@@ -9608,9 +9623,11 @@ Views.friends = {
     const site = window.ChessSite || {}; if (!site.ready){ this.main.innerHTML = `<div class="page"><h1 class="h-title">Friends</h1><p class="muted">Accounts aren't set up on this site.</p></div>`; return; }
     await site.sessionReady;
     if (!site.getSession()){ this.main.innerHTML = `<div class="page" style="max-width:640px"><h1 class="h-title">Friends</h1><div class="unit" style="margin-top:12px"><h3>Sign in to add friends</h3><p class="muted">With an account you get a player name, can add friends, see who's online, invite them to a game, and lock them up in your Cages when you beat them.</p><button class="btn go" id="fsi">Sign in</button></div></div>`; $("#fsi").onclick = () => App.go("account"); return; }
-    await Social.start(); await Social.load(true); this.draw(); },
+    await Social.start(); await Social.load(); if (this.sig() !== this._sig) this.draw(); },
+  /* what the page shows: when a refresh brings nothing new, the page is left alone (no flicker) */
+  sig(){ const D = Social.data; return JSON.stringify([this.tab, (Social.player || {}).handle, D.friends.map(r => r.a + r.b + r.status), D.duels.length, D.gifts.length, Object.values(D.players).map(p => [p.id, p.name, p.rating, Social.isOnline(p), (p.avatar || {})._lv])]); },
   draw(){
-    const main = this.main; if (!main || App.route !== "friends") return;
+    const main = this.main; if (!main || App.route !== "friends") return; this._sig = this.sig();
     const me = Social.player, D = Social.data, st = Social.standings();
     if (!me || !me.handle){ const nameNow = me ? me.name : (S.name === "You" ? "" : S.name);
       main.innerHTML = `<div class="page" style="max-width:640px"><h1 class="h-title">Friends</h1><div class="unit" style="margin-top:12px"><h3>${me ? "Pick your player ID" : "Set up your player card"}</h3>
@@ -9631,9 +9648,9 @@ Views.friends = {
     const head = `<div class="fr-head"><h1 class="h-title">Friends</h1><button class="btn sm fr-news" id="fnews" hidden>${icon("bell", 18)} News</button></div>${seg}`;
     const wireTop = () => { if (typeof News !== "undefined") News.isAdmin().then(a => { const b = $("#fnews"); if (a && b){ b.hidden = false; b.onclick = () => App.go("news"); } });
       $$("[data-ftab]", main).forEach(b => b.onclick = () => { if (this.tab === b.dataset.ftab || (!this.tab && b.dataset.ftab === "friends")) return; this.tab = b.dataset.ftab; Sound.tap(); this.draw(); }); };
-    if (tab === "cages"){ main.innerHTML = `<div class="page" style="max-width:760px">${head}<div id="frcages"></div>
-        <button class="unit fr-botcages" data-botcages><span class="ptype-pc">${icon("bot", 30)}</span><span class="grow"><b>Bot cages</b><span class="muted">${typeof caughtBots === "function" ? caughtBots().length : 0} bots caught. Feed them, set one free as your fairy.</span></span><span class="ptype-go">›</span></button></div>`;
-      wireTop(); Social.cages($("#frcages")).then(() => { const h = main.querySelector("#frcages .h-sec"); if (h) h.remove(); }); main.querySelector("[data-botcages]").onclick = () => App.go("trophies"); return; }
+    /* one place for every cage: friends you've beaten on top, bots below */
+    if (tab === "cages"){ main.innerHTML = `<div class="page" style="max-width:760px">${head}<div id="frcages"></div><div id="botcages" style="margin-top:22px"></div></div>`;
+      wireTop(); Social.cages($("#frcages")); if (Views.trophies && Views.trophies.section) Views.trophies.section($("#botcages")); return; }
     if (tab === "board"){ main.innerHTML = `<div class="page" style="max-width:760px">${head}<div style="margin-top:12px">${typeof Ranks !== "undefined" ? Ranks.html() : ""}</div></div>`;
       wireTop(); if (typeof Ranks !== "undefined") Ranks.wire(main); return; }
     main.innerHTML = `<div class="page" style="max-width:760px">${head}
@@ -9776,7 +9793,7 @@ const Chat = (() => {
   async function send(o, body){ body = String(body || "").trim().slice(0, 500); if (!body) return null; const {data, error} = await sb().from("chess_messages").insert({to_id: o, body}).select().single(); if (error){ toast(/row-level/.test(error.message) ? "You can only message friends." : error.message, 3000); return null; } last[o] = data; return data; }
   async function markRead(o, force){ if (!unread[o] && !force) return; unread[o] = 0; refreshBadges(); await sb().from("chess_messages").update({read_at: new Date().toISOString()}).eq("to_id", me()).eq("from_id", o).is("read_at", null); }
   const total = () => Object.values(unread).reduce((a, b) => a + b, 0);
-  return {start, thread, send, markRead, total, unread, last};
+  return {start, thread, send, markRead, total, unread, last, ready: () => started};
 })();
 
 /* iOS only opens the keyboard when a field gets focus during the tap itself. The chat loads a moment later,
@@ -9792,7 +9809,10 @@ Views.chat = {
     main.innerHTML = `<div class="page" style="max-width:720px"><p class="dim">Loading…</p></div>`;
     const site = window.ChessSite; if (!site || !site.ready){ main.innerHTML = `<div class="page"><h1 class="h-title">Chat</h1><p class="muted">Accounts aren't set up on this site.</p></div>`; return; }
     await site.sessionReady; if (!site.getSession()){ main.innerHTML = `<div class="page" style="max-width:640px"><h1 class="h-title">Chat</h1><div class="unit"><p class="muted">Sign in to chat with your friends.</p><button class="btn go" onclick="App.go('account')">Sign in</button></div></div>`; return; }
-    await Chat.start(); await Social.load(); if (App.route !== "chat") return;
+    /* already connected: show the page at once (going back to it should feel instant), refresh behind it */
+    const ready = Social.me && Chat.ready && Chat.ready();
+    if (ready){ if (this.id) this.open(this.id); else this.draw(); }
+    await Chat.start(); await Social.load(); if (App.route !== "chat" || ready) return;
     if (this.id) this.open(this.id); else this.draw();
   },
   draw(){
@@ -9805,7 +9825,7 @@ Views.chat = {
     $$("[data-c]", this.main).forEach(b => b.onclick = () => { kbPrime(); App.go("chat", {id: b.dataset.c}); });
     const g = $("#gof"); if (g) g.onclick = e => { e.preventDefault(); App.go("friends"); };
   },
-  unmount(){ document.body.classList.remove("chatting"); const r = document.documentElement.style; r.removeProperty("--vvh"); r.removeProperty("--vvt"); this._kb = false; window.scrollTo(0, 0); if (this._vv){ visualViewport.removeEventListener("resize", this._vv); visualViewport.removeEventListener("scroll", this._vv); this._vv = null; } },
+  unmount(){ const a = document.activeElement; if (a && a.id === "ctext") a.blur(); document.body.classList.remove("chatting"); const r = document.documentElement.style; r.removeProperty("--vvh"); r.removeProperty("--vvt"); this._kb = false; window.scrollTo(0, 0); if (this._vv){ visualViewport.removeEventListener("resize", this._vv); visualViewport.removeEventListener("scroll", this._vv); this._vv = null; } },
   /* like a messenger: the chat fills exactly the part of the screen you can see, so the input sits right on top of the keyboard.
      The visible area comes from visualViewport (its height and how far iOS has panned). Some iOS versions don't report the keyboard
      in home-screen apps; then we fall back to the usual keyboard height so the input is never hidden behind it. */
@@ -9846,14 +9866,17 @@ Views.chat = {
       const tmp = {id: "t" + Date.now(), from_id: Social.me, body: t.trim().slice(0, 500), created_at: new Date().toISOString()}; this.add(tmp);
       Sound.msgOut(); Chat.send(id, t).then(m => { const el = document.querySelector(`[data-mid="${tmp.id}"]`); if (m && el) el.dataset.mid = m.id; else if (!m && el) el.classList.add("fail"); }); $("#ctext").focus(); };
     $$("[data-q]", main).forEach(b => { b.onmousedown = e => e.preventDefault(); b.onclick = () => { sendT(b.dataset.q); Sound.msgOut(); }; });
-    const msgs = await Chat.thread(id); if (this.id !== id || App.route !== "chat") return;
-    const box = $("#cmsgs"); box.innerHTML = msgs.length ? "" : `<p class="dim" style="text-align:center">No messages yet. Say hi!</p>`; msgs.forEach(m => this.add(m, true)); box.scrollTop = box.scrollHeight;
+    /* the last messages of this chat show at once from memory; the fresh ones are added when they arrive */
+    this._cache = this._cache || {}; const box0 = $("#cmsgs"), had = this._cache[id];
+    if (had){ box0.innerHTML = had.length ? "" : `<p class="dim" style="text-align:center">No messages yet. Say hi!</p>`; had.forEach(m => this.add(m, true)); box0.scrollTop = box0.scrollHeight; }
+    const msgs = await Chat.thread(id); if (this.id !== id || App.route !== "chat") return; this._cache[id] = msgs;
+    const box = $("#cmsgs"); if (!had) box.innerHTML = msgs.length ? "" : `<p class="dim" style="text-align:center">No messages yet. Say hi!</p>`; msgs.forEach(m => this.add(m, true)); box.scrollTop = box.scrollHeight;
     Chat.markRead(id, true);
     if (!this._visR){ this._visR = () => { if (!document.hidden && App.route === "chat" && this.id) Chat.markRead(this.id, true); }; document.addEventListener("visibilitychange", this._visR); }
   },
   add(m, quiet){
     const box = $("#cmsgs"); if (!box) return; const p0 = box.querySelector("p.dim"); if (p0) p0.remove();
-    if (box.querySelector(`[data-mid="${m.id}"]`)) return;
+    const ex = box.querySelector(`[data-mid="${m.id}"]`); if (ex){ if (m.read_at && ex.classList.contains("me") && ex.dataset.read !== "1"){ ex.dataset.read = "1"; this.readLine(); } return; }
     const mine = m.from_id === Social.me, d = document.createElement("div"); d.className = "bub " + (mine ? "me" : "them"); d.dataset.mid = m.id;
     if (mine && m.read_at) d.dataset.read = "1";
     d.innerHTML = `<span>${esc(m.body)}</span><small>${chatTime(m.created_at)}${mine ? `<i class="tick">${TICK1}</i>` : ""}</small>`; box.appendChild(d); this.readLine(); box.scrollTop = box.scrollHeight; requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
