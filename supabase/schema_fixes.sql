@@ -13,3 +13,6 @@ drop policy if exists "fixes: read own" on public.chess_fixes;
 create policy "fixes: read own" on public.chess_fixes for select to authenticated using ((select auth.uid()) = user_id);
 grant select on public.chess_fixes to authenticated;
 -- applied on 2026-11-08: one row for a player who skipped 789 rated puzzles in about 4 minutes (xp 1578, pz 789)
+
+-- 2026-11-08: a puzzle repair per fix: {"void": puzzles not really played, "r": rating to give back, "from"/"to": ms timestamps of the skipping}
+alter table public.chess_fixes add column if not exists puzzle jsonb;

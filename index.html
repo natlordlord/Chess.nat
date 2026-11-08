@@ -2227,7 +2227,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794160263";
+const CHESSNAT_BUILD = "1794160930";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -2521,6 +2521,7 @@ function mergeProgress(a, b){
     m.lessons[k] = {done: !!(x.done || y.done), stars: Math.max(x.stars || 0, y.stars || 0), ts: Math.max(x.ts || 0, y.ts || 0)}; });
   m.xp = Math.max(a.xp || 0, b.xp || 0); m.xpMinus = Math.max(a.xpMinus || 0, b.xpMinus || 0);
   m.fixIds = [...new Set([...(a.fixIds || []), ...(b.fixIds || [])])];
+  m.pzFixIds = [...new Set([...(a.pzFixIds || []), ...(b.pzFixIds || [])])];
   m.nick = Object.assign({}, older.nick || {}, newer.nick || {}); Object.keys(m.nick).forEach(k => { if (!m.nick[k]) delete m.nick[k]; });
   { const fa = a.flame || {}, fb = b.flame || {}; const w = (fa.last || "") > (fb.last || "") ? fa : (fb.last || "") > (fa.last || "") ? fb : ((fa.n || 0) >= (fb.n || 0) ? fa : fb); m.flame = Object.assign({}, w, {best: Math.max(fa.best || 0, fb.best || 0, w.n || 0)}); }
   m.rush = Object.assign({}, newer.rush, {best3: Math.max(a.rush.best3 || 0, b.rush.best3 || 0), best5: Math.max(a.rush.best5 || 0, b.rush.best5 || 0), bestS: Math.max(a.rush.bestS || 0, b.rush.bestS || 0)});
@@ -3222,14 +3223,18 @@ function learnLink(p){ for (const i of p.th){ const k = PZ.themes[i] && PZ.theme
 function themeNames(p){ return p.th.map(themeLabel).filter(Boolean); }
 /* when each puzzle was put on the board: skipping or tapping through puzzles in a second earns nothing */
 const PZ_T = {};
+/* puzzles you really played: a skip in the first seconds (or before the puzzle even started) is not counted at all */
+const pzN = () => Math.max(0, (S.puzzle.n || 0) - (S.puzzle.void || 0));
+const pzQuick = p => { const t = PZ_T[p.id]; return !t || Date.now() - t < 6000; };
 function recordThemes(p, ok){
-  const el = Date.now() - (PZ_T[p.id] || 0), real = ok ? el >= 1200 : el >= 6000;
+  const t = PZ_T[p.id], el = t ? Date.now() - t : 0, real = ok ? el >= 1200 : el >= 6000;
   if (real){ dayTick("pz"); S.stat = S.stat || {}; S.stat.pzReal = (S.stat.pzReal || 0) + 1; }
   /* NatGuard, our anti-cheat: tapping through puzzles doesn't pay. Said once in a while, not on every puzzle. */
   else if (!ok && Date.now() - (recordThemes._ng || 0) > 30 * 6e4){ recordThemes._ng = Date.now(); toast("🛡️ NatGuard: skipped puzzles don't give XP. Give each one a real try.", 3500); }
   if (typeof addXP === "function" && real){ if (ok) addXP(XP.puzzle);
     /* XP for a miss: for really trying, at most 40 a day */
-    else { const d = todayKey(), m = S.stat.missXp && S.stat.missXp.d === d ? S.stat.missXp : (S.stat.missXp = {d, n: 0}); if (m.n < 40){ m.n += XP.puzzleMiss; addXP(XP.puzzleMiss); } } } p.th.forEach(i => { const k = PZ.themes[i][0]; const t = S.themes[k] || (S.themes[k] = {n:0, ok:0}); t.n++; if (ok) t.ok++; }); }
+    else { const d = todayKey(), m = S.stat.missXp && S.stat.missXp.d === d ? S.stat.missXp : (S.stat.missXp = {d, n: 0}); if (m.n < 40){ m.n += XP.puzzleMiss; addXP(XP.puzzleMiss); } } }
+  if (!real && !ok) return; p.th.forEach(i => { const k = PZ.themes[i][0]; const t = S.themes[k] || (S.themes[k] = {n:0, ok:0}); t.n++; if (ok) t.ok++; }); }
 function markSeen(p){ S.seen.push(p.id); }
 function addFailed(p){ if (!S.failed.some(a => a[0] === p.id)) S.failed.push(encodeP(p)); srsAdd(p); }
 function rmFailed(p){ S.failed = S.failed.filter(a => a[0] !== p.id); }
@@ -3307,21 +3312,31 @@ Views.puzzles = {
     if (this.review) return this.settleReview(ok);
     this.sinceRev++;
     const R = this.R, p = R.p, old = S.puzzle.r;
+    /* skipped right away, without a single move: no rating change and not counted as played; it only ends the streak.
+       Five of those a day; after that a skip is a normal miss again (so skipping every hard one doesn't protect a rating) */
+    const sk = S.stat && S.stat.skipF && S.stat.skipF.d === todayKey() ? S.stat.skipF : {d: todayKey(), n: 0};
+    if (!ok && !this.resumed && !R.wrong.length && R.idx <= 1 && pzQuick(p) && sk.n < 5){
+      S.stat = S.stat || {}; sk.n++; S.stat.skipF = sk;
+      S.puzzle.cur = null; S.puzzle.streak = 0; recordThemes(p, false); markSeen(p); this.delta = 0; this.session.push({ok: false, d: 0, r: p.r, skip: true});
+      logPuzzle("skipped", R, false, 0); save(); $("#botbar").innerHTML = youBar(); renderRail(); return; }
     brainNote(p.th, ok, p.r, old, BR.focus && BR.focus.id === p.id ? 1.2 : 1);
     /* speed counts a little, along a square-root curve: solving in the expected time gives the normal points,
        quick solves up to +20 %, slow ones down to half. Misses are not affected. */
     const ms = R.elapsed(), T = (7 + 9 * Math.ceil(p.moves.length / 2)) * 1000;
     const speed = ok ? clamp(1.2 - .2 * Math.sqrt(ms / T), .5, 1.2) : 1;
-    let d = eloDelta(old, p.r, ok ? 1 : 0, S.puzzle.n); if (ok && d > 0) d = Math.max(1, Math.round(d * speed));
+    /* on a run the rating moves faster: the 3rd solve in a row counts double, the 5th triple, the 8th and on four times.
+       Someone much better than their rating gets there in a few minutes, not in hundreds of puzzles. A miss counts normally. */
+    const run = ok ? (S.puzzle.streak >= 7 ? 4 : S.puzzle.streak >= 4 ? 3 : S.puzzle.streak >= 2 ? 2 : 1) : 1;
+    let d = eloDelta(old, p.r, ok ? 1 : 0, pzN()); if (ok && d > 0) d = Math.max(1, Math.round(d * speed * run));
     this.speed = ok ? {ms, f: speed} : null;
     const before = rankOf(old);
     S.puzzle.cur = null;
-    S.puzzle.r = Math.max(0, old + d); S.puzzle.n++; if (ok){ S.puzzle.w++; S.puzzle.streak++; S.puzzle.best = Math.max(S.puzzle.best, S.puzzle.streak); } else S.puzzle.streak = 0;
+    S.puzzle.r = old >= 400 ? Math.max(400, old + d) : Math.max(0, old + d); S.puzzle.n++; /* once placed, the rating never drops below 400 */ if (ok){ S.puzzle.w++; S.puzzle.streak++; S.puzzle.best = Math.max(S.puzzle.best, S.puzzle.streak); } else S.puzzle.streak = 0;
     S.puzzle.peak = Math.max(S.puzzle.peak || 0, S.puzzle.r);
     S.puzzle.hist.push([Date.now(), S.puzzle.r]);
     recordThemes(p, ok); markSeen(p); if (ok) rmFailed(p); else addFailed(p);
     this.delta = d; this.session.push({ok, d, r: p.r});
-    if (ok){ const c = celebrate(this.board, {diff: p.r - old, streak: S.puzzle.streak, ms: R.elapsed(), mate: pzMate(R)}, {delta: d, sub: `Puzzle rated <b>${p.r}</b> · ⏱ ${fmtSec(ms)}${speed >= 1.08 ? " fast!" : ""}`, streak: S.puzzle.streak}); this.cheerTier = c.tier; }
+    if (ok){ const c = celebrate(this.board, {diff: p.r - old, streak: S.puzzle.streak, ms: R.elapsed(), mate: pzMate(R)}, {delta: d, sub: `Puzzle rated <b>${p.r}</b> · ⏱ ${fmtSec(ms)}${speed >= 1.08 ? " fast!" : ""}${run > 1 ? ` · 🔥 ×${run}` : ""}`, streak: S.puzzle.streak}); this.cheerTier = c.tier; }
     else this.board.float((d >= 0 ? "+" : "") + d, d < 0);
     logPuzzle("rated", R, ok, d);
     save();
@@ -3365,12 +3380,12 @@ Views.puzzles = {
     const reveal = state === "solved" || state === "done" || state === "solution";
     const learn = reveal && p ? learnLink(p) : "";
     const info = p ? `${learn}<div class="row" style="margin-top:10px">${pzRatingChip(p, reveal)}${reveal ? `<a class="pill" href="https://lichess.org/training/${esc(p.id)}" target="_blank" rel="noopener">Source #${esc(p.id)}</a>` : ""}</div>` : "";
-    const ses = this.session.slice(-24).map(s => `<span title="${s.rev ? "Review" : "Puzzle " + s.r + ": " + (s.d > 0 ? "+" : "") + s.d}" style="display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:24px;border-radius:4px;font:800 11px var(--body);background:${s.ok ? "var(--go)" : "var(--bad)"};color:#fff;${s.rev ? "opacity:.6" : ""}">${s.rev ? "↺" : (s.d > 0 ? "+" : "") + s.d}</span>`).join("");
-    const acc = S.puzzle.n ? Math.round(S.puzzle.w / S.puzzle.n * 100) : 0;
+    const ses = this.session.slice(-24).map(s => `<span title="${s.skip ? "Skipped" : s.rev ? "Review" : "Puzzle " + s.r + ": " + (s.d > 0 ? "+" : "") + s.d}" style="display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:24px;border-radius:4px;font:800 11px var(--body);background:${s.skip ? "var(--line)" : s.ok ? "var(--go)" : "var(--bad)"};color:#fff;${s.rev ? "opacity:.6" : ""}">${s.skip ? "–" : s.rev ? "↺" : (s.d > 0 ? "+" : "") + s.d}</span>`).join("");
+    const acc = pzN() ? Math.round(S.puzzle.w / pzN() * 100) : 0;
     msg = focus + msg;
     $("#sp").innerHTML = (innerWidth <= 900 ? `<div style="margin-bottom:10px">${msg}</div>` + head + info : head + `<div style="margin-top:14px">${msg}</div>${info}`) + `
       <div class="h-sec">This session</div><div class="row" style="gap:4px">${ses || `<span class="dim">Your results will appear here.</span>`}</div>
-      <div class="h-sec m-hide">Overall</div><div class="grid3 m-hide"><div class="stat"><b>${S.puzzle.n}</b><span>played</span></div><div class="stat"><b>${acc}%</b><span>solved</span></div><div class="stat"><b>${S.puzzle.streak}</b><span>streak (best ${S.puzzle.best})</span></div></div>`;
+      <div class="h-sec m-hide">Overall</div><div class="grid3 m-hide"><div class="stat"><b>${pzN()}</b><span>played</span></div><div class="stat"><b>${acc}%</b><span>solved</span></div><div class="stat"><b>${S.puzzle.streak}</b><span>streak (best ${S.puzzle.best})</span></div></div>`;
     const done = state === "solved" || state === "done";
     $("#sf").innerHTML = done ? `${BoardNav.html()}<button class="btn go big" id="pnext" style="flex:1">Next puzzle</button>` :
       `${BoardNav.html()}<button class="btn" id="phint" ${state === "load" || state === "solution" ? "disabled" : ""}>Hint</button><button class="btn" id="psol" ${state === "load" || state === "solution" ? "disabled" : ""}>Solution</button><button class="btn go" id="pnext" style="flex:1" title="${this.R.failed ? "" : "Skipping counts as a miss"}">${this.R.failed ? "Next puzzle" : "Skip"}</button>`;
@@ -3550,7 +3565,7 @@ Views.train = {
    1. Theme strength: per motif, how often you solve it compared with what your rating predicts for that puzzle.
       Recent results weigh more (old ones fade), so improvement shows and luck with easy or hard puzzles evens out.
    2. Difficulty: the next rated puzzle aims at about 62 % success. After two misses in a row an easier one
-      (about 75 %), on a run of five a harder one (about 50 %). Elo keeps the points fair either way.
+      (about 75 %), on a run harder with every solve. On a run the rating also moves faster (x2 from the 3rd solve in a row up to x4).
    3. Review: a missed puzzle comes back by itself after 1, 3, 7 and 21 days, inside the normal puzzle stream (not rated).
    4. Your own games: a fork, mate or free piece you missed in a reviewed game counts against that motif too. */
 const BR_META = new Set(["opening", "middlegame", "endgame"]);
@@ -3606,7 +3621,7 @@ function brainTarget(){
   const me = S.puzzle.r, last = S.recent.filter(r => r.mode === "rated").slice(-2);
   let gap = -85;                                              /* about 62 % */
   if (last.length === 2 && !last[0].ok && !last[1].ok) gap = -190; /* two misses: win one back */
-  else if (S.puzzle.streak >= 5) gap = 0;                     /* on a run: push */
+  else if (S.puzzle.streak >= 3) gap = Math.min(250, 60 * (S.puzzle.streak - 3));  /* on a run: harder with every solve (3 in a row: even, 5: +120, 7+: +250) */
   if ((S.puzzle.n || 0) < 10) gap = 120;                       /* finding your level: always a little above, so a solver climbs quickly */
   return Math.max(350, me + gap + Math.round((Math.random() - .5) * 70));
 }
@@ -9741,10 +9756,18 @@ Views.online = {
 setTimeout(() => { onlineLoadMe().catch(() => {}); }, 6000);
 /* corrections from the team (e.g. XP farmed by tapping through puzzles): each one is applied once on every device */
 async function applyFixes(){
-  const sb = onlineSb(); if (!sb || !onlineMe()) return; const {data, error} = await sb.from("chess_fixes").select("id,xp,pz,note"); if (error || !data || !data.length) return;
+  const sb = onlineSb(); if (!sb || !onlineMe()) return; const {data, error} = await sb.from("chess_fixes").select("id,xp,pz,note,puzzle"); if (error || !data || !data.length) return;
   S.fixIds = S.fixIds || []; let changed = false;
   data.forEach(f => { if (S.fixIds.includes(f.id)) return; S.fixIds.push(f.id); S.xpMinus = (S.xpMinus || 0) + (f.xp || 0);
     if (f.pz){ S.pzMinus = (S.pzMinus || 0) + f.pz; S.stat = S.stat || {}; if (S.stat.pzReal != null) S.stat.pzReal = Math.max(0, S.stat.pzReal - f.pz); } changed = true; });
+  /* a puzzle repair (its own list, so an older app that already ticked the fix off still gets it):
+     {void: puzzles that weren't really played, r: rating to give back, from/to: the time the skipping ran} */
+  S.pzFixIds = S.pzFixIds || [];
+  data.forEach(f => { const q = f.puzzle; if (!q || S.pzFixIds.includes(f.id)) return; S.pzFixIds.push(f.id); const P = S.puzzle;
+    if (q.void){ P.void = Math.min(P.n || 0, (P.void || 0) + q.void); S.stat = S.stat || {}; if (S.stat.pzReal != null) S.stat.pzReal = Math.max(P.w || 0, S.stat.pzReal - q.void); }
+    if (q.r && (P.r || 0) < q.r){ P.r = q.r; P.peak = Math.max(P.peak || 0, q.r); }
+    if (q.from && q.to){ const out = t => t >= q.from && t <= q.to; P.hist = (P.hist || []).filter(h => !out(h[0])); S.recent = (S.recent || []).filter(r => !out(r.ts || 0)); if (q.r) P.hist.push([Date.now(), P.r]); }
+    changed = true; });
   if (!changed) return; const before = S.lvlSeen || 1; S.lvlSeen = playerLevel(); save();
   /* a reward from the team: one big card instead of dozens of level-ups */
   const gift = data.find(f => S.fixIds.includes(f.id) && f.note && f.note.startsWith("🎁") && !(S.giftSeen || []).includes(f.id));
