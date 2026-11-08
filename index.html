@@ -381,7 +381,7 @@ table.tb th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-sp
 .cheer .delta.neg{color:var(--bad)}
 .cheer .sub,.cheer .streak{font:800 3.6cqw/1.2 var(--body);color:#EEEED2;background:rgba(33,31,28,.88);border:.3cqw solid #769656;padding:.8cqw 2.6cqw;border-radius:99px;animation:pop .35s .4s ease-out both, cheerOut .35s ease-in 1.45s forwards}
 .cheer .sub b{color:#9BD35C}
-.cheer .streak{background:#769656;border-color:#EEEED2;color:#fff}
+.cheer .streak{background:#769656;border-color:#EEEED2;color:#fff;font-size:4.4cqw}.cheer .streak b{font-weight:900}
 .cheer.t3 .delta,.cheer.t3 .sub,.cheer.t3 .streak,.cheer.t4 .delta,.cheer.t4 .sub,.cheer.t4 .streak{animation-delay:.3s,1.75s}
 .cheer .cf{position:absolute;left:50%;top:46%;width:2.2cqw;height:1.2cqw;border-radius:2px;background:var(--c);opacity:0;animation:conf 1.25s var(--d) cubic-bezier(.15,.7,.3,1) forwards}
 .cheer .cf:nth-child(3n){width:1.4cqw;height:1.4cqw;border-radius:50%}
@@ -2227,7 +2227,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794162112";
+const CHESSNAT_BUILD = "1794162569";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -3007,7 +3007,7 @@ function makeBoard(wrap, opts = {}){
     const cols = ["#81B64C","#EEEED2","#769656","#BACA44","#FFFFFF","#5D8A35"], n = plain ? 0 : 10 + tier * 9;
     const bits = Array.from({length: n}, (_, i) => { const a = (i / n) * Math.PI * 2 + Math.random() * .5, r = 28 + Math.random() * (14 + tier * 6);
       return `<i class="cf" style="--x:${(Math.cos(a) * r).toFixed(1)}cqw;--y:${(Math.sin(a) * r - 6).toFixed(1)}cqw;--r:${Math.round(Math.random() * 720 - 360)}deg;--c:${cols[i % cols.length]};--d:${(Math.random() * .25).toFixed(2)}s"></i>`; }).join("");
-    fx.innerHTML = `<div class="cheer t${tier} ${plain ? "plain" : ""}">${tier >= 3 ? `<div class="burst"></div>` : ""}${bits}<div class="word">${esc(word)}</div>${delta != null ? `<div class="delta ${delta < 0 ? "neg" : ""}">${delta >= 0 ? "+" : ""}${delta}</div>` : ""}${sub ? `<div class="sub">${sub}</div>` : ""}${streak >= 3 ? `<div class="streak">🔥 ${streak} in a row</div>` : ""}</div>`;
+    fx.innerHTML = `<div class="cheer t${tier} ${plain ? "plain" : ""}">${tier >= 3 ? `<div class="burst"></div>` : ""}${bits}<div class="word">${esc(word)}</div>${delta != null ? `<div class="delta ${delta < 0 ? "neg" : ""}">${delta >= 0 ? "+" : ""}${delta}</div>` : ""}${sub ? `<div class="sub">${sub}</div>` : ""}${streak >= 3 ? `<div class="streak">🔥 <b>${streak}</b> <span>in a row</span></div>` : ""}</div>`;
     /* one line, centred, always fits the board (German words are longer) */
     const fit = () => { const w = fx.querySelector(".cheer .word"); if (!w) return; w.style.fontSize = ""; const room = fx.clientWidth * .92, need = w.scrollWidth; if (need > room) w.style.fontSize = (parseFloat(getComputedStyle(w).fontSize) * room / need).toFixed(1) + "px"; };
     requestAnimationFrame(fit); setTimeout(fit, 60);
@@ -3339,7 +3339,7 @@ Views.puzzles = {
     S.puzzle.hist.push([Date.now(), S.puzzle.r]);
     recordThemes(p, ok); markSeen(p); if (ok) rmFailed(p); else addFailed(p);
     this.delta = d; this.session.push({ok, d, r: p.r});
-    if (ok){ const c = celebrate(this.board, {diff: p.r - old, streak: S.puzzle.streak, ms: R.elapsed(), mate: pzMate(R)}, {delta: d, sub: `Puzzle rated <b>${p.r}</b> · ⏱ ${fmtSec(ms)}${speed >= 1.08 ? " fast!" : ""}${run > 1 ? ` · 🔥 ×${run}` : ""}`, streak: S.puzzle.streak}); this.cheerTier = c.tier; }
+    if (ok){ const c = celebrate(this.board, {diff: p.r - old, streak: S.puzzle.streak, ms: R.elapsed(), mate: pzMate(R)}, {delta: d, sub: `Puzzle rated <b>${p.r}</b> · ⏱ ${fmtSec(ms)}${speed >= 1.08 ? ` <span>fast!</span>` : ""}${run > 1 ? ` · <b>🔥 ×${run}</b>` : ""}`, streak: S.puzzle.streak}); this.cheerTier = c.tier; }
     else this.board.float((d >= 0 ? "+" : "") + d, d < 0);
     logPuzzle("rated", R, ok, d);
     save();
