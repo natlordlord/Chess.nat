@@ -2206,6 +2206,38 @@ html.i18n-wait body{visibility:hidden}
 .rwd-in h2{position:relative;margin:10px 0 6px;font:900 30px var(--display)}
 .rwd-in p{position:relative;margin:0 0 10px;line-height:1.45}.rwd-s{font-size:13.5px}
 .rwd-in .row{position:relative}
+/* news: round video message on the big screen */
+.newsx-vid{position:relative;width:min(62vw,240px);aspect-ratio:1;margin:18px auto 6px;border-radius:50%;cursor:pointer}
+.newsx-vid video{width:100%;height:100%;object-fit:cover;border-radius:50%;background:#000;display:block}
+.newsx-vring{position:absolute;inset:-6px;width:calc(100% + 12px);height:calc(100% + 12px);transform:rotate(-90deg);pointer-events:none}
+.newsx-vring circle{fill:none;stroke:#81b64c;stroke-width:3;stroke-dasharray:302;stroke-dashoffset:302;stroke-linecap:round}
+.newsx-vplay{position:absolute;inset:0;margin:auto;width:76px;height:76px;border-radius:50%;border:0;background:rgba(0,0,0,.45);color:#fff;display:grid;place-items:center;transition:opacity .2s}
+.newsx-vid.playing .newsx-vplay{opacity:0}
+.newsx-vid.muted .newsx-vplay{opacity:1;background:rgba(0,0,0,.55)}
+.newsx-vid.muted .newsx-vplay::after{content:"🔊";position:absolute;bottom:-4px;right:-4px;font-size:22px}
+/* news editor: hold-to-record video note */
+.nv-hold{width:64px;height:64px;border-radius:50%;border:0;background:var(--go);color:#fff;display:grid;place-items:center;flex:none;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;box-shadow:0 4px 0 rgba(0,0,0,.25)}
+.nv-hold:active{transform:scale(1.08)}
+.nv-done{display:flex;gap:14px;align-items:center}
+.nv-circle{width:120px;height:120px;border-radius:50%;overflow:hidden;flex:none;border:3px solid var(--go)}
+.nv-circle video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.nv-rec{position:fixed;inset:0;z-index:9000;background:rgba(10,10,10,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;opacity:0;transition:opacity .2s;touch-action:none}
+.nv-rec.on{opacity:1}.nv-rec.out{opacity:0}
+.nv-live{position:relative;width:min(78vw,300px);aspect-ratio:1;transform:translateX(var(--dx,0px))}
+.nv-live video{width:100%;height:100%;object-fit:cover;border-radius:50%;transform:scaleX(-1);background:#111}
+.nv-live svg{position:absolute;inset:-8px;width:calc(100% + 16px);height:calc(100% + 16px);transform:rotate(-90deg)}
+.nv-live circle{fill:none;stroke:#e5484d;stroke-width:3;stroke-dasharray:302;stroke-dashoffset:302;stroke-linecap:round}
+.nv-bar{display:flex;align-items:center;gap:10px;color:#fff;font:700 15px var(--body)}
+.nv-tip,.nv-lock{color:rgba(255,255,255,.65);font-weight:600;font-size:13px}
+.nv-btns{display:none;gap:10px}.nv-rec.locked .nv-btns{display:flex}.nv-rec.locked .nv-tip,.nv-rec.locked .nv-lock{display:none}
+/* news history: swipe left to delete */
+.nh-wrap{position:relative;overflow:hidden;border-radius:14px;transition:max-height .25s,opacity .25s;max-height:400px}
+.nh-wrap.gone{max-height:0;opacity:0}
+.nh-wrap .nh{position:relative;z-index:1;background:var(--panel,#262421);transition:transform .2s}
+.nh-wrap.open .nh{transform:translateX(-96px)}
+.nh-del{position:absolute;right:0;top:0;bottom:0;width:96px;border:0;background:var(--bad);color:#fff;font:800 13px var(--body);padding:0 8px}
+.nh-del.armed{width:100%;z-index:2;font-size:15px}
+.nh-bin{padding:6px 9px}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -2227,7 +2259,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794162569";
+const CHESSNAT_BUILD = "1794163563";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -10249,6 +10281,8 @@ Views.local = {
 
 /* ===== Icons (own line set) ===== */
 const ICONS = {
+  trash: `<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/>`,
+  video: `<rect x="3" y="6" width="13" height="12" rx="3"/><path d="M16 10.5l5-3v9l-5-3z"/>`,
   download: '<path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 20h14"/>',
   /* own icons for the friend actions and the chat */
   bubble: '<path d="M4.5 6.5a3 3 0 0 1 3-3h9a3 3 0 0 1 3 3v6.5a3 3 0 0 1-3 3H11l-4.5 4v-4h-0a2 2 0 0 1-2-2z"/><circle cx="9" cy="10" r=".6" fill="currentColor"/><circle cx="12" cy="10" r=".6" fill="currentColor"/><circle cx="15" cy="10" r=".6" fill="currentColor"/>',
@@ -11838,8 +11872,8 @@ const PAUSE_SVG = `<svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="
 const News = {
   admin: null,
   sb(){ return window.ChessSite && window.ChessSite.sb; },
-  async latest(){ const sb = this.sb(); if (!sb) return null; try { const {data} = await sb.from("chess_news").select("id,title,body,audio_url,created_at,pushed_at,pushed_count,rev,sort_at").order("sort_at", {ascending: false}).limit(1); return (data && data[0]) || null; } catch(e){ return null; } },
-  async history(){ const sb = this.sb(); if (!sb) return []; try { const {data} = await sb.from("chess_news").select("id,title,body,audio_url,created_at,pushed_at,pushed_count,rev,sort_at").order("sort_at", {ascending: false}).limit(30); return data || []; } catch(e){ return []; } },
+  async latest(){ const sb = this.sb(); if (!sb) return null; try { const {data} = await sb.from("chess_news").select("*").order("sort_at", {ascending: false}).limit(1); return (data && data[0]) || null; } catch(e){ return null; } },
+  async history(){ const sb = this.sb(); if (!sb) return []; try { const {data} = await sb.from("chess_news").select("*").order("sort_at", {ascending: false}).limit(30); return data || []; } catch(e){ return []; } },
   /* once per day and news item; not in the middle of a game */
   async daily(){
     if (document.hidden || this.busy || document.querySelector(".newsx")) return;
@@ -11849,15 +11883,17 @@ const News = {
     /* "show again" from the team (rev) brings it back for everyone, even if they already pressed OK today */
     const day = todayKey(), seen = S.newsSeen || {}, rev = n.rev || 0; if (seen.id === n.id && seen.day === day && (seen.rev || 0) === rev) return;
     if (Date.now() - new Date(n.sort_at || n.created_at).getTime() > 60 * 864e5) return; /* old news fade out on their own */
-    this.show(n, {mustListen: !!n.audio_url && !((S.newsHeard || {})[n.id]), onOk: () => { S.newsSeen = {id: n.id, day, rev}; save(); }});
+    this.show(n, {mustListen: !!(n.audio_url || n.video_url) && !((S.newsHeard || {})[n.id]), onOk: () => { S.newsSeen = {id: n.id, day, rev}; save(); }});
   },
   /* the big screen itself (also used for the owner's preview) */
   show(n, o = {}){
     const el = document.createElement("div"); el.className = "newsx";
     el.innerHTML = `<canvas class="newsx-cf"></canvas><div class="newsx-flash"></div><div class="newsx-in" role="dialog" aria-modal="true" aria-label="Neuigkeit">
       <div class="newsx-badge">${MEGA_SVG}<span>Neuigkeit</span></div>
-      <h2>${esc(n.title)}</h2><p>${esc(n.body)}</p>
-      ${n.audio_url ? `<div class="newsx-voice"><button class="newsx-play" aria-label="Sprachnachricht abspielen">${PLAY_SVG}</button><div class="grow"><div class="newsx-vt">Sprachnachricht</div><div class="newsx-bar"><i></i></div><div class="newsx-time">0:00</div></div></div>
+      <h2>${esc(n.title)}</h2>${n.body ? `<p>${esc(n.body)}</p>` : ""}
+      ${n.video_url ? `<div class="newsx-vid"><video src="${esc(n.video_url)}" playsinline preload="auto"></video><button class="newsx-vplay" aria-label="Videobotschaft abspielen">${PLAY_SVG}</button><svg class="newsx-vring" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48"/></svg></div>
+        ${o.mustListen ? `<div class="newsx-hint">Schau dir die Botschaft bis zum Ende an.</div>` : ""}` : ""}
+      ${n.audio_url && !n.video_url ? `<div class="newsx-voice"><button class="newsx-play" aria-label="Sprachnachricht abspielen">${PLAY_SVG}</button><div class="grow"><div class="newsx-vt">Sprachnachricht</div><div class="newsx-bar"><i></i></div><div class="newsx-time">0:00</div></div></div>
         ${o.mustListen ? `<div class="newsx-hint">Hör dir die Nachricht bis zum Ende an.</div>` : ""}` : ""}
       <button class="btn go big newsx-ok" ${o.mustListen ? "disabled" : ""}>OK</button></div>`;
     document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("in"));
@@ -11866,7 +11902,9 @@ const News = {
     const ok = el.querySelector(".newsx-ok");
     const unlock = () => { ok.disabled = false; const h = el.querySelector(".newsx-hint"); if (h) h.textContent = "Danke fürs Zuhören!"; };
     let player = null;
-    if (n.audio_url){ player = newsPlayer(n.audio_url, el, () => { S.newsHeard = Object.assign({}, S.newsHeard, {[n.id]: 1}); save(); unlock(); }, unlock);
+    if (n.video_url){ player = newsVideo(el, () => { S.newsHeard = Object.assign({}, S.newsHeard, {[n.id]: 1}); save(); unlock(); }, unlock);
+      setTimeout(() => { if (el.isConnected && !player.started) player.auto(); }, 1200); }
+    else if (n.audio_url){ player = newsPlayer(n.audio_url, el, () => { S.newsHeard = Object.assign({}, S.newsHeard, {[n.id]: 1}); save(); unlock(); }, unlock);
       /* nobody pressed play within 1.5 s: start by itself, loud */
       setTimeout(() => { if (el.isConnected && !player.started) player.auto(); }, 1500); }
     ok.onclick = () => { if (ok.disabled) return; if (player) player.stop(); stopCf(); el.classList.add("out"); setTimeout(() => el.remove(), 320); o.onOk && o.onOk(); };
@@ -11914,6 +11952,24 @@ function newsPlayer(url, el, onDone, onFail){
   P.stop = () => { try { audio.pause(); audio.src = ""; } catch(e) {} if (W.on){ W.on = false; try { W.src.stop(); } catch(e) {} } cancelAnimationFrame(P.raf); };
   return P;
 }
+/* the round video message: plays with sound if the phone lets it, otherwise silently with "tap for sound";
+   the ring around it fills while it plays; OK unlocks at the end */
+function newsVideo(el, onDone, onFail){
+  const v = el.querySelector(".newsx-vid video"), btn = el.querySelector(".newsx-vplay"), ring = el.querySelector(".newsx-vring circle"), box = el.querySelector(".newsx-vid"), hint = el.querySelector(".newsx-hint");
+  const P = {started: false, done: false};
+  const tick = () => { if (v.duration) ring.style.strokeDashoffset = 302 * (1 - v.currentTime / v.duration); if (!v.paused) requestAnimationFrame(tick); };
+  v.onplay = () => { P.started = true; box.classList.add("playing"); tick(); };
+  v.onpause = () => box.classList.remove("playing");
+  v.onended = () => { box.classList.remove("playing"); if (!P.done){ P.done = true; onDone(); } };
+  v.onerror = () => { if (hint) hint.textContent = "Video konnte nicht geladen werden"; onFail(); };
+  const tap = () => { if (v.muted){ v.muted = false; v.currentTime = 0; box.classList.remove("muted"); v.play().catch(() => {}); if (hint && !P.done) hint.textContent = "Schau dir die Botschaft bis zum Ende an."; return; }
+    if (v.paused) v.play().catch(() => {}); else v.pause(); };
+  btn.onclick = tap; v.onclick = tap;
+  P.auto = async () => { if (P.started) return; try { v.muted = false; await v.play(); return; } catch(e) {}
+    try { v.muted = true; box.classList.add("muted"); await v.play(); if (hint) hint.textContent = "Tippe aufs Video für Ton 🔊"; } catch(e) {} };
+  P.stop = () => { try { v.pause(); v.removeAttribute("src"); v.load(); } catch(e) {} };
+  return P;
+}
 /* confetti: two big bursts from the middle, then a slow rain; stops on its own after a few seconds */
 function newsConfetti(cv){
   const ctx = cv.getContext("2d"), dpr = Math.min(2, window.devicePixelRatio || 1); let W, H, run = true;
@@ -11939,33 +11995,36 @@ if (window.ChessSite && window.ChessSite.sessionReady) window.ChessSite.sessionR
 const NEWS_DRAFT = {t: "🛡️ NatGuard ist da", b: "Yasemin hat einen Exploit gefunden: Übersprungene Puzzles gaben trotzdem XP. Respekt für den Fund! 😄 Die Lücke ist zu: Ab sofort wacht NatGuard, unser Anti-Cheat, über Chess.nat. XP gibt's nur noch für echte Versuche. Yasemin behält ihre Level als Finderlohn. Bugs gern melden! 🐛"};
 Views.news = {
   async mount(main){
-    this.main = main; this.rec = null; this.blob = null; main.innerHTML = `<div class="page" style="max-width:640px"><h1 class="h-title">News</h1><p class="dim">Loading…</p></div>`;
+    this.main = main; this.rec = null; this.blob = null; this.vblob = null; main.innerHTML = `<div class="page" style="max-width:640px"><h1 class="h-title">News</h1><p class="dim">Loading…</p></div>`;
     if (!(await News.isAdmin())){ main.querySelector(".dim").textContent = "Only the Chess.nat team can send news."; return; }
     await this.reload(); this.draw();
   },
   async reload(){ this.list = await News.history(); this.cur = this.list[0] || null; },
-  unmount(){ this.stopRec(); },
+  unmount(){ this.stopRec(); this.vcancel && this.vcancel(); },
   draw(){
     const n = this.cur, main = this.main, draft = this.tpl || (!n ? NEWS_DRAFT : {t: "", b: ""}); this.tpl = null;
     const when = d => new Date(d).toLocaleString("de-DE", {day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"});
     main.innerHTML = `<div class="page" style="max-width:640px"><h1 class="h-title">News</h1>
       <p class="muted">Die aktuelle Neuigkeit erscheint jedem einmal am Tag groß beim Öffnen der App, mit Konfetti, und geht nur mit OK weg. Mit Sprachnachricht wird OK erst frei, wenn sie zu Ende gehört ist. Als Push geht sie nur raus, wenn du auf Senden drückst.</p>
       <div class="unit news-new"><h3>Neue Nachricht an alle</h3>
-        <label class="muted" style="display:block;margin-top:8px">Titel <input id="nt" maxlength="80" value="${esc(draft.t)}" style="width:100%;margin-top:4px"></label>
-        <label class="muted" style="display:block;margin-top:8px">Text <textarea id="nb" maxlength="300" rows="3" style="width:100%;margin-top:4px">${esc(draft.b)}</textarea></label>
-        <div class="muted" style="margin-top:12px">Sprachnachricht (optional)</div>
+        <p class="dim" style="margin:4px 0 0;font-size:13px">Alles ist optional: einfach eine Video- oder Sprachnachricht aufnehmen und senden reicht. Ohne Titel steht da „Nachricht von Nathan“.</p>
+        <div class="muted" style="margin-top:12px">Videobotschaft</div>
+        <div class="nvideo" id="nvideo"></div>
+        <div class="muted" style="margin-top:12px">Sprachnachricht</div>
         <div class="row nvoice" id="nvoice"></div>
+        <label class="muted" style="display:block;margin-top:12px">Titel <input id="nt" maxlength="80" value="${esc(draft.t)}" placeholder="Nachricht von Nathan" style="width:100%;margin-top:4px"></label>
+        <label class="muted" style="display:block;margin-top:8px">Text <textarea id="nb" maxlength="300" rows="3" placeholder="Optional" style="width:100%;margin-top:4px">${esc(draft.b)}</textarea></label>
         <div class="row" style="margin-top:14px"><button class="btn" id="nprev">Vorschau</button><button class="btn" id="nsave">Nur speichern</button><button class="btn go" id="nsavepush">${icon("send", 18)} Speichern + Push an alle</button><span class="dim" id="nmsg"></span></div>
         <p class="dim" style="font-size:12.5px;margin:8px 0 0">„Speichern + Push“ schickt die Nachricht zusätzlich als System-Benachrichtigung aufs Handy, auch wenn die App zu ist. Wer drauftippt, sieht den großen Screen.</p></div>
       ${n ? `<h2 class="h-sec">Gerade aktiv</h2>` : ""}
       ${n ? `<div class="unit news-cur"><div class="muted" style="font:800 11px var(--body);letter-spacing:.08em">GERADE AKTIV IN DER APP</div><b>${esc(n.title)}</b><p>${esc(n.body)}</p>${n.audio_url ? `<p class="dim">🎙 mit Sprachnachricht</p>` : ""}
         <div class="row"><button class="btn" id="nprev0">Ansehen</button><button class="btn" id="nagain">Allen nochmal zeigen</button>${n.pushed_at ? `<span class="pill go">Push gesendet an ${n.pushed_count} Nutzer</span>` : `<button class="btn" id="npush">${icon("send", 18)} Diese als Push senden</button>`}</div></div>` : ""}
-      ${(this.list || []).length ? `<h2 class="h-sec">Bisherige Nachrichten</h2><div class="list news-hist">${this.list.map((x, i) => `<div class="li nh"><div class="grow"><div class="t">${esc(x.title)}${x.audio_url ? " 🎙" : ""}</div><div class="s">${esc(x.body)}</div>
+      ${(this.list || []).length ? `<h2 class="h-sec">Bisherige Nachrichten</h2><div class="list news-hist">${this.list.map((x, i) => `<div class="nh-wrap" data-i="${i}"><button class="nh-del" data-del="${i}">Löschen</button><div class="li nh"><div class="grow"><div class="t">${esc(x.title)}${x.video_url ? " 🎥" : ""}${x.audio_url ? " 🎙" : ""}</div>${x.body ? `<div class="s">${esc(x.body)}</div>` : ""}
         <div class="s">${when(x.created_at)} · ${x.pushed_at ? `Push an ${x.pushed_count} gesendet` : "kein Push"}${i === 0 ? " · <b>aktuell</b>" : ""}</div></div>
-        <div class="nh-b"><button class="btn sm go" data-tpl="${i}">Als Vorlage</button><button class="btn sm" data-see="${i}">Ansehen</button></div></div>`).join("")}</div>` : ""}</div>`;
-    this.voiceUI();
+        <div class="nh-b"><button class="btn sm go" data-tpl="${i}">Als Vorlage</button><button class="btn sm" data-see="${i}">Ansehen</button><button class="btn sm nh-bin" data-del="${i}" aria-label="Löschen">${icon("trash", 16)}</button></div></div></div>`).join("")}</div><p class="dim" style="font-size:12.5px">Zum Löschen nach links wischen oder auf den Mülleimer tippen, dann nochmal zur Sicherheit.</p>` : ""}</div>`;
+    this.voiceUI(); this.videoUI(); this.swipeDel();
     const form = () => ({title: $("#nt").value.trim(), body: $("#nb").value.trim()});
-    $("#nprev").onclick = () => { const f = form(); News.show({title: f.title || "Titel", body: f.body || "Text", audio_url: this.blob ? URL.createObjectURL(this.blob) : null}, {mustListen: !!this.blob}); };
+    $("#nprev").onclick = () => { const f = form(); News.show({title: f.title || "Nachricht von Nathan", body: f.body, audio_url: this.blob ? URL.createObjectURL(this.blob) : null, video_url: this.vblob ? URL.createObjectURL(this.vblob) : null}, {mustListen: !!(this.blob || this.vblob)}); };
     if ($("#nprev0")) $("#nprev0").onclick = () => News.show(n, {});
     /* a past message as the start of a new one: title and text go into the form, ready to adjust */
     $$("[data-tpl]", main).forEach(b => b.onclick = () => { const x = this.list[+b.dataset.tpl]; this.tpl = {t: x.title, b: x.body}; this.blob = null; this.draw(); const t = $("#nt"); if (t){ t.scrollIntoView({block: "center"}); t.focus(); } toast("Vorlage übernommen. Anpassen und speichern."); });
@@ -11974,15 +12033,21 @@ Views.news = {
       if (!btn.dataset.armed){ btn.dataset.armed = 1; btn.classList.add("armed"); btn.textContent = "Bei allen nochmal zeigen? Nochmal tippen"; return; }
       const {error} = await News.sb().rpc("news_reshow", {nid: n.id}); if (error){ btn.textContent = "Fehler: " + error.message; return; }
       await this.reload(); this.draw(); toast("Erscheint bei allen nochmal groß, beim nächsten Öffnen der App."); };
-    const save1 = async push => { const f = form(); if (!f.title || !f.body){ $("#nmsg").textContent = "Titel und Text ausfüllen."; return; }
-      const sb = News.sb(); let url = null; $("#nsave").disabled = $("#nsavepush").disabled = true;
+    const save1 = async push => { const f = form(); if (!f.body && !this.blob && !this.vblob && !f.title){ $("#nmsg").textContent = "Nimm eine Video- oder Sprachnachricht auf oder schreib etwas."; return; }
+      const sb = News.sb(); let url = null, vurl = null; $("#nsave").disabled = $("#nsavepush").disabled = true;
+      if (this.vblob){ $("#nmsg").textContent = "Lade Videobotschaft hoch…"; const type = (this.vblob.type || "video/mp4").split(";")[0], ext = type.includes("webm") ? "webm" : type.includes("quicktime") ? "mov" : "mp4";
+        const path = `video-${Date.now()}.${ext}`, up = await sb.storage.from("news").upload(path, this.vblob, {contentType: type, upsert: false});
+        if (up.error){ $("#nmsg").textContent = "Upload fehlgeschlagen: " + up.error.message; $("#nsave").disabled = $("#nsavepush").disabled = false; return; }
+        vurl = sb.storage.from("news").getPublicUrl(path).data.publicUrl; }
       if (this.blob){ $("#nmsg").textContent = "Lade Sprachnachricht hoch…"; const type = (this.blob.type || "audio/mp4").split(";")[0], ext = type.includes("webm") ? "webm" : type.includes("ogg") ? "ogg" : type.includes("mpeg") ? "mp3" : type.includes("wav") ? "wav" : "m4a";
         const path = `voice-${Date.now()}.${ext}`, up = await sb.storage.from("news").upload(path, this.blob, {contentType: type, upsert: false});
         if (up.error){ $("#nmsg").textContent = "Upload fehlgeschlagen: " + up.error.message; $("#nsave").disabled = false; return; }
         url = sb.storage.from("news").getPublicUrl(path).data.publicUrl; }
-      const {data: nid, error} = await sb.rpc("news_post", {t: f.title, b: f.body, a: url}); if (error){ $("#nmsg").textContent = error.message; $("#nsave").disabled = $("#nsavepush").disabled = false; return; }
+      let {data: nid, error} = await sb.rpc("news_post_v", {t: f.title || "Nachricht von Nathan", b: f.body, a: url, v: vurl});
+      /* until the server knows video messages: text and voice still go out the old way */
+      if (error && !vurl && /news_post_v|function|PGRST202/i.test((error.code || "") + " " + (error.message || ""))) ({data: nid, error} = await sb.rpc("news_post", {t: f.title || "Nachricht von Nathan", b: f.body || " ", a: url})); if (error){ $("#nmsg").textContent = error.message; $("#nsave").disabled = $("#nsavepush").disabled = false; return; }
       let sent = null; if (push){ const r = await sb.rpc("news_broadcast", {nid}); if (!r.error) sent = r.data; }
-      this.blob = null; S.newsSeen = {}; save(); await this.reload(); this.draw();
+      this.blob = null; this.vblob = null; S.newsSeen = {}; save(); await this.reload(); this.draw();
       toast(sent != null ? `Gespeichert und als Push an ${sent} Nutzer gesendet.` : "Gespeichert. Die Neuigkeit erscheint ab jetzt einmal täglich groß in der App.", 4000); };
     $("#nsave").onclick = () => save1(false);
     $("#nsavepush").onclick = e => { const b = e.currentTarget; if (!b.dataset.armed){ b.dataset.armed = 1; b.classList.add("armed"); b.innerHTML = "Wirklich an alle senden? Nochmal tippen"; return; } save1(true); };
@@ -11992,6 +12057,73 @@ Views.news = {
       btn.disabled = true; btn.textContent = "Sende…";
       const {data, error} = await News.sb().rpc("news_broadcast", {nid: n.id}); if (error){ btn.disabled = false; btn.textContent = error.message === "already_sent" ? "Schon gesendet" : "Fehler: " + error.message; return; }
       await this.reload(); this.draw(); toast(`Push gesendet an ${data} Nutzer. Wer die App gerade offen hat, sieht sie dort.`, 4000); };
+  },
+  /* delete an old message: swipe the row to the left (or tap the bin), then tap "Löschen" once more to be sure */
+  swipeDel(){
+    const closeAll = except => $$(".nh-wrap.open", this.main).forEach(w => { if (w !== except){ w.classList.remove("open"); const d = w.querySelector(".nh-del"); d.classList.remove("armed"); d.textContent = "Löschen"; } });
+    $$(".nh-wrap", this.main).forEach(w => { const row = w.querySelector(".nh"); let x0 = null, y0 = 0, dx = 0, drag = false;
+      row.addEventListener("pointerdown", e => { x0 = e.clientX; y0 = e.clientY; dx = 0; drag = false; });
+      row.addEventListener("click", e => { if (row._dragged){ row._dragged = false; e.stopPropagation(); e.preventDefault(); } }, true);
+      row.addEventListener("pointermove", e => { if (x0 == null) return; const mx = e.clientX - x0, my = e.clientY - y0;
+        if (!drag && Math.abs(mx) > 10 && Math.abs(mx) > Math.abs(my)){ drag = true; try { row.setPointerCapture(e.pointerId); } catch(_) {} row.style.transition = "none"; }
+        if (drag){ dx = Math.max(-120, Math.min(0, mx + (w.classList.contains("open") ? -96 : 0))); row.style.transform = `translateX(${dx}px)`; } });
+      const end = () => { if (x0 == null) return; x0 = null; row.style.transition = ""; row.style.transform = ""; if (!drag) return; row._dragged = true; setTimeout(() => row._dragged = false, 400);
+        if (dx < -50){ closeAll(w); w.classList.add("open"); } else w.classList.remove("open"); };
+      row.addEventListener("pointerup", end); row.addEventListener("pointercancel", end); });
+    $$("[data-del]", this.main).forEach(b => b.onclick = async e => { e.stopPropagation(); const i = +b.dataset.del, w = b.closest(".nh-wrap"), del = w.querySelector(".nh-del");
+      if (!w.classList.contains("open")){ closeAll(w); w.classList.add("open"); return; }
+      if (!del.classList.contains("armed")){ del.classList.add("armed"); del.textContent = "Wirklich löschen?"; return; }
+      del.textContent = "…"; const x = this.list[i]; const {error} = await News.sb().rpc("news_delete", {nid: x.id});
+      if (error){ del.textContent = "Fehler"; toast("Löschen ging nicht: " + error.message, 4000); return; }
+      w.classList.add("gone"); setTimeout(async () => { await this.reload(); this.draw(); }, 260); toast("Nachricht gelöscht."); });
+  },
+  /* the round video message, like on WhatsApp: hold the button to record (up to 60 s), let go to finish,
+     slide up to keep recording hands-free, slide left to throw it away. Or pick a video from the phone. */
+  videoUI(){
+    const box = $("#nvideo"); if (!box) return;
+    if (this.vblob){ const u = URL.createObjectURL(this.vblob);
+      box.innerHTML = `<div class="nv-done"><div class="nv-circle"><video src="${u}" playsinline loop muted autoplay></video></div><div class="col" style="gap:6px"><button class="btn sm" id="nvplay">▶ Mit Ton ansehen</button><button class="btn sm" id="nvre">Neu aufnehmen</button><button class="btn sm" id="nvdel">Entfernen</button></div></div>`;
+      const v = box.querySelector("video");
+      $("#nvplay").onclick = () => { v.muted = false; v.loop = false; v.currentTime = 0; v.play().catch(() => {}); };
+      $("#nvre").onclick = () => { this.vblob = null; this.videoUI(); }; $("#nvdel").onclick = () => { this.vblob = null; this.videoUI(); }; return; }
+    box.innerHTML = `<div class="row" style="gap:12px;align-items:center"><button class="nv-hold" id="nvhold" aria-label="Gedrückt halten für eine Videobotschaft">${icon("video", 28)}</button>
+      <div class="grow"><b>Gedrückt halten</b><div class="dim" style="font-size:13px">Loslassen = fertig · nach oben = freihändig · nach links = verwerfen</div></div>
+      <label class="btn sm" style="cursor:pointer">Video wählen<input type="file" accept="video/*" id="nvfile" hidden></label></div>`;
+    $("#nvfile").onchange = e => { const f = e.target.files && e.target.files[0]; if (!f) return; if (f.size > 50 * 1048576){ toast("Das Video ist größer als 50 MB."); return; } this.vblob = f; this.blob = null; this.voiceUI(); this.videoUI(); };
+    const hold = $("#nvhold");
+    hold.addEventListener("contextmenu", e => e.preventDefault());
+    hold.addEventListener("pointerdown", e => { e.preventDefault(); try { hold.setPointerCapture(e.pointerId); } catch(_) {} this.vrecord(e, hold); });
+  },
+  async vrecord(e0, hold){
+    const R = {x0: e0.clientX, y0: e0.clientY, up: false, cancel: false, lock: false, stream: null, mr: null, t0: 0, chunks: []};
+    const ov = document.createElement("div"); ov.className = "nv-rec";
+    ov.innerHTML = `<div class="nv-live"><video playsinline muted autoplay></video><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48"/></svg></div>
+      <div class="nv-bar"><span class="rec-dot"></span><b class="nv-t">0:00</b><span class="nv-tip">‹ nach links verwerfen</span><span class="nv-lock">▲ freihändig</span></div>
+      <div class="nv-btns"><button class="btn" data-x>Verwerfen</button><button class="btn go" data-ok>Fertig</button></div>`;
+    document.body.appendChild(ov);
+    const fin = keep => { if (R.done) return; R.done = true; clearInterval(R.tick); hold.onpointermove = hold.onpointerup = hold.onpointercancel = null;
+      const short = Date.now() - R.t0 < 800;
+      if (R.mr && R.mr.state !== "inactive"){ R.keep = keep && !short; R.mr.stop(); } else { if (R.stream) R.stream.getTracks().forEach(t => t.stop()); ov.remove(); }
+      if (keep && short && R.t0) toast("Halte den Knopf gedrückt, solange du sprichst."); };
+    this.vcancel = () => fin(false);
+    hold.onpointermove = e => { if (R.lock || R.done) return; const dx = e.clientX - R.x0, dy = e.clientY - R.y0;
+      ov.style.setProperty("--dx", Math.min(0, dx) + "px");
+      if (dx < -110){ fin(false); toast("Verworfen."); } else if (dy < -80){ R.lock = true; ov.classList.add("locked"); } };
+    hold.onpointerup = hold.onpointercancel = () => { R.up = true; if (!R.lock) fin(true); };
+    ov.querySelector("[data-x]").onclick = () => fin(false); ov.querySelector("[data-ok]").onclick = () => fin(true);
+    try { R.stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: "user", width: {ideal: 640}, height: {ideal: 640}}, audio: {echoCancellation: true, noiseSuppression: true}}); }
+    catch(err){ ov.remove(); R.done = true; toast(err && err.name === "NotAllowedError" ? "Kamera blockiert. Erlaube sie für Chess.nat in den Einstellungen." : "Keine Kamera gefunden. Du kannst auch ein Video wählen.", 4000); return; }
+    if (R.done){ R.stream.getTracks().forEach(t => t.stop()); return; }
+    ov.querySelector("video").srcObject = R.stream;
+    const type = ["video/mp4;codecs=avc1,mp4a", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"].find(t => window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || "";
+    try { R.mr = new MediaRecorder(R.stream, Object.assign({videoBitsPerSecond: 1200000}, type ? {mimeType: type} : {})); } catch(err){ R.stream.getTracks().forEach(t => t.stop()); ov.remove(); toast("Video aufnehmen geht in diesem Browser nicht. Wähle ein Video.", 4000); return; }
+    R.mr.ondataavailable = e => { if (e.data && e.data.size) R.chunks.push(e.data); };
+    R.mr.onstop = () => { R.stream.getTracks().forEach(t => t.stop()); ov.classList.add("out"); setTimeout(() => ov.remove(), 220);
+      if (R.keep && R.chunks.length){ this.vblob = new Blob(R.chunks, {type: (R.mr.mimeType || type || "video/mp4").split(";")[0]}); this.blob = null; this.voiceUI(); this.videoUI(); } };
+    R.mr.start(250); R.t0 = Date.now(); ov.classList.add("on"); try { navigator.vibrate && navigator.vibrate(30); } catch(_) {}
+    const ring = ov.querySelector(".nv-live circle"), tt = ov.querySelector(".nv-t");
+    R.tick = setInterval(() => { const s = (Date.now() - R.t0) / 1000; tt.textContent = Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0"); ring.style.strokeDashoffset = 302 * (1 - Math.min(1, s / 60)); if (s >= 60) fin(true); }, 200);
+    if (R.up && !R.lock) fin(true);
   },
   /* record with the microphone, or pick an audio file */
   voiceUI(){
@@ -12012,7 +12144,7 @@ Views.news = {
       const type = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm"].find(t => window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || "";
       const mr = new MediaRecorder(stream, type ? {mimeType: type} : undefined), chunks = [];
       mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
-      mr.onstop = () => { stream.getTracks().forEach(t => t.stop()); this.blob = new Blob(chunks, {type: (mr.mimeType || type || "audio/mp4").split(";")[0]}); this.rec = null; clearInterval(this.recT); this.voiceUI(); };
+      mr.onstop = () => { stream.getTracks().forEach(t => t.stop()); this.blob = new Blob(chunks, {type: (mr.mimeType || type || "audio/mp4").split(";")[0]}); this.rec = null; clearInterval(this.recT); if (this.blob.size) { this.vblob = null; this.videoUI(); } this.voiceUI(); };
       mr.start(250); this.rec = mr; this.voiceUI();
     } catch(e){ toast("Kein Zugriff aufs Mikrofon. Erlaube es in den Einstellungen oder wähle eine Datei.", 4000); }
   },
