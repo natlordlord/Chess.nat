@@ -2203,7 +2203,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794159062";
+const CHESSNAT_BUILD = "1794159323";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -3201,6 +3201,8 @@ const PZ_T = {};
 function recordThemes(p, ok){
   const el = Date.now() - (PZ_T[p.id] || 0), real = ok ? el >= 1200 : el >= 6000;
   if (real){ dayTick("pz"); S.stat = S.stat || {}; S.stat.pzReal = (S.stat.pzReal || 0) + 1; }
+  /* NatGuard, our anti-cheat: tapping through puzzles doesn't pay. Said once in a while, not on every puzzle. */
+  else if (!ok && Date.now() - (recordThemes._ng || 0) > 30 * 6e4){ recordThemes._ng = Date.now(); toast("🛡️ NatGuard: skipped puzzles don't give XP. Give each one a real try.", 3500); }
   if (typeof addXP === "function" && real){ if (ok) addXP(XP.puzzle);
     /* XP for a miss: for really trying, at most 40 a day */
     else { const d = todayKey(), m = S.stat.missXp && S.stat.missXp.d === d ? S.stat.missXp : (S.stat.missXp = {d, n: 0}); if (m.n < 40){ m.n += XP.puzzleMiss; addXP(XP.puzzleMiss); } } } p.th.forEach(i => { const k = PZ.themes[i][0]; const t = S.themes[k] || (S.themes[k] = {n:0, ok:0}); t.n++; if (ok) t.ok++; }); }
