@@ -2563,6 +2563,18 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 .potpill{display:inline-flex;align-items:center;gap:4px;margin-left:8px;background:rgba(255,210,63,.18);color:#ffd23f;font-weight:900}.potpill .natc{width:16px;height:16px}
 .lvn-auto{flex-basis:100%;text-align:center;color:var(--muted);font-weight:700;font-size:12px}
 .onb-done .onb-check{width:84px;height:84px;margin:0 auto;border-radius:50%;display:grid;place-items:center;background:var(--go);color:#fff;font:900 46px var(--display);box-shadow:0 0 0 10px rgba(127,178,74,.2);animation:chxPop .6s cubic-bezier(.2,1.6,.4,1)}
+/* duel: the round result on the board */
+.dl-ban{position:absolute;left:6%;right:6%;top:50%;transform:translateY(-50%);z-index:30;border-radius:18px;padding:16px 14px 14px;text-align:center;color:#fff;cursor:pointer;
+  background:rgba(24,22,20,.92);border:3px solid var(--bc,#888);box-shadow:0 10px 30px rgba(0,0,0,.5),0 0 30px color-mix(in srgb,var(--bc,#888) 40%,transparent);animation:chxCard2 .5s cubic-bezier(.2,1.5,.4,1);overflow:hidden}
+.dl-ban.win{--bc:#81b64c}.dl-ban.lose{--bc:#e5484d}.dl-ban.tie{--bc:#8a857c}
+.dl-ban b{display:block;font:900 clamp(22px,6.5cqw,34px)/1.1 var(--display);color:var(--bc)}
+.dl-ban.tie b{color:#fff}
+.dl-ban span{display:block;margin-top:4px;font-weight:700;color:rgba(255,255,255,.85)}
+.dl-ban .dl-tap{display:block;margin-top:10px;font:800 12.5px var(--body);color:rgba(255,255,255,.6);animation:chxTip 1.2s ease-in-out infinite}
+.dl-ban .dl-tbar{position:absolute;left:0;bottom:0;height:4px;background:var(--bc);width:100%;transform-origin:left;animation:dlBar var(--ms) linear forwards}
+@keyframes dlBar{to{transform:scaleX(0)}}
+.dl-ban.done{opacity:.85}.dl-ban.done .dl-tap{animation:none}
+.dl-ban{top:auto;bottom:3%;transform:none;padding:10px 12px 12px;background:rgba(24,22,20,.86)}.dl-ban b{font-size:clamp(20px,5.5vw,30px)}.dl-ban .dl-tap{margin-top:6px}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -2584,7 +2596,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794177527";
+const CHESSNAT_BUILD = "1794178371";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -3582,9 +3594,9 @@ function PuzzleRunner(board, hooks = {}){
     while (R.idx < R.p.moves.length){
       const u = R.p.moves[R.idx];
       board.setArrows([[u.slice(0,2), u.slice(2,4), R.g.turn() === R.user ? "g" : "r"]]);
-      await sleep(550); if (!R.p) return;
+      await sleep(550 * (hooks.solSlow || 1)); if (!R.p) return;
       R.playUci(u); R.idx++; board.setArrows([]);
-      await sleep(350);
+      await sleep(350 * (hooks.solSlow || 1));
     }
     R.finish();
   };
@@ -9683,9 +9695,9 @@ Views.battle = {
 
 /* ===== Puzzle Duel: two players, the same puzzle, round after round.
    3, 2, 1 and both start. Whoever solves it first takes the point. Whoever plays a wrong move is out of
-   that round, and the other one gets 10 seconds to steal it: solved = 1 point, a correct start = ½, nothing = no point.
+   that round, and the other one gets 20 seconds to steal it: solved = 1 point, a correct start = ½, nothing = no point.
    First to 5 wins. Against a friend the host's device keeps score; against a bot everything runs here. ===== */
-const DUEL_TO = 5, DUEL_ROUNDS = 11, STEAL_MS = 10000;
+const DUEL_TO = 5, DUEL_ROUNDS = 11, STEAL_MS = 20000, DUEL_NEXT_MS = 5000;
 /* the puzzles fit the weaker of the two players, then climb a little each round */
 function duelBase(a, b){ const r = x => x > 0 ? x : 600; return Math.max(350, Math.round(Math.min(r(a), r(b)) - 150)); }
 async function duelList(base){
@@ -9714,7 +9726,7 @@ Views.duel = {
   screen(oppName, oppFace){
     this.main.innerHTML = stageHTML(); this.oppName = oppName; this.oppFace = oppFace;
     const board = this.board = makeBoard($("#bw"));
-    this.R = PuzzleRunner(board, {fast: true, noRetry: true,
+    this.R = PuzzleRunner(board, {fast: true, noRetry: true, solSlow: 2,
       onReady: R => { if (this.cur === this.M.k){ this.t0 = Date.now(); this.panel(); } },
       onWrong: (R, first) => { if (!first || !["play", "steal"].includes(this.out)) return; const part = Math.max(0, (R.idx - 1) >> 1);
         this.out = "wrong"; R.locked = true; recordThemes(R.p, false); this.report({k: this.cur, wrong: true, part}); this.panel(); },
@@ -9742,7 +9754,7 @@ Views.duel = {
         : theirs > mine ? `<b>${esc(this.oppName)} ${theirs === 1 ? "+1" : "+½"}</b><span>${res.why === "steal" ? "They stole it." : res.why === "half" ? "They had the right start." : "They were faster."}</span>`
         : `<b>No point</b><span>${res.why === "both" ? "You both went wrong." : "Nobody solved it."}</span>`; }
     else if (steal === my && this.out === "steal"){ cls = "steal"; st = `<b>Your chance!</b><span>${esc(this.oppName)} went wrong. Solve it now to steal the point.</span><div class="dl-bar"><i id="dlbar"></i></div>`; }
-    else if (steal === op){ cls = "bad"; st = `<b>Wrong move</b><span>${esc(this.oppName)} has 10 seconds to steal it.</span><div class="dl-bar opp"><i id="dlbar"></i></div>`; }
+    else if (steal === op){ cls = "bad"; st = `<b>Wrong move</b><span>${esc(this.oppName)} has ${STEAL_MS / 1000} seconds to steal it.</span><div class="dl-bar opp"><i id="dlbar"></i></div>`; }
     else if (this.out === "solved"){ st = `<b>Solved!</b><span>Checking who was faster…</span>`; }
     else if (this.out === "wrong"){ st = `<b>Wrong move</b><span>Wait for ${esc(this.oppName)}…</span>`; }
     else if (k >= 0 && this.R && this.R.p){ st = `<b>${sideToMoveText(this.R.user)}</b><span>First to solve takes the point · puzzle rated ${this.R.p.r}</span>`; }
@@ -9760,7 +9772,7 @@ Views.duel = {
   /* ---------- a round on this device ---------- */
   playRound(k){
     if (this.dead) return; clearInterval(this.cdI); clearInterval(this.stealI); this.stealEnd = 0;
-    this.cur = k; this.out = "count"; this.counting = true; this.R.stop(); this.board.overlay(null); this.panel();
+    this.cur = k; this.out = "count"; this.counting = true; this.R.stop(); this.board.overlay(null); { const b = document.querySelector("#bw .dl-ban"); if (b) b.remove(); } this.panel();
     let n = 3; const ov = this.board.overlay(`<div class="card-over dl-cd"><small>ROUND ${k + 1}</small><h3 class="bcount">3</h3></div>`); Sound.play("Move", .6);
     this.cdI = setInterval(() => { n--; const h = ov && ov.querySelector(".bcount");
       if (n > 0){ if (h){ h.textContent = n; h.classList.remove("pop"); void h.offsetWidth; h.classList.add("pop"); } Sound.play("Move", .6); return; }
@@ -9781,8 +9793,25 @@ Views.duel = {
     const my = this.side, mine = r.p[my === "h" ? 0 : 1], theirs = r.p[my === "h" ? 1 : 0];
     if (mine > theirs){ Sound.xp ? Sound.xp() : Sound.right(); } else if (theirs > mine) Sound.play("Defeat", .35);
     if (this.R && this.R.p && !this.R.done && this.out !== "solved"){ this.R.locked = true; try { this.R.showSolution(); } catch(e) {} }
-    this.bars(); this.panel();
+    this.bars(); this.panel(); this.banner(r);
   },
+  /* the round's result, big on the board: tap anywhere to go on (the next round comes when you've both tapped, or after a few seconds) */
+  banner(r){
+    const wrap = $("#bw"); if (!wrap) return; const old = wrap.querySelector(".dl-ban"); if (old) old.remove();
+    const my = this.side, mine = r.p[my === "h" ? 0 : 1], theirs = r.p[my === "h" ? 1 : 0], opn = esc(this.oppName || "Your opponent");
+    const [cls, big, small] = mine > theirs ? ["win", mine === 1 ? "You win this point!" : "Half a point for you!", r.why === "steal" ? "Stolen!" : r.why === "half" ? "Your start was right." : "You were faster."]
+      : theirs > mine ? ["lose", r.why === "steal" ? `${opn} stole it` : r.why === "half" ? `${opn} gets half a point` : `${opn} was faster`, theirs === 1 ? "+1 for " + opn : "+½ for " + opn]
+      : ["tie", "No point", r.why === "both" ? "You both went wrong." : "Nobody solved it."];
+    const el = document.createElement("div"); el.className = "dl-ban " + cls; el.style.setProperty("--ms", DUEL_NEXT_MS + "ms");
+    el.innerHTML = `<b>${big}</b><span>${small}</span><small class="dl-tap">Tap to continue</small><i class="dl-tbar"></i>`;
+    wrap.appendChild(el); this.tapK = r.k; this.tapped = false;
+    const tap = e => { if (e) e.stopPropagation(); if (this.tapped || this.tapK !== r.k) return; this.tapped = true; el.classList.add("done"); el.querySelector(".dl-tap").textContent = this.room ? "Waiting for " + (this.oppName || "your opponent") + "…" : "";
+      if (this.side === "h"){ this.hostRdy = r.k; this.tryNext(); } else if (this.room){ this.me.rdy = r.k; this.room.presence(this.me).catch(() => {}); } };
+    el.addEventListener("pointerdown", tap); wrap.addEventListener("pointerdown", this._banTap = e => { if (wrap.querySelector(".dl-ban:not(.done)")) tap(e); }, {capture: true, once: true});
+  },
+  /* the host moves on when both are ready (or the bot game's player is), at the latest after DUEL_NEXT_MS */
+  tryNext(){ const M = this.M, k = M.res.length ? M.res[M.res.length - 1].k : -1; if (M.k !== k) return;
+    if (this.hostRdy === k && (!this.room || this.guestRdy === k)){ clearTimeout(this.nextT); this.nextT = setTimeout(() => this.nextRound(), 250); } },
 
   /* ---------- what happened on my board ---------- */
   report(e){ if (this.side === "h") this.onEv("h", e); else if (this.room){ this.seq = (this.seq || 0) + 1; this.me.ev = Object.assign({seq: this.seq}, e); this.room.presence(this.me).catch(() => {}); } },
@@ -9803,7 +9832,7 @@ Views.duel = {
   award(k, who, pts, why){
     const M = this.M; if (M.res.find(r => r.k === k)) return; clearTimeout(this.graceT); this.graceT = null; clearTimeout(this.stealHostT);
     M.res.push({k, who, why, p: [who === "h" ? pts : 0, who === "g" ? pts : 0]}); M.steal = null; this.publish(); this.onRes(M.res[M.res.length - 1]);
-    clearTimeout(this.nextT); this.nextT = setTimeout(() => this.nextRound(), 2800);
+    clearTimeout(this.nextT); this.nextT = setTimeout(() => this.nextRound(), DUEL_NEXT_MS + 600);
   },
   nextRound(){
     const M = this.M, t = this.totals(); if (this.dead || M.over) return;
@@ -9908,6 +9937,7 @@ Views.duel = {
       /* the guest is here: build puzzles that fit both of us, then start */
       if (!this.M.mid && !this.building && !this.readyRaw){ this.building = true; duelList(duelBase(S.puzzle.r, P.rating)).then(raw => { this.building = false; if (this.dead) return; this.readyRaw = raw; const b = $("#dstart"); if (b) b.disabled = false; else this.startMatch(raw); }); }
       if (P.ev && P.ev.seq && P.ev.seq !== this.lastSeq && P.mid === this.M.mid){ this.lastSeq = P.ev.seq; this.onEv("g", P.ev); }
+      if (P.rdy != null && P.rdy !== this.guestRdy && P.mid === this.M.mid){ this.guestRdy = P.rdy; this.tryNext(); }
       if (P.again && P.again !== this.againSeen && this.M.over){ this.againSeen = P.again; toast(esc(this.oppName) + " wants a rematch!", 3000); }
       return;
     }
