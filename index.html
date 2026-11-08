@@ -2269,7 +2269,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794164948";
+const CHESSNAT_BUILD = "1794168798";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -3183,8 +3183,11 @@ function PuzzleRunner(board, hooks = {}){
   board.canPick = sq => { if (R.locked || R.done && !R.free) return false; const pc = R.g.get(sq); return pc && pc.color === R.user && R.g.turn() === R.user; };
   board.dests = sq => gameDests(R.g)(sq);
   board.onMove = (from, to, promo) => R.userMove(from, to, promo);
+  /* premove: while the reply is coming you can already queue your next move; it plays the moment it's your turn
+     (a wrong premove counts like a wrong move). Not before the very first move, not after a mistake. */
+  board.premoveFor = () => R.p && !R.done && !R.snap && R.idx >= 1 && R.g && R.g.turn() !== R.user ? R.user : null;
   R.start = async (p) => {
-    clearTimeout(R.resetT); R.pendingReset = null;
+    clearTimeout(R.resetT); R.pendingReset = null; R.snap = false; board.cancelPremove && board.cancelPremove();
     Object.assign(R, {p, g: new Chess(p.fen), idx: 0, failed: false, hint: 0, sol: false, done: false, wrong: [], locked: true, free: false});
     R.user = R.g.turn() === "w" ? "b" : "w";
     board.glow(null); board.setOrientation(R.user); board.mark({}); board.setArrows([]); board.badge(null); board.overlay(null);
@@ -3217,17 +3220,17 @@ function PuzzleRunner(board, hooks = {}){
       Sound.play(m.flags.includes("c") ? "Capture" : "Move"); setTimeout(() => Sound.wrong(), 90);
       board.mark({[to]: "bad"});
       R.wrong.push({san: m.san, uci, expected: exp, fen: fenBefore});
-      const first = !R.failed; R.failed = true; R.locked = true; R.refute = null;
+      const first = !R.failed; R.failed = true; R.locked = true; R.refute = null; R.snap = true; board.cancelPremove && board.cancelPremove();
       hooks.onWrong && hooks.onWrong(R, first, m);
       const p0 = R.p, fenAfter = R.g.fen(), delay = hooks.fast ? 500 : 800;
       /* the engine's answer goes into the panel text; the board snaps back quickly, and touching the board snaps it back at once */
       if (!hooks.fast && !Engine.failed && !R.g.game_over()) Engine.run({fen: fenAfter, depth: 8}).then(r => { if (!r || !r.best || R.p !== p0) return; R.refute = {played: m.san, reply: sanOf(fenAfter, r.best)}; hooks.onRefute && hooks.onRefute(R); });
-      const back = () => { if (R.p !== p0 || R.pendingReset !== back) return; R.pendingReset = null; clearTimeout(R.resetT); if (R.g.fen() === fenAfter) R.g.undo(); const h = R.g.history({verbose: true}); const l = h[h.length - 1]; board.set(R.g, l ? {from: l.from, to: l.to} : null); board.mark({}); board.setArrows([]); if (!hooks.noRetry) R.locked = false; };
+      const back = () => { if (R.p !== p0 || R.pendingReset !== back) return; R.pendingReset = null; R.snap = false; clearTimeout(R.resetT); if (R.g.fen() === fenAfter) R.g.undo(); const h = R.g.history({verbose: true}); const l = h[h.length - 1]; board.set(R.g, l ? {from: l.from, to: l.to} : null); board.mark({}); board.setArrows([]); if (!hooks.noRetry) R.locked = false; };
       R.pendingReset = hooks.noRetry ? null : back; R.resetT = setTimeout(() => { if (hooks.noRetry){ if (R.p === p0){ R.g.undo(); const h = R.g.history({verbose: true}); const l = h[h.length - 1]; board.set(R.g, l ? {from: l.from, to: l.to} : null); board.mark({}); } } else back(); }, delay);
     }
   };
   R.finish = () => {
-    R.done = true; R.locked = true;
+    R.done = true; R.locked = true; board.cancelPremove && board.cancelPremove();
     const h = R.g.history({verbose: true}); const l = h[h.length - 1];
     board.mark(l ? {[l.from]: "good", [l.to]: "good"} : {});
     const clean = !R.failed && !R.hint && !R.sol;
@@ -3256,7 +3259,7 @@ function PuzzleRunner(board, hooks = {}){
     }
     R.finish();
   };
-  R.stop = () => { R.p = null; R.locked = true; board.glow(null); };
+  R.stop = () => { R.p = null; R.locked = true; board.glow(null); board.cancelPremove && board.cancelPremove(); };
   R.elapsed = () => Date.now() - R.t0;
   return R;
 }
@@ -4493,7 +4496,7 @@ Views.lesson = {
   clearTimers(){ this.timers.forEach(t => clearTimeout(t)); this.timers = []; },
   later(fn, ms){ const t = setTimeout(() => { if (!this.dead) fn(); }, ms); this.timers.push(t); return t; },
   step(){
-    this.clearTimers(); Voice.stop(); this.board.overlay(null); this.board.badge(null); this.board.setArrows([]); this.board.mark({}); this.board.setThreats({}); if (this.lastStep !== this.L.id + this.i){ this.gameFails = 0; this.lastStep = this.L.id + this.i; } if (this.unmountExtra){ this.unmountExtra(); this.unmountExtra = null; }
+    this.clearTimers(); Voice.stop(); this.board.premoveFor = null; this.board.cancelPremove && this.board.cancelPremove(); this.board.overlay(null); this.board.badge(null); this.board.setArrows([]); this.board.mark({}); this.board.setThreats({}); if (this.lastStep !== this.L.id + this.i){ this.gameFails = 0; this.lastStep = this.L.id + this.i; } if (this.unmountExtra){ this.unmountExtra(); this.unmountExtra = null; }
     const s = this.L.steps[this.i]; if (!s){ this.complete(); return; }
     this.state = {ok: false};
     const fn = this["s_" + s.t]; if (fn) fn.call(this, s); else { this.i++; this.step(); }
@@ -4576,10 +4579,11 @@ Views.lesson = {
   s_line(s){
     if (!s.line && s.san){ const t0 = new Chess(s.fen); s.line = s.san.split(/\s+/).filter(x => x && !/^\d+\.+$/.test(x)).map(x => { const m = t0.move(x); return m ? m.from + m.to + (m.promotion || "") : ""; }); }
     const g = new Chess(s.fen); const user = s.user || g.turn(); this.board.setOrientation(s.orient || user); this.board.set(g, s.last || null); this.board.setArrows([]); this.board.mark({});
-    let idx = 0; let locked = false;
+    let idx = 0; let locked = false, waiting = false;
+    this.board.premoveFor = () => waiting && !this.state.ok ? user : null;
     const note = () => { const n = s.notes && s.notes[idx - 1]; if (n){ this.feedback("hint", (s.opening ? "" : "Good. ") + sanAt(), n); if (s.opening && S.settings.voice) Voice.say(n); } };
     const sanAt = () => { const h = g.history(); return h.length ? Math.ceil(h.length / 2) + (h.length % 2 ? ". " : "... ") + h[h.length - 1] : ""; };
-    const oppMove = () => { const u = s.line[idx]; if (!u) return; const r = g.move({from: u.slice(0,2), to: u.slice(2,4), promotion: u[4] || undefined}); if (r){ this.board.set(g, {from: r.from, to: r.to}); Sound.forMove(r, g); } idx++; note(); locked = false; if (idx >= s.line.length) done(); };
+    const oppMove = () => { const u = s.line[idx]; if (!u) return; const r = g.move({from: u.slice(0,2), to: u.slice(2,4), promotion: u[4] || undefined}); waiting = false; if (r){ idx++; locked = false; this.board.set(g, {from: r.from, to: r.to}); Sound.forMove(r, g); } else { idx++; locked = false; } note(); if (idx >= s.line.length) done(); };
     const done = () => { this.state.ok = true; Sound.right(); this.feedback("ok", s.okTitle || "Excellent!", s.okText || ""); if (s.okText) Voice.say(s.okText); this.enableNext(); };
     this.board.canPick = sq => { const p = g.get(sq); return !locked && !this.state.ok && p && p.color === user && g.turn() === user; };
     this.board.dests = gameDests(g);
@@ -4590,7 +4594,7 @@ Views.lesson = {
       if (!ok){ Sound.wrong(); this.board.mark({[t]: "bad"}); this.stars = Math.max(1, this.stars - 1); this.feedback("no", "Not quite", s.opening ? "That's playable, but this repertoire continues differently. Try again or press Show." : (s.hint || "Look for a forcing move: checks, captures, threats.")); locked = true; this.later(() => { g.undo(); const h = g.history({verbose: true}); const l = h[h.length - 1]; this.board.set(g, l ? {from: l.from, to: l.to} : (s.last || null)); this.board.mark({}); locked = false; }, 700); return; }
       Sound.forMove(m, g); idx++; this.board.mark({}); this.board.setArrows([]);
       if (idx >= s.line.length || (g.in_checkmate() && !s.opening)){ this.board.mark({[f]: "good", [t]: "good"}); note(); done(); return; }
-      note(); locked = true; this.later(oppMove, s.opening ? 700 : 600);
+      note(); locked = true; waiting = true; this.later(oppMove, s.opening ? 700 : 600);
     };
     this.panel(s, s.opening ? `<div class="pill">${esc(s.opening)}</div>` : ``, {next: false, extra: `<button class="btn" id="lhint">Hint</button><button class="btn" id="lshow">Show</button>`});
     $("#lhint").onclick = () => { const u = s.line[idx]; if (u) this.board.mark({[u.slice(0,2)]: "hint"}); if (!s.opening) this.stars = Math.max(1, this.stars - 1); };
@@ -5402,6 +5406,7 @@ Views.endgames = {
       if (E.goal !== "hold" && moves >= E.limit && g.turn() === user) return end(false);
       return null; };
     board.canPick = sq => { const p = g.get(sq); return !busy && !over && p && p.color === user && g.turn() === user; };
+    board.premoveFor = () => !over && !this.dead && g.turn() !== user ? user : null;
     board.dests = gameDests(g);
     const reply = async () => { busy = true; await sleep(250); if (this.dead || over) return;
       const r = await Engine.run({fen: g.fen(), depth: 12}); if (this.dead || over) return;
@@ -9065,6 +9070,8 @@ Views.repdrill = {
     this.me = A.side || "w"; S.repd = S.repd || {}; S.repd[A.id] = S.repd[A.id] || {}; this.streak = 0; this.done = 0;
     main.innerHTML = stageHTML();
     const board = this.board = makeBoard($("#bw"), {orientation: this.me, history: false}); board.canPick = () => false;
+    /* premove the next move of your line while the reply is coming (a wrong one counts as a miss) */
+    board.premoveFor = () => !this.dead && this.t && this.ply > 0 && this.ply < this.mv.length && this.t.turn() !== this.me ? this.me : null;
     $("#topbar").innerHTML = `<span class="pill">Drill</span><span class="nm" style="margin-left:6px">${esc(A.name.split(":")[0])}</span>`; $("#botbar").innerHTML = youBar();
     this.next();
   },
