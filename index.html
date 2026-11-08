@@ -69,8 +69,9 @@ body[data-board="blue"]{--sq-l:#DEE3E6;--sq-d:#7A99B4}
 body[data-board="slate"]{--sq-l:#D6D9CF;--sq-d:#5E7166}
 *{box-sizing:border-box}
 html,body{height:100%;background:var(--bg)}
-/* the page never jumps sideways when a scrollbar comes or goes */
-html{scrollbar-gutter:stable}
+/* no scrollbars anywhere in the app: everything still scrolls by wheel, trackpad or finger, and nothing jumps sideways */
+html,body,*{scrollbar-width:none;-ms-overflow-style:none}
+*::-webkit-scrollbar{display:none;width:0;height:0}
 body{color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit}
 a{color:var(--go-hi)}
@@ -1992,6 +1993,8 @@ html.i18n-wait body{visibility:hidden}
 @media (max-height:860px){.rail .nav{padding-top:7px;padding-bottom:7px}.brand{padding-bottom:10px}}
 @media (max-height:760px){.rail .nav{padding-top:5px;padding-bottom:5px;font-size:14px}}
 .railme{min-width:0;overflow:hidden}.railme .rm-t{min-width:0;overflow:hidden}.railme .rm-t *{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jpath{scrollbar-width:none}.jpath::-webkit-scrollbar{display:none}
+.jpawn-cv{filter:none}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -2013,7 +2016,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794149851";
+const CHESSNAT_BUILD = "1794150143";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -5375,34 +5378,41 @@ function journeyResultCard(board, sp, stars, res){
    and after a finished level jumps over to the next stop. The stop gives way under it when it lands. ===== */
 const JPawn = (() => {
   const W = 96, H = 140;                       /* css px of the little stage */
-  let T = null, R = null, scene = null, cam = null, pawn = null, cv = null, wrap = null, raf = 0, nodeOf = null;
+  let shadow = null, T = null, R = null, scene = null, cam = null, pawn = null, cv = null, wrap = null, raf = 0, nodeOf = null;
   let at = null, act = null, lastT = 0, nextHop = 0, curL = null;
   function setup(){
     if (R) return true; T = window.THREE; if (!T) return false;
     cv = document.createElement("canvas"); cv.className = "jpawn-cv";
     try { R = new T.WebGLRenderer({canvas: cv, antialias: true, alpha: true}); } catch(e){ R = null; return false; }
-    R.setClearColor(0, 0); R.outputEncoding = T.sRGBEncoding; R.toneMapping = T.ACESFilmicToneMapping; R.toneMappingExposure = 1.15; R.physicallyCorrectLights = false;
-    scene = new T.Scene(); cam = new T.PerspectiveCamera(24, W / H, .1, 50); cam.position.set(0, 1.75, 5.4); cam.lookAt(0, .74, 0);
-    /* a little photo studio for reflections: warm room, two soft boxes, dark floor */
+    R.setClearColor(0, 0); R.outputEncoding = T.sRGBEncoding; R.toneMapping = T.ACESFilmicToneMapping; R.toneMappingExposure = .95;
+    /* seen a little from above, so the collar and the base read as round 3D shapes */
+    scene = new T.Scene(); cam = new T.PerspectiveCamera(28, W / H, .1, 50); cam.position.set(0, 2.55, 4.7); cam.lookAt(0, .62, 0);
     try { const env = new T.Scene(), room = new T.Mesh(new T.SphereGeometry(10, 32, 16), new T.MeshBasicMaterial({side: T.BackSide, vertexColors: true}));
-      const col = [], pos = room.geometry.attributes.position; for (let i = 0; i < pos.count; i++){ const y = pos.getY(i) / 10, c = new T.Color().setHSL(.09, .25, y > 0 ? .35 + y * .35 : .08 + (1 + y) * .1); col.push(c.r, c.g, c.b); }
+      const col = [], pos = room.geometry.attributes.position; for (let i = 0; i < pos.count; i++){ const y = pos.getY(i) / 10, c = new T.Color().setHSL(.08, .12, y > 0 ? .4 + y * .35 : .1 + (1 + y) * .12); col.push(c.r, c.g, c.b); }
       room.geometry.setAttribute("color", new T.Float32BufferAttribute(col, 3)); env.add(room);
-      const box = (x, y, z, w, h, i) => { const m = new T.Mesh(new T.PlaneGeometry(w, h), new T.MeshBasicMaterial({color: new T.Color(i, i, i * .95), side: T.DoubleSide})); m.position.set(x, y, z); m.lookAt(0, 0, 0); env.add(m); };
-      box(-5, 5, 4, 5, 4, 4); box(6, 2, -3, 3, 6, 2.2); box(0, 8, 0, 6, 6, 1.4);
-      const pm = new T.PMREMGenerator(R); scene.environment = pm.fromScene(env, .03).texture; pm.dispose(); } catch(e) {}
-    scene.add(new T.HemisphereLight(0xfff4e0, 0x3a2f24, .35));
-    const key = new T.DirectionalLight(0xfff1dc, 1.6); key.position.set(-3, 4, 3); scene.add(key);
-    const rim = new T.DirectionalLight(0xbcd4ff, 1.1); rim.position.set(2.5, 2.2, -3.5); scene.add(rim);
-    /* the golden stop under its feet throws warm light up onto the pawn */
-    const glow = new T.PointLight(0xffc23d, 1.6, 3.2); glow.position.set(0, -.25, .6); scene.add(glow);
-    /* a classic Staunton pawn: wide base with two rings, a slim waist, the collar, the round head; smooth curves turned on a lathe */
-    const ctl = [[0, 0], [.47, 0], [.5, .015], [.51, .05], [.49, .085], [.44, .1], [.43, .125], [.45, .145], [.42, .17], [.34, .19], [.28, .23], [.235, .3], [.2, .4], [.175, .5], [.165, .565],
-      [.24, .58], [.29, .6], [.3, .625], [.27, .648], [.19, .662], [.15, .69], [.14, .72]].map(([x, y]) => new T.Vector2(x, y));
-    const prof = new T.SplineCurve(ctl).getPoints(120); prof[0].set(0, 0);
+      const box = (x, y, z, w, h, i) => { const m = new T.Mesh(new T.PlaneGeometry(w, h), new T.MeshBasicMaterial({color: new T.Color(i, i, i), side: T.DoubleSide})); m.position.set(x, y, z); m.lookAt(0, 0, 0); env.add(m); };
+      box(-5, 6, 4, 5, 4, 3); box(6, 3, -2, 3, 6, 1.6);
+      const pm = new T.PMREMGenerator(R); scene.environment = pm.fromScene(env, .04).texture; pm.dispose(); } catch(e) {}
+    scene.add(new T.HemisphereLight(0xffffff, 0x3a322c, .28));
+    const key = new T.DirectionalLight(0xffffff, 2.1); key.position.set(-3.5, 3.5, 2.2); scene.add(key);
+    const rim = new T.DirectionalLight(0xdfe8ff, .9); rim.position.set(3, 2, -3); scene.add(rim);
+    const glow = new T.PointLight(0xffc23d, .9, 2.6); glow.position.set(0, -.2, .7); scene.add(glow);
+    /* the same pawn as on the board: round head, a slanted collar, a bell that flares out to a wide foot (taken from the board's pawn drawing) */
+    const V = (x, y) => new T.Vector2(x, y);
+    const bell = new T.SplineCurve([V(.496, .012), V(.49, .06), V(.462, .128), V(.4, .19), V(.32, .242), V(.256, .284), V(.21, .336), V(.178, .42), V(.158, .52), V(.146, .62)]).getPoints(60);
+    const prof = [V(0, 0), V(.47, 0), V(.492, .006)].concat(bell, [V(.146, .64), V(.272, .646), V(.292, .662), V(.302, .73), V(.296, .78), V(.27, .8), V(.17, .862), V(.14, .885), V(0, .885)]);
     const g = new T.Group();
-    const mat = new T.MeshPhysicalMaterial({color: 0xf6eedd, roughness: .3, metalness: 0, clearcoat: 1, clearcoatRoughness: .12, sheen: .4, sheenRoughness: .5, sheenColor: new T.Color(0xfff3dc), envMapIntensity: 1.1});
-    const body = new T.LatheGeometry(prof, 128), head = new T.SphereGeometry(.245, 64, 40);
-    const bm = new T.Mesh(body, mat); g.add(bm); const hm = new T.Mesh(head, mat); hm.position.y = .935; g.add(hm);
+    const mat = new T.MeshPhysicalMaterial({color: 0xf0f0f0, roughness: .42, metalness: 0, clearcoat: .5, clearcoatRoughness: .3, envMapIntensity: .9});
+    /* the dark outline of the board pieces, as an even shell around the 3D shape */
+    const ink = new T.MeshBasicMaterial({color: 0x3c3c3c, side: T.BackSide, toneMapped: false});
+    ink.onBeforeCompile = sh => { sh.vertexShader = sh.vertexShader.replace("#include <begin_vertex>", "vec3 transformed = position + normal * 0.03;"); };
+    const body = new T.LatheGeometry(prof, 96); body.computeVertexNormals();
+    const head = new T.SphereGeometry(.24, 64, 40);
+    const add = (geo, y) => { const m = new T.Mesh(geo, mat); m.position.y = y; g.add(m); const o = new T.Mesh(geo, ink); o.position.y = y; g.add(o); };
+    add(body, 0); add(head, 1.06);
+    /* a soft shadow on the ground under it */
+    const sc = document.createElement("canvas"); sc.width = sc.height = 64; const x = sc.getContext("2d"), rg = x.createRadialGradient(32, 32, 0, 32, 32, 32); rg.addColorStop(0, "rgba(0,0,0,.45)"); rg.addColorStop(1, "rgba(0,0,0,0)"); x.fillStyle = rg; x.fillRect(0, 0, 64, 64);
+    shadow = new T.Mesh(new T.PlaneGeometry(1.5, 1.5), new T.MeshBasicMaterial({map: new T.CanvasTexture(sc), transparent: true, depthWrite: false})); shadow.rotation.x = -Math.PI / 2; shadow.position.y = .002; scene.add(shadow);
     pawn = g; scene.add(g);
     return true;
   }
@@ -5421,7 +5431,7 @@ const JPawn = (() => {
   function start(){ lastT = 0; if (!raf) raf = requestAnimationFrame(loop); }
   function loop(now){
     raf = 0; if (!wrap || !wrap.isConnected || !R){ return; }
-    let lift = 0, sq = 0, spin = 0, tilt = 0;
+    let lift = 0, sq = 0, spin = 0, tilt = 0, h3 = 0;
     if (act && act.k === "jump"){
       const u = Math.min(1, (now - act.t0) / act.d), e = u < .5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
       at = {x: act.from.x + (act.to.x - act.from.x) * e, y: act.from.y + (act.to.y - act.from.y) * e};
@@ -5435,12 +5445,15 @@ const JPawn = (() => {
       act = {k: "hop", t0: now, d: 560};
     }
     if (act && act.k === "hop"){
-      const u = Math.min(1, (now - act.t0) / act.d); lift = Math.sin(Math.PI * u) * 20; sq = u < .15 ? .16 * (1 - u / .15) : -.05 * Math.sin(Math.PI * u);
+      const u = Math.min(1, (now - act.t0) / act.d); h3 = Math.sin(Math.PI * u) * .3; sq = u < .15 ? .16 * (1 - u / .15) : -.05 * Math.sin(Math.PI * u);
       if (u >= 1){ act = {k: "land", t0: now, d: 420, big: false}; boing(curL, false); }
     }
     place(at); wrap.style.transform = `translate(-50%, calc(-100% - ${lift}px))`;
     /* squash and stretch keep the volume: wide and flat when it lands, thin and tall when it springs */
-    pawn.scale.set(1 + sq * .55, 1 - sq, 1 + sq * .55); pawn.rotation.y = .5 + spin + now / 4000; pawn.rotation.z = tilt;
+    pawn.scale.set(1 + sq * .55, 1 - sq, 1 + sq * .55); pawn.rotation.y = .5 + spin + now / 4000; pawn.position.y = h3;
+    /* a little sway so you see it is round; the shadow stays on the ground and shrinks when it hops */
+    pawn.rotation.z = tilt + Math.sin(now / 900) * .05; pawn.rotation.x = Math.cos(now / 1300) * .04;
+    if (shadow){ const k = 1 - h3 * 1.2 + sq * .4; shadow.scale.set(k, k, k); shadow.material.opacity = Math.max(.25, 1 - h3 * 1.6) * (lift > 4 ? .3 : 1); }
     R.render(scene, cam);
     raf = requestAnimationFrame(loop);
   }
