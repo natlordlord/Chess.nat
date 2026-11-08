@@ -2245,6 +2245,10 @@ html.i18n-wait body{visibility:hidden}
 .nh-del.armed{width:100%;z-index:2;font-size:15px}
 .nh-bin{padding:6px 9px}
 
+/* camera & microphone card on the profile */
+.mp-card .mp-row{display:flex;align-items:center;gap:10px;padding:6px 0}
+.mp-card .pill.bad{background:var(--bad);color:#fff}
+
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
 .pc.wr{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMTcuOTMgMjAuNDFjNC45LS43NCA5LjU4LS41NyAxNC4xNCAwTTE0LjE4IDkuNjZjLTEuMDYgOC43NyAxLjEgMTAuNjggMy43NSAxMC43NWwtMy4zMSAxOC4xNmgyMC43NmwtMy4zMS0xOC4xNmMyLjY0LS4wNyA0LjgtMS45OCAzLjc1LTEwLjc1bC0zLjYxLS41My0xLjA3IDMuNjUtMy4xNS0uMS0uNTItMy43NmgtNC45NEwyMiAxMi42OGwtMy4xNS4xLTEuMDctMy42NXoiLz48cGF0aCBkPSJNMTcuOTMgMjAuNDFjNi44MyAwIDEzLjEyLjQxIDE0Ljk1IDE2LjU4bDIuMzIuMzgtMy4xMy0xNi40M2MtLjAzLS4zLTYuMDktMS44Mi0xNC4xNC0uNTMiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Im0xNC43OCAxMC4yMiAyLjI3LS4yOWMtMS45MS4zMi0yLjMgNS4zLTIuMyA1LjMtLjI1LS4xOC0uMi00LjkuMDMtNS4wMW0xMC41LS42N2MtMS42NSAwLTIuNTIgMi43NS0yLjUyIDIuNzVsLjMzLTIuNzN6bTcuNC4yNy45Mi4xMWMtLjc4LjUtMS41OSAyLTEuNTkgMnptLTE0LjIgMTEuMTQgMi42MS0uMjljLTIuNjIuMy00Ljg5IDEzLjExLTQuODkgMTMuMTF6Ii8+PHBhdGggZD0iTTM0LjAxIDkuNGMuMzYgNi4zNi0xLjk1IDEwLjYtOC4wNCAxMC41M2w0Ljc4LjU3YzcuNTIuMyA1LjEtMTAuOCA1LjA3LTEwLjg0eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuMiIgZD0iTTI1IDM2LjQ2cy05LjEzLjA0LTExLjcgMS42MmMtMS43MiAxLjA2LTIuMTMgMy42NS0xLjkgNi4zMmgyNy4yYy4yMy0yLjY3LS4xOC01LjI2LTEuOS02LjMyQzM0LjEyIDM2LjUgMjUgMzYuNDYgMjUgMzYuNDZ6Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI1IDM3LjE1UzE2LjI5IDM3IDEzLjM4IDM4LjhjLS4zNy4yMy0uNy44NC0uOTYgMS40LjI2LS4zNC41LS42Mi44OS0uODZDMTUuODcgMzcuNzggMjUgMzcuNzMgMjUgMzcuNzNzOS4xMy4wNSAxMS43IDEuNjJjLjM4LjI0LjU4LjUzLjg1Ljg3YTMgMyAwIDAgMC0xLjE1LTEuNkMzMy42NSAzNy4xNSAyNSAzNy4xNiAyNSAzNy4xNnoiLz48L3N2Zz4=')}
@@ -2265,7 +2269,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794164747";
+const CHESSNAT_BUILD = "1794164948";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -9706,6 +9710,68 @@ const VoiceChat = (() => {
   return {create, ok, mic, micErr, askMic};
 })();
 
+/* ===== Camera and microphone: ask once, remember it.
+   A web app can't grant itself "always": the phone decides. So Chess.nat
+   1. asks for both together at the first start (one question instead of many),
+   2. keeps a camera or mic open while you use it, instead of asking again for every take,
+   3. notices when the phone asks again although you already said yes, and then shows once how to set "always allow". ===== */
+const MediaPerm = (() => {
+  const md = navigator.mediaDevices, KEY = "chessnat-media";
+  const ios = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const android = () => /Android/i.test(navigator.userAgent);
+  const app = () => window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const mem = () => { try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch(e) { return {}; } };
+  const setMem = m => { try { localStorage.setItem(KEY, JSON.stringify(m)); } catch(e) {} };
+  const q = async n => { try { return (await navigator.permissions.query({name: n})).state; } catch(e) { return "unknown"; } };
+  async function state(){ const [mic, cam] = await Promise.all([q("microphone"), q("camera")]); return {mic, cam}; }
+  /* every request goes through here: if the phone had to ask again for something you already allowed, show the tip (not more than every 3 days) */
+  if (md && md.getUserMedia){ const orig = md.getUserMedia.bind(md);
+    md.getUserMedia = c => { const kinds = [c && c.audio ? "microphone" : null, c && c.video ? "camera" : null].filter(Boolean);
+      const before = Promise.all(kinds.map(q)); const p = orig(c);
+      p.then(() => before.then(st => { const m = mem(), again = kinds.some((k, i) => st[i] === "prompt" && m[k]);
+        kinds.forEach(k => m[k] = (m[k] || 0) + 1); setMem(m);
+        if (again && !m.never && Date.now() - (m.tip || 0) > 3 * 864e5){ m.tip = Date.now(); setMem(m); later(); } })).catch(() => {});
+      return p; }; }
+  /* not in the middle of a recording, a call or a game: wait until you're done */
+  function later(){ const busy = document.querySelector(".nv-rec,.rec-on,.dsheet,form.recording") || (typeof App !== "undefined" && App.busy && App.busy()) || [...document.querySelectorAll("[data-vc]")].some(b => b.dataset.vc !== "off");
+    if (busy) return setTimeout(later, 4000); sheet(true); }
+  /* both at once (first start): camera and mic in one question; mic alone if there's no camera */
+  async function askAll(){
+    if (!md || !md.getUserMedia) return false;
+    try { const s = await md.getUserMedia({audio: true, video: {facingMode: "user"}}); s.getTracks().forEach(t => t.stop()); return true; }
+    catch(e){ if (e && e.name === "NotAllowedError") return false; try { const s = await md.getUserMedia({audio: true}); s.getTracks().forEach(t => t.stop()); return true; } catch(e2){ return false; } }
+  }
+  function howHTML(){
+    const ol = items => `<ol class="howto">${items.map(x => `<li><span>${x}</span></li>`).join("")}</ol>`;
+    if (ios()) return ol(["Open Settings on your iPhone", "Tap Apps → Safari (older iPhones: just Safari)", "Scroll down to Settings for websites", "Set Camera to Allow", "Set Microphone to Allow"])
+      + `<p class="muted" style="font-size:13px;margin-top:10px">That also counts for Chess.nat on your home screen. Only for this site: in Safari tap aA next to the address → Website settings → Camera and Microphone → Allow.</p>`;
+    if (android() && app()) return ol(["Press and hold the Chess.nat icon on your home screen", "Tap App info (the ⓘ)", "Tap Permissions", "Set Camera and Microphone to Allow"])
+      + `<p class="muted" style="font-size:13px;margin-top:10px">When the question comes, choose While using the site, not Only this time.</p>`;
+    if (android()) return ol(["Tap the icon left of the address (the lock or the sliders)", "Tap Permissions", "Set Camera and Microphone to Allow"])
+      + `<p class="muted" style="font-size:13px;margin-top:10px">When the question comes, choose While using the site, not Only this time.</p>`;
+    return `<p class="muted" style="margin-top:8px">Click the lock icon next to the address and set Camera and Microphone to Allow.</p>`;
+  }
+  function sheet(auto){
+    detailSheet(`<div style="text-align:center"><div class="pa-bell">${icon("video", 46)}</div><div style="font:900 21px var(--display);margin-top:6px">Allow camera and microphone for good</div>
+      <p class="muted" style="margin:8px 0 0">${auto ? "Your phone asked again. Set it once like this and Chess.nat won't have to ask anymore:" : "Set it once like this and Chess.nat won't have to ask anymore:"}</p>${howHTML()}
+      ${auto ? `<button class="btn ghost" data-never style="margin-top:6px">Don't show this again</button>` : ""}</div>`);
+    const n = document.querySelector(".dsheet [data-never]"); if (n) n.onclick = () => { const m = mem(); m.never = 1; setMem(m); n.closest(".dsheet").querySelector("[data-dclose]").click(); };
+  }
+  /* the card on your profile: what's allowed, a button to allow, how to make it permanent */
+  const LBL = {granted: ["Allowed", "go"], denied: ["Blocked", "bad"], prompt: ["Asks each time", ""], unknown: ["–", ""]};
+  async function card(el){
+    const s = await state(), pill = k => { const [t, c] = LBL[s[k]] || LBL.unknown; return `<span class="pill ${c}">${t}</span>`; };
+    el.innerHTML = `<h2 class="h-sec" style="margin-top:18px">Camera & microphone</h2><div class="unit mp-card">
+      <div class="mp-row">${icon("video", 22)}<span class="grow">Camera</span>${pill("cam")}</div>
+      <div class="mp-row">${icon("mic", 22)}<span class="grow">Microphone</span>${pill("mic")}</div>
+      <p class="dim" style="font-size:13px;margin:8px 0 10px">For voice chat in games, voice messages and video messages.</p>
+      <div class="row" style="gap:8px;flex-wrap:wrap">${s.mic !== "granted" || s.cam !== "granted" ? `<button class="btn go" data-mpask>Allow now</button>` : ""}<button class="btn" data-mphow>Always allow: how</button></div></div>`;
+    const a = el.querySelector("[data-mpask]"); if (a) a.onclick = async () => { const ok = await askAll(); if (!ok) sheet(false); card(el); };
+    el.querySelector("[data-mphow]").onclick = () => sheet(false);
+  }
+  return {state, askAll, sheet, card};
+})();
+
 /* ===== Play online: rated games against real people.
    Pick a time control, the server looks for the player closest to your rating (and widens the search the longer you wait),
    then you play a normal live game. The result goes to the server, which keeps the official rating (Glicko, like lichess):
@@ -10287,6 +10353,7 @@ Views.local = {
 
 /* ===== Icons (own line set) ===== */
 const ICONS = {
+  mic: `<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>`,
   trash: `<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/>`,
   video: `<rect x="3" y="6" width="13" height="12" rx="3"/><path d="M16 10.5l5-3v9l-5-3z"/>`,
   download: '<path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 20h14"/>',
@@ -10639,7 +10706,7 @@ Views.me = {
         <button class="mb" data-go="${typeof Views.account === "object" ? "account" : "settings"}">${icon("gear", 26)}<b>Account</b><small>${sess ? esc((sess.user.email || "").split("@")[0]) : "Sign in to sync"}</small></button>
       </div>
       <h2 class="h-sec" style="margin-top:18px">Ratings</h2>${typeof ratingsCards === "function" ? ratingsCards() : ""}
-      <div id="mefr"></div><div id="mepush"></div>
+      <div id="mefr"></div><div id="mepush"></div><div id="memedia"></div>
       <div class="me-lang" data-notr><span>🌐</span>${[["en", "English"], ["de", "Deutsch"]].map(([k, t]) => `<button class="${I18N.lang === k ? "on" : ""}" data-lang="${k}">${t}</button>`).join("")}</div>
       <h2 class="h-sec" style="margin-top:18px">More about you</h2>
       <div class="tiles"><button class="tile" data-go="repertoire">${icon("scroll", 36)}<h3>Your openings</h3><p>The repertoire that fits your style, with a drill.</p></button><button class="tile" data-go="profile">${icon("target", 36)}<h3>Play style</h3><p>Your strengths, weak spots and opening repertoire.</p></button>
@@ -10656,7 +10723,7 @@ Views.me = {
     $$("[data-lang]", main).forEach(b => b.onclick = () => { if (b.dataset.lang !== I18N.lang) I18N.set(b.dataset.lang); });
     { const pt = main.querySelector("[data-ptype]"); if (pt) pt.onclick = () => App.go("profile"); }
     const mi = $("#meinst"); if (mi) mi.onclick = () => ChessInstall.run();
-    this.friends(); this.push();
+    this.friends(); this.push(); { const m = $("#memedia"); if (m && typeof MediaPerm !== "undefined") MediaPerm.card(m); }
   },
   push(){ const el = $("#mepush"); if (!el || typeof Push === "undefined") return; el.innerHTML = `<h2 class="h-sec" style="margin-top:18px">Notifications</h2>${Push.card()}`; Push.wire(el, () => this.push()); },
   async friends(){
@@ -10897,9 +10964,9 @@ const Onboard = (() => {
         <button class="btn ghost" id="onweb">Continue in the browser</button>`;
     } else if (s === "push"){
       body = `<div class="onb-perm"><span class="onb-bell">${icon("bell", 44)}</span><span class="onb-bell mic">${VoiceChat.ok() ? `<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>` : ""}</span></div>
-        <h2>Notifications & microphone</h2>
-        <p class="onb-sub">So you know when a friend challenges you or it's your move, and so you can talk in games and send voice messages.</p>
-        <button class="btn go big" id="onpush" style="width:100%">Allow notifications & microphone</button><button class="btn ghost" id="onlater">Later</button>`;
+        <h2>Notifications, microphone & camera</h2>
+        <p class="onb-sub">So you know when a friend challenges you or it's your move, and so you can talk in games and send voice and video messages. Allow it once, then Chess.nat doesn't have to ask again.</p>
+        <button class="btn go big" id="onpush" style="width:100%">Allow all</button><button class="btn ghost" id="onlater">Later</button>`;
     } else if (s === "account"){
       body = `<h2>${ref ? "Create your account" : "Your account"}</h2><p class="onb-sub">Your rating, lessons, friends and games stay with you, on every device.</p>
         <div id="onaf"></div><button class="btn ghost onb-skip" id="onskip">Play without an account</button>`;
@@ -10920,7 +10987,7 @@ const Onboard = (() => {
     } else if (s === "push"){
       $("#onpush", card).onclick = async () => {
         if (pushable()){ try { await Notification.requestPermission(); } catch(e) {} if (Notification.permission === "granted") toast("Notifications on 🔔"); }
-        if (micable() && typeof VoiceChat !== "undefined"){ const ok = await VoiceChat.askMic(); try { localStorage.setItem("chessnat-mic", "1"); } catch(e) {} if (!ok) toast("No microphone access. You can allow it later in your settings.", 3500); }
+        if (micable() && typeof MediaPerm !== "undefined"){ const ok = await MediaPerm.askAll(); try { localStorage.setItem("chessnat-mic", "1"); } catch(e) {} if (!ok) toast("No camera or microphone access. You can allow it later on your profile.", 3500); }
         next(); };
       $("#onlater", card).onclick = () => next();
     } else if (s === "account"){
