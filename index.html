@@ -2422,6 +2422,65 @@ html[data-bfx="petals"] .board::after{background-image:radial-gradient(3px 2px a
 .chx-card.r-ultra{border:3px solid transparent;border-radius:22px;border-image:none;background:linear-gradient(#1e1c22,#1e1c22) padding-box,linear-gradient(90deg,#ff5fd2,#7a6bff,#30e0d2,#ffe066,#ff5fd2) border-box;background-size:100% 100%,300% 100%;animation:chxCard2 .8s cubic-bezier(.2,1.5,.4,1),chxUltra 3s linear infinite}
 @keyframes chxUltra{to{background-position:0 0,300% 0}}
 .chx-card.r-legend{box-shadow:0 0 60px rgba(255,210,63,.6),0 0 0 1px rgba(255,255,255,.2) inset}
+/* ===== battle pass v2 ===== */
+.bp-hero{position:relative;overflow:hidden;border-radius:22px;padding:18px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;
+  background:radial-gradient(120% 140% at 0% 0%,rgba(80,255,200,.28),transparent 55%),radial-gradient(120% 140% at 100% 100%,rgba(140,100,255,.35),transparent 55%),linear-gradient(135deg,#0f2a33,#1a1640);border:1px solid rgba(255,255,255,.08);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.bp-hero::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.08) 50%,transparent 60%);background-size:250% 100%;animation:bdGold 6s linear infinite;pointer-events:none}
+.bph-art{position:relative;width:150px;height:110px;flex:none}
+.bph-board{position:absolute;left:0;top:6px;transform:rotate(-8deg);filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
+.bph-knife{position:absolute;left:18px;top:34px;width:150px;transform:rotate(-14deg);filter:drop-shadow(0 6px 10px rgba(0,0,0,.6)) drop-shadow(0 0 14px rgba(80,255,200,.5));animation:chxFloat 3s ease-in-out infinite}
+.bph-knife .knife-svg{width:100%;height:auto}
+.bph-txt{flex:1;min-width:200px;position:relative;color:#fff}
+.bph-txt>small{font:900 11.5px var(--body);letter-spacing:.1em;color:#8ff5d6}
+.bph-txt h2{margin:2px 0 8px;font:900 30px/1 var(--display);background:linear-gradient(90deg,#c6fff1,#7ad8ff,#c9a8ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.bph-tier{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.bph-tier small{color:rgba(255,255,255,.7);font-weight:700;font-size:12.5px}
+.bph-badge{width:46px;height:46px;flex:none;display:grid;place-items:center;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:linear-gradient(160deg,#ffe27a,#e0a019);color:#3b2600;font:900 19px var(--display)}
+.bp-hero .bp-bar{height:10px;background:rgba(0,0,0,.35)}
+.bp-hero .bp-bar i{background:linear-gradient(90deg,#2fe0b0,#9bf,#ffd23f)}
+.bph-buy{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;border:0;border-radius:14px;padding:12px 14px;cursor:pointer;
+  background:linear-gradient(135deg,#ffe27a,#f0a81c 60%,#ffcf4a);color:#3b2600;font:900 16px var(--body);box-shadow:0 4px 0 #a86b00,0 0 22px rgba(255,200,60,.35);position:relative;overflow:hidden}
+.bph-buy::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.55) 50%,transparent 65%);background-size:250% 100%;animation:bdGold 2.8s linear infinite}
+.bph-buy b{display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.14);padding:4px 10px;border-radius:99px}
+.bph-buy.armed{background:linear-gradient(135deg,#ff8a5c,#e5484d);color:#fff;box-shadow:0 4px 0 #8f1f22}
+.bph-prem{display:inline-block;padding:6px 14px;border-radius:99px;background:linear-gradient(135deg,#ffe27a,#f0a81c);color:#3b2600;font:900 13px var(--body);letter-spacing:.06em}
+.bp-all{width:100%;margin-top:12px}
+.bp-track{position:relative;margin-top:14px;border-radius:18px;background:var(--panel);padding:10px 0 12px}
+.bp-labs{position:absolute;left:0;top:10px;bottom:12px;width:30px;z-index:3;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
+.bp-labs span{writing-mode:vertical-rl;transform:rotate(180deg);font:900 10.5px var(--body);letter-spacing:.14em;height:118px;display:grid;place-items:center;border-radius:0 10px 10px 0;background:var(--panel-3,#3a3835);color:var(--muted)}
+.bp-labs .prem{background:linear-gradient(180deg,#ffe27a,#f0a81c);color:#3b2600}
+.bp-scroll{position:relative;display:flex;gap:8px;overflow-x:auto;padding:0 12px 0 40px;scroll-behavior:smooth}
+.bp-line{position:absolute;left:40px;top:50%;height:6px;margin-top:-3px;border-radius:3px;background:var(--panel-3,#3a3835);width:calc(30 * 96px + 29 * 8px - 44px);z-index:0}
+.bp-line i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#81b64c,#ffd23f)}
+.bpt{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:8px;flex:none;width:96px}
+.bpt-node{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:#2c2a27;border:3px solid var(--panel-3,#3a3835);font:900 13px var(--body);color:var(--muted);position:relative}
+.bpt-node i{display:none}
+.bpt.done .bpt-node{background:#81b64c;border-color:#a8d877;color:#fff}
+.bpt.cur .bpt-node{border-color:#ffd23f;color:#ffd23f;box-shadow:0 0 0 4px rgba(255,210,63,.18);animation:chxTip 1.4s ease-in-out infinite}
+.bpt.ms .bpt-node{width:40px;height:40px;font-size:15px}
+.bpc{position:relative;width:96px;height:118px;border-radius:16px;border:2px solid color-mix(in srgb,var(--rc) 40%,transparent);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px;font:inherit;color:var(--fg);cursor:default;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 22%,#2a2826),#24221f)}
+.bpc.prem{background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 26%,#3a2f12),#2a2414);border-color:color-mix(in srgb,#ffd23f 55%,transparent)}
+.bpc.big{box-shadow:0 0 18px color-mix(in srgb,var(--rc) 45%,transparent)}
+.bpc-in{display:flex;flex-direction:column;align-items:center;gap:3px}
+.bpc b{font:900 16px var(--display)}
+.bpc small{font-size:10.5px;font-weight:800;color:var(--muted);line-height:1.1;text-align:center}
+.bpr-coins{display:flex}.bpr-coins .natc{width:30px;height:30px}.bpr-coins .natc+.natc{margin-left:-14px;margin-top:-6px}
+.bpc .pr-chest{width:58px;height:52px}
+.bpc.big .pr-chest{width:66px;height:60px}
+.bpc.lock .bpc-in{filter:grayscale(.6) brightness(.6)}
+.bpc-lock{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.5);display:grid;place-items:center;color:#ffd23f}
+.bpc.got .bpc-in{opacity:.45}
+.bpc-ok{position:absolute;inset:auto 0 8px;margin:auto;width:26px;height:26px;border-radius:50%;background:#81b64c;color:#fff;font:900 15px/26px var(--body);text-align:center}
+.bpc.can{cursor:pointer;border-color:#ffd23f;box-shadow:0 0 0 3px rgba(255,210,63,.25),0 0 20px rgba(255,210,63,.35);animation:chxTip 1.4s ease-in-out infinite}
+.bpc-go{position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);background:#ffd23f;color:#3b2600;font:900 11px var(--body);padding:3px 10px;border-radius:99px;white-space:nowrap}
+.bp-hero{display:block;padding:16px 16px 16px}
+.bph-art{position:absolute;right:-6px;top:4px;width:140px;height:104px;transform:scale(.9);transform-origin:top right;opacity:.95}
+.bph-txt{min-width:0}
+.bph-txt>small,.bph-txt h2{max-width:calc(100% - 130px)}
+.bph-tier{margin-top:16px}
+@media (min-width:700px){.bph-art{width:180px;height:130px;transform:none;right:20px;top:14px}.bph-txt>small,.bph-txt h2,.bph-tier,.bph-buy{max-width:calc(100% - 210px)}}
+@media (max-width:699px){.bph-art{right:14px;width:118px}.bph-knife{width:118px;left:0;top:36px}.bph-board{left:14px}}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -2443,7 +2502,7 @@ html[data-bfx="petals"] .board::after{background-image:radial-gradient(3px 2px a
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794172753";
+const CHESSNAT_BUILD = "1794173071";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -10552,6 +10611,7 @@ Views.local = {
 
 /* ===== Icons (own line set) ===== */
 const ICONS = {
+  lock: `<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>`,
   coin: `<circle cx="12" cy="12" r="9"/><path d="M9.5 15.5v-7l5 7v-7"/>`,
   music: `<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>`,
   mic: `<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>`,
@@ -11426,9 +11486,9 @@ function passReward(t, prem){
   if (t % 5 === 0) return {chest: 1}; if (t % 3 === 0) return {chest: 0}; return {coins: 150};
 }
 function passRewardHTML(r){
-  if (r.coins) return `${NAT_COIN}<b>${r.coins}</b>`;
+  if (r.coins) return `<span class="bpr-coins">${NAT_COIN}${r.coins >= 100 ? NAT_COIN : ""}</span><b>${r.coins}</b>`;
   if (r.chest != null) return `<span class="pr-chest" style="--rc:${NAT_R[r.chest].c}">${chestSVG(r.chest)}</span><small>${NAT_R[r.chest].n}+</small>`;
-  const it = natItem(r.item); return it ? `${natPreview(it, 34)}<small>${esc(it.kind === "knife" ? it.name.split(" | ")[0] : it.name.split(" · ")[0])}</small>` : "";
+  const it = natItem(r.item); return it ? `${natPreview(it, 46)}<small>${esc(it.kind === "knife" ? it.name.split(" | ")[0] : it.name.split(" · ")[0])}</small>` : "";
 }
 function passClaim(t, prem){
   const b = passState(), list = prem ? b.cp : b.cf; if (list.includes(t) || t > passTier() || (prem && !b.prem)) return false;
@@ -11471,7 +11531,9 @@ Views.shop = {
     const mu = $("#musicon", body); if (mu) mu.onchange = () => { S.settings.music = mu.checked; save(); NatMusic.sync(); };
     $$("[data-claim]", body).forEach(x => x.onclick = () => { const [tt, p] = x.dataset.claim.split(":"), r = passClaim(+tt, p === "p"); if (!r) return; Sound.tone([[784, .08, .05], [1047, .16]], "triangle", .12); toast(r.chest != null ? "Chest added. Open it in the shop." : r.item ? `${natItem(r.item).name} is yours!` : `+${r.coins} NAT`); this.draw(); });
     const bp = $("[data-prem]", body); if (bp) bp.onclick = () => { if (!bp.dataset.armed){ bp.dataset.armed = 1; bp.innerHTML = `Buy for ${fmtNat(PASS_PRICE)} NAT? Tap again`; return; } if (!natSpend(PASS_PRICE)){ toast(`You need ${fmtNat(PASS_PRICE - natBal())} more NAT.`); return; } passState().prem = true; save(); Sound.cheer(3); this.draw(); };
-    const cur = $(".bp-tier.cur", body); if (cur) cur.scrollIntoView({block: "nearest", inline: "center"});
+    const all = $("[data-all]", body); if (all) all.onclick = () => { const bb = passState(), T = passTier(); let n = 0, ch = 0; for (let t = 1; t <= T; t++){ [false, true].forEach(pr => { const r = passClaim(t, pr); if (r){ n++; if (r.chest != null) ch++; } }); }
+      if (n){ Sound.cheer(3); toast(ch ? `${n} rewards claimed. ${ch} chest${ch > 1 ? "s" : ""} waiting in the shop.` : `${n} rewards claimed.`); } this.draw(); };
+    const cur = $(".bpt.cur", body), sc = $(".bp-scroll", body); if (cur && sc) sc.scrollLeft = Math.max(0, cur.offsetLeft - sc.clientWidth / 2 + cur.offsetWidth / 2);
   },
   /* buying: tap once to see the price question, tap again to buy. A chest opens right away. */
   arm(btn, label){ if (btn.dataset.armed) return true; btn.dataset.armed = 1; btn.classList.add("armed"); btn.textContent = label; setTimeout(() => { if (btn.isConnected && btn.dataset.armed){ delete btn.dataset.armed; this.draw(); } }, 4000); return false; },
@@ -11503,15 +11565,24 @@ Views.shop = {
   },
   pass(){
     const b = passState(), T = passTier(), into = (b.xp || 0) - T * PASS_XP, d = new Date(), end = new Date(d.getFullYear(), d.getMonth() + 1, 1), days = Math.ceil((end - d) / 864e5);
-    const tiers = Array.from({length: PASS_TIERS}, (_, i) => i + 1).map(t => { const f = passReward(t, false), p = passReward(t, true), got = t <= T;
-      const cell = (r, prem) => { const claimed = (prem ? b.cp : b.cf).includes(t), can = got && !claimed && (!prem || b.prem);
-        return `<div class="bp-cell ${prem ? "prem" : ""} ${claimed ? "got" : ""} ${can ? "can" : ""} ${prem && !b.prem ? "lock" : ""}">${passRewardHTML(r)}${can ? `<button class="btn sm go" data-claim="${t}:${prem ? "p" : "f"}">Claim</button>` : claimed ? `<span class="bp-ok">✓</span>` : ""}</div>`; };
-      return `<div class="bp-tier ${got ? "got" : ""} ${t === T + 1 ? "cur" : ""}"><div class="bp-n">${t}</div>${cell(f, false)}${cell(p, true)}</div>`; }).join("");
-    return `<div class="unit bp-head"><div class="grow"><small class="dim" style="font-weight:800;letter-spacing:.08em">SEASON ${esc(b.s)} · ${days} DAYS LEFT</small><h3 style="margin:2px 0 6px">Tier ${T} of ${PASS_TIERS}</h3>
-        <div class="bp-bar"><i style="width:${T >= PASS_TIERS ? 100 : Math.round(into / PASS_XP * 100)}%"></i></div><small class="dim">${T >= PASS_TIERS ? "Season complete!" : `${into} / ${PASS_XP} XP to tier ${T + 1}. Every XP counts.`}</small></div>
-        ${b.prem ? `<span class="pill go">Premium ✓</span>` : `<button class="btn go" data-prem>Premium: ${NAT_COIN} ${fmtNat(PASS_PRICE)}</button>`}</div>
-      <p class="dim" style="font-size:13px">Free row for everyone. Premium adds a reward on every tier, the Aurora board at tier 15 and the Bayonet | Season Aurora knife at tier 30.</p>
-      <div class="bp-rows"><div class="bp-lab"><span></span><b>Free</b><b class="prem">Premium</b></div><div class="bp-scroll">${tiers}</div></div>`;
+    const [yy, mm] = b.s.split("-").map(Number), sn = Math.max(1, (yy - 2026) * 12 + mm - 10);
+    const knife = natItem("k-bay-aur"), board = natItem("aurora"), canN = Array.from({length: T}, (_, i) => i + 1).reduce((n, t) => n + (!b.cf.includes(t)) + (b.prem && !b.cp.includes(t)), 0);
+    const big = t => t % 5 === 0;
+    const cell = (t, prem) => { const r = passReward(t, prem), got = t <= T, claimed = (prem ? b.cp : b.cf).includes(t), can = got && !claimed && (!prem || b.prem), lock = prem && !b.prem;
+      const rc = r.chest != null ? NAT_R[r.chest].c : r.item ? NAT_R[NAT_RI[natItem(r.item).r]].c : "#f5b829";
+      return `<button class="bpc ${prem ? "prem" : "free"} ${claimed ? "got" : ""} ${can ? "can" : ""} ${lock ? "lock" : ""} ${big(t) || r.item ? "big" : ""}" style="--rc:${rc}" ${can ? `data-claim="${t}:${prem ? "p" : "f"}"` : "disabled"}>
+        <span class="bpc-in">${passRewardHTML(r)}</span>${claimed ? `<span class="bpc-ok">✓</span>` : lock ? `<span class="bpc-lock">${icon("lock", 14)}</span>` : can ? `<span class="bpc-go">Claim</span>` : ""}</button>`; };
+    const tiers = Array.from({length: PASS_TIERS}, (_, i) => i + 1).map(t => `<div class="bpt ${t <= T ? "done" : ""} ${t === T + 1 ? "cur" : ""} ${big(t) ? "ms" : ""}">${cell(t, false)}<div class="bpt-node"><i></i><b>${t}</b></div>${cell(t, true)}</div>`).join("");
+    return `<div class="bp-hero ${b.prem ? "has" : ""}">
+        <div class="bph-art"><div class="bph-board">${natPreview(board, 86)}</div><div class="bph-knife">${knifeSVG(knife, true)}</div></div>
+        <div class="bph-txt"><small>SEASON ${sn} · ${days} DAYS LEFT</small><h2>Aurora</h2>
+          <div class="bph-tier"><span class="bph-badge"><b>${T}</b></span><div class="grow"><div class="bp-bar"><i style="width:${T >= PASS_TIERS ? 100 : Math.round(into / PASS_XP * 100)}%"></i></div>
+            <small>${T >= PASS_TIERS ? "Season complete!" : `${into} / ${PASS_XP} XP to tier ${T + 1}`}</small></div></div>
+          ${b.prem ? `<span class="bph-prem">★ PREMIUM</span>` : `<button class="bph-buy" data-prem><span>Unlock Premium</span><b>${NAT_COIN} ${fmtNat(PASS_PRICE)}</b></button>`}</div></div>
+      ${canN ? `<button class="btn go big bp-all" data-all>Claim all (${canN})</button>` : ""}
+      <div class="bp-track"><div class="bp-labs"><span class="free">FREE</span><span class="prem">★ PREMIUM</span></div><div class="bp-scroll"><div class="bp-line"><i style="width:${Math.min(100, (T + (T < PASS_TIERS ? into / PASS_XP : 0)) / PASS_TIERS * 100)}%"></i></div>${tiers}</div></div>
+      <p class="dim" style="font-size:13px;margin-top:10px">Every XP you earn moves you along. The free row is for everyone; premium adds a reward on every tier, the Aurora board at tier 15 and the Bayonet | Season Aurora knife at tier 30.</p>`;
+
   }
 };
 
