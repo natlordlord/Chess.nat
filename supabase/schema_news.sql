@@ -15,3 +15,5 @@ create table if not exists private.news_admins (user_id uuid primary key);
 -- functions news_is_admin(), news_post(t, b), news_broadcast(nid): security definer, admin-only (see migration)
 -- voice messages (migration "chess_news_audio"): chess_news.audio_url, public storage bucket "news" (audio only, 15 MB),
 -- uploads only for news admins; news_post(t, b, a) takes the audio URL.
+-- show again (migration "chess_news_reshow"): chess_news.rev and sort_at; news_reshow(nid) makes an item current and
+-- shows it to everyone once more. The app shows the item with the newest sort_at.
