@@ -2487,6 +2487,26 @@ html[data-bfx="petals"] .board::after{background-image:radial-gradient(3px 2px a
 .sp-btns .btn.sm{display:inline-flex;align-items:center;gap:6px}
 .sp-dot{width:10px;height:10px;border-radius:50%;background:var(--rc);box-shadow:0 0 8px var(--rc)}
 .pz-practice{margin-top:12px;font:800 12px var(--body);color:#ffd23f;background:rgba(255,210,63,.12);border-radius:99px;padding:4px 12px;display:inline-block}
+/* splits: the extra chests stand next to the main one */
+.chx-twin{position:absolute;bottom:2%;width:58%;aspect-ratio:200/180;opacity:0;transform:scale(.3);transition:opacity .3s,transform .45s cubic-bezier(.2,1.7,.4,1);pointer-events:none;filter:drop-shadow(0 0 16px var(--rc))}
+.chx-twin.l{left:-38%}.chx-twin.r{right:-38%}
+.chx-twin.on{opacity:1;transform:scale(1)}
+.chx-twin.l.on{transform:scale(1) rotate(-8deg)}.chx-twin.r.on{transform:scale(1) rotate(8deg)}
+.chx.split .chx-box{animation:chxSplit2 .5s ease-out}
+@keyframes chxSplit2{0%{transform:scale(1.25)}100%{transform:scale(1)}}
+.chx-x{position:absolute;top:-6%;right:-4%;font:900 30px var(--display);color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.5),0 0 18px var(--rc)}
+.chx-x:empty{display:none}
+.chx.split .chx-x{animation:chxSlam .5s cubic-bezier(.2,1.8,.4,1)}
+.pz-count{position:absolute;top:10px;right:14px;font:900 12px var(--body);color:rgba(255,255,255,.6)}
+.chx-card{position:relative}
+.chx-sum .sum-row{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:10px}
+.sum-i{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:78px;padding:10px 6px;border-radius:14px;border:2px solid var(--rc);background:color-mix(in srgb,var(--rc) 14%,transparent);animation:chxCard2 .5s cubic-bezier(.2,1.5,.4,1) both}
+.sum-i:nth-child(2){animation-delay:.12s}.sum-i:nth-child(3){animation-delay:.24s}
+.sum-i .natc{width:34px;height:34px}.sum-i b{font:900 15px var(--display);color:#ffd23f}
+.sum-i i{font:800 10.5px var(--body);font-style:normal;color:var(--rc)}
+.sum-coins{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px;font:900 26px var(--display);color:#ffd23f}.sum-coins .natc{width:30px;height:30px}
+.chx-twin{width:48%}.chx-twin.l{left:-30%}.chx-twin.r{right:-30%}
+.chx-x{right:-10%}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -2508,7 +2528,7 @@ html[data-bfx="petals"] .board::after{background-image:radial-gradient(3px 2px a
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794173294";
+const CHESSNAT_BUILD = "1794173741";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11297,21 +11317,21 @@ const ChestSfx = (() => {
 function chestOpen(o = {}){
   const P0 = !!o.practice, list = P0 ? [{id: "practice", f: o.floor || 0}] : chestsWaiting(); if (!list.length){ toast("No chests right now. Level ups and the battle pass bring new ones."); return; }
   if (document.querySelector(".chx")) return;
-  const ch = list[0], TAPS = 4; let ri = ch.f || 0; const final = o.force != null ? Math.max(ri, o.force) : rollRarity(ch.f || 0);
+  /* how many taps it takes is a secret (3 to 6), and it can split into two or three chests on the way */
+  const ch = list[0], TAPS = 3 + Math.floor(Math.random() * 4); let ri = ch.f || 0; const twins = []; const final = o.force != null ? Math.max(ri, o.force) : rollRarity(ch.f || 0);
   /* spread the climbs over the taps (the last tap can still surprise) */
   const steps = final - ri, at = new Set(); while (at.size < Math.min(steps, TAPS)) at.add(Math.floor(Math.random() * TAPS));
   const climbs = Array.from({length: TAPS}, (_, i) => at.has(i) ? 1 : 0); let extra = steps - at.size; for (let i = TAPS - 1; extra > 0 && i >= 0; i--){ climbs[i] += 1; extra--; }
-  const split = Math.random() < .1 ? Math.floor(Math.random() * (TAPS - 1)) + 1 : -1;
   let tap = 0, phase = "charge", busy = false, energy = .15, shakeT = 0, shakeA = 0;
   const el = document.createElement("div"); el.className = "chx";
   el.innerHTML = `<div class="chx-bg"></div><div class="chx-rays"></div><canvas class="chx-cf"></canvas>
     <div class="chx-top"><span class="chx-left">${P0 ? "Practice · nothing is given" : list.length > 1 ? `${list.length} chests` : "Last chest"}</span><button class="chx-skip" aria-label="Close">${icon("xmark", 20)}</button></div>
-    <div class="chx-stage"><div class="chx-name"></div><div class="chx-wrap"><div class="chx-glow"></div><div class="chx-ring"></div><div class="chx-box">${chestSVG(ri)}</div><div class="chx-leak"><i></i><i></i><i></i><i></i><i></i></div></div>
-      <div class="chx-dots">${Array.from({length: TAPS}, () => "<i></i>").join("")}</div></div>
+    <div class="chx-stage"><div class="chx-name"></div><div class="chx-wrap"><div class="chx-glow"></div><div class="chx-ring"></div><div class="chx-twin l"></div><div class="chx-twin r"></div><div class="chx-box">${chestSVG(ri)}</div><div class="chx-leak"><i></i><i></i><i></i><i></i><i></i></div><b class="chx-x"></b></div></div>
     <div class="chx-tip">Tap!</div><div class="chx-prize"></div><div class="chx-flash"></div>`;
   document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("in"));
-  const $e = s => el.querySelector(s), box = $e(".chx-box"), nm = $e(".chx-name"), tip = $e(".chx-tip"), dots = el.querySelectorAll(".chx-dots i"), stage = $e(".chx-stage"), cv = $e(".chx-cf");
-  const setR = r => { ri = r; el.style.setProperty("--rc", NAT_R[r].c); el.dataset.r = NAT_R[r].k; nm.textContent = NAT_R[r].n; box.innerHTML = chestSVG(r); };
+  const $e = s => el.querySelector(s), box = $e(".chx-box"), nm = $e(".chx-name"), tip = $e(".chx-tip"), stage = $e(".chx-stage"), cv = $e(".chx-cf");
+  const setR = r => { ri = r; el.style.setProperty("--rc", NAT_R[r].c); el.dataset.r = NAT_R[r].k; nm.textContent = NAT_R[r].n; box.innerHTML = chestSVG(r); drawTwins(); };
+  const drawTwins = () => { const t = el.querySelectorAll(".chx-twin"); t.forEach((x, k) => { const f = twins[k]; x.innerHTML = f != null ? chestSVG(f) : ""; x.classList.toggle("on", f != null); }); const xb = $e(".chx-x"); if (xb){ xb.textContent = twins.length ? "×" + (twins.length + 1) : ""; } };
   const lvl = n => el.style.setProperty("--lvl", n);
   setR(ri); lvl(0);
   setTimeout(() => { el.classList.add("landed"); ChestSfx.land(); shake(14, 260); }, 380);
@@ -11334,12 +11354,16 @@ function chestOpen(o = {}){
   requestAnimationFrame(loop);
   const close = () => { el.classList.add("out"); setTimeout(() => el.remove(), 260); natChip(); if (Views.shop && App.route === "shop") Views.shop.draw(); };
   $e(".chx-skip").onclick = e => { e.stopPropagation(); if (phase === "prize" || tap === 0) close(); };
+  let loot = [], shown = 0;
   el.addEventListener("pointerdown", e => {
     if (e.target.closest(".chx-skip, .chx-prize button")) return;
+    if (phase === "prize" && !busy && shown < loot.length){ showLoot(); return; }
+    if (phase === "prize" && !busy && shown === loot.length && loot.length > 1){ shown++; summary(); return; }
+    if (phase === "prize" && busy) return;
     if (phase === "prize" && P0){ phase = "gone"; close(); return; }
     if (phase === "prize"){ const left = chestsWaiting().length; el.classList.add("out"); setTimeout(() => { el.remove(); natChip(); if (left) chestOpen(); else if (Views.shop && App.route === "shop") Views.shop.draw(); }, 200); phase = "gone"; return; }
     if (phase !== "charge" || busy || !el.classList.contains("landed")) return;
-    const i = tap, up = climbs[i] || 0; dots[i] && dots[i].classList.add("on"); tap++; lvl(tap); energy = .15 + tap * .2;
+    const i = tap, up = climbs[i] || 0; tap++; lvl(tap); energy = .15 + tap * .2;
     box.classList.remove("hit"); void box.offsetWidth; box.classList.add("hit");
     ChestSfx.thump(tap); ChestSfx.bell(tap, ri); shake(6 + tap * 4, 220);
     burst(10 + tap * 6, 6 + tap, [NAT_R[ri].c, "#fff"]);
@@ -11350,25 +11374,45 @@ function chestOpen(o = {}){
         el.classList.remove("upg"); void el.offsetWidth; el.classList.add("upg"); shake(26, 520); burst(60 + ri * 15, 13, [NAT_R[ri].c, "#fff", "#ffe27a"]);
         tip.textContent = NAT_R[ri].n + "!"; busy = false; if (tap >= TAPS) openUp(); }, 560); }
     else if (tap >= TAPS){ busy = true; openUp(); }
-    if (i + 1 === split && !up){ if (!P0) chestGrant(0, "split"); el.classList.add("split"); setTimeout(() => el.classList.remove("split"), 900); tip.textContent = "It split! +1 chest"; ChestSfx.stinger(0); }
+    /* a split: one more chest of the same rarity right next to it (up to three); each one can still turn out better */
+    if (!up && tap < TAPS && twins.length < 2 && Math.random() < .16){ twins.push(ri); drawTwins(); el.classList.remove("split"); void el.offsetWidth; el.classList.add("split");
+      tip.textContent = `It split! ×${twins.length + 1}`; ChestSfx.stinger(Math.max(0, ri - 1)); shake(18, 400); burst(40, 10, [NAT_R[ri].c, "#fff"]); }
   });
   /* the final charge, then the burst */
   function openUp(){
     phase = "final"; busy = true; tip.textContent = ""; el.classList.add("final"); energy = 1.4; ChestSfx.riser(5, 1); shake(10, 1000);
     setTimeout(() => {
-      phase = "open"; const rw = rollReward(ri), R = NAT_R[ri];
-      if (!P0){ S.chO = (S.chO || []).concat([ch.id]).slice(-600); if (rw.kind === "coins" || rw.kind === "dup") natEarn(rw.coins, true); if (rw.kind === "item") natGive(rw.item.id); save(); }
-      ChestSfx.explode(ri); el.classList.remove("final"); el.classList.add("opened"); box.innerHTML = chestSVG(ri, true); shake(40, 700);
+      phase = "open";
+      /* the loot: the chest itself, and every split-off chest with its own roll (never below the rarity it split at) */
+      loot = [ri, ...twins.map(f => o.force != null ? Math.max(f, Math.min(o.force, rollRarity(f))) : rollRarity(f))].map(r => ({r, rw: rollReward(r)}));
+      if (!P0){ S.chO = (S.chO || []).concat([ch.id]).slice(-600); loot.forEach(({rw}) => { if (rw.kind === "coins" || rw.kind === "dup") natEarn(rw.coins, true); if (rw.kind === "item") natGive(rw.item.id); }); save(); }
+      ChestSfx.explode(ri); el.classList.remove("final"); el.classList.add("opened"); box.innerHTML = chestSVG(ri, true); el.querySelectorAll(".chx-twin.on").forEach((x, k) => x.innerHTML = chestSVG(twins[k], true)); shake(40, 700);
+      showLoot(true);
+    }, 1050);
+  }
+  /* one reward after the other: tap, and the next one comes out */
+  function showLoot(first){
+    const {r, rw} = loot[shown], R = NAT_R[r]; shown++; busy = true;
+    el.style.setProperty("--rc", R.c);
+    if (!first){ ChestSfx.stinger(r); shake(16 + r * 4, 400); }
       const fl = $e(".chx-flash"); fl.classList.remove("go"); void fl.offsetWidth; fl.classList.add("go");
-      burst(140 + ri * 50, 18 + ri * 2, [R.c, "#fff", "#ffe27a", R.c]);
+      burst(first ? 140 + r * 50 : 60 + r * 30, 18 + r * 2, [R.c, "#fff", "#ffe27a", R.c]);
       try { navigator.vibrate && navigator.vibrate([60, 40, 120]); } catch(_) {}
       const prize = $e(".chx-prize");
-      prize.innerHTML = `<div class="chx-card r-${R.k}">${rw.kind === "coins" ? `<div class="pz-coin">${NAT_COIN}</div><b class="pz-n">+${fmtNat(rw.coins)}</b><small>NatCoins</small>`
+      prize.innerHTML = `<div class="chx-card r-${R.k}">${loot.length > 1 ? `<div class="pz-count">${shown} / ${loot.length}</div>` : ""}${rw.kind === "coins" ? `<div class="pz-coin">${NAT_COIN}</div><b class="pz-n">+${fmtNat(rw.coins)}</b><small>NatCoins</small>`
         : `<div class="pz-pic">${natPreview(rw.item, 130)}</div><small class="pz-k">${natKindName(rw.item.kind)} · <span style="color:${R.c}">${R.n}</span></small><b class="pz-t">${esc(rw.item.name)}</b>${rw.item.kind === "knife" ? natEurLine(rw.item) : ""}
           ${rw.kind === "dup" ? `<p class="dim" style="margin:6px 0 0">You have it already: +${fmtNat(rw.coins)} NAT instead</p>` : ""}${rw.kind === "item" && !P0 ? `<button class="btn sm pz-use" data-use>${rw.item.kind === "knife" ? "Show it off" : "Use it"}</button>` : ""}`}${P0 ? `<div class="pz-practice">Practice: not added to your account</div>` : ""}</div>`;
       const u = prize.querySelector("[data-use]"); if (u) u.onclick = e => { e.stopPropagation(); natEquip(rw.item); u.textContent = "✓"; u.disabled = true; };
-      setTimeout(() => { phase = "prize"; busy = false; const left = chestsWaiting().length; tip.textContent = P0 ? "Tap to close" : left ? `Tap for the next chest (${left})` : "Tap to continue"; tip.classList.add("cont"); }, 900);
-    }, 1050);
+      setTimeout(() => { phase = "prize"; busy = false; const left = chestsWaiting().length;
+        tip.textContent = shown < loot.length ? "Tap for the next reward" : loot.length > 1 ? "Tap to see everything" : P0 ? "Tap to close" : left ? `Tap for the next chest (${left})` : "Tap to continue"; tip.classList.add("cont"); }, first ? 900 : 550);
+  }
+  /* everything from this chest at a glance */
+  function summary(){
+    const coins = loot.reduce((n, {rw}) => n + (rw.coins && rw.kind !== "item" ? rw.coins : 0), 0), left = chestsWaiting().length, best = Math.max(...loot.map(l => l.r));
+    el.style.setProperty("--rc", NAT_R[best].c); ChestSfx.bell(4, best);
+    $e(".chx-prize").innerHTML = `<div class="chx-card chx-sum r-${NAT_R[best].k}"><small>Your loot</small><div class="sum-row">${loot.map(({r, rw}) => `<span class="sum-i" style="--rc:${NAT_R[r].c}">${rw.kind === "item" ? natPreview(rw.item, 54) : `${NAT_COIN}<b>+${fmtNat(rw.coins)}</b>`}<i>${NAT_R[r].n}</i></span>`).join("")}</div>
+      ${coins ? `<div class="sum-coins">${NAT_COIN}<b>+${fmtNat(coins)}</b></div>` : ""}${P0 ? `<div class="pz-practice">Practice: not added to your account</div>` : ""}</div>`;
+    tip.textContent = P0 ? "Tap to close" : left ? `Tap for the next chest (${left})` : "Tap to continue";
   }
 }
 function natKindName(k){ return {board: "Board", song: "Music", skin: "Character skin", knife: "Knife"}[k] || k; }
