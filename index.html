@@ -1655,6 +1655,8 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 .fp-act-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0 0}
 .fp-act-row + .fp-stats{margin-top:8px}
 .me-act{margin:12px 0}
+/* a tap on a wardrobe tile always lands on the tile itself, even while its little picture is being redrawn */
+.wi .wi-pv *{pointer-events:none}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -1676,7 +1678,7 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794142061";
+const CHESSNAT_BUILD = "1794142498";
 /* ===== Speech text helpers (shared by the page and the voice build script) ===== */
 const PIECE_WORD = {K: "king", Q: "queen", R: "rook", B: "bishop", N: "knight"};
 function speechNorm(t){ return String(t || "").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, " ").trim(); }
@@ -5670,7 +5672,8 @@ function myAvatar(){ if (S.avatar && !S.avatar.v){ if (!S.ach && typeof Ach !== 
   AV_SLOTS.forEach(([sl]) => { if (["cls", "pet", "frame"].includes(sl)) return; if (!AV_ITEMS.some(i => i.slot === sl && i.id === a[sl])) a[sl] = AV_DEFAULT[sl]; });
   /* old trophy borders became rank borders */
   if (!AV_ITEMS.some(i => i.slot === "frame" && i.id === a.frame) && !/^lv|^recruit$/.test(a.frame || "")) a.frame = "auto";
-  if (a.pet !== "none" && !(S.bots[a.pet] && S.bots[a.pet].w > 0)) a.pet = "none";
+  if (/^u:/.test(a.pet || "")){ if (!a.petCfg) a.pet = "none"; }
+  else if (a.pet !== "none" && !(S.bots[a.pet] && S.bots[a.pet].w > 0)) a.pet = "none";
   return a; }
 function classUnlocked(c){
   const n = c.need, tro = typeof achCount === "function" ? achCount() : 0, best = BOTS.filter(b => S.bots[b.id] && S.bots[b.id].w > 0).reduce((m, b) => Math.max(m, b.r), 0), pz = Math.max(S.puzzle.r || 0, S.puzzle.peak || 0);
@@ -5678,6 +5681,10 @@ function classUnlocked(c){
 }
 /* the highest puzzle rating you ever reached decides which rank borders you own */
 function peakRating(){ return Math.max(S.puzzle.r || 0, S.puzzle.peak || 0); }
+/* a friend you've beaten can fly around you as a fairy, looking the way they were dressed when you picked them */
+function friendPetCfg(av){ const o = {}; Object.keys(AV_DEFAULT).forEach(k => { if (av && av[k] != null) o[k] = av[k]; }); if (av && av.v) o.v = av.v;
+  Object.assign(o, {pet: "none", aura: "none", back: "none", cape: "none", right: "none", left: "none", frame: "auto"}); return o; }
+function beatenFriends(){ if (typeof Social === "undefined" || !Social.me) return []; const st = Social.standings(); return Object.values(st).filter(o => o.w > 0).map(o => Social.P(o.id)).filter(p => p && p.avatar); }
 function petsOpen(){ return (typeof achCount === "function" ? achCount() : 0) >= 50; }
 function caughtBots(){ return BOTS.filter(b => S.bots[b.id] && S.bots[b.id].w > 0); }
 /* which rank border to draw: "auto" follows the current rating */
@@ -6110,10 +6117,7 @@ const Av3D = (() => {
       if (a.glasses !== "none"){ const g = new T.Group(); g.position.set(x, y, .235); orient(g, new T.Vector3(s * .2, .05, .98)); head.add(g); lens(rig, a.glasses, g, s); } });
     if (a.glasses !== "none" && a.glasses !== "monocle"){ const br = mesh(cyl(.008, .008, .1, 6), M("dark", 0x2a2420), 0, CAPY.eyes[0][1] + .02, .235, head); br.rotation.z = Math.PI / 2; }
     if (a.ears !== "none") [-1, 1].forEach(s => earring(rig, a.ears, head, s * .2, .2, -.04));
-    /* a tuft of hair on top, in the hair colour, if any hair is chosen */
-    if (a.hair !== "none"){ const hm = a.hair === "flame" ? M("cloth", 0xff7a1f, {em: .9}) : M("hair", hx(avColor("hairC", a.hairC) || "#3b2a20"));
-      for (let i = 0; i < 5; i++){ const t = mesh(cone(.032, .11, 8), hm, (i - 2) * .033, .32, .02 - Math.abs(i - 2) * .02, head); t.rotation.set(.15, 0, (i - 2) * .25); }
-      if (a.hair === "flame") flames(rig, head, [0, .34, 0], .18, 12); }
+    animalHair(rig, a, head, {top: .3, w: .24, front: .2, back: -.2, z: .0});
   }
   /* the little shared bits of the animal heads: glasses on the eyes, earrings, a tuft of hair */
   function animalBits(rig, a, head, eyes, z, earAt){
@@ -6121,10 +6125,26 @@ const Av3D = (() => {
     if (a.glasses !== "none" && a.glasses !== "monocle"){ const br = mesh(cyl(.008, .008, Math.abs(eyes[0][0]) * 2 - .1, 6), M("dark", 0x2a2420), 0, eyes[0][1] + .02, z + .04, head); br.rotation.z = Math.PI / 2; }
     if (a.ears !== "none" && earAt) [-1, 1].forEach(s => earring(rig, a.ears, head, s * earAt[0], earAt[1], earAt[2]));
   }
-  function tuft(rig, a, head, y, z){
-    if (a.hair === "none") return; const hm = a.hair === "flame" ? M("cloth", 0xff7a1f, {em: .9}) : M("hair", hx(avColor("hairC", a.hairC) || "#3b2a20"));
-    for (let i = 0; i < 5; i++){ const t = mesh(cone(.032, .11, 8), hm, (i - 2) * .033, y, z - Math.abs(i - 2) * .02, head); t.rotation.set(.15, 0, (i - 2) * .25); }
-    if (a.hair === "flame") flames(rig, head, [0, y + .02, 0], .18, 12);
+  function tuft(rig, a, head, y, z){ animalHair(rig, a, head, {top: y - .02, w: .27, front: .25, back: -.26, z}); }
+  /* hair for the animal heads: every style has its own clear shape (not just one tuft for all of them) */
+  function animalHair(rig, a, head, o){
+    const k = a.hair; if (!k || k === "none") return;
+    const c = hx(avColor("hairC", a.hairC) || "#3b2a20"), hm = k === "flame" ? M("cloth", 0xff7a1f, {em: .9}) : M("hair", c), y = o.top, w = o.w, z = o.z || 0, rr = rig.rr || Math.random;
+    const spikes = (n, len, spread, tilt) => { for (let i = 0; i < n; i++){ const t = n > 1 ? i / (n - 1) - .5 : 0, m = mesh(cone(.034, len, 8), hm, t * spread, y + len * .38, z - Math.abs(t) * .05, head); m.rotation.set(tilt, 0, -t * 1.3); } };
+    const cap = (sc = 1) => { const m = mesh(G("ahcap", () => new T.SphereGeometry(1, 24, 12, 0, Math.PI * 2, 0, 1.2)), hm, 0, y - w * .55, z - .02, head, true); m.scale.set(w * 1.02 * sc, w * .7 * sc, w * .95 * sc); return m; };
+    if (k === "short"){ spikes(5, .11, .13, .15); return; }
+    if (k === "flame"){ spikes(7, .2, .2, .05); flames(rig, head, [0, y + .04, z], .18, 12); return; }
+    if (k === "mohawk"){ const mm = M("hair", c === 0x3b2a20 ? 0xd1202f : c); for (let i = 0; i < 6; i++){ const t = i / 5, an = -.75 + t * 1.6, zz = z + Math.sin(an) * w * .9, yy = y + Math.cos(an) * .05; const m = mesh(cone(.045, .2 - Math.abs(t - .45) * .1, 8), mm, 0, yy + .07, zz, head); m.rotation.x = an * .9; } return; }
+    if (k === "afro"){ const m = mesh(sph(1, 28, 20), hm, 0, y + .02, z - .06, head, true); m.scale.set(w * 1.25, w * .95, w * 1.15);
+      for (let i = 0; i < 16; i++){ const th = rr() * 6.28, ph = .2 + rr() * 1.2, n = new T.Vector3(Math.sin(ph) * Math.cos(th), Math.cos(ph), Math.sin(ph) * Math.sin(th)); mesh(sph(.06, 10, 8), hm, n.x * w * 1.2, y + .02 + n.y * w * .92, z - .06 + n.z * w * 1.1, head); } return; }
+    if (k === "curly"){ cap(.96); for (let i = 0; i < 22; i++){ const th = i * 2.4, yy = 1 - (i / 21) * .9, rad = Math.sqrt(Math.max(0, 1 - yy * yy)); const n = new T.Vector3(Math.cos(th) * rad, yy, Math.sin(th) * rad); if (n.z > .45 && n.y < .7) continue; mesh(sph(.058, 10, 8), hm, n.x * w * 1.02, y - .05 + n.y * w * .55, z - .02 + n.z * w * .95, head); } return; }
+    if (k === "bun"){ cap(.92); mesh(sph(.095, 18, 14), hm, 0, y + .1, z - .06, head, true); mesh(tor(.07, .016, 6, 18), M("cloth", 0xd1202f), 0, y + .04, z - .05, head).rotation.x = Math.PI / 2 - .3; return; }
+    if (k === "ponytail"){ cap(.92); mesh(tor(.04, .015, 6, 16), M("cloth", 0xd1202f), 0, y - .02, o.back - .01, head).rotation.x = .6;
+      mesh(taper([[0, y - .02, o.back - .02], [0, y - .1, o.back - .12], [0, y - .3, o.back - .14], [0, y - .5, o.back - .06]], .065, .025, 8, 14), hm, 0, 0, 0, head); return; }
+    if (k === "long"){ cap(1); const hs = M("hair", c, {side: T.DoubleSide});
+      [-1, 1].forEach(s => { mesh(taper([[s * w * .8, y - .06, z + .02], [s * w * 1.02, y - .2, z - .03], [s * w * 1.0, y - .45, z - .05], [s * w * .9, y - .62, z - .02]], .07, .04, 8, 14), hm, 0, 0, 0, head); });
+      const b = mesh(G("ahlong", () => new T.CylinderGeometry(1, 1.12, 1, 22, 1, true, Math.PI * .6, Math.PI * .8)), hs, 0, y - .34, z - .04, head); b.scale.set(w * .98, .55, w * .9); return; }
+    spikes(5, .11, .13, .15);
   }
   /* piggy: a round head, a big flat snout with two nostrils, soft ears that flop forward */
   function buildPig(rig, a, head, skin, eyeC){
@@ -6448,8 +6468,10 @@ const Av3D = (() => {
     p.base.visible = false; p.shadow.visible = false; fairyWings(p); return p;
   }
   function addPet(rig, cfg){
-    const b = typeof BOTS !== "undefined" && BOTS.find(x => x.id === cfg.pet); if (!b) return;
-    const p = makeFairy(b, rig.tier); TIER = rig.tier;
+    let p;
+    if (/^u:/.test(cfg.pet || "")){ if (!cfg.petCfg) return; p = build(Object.assign({}, AV_DEFAULT, cfg.petCfg, {aura: "none", back: "none", pet: "none", cape: "none", right: "none", left: "none"}), rig.tier, {pose: "pet"}); p.base.visible = false; p.shadow.visible = false; fairyWings(p); }
+    else { const b = typeof BOTS !== "undefined" && BOTS.find(x => x.id === cfg.pet); if (!b) return; p = makeFairy(b, rig.tier); }
+    TIER = rig.tier;
     p.root.scale.setScalar(.31); rig.root.add(p.root); rig.pet = p; rig.own.push(...p.own); rig.pmats.push(...p.pmats);
     const fly = t => { const an = t * .85; p.root.position.set(Math.cos(an) * .82, 1.15 + Math.sin(t * 2.1) * .12, Math.sin(an) * .62); p.root.rotation.set(0, -an, .18); };
     fly(0); rig.tick.push((dt, t) => fly(t));
@@ -6473,7 +6495,7 @@ const Av3D = (() => {
   class View {
     constructor(cv, spec){
       this.cv = cv; this.spec = spec; this.ctx = cv.getContext("2d"); this.scene = new T.Scene(); lights(this.scene); this.cam = new T.PerspectiveCamera(30, 1, .1, 60);
-      this.yaw = 0; this.vel = 0; this.idle = 0; this.vis = true; this.last = 0; this.fps = spec.fps || 60; cv._v = this; this.set(spec.cfg, spec.tier); io.observe(cv); views.add(this); kick();
+      this.yaw = spec.yaw || 0; this.vel = 0; this.idle = 0; this.vis = true; this.last = 0; this.fps = spec.fps || 60; cv._v = this; this.set(spec.cfg, spec.tier); io.observe(cv); views.add(this); kick();
       if (spec.drag) this.drag();
     }
     set(cfg, tier){
@@ -6491,7 +6513,7 @@ const Av3D = (() => {
     camStep(dt){ const c = this.cam, t = this.tcam; if (!t) return; const k = 1 - Math.exp(-dt * 7);
       c.position.lerp(t.position, k); c.fov += (t.fov - c.fov) * k; this.look.lerp(t.userData.look, k); c.lookAt(this.look); c.updateProjectionMatrix(); }
     draw(now, dt){
-      if (!this.drg){ if (Math.abs(this.vel) > .0005){ this.yaw += this.vel; this.vel *= .94; this.idle = 0; } else { this.idle += dt; if (this.idle > 4 && this.spec.drag){ const tgt = Math.round(this.yaw / (Math.PI * 2)) * Math.PI * 2; this.yaw += (tgt - this.yaw) * Math.min(1, dt * 2); } } }
+      if (!this.drg){ if (Math.abs(this.vel) > .0005){ this.yaw += this.vel; this.vel *= .94; this.idle = 0; } else { this.idle += dt; if (this.idle > 4 && this.spec.drag){ const y0 = this.spec.yaw || 0, tgt = y0 + Math.round((this.yaw - y0) / (Math.PI * 2)) * Math.PI * 2; this.yaw += (tgt - this.yaw) * Math.min(1, dt * 2); } } }
       this.rig.root.rotation.y = this.yaw; this.camStep(dt || .016); this.rig.update(dt); renderTo(this.scene, this.cam, this.rig, this.w, this.h, this.ctx);
     }
     drag(){
@@ -6995,7 +7017,7 @@ const WCATS = [
 ];
 const SLOT_NAME = Object.fromEntries(AV_SLOTS.concat([["sex", "Body"]]));
 /* how each tile is framed: only the part that matters, without what would hide it */
-const WPV = {shape: ["bust"], hair: ["hair", {head: "none"}], head: ["head"], expr: ["face", {glasses: "none", mask: "none"}], eyes: ["face", {glasses: "none", mask: "none"}], beard: ["face", {mask: "none"}], glasses: ["face", {mask: "none"}], mask: ["face"], paint: ["face", {mask: "none", glasses: "none"}], ears: ["face"],
+const WPV = {shape: ["bust"], hair: ["hair", {head: "none"}, .95], head: ["head"], expr: ["face", {glasses: "none", mask: "none"}], eyes: ["face", {glasses: "none", mask: "none"}], beard: ["face", {mask: "none"}], glasses: ["face", {mask: "none"}], mask: ["face"], paint: ["face", {mask: "none", glasses: "none"}], ears: ["face"],
   shirt: ["torso", {coat: "none"}], coat: ["torso"], pants: ["legs"], shoes: ["legs"], pose: ["torso"], right: ["torso", {pose: "idle"}], left: ["torso", {pose: "idle"}], wrist: ["torso", {pose: "idle"}], back: ["full", {}, Math.PI * .82], cape: ["full", {}, Math.PI * .82], aura: ["full"], sex: ["bust"], cls: ["full"]};
 /* a short reason for a locked item, e.g. "Win 10 games" or "150 trophies" */
 function itemReqShort(it){
@@ -7076,22 +7098,26 @@ Views.awards = {
       if (slot === "hair" && av.shape === "flower") return `<div class="wsub">Hair</div><p class="muted wnote">Blossoms have petals instead of hair. Change their colour under Figure.</p>`;
       if (slot === "pet"){ const caught = caughtBots();
         if (!petsOpen()) return `<div class="unit"><b>Fairies unlock at 50 trophies.</b><p class="muted" style="margin:4px 0 0">Then every bot you've caught can fly around you as a little fairy. You have ${achCount()}.</p></div>`;
-        return `<p class="muted wnote">Every bot you beat can come out of its cage as a tiny fairy that flies around you.</p><div class="wgrid">${card(`<div class="wi-none">∅</div>`, "No fairy", av.pet === "none", true, "", `data-item="pet:none"`)}${BOTS.map(b => { const got = caught.includes(b);
+        const fr = beatenFriends();
+        const frHTML = fr.length ? `<div class="wsub">Friends you've beaten <span class="dim">· they fly the way they're dressed right now</span></div><div class="wgrid">${fr.map(p => card(Av3D.tag(Object.assign({}, AV_DEFAULT, friendPetCfg(p.avatar)), {w: 104, h: 104, mode: "full", pose: "fairy", tier: 2, rank: -1, fill: true}), p.name, av.pet === "u:" + p.id, true, "", `data-item="pet:u:${p.id}"`)).join("")}</div><div class="wsub">Bots you've caught</div>` : "";
+        return `<p class="muted wnote">Everyone you beat can come out of the cage as a tiny fairy that flies around you.</p>${frHTML}<div class="wgrid">${card(`<div class="wi-none">∅</div>`, "No fairy", av.pet === "none", true, "", `data-item="pet:none"`)}${BOTS.map(b => { const got = caught.includes(b);
           return card(got ? Av3D.tag(botCfg(b), {w: 104, h: 104, mode: "full", pose: "fairy", tier: botTierOf(b), rank: -1, fill: true}) : `<div class="wi-none">?</div>`, got ? b.name : "???", av.pet === b.id, got, got ? "" : `Beat ${b.name} (${b.r})`, `data-item="pet:${b.id}"`); }).join("")}</div>`; }
       const items = AV_ITEMS.filter(i => i.slot === slot); if (!items.length) return "";
       const grid = `<div class="wgrid ${slot === "frame" ? "frames" : ""}">${items.map(it => {
         const inner = slot === "frame" ? `<div class="wi-frame">${avatarBadge(Object.assign({}, av, {frame: it.id}), 56, S.puzzle.r)}</div>` : this.pv(Object.assign({}, av, {[slot]: it.id}), slot);
         return card(inner, it.name, av[slot] === it.id, itemUnlocked(it), itemReqShort(it), `data-item="${slot}:${it.id}"`, nw.has(slot + ":" + it.id), goal && goal.slot === slot && goal.id === it.id && !goal.f); }).join("")}</div>`;
-      return `<div class="wsub">${esc(SLOT_NAME[slot])}${slot === "pose" ? ` <span class="dim">· poses put hand items away</span>` : ""}</div>${grid}${this.chromas(slot, av)}`;
+      return `<div class="wsub">${esc(SLOT_NAME[slot])}${slot === "pose" ? ` <span class="dim">· poses put hand items away</span>` : ""}</div>${grid}<div class="wchwrap" data-chs="${slot}">${this.chromas(slot, av)}</div>`;
     };
     body.innerHTML = cat.secs.map(sec).join("");
     $$("[data-item]", body).forEach(b => b.onclick = () => this.pick(b));
-    $$("[data-cr]", body).forEach(b => b.onclick = () => this.pickChroma(b));
+    this.wireCr(body);
+    if (!body._pw){ body._pw = 1; body.addEventListener("pointerdown", () => { this._busy = true; }); ["pointerup", "pointercancel"].forEach(ev => body.addEventListener(ev, () => setTimeout(() => { this._busy = false; }, 60))); }
     $$("[data-sex]", body).forEach(b => b.onclick = () => this.equip("sex", b.dataset.sex, b));
     $$("[data-cls]", body).forEach(b => b.onclick = () => { const c = AV_CLASSES.find(x => x.k === b.dataset.cls); if (!classUnlocked(c)){ classDetail(c); return; } this.equip("cls", c.k, b); Sound.cheer(2); });
     /* seen: the NEW marks of this category go away next time */
     if (S.wNew && S.wNew.length){ const keep = S.wNew.filter(k => !cat.secs.includes(k.split(":")[0])); if (keep.length !== S.wNew.length){ S.wNew = keep; save(); } }
   },
+  wireCr(root){ $$("[data-cr]", root).forEach(b => b.onclick = () => this.pickChroma(b)); },
   /* the colour dots under the item you wear, if it has any */
   chromas(slot, av){
     const ch = chromaOf(slot, av[slot]); if (!ch) return "";
@@ -7102,6 +7128,7 @@ Views.awards = {
   /* after a change: redraw only the small pictures, keep every button where it is (so the next tap always lands) */
   refresh(){
     const body = $("#awbody"), av = myAvatar(); if (!body) return;
+    if (this._busy){ clearTimeout(this._rw); this._rw = setTimeout(() => this.refresh(), 200); return; }
     body.querySelectorAll(".wi[data-item], .wi[data-cls]").forEach(b => { const box = b.querySelector(".wi-pv"), old = box && box.querySelector(":scope > .av3w"); if (!old) return;
       let cfg, slot; if (b.dataset.cls){ cfg = Object.assign({}, av, {cls: b.dataset.cls}); slot = "cls"; } else { const [s2, id] = b.dataset.item.split(":"); if (s2 === "pet" || s2 === "frame") return; slot = s2; cfg = Object.assign({}, av, {[s2]: id}); fixChroma(cfg, s2); }
       const t = document.createElement("div"); t.innerHTML = this.pv(cfg, slot); old.replaceWith(t.firstElementChild); });
@@ -7119,7 +7146,9 @@ Views.awards = {
     sh.el.querySelector("[data-track]").onclick = () => { if (tracked) S.track = null; else { S.track = {slot, id, name, req, f: f || null, ts: Date.now()}; Sound.unlock && Sound.tap(); } save(); sh.close(); toast(tracked ? "Not tracking it any more." : `Tracking ${name}. It's on your home screen now.`, 2600); this.wardrobe(); };
   },
   pick(b){
-    const [slot, id] = b.dataset.item.split(":");
+    const k = b.dataset.item, cut = k.indexOf(":"), slot = k.slice(0, cut), id = k.slice(cut + 1);
+    if (slot === "pet" && id.startsWith("u:")){ const p = typeof Social !== "undefined" && Social.P(id.slice(2)); if (!p || !p.avatar) return; const av = myAvatar();
+      if (av.pet === id){ return; } av.petCfg = friendPetCfg(p.avatar); av.petName = p.name; this.equip("pet", id, b); toast(`${p.name} is your fairy now ✨`, 2200); return; }
     if (slot === "pet"){ if (b.classList.contains("locked")){ const bot = BOTS.find(x => x.id === id); detailSheet(`<div style="font:900 20px var(--display)">Catch ${esc(bot.name)} first</div><p>Beat ${esc(bot.name)} (${bot.r}) in a game. Then ${esc(bot.name)} can fly around you as a fairy.</p>`); return; } this.equip("pet", id, b); return; }
     const it = AV_ITEMS.find(i => i.slot === slot && i.id === id);
     if (!itemUnlocked(it)){ if (it.req.startsWith("c:")){ classDetail(AV_CLASSES.find(c => c.k === it.req.slice(2))); return; } this.locked(slot, id, it.name, it.req); return; }
@@ -7135,9 +7164,14 @@ Views.awards = {
     const av = myAvatar(); if ((av[slot] || "") === id) return; av[slot] = id; S.stat.dressed = 1;
     if (AV_ITEMS.some(i => i.slot === slot)) fixChroma(av, slot);
     let note = ""; if ((slot === "right" || slot === "left") && id !== "none" && av.pose !== "idle"){ av.pose = "idle"; note = "Pose back to Relaxed, so you can hold it."; }
-    const grid = b.closest(sw ? ".swr" : b.dataset.sex ? ".wseg" : ".wgrid"); if (grid) grid.querySelectorAll(".on").forEach(x => x.classList.remove("on")); b.classList.add("on");
-    const redraw = !sw && (chromaOf(slot, id) || slot === "shape" || note || ["hair", "shirt", "coat", "shoes", "cape", "eyes"].includes(slot));
-    clearTimeout(this._rw); this._rw = setTimeout(() => { if (this.tab === "wardrobe"){ if (redraw) this.wardrobe(); else this.refresh(); } }, redraw ? 120 : 450);
+    const grid = slot === "pet" ? b.closest("#awbody") : b.closest(sw ? ".swr" : b.dataset.sex ? ".wseg" : ".wgrid"); if (grid) grid.querySelectorAll(slot === "pet" ? '[data-item^="pet:"].on' : ".on").forEach(x => x.classList.remove("on")); b.classList.add("on");
+    /* never rebuild the grid under the finger (a quick next tap would land on a vanished button):
+       mark the tile at once, swap only the colour row now, and redraw the little pictures a moment later */
+    if (note){ const pg = document.querySelector('#awbody .wgrid [data-item^="pose:"]'); if (pg){ const g2 = pg.closest(".wgrid"); g2.querySelectorAll(".on").forEach(x => x.classList.remove("on")); const ib = g2.querySelector('[data-item="pose:idle"]'); if (ib) ib.classList.add("on"); } }
+    const cw = !sw && document.querySelector(`#awbody .wchwrap[data-chs="${slot}"]`); if (cw){ cw.innerHTML = this.chromas(slot, av); this.wireCr(cw); }
+    if (sw){ const cs = b.dataset.cr.split(":")[0]; clearTimeout(this._rw); this._rw = setTimeout(() => { if (this.tab === "wardrobe") this.refresh(cs); }, 350); }
+    else if (slot === "shape"){ clearTimeout(this._rw); this._rw = setTimeout(() => { if (this.tab === "wardrobe") this.wardrobe(); }, 350); }
+    else { clearTimeout(this._rw); this._rw = setTimeout(() => { if (this.tab === "wardrobe") this.refresh(); }, 350); }
     if (note) toast(note, 2400);
     if (slot !== "cls") Sound.play("Move", .6);
     requestAnimationFrame(() => setTimeout(() => { if (!$("#avst")) return; if (slot === "frame" || slot === "cls"){ const c = WCATS.find(x => x.k === this.cat) || WCATS[0]; this.stage = heroStage($("#avst"), myAvatar(), {mode: c.focus}); } else if (this.stage) this.stage.set(myAvatar(), bodyTier()); }, 0));
