@@ -1081,7 +1081,7 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
   .wtop .wstage{width:118px;height:150px}
   .wtop .wname{font-size:18px}
   .wtop .whero .row{margin:2px 0 6px!important}
-  .wtop .wnext,.wtop .wemotes+.wnext{display:none}
+  .wtop .wnext:not(.wemo-h){display:none}
   .wtop .wemotes{margin-top:6px}.wtop .wemotes .btn{padding:4px 7px;font-size:12px}
   .wtop .seg{margin:8px 0 6px!important}
 }
@@ -1849,33 +1849,36 @@ html.i18n-wait body{visibility:hidden}
 .fv-hint{font:700 12px var(--body);color:rgba(255,255,255,.5)}
 .wstage{cursor:zoom-in}
 /* ===== Emotes: locker cards, wheel, unlock card ===== */
-.em-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.em-card{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:1px;aspect-ratio:.82;padding:8px 6px 9px;border:0;border-radius:12px;cursor:pointer;color:#fff;font:inherit;
-  background:radial-gradient(circle at 50% 30%,color-mix(in srgb,var(--c1) 70%,#fff 30%) 0,var(--c1) 35%,var(--c2) 100%);box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--c1) 60%,#fff 40%),0 4px 0 color-mix(in srgb,var(--c2) 70%,#000)}
-.em-card .emc-ic{position:absolute;top:16%;left:0;right:0;text-align:center;font-size:44px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35));transition:transform .2s}
-.em-card b{position:relative;font:italic 900 13.5px var(--display);text-transform:uppercase;letter-spacing:.01em;line-height:1.05;text-align:center;text-shadow:0 2px 0 rgba(0,0,0,.35)}
-.em-card small{position:relative;font:800 9.5px var(--body);letter-spacing:.1em;text-transform:uppercase;opacity:.85}
-.em-card::after{content:"";position:absolute;left:0;right:0;bottom:0;height:42%;background:linear-gradient(transparent,rgba(0,0,0,.45));pointer-events:none}
-.em-card b,.em-card small{z-index:1}
-.em-shine{position:absolute;top:-40%;left:-60%;width:50%;height:180%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);transform:rotate(20deg);animation:emshine 3.6s ease-in-out infinite}
-.em-card.r-common .em-shine{display:none}
-@keyframes emshine{0%,60%{left:-60%}100%{left:130%}}
-.em-card:active .emc-ic{transform:scale(1.15) rotate(-6deg)}
-.em-card.on{box-shadow:inset 0 0 0 3px #fff,0 0 0 2px var(--go),0 4px 0 color-mix(in srgb,var(--c2) 70%,#000)}
-.em-sig{position:absolute;top:6px;right:7px;z-index:2;font-size:15px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5)}
-.em-card.locked{filter:saturate(.35) brightness(.7)}
-.em-card.locked .emc-ic{opacity:.55}
-.em-lock{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:0 6px;text-align:center}
-.em-lock svg{width:24px;height:24px}
-.em-lock i{font:800 10.5px var(--body);font-style:normal;background:rgba(0,0,0,.55);padding:2px 6px;border-radius:6px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.em-card.tracked{outline:2px dashed #fff;outline-offset:-5px}
+.em-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+@media (max-width:699px){.em-grid{grid-template-columns:repeat(3,1fr)}}
+/* same card as every other wardrobe item; the rarity is the glow behind the icon and the strip under it */
+.em-card{position:relative;display:flex;flex-direction:column;align-items:stretch;gap:4px;min-width:0;background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:6px 6px 8px;color:var(--fg);font:inherit;text-align:center;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:border-color .12s,transform .12s}
+.em-card:active{transform:scale(.96)}
+.emc-pv{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 50% 44%,color-mix(in srgb,var(--c1) 38%,var(--panel-2)) 0,color-mix(in srgb,var(--c2) 22%,var(--panel-2)) 48%,var(--panel-2) 78%)}
+.emc-pv::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--c2),var(--c1),var(--c2))}
+.em-card .emc-ic{position:relative;font-size:40px;line-height:1;filter:drop-shadow(0 3px 5px rgba(0,0,0,.35));transition:transform .2s}
+.em-card:active .emc-ic{transform:scale(1.12) rotate(-6deg)}
+.em-card b{font:800 13px var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.em-card small{font-size:11px;color:var(--muted);line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.em-card small.emc-r{font:800 10px var(--body);letter-spacing:.08em;text-transform:uppercase;color:color-mix(in srgb,var(--c1) 80%,#fff)}
+.em-card.on{border-color:var(--go)}
+.em-sig{position:absolute;top:5px;right:5px;z-index:2;width:20px;height:20px;border-radius:50%;background:var(--go);color:#fff;font:900 12px/20px var(--body)}
+.em-card.locked .emc-ic{filter:grayscale(1);opacity:.35}
+.em-card.locked .emc-pv{background:var(--panel-2)}
+.em-card.locked .emc-pv::after{opacity:.45}
+.emc-lock{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.emc-lock svg{width:22px;height:22px}
+.em-card.tracked{border-style:dashed;border-color:var(--muted)}
 .em-card .wi-new{z-index:3}
-.r-legendary.em-card{animation:emglow 2s ease-in-out infinite alternate}
-@keyframes emglow{from{box-shadow:inset 0 0 0 2px #ffd88a,0 4px 0 #7a3008,0 0 0 rgba(255,181,46,0)}to{box-shadow:inset 0 0 0 2px #fff2c4,0 4px 0 #7a3008,0 0 18px rgba(255,181,46,.6)}}
-@media (min-width:700px){.em-grid{grid-template-columns:repeat(5,1fr)}}
+.em-shine{position:absolute;top:-40%;left:-60%;width:40%;height:180%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.16),transparent);transform:rotate(20deg);animation:emshine 4.5s ease-in-out infinite}
+.em-card.locked .em-shine{display:none}
+@keyframes emshine{0%,70%{left:-60%}100%{left:130%}}
+.r-legendary.em-card:not(.locked) .emc-pv{animation:emglow 2.4s ease-in-out infinite alternate}
+@keyframes emglow{from{box-shadow:inset 0 0 0 0 rgba(255,181,46,0)}to{box-shadow:inset 0 0 18px rgba(255,181,46,.35)}}
 /* the wheel */
 .fv-wheelb{background:linear-gradient(135deg,#b45cff,#3aa0ff)!important;box-shadow:0 0 0 2px rgba(255,255,255,.4)}
-.ewheel{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;background:rgba(10,8,20,.55);backdrop-filter:blur(3px);opacity:0;transition:opacity .2s}
+.ewheel{position:fixed;inset:0;z-index:450;display:flex;align-items:center;justify-content:center;background:rgba(10,8,20,.55);backdrop-filter:blur(3px);opacity:0;transition:opacity .2s}
 .ewheel.in{opacity:1}.ewheel.out{opacity:0}
 .ew-ring{position:relative;width:min(92vw,380px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.04) 0 30%,rgba(255,255,255,.1) 31% 33%,rgba(20,18,30,.85) 34% 100%);box-shadow:0 0 0 2px rgba(255,255,255,.18),0 20px 60px rgba(0,0,0,.5);transform:scale(.85);transition:transform .25s cubic-bezier(.3,1.5,.5,1)}
 .ewheel.in .ew-ring{transform:none}
@@ -1919,7 +1922,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794148247";
+const CHESSNAT_BUILD = "1794148752";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -1934,8 +1937,9 @@ const I18N = (() => {
   const first = s => (s.match(/^[^\s]+/) || [""])[0].toLowerCase(), last = s => (s.match(/[^\s]+$/) || [""])[0].toLowerCase();
   function build(d){
     exact = new Map(); buckets = {};
-    for (const en in d){ const de = d[en]; if (!de || de === en) continue;
-      if (!/\{\d+\}/.test(en)){ exact.set(en, de); continue; }
+    for (const en in d){ const de = d[en]; if (!de) continue;
+      /* a name kept as it is ("Chicken Wings") is still an exact hit, so no pattern bends it */
+      if (!/\{\d+\}/.test(en)){ exact.set(en, de); continue; } if (de === en) continue;
       const parts = en.split(/(\{\d+\})/).filter(p => p !== ""), order = [];
       /* a placeholder glued to a word is an ending ("game{1}" → "s"); the others hold a name or a number, never a whole sentence */
       const src = "^" + parts.map((p, i) => { const m = p.match(/^\{(\d+)\}$/); if (m){ order.push(+m[1]); return i > 0 && /\p{L}$/u.test(parts[i - 1]) ? "(\\p{L}{0,3})" : "([^]{1,48}?)"; } return esc(p); }).join("") + "$";
@@ -1960,6 +1964,8 @@ const I18N = (() => {
       return p.de.replace(/(\p{L}*)\{(\d+)\}/gu, (x, w, k) => { const v = vals[k]; if (v == null) return x; if (w && /^e?s$/.test(v)) return plural(w); return w + v; }); } return null; };
     const r = tryB(buckets["a:" + first(s)]) || tryB(buckets["z:" + last(s)]) || tryB(buckets["*"]);
     if (r || depth > 1) return r || null;
+    /* a sentence shown without its full stop ("Finish 50 lessons") */
+    if (!/[.!?…:]$/.test(s) && depth === 0){ const x = tr(s + ".", 2); if (x) return x.replace(/\.$/, ""); }
     /* "Lesson ·", "· 3 wins", "Score:" — try again without the separators around it */
     const m = s.match(/^([·•:|–—\-›‹\s]*)(.*?)([·•:|–—\-›‹\s]*)$/u); if (m && (m[1] || m[3]) && m[2].length > 1){ const x = tr(m[2], depth + 2); if (x) return m[1] + x + m[3]; }
     return null;
@@ -6969,6 +6975,7 @@ const EMOTE_RARITY = {
   rare:      {name: "Rare",      c1: "#3aa0ff", c2: "#1a4fa8"},
   epic:      {name: "Epic",      c1: "#b45cff", c2: "#5a1fa0"},
   legendary: {name: "Legendary", c1: "#ffb52e", c2: "#c4500c"},
+  gesture:   {name: "Gesture",   c1: "#5d6a52", c2: "#363d30"},
 };
 /* id, name, icon, rarity, how you get it, seconds, song */
 const EMOTES = [
@@ -7102,9 +7109,12 @@ const Songs = (() => {
   return {play, stop};
 })();
 /* play an emote on a stage (or a canvas inside an element) with its song */
-function playEmote(target, id){ const em = EMOTE_BY[id]; if (!em) return;
+function playEmote(target, id){ const em = EMOTE_BY[id];
   if (target && target.emote) target.emote(id); else Av3D.react(target, id);
-  Songs.play(id); }
+  if (em) Songs.play(id); else { Songs.stop(); Sound.play(id === "power" ? "Capture" : "Move", .5); } }
+/* the free gestures every figure knows; they sit in the wheel after your emotes */
+function emoteGestures(){ return [["wave", "Wave", "👋"], ["cheer", "Cheer", "🙌"], ["dance", "Dance", "💃"], ["flex", "Flex", "💪"]].concat(bodyTier() >= 4 ? [["power", "Power", "⚡"]] : [])
+  .map(([id, name, ic]) => ({id, name, ic, r: "gesture"})); }
 
 
 /* ===== Trophies: hundreds of achievements, checked from what you've done ===== */
@@ -7590,14 +7600,13 @@ function figureViewer(cfg, tier){
   document.querySelectorAll(".fview").forEach(x => x.remove());
   const el = document.createElement("div"); el.className = "fview";
   el.innerHTML = `<div class="fv-stage" id="fvst"></div><button class="fv-x" aria-label="Close">${icon("xmark", 22)}</button>
-    <div class="fv-bot"><div class="fv-name">${esc(S.name && S.name !== "You" ? S.name : "You")}</div><div class="fv-em">${[["wave", "👋"], ["cheer", "🙌"], ["dance", "💃"], ["flex", "💪"]].concat(tier >= 4 ? [["power", "⚡"]] : []).map(([k, t]) => `<button data-fe="${k}" aria-label="${k}">${t}</button>`).join("")}<button class="fv-wheelb" data-wheel aria-label="Emotes">🕺</button></div><div class="fv-hint">Drag to turn · 🕺 for your emotes</div></div>`;
+    <div class="fv-bot"><div class="fv-name">${esc(S.name && S.name !== "You" ? S.name : "You")}</div><div class="fv-em"><button class="fv-wheelb" data-wheel aria-label="Emotes">🕺</button></div><div class="fv-hint">Drag to turn · hold 🕺 and slide to dance</div></div>`;
   document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("in"));
   const st = heroStage(el.querySelector("#fvst"), cfg, {tier, mode: "full"});
   const close = () => { Songs.stop(); el.classList.remove("in"); el.classList.add("out"); document.removeEventListener("keydown", key); setTimeout(() => el.remove(), 260); };
   const key = e => { if (e.key === "Escape") close(); };
   document.addEventListener("keydown", key);
   el.querySelector(".fv-x").onclick = close;
-  el.querySelectorAll("[data-fe]").forEach(b => b.onclick = () => { Songs.stop(); st.emote(b.dataset.fe); Sound.play(b.dataset.fe === "power" ? "Capture" : "Move", .5); });
   wheelTrigger(el.querySelector("[data-wheel]"), el, id => playEmote(st, id));
   Sound.tap(); setTimeout(() => st.emote("wave"), 450);
   return close;
@@ -7605,10 +7614,11 @@ function figureViewer(cfg, tier){
 /* the emote wheel: your emotes in a ring. Press, slide towards one, let go: it dances.
    (A quick tap opens it to pick with a second tap.) */
 function emoteWheel(host, play, hold){
-  const own = emoteOwned(); host.querySelectorAll(".ewheel").forEach(x => x.remove());
+  const sig = myAvatar().emote, mine = emoteOwned().sort((a, b) => (b.id === sig) - (a.id === sig)), own = mine.concat(emoteGestures());
+  document.querySelectorAll(".ewheel").forEach(x => x.remove()); host = document.body;
   const w = document.createElement("div"); w.className = "ewheel" + (hold ? " hold" : ""); let page = 0, sel = -1; const per = 8, pages = Math.max(1, Math.ceil(own.length / per));
   const list = () => own.slice(page * per, page * per + per);
-  const mid = () => sel >= 0 && list()[sel] ? `<b>${esc(list()[sel].name.toUpperCase())}</b><small>${EMOTE_RARITY[list()[sel].r].name}</small>` : own.length ? `<b>EMOTES</b><small>${hold ? "Slide to one, let go" : own.length + " owned"}</small>` : `<b>No emotes yet</b><small>Level up and win trophies</small>`;
+  const mid = () => sel >= 0 && list()[sel] ? `<b>${esc(list()[sel].name)}</b><small>${EMOTE_RARITY[list()[sel].r].name}</small>` : `<b>EMOTES</b><small>${hold ? "Slide to one, let go" : mine.length ? mine.length + " owned" : "Win trophies for more"}</small>`;
   const draw = () => { const L = list();
     w.innerHTML = `<div class="ew-ring">${L.map((e, i) => { const a = -Math.PI / 2 + i / per * Math.PI * 2, R = EMOTE_RARITY[e.r];
       return `<button class="ew-slot r-${e.r} ${i === sel ? "sel" : ""}" data-ew="${e.id}" data-i="${i}" style="--x:${(Math.cos(a) * 41).toFixed(1)}%;--y:${(Math.sin(a) * 41).toFixed(1)}%;--c1:${R.c1};--c2:${R.c2}"><span>${e.ic}</span><small>${esc(e.name)}</small></button>`; }).join("")}
@@ -7619,8 +7629,11 @@ function emoteWheel(host, play, hold){
   w.onclick = e => { if (e.target === w) close(); };
   draw(); host.appendChild(w); requestAnimationFrame(() => w.classList.add("in")); Sound.blub && Sound.blub();
   /* the slide: the slot in the direction of your finger lights up */
-  const pick = (x, y) => { const ring = w.querySelector(".ew-ring"); if (!ring) return; const r = ring.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, dx = x - cx, dy = y - cy, n = list().length;
-    let i = -1; if (n && Math.hypot(dx, dy) > r.width * .14){ const a = (Math.atan2(dy, dx) + Math.PI / 2 + Math.PI * 2) % (Math.PI * 2); i = Math.round(a / (Math.PI * 2 / per)) % per; if (i >= n) i = -1; }
+  /* the wheel sits in the middle of the screen; what counts is the way your finger slides from where it pressed */
+  let origin = null;
+  const pick = (x, y) => { const ring = w.querySelector(".ew-ring"); if (!ring) return; const r = ring.getBoundingClientRect(); if (!origin) origin = {x, y};
+    const dx = x - origin.x, dy = y - origin.y, n = list().length;
+    let i = -1; if (n && Math.hypot(dx, dy) > 26){ const a = (Math.atan2(dy, dx) + Math.PI / 2 + Math.PI * 2) % (Math.PI * 2); i = Math.round(a / (Math.PI * 2 / per)) % per; if (i >= n) i = -1; }
     if (i !== sel){ sel = i; w.querySelectorAll(".ew-slot").forEach(b => b.classList.toggle("sel", +b.dataset.i === sel)); const m = w.querySelector(".ew-mid"); if (m) m.innerHTML = mid(); if (sel >= 0){ Sound.tap(); try { navigator.vibrate && navigator.vibrate(8); } catch(e) {} } } };
   return {move: pick, up(){ const e = sel >= 0 && list()[sel]; if (e){ close(); play(e.id); } else if (hold) close(); }, close};
 }
@@ -7654,7 +7667,7 @@ Views.awards = {
           <div class="row" style="gap:6px;margin:4px 0 10px"><span class="pill go">${esc(cls.name)}</span><span class="pill">${esc(BODY_TIERS[tier].name)} body</span><span class="pill">${n} trophies</span></div>
           <div class="wtrack">${BODY_TIERS.map(t => `<div class="${n >= t.n ? "on" : ""}"><i></i><span>${t.name}</span></div>`).join("")}</div>
           <p class="muted wnext">${nextT ? `<b>${nextT.n - n}</b> more trophies to unlock the <b>${nextT.name}</b> body. ${esc(nextT.txt)}` : "Your body is at its strongest."}</p>
-          ${tier >= 3 ? `<div class="row wemotes">${[["wave", "👋 Wave"], ["cheer", "🙌 Cheer"], ["dance", "💃 Dance"], ["flex", "💪 Flex"]].concat(tier >= 4 ? [["power", "⚡ Power"]] : []).map(([k, t]) => `<button class="btn sm" data-em="${k}">${t}</button>`).join("")}</div>` : `<p class="dim wnext" style="margin-top:6px">Drag the figure to turn it.</p>`}
+          <p class="dim wnext wemo-h" style="margin-top:6px">Hold your figure and slide to dance · tap it for full screen</p>
         </div></div>
       <div class="seg" style="margin:10px 0 8px"><button class="${this.tab === "wardrobe" ? "on" : ""}" data-tab="wardrobe">Wardrobe</button><button class="${this.tab === "trophies" ? "on" : ""}" data-tab="trophies">Trophies</button></div>
       <div id="awchips"></div></div>
@@ -7662,7 +7675,6 @@ Views.awards = {
     const c = WCATS.find(x => x.k === this.cat) || WCATS[0];
     this.stage = heroStage($("#avst"), av, {tier, mode: this.tab === "wardrobe" ? c.focus : "full"});
     wheelTrigger($("#avst"), document.body, id => playEmote(this.stage, id), {delay: 380, onTap: () => figureViewer(myAvatar(), bodyTier())});
-    $$("[data-em]", this.main).forEach(b => b.onclick = () => { this.stage.emote(b.dataset.em); Sound.play(b.dataset.em === "power" ? "Capture" : "Move", .5); });
     $$("[data-tab]", this.main).forEach(b => b.onclick = () => { if (this.tab === b.dataset.tab) return; this.tab = b.dataset.tab; $$("[data-tab]", this.main).forEach(x => x.classList.toggle("on", x === b)); this.stage.focus(this.tab === "wardrobe" ? (WCATS.find(x => x.k === this.cat) || WCATS[0]).focus : "full"); this.body(); });
     this.body();
     if (this.goal){ const g = this.goal; this.goal = null; setTimeout(() => { const b = this.main.querySelector(`[data-item="${g.slot}:${g.id}"]`); if (b){ b.scrollIntoView({block: "center", behavior: "smooth"}); b.classList.add("flash"); } }, 400); }
@@ -7684,7 +7696,7 @@ Views.awards = {
       if (slot === "emote"){ const own = emoteOwned().length;
         return `<p class="muted wnote"><b>Hold your figure</b> and slide to an emote, let go and it dances. Your <b>signature emote</b> (★) plays when friends tap your figure. ${own} of ${EMOTES.length} owned.</p>
           <div class="em-grid">${EMOTES.map(e => { const R = EMOTE_RARITY[e.r], ok = itemUnlocked({req: e.req}), on = av.emote === e.id, tr = goal && goal.slot === "emote" && goal.id === e.id;
-            return `<button class="em-card r-${e.r} ${ok ? "" : "locked"} ${on ? "on" : ""} ${tr ? "tracked" : ""}" data-emote="${e.id}" style="--c1:${R.c1};--c2:${R.c2}"><span class="em-shine"></span><span class="emc-ic">${e.ic}</span><b>${esc(e.name)}</b><small>${R.name}</small>${ok ? "" : `<span class="em-lock">${LOCK_SVG}<i>${esc(itemReqShort({req: e.req}))}</i></span>`}${on ? `<span class="em-sig">★</span>` : ""}${nw.has("emote:" + e.id) ? `<span class="wi-new">NEW</span>` : ""}</button>`; }).join("")}</div>`; }
+            return `<button class="em-card r-${e.r} ${ok ? "" : "locked"} ${on ? "on" : ""} ${tr ? "tracked" : ""}" data-emote="${e.id}" style="--c1:${R.c1};--c2:${R.c2}"><span class="emc-pv">${e.r === "common" ? "" : `<span class="em-shine"></span>`}<span class="emc-ic">${e.ic}</span>${ok ? "" : `<span class="emc-lock">${LOCK_SVG}</span>`}</span><b>${esc(e.name)}</b><small class="${ok ? "emc-r" : ""}">${ok ? R.name : esc(itemReqShort({req: e.req}))}</small>${on ? `<span class="em-sig">★</span>` : ""}${nw.has("emote:" + e.id) ? `<span class="wi-new">NEW</span>` : ""}</button>`; }).join("")}</div>`; }
       if (slot === "cls") return `<div class="wsub">Rank piece <span class="dim">· your pedestal${av.shape === "piece" ? " and head" : ""}</span></div><div class="wgrid">${AV_CLASSES.map(c => card(this.pv(Object.assign({}, av, {cls: c.k}), "cls"), c.name, av.cls === c.k, classUnlocked(c), `${c.need.tro} trophies`, `data-cls="${c.k}"`)).join("")}</div>`;
       if (slot === "hair" && av.shape === "flower") return `<div class="wsub">Hair</div><p class="muted wnote">Blossoms have petals instead of hair. Change their colour under Figure.</p>`;
       if (slot === "pet"){ const caught = caughtBots();
@@ -7859,6 +7871,40 @@ function goalWire(root){
 }
 setTimeout(closetCheck, 3500);
 window.addEventListener("chessnat:route", () => setTimeout(closetCheck, 700));
+
+/* ===== The emote stage: you and your opponent side by side, before a game (the lobby) and after it.
+   Hold 🕺 and slide to dance; against a friend the other phone sees it live. The winner dances first. ===== */
+const EmoStage = {
+  html(o = {}){
+    return `<div class="emst ${o.cls || ""}"><div class="emst-p me"><div class="emst-fig" data-es="me"></div><b>${esc(o.meName || S.name || "You")}</b></div>
+      <div class="emst-mid">${o.mid || "VS"}</div>
+      <div class="emst-p op"><div class="emst-fig" data-es="op">${o.opCfg ? "" : `<div class="emst-wait">?</div>`}</div><b class="emst-opn">${esc(o.opName || "…")}</b></div>
+      <button class="emst-btn" data-esw aria-label="Emotes">🕺</button></div>`;
+  },
+  /* o: {meCfg, opCfg, opName, opTier, send(id), win: "me" | "op" | null} */
+  mount(root, o = {}){
+    const box = root && root.querySelector(".emst"); if (!box) return null;
+    const meEl = box.querySelector('[data-es="me"]'), opEl = box.querySelector('[data-es="op"]');
+    const st = {me: null, op: null}, seen = {n: null};
+    const make = (el, cfg, tier) => Av3D.stage(el, Object.assign({}, cfg, {pet: "none", aura: "none"}), {tier, mode: "full", rank: -1, fps: 40});
+    st.me = make(meEl, o.meCfg || myAvatar(), bodyTier());
+    const api = {
+      setOp(cfg, name, tier){ if (!cfg) return; if (!st.op){ opEl.innerHTML = ""; st.op = make(opEl, cfg, tier != null ? tier : (typeof avTier === "function" ? avTier(cfg) : 2)); } else st.op.set(Object.assign({}, cfg, {pet: "none", aura: "none"}), tier); const n = box.querySelector(".emst-opn"); if (n && name) n.textContent = name; },
+      /* the other player danced: play it on their figure (their song only if mine isn't on) */
+      opEmote(e){ if (!e || !e.id || e.n === seen.n) return; const first = seen.n == null; seen.n = e.n; if (first && Date.now() - (e.ts || 0) > 8000) return; if (!st.op) return;
+        if (EMOTE_BY[e.id]){ st.op.emote(e.id); Songs.play(e.id); } else st.op.emote(e.id); },
+      meEmote(id){ if (EMOTE_BY[id]) playEmote(st.me, id); else st.me.emote(id); },
+      get stages(){ return st; }
+    };
+    if (o.opCfg) api.setOp(o.opCfg, o.opName, o.opTier);
+    const btn = box.querySelector("[data-esw]");
+    if (btn) wheelTrigger(btn, document.body, id => { api.meEmote(id); if (o.send) o.send({id, n: Date.now() % 1e9, ts: Date.now()}); });
+    /* the winner dances first: their signature emote, or a cheer */
+    if (o.win){ setTimeout(() => { if (o.win === "me"){ const sig = myAvatar().emote; if (sig && EMOTE_BY[sig] && itemUnlocked({req: EMOTE_BY[sig].req})) api.meEmote(sig); else st.me.emote("cheer"); if (st.op) setTimeout(() => st.op.emote("hit"), 400); }
+      else if (o.win === "op" && st.op){ const sig = o.opCfg && o.opCfg.emote; if (sig && EMOTE_BY[sig]) st.op.emote(sig); else st.op.emote("cheer"); setTimeout(() => st.me.emote("hit"), 400); } }, 700); }
+    return api;
+  }
+};
 
 /* ===== Opening theory library, part 1: 1.e4 e5 and the Sicilian =====
    Each article: ideas, structure, plans for both sides, typical mistakes, and lines you can step through.
