@@ -1691,7 +1691,7 @@ button.ptype{cursor:pointer}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794142940";
+const CHESSNAT_BUILD = "1794143047";
 /* ===== Speech text helpers (shared by the page and the voice build script) ===== */
 const PIECE_WORD = {K: "king", Q: "queen", R: "rook", B: "bishop", N: "knight"};
 function speechNorm(t){ return String(t || "").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, " ").trim(); }
@@ -9192,7 +9192,7 @@ const Social = (() => {
     await ensurePlayer(); requireId();
     beat(); setInterval(beat, 60000); document.addEventListener("visibilitychange", () => { if (!document.hidden) beat(); hereLoop(); });
     window.addEventListener("pagehide", () => here(false)); hereLoop();
-    listen(); setInterval(pollInvites, 30000); pollInvites(); setTimeout(() => load(), 4000); setInterval(() => { if (!document.hidden) load(); }, 5 * 60000);
+    listen(); setInterval(pollInvites, 12000); pollInvites(); setTimeout(() => load(), 4000); setInterval(() => { if (!document.hidden) load(); }, 5 * 60000);
     /* now and then (at most weekly, four times in all) a friendly nudge to invite someone */
     setTimeout(() => { const nag = S.invNag || {n: 0, ts: 0}; if (!player || !player.handle || (S.stat || {}).recruits || nag.n >= 4 || Date.now() - nag.ts < 7 * 864e5 || document.hidden || (S.puzzle.n || 0) < 5) return;
       S.invNag = {n: nag.n + 1, ts: Date.now()}; save();
@@ -9374,7 +9374,7 @@ const Social = (() => {
     try {
       ch = sb.channel("social-" + me)
         .on("postgres_changes", {event: "INSERT", schema: "public", table: "chess_invites", filter: "to_id=eq." + me}, ({new: r}) => showInvite(r))
-        .on("postgres_changes", {event: "INSERT", schema: "public", table: "chess_gifts", filter: "to_id=eq." + me}, async ({new: r}) => { await load(true); if (r.kind === "poop"){ toast("💩 " + P(r.from_id).name + " threw poop at you. Win the next game to break out!", 3800); Sound.poop(); } else { toast("❤️ " + P(r.from_id).name + " sent you a heart from your cage", 3500); Sound.heart(); } })
+        .on("postgres_changes", {event: "INSERT", schema: "public", table: "chess_gifts", filter: "to_id=eq." + me}, ({new: r}) => giftIn(r))
         .on("postgres_changes", {event: "*", schema: "public", table: "chess_friends"}, async ({new: r, eventType}) => { await load(true);
           if (eventType === "INSERT" && r && r.requested_by !== me) toast(P(r.requested_by).name + " sent you a friend request", 3500);
           if (eventType === "UPDATE" && r && r.status === "accepted" && r.requested_by === me) toast(P(r.a === me ? r.b : r.a).name + " accepted your friend request", 3500);
@@ -9382,8 +9382,19 @@ const Social = (() => {
         .subscribe();
     } catch(e) {}
   }
+  /* a heart or poop arrived: say so at once (the friends data refreshes behind it) */
+  const giftSeen = new Set(); let giftSince = new Date().toISOString();
+  function giftIn(r){ if (!r || giftSeen.has(r.id)) return; giftSeen.add(r.id); if (r.created_at > giftSince) giftSince = r.created_at;
+    const nm = (D.players[r.from_id] ? P(r.from_id).name : "A friend");
+    if (r.kind === "poop"){ toast("💩 " + nm + " threw poop at you. Win the next game to break out!", 3800); Sound.poop(); } else { toast("❤️ " + nm + " sent you a heart from your cage", 3500); Sound.heart(); }
+    load(true); }
+  /* phones drop the live connection in the background; when the app comes back, reconnect and fetch what was missed */
+  function revive(){ if (!ok()) return; try { if (ch && ch.state !== "joined"){ sb.removeChannel(ch); ch = null; listen(); } } catch(e) {} pollInvites(); }
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) revive(); });
+  window.addEventListener("online", () => revive());
   async function pollInvites(){
     if (!ok() || document.hidden) return;
+    sb.from("chess_gifts").select("id,from_id,to_id,kind,created_at").eq("to_id", me).gt("created_at", giftSince).order("created_at").limit(5).then(({data}) => (data || []).forEach(giftIn), () => {});
     const since = new Date(Date.now() - INVITE_MS).toISOString();
     const {data} = await sb.from("chess_invites").select("*").eq("to_id", me).eq("status", "open").gt("created_at", since).order("created_at", {ascending: false}).limit(3);
     (data || []).forEach(showInvite);
@@ -9609,12 +9620,22 @@ const Chat = (() => {
     if (started || !sb()) return; await Social.start(); if (!me()) return; started = true;
     const {data} = await sb().from("chess_messages").select("from_id,to_id,body,created_at,read_at").or(`from_id.eq.${me()},to_id.eq.${me()}`).order("created_at", {ascending: false}).limit(300);
     (data || []).forEach(m => { const o = m.from_id === me() ? m.to_id : m.from_id; if (!last[o]) last[o] = m; if (m.to_id === me() && !m.read_at) unread[o] = (unread[o] || 0) + 1; });
-    ch = sb().channel("chat-" + me()).on("postgres_changes", {event: "INSERT", schema: "public", table: "chess_messages", filter: `to_id=eq.${me()}`}, p => incoming(p.new))
-      /* your friend opened the chat: your messages turn to "read" */
-      .on("postgres_changes", {event: "UPDATE", schema: "public", table: "chess_messages", filter: `from_id=eq.${me()}`}, p => { const v = Views.chat; if (p.new && p.new.read_at && App.route === "chat" && v.seen) v.seen(p.new); }).subscribe();
+    /* your friend opened the chat: your messages turn to "read" (handled in subscribe) */
+    subscribe();
     refreshBadges();
+    /* back from the background: reconnect if the phone dropped the line, and pick up messages sent meanwhile */
+    const revive = async () => { if (document.hidden) return; try { if (ch && ch.state !== "joined"){ sb().removeChannel(ch); ch = null; subscribe(); } } catch(e) {}
+      const since = Object.values(last).reduce((m, x) => x && x.created_at > m ? x.created_at : m, new Date(Date.now() - 864e5).toISOString());
+      const {data: nw} = await sb().from("chess_messages").select("*").eq("to_id", me()).gt("created_at", since).order("created_at").limit(30); (nw || []).forEach(incoming); };
+    document.addEventListener("visibilitychange", revive); window.addEventListener("online", revive); setInterval(() => { if (!document.hidden && ch && ch.state !== "joined") revive(); }, 15000);
   }
+  function subscribe(){
+    ch = sb().channel("chat-" + me()).on("postgres_changes", {event: "INSERT", schema: "public", table: "chess_messages", filter: `to_id=eq.${me()}`}, p => incoming(p.new))
+      .on("postgres_changes", {event: "UPDATE", schema: "public", table: "chess_messages", filter: `from_id=eq.${me()}`}, p => { const v = Views.chat; if (p.new && p.new.read_at && App.route === "chat" && v.seen) v.seen(p.new); }).subscribe();
+  }
+  const gotIds = new Set();
   function incoming(m){
+    if (m.id != null){ if (gotIds.has(m.id)) return; gotIds.add(m.id); }
     const o = m.from_id; last[o] = m;
     const v = Views.chat; if (App.route === "chat" && v.id === o && !document.hidden){ v.add(m); markRead(o, true); return; }
     unread[o] = (unread[o] || 0) + 1; refreshBadges(); Sound.msgIn();
