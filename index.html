@@ -2013,7 +2013,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794149790";
+const CHESSNAT_BUILD = "1794149851";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -3939,7 +3939,7 @@ Views.bots = {
     const j = G.journey; this.panel();
     if (score === 1){
       const res = journeyComplete(j.L, 3); G.board.cheer({tier: 4, word: j.world ? "Boss defeated!" : "Victory!", sub: `Level ${j.L} cleared`}); Sound.cheer(4);
-      setTimeout(() => { if (this.G !== G) return; const o = G.board.overlay(`<div class="card-over jdone"><div style="display:flex;justify-content:center;margin-bottom:6px">${botAvatar(G.bot, 64)}</div><div style="font-size:34px;line-height:1">${starsHTML(3)}</div><h3>${j.world ? "World boss beaten!" : "Boss beaten!"}</h3><p>${res.newWorld ? `New world: <b>${esc(worldName(res.to))}</b> ✨` : `On to level ${res.to}.`}</p>
+      setTimeout(() => { if (this.G !== G) return; const o = G.board.overlay(`<div class="card-over jdone"><div style="display:flex;justify-content:center;margin-bottom:6px">${botAvatar(G.bot, 64)}</div><h3>${j.world ? "World boss beaten!" : "Boss beaten!"}</h3><p>${res.newWorld ? `New world: <b>${esc(worldName(res.to))}</b> ✨` : `On to level ${res.to}.`}</p>
         <div class="grid2"><button class="btn" id="jrv">Game Review</button><button class="btn go" id="jcont">Continue</button></div></div>`);
         $("#jrv", o).onclick = () => App.go("review", {pgn, meta: rec}); $("#jcont", o).onclick = () => App.go("journey", {anim: {from: j.L, to: res.to}}); }, 1600);
     } else {
@@ -5200,7 +5200,7 @@ Views.journey = {
       let icon = sp.type === "boss" ? `<i class="pc ${sp.piece}"></i>` : QUESTS[sp.type] ? QUESTS[sp.type].icon : "";
       if (state === "done") icon = CHECK_SVG; else if (!icon && state !== "now") icon = `<span class="jn-n">${L - first + 1}</span>`;
       /* stars under finished stops; stops pop in one after the other, starting at yours */
-      const stars = state === "done" && J.best[L] ? `<span class="jn-st">${"★".repeat(J.best[L])}<i>${"★".repeat(3 - J.best[L])}</i></span>` : "";
+      const stars = "";   /* solved is solved: no stars on the map */
       const halo = state === "now" ? `<span class="jn-halo"></span><span class="jn-halo b"></span>` : "";
       nodes += `<button class="jn ${state} ${big ? "big" : ""} ${L === this.sel ? "sel" : ""}" data-lv="${L}" style="left:${x}%;top:${y}px;--d:${Math.min(14, Math.abs(L - clamp(J.level, first, last))) * 45}ms" aria-label="Level ${L}${state === "done" ? ", done" : state === "now" ? ", next" : ""}">${halo}${icon}${stars}</button>`;
       if (sp.type === "boss" && !sp.world && L < last) seps += `<div class="jn-sep" style="top:${y - GAP / 2}px"><span>${state === "done" ? "✓ " : ""}Section ${Math.round((L - first + 1) / 16) + 1}</span></div>`;
@@ -5324,7 +5324,7 @@ Views.jlevel = {
   win(){
     const st = this.st, sp = this.sp; if (st.done) return; st.done = true; clearInterval(this.clock);
     const stars = this.stars(); const res = journeyComplete(sp.L, stars);
-    this.board.cheer({tier: stars >= 3 ? 4 : 3, word: stars >= 3 ? "Level complete!" : "Level clear!", sub: starsHTML(stars) }); Sound.cheer(stars >= 3 ? 4 : 3);
+    this.board.cheer({tier: stars >= 3 ? 4 : 3, word: "Level clear!"}); Sound.cheer(stars >= 3 ? 4 : 3);
     this.t = setTimeout(() => journeyResultCard(this.board, sp, stars, res), stars >= 3 ? 2100 : 1700);
     this.panel();
   },
@@ -7301,7 +7301,7 @@ const ROM = ["", "I", "II", "III", "IV", "V", "VI"];
   /* journey */
   [[5, 1], [10, 1], [25, 2], [50, 2], [75, 3], [100, 3], [150, 4], [200, 4], [300, 5], [400, 5], [504, 6]].forEach(([n, t]) => achDef("journey-" + n, "journey", `Journey ${n}`, `Reach level ${n} in the Journey.`, t, () => (S.journey.level || 1) > n, () => [Math.min(n, (S.journey.level || 1) - 1), n]));
   (typeof WORLDS !== "undefined" ? WORLDS : []).forEach((w, i) => achDef("world-" + (i + 1), "journey", `${w.name} Conquered`, `Beat the boss of ${w.name}.`, Math.min(6, 1 + Math.floor(i * .75)), () => (S.journey.level || 1) > (i + 1) * 63));
-  [[10, 2], [50, 3], [150, 4]].forEach(([n, t]) => achDef("jstars-" + n, "journey", `Star Collector ${ROM[t - 1]}`, `Earn 3 stars on ${n} Journey levels.`, t, () => C().jThree >= n, () => [C().jThree, n]));
+  [[10, 2], [50, 3], [150, 4]].forEach(([n, t]) => achDef("jstars-" + n, "journey", `Clean Run ${ROM[t - 1]}`, `Clear ${n} Journey levels without a mistake.`, t, () => C().jThree >= n, () => [C().jThree, n]));
   /* endgames */
   (typeof ENDGAMES !== "undefined" ? ENDGAMES : []).forEach((e, i) => { achDef("eg-" + e.id, "endgames", e.title, `Complete the “${e.title}” endgame.`, i < 3 ? 1 : i < 6 ? 2 : 3, () => !!(S.endgames && S.endgames[e.id]));
     achDef("egb-" + e.id, "endgames", `${e.title}: Blitz`, `Complete “${e.title}” with the blitz clock on.`, i < 3 ? 2 : i < 6 ? 3 : 4, () => !!(S.endgames && S.endgames[e.id] && S.endgames[e.id].blitz)); });
