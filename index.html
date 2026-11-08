@@ -2550,6 +2550,17 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 @keyframes pcRain{0%{filter:drop-shadow(0 0 4px #ff6bd6) drop-shadow(0 0 14px #ff6bd6)}25%{filter:drop-shadow(0 0 4px #ffe066) drop-shadow(0 0 14px #ffb347)}50%{filter:drop-shadow(0 0 4px #30e0d2) drop-shadow(0 0 14px #30e0d2)}75%{filter:drop-shadow(0 0 4px #7a6bff) drop-shadow(0 0 14px #7a6bff)}100%{filter:drop-shadow(0 0 4px #ff6bd6) drop-shadow(0 0 14px #ff6bd6)}}
 .np-glow{display:inline-grid;place-items:center;border-radius:12px;background:radial-gradient(circle,#3a3835,#1f1d1a);flex:none}
 .np-glow .pc{position:static;display:block;width:64%;height:64%;transform:none;cursor:default}
+/* the pot in a friend game */
+.lbbet{margin:8px 0 10px;padding:10px;border-radius:14px;background:rgba(255,210,63,.08);border:1px solid rgba(255,210,63,.25);text-align:center}
+.bet-h b{display:flex;align-items:center;justify-content:center;gap:6px;font:900 15px var(--body)}.bet-h small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.bet-h .bet-ok{color:#ffd23f;font-size:17px}
+.bet-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:8px}
+.bet-c{display:inline-flex;align-items:center;gap:4px;border:2px solid transparent;background:var(--panel-3,#3a3835);color:var(--fg);border-radius:99px;padding:5px 10px;font:800 13px var(--body);cursor:pointer}
+.bet-c .natc{width:16px;height:16px}
+.bet-c.on{border-color:#ffd23f;background:rgba(255,210,63,.18)}
+.bet-c:disabled{opacity:.35}
+.bet-match{margin-top:8px}
+.potpill{display:inline-flex;align-items:center;gap:4px;margin-left:8px;background:rgba(255,210,63,.18);color:#ffd23f;font-weight:900}.potpill .natc{width:16px;height:16px}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -2571,7 +2582,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794176100";
+const CHESSNAT_BUILD = "1794176208";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -10338,7 +10349,7 @@ Views.friend = {
     this.publish(); this.render();
     this.tick = setInterval(() => this.clocks(), 200);
   },
-  me(){ const s = this.st; return {app: "chessnat", v: 2, name: S.name, rating: S.puzzle.r, rt: Object.fromEntries(RATED_CATS.map(([k]) => [k, catRating(k).r])), seat: s.seat || "spec", host: s.host, tc: s.tc, gameNo: s.gameNo, rev: s.rev, moves: s.moves.join(" "), clk: s.clk, result: s.result, offer: s.offer, rematch: s.rematch, tb: s.tbReq, say: s.say, away: !!document.hidden, av: avPub(), emo: s.emo || null, ...(this.vcx ? this.vcx.fields() : {})}; },
+  me(){ const s = this.st; return {app: "chessnat", v: 2, name: S.name, rating: S.puzzle.r, rt: Object.fromEntries(RATED_CATS.map(([k]) => [k, catRating(k).r])), seat: s.seat || "spec", host: s.host, tc: s.tc, gameNo: s.gameNo, rev: s.rev, moves: s.moves.join(" "), clk: s.clk, result: s.result, offer: s.offer, rematch: s.rematch, tb: s.tbReq, say: s.say, away: !!document.hidden, av: avPub(), emo: s.emo || null, bet: s.bet || null, ...(this.vcx ? this.vcx.fields() : {})}; },
   publish(){ if (!this.R) return; liveSave(this.st); this.R.presence(this.me()).catch(e => toast("Couldn't send: " + (e.code || e.message))); },
   peersInfo(){ if (!this.R) return []; return this.R.peers().filter(p => !p.sameTab && p.presence && p.presence.app === "chessnat"); },
   opp(){ const s = this.st; if (!s || !s.seat) return null; const ps = this.peersInfo().filter(p => p.presence.seat === "w" || p.presence.seat === "b"); if (s.seat === "spec") return ps.find(p => p.presence.host) || ps[0] || null; return ps.find(p => p.presence.seat !== s.seat) || ps[0] || null; },
@@ -10425,6 +10436,7 @@ Views.friend = {
     const pgn = s.g.pgn();
     if (s.seat === "w" || s.seat === "b"){
       const win = s.result.res !== "1/2-1/2" && ((s.result.res === "1-0") === (s.seat === "w")); const draw = s.result.res === "1/2-1/2";
+      this.betSettle(win, draw);
       S.h2h = S.h2h || {}; const hh = S.h2h[oppName] || (S.h2h[oppName] = {w: 0, d: 0, l: 0}); if (win) hh.w++; else if (draw) hh.d++; else hh.l++; hh.ts = Date.now();
       /* timed games against a friend count for the rating of that time control */
       const cat = tcCat(s.tc), oppRt = o && o.presence && o.presence.rt && o.presence.rt[cat];
@@ -10484,29 +10496,52 @@ Views.friend = {
     const oName = o ? nickOf(o.by, o.presence.name || "Your friend") : null, myTurn = s.seat === "w";
     if (!open){
       const ov = this.board.overlay(`<div class="card-over lobby"><h3 id="lbt"></h3><p class="lb-hint">Tap 🕺 to dance: your opponent sees it live.</p>${EmoStage.html({opName: oName || "…", opCfg: o && o.presence.av})}
-        <button class="btn go" id="lbgo" style="width:100%"></button></div>`);
+        ${this.ranked ? "" : `<div class="lbbet" id="lbbet"></div>`}<button class="btn go" id="lbgo" style="width:100%"></button></div>`);
       this.lobbyOpp = o && o.presence.av ? o.peer : null;
       this.emoApi = EmoStage.mount(ov, {opCfg: o && o.presence.av, opName: oName, send: e => this.emote(e)});
       $("#lbgo", ov).onclick = () => { this.lobbyShut = true; this.board.overlay(null); this.emoApi = null; this.render(); };
     } else if (o && o.presence.av && this.lobbyOpp !== o.peer && this.emoApi){ this.lobbyOpp = o.peer; this.emoApi.setOp(o.presence.av, oName); Sound.play("GenericNotify", .5); }
+    this.betUI();
     const t = $("#lbt"), b = $("#lbgo");
     if (t) t.textContent = o ? (myTurn ? "You start with White" : oName + " starts with White") : (s.host ? "Waiting for your friend…" : "Waiting for the host…");
     if (b){ b.textContent = o ? (myTurn ? "Play" : "To the board") : "To the board"; }
   },
+  /* the pot: both put the same NatCoins in before the first move; the winner takes it all, a draw gives everyone their coins back */
+  betAgreed(){ const s = this.st, o = this.opp(), mb = s && s.bet, ob = o && o.presence && o.presence.bet;
+    return !this.ranked && mb && ob && mb.g === s.gameNo && ob.g === s.gameNo && mb.a > 0 && mb.a === ob.a ? mb.a : 0; },
+  betUI(){
+    const box = $("#lbbet"); if (!box || this.ranked || typeof natBal !== "function") return; const s = this.st, o = this.opp(), mb = s.bet && s.bet.g === s.gameNo ? s.bet.a : 0, ob = o && o.presence.bet && o.presence.bet.g === s.gameNo ? o.presence.bet.a : 0, ag = this.betAgreed(), bal = natBal();
+    const oN = o ? nickOf(o.by, o.presence.name || "Your friend") : "your friend";
+    const head = ag ? `<b class="bet-ok">${NAT_COIN} Pot: ${fmtNat(ag * 2)} NAT</b><small>You both put in ${fmtNat(ag)}. The winner takes it all.</small>`
+      : ob && ob !== mb ? `<b>${esc(oN)} bets ${fmtNat(ob)} NAT</b><small>${bal >= ob ? "Match it, and the winner takes the pot." : `You have only ${fmtNat(bal)} NAT.`}</small>`
+      : mb ? `<b>You bet ${fmtNat(mb)} NAT</b><small>Waiting for ${esc(oN)} to match it…</small>` : `<b>Play for NatCoins?</b><small>Both put the same in, the winner takes the pot.</small>`;
+    const key = [mb, ob, ag, bal].join(":"); if (box.dataset.k === key) return; box.dataset.k = key;
+    box.innerHTML = `<div class="bet-h">${head}</div><div class="bet-chips">${[0, 50, 100, 250, 500, 1000].map(a => `<button class="bet-c ${mb === a ? "on" : ""}" data-bet="${a}" ${a > bal ? "disabled" : ""}>${a ? NAT_COIN + fmtNat(a) : "No bet"}</button>`).join("")}</div>
+      ${ob && ob !== mb && bal >= ob ? `<button class="btn go sm bet-match" data-bet="${ob}">Match ${fmtNat(ob)} NAT</button>` : ""}`;
+    box.querySelectorAll("[data-bet]").forEach(b => b.onclick = e => { e.stopPropagation(); const a = +b.dataset.bet; s.bet = a ? {g: s.gameNo, a} : null; this.publish(); this.betUI(); if (this.betAgreed()) Sound.tone([[659, .07, .04], [988, .14]], "triangle", .12); });
+  },
+  /* the first move locks the pot: your coins go in */
+  betLock(){ const s = this.st; if (!s || s.betG === s.gameNo || !s.moves.length || s.result) return; s.betG = s.gameNo; const a = this.betAgreed();
+    s.betLock = a && typeof natSpend === "function" && natSpend(a) ? a : 0; if (s.betLock) toast(`${fmtNat(s.betLock * 2)} NAT in the pot. Good luck!`); liveSave(s); },
+  betSettle(win, draw){ const s = this.st, a = s && s.betLock; if (!a || s.betPaid === s.gameNo) return; s.betPaid = s.gameNo; liveSave(s);
+    if (win){ natEarn(a * 2); setTimeout(() => toast(`You won the pot: +${fmtNat(a * 2)} NAT`, 3500), 1200); }
+    else if (draw || s.moves.length < 2){ natEarn(a); setTimeout(() => toast(`Draw: your ${fmtNat(a)} NAT are back`, 3000), 1200); }
+    else setTimeout(() => toast(`The pot of ${fmtNat(a * 2)} NAT goes to your opponent`, 3000), 1200); },
   /* is the game-over card on the board? then the panel below doesn't repeat it */
   endOpen(){ return !!document.querySelector("#main .overlay .endcard"); },
   newGame(no, seat){
-    const s = this.st; Object.assign(s, {gameNo: no, seat, rev: 0, moves: [], g: new Chess(), result: null, offer: null, rematch: 0, tbReq: 0, saved: false, lastAt: Date.now(), clk: s.tc && s.tc[0] ? [s.tc[0] * 60000, s.tc[0] * 60000] : null});
+    const s = this.st; Object.assign(s, {bet: null, betLock: 0, gameNo: no, seat, rev: 0, moves: [], g: new Chess(), result: null, offer: null, rematch: 0, tbReq: 0, saved: false, lastAt: Date.now(), clk: s.tc && s.tc[0] ? [s.tc[0] * 60000, s.tc[0] * 60000] : null});
     this.rematchAsked = false; this.drawOffered = false; this.tbAsked = false; this.ratingShown = false; this.nudged = null; this.lobbyShut = false; this.emoApi = null; s.emo = null; this.board.setOrientation(seat); this.board.set(s.g, null); this.board.overlay(null); this.publish(); this.render();
   },
   render(){
     const s = this.st; if (!s || !$("#sp")) return; const o = this.opp(); const my = s.seat === "b" ? 1 : 0;
-    this.lobby(); Focus.set(!!(o && !s.result && s.moves.length && s.seat !== "spec"));
+    this.lobby(); if (s.seat !== "spec") this.betLock(); Focus.set(!!(o && !s.result && s.moves.length && s.seat !== "spec"));
     const prevChi = $("#chi") ? $("#chi").value : "", chiFocus = document.activeElement && document.activeElement.id === "chi";
     const cap = capturedFrom(s.g); const me = s.seat === "b" ? "b" : "w";
     const oppP = o ? Object.assign({}, o.presence, {name: nickOf(o.by, o.presence.name)}) : null; const timed = s.tc && s.tc[0];
     const hh = oppP && S.h2h && S.h2h[o.presence.name || "Friend"];
     $("#topbar").innerHTML = `<div class="av" style="background:#5C8BB0;color:#fff">${oppP ? esc((oppP.name || "?")[0].toUpperCase()) : "?"}</div><span class="nm">${oppP ? esc(oppP.name || "Friend") : "Waiting for opponent…"}</span>${oppP && oppP.rating ? `<span class="rt">(${oppP.rating})</span>` : ""}${capsHTML(me === "w" ? cap.byBlack : cap.byWhite, me, me === "w" ? -cap.diff : cap.diff)}${timed ? `<span class="clock" id="clkOp">${fmtClock(s.clk ? s.clk[1 - my] : s.tc[0] * 60000)}</span>` : ""}`;
+    if (s.betLock && !s.result) $("#topbar").insertAdjacentHTML("beforeend", `<span class="pill potpill">${NAT_COIN}${fmtNat(s.betLock * 2)}</span>`);
     $("#botbar").innerHTML = youBar(capsHTML(me === "w" ? cap.byWhite : cap.byBlack, me === "w" ? "b" : "w", me === "w" ? cap.diff : -cap.diff)) + (timed ? `<span class="clock" id="clkMe">${fmtClock(s.clk ? s.clk[my] : s.tc[0] * 60000)}</span>` : "");
     const h = s.g.history(); let mv = ""; for (let i = 0; i < h.length; i += 2) mv += `<span class="n">${i / 2 + 1}.</span><span class="m">${esc(h[i])}</span><span class="m">${h[i+1] ? esc(h[i+1]) : ""}</span>`;
     const specs = this.peersInfo().filter(p => p.presence.seat === "spec").length;
