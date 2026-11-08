@@ -1893,6 +1893,11 @@ html.i18n-wait body{visibility:hidden}
 .unl.unl-emote .muted{color:rgba(255,255,255,.8)!important}
 .fp-fig{position:relative;cursor:pointer}
 .fp-emh{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);font:800 11px var(--body);background:rgba(0,0,0,.55);color:#fff;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.ewheel.hold{background:rgba(10,8,20,.4);position:fixed;z-index:450}
+.ew-slot.sel{transform:translate(-50%,-50%) scale(1.22);box-shadow:inset 0 0 0 3px #fff,0 0 0 4px rgba(255,255,255,.35),0 0 24px var(--c1)}
+.ew-slot{transition:transform .12s,box-shadow .12s}
+.fv-wheelb{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+#avst{-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -1914,7 +1919,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794147949";
+const CHESSNAT_BUILD = "1794148247";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -7593,23 +7598,48 @@ function figureViewer(cfg, tier){
   document.addEventListener("keydown", key);
   el.querySelector(".fv-x").onclick = close;
   el.querySelectorAll("[data-fe]").forEach(b => b.onclick = () => { Songs.stop(); st.emote(b.dataset.fe); Sound.play(b.dataset.fe === "power" ? "Capture" : "Move", .5); });
-  el.querySelector("[data-wheel]").onclick = () => emoteWheel(el, id => playEmote(st, id));
+  wheelTrigger(el.querySelector("[data-wheel]"), el, id => playEmote(st, id));
   Sound.tap(); setTimeout(() => st.emote("wave"), 450);
   return close;
 }
-/* the emote wheel: your emotes in a ring, tap one to dance it */
-function emoteWheel(host, play){
+/* the emote wheel: your emotes in a ring. Press, slide towards one, let go: it dances.
+   (A quick tap opens it to pick with a second tap.) */
+function emoteWheel(host, play, hold){
   const own = emoteOwned(); host.querySelectorAll(".ewheel").forEach(x => x.remove());
-  const w = document.createElement("div"); w.className = "ewheel"; let page = 0; const per = 8, pages = Math.max(1, Math.ceil(own.length / per));
-  const draw = () => { const list = own.slice(page * per, page * per + per);
-    w.innerHTML = `<div class="ew-ring">${list.map((e, i) => { const a = -Math.PI / 2 + i / per * Math.PI * 2, R = EMOTE_RARITY[e.r];
-      return `<button class="ew-slot r-${e.r}" data-ew="${e.id}" style="--x:${(Math.cos(a) * 41).toFixed(1)}%;--y:${(Math.sin(a) * 41).toFixed(1)}%;--c1:${R.c1};--c2:${R.c2}"><span>${e.ic}</span><small>${esc(e.name)}</small></button>`; }).join("")}
-      <div class="ew-mid">${own.length ? `<b>EMOTES</b><small>${own.length} owned</small>` : `<b>No emotes yet</b><small>Level up and win trophies</small>`}${pages > 1 ? `<div class="ew-pg"><button data-pg="-1">‹</button><span>${page + 1}/${pages}</span><button data-pg="1">›</button></div>` : ""}</div></div>`;
+  const w = document.createElement("div"); w.className = "ewheel" + (hold ? " hold" : ""); let page = 0, sel = -1; const per = 8, pages = Math.max(1, Math.ceil(own.length / per));
+  const list = () => own.slice(page * per, page * per + per);
+  const mid = () => sel >= 0 && list()[sel] ? `<b>${esc(list()[sel].name.toUpperCase())}</b><small>${EMOTE_RARITY[list()[sel].r].name}</small>` : own.length ? `<b>EMOTES</b><small>${hold ? "Slide to one, let go" : own.length + " owned"}</small>` : `<b>No emotes yet</b><small>Level up and win trophies</small>`;
+  const draw = () => { const L = list();
+    w.innerHTML = `<div class="ew-ring">${L.map((e, i) => { const a = -Math.PI / 2 + i / per * Math.PI * 2, R = EMOTE_RARITY[e.r];
+      return `<button class="ew-slot r-${e.r} ${i === sel ? "sel" : ""}" data-ew="${e.id}" data-i="${i}" style="--x:${(Math.cos(a) * 41).toFixed(1)}%;--y:${(Math.sin(a) * 41).toFixed(1)}%;--c1:${R.c1};--c2:${R.c2}"><span>${e.ic}</span><small>${esc(e.name)}</small></button>`; }).join("")}
+      <div class="ew-mid">${mid()}${pages > 1 && !hold ? `<div class="ew-pg"><button data-pg="-1">‹</button><span>${page + 1}/${pages}</span><button data-pg="1">›</button></div>` : ""}</div></div>`;
     w.querySelectorAll("[data-ew]").forEach(b => b.onclick = e => { e.stopPropagation(); close(); play(b.dataset.ew); });
     w.querySelectorAll("[data-pg]").forEach(b => b.onclick = e => { e.stopPropagation(); page = (page + +b.dataset.pg + pages) % pages; Sound.tap(); draw(); }); };
   const close = () => { w.classList.add("out"); setTimeout(() => w.remove(), 200); };
   w.onclick = e => { if (e.target === w) close(); };
   draw(); host.appendChild(w); requestAnimationFrame(() => w.classList.add("in")); Sound.blub && Sound.blub();
+  /* the slide: the slot in the direction of your finger lights up */
+  const pick = (x, y) => { const ring = w.querySelector(".ew-ring"); if (!ring) return; const r = ring.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, dx = x - cx, dy = y - cy, n = list().length;
+    let i = -1; if (n && Math.hypot(dx, dy) > r.width * .14){ const a = (Math.atan2(dy, dx) + Math.PI / 2 + Math.PI * 2) % (Math.PI * 2); i = Math.round(a / (Math.PI * 2 / per)) % per; if (i >= n) i = -1; }
+    if (i !== sel){ sel = i; w.querySelectorAll(".ew-slot").forEach(b => b.classList.toggle("sel", +b.dataset.i === sel)); const m = w.querySelector(".ew-mid"); if (m) m.innerHTML = mid(); if (sel >= 0){ Sound.tap(); try { navigator.vibrate && navigator.vibrate(8); } catch(e) {} } } };
+  return {move: pick, up(){ const e = sel >= 0 && list()[sel]; if (e){ close(); play(e.id); } else if (hold) close(); }, close};
+}
+/* press on a button (or the figure) and slide into the wheel; a quick tap opens it to pick with a second tap */
+function wheelTrigger(btn, host, play, o = {}){
+  let w = null, t = null, start = null;
+  if (!o.delay) btn.style.touchAction = "none";
+  /* once the wheel is open the finger steers it, the page doesn't scroll */
+  btn.addEventListener("touchmove", e => { if (w) e.preventDefault(); }, {passive: false});
+  btn.addEventListener("pointerdown", e => { start = {x: e.clientX, y: e.clientY, t: Date.now(), id: e.pointerId}; try { btn.setPointerCapture(e.pointerId); } catch(x) {}
+    const open = () => { w = emoteWheel(host, play, true); w.move(e.clientX, e.clientY); };
+    if (o.delay){ t = setTimeout(open, o.delay); } else open(); });
+  btn.addEventListener("pointermove", e => { if (!start) return; if (!w && o.delay && Math.hypot(e.clientX - start.x, e.clientY - start.y) > 10){ clearTimeout(t); start = null; return; } if (w) w.move(e.clientX, e.clientY); });
+  const end = e => { clearTimeout(t); if (!start) return; const quick = Date.now() - start.t < 260 && Math.hypot(e.clientX - start.x, e.clientY - start.y) < 10; start = null;
+    if (!w){ if (o.onTap) o.onTap(); return; }
+    if (quick){ const host2 = host; w.close(); w = null; emoteWheel(host2, play, false); return; }
+    w.up(); w = null; };
+  btn.addEventListener("pointerup", end); btn.addEventListener("pointercancel", e => { clearTimeout(t); if (w){ w.close(); w = null; } start = null; });
+  btn.addEventListener("contextmenu", e => e.preventDefault());
 }
 /* a tap (not a drag) on an element */
 function onTap(el, fn){ let d = null; el.addEventListener("pointerdown", e => { d = {x: e.clientX, y: e.clientY, t: Date.now()}; });
@@ -7631,7 +7661,7 @@ Views.awards = {
       <div id="awbody"></div></div>`;
     const c = WCATS.find(x => x.k === this.cat) || WCATS[0];
     this.stage = heroStage($("#avst"), av, {tier, mode: this.tab === "wardrobe" ? c.focus : "full"});
-    onTap($("#avst"), () => figureViewer(myAvatar(), bodyTier()));
+    wheelTrigger($("#avst"), document.body, id => playEmote(this.stage, id), {delay: 380, onTap: () => figureViewer(myAvatar(), bodyTier())});
     $$("[data-em]", this.main).forEach(b => b.onclick = () => { this.stage.emote(b.dataset.em); Sound.play(b.dataset.em === "power" ? "Capture" : "Move", .5); });
     $$("[data-tab]", this.main).forEach(b => b.onclick = () => { if (this.tab === b.dataset.tab) return; this.tab = b.dataset.tab; $$("[data-tab]", this.main).forEach(x => x.classList.toggle("on", x === b)); this.stage.focus(this.tab === "wardrobe" ? (WCATS.find(x => x.k === this.cat) || WCATS[0]).focus : "full"); this.body(); });
     this.body();
@@ -7652,7 +7682,7 @@ Views.awards = {
     const sec = slot => {
       if (slot === "sex") return av.shape === "piece" ? "" : `<div class="wsub">Body</div><div class="wseg">${[["m", "Broad"], ["f", "Slim"]].map(([k, t]) => `<button class="${av.sex === k ? "on" : ""}" data-sex="${k}">${t}</button>`).join("")}</div>`;
       if (slot === "emote"){ const own = emoteOwned().length;
-        return `<p class="muted wnote">Tap an emote to dance it. Your <b>signature emote</b> plays when friends tap your figure. ${own} of ${EMOTES.length} owned.</p>
+        return `<p class="muted wnote"><b>Hold your figure</b> and slide to an emote, let go and it dances. Your <b>signature emote</b> (★) plays when friends tap your figure. ${own} of ${EMOTES.length} owned.</p>
           <div class="em-grid">${EMOTES.map(e => { const R = EMOTE_RARITY[e.r], ok = itemUnlocked({req: e.req}), on = av.emote === e.id, tr = goal && goal.slot === "emote" && goal.id === e.id;
             return `<button class="em-card r-${e.r} ${ok ? "" : "locked"} ${on ? "on" : ""} ${tr ? "tracked" : ""}" data-emote="${e.id}" style="--c1:${R.c1};--c2:${R.c2}"><span class="em-shine"></span><span class="emc-ic">${e.ic}</span><b>${esc(e.name)}</b><small>${R.name}</small>${ok ? "" : `<span class="em-lock">${LOCK_SVG}<i>${esc(itemReqShort({req: e.req}))}</i></span>`}${on ? `<span class="em-sig">★</span>` : ""}${nw.has("emote:" + e.id) ? `<span class="wi-new">NEW</span>` : ""}</button>`; }).join("")}</div>`; }
       if (slot === "cls") return `<div class="wsub">Rank piece <span class="dim">· your pedestal${av.shape === "piece" ? " and head" : ""}</span></div><div class="wgrid">${AV_CLASSES.map(c => card(this.pv(Object.assign({}, av, {cls: c.k}), "cls"), c.name, av.cls === c.k, classUnlocked(c), `${c.need.tro} trophies`, `data-cls="${c.k}"`)).join("")}</div>`;
