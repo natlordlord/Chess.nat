@@ -2164,6 +2164,16 @@ html.i18n-wait body{visibility:hidden}
 .chat-in.locked .cmic{transform:none;background:var(--go);box-shadow:0 0 0 6px rgba(127,178,74,.2)}
 .vrec-del{border:0;background:none;color:var(--bad);display:grid;place-items:center;width:34px;height:34px;border-radius:50%;cursor:pointer;margin-left:auto}
 
+/* voice channel toggle in the bottom bar */
+.vc-btn{--lv:0;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;max-width:46vw;transition:background .2s,box-shadow .08s}
+.vc-btn svg{width:18px;height:18px;flex:none}
+.vc-btn span{overflow:hidden;text-overflow:ellipsis}
+.vc-btn[data-vc="wait"],.vc-btn[data-vc="conn"]{background:#8a6d1f;color:#fff;animation:vcpulse 1.4s ease-in-out infinite}
+.vc-btn[data-vc="live"]{background:var(--go);color:#fff;box-shadow:inset 0 -4px 0 var(--go-deep),0 0 0 calc(var(--lv) * 7px) rgba(127,178,74,.4)}
+.vc-btn[data-vc="fail"]{opacity:.7}
+@media (max-width:440px){.vc-btn span{display:none}.vc-btn{padding-left:14px;padding-right:14px}}
+.onb-perm{display:flex;justify-content:center;gap:14px}.onb-perm .onb-bell{margin:0}.onb-perm .onb-bell.mic{animation-delay:.6s}.onb-perm .onb-bell:empty{display:none}
+
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
 .pc.wr{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMTcuOTMgMjAuNDFjNC45LS43NCA5LjU4LS41NyAxNC4xNCAwTTE0LjE4IDkuNjZjLTEuMDYgOC43NyAxLjEgMTAuNjggMy43NSAxMC43NWwtMy4zMSAxOC4xNmgyMC43NmwtMy4zMS0xOC4xNmMyLjY0LS4wNyA0LjgtMS45OCAzLjc1LTEwLjc1bC0zLjYxLS41My0xLjA3IDMuNjUtMy4xNS0uMS0uNTItMy43NmgtNC45NEwyMiAxMi42OGwtMy4xNS4xLTEuMDctMy42NXoiLz48cGF0aCBkPSJNMTcuOTMgMjAuNDFjNi44MyAwIDEzLjEyLjQxIDE0Ljk1IDE2LjU4bDIuMzIuMzgtMy4xMy0xNi40M2MtLjAzLS4zLTYuMDktMS44Mi0xNC4xNC0uNTMiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Im0xNC43OCAxMC4yMiAyLjI3LS4yOWMtMS45MS4zMi0yLjMgNS4zLTIuMyA1LjMtLjI1LS4xOC0uMi00LjkuMDMtNS4wMW0xMC41LS42N2MtMS42NSAwLTIuNTIgMi43NS0yLjUyIDIuNzVsLjMzLTIuNzN6bTcuNC4yNy45Mi4xMWMtLjc4LjUtMS41OSAyLTEuNTkgMnptLTE0LjIgMTEuMTQgMi42MS0uMjljLTIuNjIuMy00Ljg5IDEzLjExLTQuODkgMTMuMTF6Ii8+PHBhdGggZD0iTTM0LjAxIDkuNGMuMzYgNi4zNi0xLjk1IDEwLjYtOC4wNCAxMC41M2w0Ljc4LjU3YzcuNTIuMyA1LjEtMTAuOCA1LjA3LTEwLjg0eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuMiIgZD0iTTI1IDM2LjQ2cy05LjEzLjA0LTExLjcgMS42MmMtMS43MiAxLjA2LTIuMTMgMy42NS0xLjkgNi4zMmgyNy4yYy4yMy0yLjY3LS4xOC01LjI2LTEuOS02LjMyQzM0LjEyIDM2LjUgMjUgMzYuNDYgMjUgMzYuNDZ6Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI1IDM3LjE1UzE2LjI5IDM3IDEzLjM4IDM4LjhjLS4zNy4yMy0uNy44NC0uOTYgMS40LjI2LS4zNC41LS42Mi44OS0uODZDMTUuODcgMzcuNzggMjUgMzcuNzMgMjUgMzcuNzNzOS4xMy4wNSAxMS43IDEuNjJjLjM4LjI0LjU4LjUzLjg1Ljg3YTMgMyAwIDAgMC0xLjE1LTEuNkMzMy42NSAzNy4xNSAyNSAzNy4xNiAyNSAzNy4xNnoiLz48L3N2Zz4=')}
@@ -2184,7 +2194,7 @@ html.i18n-wait body{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794157954";
+const CHESSNAT_BUILD = "1794158592";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -9262,7 +9272,7 @@ Views.duel = {
     else st = `<b>Waiting…</b><span>${this.room ? "The duel starts as soon as you're both here." : ""}</span>`;
     $("#sp").innerHTML = `<div class="dl-score"><div class="dl-p"><small>YOU</small><b class="me">${fmtPts(t[my])}</b></div><div class="dl-mid"><small>FIRST TO ${DUEL_TO}</small><div class="dl-dots">${dots}</div></div><div class="dl-p"><small>${esc((this.oppName || "").toUpperCase())}</small><b>${fmtPts(t[op])}</b></div></div>
       ${st ? `<div class="dl-st ${cls}">${st}</div>` : ""}`;
-    $("#sf").innerHTML = `<button class="btn" id="dq" style="flex:1">${M.over ? "Battle menu" : "Leave duel"}</button>`;
+    $("#sf").innerHTML = `${this.vcx && this.room ? this.vcx.html() : ""}<button class="btn" id="dq" style="flex:1">${M.over ? "Battle menu" : "Leave duel"}</button>`; if (this.vcx) this.vcx.bind($("#sf"));
     $("#dq").onclick = () => { const b = $("#dq"); if (!M.over && !b.dataset.armed){ b.dataset.armed = 1; b.textContent = "Tap again to leave"; return; } App.go("battle"); };
     const bs = $("#bsMe"), bo = $("#bsOpp"); if (bs) bs.textContent = fmtPts(t[my]); if (bo) bo.textContent = fmtPts(t[op]);
     if (this.stealEnd) this.stealBar();
@@ -9401,7 +9411,7 @@ Views.duel = {
       if (this.dead) return this.cleanup();
       this.me = {app: "duel", v: 1, name: S.name, rating: S.puzzle.r, avatar: avPub(), host};
       if (this.vcx) this.vcx.destroy();
-      this.vcx = VoiceChat.create({offerer: () => this.side === "h", name: () => this.oppName || "", publish: () => { if (!this.room || !this.me) return; Object.assign(this.me, this.vcx.fields()); this.room.presence(this.me).catch(() => {}); }}); this.vcx.mount();
+      this.vcx = VoiceChat.create({offerer: () => this.side === "h", name: () => this.oppName || "", publish: () => { if (!this.room || !this.me) return; Object.assign(this.me, this.vcx.fields()); this.room.presence(this.me).catch(() => {}); }}); this.vcx.mount(); this.panel();
       await this.room.presence(this.me);
       this.unsub = this.room.onPeers(({peers}) => this.peers(peers));
     });
@@ -9511,19 +9521,17 @@ const VoiceChat = (() => {
     let st = "off", stream = null, pc = null, t0 = 0, muted = false, peerMuted = false, offeredFor = null, answeredSid = null, audio = null, btn = null, lab = null, wrap = null, lastPeer = null;
     let mine = {vc: null, vo: null, va: null}, ac = null, raf = 0;
     const LABEL = {off: "Voice", wait: "Waiting…", conn: "Connecting…", live: "Live", fail: "No voice here"};
-    function draw(){
-      if (!btn) return; btn.dataset.st = st; btn.classList.toggle("muted", muted && st !== "off");
-      btn.innerHTML = muted && st !== "off" ? MUTE : MIC;
-      btn.setAttribute("aria-label", st === "off" ? "Start voice chat" : muted ? "Unmute" : "Mute");
-      const nm = o.name && o.name();
-      lab.textContent = st === "wait" ? (nm ? "Waiting for " + nm + "…" : LABEL.wait) : st === "live" ? (muted ? "Muted" : peerMuted ? (nm || "They") + " is muted" : LABEL.live) : LABEL[st];
-      wrap.classList.toggle("on", st !== "off");
-    }
+    /* the button lives in the bottom bar next to Leave and Flip: tap = join the voice channel, tap again = leave it */
+    function label(){ const nm = o.name && o.name(); return st === "off" ? "Voice" : st === "wait" ? (nm ? "Waiting for " + nm + "…" : "Waiting…") : st === "conn" ? "Connecting…" : st === "live" ? (peerMuted ? (nm || "They") + " is muted" : "Voice on") : "No voice here"; }
+    function html(){ return `<button class="btn vc-btn" data-vc="${st}" aria-pressed="${st !== "off"}" aria-label="${st === "off" ? "Join voice chat" : "Leave voice chat"}">${MIC}<span>${esc(label())}</span></button>`; }
+    function draw(){ document.querySelectorAll("[data-vc]").forEach(b => { b.dataset.vc = st; b.setAttribute("aria-pressed", st !== "off"); const sp = b.querySelector("span"); if (sp) sp.textContent = label(); }); }
+    function bind(root){ (root || document).querySelectorAll("[data-vc]").forEach(b => b.onclick = () => { if (st === "off" || st === "fail"){ if (st === "fail"){ offeredFor = answeredSid = null; } if (!stream) join(); else { set("wait"); if (lastPeer) peer(lastPeer); } } else leave(); }); }
     const set = s => { st = s; draw(); };
     async function join(){
       if (!ok()){ toast("Voice isn't supported in this browser."); return; }
-      try { stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true}}); }
-      catch(e){ toast(e && e.name === "NotAllowedError" ? "Microphone blocked. Allow it in your settings to talk." : "No microphone found.", 3500); return; }
+      set("conn");
+      try { stream = await VoiceChat.mic(); }
+      catch(e){ st = "off"; draw(); VoiceChat.micErr(e); return; }
       t0 = Date.now(); muted = false; mine.vc = {t: t0, m: 0}; set("wait"); o.publish(); if (lastPeer) peer(lastPeer);
     }
     function closePC(){ if (pc){ try { pc.close(); } catch(e) {} pc = null; } stopMeter(); }
@@ -9569,20 +9577,23 @@ const VoiceChat = (() => {
     }
     /* the ring around the button moves when the other one speaks */
     function startMeter(s){ try { stopMeter(); ac = new (window.AudioContext || window.webkitAudioContext)(); const an = ac.createAnalyser(); an.fftSize = 256; ac.createMediaStreamSource(s).connect(an);
-      const d = new Uint8Array(an.frequencyBinCount); const loop = () => { an.getByteFrequencyData(d); let v = 0; for (let i = 0; i < d.length; i++) v += d[i]; v /= d.length; if (btn) btn.style.setProperty("--lv", Math.min(1, v / 35).toFixed(2)); raf = requestAnimationFrame(loop); }; loop(); } catch(e) {} }
-    function stopMeter(){ cancelAnimationFrame(raf); raf = 0; if (ac){ try { ac.close(); } catch(e) {} ac = null; } if (btn) btn.style.setProperty("--lv", 0); }
-    function mount(){
-      if (!ok()) return; wrap = document.createElement("div"); wrap.className = "vc-wrap";
-      wrap.innerHTML = `<span class="vc-lab"></span><button class="vc-x" aria-label="Leave voice chat">✕</button><button class="vc-fab"></button>`;
-      document.body.appendChild(wrap); btn = wrap.querySelector(".vc-fab"); lab = wrap.querySelector(".vc-lab");
-      btn.onclick = () => { if (st === "off") join(); else if (st === "fail"){ offeredFor = answeredSid = null; set("wait"); if (lastPeer) peer(lastPeer); } else mute(!muted); };
-      wrap.querySelector(".vc-x").onclick = () => leave();
-      draw();
-    }
-    function destroy(){ leave(true); if (wrap) wrap.remove(); wrap = btn = lab = null; }
-    return {fields: () => ({vc: mine.vc, vo: mine.vo, va: mine.va}), peer, mount, destroy, leave, get state(){ return st; }};
+      const d = new Uint8Array(an.frequencyBinCount); const loop = () => { an.getByteFrequencyData(d); let v = 0; for (let i = 0; i < d.length; i++) v += d[i]; v /= d.length; document.querySelectorAll("[data-vc]").forEach(b => b.style.setProperty("--lv", Math.min(1, v / 35).toFixed(2))); raf = requestAnimationFrame(loop); }; loop(); } catch(e) {} }
+    function stopMeter(){ cancelAnimationFrame(raf); raf = 0; if (ac){ try { ac.close(); } catch(e) {} ac = null; } document.querySelectorAll("[data-vc]").forEach(b => b.style.setProperty("--lv", 0)); }
+    function mount(){}
+    function destroy(){ leave(true); }
+    return {fields: () => ({vc: mine.vc, vo: mine.vo, va: mine.va}), peer, mount, destroy, leave, html, bind, get state(){ return st; }};
   }
-  return {create, ok};
+  /* the microphone: echo cancelling if the phone can, plain audio if not; one place for the error texts */
+  async function mic(){
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw {name: "NoMediaDevices"};
+    try { return await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true}}); }
+    catch(e){ if (e && (e.name === "NotAllowedError" || e.name === "SecurityError")) throw e; return await navigator.mediaDevices.getUserMedia({audio: true}); }
+  }
+  function micErr(e){ const n = e && e.name || "";
+    toast(n === "NotAllowedError" || n === "SecurityError" ? "Microphone blocked. Allow it for Chess.nat in your phone settings." : n === "NotFoundError" || n === "OverconstrainedError" ? "No microphone found." : n === "NotReadableError" ? "The microphone is busy (a call or another app?)." : "Microphone not available (" + (n || "unknown") + ").", 4000); }
+  /* ask once, early (during the first start), so a voice chat or voice message later just works */
+  async function askMic(){ try { const s = await mic(); s.getTracks().forEach(t => t.stop()); return true; } catch(e){ return false; } }
+  return {create, ok, mic, micErr, askMic};
 })();
 
 /* ===== Play online: rated games against real people.
@@ -9967,11 +9978,11 @@ Views.friend = {
     $$("[data-q]").forEach(b => b.onclick = () => this.send(QUICK_CHAT[+b.dataset.q]));
     const chf = $("#chf"); if (chf){ chf.onsubmit = e => { e.preventDefault(); const v = $("#chi").value.trim(); $("#chi").value = ""; if (v){ this.send(v); } }; if (prevChi) $("#chi").value = prevChi; if (chiFocus) $("#chi").focus(); }
     const playing = o && !s.result && s.seat !== "spec";
-    $("#sf").innerHTML = `<button class="btn" id="fx">Leave</button><button class="btn" id="ff" aria-label="Flip board">⇅</button>${BoardNav.html()}` +
+    $("#sf").innerHTML = `<button class="btn" id="fx">Leave</button><button class="btn" id="ff" aria-label="Flip board">⇅</button>${this.vcx && s.seat !== "spec" ? this.vcx.html() : ""}${BoardNav.html()}` +
       (playing ? (this.ranked ? "" : this.tbAsked ? `<button class="btn go" id="ftba">Allow takeback</button>` : `<button class="btn" id="ftb" ${s.tbReq || !s.moves.length ? "disabled" : ""}>Takeback</button>`) + (this.drawOffered ? `<button class="btn go" id="fda">Accept draw</button>` : `<button class="btn" id="fdo" ${s.offer ? "disabled" : ""}>Draw</button>`) + `<button class="btn" id="frs">Resign</button>` : "") +
       (s.result && s.seat !== "spec" && this.ranked ? `<button class="btn go" id="frn" style="flex:1">New opponent</button>` : "") +
       (s.result && s.seat !== "spec" && !this.ranked ? `<button class="btn go" id="frm" style="flex:1" ${s.rematch ? "disabled" : ""}>${s.rematch ? "Waiting…" : this.rematchAsked ? "Accept rematch" : "Rematch"}</button><button class="btn" id="frv">Review</button>` : "");
-    $("#fx").onclick = () => { try { sessionStorage.removeItem(LIVE_KEY); } catch(e) {} this.menu(); }; $("#ff").onclick = () => this.board.flip();
+    $("#fx").onclick = () => { try { sessionStorage.removeItem(LIVE_KEY); } catch(e) {} this.menu(); }; $("#ff").onclick = () => this.board.flip(); if (this.vcx) this.vcx.bind($("#sf"));
     if ($("#ftb")) $("#ftb").onclick = () => { s.tbReq = s.moves.length; this.publish(); toast("Takeback requested"); this.render(); };
     if ($("#ftba")) $("#ftba").onclick = () => this.acceptTakeback();
     if ($("#fdo")) $("#fdo").onclick = () => { s.offer = "draw"; this.publish(); toast("Draw offered"); this.render(); };
@@ -10717,7 +10728,10 @@ const Onboard = (() => {
   function close(){ if (!el) return; const e = el; el = null; e.classList.add("out"); setTimeout(() => e.remove(), 250); document.body.classList.remove("onboarding"); clearInterval(poll); poll = null; }
   const dots = (i, n) => `<div class="onb-dots">${Array.from({length: n}, (_, k) => `<i class="${k < i ? "done" : k === i ? "on" : ""}"></i>`).join("")}</div>`;
   /* the steps someone still has in front of them */
-  const plan = () => (authInApp() || !mobile ? [] : ["install"]).concat(pushable() && !(isIOS() && !authInApp()) ? ["push"] : [], ["account"]);
+  const micAsked = () => { try { return localStorage.getItem("chessnat-mic") === "1"; } catch(e) { return true; } };
+  const micable = () => !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && !micAsked();
+  /* notifications and the microphone are asked together, right at the start (in the app; Safari on iPhone can't do notifications) */
+  const plan = () => (authInApp() || !mobile ? [] : ["install"]).concat((pushable() || micable()) && !(isIOS() && !authInApp()) ? ["push"] : [], ["account"]);
   function show(s){
     step = s; const P = plan(), i = Math.max(0, P.indexOf(s)), ref = authRef(), card = shell();
     let body = "";
@@ -10730,9 +10744,10 @@ const Onboard = (() => {
           : `<p>Install Chess.nat, then open it from your home screen. It runs full screen and can send you notifications.</p><button class="btn go big" id="oninst" style="width:100%">Install app</button>`}</div>
         <button class="btn ghost" id="onweb">Continue in the browser</button>`;
     } else if (s === "push"){
-      body = `<div class="onb-bell">${icon("bell", 52)}</div><h2>Turn on notifications</h2>
-        <p class="onb-sub">So you know when a friend challenges you, it's your move or someone sends you a message.</p>
-        <button class="btn go big" id="onpush" style="width:100%">Allow notifications</button><button class="btn ghost" id="onlater">Later</button>`;
+      body = `<div class="onb-perm"><span class="onb-bell">${icon("bell", 44)}</span><span class="onb-bell mic">${VoiceChat.ok() ? `<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>` : ""}</span></div>
+        <h2>Notifications & microphone</h2>
+        <p class="onb-sub">So you know when a friend challenges you or it's your move, and so you can talk in games and send voice messages.</p>
+        <button class="btn go big" id="onpush" style="width:100%">Allow notifications & microphone</button><button class="btn ghost" id="onlater">Later</button>`;
     } else if (s === "account"){
       body = `<h2>${ref ? "Create your account" : "Your account"}</h2><p class="onb-sub">Your rating, lessons, friends and games stay with you, on every device.</p>
         <div id="onaf"></div><button class="btn ghost onb-skip" id="onskip">Play without an account</button>`;
@@ -10751,7 +10766,10 @@ const Onboard = (() => {
       $("#onweb", card).onclick = () => next();
       window.addEventListener("appinstalled", () => { if (step === "install"){ card.querySelector(".onb-box").innerHTML = `<div class="onb-k">Installed ✓</div><p>Open <b>Chess.nat</b> from your home screen to continue there.</p>`; } }, {once: true});
     } else if (s === "push"){
-      $("#onpush", card).onclick = async () => { try { await Notification.requestPermission(); } catch(e) {} if (Notification.permission === "granted"){ toast("Notifications on 🔔"); try { navigator.serviceWorker.ready.then(() => {}); } catch(e) {} } next(); };
+      $("#onpush", card).onclick = async () => {
+        if (pushable()){ try { await Notification.requestPermission(); } catch(e) {} if (Notification.permission === "granted") toast("Notifications on 🔔"); }
+        if (micable() && typeof VoiceChat !== "undefined"){ const ok = await VoiceChat.askMic(); try { localStorage.setItem("chessnat-mic", "1"); } catch(e) {} if (!ok) toast("No microphone access. You can allow it later in your settings.", 3500); }
+        next(); };
       $("#onlater", card).onclick = () => next();
     } else if (s === "account"){
       authForm($("#onaf", card), {mode: authHad() ? "in" : "up", onSignedUp: (em, pw) => verify(em, pw), onSignedIn: () => { mark("tour"); }});
@@ -11463,13 +11481,11 @@ const ChatMedia = (() => {
     let rec = null, keep = null, keepT = null;
     const getMic = async () => {
       if (keep && keep.getAudioTracks().some(t => t.readyState === "live")){ clearTimeout(keepT); return keep; }
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw {name: "NoMediaDevices"};
-      try { keep = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true}}); }
-      catch(e){ if (e && (e.name === "NotAllowedError" || e.name === "SecurityError")) throw e; keep = await navigator.mediaDevices.getUserMedia({audio: true}); }
+      keep = await VoiceChat.mic();
       return keep; };
     /* the microphone stays open for a short while, so the next message starts at once (and the phone doesn't ask again) */
     const release = () => { clearTimeout(keepT); keepT = setTimeout(() => { if (keep && !rec){ keep.getTracks().forEach(t => t.stop()); keep = null; } }, 25000); };
-    const micErr = e => { const n = e && e.name || "";
+    const micErr = e => VoiceChat.micErr(e), _old = e => { const n = e && e.name || "";
       toast(n === "NotAllowedError" || n === "SecurityError" ? "Microphone blocked. Allow it for Chess.nat in your phone settings." : n === "NotFoundError" || n === "OverconstrainedError" ? "No microphone found." : n === "NotReadableError" ? "The microphone is busy (a call or another app?)." : "Microphone not available (" + (n || "unknown") + ").", 3500); };
     const finish = (how) => { if (!rec) return; const r = rec; rec = null; clearInterval(r.tick); r.bar.remove(); form.classList.remove("recording", "locked"); mic.innerHTML = MIC;
       r.how = how; try { r.mr.state !== "inactive" && r.mr.stop(); } catch(e) {} release(); };
