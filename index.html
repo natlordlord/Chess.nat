@@ -2541,6 +2541,15 @@ html[data-pset="goldsilver"] .board .pc[class*=" b"],.ps-goldsilver .pc[class*="
 html[data-pset="prism"] .board .pc,.ps-prism .pc{animation:psPrism 5s linear infinite}
 html[data-pset="prism"] .board .pc[class*=" b"],.ps-prism .pc[class*=" b"]{animation-delay:-2.5s}
 @keyframes psPrism{0%{filter:sepia(1) saturate(5) hue-rotate(0deg) drop-shadow(0 0 4px rgba(255,255,255,.6))}100%{filter:sepia(1) saturate(5) hue-rotate(360deg) drop-shadow(0 0 4px rgba(255,255,255,.6))}}
+/* ===== piece glows (the "these are yours" light) ===== */
+html[data-glow] .pc.mine,.np-glow .pc.mine{filter:drop-shadow(0 0 3px var(--ga)) drop-shadow(0 0 10px var(--gb));animation:pcmineC 1.4s ease-in-out infinite}
+@keyframes pcmineC{50%{filter:drop-shadow(0 0 5px var(--ga)) drop-shadow(0 0 18px var(--gb)) drop-shadow(0 0 4px var(--gb))}}
+html[data-glow="bolt"] .pc.mine,.np-glow.gl-g-bolt .pc.mine{animation:pcBolt 1.1s steps(1) infinite}
+@keyframes pcBolt{0%,100%{filter:drop-shadow(0 0 3px #fff) drop-shadow(0 0 12px #7ab8ff)}20%{filter:drop-shadow(0 0 6px #fff) drop-shadow(0 0 22px #b9dcff) brightness(1.25)}24%{filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 6px #4a8fff)}60%{filter:drop-shadow(0 0 7px #fff) drop-shadow(0 0 26px #9fd0ff) brightness(1.3)}64%{filter:drop-shadow(0 0 3px #fff) drop-shadow(0 0 10px #7ab8ff)}}
+html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRain 2.4s linear infinite}
+@keyframes pcRain{0%{filter:drop-shadow(0 0 4px #ff6bd6) drop-shadow(0 0 14px #ff6bd6)}25%{filter:drop-shadow(0 0 4px #ffe066) drop-shadow(0 0 14px #ffb347)}50%{filter:drop-shadow(0 0 4px #30e0d2) drop-shadow(0 0 14px #30e0d2)}75%{filter:drop-shadow(0 0 4px #7a6bff) drop-shadow(0 0 14px #7a6bff)}100%{filter:drop-shadow(0 0 4px #ff6bd6) drop-shadow(0 0 14px #ff6bd6)}}
+.np-glow{display:inline-grid;place-items:center;border-radius:12px;background:radial-gradient(circle,#3a3835,#1f1d1a);flex:none}
+.np-glow .pc{position:static;display:block;width:64%;height:64%;transform:none;cursor:default}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -2562,7 +2571,7 @@ html[data-pset="prism"] .board .pc[class*=" b"],.ps-prism .pc[class*=" b"]{anima
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794175176";
+const CHESSNAT_BUILD = "1794175640";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11230,6 +11239,15 @@ const NAT_SKINS = [
   {id: "midnightpetal", name: "Midnight Blossom", r: "mythic", key: "petal", shape: "flower", hex: "#2b2d6e", mat: "gem"},
   {id: "goldhuman", name: "Golden Statue", r: "legend", key: "skin", shape: "human", hex: "#e8b923", mat: "gold"},
   {id: "rainbowpetal", name: "Prism Blossom", r: "ultra", key: "petal", shape: "flower", hex: "#ff6bd6", mat: "gem"}];
+/* glows: the light around your pieces at the start of a puzzle ("these are yours"). Gold is free; the others cost more than usual */
+const NAT_GLOWS = [
+  {id: "g-ember", name: "Ember Glow", r: "rare", a: "#ffb066", b: "#ff6a1f", price: 500},
+  {id: "g-frost", name: "Frost Glow", r: "super", a: "#c9f4ff", b: "#3fc6ff", price: 1000},
+  {id: "g-toxic", name: "Toxic Glow", r: "super", a: "#c8ff8a", b: "#39e05a", price: 1000},
+  {id: "g-royal", name: "Royal Glow", r: "epic", a: "#e2b8ff", b: "#9b3dff", price: 2000},
+  {id: "g-blood", name: "Blood Moon", r: "mythic", a: "#ff8a8a", b: "#d1102f", price: 5000},
+  {id: "g-bolt", name: "Lightning", r: "legend", a: "#ffffff", b: "#7ab8ff", fx: "bolt", price: 12000},
+  {id: "g-rainbow", name: "Rainbow Aura", r: "ultra", a: "#ff6bd6", b: "#30e0d2", fx: "rainbow"}];
 /* chess piece designs: the pieces on every board get a new look */
 const NAT_PSETS = [
   {id: "shadow", name: "Shadow Pieces", r: "rare"}, {id: "icep", name: "Frost Pieces", r: "super"}, {id: "neonp", name: "Neon Pieces", r: "epic"}, {id: "ghost", name: "Ghost Pieces", r: "epic"},
@@ -11249,7 +11267,7 @@ const NAT_KNIVES = [
   {id: "k-bay-aur", type: "bayonet", name: "Bayonet", fin: "Season Aurora", r: "legend", eur: 3000, pass: 1}];
 /* every item in one list: {kind, id, name, r} */
 function natItems(){ return [...NAT_BOARDS.filter(b => b.r).map(b => Object.assign({kind: "board"}, b)), ...NAT_SONGS.map(s => Object.assign({kind: "song"}, s)),
-  ...NAT_SKINS.map(s => Object.assign({kind: "skin"}, s)), ...NAT_PSETS.map(s => Object.assign({kind: "pieces"}, s)), ...NAT_KNIVES.map(k => Object.assign({kind: "knife"}, k, {name: k.name + " | " + k.fin, type0: k.name}))]; }
+  ...NAT_SKINS.map(s => Object.assign({kind: "skin"}, s)), ...NAT_PSETS.map(s => Object.assign({kind: "pieces"}, s)), ...NAT_GLOWS.map(s => Object.assign({kind: "glow"}, s)), ...NAT_KNIVES.map(k => Object.assign({kind: "knife"}, k, {name: k.name + " | " + k.fin, type0: k.name}))]; }
 const natItem = id => natItems().find(i => i.id === id);
 const natHas = id => (S.inv || []).includes(id);
 const fmtNat = n => Math.round(n).toLocaleString("de-DE");
@@ -11476,7 +11494,7 @@ function chestOpen(o = {}){
     tip.textContent = P0 ? "Tap to close" : left ? `Tap for the next chest (${left})` : "Tap to continue";
   }
 }
-function natKindName(k){ return {board: "Board", song: "Music", skin: "Character skin", knife: "Knife", pieces: "Piece design"}[k] || k; }
+function natKindName(k){ return {board: "Board", song: "Music", skin: "Character skin", knife: "Knife", pieces: "Piece design", glow: "Piece glow"}[k] || k; }
 function natEurLine(k){ return `<div class="eur">≈ ${fmtEur(k.eur)}<small>pretend value · not tradeable</small></div>`; }
 
 /* ---- pictures of items ---- */
@@ -11484,6 +11502,7 @@ function natPreview(it, size = 72){
   if (it.kind === "board") return boardMini(it, size);
   if (it.kind === "song") return `<span class="np-song" style="width:${size}px;height:${size}px;--rc:${NAT_R[NAT_RI[it.r]].c}">${icon("music", Math.round(size * .45))}</span>`;
   if (it.kind === "skin") return `<span class="np-skin" style="width:${size}px;height:${size}px">${typeof avatarBadge === "function" ? avatarBadge(Object.assign({}, myAvatar(), {shape: it.shape, [it.key]: it.id, frame: "none"}), size) : ""}</span>`;
+  if (it.kind === "glow") return `<span class="np-glow gl-${it.id}" style="width:${size}px;height:${size}px;--ga:${it.a};--gb:${it.b}"><i class="pc wn mine"></i></span>`;
   if (it.kind === "pieces") return `<span class="np-pset ps-${it.id}" style="width:${size}px;height:${size}px"><i class="pc wk"></i><i class="pc bq"></i></span>`;
   if (it.kind === "knife") return `<span class="np-knife" style="width:${Math.round(size * 1.6)}px;height:${size}px">${knifeSVG(it)}</span>`;
   return "";
@@ -11550,12 +11569,15 @@ function natEquip(it){
   else if (it.kind === "song"){ S.settings.song = it.id; S.settings.music = true; save(); NatMusic.sync(); toast(`Music in games: ${it.name}`); }
   else if (it.kind === "skin"){ const a = myAvatar(); a.shape = it.shape; a[it.key] = it.id; save(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); renderRail(); if (typeof renderTop === "function") renderTop(); toast(`You're now: ${it.name}`); }
   else if (it.kind === "knife"){ S.knife = it.id; save(); toast("Your knife is on your profile now"); }
+  else if (it.kind === "glow"){ S.settings.glow = S.settings.glow === it.id ? "" : it.id; save(); natApplyBoard(); toast(S.settings.glow ? `Glow: ${it.name}` : "Classic gold glow"); }
   else if (it.kind === "pieces"){ S.settings.pset = S.settings.pset === it.id ? "" : it.id; save(); natApplyBoard(); toast(S.settings.pset ? `Pieces: ${it.name}` : "Classic pieces"); }
 }
 function natApplyBoard(){
   const b = NAT_BOARDS.find(x => x.id === (S.settings && S.settings.board)) || NAT_BOARDS[0], ok = b.id === "classic" || natHas(b.id), use = ok ? b : NAT_BOARDS[0], ds = document.documentElement.style;
   ds.setProperty("--sq-l", use.l); ds.setProperty("--sq-d", use.d);
   document.documentElement.dataset.bfx = use.fx || "";
+  const gl = NAT_GLOWS.find(g => g.id === (S.settings && S.settings.glow)), ds2 = document.documentElement;
+  if (gl && natHas(gl.id)){ ds2.style.setProperty("--ga", gl.a); ds2.style.setProperty("--gb", gl.b); ds2.dataset.glow = gl.fx || "on"; } else { ds2.style.removeProperty("--ga"); ds2.style.removeProperty("--gb"); delete ds2.dataset.glow; }
   const ps = S.settings && S.settings.pset; if (ps && natHas(ps)) document.documentElement.dataset.pset = ps; else delete document.documentElement.dataset.pset;
 }
 setTimeout(natApplyBoard, 0);
@@ -11634,6 +11656,7 @@ Views.shop = {
         <div class="sp-btns"><button class="btn go" data-prac="-1">Random · 0 NAT</button>${NAT_R.map((r, i) => `<button class="btn sm" data-prac="${i}" style="--rc:${r.c}"><i class="sp-dot"></i>${r.n}</button>`).join("")}</div></div>` : ""}
       <h2 class="h-sec">Chests</h2><div class="shop-grid">${SHOP_CHESTS.map(c => `<div class="unit shop-c" style="--rc:${NAT_R[c.floor].c}"><div class="sc-pic">${chestSVG(c.floor)}</div><b>${c.name}</b><small class="dim">${c.note || "Any rarity"}</small><button class="btn go" data-buyc="${c.id}">${NAT_COIN} ${fmtNat(c.price)}</button></div>`).join("")}</div>
       <h2 class="h-sec">Today's offers</h2><div class="shop-grid">${shopDaily().map(i => this.card(i, true)).join("") || `<p class="dim">You own everything that's on offer. Wow.</p>`}</div>
+      <h2 class="h-sec">Piece glows</h2><div class="shop-grid">${NAT_GLOWS.filter(g => g.price).map(g => this.card(Object.assign({kind: "glow"}, g), true)).join("")}</div>
       <h2 class="h-sec">Boards</h2><div class="shop-grid">${NAT_BOARDS.filter(x => x.r && x.r !== "ultra" && !x.pass).map(x => this.card(Object.assign({kind: "board"}, x), true)).join("")}</div>
       <div class="unit shop-real"><b>Buy NatCoins with money</b><p class="dim" style="margin:4px 0 0">Not yet. Everything here comes from playing.</p></div>
       <details class="unit shop-odds"><summary>Drop chances</summary><p class="dim" style="margin:8px 0">Each chest: ${NAT_R.map(r => `<b style="color:${r.c}">${r.n}</b> ${r.p} %`).join(" · ")}. Chests with a minimum rarity roll only among those. Knives come from Mythic chests and better. Items you already have turn into NatCoins.</p></details>`;
@@ -11660,16 +11683,16 @@ Views.shop = {
     if (!this.arm(btn, `Buy for ${fmtNat(c.price)} NAT? Tap again`)) return;
     if (!natSpend(c.price)){ toast(`You need ${fmtNat(c.price - natBal())} more NAT.`); return; }
     for (let k = 0; k < (c.n || 1); k++) chestGrant(c.floor, "shop"); this.draw(); chestOpen(); },
-  buyItem(it, btn){ if (!it) return; const price = NAT_PRICE[it.r];
+  buyItem(it, btn){ if (!it) return; const price = it.price != null ? it.price : NAT_PRICE[it.r];
     if (natHas(it.id)){ natEquip(it); this.draw(); return; }
     if (natBal() < price){ toast(`You need ${fmtNat(price - natBal())} more NAT.`); return; }
     if (!this.arm(btn, `Buy for ${fmtNat(price)} NAT? Tap again`)) return;
     if (!natSpend(price)){ toast(`You need ${fmtNat(price - natBal())} more NAT.`); return; }
     natGive(it.id); Sound.cheer(3); toast(`${it.name} is yours!`); natEquip(it); this.draw(); },
-  card(i, buy){ const R = NAT_R[NAT_RI[i.r]], own = natHas(i.id) || i.id === "classic", price = NAT_PRICE[i.r];
+  card(i, buy){ const R = NAT_R[NAT_RI[i.r]], own = natHas(i.id) || i.id === "classic", price = i.price != null ? i.price : NAT_PRICE[i.r];
     return `<div class="unit shop-i r-${i.r}" style="--rc:${R ? R.c : "#888"}"><div class="si-pic">${natPreview(i, 64)}</div><small style="color:${R ? R.c : ""};font-weight:800">${R ? R.n : "Free"}</small><b>${esc(i.name)}</b>
       ${own ? `<button class="btn ${this.isOn(i) ? "" : "go"}" data-eq="${i.id}" ${this.isOn(i) ? "disabled" : ""}>${this.isOn(i) ? "In use ✓" : "Use"}</button>` : buy && price ? `<button class="btn go" data-buy="${i.id}">${NAT_COIN} ${fmtNat(price)}</button>` : `<span class="pill">Chest only</span>`}</div>`; },
-  isOn(i){ return i.kind === "board" ? (S.settings.board || "classic") === i.id : i.kind === "song" ? S.settings.song === i.id && S.settings.music !== false : i.kind === "skin" ? myAvatar()[i.key] === i.id && myAvatar().shape === i.shape : i.kind === "knife" ? S.knife === i.id : i.kind === "pieces" ? S.settings.pset === i.id : false; },
+  isOn(i){ return i.kind === "board" ? (S.settings.board || "classic") === i.id : i.kind === "song" ? S.settings.song === i.id && S.settings.music !== false : i.kind === "skin" ? myAvatar()[i.key] === i.id && myAvatar().shape === i.shape : i.kind === "knife" ? S.knife === i.id : i.kind === "pieces" ? S.settings.pset === i.id : i.kind === "glow" ? S.settings.glow === i.id : false; },
   coll(){
     const all = natItems(), own = all.filter(i => natHas(i.id)).length;
     const sec = (title, kind, extra = "") => { const L = all.filter(i => i.kind === kind); return `<h2 class="h-sec">${title} <small class="dim">${L.filter(i => natHas(i.id)).length}/${L.length}</small></h2>${extra}<div class="shop-grid">${(kind === "board" ? [Object.assign({kind: "board"}, NAT_BOARDS[0])] : []).concat(L).map(i => {
@@ -11679,7 +11702,7 @@ Views.shop = {
         ${has ? `<div class="row" style="gap:6px;justify-content:center">${kind === "song" ? `<button class="btn sm" data-play="${i.id}">▶</button>` : ""}<button class="btn sm ${this.isOn(i) ? "" : "go"}" data-eq="${i.id}" ${this.isOn(i) ? "disabled" : ""}>${this.isOn(i) ? "In use ✓" : "Use"}</button></div>` : kind === "song" ? `<button class="btn sm" data-play="${i.id}">▶ Listen</button>` : `<span class="pill">${i.pass ? "Battle pass" : "Locked"}</span>`}</div>`; }).join("")}</div>`; };
     return `<p class="dim">${own} of ${all.length} found.</p>
       ${sec("Knives", "knife", `<p class="dim" style="margin:-4px 0 10px;font-size:13px">The euro values are pretend, just for fun. Knives can't be sold or traded and have no real value.</p>`)}
-      ${sec("Boards", "board")}${sec("Music in games", "song", `<label class="chk" style="margin:-4px 0 10px"><input type="checkbox" id="musicon" ${S.settings.music !== false ? "checked" : ""}> Play my music during games and puzzles</label>`)}${sec("Piece designs", "pieces")}${sec("Character skins", "skin")}`;
+      ${sec("Boards", "board")}${sec("Music in games", "song", `<label class="chk" style="margin:-4px 0 10px"><input type="checkbox" id="musicon" ${S.settings.music !== false ? "checked" : ""}> Play my music during games and puzzles</label>`)}${sec("Piece designs", "pieces")}${sec("Piece glows", "glow", `<p class="dim" style="margin:-4px 0 10px;font-size:13px">The light around your pieces when a puzzle starts.</p>`)}${sec("Character skins", "skin")}`;
   },
   pass(){
     const b = passState(), T = passTier(), into = (b.xp || 0) - T * PASS_XP, d = new Date(), end = new Date(d.getFullYear(), d.getMonth() + 1, 1), days = Math.ceil((end - d) / 864e5);
