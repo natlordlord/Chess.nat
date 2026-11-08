@@ -1569,6 +1569,49 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 @media (prefers-reduced-motion:reduce){.avf-spin{animation:none}}
 @keyframes fadein{from{opacity:0}to{opacity:1}}
 
+/* ---- wardrobe: eight fixed category icons ---- */
+.wcats{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin:0 0 8px;background:var(--panel-2);border:1px solid var(--line);border-radius:16px;padding:4px}
+.wcat{all:unset;box-sizing:border-box;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:54px;border-radius:12px;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s}
+.wcat span{font:800 10px var(--body);letter-spacing:.01em;white-space:nowrap}
+.wcat.on{background:var(--go);color:#fff;box-shadow:0 3px 0 var(--go-deep)}
+.wcat:active{transform:scale(.93)}
+.wdot{position:absolute;top:6px;right:calc(50% - 16px);width:8px;height:8px;border-radius:50%;background:#ff5a4a;box-shadow:0 0 0 2px var(--panel-2)}
+@media (max-width:420px){.wcat span{font-size:9px}.wcat{height:50px}.wcat svg{width:22px;height:22px}}
+.wseg{display:inline-flex;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+.wseg button{all:unset;cursor:pointer;padding:8px 18px;border-radius:9px;font:800 14px var(--display);color:var(--muted)}
+.wseg button.on{background:var(--panel-3);color:var(--fg)}
+.wnote{font-size:13px;margin:0 0 10px}
+.wi-new{position:absolute;top:5px;left:5px;font:900 9.5px var(--body);letter-spacing:.06em;background:#ff5a4a;color:#fff;border-radius:6px;padding:2px 5px}
+.wi-goal{position:absolute;bottom:5px;left:5px;display:flex;color:#ffd34a;background:rgba(0,0,0,.55);border-radius:50%;padding:3px}
+.wi.tracked{border-color:#ffd34a}
+.wi.flash{animation:wflash 1.2s ease 2}
+@keyframes wflash{50%{box-shadow:0 0 0 4px #ffd34a}}
+.wchroma{margin:10px 0 2px;padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:14px}
+.wchroma>span{display:block;font:800 12px var(--body);margin-bottom:8px}
+.wchroma .swr{margin:0}
+.sw.tracked{box-shadow:0 0 0 3px #ffd34a}
+.wl-h{display:flex;gap:12px;align-items:center}
+.wl-pv{flex:none;width:96px;height:96px;display:flex;align-items:center;justify-content:center;background:var(--panel-2);border-radius:14px;overflow:hidden}
+/* the "it's yours" card */
+.unl{position:fixed;inset:0;z-index:2700;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(10,8,6,.78);backdrop-filter:blur(6px);animation:fadein .2s}
+.unl.out{opacity:0;transition:opacity .25s}
+.unl-in{position:relative;width:100%;max-width:360px;background:var(--panel);border:1px solid #ffd34a;border-radius:24px;padding:22px 20px 18px;text-align:center;overflow:hidden;animation:rkpop .5s cubic-bezier(.2,1.6,.4,1);box-shadow:0 0 80px rgba(255,211,74,.25)}
+.unl-rays{position:absolute;left:50%;top:150px;width:520px;height:520px;margin:-260px 0 0 -260px;background:repeating-conic-gradient(rgba(255,211,74,.13) 0 10deg,transparent 10deg 20deg);animation:avfspin 14s linear infinite;pointer-events:none;-webkit-mask:radial-gradient(circle,#000 30%,transparent 70%);mask:radial-gradient(circle,#000 30%,transparent 70%)}
+.unl-l{position:relative;display:inline-block;font:900 12px var(--body);letter-spacing:.09em;text-transform:uppercase;color:#ffd34a;background:rgba(255,211,74,.14);padding:5px 12px;border-radius:999px}
+.unl-fig{position:relative;display:flex;justify-content:center;margin:14px 0 10px;animation:unlfig .8s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes unlfig{from{transform:scale(.4) translateY(30px);opacity:0}to{transform:none;opacity:1}}
+.unl h3{position:relative;font:900 26px var(--display);margin:4px 0 2px}
+.unl p{position:relative;margin:0}
+/* goal on home */
+.goalcard{all:unset;box-sizing:border-box;display:flex;gap:12px;align-items:center;width:100%;cursor:pointer;border:1px solid #ffd34a55!important;background:linear-gradient(135deg,rgba(255,211,74,.08),transparent 60%),var(--panel)}
+.gc-pv{flex:none;width:72px;height:72px;border-radius:14px;background:var(--panel-2);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.gc-l{display:flex;gap:5px;align-items:center;font:900 11px var(--body);letter-spacing:.08em;color:#ffd34a}
+.gc-n{font:900 19px var(--display);margin:1px 0}
+.gc-t{font-size:12.5px;color:var(--muted);margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gc-p{font:700 11.5px var(--body);color:var(--muted);margin-top:3px}
+.gc-x{align-self:flex-start;flex:none;width:28px;height:28px;display:grid;place-items:center;border-radius:50%;color:var(--muted);font:700 20px var(--body)}
+.gc-x:hover{background:var(--panel-3)}
+
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
 .pc.wr{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMTcuOTMgMjAuNDFjNC45LS43NCA5LjU4LS41NyAxNC4xNCAwTTE0LjE4IDkuNjZjLTEuMDYgOC43NyAxLjEgMTAuNjggMy43NSAxMC43NWwtMy4zMSAxOC4xNmgyMC43NmwtMy4zMS0xOC4xNmMyLjY0LS4wNyA0LjgtMS45OCAzLjc1LTEwLjc1bC0zLjYxLS41My0xLjA3IDMuNjUtMy4xNS0uMS0uNTItMy43NmgtNC45NEwyMiAxMi42OGwtMy4xNS4xLTEuMDctMy42NXoiLz48cGF0aCBkPSJNMTcuOTMgMjAuNDFjNi44MyAwIDEzLjEyLjQxIDE0Ljk1IDE2LjU4bDIuMzIuMzgtMy4xMy0xNi40M2MtLjAzLS4zLTYuMDktMS44Mi0xNC4xNC0uNTMiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Im0xNC43OCAxMC4yMiAyLjI3LS4yOWMtMS45MS4zMi0yLjMgNS4zLTIuMyA1LjMtLjI1LS4xOC0uMi00LjkuMDMtNS4wMW0xMC41LS42N2MtMS42NSAwLTIuNTIgMi43NS0yLjUyIDIuNzVsLjMzLTIuNzN6bTcuNC4yNy45Mi4xMWMtLjc4LjUtMS41OSAyLTEuNTkgMnptLTE0LjIgMTEuMTQgMi42MS0uMjljLTIuNjIuMy00Ljg5IDEzLjExLTQuODkgMTMuMTF6Ii8+PHBhdGggZD0iTTM0LjAxIDkuNGMuMzYgNi4zNi0xLjk1IDEwLjYtOC4wNCAxMC41M2w0Ljc4LjU3YzcuNTIuMyA1LjEtMTAuOCA1LjA3LTEwLjg0eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuMiIgZD0iTTI1IDM2LjQ2cy05LjEzLjA0LTExLjcgMS42MmMtMS43MiAxLjA2LTIuMTMgMy42NS0xLjkgNi4zMmgyNy4yYy4yMy0yLjY3LS4xOC01LjI2LTEuOS02LjMyQzM0LjEyIDM2LjUgMjUgMzYuNDYgMjUgMzYuNDZ6Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI1IDM3LjE1UzE2LjI5IDM3IDEzLjM4IDM4LjhjLS4zNy4yMy0uNy44NC0uOTYgMS40LjI2LS4zNC41LS42Mi44OS0uODZDMTUuODcgMzcuNzggMjUgMzcuNzMgMjUgMzcuNzNzOS4xMy4wNSAxMS43IDEuNjJjLjM4LjI0LjU4LjUzLjg1Ljg3YTMgMyAwIDAgMC0xLjE1LTEuNkMzMy42NSAzNy4xNSAyNSAzNy4xNiAyNSAzNy4xNnoiLz48L3N2Zz4=')}
@@ -1589,7 +1632,7 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794106297";
+const CHESSNAT_BUILD = "1794107572";
 /* ===== Speech text helpers (shared by the page and the voice build script) ===== */
 const PIECE_WORD = {K: "king", Q: "queen", R: "rook", B: "bishop", N: "knight"};
 function speechNorm(t){ return String(t || "").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, " ").trim(); }
@@ -4375,15 +4418,15 @@ Views.trophies = {
       <div class="cages">${BOTS.map(b => { const r = S.bots[b.id] || {}, got = r.w > 0, t = tierOf(b.r), fed = S.trophy.fed[b.id] || 0, out = got && myAvatar().pet === b.id;
         const bar = t.k === "wood" ? undefined : parseInt(t.a.slice(1), 16);
         return `<div class="cage ${got ? "got" : "empty"} ${out ? "out" : ""} tier-${t.k}" data-cb="${b.id}">
-          <div class="cage-in ${got && !out ? "c3" : ""}">${out ? `<div class="cage-out">Out with you<br>as your pet</div>` : got ? Av3D.tag(botCfg(b), {w: 150, h: 150, live: "cage", fps: 30, mode: "cage", tier: botTierOf(b), rank: -1, bar, fill: true, fb: avatarSVG(botCfg(b), {size: 100})}) : `<div class="cage-q">?</div>`}<div class="bars"></div><div class="drops" id="drop-${b.id}"></div><div class="say" id="say-${b.id}"></div></div>
+          <div class="cage-in ${got && !out ? "c3" : ""}">${out ? `<div class="cage-out">Flying with you<br>as your fairy</div>` : got ? Av3D.tag(botCfg(b), {w: 150, h: 150, live: "cage", fps: 30, mode: "cage", tier: botTierOf(b), rank: -1, bar, fill: true, fb: avatarSVG(botCfg(b), {size: 100})}) : `<div class="cage-q">?</div>`}<div class="bars"></div><div class="drops" id="drop-${b.id}"></div><div class="say" id="say-${b.id}"></div></div>
           <div class="plate"><b>${got ? esc(b.name) : "???"}</b><span>${b.r} · ${t.name}</span>${got ? `<span>${r.w} win${r.w > 1 ? "s" : ""}${fed ? ` · fed ${fed}×` : ""}</span>` : `<span>Not caught yet</span>`}</div>
-          ${got ? `<div class="row cage-btns">${out ? "" : `<button class="btn sm" data-feed="${b.id}">Feed 💩</button>`}${petsOpen() ? `<button class="btn sm ${out ? "go" : ""}" data-pet="${b.id}">${out ? "Back in the cage" : "Let out as pet"}</button>` : ""}</div>` : `<button class="btn sm" data-play="${b.id}">Challenge</button>`}</div>`; }).join("")}</div></div>`;
+          ${got ? `<div class="row cage-btns">${out ? "" : `<button class="btn sm" data-feed="${b.id}">Feed 💩</button>`}${petsOpen() ? `<button class="btn sm ${out ? "go" : ""}" data-pet="${b.id}">${out ? "Back in the cage" : "Let out as fairy"}</button>` : ""}</div>` : `<button class="btn sm" data-play="${b.id}">Challenge</button>`}</div>`; }).join("")}</div></div>`;
     if (typeof Social !== "undefined") Social.cages($("#pcages")); wireBotTabs(this.main);
     if ($("#tnext")) $("#tnext").onclick = () => { App.go("bots"); Views.bots.setup(next); };
     $$("[data-play]", this.main).forEach(x => x.onclick = () => { App.go("bots"); Views.bots.setup(BOTS.find(b => b.id === x.dataset.play)); });
     $$("[data-feed]", this.main).forEach(x => x.onclick = () => this.feed(x.dataset.feed));
     $$("[data-pet]", this.main).forEach(x => x.onclick = () => { const av = myAvatar(), id = x.dataset.pet; const was = av.pet === id; av.pet = was ? "none" : id; save(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard();
-      toast(was ? "Back in the cage." : (BOTS.find(b => b.id === id) || {}).name + " is your pet now. It follows you around.", 2600); Sound.play(was ? "Capture" : "Move", .7); this.draw(); });
+      toast(was ? "Back in the cage." : (BOTS.find(b => b.id === id) || {}).name + " is your fairy now. It flies around you.", 2600); Sound.play(was ? "Capture" : "Move", .7); this.draw(); });
   },
   feed(id){
     S.trophy.fed[id] = (S.trophy.fed[id] || 0) + 1; save();
@@ -5267,85 +5310,60 @@ const AV_CLASSES = [
   {k: "queen",  name: "Queen",  need: {tro: 170, pz: 1600, bot: 1600}, txt: "170 trophies, 1600 puzzle rating and a win against Viktor (1600)."},
   {k: "king",   name: "King",   need: {tro: 250, pz: 1900, bot: 2000}, txt: "250 trophies, 1900 puzzle rating and a win against a 2000 bot."},
 ];
-/* every item: slot, id, name, and what unlocks it (trophy id, a number of trophies, or free) */
+/* ===== The wardrobe catalog: fewer things, each one clearly different. Colours only where they matter ("chromas"). ===== */
 const AV_SLOTS = [
-  ["hair", "Hair"], ["eyes", "Eyes"], ["head", "Headwear"], ["mask", "Mask"], ["glasses", "Glasses"], ["ears", "Earrings"],
-  ["shirt", "Shirt"], ["coat", "Coat & armour"], ["cape", "Cape"], ["pants", "Pants"], ["shoes", "Shoes"],
-  ["right", "Right hand"], ["left", "Left hand"], ["wrist", "Bracelet"], ["aura", "Aura"], ["frame", "Rank border"],
-  ["paint", "Face paint"], ["back", "Wings"], ["pet", "Pet"],
-  ["sex", "Body type"], ["shape", "Head"], ["build", "Build"], ["height", "Height"], ["eyeshape", "Eye shape"], ["brows", "Eyebrows"], ["nose", "Nose"], ["mouth", "Mouth"], ["beard", "Facial hair"], ["cheeks", "Cheeks"],
+  ["shape", "Figure"], ["cls", "Rank piece"], ["hair", "Hair"], ["head", "Headwear"], ["expr", "Expression"], ["eyes", "Eyes"], ["beard", "Facial hair"], ["glasses", "Glasses"], ["mask", "Mask"], ["paint", "Face paint"], ["ears", "Earrings"],
+  ["shirt", "Top"], ["coat", "Jacket & armour"], ["pants", "Trousers"], ["shoes", "Shoes"], ["pose", "Pose"], ["right", "Right hand"], ["left", "Left hand"], ["wrist", "Bracelets"],
+  ["back", "Wings"], ["cape", "Cape"], ["aura", "Aura"], ["pet", "Fairy"], ["frame", "Border"],
 ];
 const AV_ITEMS = [
-  // hair (free choices)
-  ["hair", "none", "Bald", 0], ["hair", "short", "Short", 0], ["hair", "messy", "Messy", 0], ["hair", "long", "Long", 0], ["hair", "bun", "Bun", 0],
-  ["hair", "curly", "Curly", 0], ["hair", "buzz", "Buzz cut", 0], ["hair", "side", "Side part", 0], ["hair", "quiff", "Quiff", 0], ["hair", "spiky", "Spiky", 0],
-  ["hair", "ponytail", "Ponytail", 0], ["hair", "braids", "Braids", 0], ["hair", "afro", "Afro", 0],
+  ["shape", "human", "Human", 0], ["shape", "capy", "Capybara", 0], ["shape", "pig", "Piggy", 0], ["shape", "flower", "Blossom", 0], ["shape", "piece", "Chess piece", 0],
+  ["hair", "none", "Bald", 0], ["hair", "short", "Short", 0], ["hair", "long", "Long", 0], ["hair", "bun", "Bun", 0], ["hair", "curly", "Curly", 0], ["hair", "afro", "Afro", 0], ["hair", "ponytail", "Ponytail", 0],
   ["hair", "mohawk", "Mohawk", "t:streak-pz-10"], ["hair", "flame", "Fire hair", "t:rating-1800"],
-  // character: free choices, a few rare ones to earn
-  ["sex", "m", "Male", 0], ["sex", "f", "Female", 0],
-  ["shape", "human", "Face", 0], ["shape", "piece", "Chess piece", 0], ["shape", "capy", "Capybara", 0],
-  ["build", "slim", "Slim", 0], ["build", "normal", "Normal", 0], ["build", "broad", "Broad", 0],
-  ["height", "short", "Short", 0], ["height", "normal", "Normal", 0], ["height", "tall", "Tall", 0],
-  ["eyeshape", "round", "Round", 0], ["eyeshape", "almond", "Almond", 0], ["eyeshape", "sleepy", "Sleepy", 0], ["eyeshape", "wide", "Wide", 0],
-  ["brows", "none", "None", 0], ["brows", "soft", "Soft", 0], ["brows", "straight", "Straight", 0], ["brows", "angry", "Fierce", 0], ["brows", "thick", "Thick", 0],
-  ["nose", "none", "None", 0], ["nose", "button", "Button", 0], ["nose", "round", "Round", 0], ["nose", "pointed", "Pointed", 0],
-  ["mouth", "smile", "Smile", 0], ["mouth", "grin", "Grin", 0], ["mouth", "neutral", "Calm", 0], ["mouth", "smirk", "Smirk", 0], ["mouth", "laugh", "Laugh", 0], ["mouth", "fangs", "Fangs", "t:upset-400"],
-  ["beard", "none", "None", 0], ["beard", "stubble", "Stubble", 0], ["beard", "mustache", "Mustache", 0], ["beard", "goatee", "Goatee", 0], ["beard", "full", "Full beard", 0], ["beard", "viking", "Viking braids", "t:bot-ragnar"],
-  ["cheeks", "none", "None", 0], ["cheeks", "blush", "Blush", 0], ["cheeks", "freckles", "Freckles", 0], ["cheeks", "both", "Both", 0],
-  // eyes
-  ["eyes", "brown", "Brown", 0], ["eyes", "blue", "Blue", 0], ["eyes", "green", "Green", 0], ["eyes", "gray", "Gray", 0],
-  ["eyes", "gold", "Golden", "t:rating-1600"], ["eyes", "glow", "Glowing", "t:bot-titan"],
-  // headwear
-  ["head", "none", "Nothing", 0], ["head", "yuzu", "Orange", 0], ["head", "bloom", "Flower clip", 0], ["head", "beanie", "Beanie", "t:pz-25"], ["head", "cap", "Cap", "t:games-10"], ["head", "band", "Headband", "t:streak-pz-5"],
-  ["head", "wizard", "Wizard hat", "t:lessons-25"], ["head", "helmet", "Steel helmet", "t:bot-viktor"], ["head", "viking", "Viking helmet", "t:bot-ragnar"],
-  ["head", "laurel", "Laurel wreath", "t:winstreak-5"], ["head", "crown", "Crown", "n:150"], ["head", "imperial", "Imperial crown", "n:300"],
+  ["head", "none", "Nothing", 0], ["head", "yuzu", "Orange", 0], ["head", "bloom", "Flower clip", 0], ["head", "beanie", "Beanie", "t:pz-25"], ["head", "cap", "Cap", "t:games-10"], ["head", "wizard", "Wizard hat", "t:lessons-25"],
+  ["head", "viking", "Viking helmet", "t:bot-ragnar"], ["head", "laurel", "Laurel wreath", "t:winstreak-5"], ["head", "tiara", "Queen's tiara", "c:queen"], ["head", "crown", "Crown", "n:150"], ["head", "kingcrown", "King's crown", "c:king"], ["head", "imperial", "Imperial crown", "n:300"],
   ["head", "champ1", "Friends' Crown", "f:1"], ["head", "champ2", "Silver Circlet", "f:2"], ["head", "champ3", "Bronze Laurel", "f:3"],
-  ["head", "knighthelm", "Knight's helm", "c:knight"], ["head", "mitre", "Bishop's mitre", "c:bishop"], ["head", "tower", "Tower crown", "c:rook"], ["head", "tiara", "Queen's tiara", "c:queen"], ["head", "kingcrown", "King's crown", "c:king"],
-  // mask
-  ["mask", "none", "Nothing", 0], ["mask", "domino", "Domino mask", "t:th-discoveredAttack-2"], ["mask", "ninja", "Ninja mask", "t:pzfast-50"], ["mask", "visor", "Knight visor", "t:th-fork-4"],
-  // glasses
-  ["glasses", "none", "Nothing", 0], ["glasses", "round", "Round glasses", "t:lessons-5"], ["glasses", "square", "Square glasses", "t:review-1"],
-  ["glasses", "shades", "Sunglasses", "t:pzfast-10"], ["glasses", "monocle", "Monocle", "t:th-quietMove-2"], ["glasses", "star", "Star glasses", "t:brilliant-1"],
-  // earrings
-  ["ears", "none", "Nothing", 0], ["ears", "stud", "Stud", "t:daily-3"], ["ears", "hoop", "Hoops", "t:daily-14"], ["ears", "gold", "Gold hoops", "t:daily-30"], ["ears", "diamond", "Diamond", "t:daily-100"],
-  // shirt: from rags to royal
-  ["shirt", "rags", "Rags", 0], ["shirt", "tee", "T-shirt", "t:pz-10"], ["shirt", "stripes", "Striped shirt", "t:games-1"], ["shirt", "hoodie", "Hoodie", "t:pz-100"],
-  ["shirt", "tunic", "Green tunic", "t:lessons-10"], ["shirt", "silk", "Silk shirt", "t:rating-1300"], ["shirt", "royal", "Royal doublet", "t:rating-1700"],
-  // coat / armour
-  ["coat", "none", "Nothing", 0], ["coat", "vest", "Vest", "t:wins-10"], ["coat", "jacket", "Jacket", "t:wins-50"], ["coat", "leather", "Leather armour", "t:bot-oskar"],
-  ["coat", "steel", "Steel armour", "t:bot-ada"], ["coat", "gold", "Golden armour", "t:bot-kaiser"],
-  // cape
-  ["cape", "none", "Nothing", 0], ["cape", "cloth", "Cloth cape", "t:journey-25"], ["cape", "red", "Red cape", "t:journey-100"], ["cape", "green", "Green cape", "t:plan-7"],
-  ["cape", "purple", "Purple cape", "t:rating-1500"], ["cape", "ermine", "Royal ermine", "t:rating-2000"],
-  // pants
-  ["pants", "patched", "Patched", 0], ["pants", "jeans", "Jeans", "t:pz-50"], ["pants", "trousers", "Trousers", "t:wins-25"], ["pants", "royal", "Royal breeches", "t:rating-1600"],
-  // shoes
+  ["expr", "friendly", "Friendly", 0], ["expr", "cheeky", "Cheeky", 0], ["expr", "grin", "Big grin", 0], ["expr", "calm", "Calm", 0], ["expr", "sleepy", "Sleepy", 0], ["expr", "joyful", "Joyful", 0],
+  ["expr", "fierce", "Fierce", 0], ["expr", "freckled", "Freckled", 0], ["expr", "vampire", "Vampire", "t:upset-400"],
+  ["eyes", "natural", "Natural", 0], ["eyes", "gold", "Golden", "t:rating-1600"], ["eyes", "glow", "Glowing", "t:bot-titan"],
+  ["beard", "none", "None", 0], ["beard", "stubble", "Stubble", 0], ["beard", "mustache", "Mustache", 0], ["beard", "full", "Full beard", 0], ["beard", "viking", "Viking braids", "t:bot-ragnar"],
+  ["glasses", "none", "Nothing", 0], ["glasses", "round", "Round glasses", "t:lessons-5"], ["glasses", "shades", "Sunglasses", "t:pzfast-10"], ["glasses", "monocle", "Monocle", "t:th-quietMove-2"], ["glasses", "star", "Star glasses", "t:brilliant-1"],
+  ["mask", "none", "Nothing", 0], ["mask", "domino", "Domino mask", "t:th-discoveredAttack-2"], ["mask", "ninja", "Ninja mask", "t:pzfast-50"],
+  ["paint", "none", "Nothing", 0], ["paint", "war", "War paint", "t:wins-10"], ["paint", "runes", "Glowing runes", "t:themes-15"], ["paint", "kintsugi", "Gold cracks", "t:rating-2000"],
+  ["ears", "none", "Nothing", 0], ["ears", "hoop", "Hoops", "t:daily-14"], ["ears", "gold", "Gold hoops", "t:daily-30"], ["ears", "diamond", "Diamond", "t:daily-100"],
+  ["shirt", "rags", "Rags", 0], ["shirt", "tee", "T-shirt", "t:pz-10"], ["shirt", "apron", "Apron", 0], ["shirt", "hoodie", "Hoodie", "t:pz-100"], ["shirt", "tunic", "Green tunic", "t:lessons-10"], ["shirt", "royal", "Royal doublet", "t:rating-1700"],
+  ["coat", "none", "Nothing", 0], ["coat", "jacket", "Jacket", "t:wins-50"], ["coat", "leather", "Leather armour", "t:bot-oskar"], ["coat", "steel", "Steel armour", "t:bot-ada"], ["coat", "gold", "Golden armour", "t:bot-kaiser"],
+  ["pants", "patched", "Patched", 0], ["pants", "jeans", "Jeans", "t:pz-50"], ["pants", "royal", "Royal breeches", "t:rating-1600"],
   ["shoes", "bare", "Barefoot", 0], ["shoes", "sneakers", "Sneakers", "t:rush-10"], ["shoes", "boots", "Boots", "t:journey-50"], ["shoes", "golden", "Golden boots", "t:rush-25"],
-  // right hand
-  ["right", "none", "Nothing", 0], ["right", "stick", "Stick", "t:bot-pip"], ["right", "woodsword", "Wooden sword", "t:bot-mara"], ["right", "sword", "Steel sword", "t:bot-selin"],
-  ["right", "wand", "Magic wand", "t:th-sacrifice-3"], ["right", "scepter", "Scepter", "n:200"], ["right", "firesword", "Flaming sword", "t:bot-draco"],
-  // left hand
-  ["left", "none", "Nothing", 0], ["left", "book", "Book", "t:lessons-1"], ["left", "shield", "Shield", "t:th-defensiveMove-3"], ["left", "torch", "Torch", "t:endgames-all"],
-  ["left", "flame", "Flame", "t:streak-pz-20"], ["left", "orb", "Imperial orb", "n:250"],
-  // bracelet
-  ["wrist", "none", "Nothing", 0], ["wrist", "rope", "Rope", "t:plan-3"], ["wrist", "silver", "Silver", "n:40"], ["wrist", "gold", "Gold", "n:100"], ["wrist", "rune", "Rune band", "n:220"],
-  // aura
-  ["aura", "none", "Nothing", 0], ["aura", "glow", "Soft glow", "n:30"], ["aura", "green", "Green pulse", "n:80"], ["aura", "fire", "Fire aura", "t:winstreak-10"],
-  ["aura", "storm", "Lightning", "t:rush-30"], ["aura", "chakra", "Chakra", "t:plan-30"], ["aura", "orbit", "Fireballs", "t:rush-40"],
-  ["aura", "shadow", "Shadow", "t:fastmate-14"], ["aura", "holy", "Holy light", "n:250"], ["aura", "cosmic", "Cosmic", "n:350"],
-  // face paint
-  ["paint", "none", "Nothing", 0], ["paint", "war", "War paint", "t:wins-10"], ["paint", "tribal", "Tribal", "t:streak-pz-10"], ["paint", "runes", "Glowing runes", "t:themes-15"],
-  ["paint", "demon", "Demon marks", "t:upset-200"], ["paint", "kintsugi", "Gold cracks", "t:rating-2000"],
-  // wings
-  ["back", "none", "Nothing", 0], ["back", "angel", "Angel wings", "n:125"], ["back", "bat", "Bat wings", "t:mates-50"], ["back", "crystal", "Crystal wings", "t:rating-1800"],
-  ["back", "fire", "Phoenix wings", "t:winstreak-10"], ["back", "void", "Void wings", "n:400"],
+  ["pose", "idle", "Relaxed", 0], ["pose", "hips", "Hands on hips", 0], ["pose", "crossed", "Arms crossed", "l:3"], ["pose", "think", "Thinker", "l:6"], ["pose", "diamond", "Diamond hands", "l:12"], ["pose", "steeple", "Scheming fingers", "l:20"], ["pose", "flex", "Flex", "l:30"],
+  ["right", "none", "Nothing", 0], ["right", "woodsword", "Wooden sword", "t:bot-mara"], ["right", "sword", "Steel sword", "t:bot-selin"], ["right", "wand", "Magic wand", "t:th-sacrifice-3"], ["right", "scepter", "Scepter", "n:200"], ["right", "firesword", "Flaming sword", "t:bot-draco"],
+  ["left", "none", "Nothing", 0], ["left", "book", "Book", "t:lessons-1"], ["left", "shield", "Shield", "t:th-defensiveMove-3"], ["left", "torch", "Torch", "t:endgames-all"], ["left", "orb", "Imperial orb", "n:250"],
+  ["wrist", "none", "Nothing", 0], ["wrist", "bangles", "Bangles", 0], ["wrist", "gold", "Gold band", "n:100"], ["wrist", "rune", "Rune band", "n:220"],
+  ["back", "none", "Nothing", 0], ["back", "angel", "Angel wings", "n:125"], ["back", "bat", "Bat wings", "t:mates-50"], ["back", "crystal", "Crystal wings", "t:rating-1800"], ["back", "fire", "Phoenix wings", "t:winstreak-10"], ["back", "void", "Void wings", "n:400"],
+  ["cape", "none", "Nothing", 0], ["cape", "cloth", "Cape", "t:journey-25"], ["cape", "ermine", "Royal ermine", "t:rating-2000"],
+  ["aura", "none", "Nothing", 0], ["aura", "glow", "Soft glow", "n:30"], ["aura", "fire", "Fire aura", "t:winstreak-10"], ["aura", "storm", "Lightning", "t:rush-30"], ["aura", "chakra", "Chakra", "t:plan-30"],
+  ["aura", "orbit", "Fireballs", "t:rush-40"], ["aura", "shadow", "Shadow", "t:fastmate-14"], ["aura", "holy", "Holy light", "n:250"], ["aura", "cosmic", "Cosmic", "n:350"],
   // rank border: earned with your puzzle rating, like a ranked border
   ["frame", "auto", "My rank", 0], ...TIERS.map(t => ["frame", t.k, t.name, "r:" + t.lo]),
 ].map(([slot, id, name, req]) => ({slot, id, name, req}));
-const AV_DEFAULT = {cls: "pawn", hair: "short", eyes: "brown", head: "none", mask: "none", glasses: "none", ears: "none", shirt: "rags", coat: "none", cape: "none", pants: "patched", shoes: "bare", right: "none", left: "none", wrist: "none", aura: "none", frame: "auto", paint: "none", back: "none", pet: "none",
-  sex: "m", shape: "human", skin: "fair", hairC: "darkbrown", build: "normal", height: "normal", eyeshape: "round", brows: "soft", nose: "button", mouth: "smile", beard: "none", cheeks: "none",
-  shirtC: "", pantsC: "", coatC: "", capeC: "", shoesC: "", fur: "classic"};
-/* colours: skin, hair and every piece of clothing */
+/* expressions: one pick sets the eyes' shape, brows, mouth, nose and cheeks together */
+const EXPR = {
+  friendly: {eyeshape: "round", brows: "soft", mouth: "smile", nose: "button", cheeks: "none"},
+  cheeky:   {eyeshape: "almond", brows: "soft", mouth: "smirk", nose: "button", cheeks: "none"},
+  grin:     {eyeshape: "wide", brows: "soft", mouth: "grin", nose: "round", cheeks: "none"},
+  calm:     {eyeshape: "almond", brows: "straight", mouth: "neutral", nose: "pointed", cheeks: "none"},
+  sleepy:   {eyeshape: "sleepy", brows: "soft", mouth: "neutral", nose: "button", cheeks: "blush"},
+  joyful:   {eyeshape: "round", brows: "soft", mouth: "laugh", nose: "button", cheeks: "blush"},
+  fierce:   {eyeshape: "almond", brows: "angry", mouth: "grin", nose: "pointed", cheeks: "none"},
+  freckled: {eyeshape: "round", brows: "thick", mouth: "smile", nose: "round", cheeks: "freckles"},
+  vampire:  {eyeshape: "almond", brows: "angry", mouth: "fangs", nose: "pointed", cheeks: "none"},
+};
+/* the same object with the expression and eye colour filled in: what the drawing code reads */
+function avNorm(a){ const e = a.v >= 2 && EXPR[a.expr]; if (e) Object.assign(a, e); if (a.eyes === "natural" || !a.eyes) a.eyesC = a.eyeC || "brown"; return a; }
+const AV_DEFAULT = {cls: "pawn", hair: "short", eyes: "natural", eyeC: "brown", head: "none", mask: "none", glasses: "none", ears: "none", shirt: "rags", coat: "none", cape: "none", pants: "patched", shoes: "bare", right: "none", left: "none", wrist: "none", aura: "none", frame: "auto", paint: "none", back: "none", pet: "none",
+  sex: "m", shape: "human", skin: "fair", hairC: "darkbrown", build: "normal", height: "normal", expr: "friendly", pose: "idle", eyeshape: "round", brows: "soft", nose: "button", mouth: "smile", beard: "none", cheeks: "none",
+  shirtC: "", pantsC: "", coatC: "", capeC: "", shoesC: "", fur: "classic", pig: "pink", petal: "sun"};
+/* every colour by id (old ids stay so friends on an older look still draw right) */
 const AV_COLORS = {
   skin: [["porcelain", "Porcelain", "#f3d9c4", 0], ["fair", "Fair", "#ebc3a3", 0], ["light", "Light", "#dba985", 0], ["medium", "Medium", "#c08a60", 0], ["tan", "Tan", "#a06c45", 0], ["brown", "Brown", "#7b4e30", 0],
     ["deep", "Deep", "#5a3722", 0], ["ebony", "Ebony", "#3c2417", 0], ["ivory", "Chess ivory", "#ece2ce", 0], ["stone", "Stone", "#8d9096", "n:60"], ["jade", "Jade", "#5aa36a", "n:120"], ["frost", "Frost", "#9fd0f0", "n:180"],
@@ -5353,16 +5371,40 @@ const AV_COLORS = {
   hairC: [["black", "Black", "#1c1a1a", 0], ["darkbrown", "Dark brown", "#3b2a20", 0], ["brown", "Brown", "#6b4423", 0], ["auburn", "Auburn", "#8a3a1d", 0], ["ginger", "Ginger", "#c0602a", 0], ["blond", "Blond", "#d9b26a", 0],
     ["platinum", "Platinum", "#ece3c8", 0], ["gray", "Gray", "#9a9a9a", 0], ["white", "White", "#f2f2f0", 0], ["blue", "Blue", "#2f6fd8", "n:40"], ["pink", "Pink", "#e05aa8", "n:70"], ["green", "Green", "#3fb05a", "n:100"],
     ["purple", "Purple", "#7a3fd0", "n:140"], ["red", "Fire red", "#d1202f", "n:200"]],
-  /* capybara fur */
   fur: [["classic", "Capybara brown", "#9b6b45", 0], ["caramel", "Caramel", "#c38d58", 0], ["choco", "Chocolate", "#5f3e27", 0], ["cream", "Cream", "#eedfc4", 0], ["pink", "Pink", "#f4a6c6", 0], ["hotpink", "Hot pink", "#ff6fb1", 0],
     ["lilac", "Lilac", "#bba4ea", 0], ["sky", "Baby blue", "#9ccbf2", 0], ["mint", "Mint", "#9fe2c2", 0], ["lemon", "Lemon", "#f6e27a", 0], ["gray", "Gray", "#9a9a9a", 0], ["goldfur", "Gold", "#d4a13a", "n:100"]],
+  pig: [["pink", "Piglet pink", "#f4a9b8", 0], ["peach", "Peach", "#f6c7a6", 0], ["rosy", "Rosy", "#e87d97", 0], ["mud", "Mud", "#8a6650", 0], ["piggold", "Gold", "#d4a13a", "n:100"], ["pigfrost", "Frost", "#cfe3f5", "l:34"]],
+  petal: [["sun", "Sunflower", "#f6c21c", 0], ["rose", "Rose", "#e2384f", 0], ["peachp", "Peach", "#ffab7a", 0], ["lotus", "Lotus white", "#f7efe6", 0], ["sunset", "Sunset", "#ff7f50", "l:28"], ["ember", "Ember", "#b8321c", "l:44"], ["goldpetal", "Gold", "#e8b53a", "n:100"]],
+  eyeC: [["brown", "Brown", "#5a3b22", 0], ["blue", "Blue", "#2f6fb5", 0], ["green", "Green", "#3f8f3a", 0], ["gray", "Gray", "#6b7280", 0]],
   cloth: [["", "Original", "", 0], ["red", "Red", "#b3261e", 0], ["orange", "Orange", "#d9731f", 0], ["yellow", "Yellow", "#e0b13a", 0], ["green", "Green", "#3f8f3a", 0], ["teal", "Teal", "#1f8a8a", 0],
-    ["blue", "Blue", "#2f6fb5", 0], ["navy", "Navy", "#22355e", 0], ["purple", "Purple", "#5a2d91", 0], ["pink", "Pink", "#d0578f", 0], ["brown", "Brown", "#6b4423", 0], ["beige", "Beige", "#c9b48f", 0],
+    ["blue", "Blue", "#2f6fb5", 0], ["navy", "Navy", "#22355e", 0], ["purple", "Purple", "#5a2d91", 0], ["pink", "Pink", "#d0578f", 0], ["brown", "Brown", "#6b4423", 0], ["beige", "Linen", "#c9b48f", 0],
     ["gray", "Gray", "#6f7782", 0], ["black", "Black", "#1f1f22", 0], ["white", "White", "#f0eee9", 0]],
 };
 const CLOTH_SLOT = {shirt: "shirtC", coat: "coatC", pants: "pantsC", shoes: "shoesC", cape: "capeC"};
-function avColor(kind, id){ const list = AV_COLORS[kind === "skin" || kind === "hairC" || kind === "fur" ? kind : "cloth"], c = list.find(x => x[0] === id); return c && c[2] ? c[2] : null; }
-const EYE_C = {brown: "#5a3b22", blue: "#2f6fb5", green: "#3f8f3a", gray: "#6b7280", gold: "#d9a21b", glow: "#ff3b3b"};
+function avColor(kind, id){ const list = AV_COLORS[kind] || AV_COLORS.cloth, c = list.find(x => x[0] === id); return c && c[2] ? c[2] : null; }
+/* chromas: which few items come in colours, and which. [id, name, preview colour, unlock] */
+const CHROMA_DEF = {
+  "shape:human": ["skin", [["porcelain"], ["fair"], ["light"], ["medium"], ["tan"], ["brown"], ["deep"], ["ebony"], ["jade", "n:120"], ["frost", "n:180"], ["moon", "l:18"], ["goldskin", "n:250"], ["obsidian", "n:350"], ["starlight", "l:80"]]],
+  "shape:capy": ["fur", [["classic"], ["caramel"], ["choco"], ["cream"], ["pink"], ["midnightfur", "l:11"], ["mintchip", "l:22"], ["goldenfur", "l:42"], ["cosmicfur", "l:65"], ["goldfur", "n:100"]]],
+  "shape:pig": ["pig", [["pink"], ["peach"], ["rosy"], ["mud"], ["pigfrost", "l:34"], ["piggold", "n:100"]]],
+  "shape:flower": ["petal", [["sun"], ["rose"], ["peachp"], ["lotus"], ["sunset", "l:28"], ["ember", "l:44"], ["goldpetal", "n:100"]]],
+  "hair:*": ["hairC", [["black"], ["darkbrown"], ["brown"], ["blond"], ["ginger"], ["gray"], ["white"], ["neonpink", "l:7"], ["silverhair", "l:14"], ["ocean", "l:24"], ["blue", "n:40"], ["aurora", "l:49"], ["pink", "n:70"], ["phoenix", "l:85"], ["red", "n:200"]]],
+  "eyes:natural": ["eyeC", [["brown"], ["blue"], ["green"], ["gray"]]],
+  "shirt:tee": ["shirtC", [["", "White", "#f0eee9"], ["red"], ["blue"], ["green"], ["black"], ["neon", "l:4"], ["coral", "l:17"], ["galaxy", "l:33"]]],
+  "shirt:hoodie": ["shirtC", [["", "Gray", "#6f7782"], ["navy"], ["red"], ["pink"], ["black"], ["electric", "l:23"], ["blackgold", "l:43"]]],
+  "shirt:apron": ["shirtC", [["", "Tomato", "#c8453a"], ["beige"], ["navy"], ["green"], ["rosegold", "l:19"]]],
+  "coat:jacket": ["coatC", [["", "Navy", "#26324a"], ["brown"], ["black"], ["teal"], ["midnight", "l:13"], ["ruby", "l:48"]]],
+  "shoes:sneakers": ["shoesC", [["", "White", "#f4f4f4"], ["red"], ["black"], ["blue"], ["lava", "l:26"], ["diamondc", "l:95"]]],
+  "cape:cloth": ["capeC", [["", "Linen", "#8a7a5e"], ["red", "t:journey-100"], ["green", "t:plan-7"], ["royal", "l:8"], ["purple", "t:rating-1500"], ["sunfire", "l:70"]]],
+};
+/* one item's chroma list, with names, colours and what unlocks each */
+const isReq = x => typeof x === "string" && /^[tnrlcf]:/.test(x);
+function chromaOf(slot, id){
+  const d = CHROMA_DEF[slot + ":" + id] || (slot === "hair" && !["none", "flame"].includes(id) ? CHROMA_DEF["hair:*"] : null); if (!d) return null;
+  const [f, list] = d, src = AV_COLORS[["shirtC", "coatC", "shoesC", "capeC", "pantsC"].includes(f) ? "cloth" : f] || [];
+  return {f, list: list.map(([cid, x, y]) => { const c = src.find(q => q[0] === cid) || []; return isReq(x) ? {id: cid, name: c[1] || cid, hex: c[2] || "#888", req: x} : {id: cid, name: x || c[1] || cid, hex: y || c[2] || "#888", req: 0}; })};
+}
+const EYE_C = {brown: "#5a3b22", blue: "#2f6fb5", green: "#3f8f3a", gray: "#6b7280", gold: "#d9a21b", glow: "#ff3b3b"}; EYE_C.natural = EYE_C.brown;
 
 /* ---------- drawing ---------- */
 function avParts(a){
@@ -5550,7 +5592,30 @@ botPortrait = function(b, size = 96){ const t = typeof tierOf === "function" ? t
   return `<span class="botfull portrait tier-${t.k}" style="width:${size}px;height:${size}px;background:linear-gradient(135deg,${t.a},${t.b})"><span style="background:hsl(${b.hue || 0} 40% 22%)">${avatarSVG(botCfg(b), {size: Math.round(size * .8)})}</span></span>`; };
 
 /* ---------- the player's avatar state ---------- */
-function myAvatar(){ const a = S.avatar = Object.assign({}, AV_DEFAULT, S.avatar || {});
+/* the old, big wardrobe → the new one: every removed thing becomes the closest new one you own */
+const AV_MAP = {hair: {messy: "short", buzz: "short", side: "short", quiff: "short", spiky: "short", braids: "ponytail"}, head: {helmet: "viking", band: "cap", knighthelm: "crown", mitre: "crown", tower: "crown"},
+  mask: {visor: "ninja"}, glasses: {square: "round"}, ears: {stud: "hoop"}, paint: {tribal: "war", demon: "runes"}, shirt: {stripes: "tee", silk: "royal"}, coat: {vest: "jacket"}, pants: {trousers: "jeans"},
+  right: {stick: "woodsword"}, left: {flame: "torch"}, wrist: {rope: "bangles", silver: "bangles"}, aura: {green: "glow"}};
+const hexRGB = h => { const n = parseInt(String(h || "#888").slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
+function nearestChroma(hex, list){ const [r, g, b] = hexRGB(hex); let best = list[0], d0 = 1e9; list.filter(c => itemUnlocked({req: c.req})).forEach(c => { const [x, y, z] = hexRGB(c.hex), d = (x - r) ** 2 + (y - g) ** 2 + (z - b) ** 2; if (d < d0){ d0 = d; best = c; } }); return best.id; }
+/* keep a chroma that belongs to the item, else the closest one of its colours */
+function fixChroma(a, slot){ const ch = chromaOf(slot, a[slot]); if (!ch) return; const v = a[ch.f] == null ? "" : a[ch.f], hit = ch.list.find(c => c.id === v);
+  if (hit && itemUnlocked({req: hit.req})) return; const kind = ["shirtC", "coatC", "shoesC", "capeC"].includes(ch.f) ? "cloth" : ch.f; a[ch.f] = nearestChroma(avColor(kind, v) || (hit && hit.hex) || ch.list[0].hex, ch.list); }
+function avMigrate(o){
+  for (const sl in AV_MAP) if (AV_MAP[sl][o[sl]]) o[sl] = AV_MAP[sl][o[sl]];
+  if (["red", "green", "purple"].includes(o.cape)){ o.capeC = o.cape; o.cape = "cloth"; }
+  if (["brown", "blue", "green", "gray"].includes(o.eyes)){ o.eyeC = o.eyes; o.eyes = "natural"; }
+  if (!o.expr){ let best = "friendly", sc = -1; for (const k in EXPR){ if (k === "vampire" && o.mouth !== "fangs") continue; const e = EXPR[k];
+      const v = (e.mouth === o.mouth) * 3 + (e.brows === o.brows) * 2 + (e.eyeshape === o.eyeshape) + (e.cheeks === (o.cheeks || "none")) + (e.nose === o.nose) * .5; if (v > sc){ sc = v; best = k; } } o.expr = best; }
+  o.build = "normal"; o.height = "normal";
+  AV_SLOTS.forEach(([sl]) => { if (["cls", "pet", "frame", "shape"].includes(sl) || o[sl] == null) return; const it = AV_ITEMS.find(i => i.slot === sl && i.id === o[sl]); if (it && !itemUnlocked(it)) o[sl] = AV_DEFAULT[sl]; });
+  ["shape", "hair", "eyes", "shirt", "coat", "shoes", "cape"].forEach(sl => fixChroma(Object.assign(o, {[sl]: o[sl] || AV_DEFAULT[sl]}), sl));
+  o.v = 2;
+}
+function myAvatar(){ if (S.avatar && !S.avatar.v){ if (!S.ach && typeof Ach !== "undefined" && Ach.init) try { Ach.init(); } catch(e) {} if (!S.ach) return Object.assign({}, AV_DEFAULT, S.avatar); avMigrate(S.avatar); }
+  const a = S.avatar = Object.assign({}, AV_DEFAULT, S.avatar || {}); a.v = 2;
+  /* anything that isn't in the wardrobe any more falls back to the plain choice */
+  AV_SLOTS.forEach(([sl]) => { if (["cls", "pet", "frame"].includes(sl)) return; if (!AV_ITEMS.some(i => i.slot === sl && i.id === a[sl])) a[sl] = AV_DEFAULT[sl]; });
   /* old trophy borders became rank borders */
   if (!AV_ITEMS.some(i => i.slot === "frame" && i.id === a.frame) && !/^lv|^recruit$/.test(a.frame || "")) a.frame = "auto";
   if (a.pet !== "none" && !(S.bots[a.pet] && S.bots[a.pet].w > 0)) a.pet = "none";
@@ -5818,6 +5883,8 @@ const Av3D = (() => {
   const PANTS = {patched: 0x6b5a45, jeans: 0x3a5a8c, trousers: 0x2d2f36, royal: 0xeee7da};
   /* capybara: a long blunt head with a big snout, small round ears high up, eyes far back on the sides */
   const CAPY = {prof: PROF.sphere(.27, 1.08), eyes: [[-.115, .07], [.115, .07]], mouth: -.2, ears: .2, hat: [0, .05, .95], capy: 1, human: 1};
+  const PIG = {prof: PROF.sphere(.28, 1.02), eyes: [[-.1, .07], [.1, .07]], mouth: -.17, ears: .26, hat: [0, .03, .97], pig: 1, human: 1};
+  const FLOWER = {prof: PROF.sphere(.24, 1), eyes: [[-.085, .035], [.085, .035]], mouth: -.085, ears: .24, hat: [0, .16, 1.1], flower: 1, human: 1};
   const HUMAN = {prof: PROF.sphere(.27, 1.08), eyes: [[-.092, .035], [.092, .035]], mouth: -.115, ears: .262, hat: [0, .0, .92], hair: 1, top: .29, human: 1};
   const hx = h => parseInt(String(h).slice(1), 16);
   const shade = (c, k) => { const x = new T.Color(c); x.multiplyScalar(k); return x.getHex(); };
@@ -5827,16 +5894,17 @@ const Av3D = (() => {
 
   function build(cfg, tier, o = {}){
     TIER = tier;
-    const a = Object.assign({}, AV_DEFAULT, cfg || {}), cls = HEADS[a.cls] ? a.cls : "pawn", H = a.shape === "piece" ? HEADS[cls] : a.shape === "capy" ? CAPY : HUMAN;
+    const a = avNorm(Object.assign({}, AV_DEFAULT, cfg || {})), cls = HEADS[a.cls] ? a.cls : "pawn", H = a.shape === "piece" ? HEADS[cls] : a.shape === "capy" ? CAPY : a.shape === "pig" ? PIG : a.shape === "flower" ? FLOWER : HUMAN;
     const rig = {tier, a, fx: [], pmats: [], own: [], eyes: [], tick: [], t: 0, emote: null, pose: o.pose || "idle", blink: 2 + Math.random() * 3, rr: rnd(hashStr(JSON.stringify(a)) % 2147483646 + 1)};
     const root = new T.Group(), fig = new T.Group(); root.add(fig); fig.position.y = .2; rig.root = root; rig.fig = fig;
-    const capy = a.shape === "capy", skinHex = capy ? hx(avColor("fur", a.fur) || "#9b6b45") : hx(avColor("skin", a.skin) || "#ebc3a3"),
-      skin = capy ? (a.fur === "goldfur" ? M("gold", skinHex) : M("hair", skinHex)) : a.skin === "goldskin" ? M("gold", skinHex) : a.skin === "obsidian" ? M("dark", skinHex) : M(a.skin === "ivory" ? "skin" : "flesh", skinHex), ol = true;
+    const capy = a.shape === "capy", pig = a.shape === "pig", flw = a.shape === "flower";
+    const skinHex = capy ? hx(avColor("fur", a.fur) || "#9b6b45") : pig ? hx(avColor("pig", a.pig) || "#f4a9b8") : flw ? 0x6fb35a : hx(avColor("skin", a.skin) || "#ebc3a3"),
+      skin = capy ? (a.fur === "goldfur" ? M("gold", skinHex) : M("hair", skinHex)) : pig ? (a.pig === "piggold" ? M("gold", skinHex) : M("flesh", skinHex)) : flw ? M("skin", skinHex) : a.skin === "goldskin" ? M("gold", skinHex) : a.skin === "obsidian" ? M("dark", skinHex) : M(a.skin === "ivory" ? "skin" : "flesh", skinHex), ol = true;
     rig.skin = skin; rig.skinHex = skinHex;
     const cc = (slot, def) => { const v = avColor("cloth", a[CLOTH_SLOT[slot]]); return v ? hx(v) : def; };
     const B = {slim: .9, normal: 1, broad: 1.13}[a.build] || 1, hip = {short: .4, normal: .5, tall: .6}[a.height] || .5, F = a.sex === "f"; rig.F = F;
     /* ground shadow and pedestal: its metal shows the figure you've earned */
-    const sh = new T.Mesh(G("pl2", () => new T.PlaneGeometry(2.2, 2.2)), new T.MeshBasicMaterial({map: shadowTex(), transparent: true, depthWrite: false, toneMapped: false})); sh.rotation.x = -Math.PI / 2; sh.position.y = .003; root.add(sh); rig.own.push(sh.material);
+    const sh = new T.Mesh(G("pl2", () => new T.PlaneGeometry(2.2, 2.2)), new T.MeshBasicMaterial({map: shadowTex(), transparent: true, depthWrite: false, toneMapped: false})); sh.rotation.x = -Math.PI / 2; sh.position.y = .003; root.add(sh); rig.own.push(sh.material); rig.shadow = sh;
     const base = new T.Group(); root.add(base); rig.base = base;
     const pm = {pawn: M("wood", 0xffffff), knight: M("gold", 0xb87333), bishop: M("metal", 0xd8dde3), rook: M("skin", 0xd6cfc2), queen: M("gold", 0xe0b13a), king: M("gold", 0xe0b13a)}[cls];
     mesh(cyl(.6, .66, .14, 48), pm, 0, .07, 0, base, ol); mesh(tor(.6, .032, 10, 48), pm, 0, .14, 0, base).rotation.x = Math.PI / 2; mesh(cyl(.5, .56, .06, 48), pm, 0, .17, 0, base, ol);
@@ -5855,7 +5923,7 @@ const Av3D = (() => {
     /* torso (breathes); arms hang from it */
     const torso = new T.Group(); torso.position.y = hip + .02; fig.add(torso); rig.torso = torso;
     const tb = new T.Group(); tb.scale.set(B, 1, B); torso.add(tb);
-    const shirt = SHIRT[a.shirt] || SHIRT.rags, shirtC = cc("shirt", shirt[0]);
+    const shirt = SHIRT[a.shirt] || SHIRT.rags, apron = a.shirt === "apron", shirtC = apron ? 0xf0ebe0 : cc("shirt", shirt[0]);
     const shirtM = shirt[1] === "stripes" ? M("cloth", 0xffffff, {map: stripeTex("#f4f1ea", "#" + shirtC.toString(16).padStart(6, "0"), 10)}) : M("cloth", shirtC);
     if (F){ mesh(lathe("torsoF", [[.27, 0], [.225, .13], [.215, .25], [.265, .36], [.285, .45], [.285, .53], [.25, .62], [.16, .69], [.08, .73], [0, .74]], 40), shirtM, 0, 0, 0, tb, ol);
       [-1, 1].forEach(s => { const c = mesh(sph(.105, 20, 14), shirtM, s * .095, .41, .15, tb); c.scale.set(1, .9, .8); }); }
@@ -5868,9 +5936,17 @@ const Av3D = (() => {
     if (a.shirt === "hoodie"){ const hd = mesh(tor(.17, .07, 10, 24), shirtM, 0, .68, -.08, tb); hd.rotation.x = Math.PI / 2 - .4; mesh(box(.24, .1, .03), M("cloth", shade(shirtC, .85)), 0, .17, .265, tb); [-.05, .05].forEach(x => mesh(cyl(.007, .007, .14, 6), M("cloth", 0xffffff), x, .55, .27, tb)); }
     if (a.shirt === "royal"){ [.3, .1].forEach(y => mesh(tor(.27 + y * .05, .013, 6, 40), M("gold", 0xe0b13a), 0, y + .08, 0, tb).rotation.x = Math.PI / 2); [.2, .3, .4, .5].forEach(y => mesh(sph(.02, 10, 8), M("gold", 0xe0b13a), 0, y, .27 + y * .07, tb)); }
     if (a.shirt === "tunic") mesh(box(.035, .26, .02), M("cloth", shade(shirtC, .7)), 0, .5, .3, tb).rotation.x = -.35;
+    /* apron: a bib on the chest, a skirt down to the knees, straps round the neck and a bow at the back */
+    if (apron){ const ac = cc("shirt", 0xc8453a), am = M("cloth", ac, {side: T.DoubleSide}), dk = M("cloth", shade(ac, .78));
+      const bib = mesh(G("bib", () => { const g = new T.CylinderGeometry(.302, .29, .34, 20, 1, true, -.62, 1.24); return g; }), am, 0, .38, 0, tb, ol); bib.scale.z = 1.04;
+      mesh(lathe("aprskirt", [[.36, -.42], [.335, -.24], [.3, -.06], [.275, .06]], 32, -1.15, 2.3), am, 0, 0, 0, tb, ol);
+      mesh(box(.13, .09, .02), dk, .08, -.17, .325, tb).rotation.x = .12;
+      mesh(tor(.274, .022, 6, 40), am, 0, .06, 0, tb).rotation.x = Math.PI / 2;
+      [-1, 1].forEach(sd => { const st = mesh(cyl(.016, .016, .28, 6), am, sd * .13, .63, .12, tb); st.rotation.set(-.55, 0, -sd * .5); const bw = mesh(sph(.05, 12, 8), am, sd * .055, .06, -.29, tb); bw.scale.set(1.3, .7, .5); });
+      mesh(box(.02, .12, .015), am, 0, -.03, -.29, tb); }
     /* coat / armour */
     const coatK = a.coat, coatC = {vest: [cc("coat", 0x5b3a22), "leather"], jacket: [cc("coat", 0x26324a), "cloth"], leather: [cc("coat", 0x7a4d2b), "leather"], steel: [0xbfc6cf, "metal"], gold: [0xe0b13a, "gold"]}[coatK];
-    let sleeveUp = shirtM, sleeveLo = ["rags", "tee"].includes(a.shirt) ? skin : shirtM;
+    let sleeveUp = shirtM, sleeveLo = ["rags", "tee", "apron"].includes(a.shirt) ? skin : shirtM;
     if (coatC){ const cm = M(coatC[1], coatC[0]), open = coatK === "vest" || coatK === "jacket";
       mesh(lathe("coat2" + (open ? "o" : "c"), [[.28, .02], [.27, .14], [.29, .3], [.335, .45], [.355, .53], [.315, .62], [.2, .69]], 40, open ? .34 : 0, open ? Math.PI * 2 - .68 : Math.PI * 2), M(coatC[1], coatC[0], {side: T.DoubleSide}), 0, 0, 0, tb, ol);
       if (coatK === "jacket"){ sleeveUp = cm; sleeveLo = cm; mesh(lathe("coattail", [[.33, -.26], [.31, -.12], [.28, .02]], 40, .34, Math.PI * 2 - .68), M(coatC[1], coatC[0], {side: T.DoubleSide}), 0, 0, 0, tb); [-1, 1].forEach(s => { const l = mesh(box(.08, .2, .02), cm, s * .09, .55, .28, tb); l.rotation.set(-.3, s * .35, s * .25); }); }
@@ -5892,7 +5968,9 @@ const Av3D = (() => {
       return {sh: shG, el, hand, item, s};
     };
     rig.R = arm(-1); rig.L = arm(1);
-    if (a.wrist !== "none"){ const wm = a.wrist === "rope" ? M("cloth", 0xb8955a) : a.wrist === "silver" ? M("metal", 0xdfe4ea) : a.wrist === "gold" ? M("gold", 0xe0b13a) : M("metal", 0x4b5563);
+    if (a.wrist === "bangles") [rig.R, rig.L].forEach((A, ai) => { const cols = [["gold", 0xe0b13a], ["gem", ai ? 0x1fa3a3 : 0xd1202f], ["gold", 0xc98b7a], ["metal", 0xdfe4ea], ["gold", 0xe0b13a]];
+      cols.forEach(([k, c], i) => { const b = mesh(tor(.071 + (i % 2) * .004, .011, 6, 22), M(k, c), 0, -.135 - i * .024, 0, A.el); b.rotation.set(Math.PI / 2 + (i % 2 ? .12 : -.1), 0, (i - 2) * .06); }); });
+    else if (a.wrist !== "none"){ const wm = a.wrist === "rope" ? M("cloth", 0xb8955a) : a.wrist === "silver" ? M("metal", 0xdfe4ea) : a.wrist === "gold" ? M("gold", 0xe0b13a) : M("metal", 0x4b5563);
       const w = mesh(tor(.073, .02, 8, 20), wm, 0, -.15, 0, rig.R.el); w.rotation.x = Math.PI / 2;
       if (a.wrist === "rune"){ const g = mesh(tor(.075, .007, 6, 24), M("glow", 0x59e3ff), 0, -.15, 0, rig.R.el); g.rotation.x = Math.PI / 2; } }
     /* neck and head */
@@ -5909,8 +5987,11 @@ const Av3D = (() => {
       if (a.cape === "ermine"){ const col = mesh(tor(.25, .06, 10, 24, Math.PI * 1.3), M("cloth", 0xffffff, {map: ermineTex()}), 0, top - .06, -.04, fig); col.rotation.set(Math.PI / 2, 0, Math.PI * .85); }
       rig.cape = {g: cg, base: base0, h: ch};
     }
+    if (a.shape === "pig"){ const pts = []; for (let i = 0; i <= 14; i++){ const an = i * .75; pts.push([Math.cos(an) * .035, Math.sin(an) * .035 + i * .003, -i * .009]); } mesh(G("pigtail", () => taper(pts, .016, .009, 6, 30)), rig.skin, 0, hip + .06, -.27, fig); }
     if (a.back !== "none") buildWings(rig, a.back, torso);
     buildItem(rig, a.right, rig.R, "R"); buildItem(rig, a.left, rig.L, "L");
+    /* a held pose puts the hand items away; diamond hands and scheming fingers get fingers */
+    if ((o.pose || "idle") === "idle" && POSE[a.pose]){ rig.R.item.visible = rig.L.item.visible = false; if (a.pose === "diamond" || a.pose === "steeple") handPose(rig, a.pose); }
     if (a.aura !== "none") buildAura(rig, a.aura, root);
     if (tier >= 4){ const rc = new T.Mesh(G("pl1", () => new T.PlaneGeometry(1.9, 1.9)), new T.MeshBasicMaterial({map: runeTex("#ffd75e"), transparent: true, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false, opacity: .85}));
       rc.rotation.x = -Math.PI / 2; rc.position.y = .215; root.add(rc); rig.own.push(rc.material); rig.rune = rc;
@@ -5924,8 +6005,10 @@ const Av3D = (() => {
   function hexNum(h){ return parseInt(h.slice(1), 16); }
 
   function buildHead(rig, a, cls, H, head, skin){
-    const ol = true, eyeC = EYE_C[a.eyes] || EYE_C.brown, hairC = hx(avColor("hairC", a.hairC) || "#3b2a20"), key = H.human ? "human" : cls;
+    const ol = true, eyeC = EYE_C[a.eyes === "natural" ? a.eyeC || "brown" : a.eyes] || EYE_C.brown, hairC = hx(avColor("hairC", a.hairC) || "#3b2a20"), key = H.human ? "human" : cls;
     if (H.capy){ buildCapy(rig, a, head, skin, eyeC); }
+    else if (H.pig){ buildPig(rig, a, head, skin, eyeC); }
+    else if (H.flower){ buildFlower(rig, a, head, skin, eyeC); }
     else if (H.knight){
       const g = extr("horse", HORSE, .26, .06, true); mesh(g, skin, 0, 0, 0, head, ol);
       mesh(sph(.035, 10, 8), M("dark", 0x2a2420), .33, -.13, .17, head); mesh(sph(.035, 10, 8), M("dark", 0x2a2420), .33, -.13, -.17, head);
@@ -5979,6 +6062,49 @@ const Av3D = (() => {
     if (a.hair !== "none"){ const hm = a.hair === "flame" ? M("cloth", 0xff7a1f, {em: .9}) : M("hair", hx(avColor("hairC", a.hairC) || "#3b2a20"));
       for (let i = 0; i < 5; i++){ const t = mesh(cone(.032, .11, 8), hm, (i - 2) * .033, .32, .02 - Math.abs(i - 2) * .02, head); t.rotation.set(.15, 0, (i - 2) * .25); }
       if (a.hair === "flame") flames(rig, head, [0, .34, 0], .18, 12); }
+  }
+  /* the little shared bits of the animal heads: glasses on the eyes, earrings, a tuft of hair */
+  function animalBits(rig, a, head, eyes, z, earAt){
+    eyes.forEach(([x, y]) => { const s = Math.sign(x); if (a.glasses !== "none"){ const g = new T.Group(); g.position.set(x, y, z + .04); orient(g, new T.Vector3(s * .15, .05, .99)); head.add(g); lens(rig, a.glasses, g, s); } });
+    if (a.glasses !== "none" && a.glasses !== "monocle"){ const br = mesh(cyl(.008, .008, Math.abs(eyes[0][0]) * 2 - .1, 6), M("dark", 0x2a2420), 0, eyes[0][1] + .02, z + .04, head); br.rotation.z = Math.PI / 2; }
+    if (a.ears !== "none" && earAt) [-1, 1].forEach(s => earring(rig, a.ears, head, s * earAt[0], earAt[1], earAt[2]));
+  }
+  function tuft(rig, a, head, y, z){
+    if (a.hair === "none") return; const hm = a.hair === "flame" ? M("cloth", 0xff7a1f, {em: .9}) : M("hair", hx(avColor("hairC", a.hairC) || "#3b2a20"));
+    for (let i = 0; i < 5; i++){ const t = mesh(cone(.032, .11, 8), hm, (i - 2) * .033, y, z - Math.abs(i - 2) * .02, head); t.rotation.set(.15, 0, (i - 2) * .25); }
+    if (a.hair === "flame") flames(rig, head, [0, y + .02, 0], .18, 12);
+  }
+  /* piggy: a round head, a big flat snout with two nostrils, soft ears that flop forward */
+  function buildPig(rig, a, head, skin, eyeC){
+    const ol = true, dk = M("dark", 0x3a1a20), lite = M("flesh", shade(rig.skinHex, 1.08)), inner = M("flesh", shade(rig.skinHex, .82));
+    mesh(sph(.28, 32, 24), skin, 0, 0, 0, head, ol).scale.set(1.06, .96, .96);
+    const sn = new T.Group(); sn.position.set(0, -.06, .24); head.add(sn);
+    mesh(cyl(.105, .115, .1, 28), skin, 0, 0, .02, sn, ol).rotation.x = Math.PI / 2;
+    const face = mesh(cyl(.1, .1, .012, 28), lite, 0, 0, .074, sn); face.rotation.x = Math.PI / 2; face.scale.set(1.15, 1, .85);
+    [-1, 1].forEach(s => { const n = mesh(sph(.024, 12, 8), dk, s * .038, 0, .078, sn); n.scale.set(.75, 1.15, .4); });
+    [-1, 1].forEach(s => { const e = new T.Group(); e.position.set(s * .17, .2, .02); e.rotation.set(.65, s * .25, -s * .55); head.add(e);
+      mesh(cone(.085, .17, 3), skin, 0, .07, 0, e, ol).scale.set(1, 1, .35); mesh(cone(.055, .11, 3), inner, 0, .06, .018, e).scale.set(1, 1, .2); });
+    PIG.eyes.forEach(([x, y]) => { const s = Math.sign(x), e = new T.Group(); e.position.set(x, y, .24); head.add(e); orient(e, new T.Vector3(s * .2, .05, .98)); e.scale.setScalar(.82); eyeParts(e, eyeC, a, rig); rig.eyes.push(e); });
+    { const m = mesh(tor(.035, .008, 6, 14, Math.PI), dk, 0, -.165, .245, head); m.rotation.z = Math.PI; }
+    [-1, 1].forEach(s => { const c = mesh(G("blush", () => new T.CircleGeometry(.045, 20)), new T.MeshBasicMaterial({color: 0xff6f8a, transparent: true, opacity: .35, depthWrite: false, toneMapped: false}), s * .17, -.06, .225, head); c.rotation.y = s * .55; rig.own.push(c.material); });
+    animalBits(rig, a, head, PIG.eyes, .22, [.27, .02, 0]); tuft(rig, a, head, .29, .02);
+    rig.tail = true;
+  }
+  /* blossom: the face is the heart of a flower, ringed by two layers of pointed petals, leaves at the neck */
+  const PETAL_C = {sun: 0x7a4a24, rose: 0xffd36b, peachp: 0xffe7a3, lotus: 0xffd36b, sunset: 0xffe08a, ember: 0xffcf5a, goldpetal: 0x6b4318};
+  function buildFlower(rig, a, head, skin, eyeC){
+    const ol = true, pc = hx(avColor("petal", a.petal) || "#f6c21c"), gold = a.petal === "goldpetal", core = PETAL_C[a.petal] || 0x7a4a24;
+    const faceM = M(gold ? "gold" : "flesh", core), petM = gold ? M("gold", pc) : M("cloth", pc, {side: T.DoubleSide}), pet2 = gold ? M("gold", shade(pc, .85)) : M("cloth", shade(pc, .82), {side: T.DoubleSide});
+    const fc = mesh(sph(.24, 32, 24), faceM, 0, 0, 0, head, ol); fc.scale.set(1, 1, .72);
+    for (let i = 0; i < 22; i++){ const an = i / 22 * Math.PI * 2; const d = mesh(sph(.013, 6, 5), M("dark", shade(core, .55)), Math.cos(an) * .205, Math.sin(an) * .205, .1, head); d.scale.z = .6; }
+    const petal = extr("petal", [[0, 0], [.07, .07], [.075, .17], [0, .3], [-.075, .17], [-.07, .07]], .018, .008, true);
+    [[12, .17, -.06, -.28, petM, 0], [12, .14, -.03, -.5, pet2, Math.PI / 12]].forEach(([n, r, z, tilt, m, off]) => { for (let i = 0; i < n; i++){ const an = i / n * Math.PI * 2 + off, g = new T.Group(); g.rotation.z = an; g.position.z = z; head.add(g);
+      const p = mesh(petal, m, 0, r, 0, g, ol); p.rotation.x = tilt; } });
+    [-1, 1].forEach(s => { const lf = mesh(extr("leaf", [[0, 0], [.06, .06], [.05, .16], [0, .24], [-.05, .16], [-.06, .06]], .012, .006, true), M("cloth", 0x4f9a3c, {side: T.DoubleSide}), s * .07, -.3, .04, head, ol); lf.rotation.set(-.4, 0, s * 2.2); });
+    FLOWER.eyes.forEach(([x, y]) => { const e = new T.Group(); e.position.set(x, y, .165); head.add(e); orient(e, new T.Vector3(Math.sign(x) * .12, .05, .99)); e.scale.setScalar(.9); eyeParts(e, eyeC, a, rig); rig.eyes.push(e); });
+    { const m = mesh(tor(.045, .01, 6, 16, Math.PI), M("dark", 0x3a1a10), 0, FLOWER.mouth, .17, head); m.rotation.z = Math.PI; if (a.mouth === "laugh" || a.mouth === "grin") m.scale.set(1.2, 1.4, 1); }
+    [-1, 1].forEach(s => { const c = mesh(G("blush", () => new T.CircleGeometry(.045, 20)), new T.MeshBasicMaterial({color: 0xff6f6f, transparent: true, opacity: .3, depthWrite: false, toneMapped: false}), s * .13, -.05, .168, head); rig.own.push(c.material); });
+    animalBits(rig, a, head, FLOWER.eyes, .16, null);
   }
   /* brows, nose, mouth, cheeks and facial hair */
   function buildFace(rig, a, head, H, key, hairC){
@@ -6180,6 +6306,34 @@ const Av3D = (() => {
 
   /* ---------- motion ---------- */
   const lerp = (a, b, k) => a + (b - a) * k;
+  /* held poses: shoulder and elbow angles (x swings forward or back, z lifts sideways) */
+  const POSE = {
+    hips:    {rSx: .3, rSz: -.85, rEx: -.25, rEz: 1.85, lSx: .3, lSz: .85, lEx: -.25, lEz: -1.85},
+    crossed: {rSx: -.42, rSz: -.12, rEx: -1.95, rEz: 1.05, lSx: -.36, lSz: .12, lEx: -1.75, lEz: -1.05},
+    think:   {rSx: -.62, rSz: -.1, rEx: -2.75, rEz: .62, lSx: -.3, lSz: .1, lEx: -1.55, lEz: -1.1, hZ: .12, hX: .1},
+    diamond: {rSx: -.75, rSz: -.06, rEx: -1.25, rEz: .62, lSx: -.75, lSz: .06, lEx: -1.25, lEz: -.62},
+    steeple: {rSx: -.5, rSz: -.08, rEx: -1.85, rEz: .6, lSx: -.5, lSz: .08, lEx: -1.85, lEz: -.6, hX: .12},
+    flex:    {rSx: 0, rSz: -1.45, rEx: 0, rEz: -1.8, lSx: 0, lSz: 1.45, lEx: 0, lEz: 1.8},
+  };
+  const UP = () => new T.Vector3(0, 1, 0);
+  /* a finger as a stretched capsule from a to b */
+  function finger(m, a, b){ m.position.copy(a).add(b).multiplyScalar(.5); const d = b.clone().sub(a), L = Math.max(.02, d.length()); m.scale.set(1, L / .1, 1); m.quaternion.setFromUnitVectors(UP(), d.normalize()); }
+  /* diamond hands (thumbs and index fingers make a diamond around a glowing gem) and scheming fingers (tips tapping together) */
+  function handPose(rig, k){
+    const g = new T.Group(); rig.root.add(g); const fm = rig.skin, F = [], n = k === "diamond" ? 4 : 8;
+    for (let i = 0; i < n; i++) F.push(mesh(caps(.017, .1), fm, 0, 0, 0, g, true));
+    let gem = null; if (k === "diamond"){ gem = new T.Group(); g.add(gem); mesh(oct(.06), M("gem", 0xbff3ff, {em: .8}), 0, 0, 0, gem).scale.set(.85, 1.25, .85); sprite(rig, gem, glowTex(), 0x9fe8ff, .45, 0, 0, 0, .8); sparkles(rig, gem, [0, 0, 0], .16, 6, 0xe8fbff); }
+    const v1 = new T.Vector3(), v2 = new T.Vector3(), o = (x, y, z) => new T.Vector3(x, y, z);
+    rig.hfx = t => {
+      rig.root.updateMatrixWorld(true); const hr = rig.R.hand.getWorldPosition(v1).clone(), hl = rig.L.hand.getWorldPosition(v2).clone(); rig.root.worldToLocal(hr); rig.root.worldToLocal(hl);
+      const sc = rig.root.scale.x || 1, mid = hr.clone().add(hl).multiplyScalar(.5);
+      if (k === "diamond"){ const top = mid.clone().add(o(0, .08, .05)), bot = mid.clone().add(o(0, -.07, .05));
+        finger(F[0], hr.clone().add(o(.03, .03, .04)), top); finger(F[1], hl.clone().add(o(-.03, .03, .04)), top); finger(F[2], hr.clone().add(o(.03, -.02, .04)), bot); finger(F[3], hl.clone().add(o(-.03, -.02, .04)), bot);
+        gem.position.copy(mid).add(o(0, .005, .05)); gem.rotation.y = t * 1.5; }
+      else for (let j = 0; j < 4; j++){ const tap = Math.max(0, Math.sin(t * 7 - j * .9)) * .022, ap = mid.clone().add(o(0, .085 + (j - 1.5) * .018, .05));
+        finger(F[j], hr.clone().add(o(.035, -.03 + j * .022, .045)), ap.clone().add(o(-.012 - tap, 0, 0))); finger(F[4 + j], hl.clone().add(o(-.035, -.03 + j * .022, .045)), ap.clone().add(o(.012 + tap, 0, 0))); }
+      void sc; };
+  }
   function tick(rig, dt){
     rig.t += dt; const t = rig.t, k = dt ? 1 - Math.exp(-dt * 10) : 1, tier = rig.tier, A = rig, live = tier >= 2;
     /* target pose */
@@ -6187,6 +6341,7 @@ const Av3D = (() => {
     if (live){ P.br = Math.sin(t * 1.8) * .012; P.rSz += Math.sin(t * 1.1) * .04; P.lSz -= Math.sin(t * 1.1 + .5) * .04; P.hY = Math.sin(t * .37) * .28 * Math.sin(t * .13 + 1); P.hX = Math.sin(t * .5) * .05;
       if (tier >= 3) P.fRz = Math.sin(t * .4) * .02; }
     if (tier >= 4) P.fY = .26 + Math.sin(t * 1.6) * .05;
+    const HP = rig.pose === "idle" && POSE[rig.a.pose]; if (HP){ const sw = live ? Math.sin(t * 1.1) * .015 : 0; Object.assign(P, HP); P.rSz += sw; P.lSz -= sw; if (rig.a.pose === "flex" && live){ P.rEz += Math.sin(t * 3) * .05; P.lEz -= Math.sin(t * 3) * .05; } }
     if (rig.pose === "cage"){ const r = (t % 4.2), shake = r > 3.2 ? Math.sin(t * 40) * .025 : 0; P.rSx = -1.2 + (r > 3.2 ? Math.sin(t * 30) * .08 : 0); P.lSx = P.rSx; P.rSz = .08; P.lSz = -.08; P.rEx = -.45; P.lEx = -.45; P.fX = shake; P.hY = Math.sin(t * .7) * .45; P.hX = r > 3.2 ? -.12 : Math.sin(t * .4) * .08; rig.rattle = shake; if ((t % 9) > 8.2) P.fY = Math.abs(Math.sin((t % 9 - 8.2) * 4)) * .12; }
     if (rig.pose === "pet"){ P.fY = .05 + Math.sin(t * 2.4) * .06; P.rSz = -.6 + Math.sin(t * 5) * .15; P.lSz = .6 - Math.sin(t * 5) * .15; P.hY = Math.sin(t * .6) * .3; }
     const e = rig.emote; if (e){ const s = t - e.t0, d = e.d || 2.6; if (s > d) rig.emote = null; else { const w = Math.min(1, s * 4, (d - s) * 4);
@@ -6212,23 +6367,45 @@ const Av3D = (() => {
     if (rig.wings) rig.wings.forEach(([wg, s]) => { wg.rotation.y = s * (live ? .25 + Math.sin(t * (tier >= 4 ? 3 : 1.6)) * (tier >= 4 ? .3 : .12) : .25); });
     if (rig.rune){ rig.rune.rotation.z = t * .5; rig.rune.material.opacity = .65 + Math.sin(t * 2) * .2; }
     if (rig.pet) rig.pet.update(dt);
+    if (rig.hfx) rig.hfx(t);
     rig.tick.forEach(f => f(dt, t)); rig.fx.forEach(f => f(dt, t));
   }
 
   /* ---------- views ---------- */
   function frameCam(cam, mode, aspect, spill, pet){
     const F = {full: [1.16, 3.05, 6.6, 0], head: [1.82, .95, 3.4, .1], face: [1.8, .74, 3.2, .1], hair: [1.88, 1.02, 3.4, .1], torso: [1.28, 1.35, 4.4, 0], legs: [.62, 1.25, 4.2, 0], bust: [1.68, 1.15, 4, .1], cage: [1.04, 2.6, 6.3, 0]}[mode] || [1.08, 2.85, 6.6, 0];
-    let [ty, hgt, d] = F; const wid = (mode === "full" || mode === "cage" ? hgt * .7 : mode === "torso" || mode === "legs" ? hgt * .85 : hgt * .95) + (pet && mode === "full" ? .8 : 0);
+    let [ty, hgt, d] = F; const wid = (mode === "full" || mode === "cage" ? hgt * .7 : mode === "torso" || mode === "legs" ? hgt * .85 : hgt * .95) + (pet && mode === "full" ? .55 : 0);
     const tanH = Math.max(hgt / 2 / d, wid / 2 / d / Math.max(.2, aspect)) * (1 + 2 * (spill || 0));
-    cam.fov = 2 * Math.atan(tanH) * 180 / Math.PI; cam.aspect = aspect; cam.position.set(pet && mode === "full" ? .25 : mode === "face" ? .85 : mode === "hair" ? 1.55 : 0, ty + d * (mode === "hair" ? .2 : .1), mode === "face" ? d * .96 : mode === "hair" ? d * .9 : d); cam.lookAt(pet && mode === "full" ? .25 : 0, ty, 0); cam.updateProjectionMatrix();
+    cam.fov = 2 * Math.atan(tanH) * 180 / Math.PI; cam.aspect = aspect; cam.position.set(mode === "face" ? .85 : mode === "hair" ? 1.55 : 0, ty + d * (mode === "hair" ? .2 : .1), mode === "face" ? d * .96 : mode === "hair" ? d * .9 : d); cam.lookAt(0, ty, 0); cam.userData.look = new T.Vector3(0, ty, 0); cam.updateProjectionMatrix();
+  }
+  /* fairies: every bot you catch can fly around you, small, on shimmering wings, leaving a trail of sparkles */
+  function fairyWings(p){
+    const w = new T.Group(); w.position.set(0, .5, -.26); p.torso.add(w); const ws = [];
+    const geo = (big) => G("fwing" + big, () => { const sh = new T.Shape(), L = big ? .75 : .5, H = big ? .42 : .3; sh.moveTo(0, 0); sh.bezierCurveTo(L * .3, H * 1.2, L * 1.05, H * 1.1, L, H * .2); sh.bezierCurveTo(L * .9, -H * .3, L * .3, -H * .2, 0, 0); return new T.ShapeGeometry(sh, 16); });
+    const m1 = M("glow", 0xcff6ff, {op: .55}), m2 = M("glow", 0xffd6f4, {op: .45}), edge = M("glow", 0xffffff, {op: .8});
+    [-1, 1].forEach(s => { const g = new T.Group(); w.add(g); ws.push([g, s]);
+      const up = new T.Mesh(geo(1), m1); up.scale.x = s; up.rotation.z = s * .55; g.add(up);
+      const lo = new T.Mesh(geo(0), m2); lo.scale.x = s; lo.rotation.z = -s * .35; lo.position.y = -.05; g.add(lo);
+      [up, lo].forEach(x => { x.material.side = T.DoubleSide; }); });
+    sprite(p, w, glowTex(), 0xbfefff, 1.2, 0, .1, -.05, .35);
+    p.tick.push((dt, t) => ws.forEach(([g, s]) => { g.rotation.y = s * (.35 + Math.sin(t * 26) * .55); }));
+    void edge;
+  }
+  function makeFairy(b, tier){
+    const p = build(Object.assign(botCfg(b), {aura: "none", back: "none", pet: "none", cape: "none", right: "none", left: "none"}), tier, {pose: "pet"});
+    p.base.visible = false; p.shadow.visible = false; fairyWings(p); return p;
   }
   function addPet(rig, cfg){
     const b = typeof BOTS !== "undefined" && BOTS.find(x => x.id === cfg.pet); if (!b) return;
-    const p = build(Object.assign(botCfg(b), {aura: "none", back: "none", pet: "none"}), rig.tier, {pose: "pet"}); TIER = rig.tier;
-    p.root.scale.setScalar(.36); p.root.position.set(.95, .55, .25); p.root.rotation.y = -.45; rig.root.add(p.root); rig.pet = p; p.base.visible = false;
-    rig.own.push(...p.own); rig.pmats.push(...p.pmats);
+    const p = makeFairy(b, rig.tier); TIER = rig.tier;
+    p.root.scale.setScalar(.31); rig.root.add(p.root); rig.pet = p; rig.own.push(...p.own); rig.pmats.push(...p.pmats);
+    const fly = t => { const an = t * .85; p.root.position.set(Math.cos(an) * .82, 1.15 + Math.sin(t * 2.1) * .12, Math.sin(an) * .62); p.root.rotation.set(0, -an, .18); };
+    fly(0); rig.tick.push((dt, t) => fly(t));
+    emitter(rig, rig.root, {n: 26, tex: sparkTex(), spawn: q => { q.x = p.root.position.x; q.y = p.root.position.y + .1; q.z = p.root.position.z; q.vx = (Math.random() - .5) * .08; q.vy = -.12 - Math.random() * .1; q.vz = (Math.random() - .5) * .08; q.life = .9 + Math.random() * .6; q.s = .035 + Math.random() * .035; q.c = Math.random() < .5 ? 0xfff4c0 : 0xcff6ff; }, shrink: .6});
   }
   function makeRig(spec){
+    if (spec.pose === "fairy"){ const r = build(Object.assign({}, spec.cfg, {aura: "none", back: "none", pet: "none", cape: "none", right: "none", left: "none"}), spec.tier, {pose: "pet"}); r.base.visible = false; r.shadow.visible = false; fairyWings(r);
+      sparkles(r, r.root, [0, 1.1, 0], 1.2, 10, 0xfff4c0); return r; }
     const rig = build(spec.cfg, spec.tier, {pose: spec.pose});
     if (spec.pet !== false && spec.mode === "full" && spec.cfg.pet && spec.cfg.pet !== "none") addPet(rig, spec.cfg);
     if (spec.pose === "cage"){ const bars = new T.Group(); const m = M(spec.bar ? "gold" : "metal", spec.bar || 0x8d8a85); for (let i = -4; i <= 4; i++) mesh(cyl(.03, .03, 2.8, 10), m, i * .22, 1.3, .62, bars); mesh(box(2.1, .07, .07), m, 0, 2.02, .62, bars); mesh(box(2.1, .07, .07), m, 0, .3, .62, bars); rig.root.add(bars); rig.bars = bars; rig.tick.push(() => { bars.position.x = (rig.rattle || 0) * .6; }); }
@@ -6254,10 +6431,16 @@ const Av3D = (() => {
       this.rig.onBurst = () => { const r = this.rig; const fl = sprite(r, r.root, glowTex(), 0xffe08a, .5, 0, 1.2, .3, 1); let s = 0; r.tick.push(dt => { s += dt; fl.scale.setScalar(.5 + s * 9); fl.material.opacity = Math.max(0, 1 - s * 1.6); }); };
       this.size(); this.draw(performance.now(), 0);
     }
-    size(){ const d = DPR(), r = this.cv.getBoundingClientRect(); const w = Math.max(16, Math.round((r.width || this.spec.w) * d)), h = Math.max(16, Math.round((r.height || this.spec.h) * d)); if (this.cv.width !== w || this.cv.height !== h){ this.cv.width = w; this.cv.height = h; } this.w = w; this.h = h; frameCam(this.cam, this.spec.mode, w / h, this.spec.spill, this.rig && !!this.rig.pet); }
+    size(){ const d = DPR(), r = this.cv.getBoundingClientRect(); const w = Math.max(16, Math.round((r.width || this.spec.w) * d)), h = Math.max(16, Math.round((r.height || this.spec.h) * d)); if (this.cv.width !== w || this.cv.height !== h){ this.cv.width = w; this.cv.height = h; } this.w = w; this.h = h;
+      if (!this.tcam) this.tcam = new T.PerspectiveCamera(30, 1, .1, 60); frameCam(this.tcam, this.spec.mode, w / h, this.spec.spill, this.rig && !!this.rig.pet);
+      if (!this.look){ this.cam.position.copy(this.tcam.position); this.cam.fov = this.tcam.fov; this.cam.aspect = this.tcam.aspect; this.look = this.tcam.userData.look.clone(); this.cam.lookAt(this.look); this.cam.updateProjectionMatrix(); } else this.cam.aspect = this.tcam.aspect; }
+    /* glide the camera to the head, the face or the whole figure */
+    focus(mode){ if (this.spec.mode === mode) return; this.spec.mode = mode; this.size(); this.idle = 5; this.vel = 0; }
+    camStep(dt){ const c = this.cam, t = this.tcam; if (!t) return; const k = 1 - Math.exp(-dt * 7);
+      c.position.lerp(t.position, k); c.fov += (t.fov - c.fov) * k; this.look.lerp(t.userData.look, k); c.lookAt(this.look); c.updateProjectionMatrix(); }
     draw(now, dt){
       if (!this.drg){ if (Math.abs(this.vel) > .0005){ this.yaw += this.vel; this.vel *= .94; this.idle = 0; } else { this.idle += dt; if (this.idle > 4 && this.spec.drag){ const tgt = Math.round(this.yaw / (Math.PI * 2)) * Math.PI * 2; this.yaw += (tgt - this.yaw) * Math.min(1, dt * 2); } } }
-      this.rig.root.rotation.y = this.yaw; this.rig.update(dt); renderTo(this.scene, this.cam, this.rig, this.w, this.h, this.ctx);
+      this.rig.root.rotation.y = this.yaw; this.camStep(dt || .016); this.rig.update(dt); renderTo(this.scene, this.cam, this.rig, this.w, this.h, this.ctx);
     }
     drag(){
       const cv = this.cv.parentNode || this.cv; let d = null; cv.style.touchAction = "pan-y"; cv.style.cursor = "grab";
@@ -6276,7 +6459,7 @@ const Av3D = (() => {
   }
   /* still pictures: rendered once, then copied from the cache */
   function snapshot(spec, w, h){
-    const key = JSON.stringify([spec.cfg, spec.tier, spec.mode, spec.rank, spec.pet, spec.pose, spec.bar, w, h]); let c = snaps.get(key); if (c) return c;
+    const key = JSON.stringify([spec.cfg, spec.tier, spec.mode, spec.rank, spec.pet, spec.pose, spec.bar, spec.yaw, w, h]); let c = snaps.get(key); if (c) return c;
     const rig = makeRig(spec); snapScene.add(rig.root); setLights(snapScene, spec.tier, rimFor(spec)); rig.root.rotation.y = spec.yaw || 0;
     for (let i = 0; i < 24; i++) rig.update(.05);
     const cam = new T.PerspectiveCamera(30, w / h, .1, 60); frameCam(cam, spec.mode, w / h, 0, !!rig.pet);
@@ -6291,7 +6474,7 @@ const Av3D = (() => {
     try {
       if (spec.live){ new View(cv, spec); cv.parentNode && cv.parentNode.classList.add("ok"); return; }
       const d = DPR(), w = Math.round(spec.w * d), h = Math.round(spec.h * d); cv.width = w; cv.height = h;
-      const key = JSON.stringify([spec.cfg, spec.tier, spec.mode, spec.rank, spec.pet, spec.pose, spec.bar, w, h]);
+      const key = JSON.stringify([spec.cfg, spec.tier, spec.mode, spec.rank, spec.pet, spec.pose, spec.bar, spec.yaw, w, h]);
       const draw = () => { if (!cv.isConnected) return; const c = snapshot(spec, w, h); const x = cv.getContext("2d"); x.clearRect(0, 0, w, h); x.drawImage(c, 0, 0); cv.parentNode && cv.parentNode.classList.add("ok"); };
       if (snaps.has(key)) draw(); else { queue.push(draw); if (!qraf) qraf = requestAnimationFrame(drain); }
     } catch(e){ console.warn(e); fallback(cv); }
@@ -6303,7 +6486,7 @@ const Av3D = (() => {
   /* an HTML placeholder; becomes a 3D picture as soon as it lands in the page. fb = fallback drawing while loading */
   function tag(cfg, o = {}){
     const id = "a" + (nextId++), w = o.w || 120, h = o.h || 120;
-    reg.set(id, {cfg: Object.assign({}, AV_DEFAULT, cfg || {}), tier: o.tier != null ? o.tier : 2, mode: o.mode || "full", w, h, live: !!o.live, pose: o.pose || (o.live === "cage" ? "cage" : "idle"), rank: o.rank, pet: o.pet, fps: o.fps, drag: o.drag, spill: o.spill, bar: o.bar});
+    reg.set(id, {cfg: Object.assign({}, AV_DEFAULT, cfg || {}), tier: o.tier != null ? o.tier : 2, mode: o.mode || "full", w, h, live: !!o.live, pose: o.pose || (o.live === "cage" ? "cage" : "idle"), rank: o.rank, pet: o.pet, fps: o.fps, drag: o.drag, spill: o.spill, bar: o.bar, yaw: o.yaw});
     if (reg.size > 3000) reg.delete(reg.keys().next().value);
     return `<span class="av3w ${o.cls || ""} ${o.spill ? "spill" : ""}" style="width:${o.fill ? "100%" : w + "px"};height:${o.fill ? "100%" : h + "px"}"><canvas class="av3c" data-k="${id}"></canvas>${o.fb || ""}</span>`;
   }
@@ -6312,7 +6495,7 @@ const Av3D = (() => {
     el.innerHTML = tag(cfg, Object.assign({live: true, drag: true, mode: "full", fill: true}, o, {fb: o.fb || ""}));
     const cv = el.querySelector("canvas");
     return {get view(){ return cv._v; }, set(c, tier){ if (cv._v) cv._v.set(Object.assign({}, AV_DEFAULT, c), tier); else { const s = reg.get(cv.dataset.k); if (s){ s.cfg = Object.assign({}, AV_DEFAULT, c); if (tier != null) s.tier = tier; } } },
-      emote(k){ if (cv._v) cv._v.emote(k); }};
+      emote(k){ if (cv._v) cv._v.emote(k); }, focus(m){ if (cv._v) cv._v.focus(m); else { const s = reg.get(cv.dataset.k); if (s) s.mode = m; } }};
   }
   function react(el, k){ const cv = el && (el.matches && el.matches("canvas") ? el : el.querySelector("canvas.av3c")); if (cv && cv._v) cv._v.emote(k); }
   return {load, tag, stage, react, get ok(){ return !!T && !dead; }, get dead(){ return dead; }};
@@ -6470,7 +6653,7 @@ const Ach = {
     this.init(); this.derive();
     const before = new Set(AV_ITEMS.filter(itemUnlocked).map(i => i.slot + ":" + i.id)), fresh = [];
     for (let pass = 0; pass < 3; pass++){ let n = 0; ACH.forEach(a => { if (S.ach.got[a.id]) return; let ok = false; try { ok = a.test(); } catch(e) {} if (ok){ S.ach.got[a.id] = Date.now(); fresh.push(a); n++; } }); if (!n) break; }
-    if (!fresh.length) return;
+    if (!fresh.length){ if (typeof closetCheck === "function") setTimeout(closetCheck, 600); return; }
     const items = AV_ITEMS.filter(i => itemUnlocked(i) && !before.has(i.slot + ":" + i.id));
     S.ach.newItems = (S.ach.newItems || 0) + items.length;
     save(); if (typeof addXP === "function") setTimeout(() => addXP(fresh.reduce((t, a) => t + 20 * a.tier, 0)), 1500);
@@ -6479,10 +6662,9 @@ const Ach = {
   },
   show(list, items){
     if (!S.ach.seenFirst){ S.ach.seenFirst = 1; if (list.length > 4){ this.pop(`<b>${list.length} trophies unlocked</b><span>For everything you've already done. ${items.length ? items.length + " new avatar items too." : ""}</span>`, ACH.find(a => a.id === list[0].id), true); return; } }
-    if (list.length > 4){ list.sort((a, b) => b.tier - a.tier); this.pop(`<b>${list.length} trophies unlocked</b><span>Including ${esc(list[0].name)}.${items.length ? ` ${items.length} new item${items.length > 1 ? "s" : ""}.` : ""}</span>`, list[0], true); return; }
+    if (list.length > 4){ list.sort((a, b) => b.tier - a.tier); this.pop(`<b>${list.length} trophies unlocked</b><span>Including ${esc(list[0].name)}.${items.length ? ` ${items.length} new item${items.length > 1 ? "s" : ""}.` : ""}</span>`, list[0], true); if (typeof closetCheck === "function") setTimeout(closetCheck, 2400); return; }
     list.forEach((a, i) => setTimeout(() => this.pop(`<b>${esc(a.name)}</b><span>${esc(a.desc)}</span>`, a, false), i * 1600));
-    if (items.length) setTimeout(() => Sound.unlock(), list.length * 1600 + 250);
-    if (items.length) setTimeout(() => this.pop(`<b>New item${items.length > 1 ? "s" : ""}: ${esc(items.map(i => i.name).slice(0, 3).join(", "))}</b><span>Put ${items.length > 1 ? "them" : "it"} on your avatar.</span>`, {tier: 3, cat: "fun"}, true), list.length * 1600);
+    if (typeof closetCheck === "function") setTimeout(closetCheck, Math.min(4, list.length) * 1600 + 400);
   },
   pop(html, a, many){
     const m = html.match(/<b>([\s\S]*?)<\/b>(?:<span>([\s\S]*?)<\/span>)?/) || [], tier = a ? a.tier || 1 : 1;
@@ -6599,7 +6781,10 @@ function lvRewards(L){
   const out = [];
   LV_FRAMES.filter(f => f[0] === L).forEach(f => out.push({kind: "frame", id: f[1], name: f[2]}));
   LV_TITLES.filter(t => t[0] === L && L > 1).forEach(t => out.push({kind: "title", name: t[1]}));
-  LV_COLORS.filter(c => c[4] === L).forEach(c => out.push({kind: "color", key: c[0], id: c[1], name: c[2], hex: c[3]}));
+  /* wardrobe things behind this level: poses, and colours of a few items */
+  AV_ITEMS.filter(i => i.req === "l:" + L && i.slot !== "frame").forEach(i => out.push({kind: "item", slot: i.slot, id: i.id, name: i.name}));
+  Object.entries(CHROMA_DEF).forEach(([k, [f, list]]) => list.filter(c => c[1] === "l:" + L).forEach(c => { const [slot, id] = k.split(":"), item = id === "*" ? "short" : id, ch = chromaOf(slot, item), cc = ch && ch.list.find(x => x.id === c[0]); if (!cc) return;
+    const it = AV_ITEMS.find(i => i.slot === slot && i.id === item); out.push({kind: "color", slot, item: id, f, id: c[0], name: cc.name, hex: cc.hex, of: id === "*" ? "Hair" : slot === "shape" ? (it ? it.name : "") : it ? it.name : ""}); }));
   return out;
 }
 function nextReward(L){ for (let k = L + 1; k <= LV_CAP; k++){ const r = lvRewards(k); if (r.length) return {L: k, r: r[0]}; } return null; }
@@ -6632,7 +6817,8 @@ const lvQueue = [];
 function rewardHTML(r, L){
   if (r.kind === "frame") return `<div class="lvr"><span class="lvr-ic">${avatarBadge(Object.assign({}, myAvatar(), {frame: r.id}), 54)}</span><div><small>New border</small><b>${esc(r.name)}</b></div><button class="btn sm go" data-eq="${r.id}">Wear it</button></div>`;
   if (r.kind === "title") return `<div class="lvr"><span class="lvr-ic lvr-t">${icon("crown", 24)}</span><div><small>New title</small><b>${esc(r.name)}</b></div><button class="btn sm" data-ti="${esc(r.name)}">Use it</button></div>`;
-  return `<div class="lvr"><span class="lvr-ic"><i class="lvr-sw" style="background:${r.hex}"></i></span><div><small>New colour · ${r.key === "skin" ? "skin" : r.key === "hairC" ? "hair" : r.key === "fur" ? "capybara fur" : "clothes"}</small><b>${esc(r.name)}</b></div></div>`;
+  if (r.kind === "item") return `<div class="lvr"><span class="lvr-ic">${Av3D.tag(Object.assign({}, myAvatar(), {[r.slot]: r.id, pet: "none", aura: "none"}), {w: 54, h: 54, mode: r.slot === "pose" ? "torso" : "bust", tier: bodyTier(), rank: -1})}</span><div><small>New ${esc((SLOT_NAME[r.slot] || "item").toLowerCase())}</small><b>${esc(r.name)}</b></div><button class="btn sm go" data-wi="${r.slot}:${r.id}">Try it on</button></div>`;
+  return `<div class="lvr"><span class="lvr-ic"><i class="lvr-sw" style="background:${r.hex}"></i></span><div><small>New colour · ${esc(r.of)}</small><b>${esc(r.name)}</b></div><button class="btn sm" data-wc="${r.slot}:${r.item}:${r.f}:${r.id}">Try it on</button></div>`;
 }
 function lvNext(){
   if (document.querySelector(".lvup") || !lvQueue.length) return;
@@ -6645,11 +6831,13 @@ function lvNext(){
   const close = () => { el.classList.add("out"); setTimeout(() => { el.remove(); lvNext(); }, 260); };
   el.querySelector("[data-lvok]").onclick = close;
   el.querySelectorAll("[data-eq]").forEach(b => b.onclick = () => { S.avatar = Object.assign({}, S.avatar || {}, {frame: b.dataset.eq}); save(); renderRail(); if (typeof renderTop === "function") renderTop(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); b.textContent = "Wearing ✓"; b.disabled = true; });
+  el.querySelectorAll("[data-wi]").forEach(b => b.onclick = () => { const [sl, id] = b.dataset.wi.split(":"), a = myAvatar(); a[sl] = id; fixChroma(a, sl); save(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); b.textContent = "Wearing ✓"; b.disabled = true; });
+  el.querySelectorAll("[data-wc]").forEach(b => b.onclick = () => { const [sl, it, f, id] = b.dataset.wc.split(":"), a = myAvatar(); if (it !== "*") a[sl] = it; else if (!chromaOf(sl, a[sl])) a[sl] = "short"; a[f] = id; save(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); b.textContent = "Wearing ✓"; b.disabled = true; });
   el.querySelectorAll("[data-ti]").forEach(b => b.onclick = () => { S.title = b.dataset.ti; save(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); b.textContent = "Using ✓"; b.disabled = true; });
 }
 /* the one-time hello for people who already played before levels existed */
 setTimeout(() => { brainLvInit(); if (S.lvlWelcome === 1){ S.lvlWelcome = 2; save();
-  if (typeof Notify !== "undefined") Notify.show({key: "lvwelcome", icon: `<span class="lvchip big">${playerLevel()}</span>`, label: "New: Levels", title: `You're level ${playerLevel()}!`, text: "Counted from everything you've played. Every level up brings a border, a title or a colour.", ms: 7000, actions: [{label: "See", primary: true, fn: () => App.go("me")}]}); } }, 2500);
+  if (typeof Notify !== "undefined") Notify.show({key: "lvwelcome", icon: `<span class="lvchip big">${playerLevel()}</span>`, label: "New: Levels", title: `You're level ${playerLevel()}!`, text: "Counted from everything you've played. Level ups bring borders, titles, poses and colours.", ms: 7000, actions: [{label: "See", primary: true, fn: () => App.go("me")}]}); } }, 2500);
 
 /* ---- the level borders ---- */
 const LVF = {
@@ -6719,7 +6907,7 @@ if (typeof ACH_BY !== "undefined") ACH.forEach(a => { ACH_BY[a.id] = a; });
 function levelCardHTML(compact){
   const s = lvOf(S.xp), nx = nextReward(s.L), pct = s.need ? Math.round(s.into / s.need * 100) : 100;
   return `<div class="lvcard ${compact ? "cmp" : ""}"><span class="lvchip">${s.L}</span><div class="grow"><div class="lvc-h"><b>Level ${s.L}</b><span class="muted">${esc(myTitle())}</span><span class="lvc-x">${s.need ? `${s.into} / ${s.need} XP` : "Max level"}</span></div>
-    <div class="bar lvbar"><i style="width:${pct}%"></i></div>${nx && !compact ? `<div class="dim lvc-n">Next reward at level ${nx.L}: <b>${esc(nx.r.name)}</b>${nx.r.kind === "frame" ? " border" : nx.r.kind === "title" ? " title" : " colour"}</div>` : ""}</div></div>`;
+    <div class="bar lvbar"><i style="width:${pct}%"></i></div>${nx && !compact ? `<div class="dim lvc-n">Next reward at level ${nx.L}: <b>${esc(nx.r.name)}</b>${nx.r.kind === "frame" ? " border" : nx.r.kind === "title" ? " title" : nx.r.kind === "item" ? "" : " colour"}</div>` : ""}</div></div>`;
 }
 /* choose which of your titles shows under your name */
 function titleSheet(done){
@@ -6732,7 +6920,7 @@ function titleSheet(done){
 function levelSheet(){
   const L = playerLevel(), rows = [];
   for (let k = 2; k <= LV_CAP && rows.length < 14; k++){ const r = lvRewards(k); if (!r.length || k < L - 3) continue; rows.push([k, r]); }
-  const lab = r => r.kind === "frame" ? `${esc(r.name)} border` : r.kind === "title" ? `Title “${esc(r.name)}”` : `<i class="lvr-sw sm" style="background:${r.hex}"></i>${esc(r.name)} colour`;
+  const lab = r => r.kind === "frame" ? `${esc(r.name)} border` : r.kind === "title" ? `Title “${esc(r.name)}”` : r.kind === "item" ? `${esc(r.name)} ${esc((SLOT_NAME[r.slot] || "").toLowerCase())}` : `<i class="lvr-sw sm" style="background:${r.hex}"></i>${esc(r.name)} ${esc(r.of.toLowerCase())}`;
   detailSheet(`${levelCardHTML()}
     <div class="h-sec" style="margin-top:14px">Rewards</div><div class="lvroad">${rows.map(([k, r]) => `<div class="lvrow ${k <= L ? "got" : ""}"><span class="lvchip ${k <= L ? "" : "off"}">${k}</span><div class="grow">${r.map(lab).join(" · ")}</div>${k <= L ? "✓" : ""}</div>`).join("")}</div>
     <div class="h-sec">How to earn XP</div><div class="lvhow">
@@ -6741,19 +6929,22 @@ function levelSheet(){
       <div><b>+20 to +120</b> each trophy</div><div><b>+${XP.recruit}</b> each friend you invite who plays you</div></div>`);
 }
 
-/* ===== Your figure: wardrobe first (every item is a trophy reward), trophies second ===== */
-/* the wardrobe: who you are first (body, hair, face), then what you wear, then what you've earned */
-const WGROUPS = [
-  ["body", "Body", ["shape", "sw:fur", "sex", "sw:skin", "build", "height"]], ["hair", "Hair", ["hair", "sw:hairC"]],
-  ["face", "Face", ["eyeshape", "eyes", "brows", "nose", "mouth", "beard", "cheeks", "paint"]],
-  ["clothes", "Clothes", ["shirt", "coat", "pants", "shoes"]], ["headwear", "Hats & extras", ["head", "glasses", "mask", "ears"]],
-  ["back", "Back", ["back", "cape"]], ["hands", "Hands", ["right", "left", "wrist"]], ["aura", "Aura", ["aura"]],
-  ["figure", "Figure", null], ["pet", "Pet", "pet"], ["frame", "Border", ["frame"]]];
-const SW_NAME = {fur: "Fur colour", skin: "Skin", hairC: "Hair colour", shirtC: "Colour", coatC: "Colour", pantsC: "Colour", shoesC: "Colour", capeC: "Colour"};
-const SLOT_NAME = Object.fromEntries(AV_SLOTS);
-/* face details get a close, slightly turned camera so a nose or an eyebrow actually shows */
-const FACEISH = ["eyes", "eyeshape", "brows", "nose", "mouth", "beard", "cheeks", "glasses", "paint", "mask", "ears"];
-const HEADISH = ["hair", "head", "eyes", "glasses", "mask", "ears", "paint", "shape", "eyeshape", "brows", "nose", "mouth", "beard", "cheeks"];
+/* ===== Your figure: the wardrobe (8 fixed categories, few distinct things, colours only on some) and your trophies ===== */
+const WI = (d) => `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const WCATS = [
+  {k: "figure", t: "Figure", focus: "full", secs: ["shape", "sex", "cls"], ic: WI('<circle cx="12" cy="6.5" r="3.5"/><path d="M5 21c0-4.5 3-8 7-8s7 3.5 7 8"/>')},
+  {k: "head", t: "Head", focus: "head", secs: ["hair", "head"], ic: WI('<path d="M4 15l2-8 4 4 2-6 2 6 4-4 2 8z"/><path d="M4 19h16"/>')},
+  {k: "face", t: "Face", focus: "face", secs: ["expr", "eyes", "beard", "glasses", "mask", "paint", "ears"], ic: WI('<circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r=".6" fill="currentColor"/><circle cx="15" cy="10" r=".6" fill="currentColor"/><path d="M8.5 14.5c2 2 5 2 7 0"/>')},
+  {k: "outfit", t: "Outfit", focus: "full", secs: ["shirt", "coat", "pants", "shoes"], ic: WI('<path d="M8 3l-5 3 2 4 3-1v12h8V9l3 1 2-4-5-3c-1 2-2.5 3-4 3s-3-1-4-3z"/>')},
+  {k: "hands", t: "Hands", focus: "torso", secs: ["pose", "right", "left", "wrist"], ic: WI('<path d="M7 11V5.5a1.5 1.5 0 013 0V11m0-1V4a1.5 1.5 0 013 0v6m0-.5V5.5a1.5 1.5 0 013 0V13m0-2.5a1.5 1.5 0 013 0V15c0 4-3 7-7 7s-6-2-8-5l-2-3a1.5 1.5 0 012.5-1.5L7 14"/>')},
+  {k: "fx", t: "Effects", focus: "full", secs: ["back", "cape", "aura"], ic: WI('<path d="M12 2l2.2 6.3L20 10l-5.8 1.7L12 18l-2.2-6.3L4 10l5.8-1.7z"/><path d="M19 17l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/>')},
+  {k: "fairy", t: "Fairy", focus: "full", secs: ["pet"], ic: WI('<circle cx="12" cy="8" r="2.5"/><path d="M12 11v8"/><path d="M11 12c-3-4-8-4-8 0s4 4 8 1zM13 12c3-4 8-4 8 0s-4 4-8 1z"/>')},
+  {k: "border", t: "Border", focus: "full", secs: ["frame"], ic: WI('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5"/><path d="M12 1.5l1.5 2h-3z" fill="currentColor"/>')},
+];
+const SLOT_NAME = Object.fromEntries(AV_SLOTS.concat([["sex", "Body"]]));
+/* how each tile is framed: only the part that matters, without what would hide it */
+const WPV = {shape: ["bust"], hair: ["hair", {head: "none"}], head: ["head"], expr: ["face", {glasses: "none", mask: "none"}], eyes: ["face", {glasses: "none", mask: "none"}], beard: ["face", {mask: "none"}], glasses: ["face", {mask: "none"}], mask: ["face"], paint: ["face", {mask: "none", glasses: "none"}], ears: ["face"],
+  shirt: ["torso", {coat: "none"}], coat: ["torso"], pants: ["legs"], shoes: ["legs"], pose: ["torso"], right: ["torso", {pose: "idle"}], left: ["torso", {pose: "idle"}], wrist: ["torso", {pose: "idle"}], back: ["full", {}, Math.PI * .82], cape: ["full", {}, Math.PI * .82], aura: ["full"], sex: ["bust"], cls: ["full"]};
 /* a short reason for a locked item, e.g. "Win 10 games" or "150 trophies" */
 function itemReqShort(it){
   if (!it.req) return "";
@@ -6765,17 +6956,17 @@ function itemReqShort(it){
 }
 function achProg(a){ if (!a || !a.prog) return null; try { const [c, g] = a.prog(); return {c: Math.min(c, g), g, p: Math.max(0, Math.min(1, c / g))}; } catch(e) { return null; } }
 /* a small detail card: bottom sheet on phones, centred on bigger screens */
-function detailSheet(html){
+function detailSheet(html, onClose){
   const el = document.createElement("div"); el.className = "dsheet"; el.innerHTML = `<div class="dcard"><div class="grab"></div>${html}<button class="btn" data-dclose style="width:100%;margin-top:12px">Close</button></div>`;
-  document.body.appendChild(el); const close = () => { el.classList.add("out"); setTimeout(() => el.remove(), 200); };
+  document.body.appendChild(el); let done = false; const close = () => { if (done) return; done = true; el.classList.add("out"); setTimeout(() => el.remove(), 200); if (onClose) onClose(); };
   el.onclick = e => { if (e.target === el || e.target.closest("[data-dclose]")) close(); }; return {el, close};
 }
 function achDetail(a){
-  const got = achHas(a.id), pr = achProg(a), items = AV_ITEMS.filter(i => i.req === "t:" + a.id);
+  const got = achHas(a.id), pr = achProg(a), items = AV_ITEMS.filter(i => i.req === "t:" + a.id).map(i => i.name).concat(Object.entries(CHROMA_DEF).flatMap(([k, [f, l]]) => l.filter(c => c[1] === "t:" + a.id).map(c => { const it = AV_ITEMS.find(i => i.slot + ":" + i.id === k); return ((AV_COLORS.cloth.concat(AV_COLORS.hairC, AV_COLORS.skin, AV_COLORS.fur).find(x => x[0] === c[0]) || [])[1] || c[0]) + " " + (it ? it.name.toLowerCase() : "colour"); })));
   detailSheet(`<div style="display:flex;gap:12px;align-items:center">${achMedal(a, 52, got)}<div><div class="muted" style="font:800 11px var(--body);letter-spacing:.06em">${ACH_TIER[a.tier].name.toUpperCase()}</div><div style="font:900 20px var(--display)">${esc(a.name)}</div></div></div>
     ${got ? `<div class="muted" style="font:800 11px var(--body);letter-spacing:.06em;margin-top:12px">WHY YOU GOT IT</div>` : ""}<p style="margin:${got ? 4 : 10}px 0 6px;font-size:15px">${esc(a.desc)}</p>
     ${got ? `<p class="muted" style="margin:0">Unlocked on ${new Date(S.ach.got[a.id]).toLocaleDateString("en-GB")}</p>` : pr ? `<div class="bar" style="margin-top:6px"><i style="width:${Math.round(pr.p * 100)}%"></i></div><p class="muted" style="margin:4px 0 0">${pr.c.toLocaleString("en")} / ${pr.g.toLocaleString("en")}</p>` : `<p class="muted" style="margin:0">Not unlocked yet.</p>`}
-    ${items.length ? `<div class="dreward"><span class="muted" style="font:800 11px var(--body);letter-spacing:.06em">REWARD</span>${items.map(i => `<b>${esc(i.name)}</b>`).join(" · ")}</div>` : ""}`);
+    ${items.length ? `<div class="dreward"><span class="muted" style="font:800 11px var(--body);letter-spacing:.06em">REWARD</span>${items.map(n => `<b>${esc(n)}</b>`).join(" · ")}</div>` : ""}`);
 }
 /* what a figure needs, as three simple checks */
 function classDetail(c){
@@ -6791,10 +6982,10 @@ function heroStage(el, cfg, o = {}){
   el.classList.add("rkstage"); el.classList.toggle("spilling", spill);
   el.style.setProperty("--rk1", t.c1); el.style.setProperty("--rk2", t.c2);
   el.innerHTML = `<div class="rk-bg">${fi >= 0 ? crestSVG(fi, "", 220, {cls: "rk-wm"}) : ""}</div><div class="rk-fig"></div>${fi >= 0 ? `<div class="rk-badge">${crestSVG(fi, fi === rk.idx ? rk.div : "", fi >= 7 ? 74 : 54)}</div>` : ""}`;
-  return Av3D.stage(el.querySelector(".rk-fig"), cfg, {tier, rank: fi, spill: spill ? .28 : 0, pet: o.pet});
+  return Av3D.stage(el.querySelector(".rk-fig"), cfg, {tier, rank: fi, spill: spill ? .28 : 0, pet: o.pet, mode: o.mode || "full"});
 }
 Views.awards = {
-  mount(main, arg){ this.main = main; this.tab = (arg && arg.tab) || this.tab || "wardrobe"; this.grp = (arg && arg.grp) || this.grp || "body"; this.open = this.open || null; Ach.check(); S.ach.newItems = 0; this.draw(); },
+  mount(main, arg){ this.main = main; this.tab = (arg && arg.tab) || this.tab || "wardrobe"; this.cat = (arg && arg.cat) || this.cat || "figure"; this.open = this.open || null; this.goal = arg && arg.goal; Ach.check(); S.ach.newItems = 0; this.draw(); },
   draw(){
     const av = myAvatar(), n = achCount(), tier = bodyTier(n), cls = AV_CLASSES.find(c => c.k === av.cls) || AV_CLASSES[0], nextT = BODY_TIERS.find(t => t.n > n);
     this.main.innerHTML = `<div class="page wpage"><div class="wtop">
@@ -6808,76 +6999,96 @@ Views.awards = {
       <div class="seg" style="margin:10px 0 8px"><button class="${this.tab === "wardrobe" ? "on" : ""}" data-tab="wardrobe">Wardrobe</button><button class="${this.tab === "trophies" ? "on" : ""}" data-tab="trophies">Trophies</button></div>
       <div id="awchips"></div></div>
       <div id="awbody"></div></div>`;
-    this.stage = heroStage($("#avst"), av, {tier});
+    const c = WCATS.find(x => x.k === this.cat) || WCATS[0];
+    this.stage = heroStage($("#avst"), av, {tier, mode: this.tab === "wardrobe" ? c.focus : "full"});
     $$("[data-em]", this.main).forEach(b => b.onclick = () => { this.stage.emote(b.dataset.em); Sound.play(b.dataset.em === "power" ? "Capture" : "Move", .5); });
-    $$("[data-tab]", this.main).forEach(b => b.onclick = () => { if (this.tab === b.dataset.tab) return; this.tab = b.dataset.tab; $$("[data-tab]", this.main).forEach(x => x.classList.toggle("on", x === b)); this.body(); });
+    $$("[data-tab]", this.main).forEach(b => b.onclick = () => { if (this.tab === b.dataset.tab) return; this.tab = b.dataset.tab; $$("[data-tab]", this.main).forEach(x => x.classList.toggle("on", x === b)); this.stage.focus(this.tab === "wardrobe" ? (WCATS.find(x => x.k === this.cat) || WCATS[0]).focus : "full"); this.body(); });
     this.body();
+    if (this.goal){ const g = this.goal; this.goal = null; setTimeout(() => { const b = this.main.querySelector(`[data-item="${g.slot}:${g.id}"]`); if (b){ b.scrollIntoView({block: "center", behavior: "smooth"}); b.classList.add("flash"); } }, 400); }
   },
   body(){ if (this.tab === "trophies"){ $("#awchips").innerHTML = ""; this.trophies(); } else this.wardrobe(); },
   /* ---------- wardrobe ---------- */
+  pv(cfg, slot, size = 104){ const [mode, over, yaw] = WPV[slot] || ["full"]; return Av3D.tag(Object.assign({}, cfg, over || {}, slot === "aura" ? {} : {aura: "none"}, {pet: "none"}), {w: size, h: size, mode, yaw, tier: bodyTier(), rank: -1, fill: true}); },
+  newIn(cat){ const nw = S.wNew || []; return nw.some(k => cat.secs.includes(k.split(":")[0])); },
   wardrobe(){
-    const body = $("#awbody"), av = myAvatar(), tier = bodyTier(), g = WGROUPS.find(x => x[0] === this.grp) || WGROUPS[0];
-    const count = slots => { const its = AV_ITEMS.filter(i => slots.includes(i.slot)); let u = its.filter(itemUnlocked).length, all = its.length;
-      slots.filter(x => x.startsWith("sw:")).forEach(x => { const l = AV_COLORS[x.slice(3)]; all += l.length; u += l.filter(c => itemUnlocked({req: c[3]})).length; }); return [u, all]; };
-    const chips = WGROUPS.map(([k, t, slots]) => { const [u, all] = slots === "pet" ? [caughtBots().length, BOTS.length] : slots ? count(slots) : [AV_CLASSES.filter(classUnlocked).length, AV_CLASSES.length]; return `<button class="chip ${k === this.grp ? "on" : ""}" data-grp="${k}">${t} <span>${u}/${all}</span></button>`; }).join("");
-    const pv = (cfg, slot) => Av3D.tag(Object.assign({}, cfg, slot === "aura" ? {} : {aura: "none"}, {pet: "none"}), {w: 104, h: 104, mode: FACEISH.includes(slot) ? "face" : slot === "hair" || slot === "head" ? "hair" : HEADISH.includes(slot) ? "head" : ["shirt", "coat"].includes(slot) ? "torso" : ["pants", "shoes"].includes(slot) ? "legs" : "full", tier, rank: -1, fill: true});
-    const card = (inner, name, on, ok, why, data) => `<button class="wi ${on ? "on" : ""} ${ok ? "" : "locked"}" ${data}><div class="wi-pv">${inner}<span class="wi-on">✓</span>${ok ? "" : `<span class="wi-lock">${LOCK_SVG}</span>`}</div><b>${esc(name)}</b>${ok ? "" : `<small>${esc(why)}</small>`}</button>`;
-    let grid = "";
-    if (!g[2]) grid = `<div class="wgrid">${AV_CLASSES.map(c => card(pv(Object.assign({}, av, {cls: c.k}), "cls"), c.name, av.cls === c.k, classUnlocked(c), `${c.need.tro} trophies`, `data-cls="${c.k}"`)).join("")}</div>`;
-    else if (g[2] === "pet"){
-      const caught = caughtBots();
-      grid = !petsOpen() ? `<div class="unit"><b>Pets unlock at 50 trophies.</b><p class="muted" style="margin:4px 0 0">Then every bot you've caught can leave its cage and follow you around. You have ${achCount()}.</p></div>`
-        : `<p class="muted" style="margin:0 0 10px">Every bot you beat sits in a cage. Pick one to let it out: it floats next to you as your pet.</p><div class="wgrid">${card(`<div class="wi-none">∅</div>`, "No pet", av.pet === "none", true, "", `data-item="pet:none"`)}${BOTS.map(b => { const got = caught.includes(b);
-          return card(Av3D.tag(Object.assign(botCfg(b), {aura: "none"}), {w: 104, h: 104, mode: "full", tier: botTierOf(b), fill: true}), got ? b.name : "???", av.pet === b.id, got, got ? "" : `Beat ${b.name} (${b.r})`, `data-item="pet:${b.id}"`); }).join("")}</div>`;
-    }
-    else grid = g[2].map(slot => {
-      if (slot.startsWith("sw:")) return `<div class="swblk" data-for="${slot}" ${this.noSw(slot, av) ? "hidden" : ""}>${this.swatches(slot.slice(3), av)}</div>`;
-      const sw = CLOTH_SLOT[slot] ? `<div class="swblk" data-for="${slot}" ${this.noSw(slot, av) ? "hidden" : ""}>${this.swatches(CLOTH_SLOT[slot], av)}</div>` : "";
-      return `${g[2].length > 1 ? `<div class="wsub">${esc(SLOT_NAME[slot])}</div>` : ""}<div class="wgrid ${slot === "frame" ? "frames" : ""}">${AV_ITEMS.filter(i => i.slot === slot).map(it => {
-      const inner = slot === "frame" ? `<div class="wi-frame">${avatarBadge(Object.assign({}, av, {frame: it.id}), 56, S.puzzle.r)}</div>` : pv(Object.assign({}, av, {[slot]: it.id}), slot);
-      return card(inner, it.name, av[slot] === it.id, itemUnlocked(it), itemReqShort(it), `data-item="${slot}:${it.id}"`); }).join("")}</div>${sw}`; }).join("");
-    const ch = $("#awchips"), keep = ch.firstElementChild ? ch.firstElementChild.scrollLeft : null;
-    ch.innerHTML = `<div class="chips wchips">${chips}</div>`; body.innerHTML = grid; this.pvf = pv;
-    const on = ch.querySelector(".chip.on"); if (on){ const row = on.parentNode; row.scrollLeft = keep != null ? keep : Math.max(0, on.offsetLeft - row.clientWidth / 2 + on.offsetWidth / 2); }
-    $$("[data-grp]", ch).forEach(b => b.onclick = () => { if (this.grp === b.dataset.grp) return; this.grp = b.dataset.grp; this.wardrobe(); const m = $("#main"), top = $(".wtop"); if (m && top && body.getBoundingClientRect().top < top.getBoundingClientRect().bottom) (m.scrollHeight > m.clientHeight ? m : document.scrollingElement).scrollTo({top: top.offsetHeight > 0 ? body.offsetTop - top.offsetHeight - 10 : 0}); });
+    const body = $("#awbody"), av = myAvatar(), cat = WCATS.find(x => x.k === this.cat) || WCATS[0];
+    /* the eight categories: one fixed row of icons */
+    $("#awchips").innerHTML = `<div class="wcats" role="tablist">${WCATS.map(c => `<button class="wcat ${c.k === cat.k ? "on" : ""}" data-cat="${c.k}" role="tab" aria-selected="${c.k === cat.k}" aria-label="${c.t}">${c.ic}<span>${c.t}</span>${this.newIn(c) ? `<i class="wdot"></i>` : ""}</button>`).join("")}</div>`;
+    $$("[data-cat]", $("#awchips")).forEach(b => b.onclick = () => { if (this.cat === b.dataset.cat) return; this.cat = b.dataset.cat; Sound.tap(); const c = WCATS.find(x => x.k === this.cat); if (this.stage) this.stage.focus(c.focus); this.wardrobe();
+      const m = $("#main"), top = $(".wtop"); if (m && top && body.getBoundingClientRect().top < top.getBoundingClientRect().bottom) (m.scrollHeight > m.clientHeight ? m : document.scrollingElement).scrollTo({top: top.offsetHeight > 0 ? body.offsetTop - top.offsetHeight - 10 : 0}); });
+    const goal = S.track && cat.secs.includes(S.track.slot) ? S.track : null, nw = new Set(S.wNew || []);
+    const card = (inner, name, on, ok, why, data, isNew, tracked) => `<button class="wi ${on ? "on" : ""} ${ok ? "" : "locked"} ${tracked ? "tracked" : ""}" ${data}><div class="wi-pv">${inner}<span class="wi-on">✓</span>${ok ? "" : `<span class="wi-lock">${LOCK_SVG}</span>`}${isNew ? `<span class="wi-new">NEW</span>` : ""}${tracked ? `<span class="wi-goal">${icon("target", 14)}</span>` : ""}</div><b>${esc(name)}</b>${ok ? "" : `<small>${esc(why)}</small>`}</button>`;
+    const sec = slot => {
+      if (slot === "sex") return av.shape === "piece" ? "" : `<div class="wsub">Body</div><div class="wseg">${[["m", "Broad"], ["f", "Slim"]].map(([k, t]) => `<button class="${av.sex === k ? "on" : ""}" data-sex="${k}">${t}</button>`).join("")}</div>`;
+      if (slot === "cls") return `<div class="wsub">Rank piece <span class="dim">· your pedestal${av.shape === "piece" ? " and head" : ""}</span></div><div class="wgrid">${AV_CLASSES.map(c => card(this.pv(Object.assign({}, av, {cls: c.k}), "cls"), c.name, av.cls === c.k, classUnlocked(c), `${c.need.tro} trophies`, `data-cls="${c.k}"`)).join("")}</div>`;
+      if (slot === "hair" && av.shape === "flower") return `<div class="wsub">Hair</div><p class="muted wnote">Blossoms have petals instead of hair. Change their colour under Figure.</p>`;
+      if (slot === "pet"){ const caught = caughtBots();
+        if (!petsOpen()) return `<div class="unit"><b>Fairies unlock at 50 trophies.</b><p class="muted" style="margin:4px 0 0">Then every bot you've caught can fly around you as a little fairy. You have ${achCount()}.</p></div>`;
+        return `<p class="muted wnote">Every bot you beat can come out of its cage as a tiny fairy that flies around you.</p><div class="wgrid">${card(`<div class="wi-none">∅</div>`, "No fairy", av.pet === "none", true, "", `data-item="pet:none"`)}${BOTS.map(b => { const got = caught.includes(b);
+          return card(got ? Av3D.tag(botCfg(b), {w: 104, h: 104, mode: "full", pose: "fairy", tier: botTierOf(b), rank: -1, fill: true}) : `<div class="wi-none">?</div>`, got ? b.name : "???", av.pet === b.id, got, got ? "" : `Beat ${b.name} (${b.r})`, `data-item="pet:${b.id}"`); }).join("")}</div>`; }
+      const items = AV_ITEMS.filter(i => i.slot === slot); if (!items.length) return "";
+      const grid = `<div class="wgrid ${slot === "frame" ? "frames" : ""}">${items.map(it => {
+        const inner = slot === "frame" ? `<div class="wi-frame">${avatarBadge(Object.assign({}, av, {frame: it.id}), 56, S.puzzle.r)}</div>` : this.pv(Object.assign({}, av, {[slot]: it.id}), slot);
+        return card(inner, it.name, av[slot] === it.id, itemUnlocked(it), itemReqShort(it), `data-item="${slot}:${it.id}"`, nw.has(slot + ":" + it.id), goal && goal.slot === slot && goal.id === it.id && !goal.f); }).join("")}</div>`;
+      return `<div class="wsub">${esc(SLOT_NAME[slot])}${slot === "pose" ? ` <span class="dim">· poses put hand items away</span>` : ""}</div>${grid}${this.chromas(slot, av)}`;
+    };
+    body.innerHTML = cat.secs.map(sec).join("");
     $$("[data-item]", body).forEach(b => b.onclick = () => this.pick(b));
-    $$("[data-sw]", body).forEach(b => b.onclick = () => { const [key, id] = b.dataset.sw.split(":"), c = (key === "skin" || key === "hairC" || key === "fur" ? AV_COLORS[key] : AV_COLORS.cloth).find(x => x[0] === id);
-      if (!itemUnlocked({req: c[3]})){ detailSheet(`<div class="row" style="gap:12px;flex-wrap:nowrap"><span class="sw big" style="--c:${c[2]}"></span><div><div style="font:900 20px var(--display)">${esc(c[1])}</div><p style="margin:4px 0 0">${esc(itemReqText({req: c[3]}))}. You have ${achCount()} trophies.</p></div></div>`); return; }
-      this.equip(key, id, b, true); });
+    $$("[data-cr]", body).forEach(b => b.onclick = () => this.pickChroma(b));
+    $$("[data-sex]", body).forEach(b => b.onclick = () => this.equip("sex", b.dataset.sex, b));
     $$("[data-cls]", body).forEach(b => b.onclick = () => { const c = AV_CLASSES.find(x => x.k === b.dataset.cls); if (!classUnlocked(c)){ classDetail(c); return; } this.equip("cls", c.k, b); Sound.cheer(2); });
+    /* seen: the NEW marks of this category go away next time */
+    if (S.wNew && S.wNew.length){ const keep = S.wNew.filter(k => !cat.secs.includes(k.split(":")[0])); if (keep.length !== S.wNew.length){ S.wNew = keep; save(); } }
   },
-  noSw(slot, av){ if (slot === "sw:fur") return av.shape !== "capy"; if (slot === "sw:skin") return av.shape === "capy"; return (slot === "coat" && ["none", "steel", "gold"].includes(av.coat)) || (slot === "shoes" && ["bare", "golden"].includes(av.shoes)); },
+  /* the colour dots under the item you wear, if it has any */
+  chromas(slot, av){
+    const ch = chromaOf(slot, av[slot]); if (!ch) return "";
+    const cur = av[ch.f] == null ? "" : av[ch.f], it = AV_ITEMS.find(i => i.slot === slot && i.id === av[slot]), g = S.track;
+    return `<div class="wchroma"><span class="dim">${esc(it ? it.name : "")} colours</span><div class="swr">${ch.list.map(c => { const ok = itemUnlocked({req: c.req}), tr = g && g.f === ch.f && g.id === c.id;
+      return `<button class="sw ${cur === c.id ? "on" : ""} ${ok ? "" : "locked"} ${tr ? "tracked" : ""}" data-cr="${slot}:${ch.f}:${c.id}" title="${esc(c.name)}" aria-label="${esc(c.name)}" style="--c:${c.hex}">${ok ? "" : LOCK_SVG}</button>`; }).join("")}</div></div>`;
+  },
   /* after a change: redraw only the small pictures, keep every button where it is (so the next tap always lands) */
   refresh(){
-    const body = $("#awbody"), av = myAvatar(); if (!body || !this.pvf) return;
+    const body = $("#awbody"), av = myAvatar(); if (!body) return;
     body.querySelectorAll(".wi[data-item], .wi[data-cls]").forEach(b => { const box = b.querySelector(".wi-pv"), old = box && box.querySelector(":scope > .av3w"); if (!old) return;
-      let cfg, slot; if (b.dataset.cls){ cfg = Object.assign({}, av, {cls: b.dataset.cls}); slot = "cls"; } else { const [s2, id] = b.dataset.item.split(":"); if (s2 === "pet" || s2 === "frame") return; slot = s2; cfg = Object.assign({}, av, {[s2]: id}); }
-      const t = document.createElement("div"); t.innerHTML = this.pvf(cfg, slot); old.replaceWith(t.firstElementChild); });
-    body.querySelectorAll(".swblk").forEach(x => { x.hidden = this.noSw(x.dataset.for, av); });
+      let cfg, slot; if (b.dataset.cls){ cfg = Object.assign({}, av, {cls: b.dataset.cls}); slot = "cls"; } else { const [s2, id] = b.dataset.item.split(":"); if (s2 === "pet" || s2 === "frame") return; slot = s2; cfg = Object.assign({}, av, {[s2]: id}); fixChroma(cfg, s2); }
+      const t = document.createElement("div"); t.innerHTML = this.pv(cfg, slot); old.replaceWith(t.firstElementChild); });
   },
-  /* a row of colour dots under an item */
-  swatches(key, av){
-    const list = key === "skin" || key === "hairC" || key === "fur" ? AV_COLORS[key] : AV_COLORS.cloth;
-    return `<div class="wsub">${esc(SW_NAME[key])}</div><div class="swr">${list.map(([id, name, hex, req]) => { const ok = itemUnlocked({req}); return `<button class="sw ${(av[key] || "") === id ? "on" : ""} ${ok ? "" : "locked"}" data-sw="${key}:${id}" title="${esc(name)}" aria-label="${esc(name)}" style="--c:${hex || "transparent"}">${id === "" ? "↺" : ""}${ok ? "" : LOCK_SVG}</button>`; }).join("")}</div>`;
+  /* locked things: show it on you for a moment, say how to get it, offer to track it */
+  locked(slot, id, name, req, f){
+    const av = myAvatar(), tryOn = Object.assign({}, av, f ? {[slot]: av[slot], [f]: id} : {[slot]: id}); if (!f) fixChroma(tryOn, slot);
+    if (this.stage) this.stage.set(tryOn, bodyTier());
+    const pr = reqProgress(req), tracked = S.track && S.track.slot === slot && S.track.id === id && (S.track.f || null) === (f || null);
+    const sh = detailSheet(`<div class="wl-h"><div class="wl-pv">${slot === "frame" ? avatarBadge(Object.assign({}, av, {frame: id}), 84, S.puzzle.r) : f ? `<span class="sw big" style="--c:${(chromaOf(slot, av[slot]).list.find(c => c.id === id) || {}).hex}"></span>` : this.pv(tryOn, slot, 96)}</div>
+        <div><div class="muted" style="font:800 11px var(--body);letter-spacing:.06em">${f ? "COLOUR" : esc((SLOT_NAME[slot] || "").toUpperCase())} · LOCKED</div><div style="font:900 21px var(--display)">${esc(name)}</div><p class="dim" style="margin:2px 0 0;font-size:12.5px">You're trying it on above.</p></div></div>
+      <p style="margin:12px 0 6px;font-size:15px">${esc(pr.txt)}</p>${pr.g ? `<div class="bar"><i style="width:${Math.round(Math.min(1, pr.c / pr.g) * 100)}%"></i></div><p class="muted" style="margin:4px 0 0">${pr.c.toLocaleString("en")} / ${pr.g.toLocaleString("en")}</p>` : ""}
+      <button class="btn ${tracked ? "" : "go"} big" data-track style="width:100%;margin-top:12px">${icon("target", 18)} ${tracked ? "Tracking. Stop tracking" : "Track it"}</button>
+      <p class="dim" style="margin:6px 0 0;font-size:12.5px;text-align:center">${tracked ? "It's on your home screen. We tell you the moment it's yours." : "It shows up on your home screen with your progress, and we tell you the moment it's yours."}</p>`, () => { if (this.stage && $("#avst")) this.stage.set(myAvatar(), bodyTier()); });
+    sh.el.querySelector("[data-track]").onclick = () => { if (tracked) S.track = null; else { S.track = {slot, id, name, req, f: f || null, ts: Date.now()}; Sound.unlock && Sound.tap(); } save(); sh.close(); toast(tracked ? "Not tracking it any more." : `Tracking ${name}. It's on your home screen now.`, 2600); this.wardrobe(); };
   },
   pick(b){
     const [slot, id] = b.dataset.item.split(":");
-    if (slot === "pet"){ if (b.classList.contains("locked")){ const bot = BOTS.find(x => x.id === id); detailSheet(`<div style="font:900 20px var(--display)">Catch ${esc(bot.name)} first</div><p>Beat ${esc(bot.name)} (${bot.r}) in a game. Then it lands in your cage and can come out as your pet.</p>`); return; } this.equip("pet", id, b); return; }
+    if (slot === "pet"){ if (b.classList.contains("locked")){ const bot = BOTS.find(x => x.id === id); detailSheet(`<div style="font:900 20px var(--display)">Catch ${esc(bot.name)} first</div><p>Beat ${esc(bot.name)} (${bot.r}) in a game. Then ${esc(bot.name)} can fly around you as a fairy.</p>`); return; } this.equip("pet", id, b); return; }
     const it = AV_ITEMS.find(i => i.slot === slot && i.id === id);
-    if (!itemUnlocked(it)){ if (it.req.startsWith("t:")) achDetail(achById(it.req.slice(2)));
-      else if (it.req.startsWith("r:")) detailSheet(`<div class="row" style="gap:12px;flex-wrap:nowrap">${crestSVG(TIERS.findIndex(t => t.k === id), "", 64)}<div><div style="font:900 20px var(--display)">${esc(it.name)} border</div><p style="margin:4px 0 0">Reach ${it.req.slice(2)} puzzle rating once and this border is yours for good. Your best so far: ${peakRating()}.</p></div></div>`);
-      else detailSheet(`<div style="font:900 20px var(--display)">${esc(it.name)}</div><p>Collect ${it.req.slice(2)} trophies to unlock it. You have ${achCount()}.</p><div class="bar"><i style="width:${Math.min(100, Math.round(achCount() / +it.req.slice(2) * 100))}%"></i></div>`); return; }
+    if (!itemUnlocked(it)){ if (it.req.startsWith("c:")){ classDetail(AV_CLASSES.find(c => c.k === it.req.slice(2))); return; } this.locked(slot, id, it.name, it.req); return; }
     this.equip(slot, id, b);
+  },
+  pickChroma(b){
+    const [slot, f, id] = b.dataset.cr.split(":"), c = chromaOf(slot, myAvatar()[slot]).list.find(x => x.id === id);
+    if (!itemUnlocked({req: c.req})){ this.locked(slot, id, c.name + " " + (AV_ITEMS.find(i => i.slot === slot && i.id === myAvatar()[slot]) || {name: ""}).name.toLowerCase(), c.req, f); return; }
+    this.equip(f, id, b, true);
   },
   /* one tap: the tile, the figure and the save update at once; the slow part (saving, syncing) waits */
   equip(slot, id, b, sw){
     const av = myAvatar(); if ((av[slot] || "") === id) return; av[slot] = id; S.stat.dressed = 1;
-    const grid = b.closest(sw ? ".swr" : ".wgrid"); if (grid) grid.querySelectorAll(".on").forEach(x => x.classList.remove("on")); b.classList.add("on");
-    /* previews follow the new look a moment later; swatches for coats and shoes appear or vanish with the item */
-    clearTimeout(this._rw); this._rw = setTimeout(() => { if (this.tab === "wardrobe") this.refresh(); }, 450);
+    if (AV_ITEMS.some(i => i.slot === slot)) fixChroma(av, slot);
+    let note = ""; if ((slot === "right" || slot === "left") && id !== "none" && av.pose !== "idle"){ av.pose = "idle"; note = "Pose back to Relaxed, so you can hold it."; }
+    const grid = b.closest(sw ? ".swr" : b.dataset.sex ? ".wseg" : ".wgrid"); if (grid) grid.querySelectorAll(".on").forEach(x => x.classList.remove("on")); b.classList.add("on");
+    const redraw = !sw && (chromaOf(slot, id) || slot === "shape" || note || ["hair", "shirt", "coat", "shoes", "cape", "eyes"].includes(slot));
+    clearTimeout(this._rw); this._rw = setTimeout(() => { if (this.tab === "wardrobe"){ if (redraw) this.wardrobe(); else this.refresh(); } }, redraw ? 120 : 450);
+    if (note) toast(note, 2400);
     if (slot !== "cls") Sound.play("Move", .6);
-    /* paint the tick first, then rebuild the figure on the next frame */
-    requestAnimationFrame(() => setTimeout(() => { if (!$("#avst")) return; if (slot === "frame" || slot === "cls") this.stage = heroStage($("#avst"), myAvatar(), {}); else if (this.stage) this.stage.set(myAvatar(), bodyTier()); }, 0));
+    requestAnimationFrame(() => setTimeout(() => { if (!$("#avst")) return; if (slot === "frame" || slot === "cls"){ const c = WCATS.find(x => x.k === this.cat) || WCATS[0]; this.stage = heroStage($("#avst"), myAvatar(), {mode: c.focus}); } else if (this.stage) this.stage.set(myAvatar(), bodyTier()); }, 0));
     if (slot === "cls"){ const p = this.main.querySelector(".winfo .pill.go"); if (p) p.textContent = (AV_CLASSES.find(c => c.k === id) || {}).name; }
     clearTimeout(this._sv); this._sv = setTimeout(() => { save(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); if (typeof renderRail === "function") renderRail(); if (typeof renderTop === "function") renderTop(); }, 350);
   },
@@ -6893,6 +7104,77 @@ Views.awards = {
     $$("[data-cat]", body).forEach(b => b.onclick = () => { this.open = this.open === b.dataset.cat ? null : b.dataset.cat; this.trophies(); });
   }
 };
+
+/* ===== Goals and unlocks: track one thing you want, see how close you are, and get a big moment when it's yours ===== */
+/* how far you are from an unlock: current, goal, and what to do */
+function reqProgress(req){
+  req = req || ""; const n = +req.slice(2);
+  if (req.startsWith("t:")){ const a = achById(req.slice(2)), pr = achProg(a); return {c: pr ? pr.c : 0, g: pr ? pr.g : 0, txt: a ? a.desc : "Earn a trophy"}; }
+  if (req.startsWith("n:")) return {c: achCount(), g: n, txt: `Collect ${n} trophies.`};
+  if (req.startsWith("r:")) return {c: peakRating(), g: n, txt: `Reach ${n} puzzle rating once.`};
+  if (req.startsWith("l:")) return {c: playerLevel(), g: n, txt: `Reach level ${n}. Everything you play gives XP.`};
+  if (req.startsWith("f:")) return {c: 0, g: 0, txt: n === 1 ? "Be #1 of your friends in any leaderboard (with at least three of you on it)." : `Be in the top ${n} of your friends in any leaderboard.`};
+  if (req.startsWith("c:")){ const c = AV_CLASSES.find(x => x.k === req.slice(2)); if (!c) return {c: 0, g: 0, txt: ""}; const nd = c.need, best = caughtBots().reduce((m, b) => Math.max(m, b.r), 0);
+    const p = (Math.min(1, achCount() / (nd.tro || 1)) + Math.min(1, peakRating() / (nd.pz || 1)) + Math.min(1, best / (nd.bot || 1))) / 3; return {c: Math.round(p * 100), g: 100, txt: c.txt}; }
+  return {c: 0, g: 0, txt: ""};
+}
+/* every unlockable thing as "slot:id" (items) or "slot:field:id" (colours) */
+function closetKeys(){
+  const out = []; AV_ITEMS.forEach(i => { if (i.slot !== "frame" || !/^(auto)$/.test(i.id)) if (itemUnlocked(i)) out.push(i.slot + ":" + i.id); });
+  Object.entries(CHROMA_DEF).forEach(([k, [f, list]]) => { const [slot, id] = k.split(":"); list.forEach(c => { if (itemUnlocked({req: c[1] && /^[tnrlcf]:/.test(c[1]) ? c[1] : 0})) out.push(slot + ":" + id + ":" + f + ":" + c[0]); }); });
+  return out;
+}
+const CLOSET_QUIET = ["play", "friend", "battle", "rush", "jlevel", "linkgame", "local", "endgames"];
+/* look for new unlocks; the first run only remembers what you already have */
+function closetCheck(){
+  if (!S.ach || typeof achCount !== "function") return;
+  if (CLOSET_QUIET.includes(App.route) || document.querySelector(".lvup, .rkup, .unl")){ clearTimeout(closetCheck._t); closetCheck._t = setTimeout(closetCheck, 8000); return; }
+  const now = closetKeys(); if (!Array.isArray(S.itemSeen)){ S.itemSeen = now; save(); return; }
+  const seen = new Set(S.itemSeen), fresh = now.filter(k => !seen.has(k)); if (!fresh.length) return;
+  S.itemSeen = S.itemSeen.concat(fresh); S.wNew = (S.wNew || []).concat(fresh.filter(k => k.split(":").length === 2)).slice(-60);
+  /* level rewards and friends' crowns have their own big moment */
+  const reqOf = k => { const p = k.split(":"); if (p.length === 2){ const it = AV_ITEMS.find(i => i.slot === p[0] && i.id === p[1]); return it ? String(it.req || "") : ""; } const d = CHROMA_DEF[p[0] + ":" + p[1]] || CHROMA_DEF["hair:*"], c = d && d[1].find(x => x[0] === p[3]); return c && c[1] ? String(c[1]) : ""; };
+  const show = fresh.filter(k => !/^[lf]:/.test(reqOf(k)) && !/^frame:/.test(k));
+  const g = S.track, gotGoal = g && fresh.some(k => { const p = k.split(":"); return g.f ? p[2] === g.f && p[3] === g.id && p[0] === g.slot : p.length === 2 && p[0] === g.slot && p[1] === g.id; });
+  save(); if (!show.length && !gotGoal) return;
+  const first = gotGoal ? (g.f ? `${g.slot}:${CHROMA_DEF[g.slot + ":" + myAvatar()[g.slot]] ? myAvatar()[g.slot] : "*"}:${g.f}:${g.id}` : `${g.slot}:${g.id}`) : show[0];
+  unlockPop(first, (gotGoal ? show.filter(k => k !== first) : show.slice(1)).length, gotGoal);
+  if (gotGoal){ S.track = null; save(); }
+}
+/* the big "it's yours" card with the thing already on your figure, and Try it on */
+function unlockPop(key, more, wasGoal){
+  const p = key.split(":"), av = myAvatar(), slot = p[0]; if (p[1] === "*") p[1] = chromaOf(slot, av[slot]) ? av[slot] : "short";
+  let name, cfg, mode;
+  if (p.length === 2){ const it = AV_ITEMS.find(i => i.slot === slot && i.id === p[1]); name = it ? it.name : p[1]; cfg = Object.assign({}, av, {[slot]: p[1]}); fixChroma(cfg, slot); }
+  else { const ch = chromaOf(slot, p[1]) || {list: []}, c = ch.list.find(x => x.id === p[3]) || {name: p[3]}, it = AV_ITEMS.find(i => i.slot === slot && i.id === p[1]); name = `${c.name} ${it ? it.name.toLowerCase() : ""}`.trim(); cfg = Object.assign({}, av, {[slot]: p[1], [p[2]]: p[3]}); }
+  mode = (WPV[slot] || ["full"])[0]; mode = mode === "bust" || mode === "legs" ? "full" : mode;
+  const cat = WCATS.find(c => c.secs.includes(slot)) || WCATS[0];
+  const el = document.createElement("div"); el.className = "unl";
+  el.innerHTML = `<div class="unl-in"><div class="unl-rays"></div><div class="unl-l">${wasGoal ? "Your goal is yours!" : "New in your wardrobe"}</div>
+    <div class="unl-fig">${Av3D.tag(Object.assign({}, cfg, {pet: "none"}), {w: 200, h: 200, mode, live: true, fps: 45, tier: bodyTier(), rank: -1})}</div>
+    <h3>${esc(name)}</h3><p class="muted">${more ? `And ${more} more new thing${more > 1 ? "s" : ""}. ` : ""}Unlocked just now.</p>
+    <div class="row" style="gap:8px;margin-top:14px"><button class="btn" data-later style="flex:1">Later</button><button class="btn go" data-try style="flex:1.4">Try it on</button></div></div>`;
+  document.body.appendChild(el); if (typeof confettiBurst === "function") confettiBurst(); Sound.unlock(); setTimeout(() => Sound.cheer(wasGoal ? 4 : 3), 420);
+  const close = () => { el.classList.add("out"); setTimeout(() => el.remove(), 250); };
+  el.querySelector("[data-later]").onclick = close;
+  el.querySelector("[data-try]").onclick = () => { const a = myAvatar(); if (p.length === 2) { a[slot] = p[1]; fixChroma(a, slot); } else { a[slot] = p[1]; a[p[2]] = p[3]; }
+    if ((slot === "right" || slot === "left") && a.pose !== "idle") a.pose = "idle"; S.stat.dressed = 1; save(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); if (typeof renderTop === "function") renderTop(); if (typeof renderRail === "function") renderRail();
+    close(); App.go("awards", {tab: "wardrobe", cat: cat.k}); };
+}
+/* the goal card on the home screen */
+function goalCardHTML(){
+  const g = S.track; if (!g) return "";
+  const pr = reqProgress(g.req), pct = pr.g ? Math.round(Math.min(1, pr.c / pr.g) * 100) : 0, av = myAvatar(), cfg = Object.assign({}, av, g.f ? {[g.f]: g.id} : {[g.slot]: g.id}, {pet: "none", aura: g.slot === "aura" ? g.id : "none"});
+  const [mode] = WPV[g.slot] || ["full"];
+  return `<button class="unit goalcard" data-goal><div class="gc-pv">${g.slot === "frame" ? avatarBadge(Object.assign({}, av, {frame: g.id}), 64, S.puzzle.r) : Av3D.tag(cfg, {w: 72, h: 72, mode: mode === "legs" ? "full" : mode, tier: bodyTier(), rank: -1})}</div>
+    <div class="grow"><div class="gc-l">${icon("target", 14)} YOUR GOAL</div><div class="gc-n">${esc(g.name)}</div><div class="gc-t">${esc(pr.txt)}</div>${pr.g ? `<div class="bar sm"><i style="width:${pct}%"></i></div><div class="gc-p">${pr.c.toLocaleString("en")} / ${pr.g.toLocaleString("en")}</div>` : ""}</div><span class="gc-x" data-untrack aria-label="Stop tracking">×</span></button>`;
+}
+function goalWire(root){
+  const b = root.querySelector("[data-goal]"); if (!b) return;
+  b.onclick = e => { if (e.target.closest("[data-untrack]")){ S.track = null; save(); b.remove(); toast("Not tracking it any more."); return; } const cat = WCATS.find(c => c.secs.includes(S.track.slot)) || WCATS[0]; App.go("awards", {tab: "wardrobe", cat: cat.k, goal: S.track}); };
+}
+setTimeout(closetCheck, 3500);
+window.addEventListener("chessnat:route", () => setTimeout(closetCheck, 700));
 
 /* ===== Opening theory library, part 1: 1.e4 e5 and the Sicilian =====
    Each article: ideas, structure, plans for both sides, typical mistakes, and lines you can step through.
@@ -8397,6 +8679,7 @@ Views.home = {
       </div>
       <div class="unit" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><div style="min-width:180px"><div class="muted" style="font-weight:800;font-size:13px;letter-spacing:.06em">TODAY'S PLAN</div><div style="font:900 22px var(--display)">${planDone() ? "Done for today ✓" : PLAN.filter(([k, n]) => planVal(k) >= n).length + " of " + PLAN.length}</div><div class="dim" style="font-size:12.5px">${icon("flame", 14)} ${S.plan.streak} day streak · best ${S.plan.best}</div></div>
         <div style="flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">${PLAN.filter(([k, n]) => !(planVal(k) >= n && popped[k] && !toPop.includes(k))).map(([k, n, t]) => { const v = Math.min(n, planVal(k)); return `<button class="lsn ${v >= n ? "done" : ""} ${toPop.includes(k) ? "pop" : ""}" data-plan="${k}"><span class="n">${v >= n ? "✓" : v}</span><span><div class="t">${t}</div><div class="s">${v} / ${n}</div></span></button>`; }).join("")}</div></div>
+      ${typeof goalCardHTML === "function" ? goalCardHTML() : ""}
       <div class="tiles">
         ${journeyTile()}
         ${next ? `<button class="tile" data-go="lesson" data-l="${next.id}" style="grid-column:span 2;border:1px solid var(--go)">${icon("book", 40)}<span class="pill go">Continue learning</span><h3>${esc(next.title)}</h3><p>${esc(next.sub || "")}</p></button>` : ""}
@@ -8413,6 +8696,7 @@ Views.home = {
         <button class="tile" data-go="friends">${icon("heart", 40)}<h3>Friends</h3><p>See who's online, invite them, lock them in your cage.</p></button>
         <button class="tile" data-go="review">${icon("review", 40)}<h3>Game Review</h3><p>Brilliant, blunder and everything between.</p></button>
       </div></div>`;
+    if (typeof goalWire === "function") goalWire(main);
     $$("[data-go]", main).forEach(b => b.onclick = () => b.dataset.go === "lesson" ? App.go("lesson", {id: b.dataset.l}) : App.go(b.dataset.go));
     /* finished plan items celebrate once and then disappear */
     const pops = $$(".lsn.pop", main); if (pops.length) setTimeout(() => { pops.forEach((b, j) => setTimeout(() => { if (!b.isConnected) return; b.classList.add("popping"); Sound.play(j ? "Move" : "Capture", .7); setTimeout(() => { b.remove(); if (planDone() && j === pops.length - 1) Sound.cheer(2); }, 520); }, j * 260)); }, 700);
