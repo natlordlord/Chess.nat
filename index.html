@@ -533,13 +533,23 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 .invite-pop .ip-t b{font:900 16px var(--display);color:var(--fg)}
 
 /* ===== Opening name card ===== */
-.opn{display:flex;gap:10px;align-items:flex-start;background:var(--panel-2);border:1px solid var(--line);border-left:3px solid #A88865;border-radius:10px;padding:9px 12px;margin-bottom:10px}
-.opn.new{animation:tipin .35s ease-out;border-color:#A88865}
-.opn-ic{font-size:18px;line-height:1.2}
-.opn-n{font:900 15px var(--display)}
-.opn-eco{font:700 11px var(--mono);color:var(--muted);margin-left:4px}
-.opn p{margin:3px 0 0;font-size:13px;color:var(--muted);line-height:1.4}
-.opn .btn{flex:none;align-self:center}
+.opn{background:var(--panel-2);border:1px solid var(--line);border-radius:14px;margin:14px 0 10px;overflow:hidden}
+.opn.new{animation:tipin .35s ease-out}
+.opn-h{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;padding:10px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.opn-h:active{background:rgba(255,255,255,.04)}
+.opn-ic{font-size:30px;line-height:1;flex:none;width:38px;text-align:center;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+.opn-t{flex:1;min-width:0;display:flex;flex-direction:column}
+.opn-t b{font:900 19px/1.15 var(--display);letter-spacing:-.01em}
+.opn-t small{font:700 12.5px var(--body);color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.opn-ch{flex:none;font:900 22px var(--display);color:var(--muted);transition:transform .25s}
+.opn.open .opn-ch{transform:rotate(90deg)}
+.opn-b{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease}
+.opn.open .opn-b{grid-template-rows:1fr}
+.opn-bi{overflow:hidden;padding:0 14px}
+.opn.open .opn-bi{padding-bottom:12px}
+.opn-bi p{margin:0 0 6px;font-size:14px;line-height:1.45;color:var(--text)}
+.opn-bi p.dim{color:var(--muted);font-size:13px}
+.opn-btns{gap:8px;margin-top:4px}
 .lsn.pop{position:relative}
 .lsn.popping{animation:planpop .5s cubic-bezier(.3,1.6,.5,1) forwards;pointer-events:none}
 @keyframes planpop{0%{transform:scale(1)}35%{transform:scale(1.08);background:color-mix(in srgb,var(--go) 35%,var(--panel-2))}100%{transform:scale(.2);opacity:0}}
@@ -1101,7 +1111,7 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
   .side .foot .rv-foot .btn{flex-direction:column;gap:2px;padding:6px 10px;font-size:11px;font-weight:800;min-width:58px}
   .side .foot .rv-foot .btn.go{flex-direction:row;font-size:15px;padding:10px 12px;min-width:0}
   .side .foot:has(.rv-foot){overflow:visible}
-  .side .opn p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .side .opn-bi p{display:block}
   .side .scroll{-webkit-mask-image:linear-gradient(#000 calc(100% - 22px),transparent);mask-image:linear-gradient(#000 calc(100% - 22px),transparent)}
   .rv-ex h4{font-size:15.5px}.rv-best{padding:7px 9px;margin-top:6px}.rv-best b{font-size:14px}
 }
@@ -1463,6 +1473,102 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 .jpawn-cv{width:96px;height:140px;display:block;filter:drop-shadow(0 6px 6px rgba(0,0,0,.35))}
 .jgo .btn.counting{background:var(--go-deep)}
 
+/* ---- friends: two equal buttons, tap the row for the profile ---- */
+.fr-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.fr-news{flex:none}
+.li.fr-tap{cursor:pointer}
+.li.fr-tap:active{background:var(--panel-3)}
+.fr-act2{display:flex;gap:8px;align-items:center;margin-left:auto;flex:none}
+.fa2{all:unset;box-sizing:border-box;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:46px;min-width:86px;padding:0 14px;border-radius:14px;cursor:pointer;
+  font:900 15px var(--display);background:var(--panel-3);color:var(--fg);border:1px solid var(--line);box-shadow:0 3px 0 rgba(0,0,0,.35);transition:transform .08s}
+.fa2:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.35)}
+.fa2-play.on,.fp-act .fa2-play{background:var(--go);border-color:transparent;color:#fff;box-shadow:0 3px 0 var(--go-deep,#4a7a26)}
+.fa2-chat{background:#2f5f8a;border-color:transparent;color:#fff;box-shadow:0 3px 0 #1d3d5a}
+.fa2-heart{min-width:46px;width:46px;padding:0;color:#ff6b86}
+.fa2 .cbadge{position:absolute;top:-7px;right:-7px;margin:0}
+@media (max-width:560px){
+  .li.fr{flex-wrap:wrap}
+  .fr-list .fr-act2{width:100%;margin:6px 0 0}
+  .fr-list .fa2-play,.fr-list .fa2-chat{flex:1}
+}
+/* play chooser */
+.ps-h{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.ps-opts{display:flex;flex-direction:column;gap:10px}
+.ps-o{all:unset;box-sizing:border-box;display:grid;grid-template-columns:52px 1fr;grid-template-rows:auto auto;column-gap:12px;align-items:center;padding:14px 16px;border-radius:16px;background:var(--panel-3);border:1px solid var(--line);cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.35)}
+.ps-o.go{background:var(--go);color:#fff;border-color:transparent;box-shadow:0 4px 0 var(--go-deep,#4a7a26)}
+.ps-o:active{transform:translateY(2px)}
+.ps-ic{grid-row:1/3;display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:14px;background:rgba(0,0,0,.18)}
+.ps-o b{font:900 18px var(--display)}
+.ps-o small{font-size:13px;opacity:.85}
+.ps-back{all:unset;cursor:pointer;color:var(--muted);font:800 14px var(--body);margin-bottom:8px;display:inline-block}
+.ps-lbl{font:900 15px var(--display);margin:2px 0 8px}
+.ps-tcs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.ps-tc{all:unset;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;padding:10px 0;border-radius:12px;background:var(--panel-3);border:2px solid transparent;cursor:pointer}
+.ps-tc b{font:900 20px var(--display)}
+.ps-tc small{font-size:10.5px;color:var(--muted);white-space:nowrap}
+.ps-tc.on{border-color:var(--go);background:color-mix(in srgb,var(--go) 22%,var(--panel-3))}
+.ps-inc{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;margin-top:12px;cursor:pointer;font:700 14px var(--body)}
+.ps-box{width:22px;height:22px;border-radius:7px;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font:900 14px var(--body);color:#fff}
+.ps-inc.on .ps-box{background:var(--go);border-color:var(--go)}
+/* friend profile */
+.fp-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.fp-more{font:900 22px var(--display);width:44px;padding:0}
+.fp-hero{display:flex;gap:16px;align-items:center}
+.fp-fig{flex:none;width:150px;height:172px;display:flex;align-items:flex-end;justify-content:center}
+.fp-id{min-width:0;display:flex;flex-direction:column;gap:4px}
+.fp-n{font:900 28px var(--display);line-height:1.1;display:flex;align-items:center;gap:6px}
+.fp-lv{display:flex;align-items:center;gap:8px;margin:4px 0}
+.fp-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px;margin:14px 0}
+.fp-st{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:10px 8px;text-align:center;display:flex;flex-direction:column}
+.fp-st b{font:900 21px var(--display)}
+.fp-st span{font:800 11px var(--body);color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.fp-act{display:flex;gap:10px;margin-bottom:6px}
+.fp-act .fa2{flex:1;height:52px;font-size:17px}
+.fp-h2h{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.fp-h2h>div{border-radius:12px;padding:10px;text-align:center;background:var(--panel-2);display:flex;flex-direction:column}
+.fp-h2h b{font:900 26px var(--display)}
+.fp-h2h span{font-size:12px;color:var(--muted)}
+.fp-h2h .w b{color:var(--go-hi,#9fdb63)} .fp-h2h .l b{color:#ff7a7a}
+.fp-games{margin-top:12px}
+.fp-r{flex:none;font:900 12px var(--body);padding:4px 9px;border-radius:999px;background:var(--panel-3)}
+.fp-r.w{background:var(--go);color:#fff} .fp-r.l{background:#a83a3a;color:#fff}
+.fp-menu{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.fp-menu .btn{justify-content:flex-start;gap:10px}
+.fp-rm{color:#ff8a8a}
+.fp-rm.armed{background:var(--bad);color:#fff}
+/* leaderboard */
+.lb-chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-bottom:8px}
+.lb-chips::-webkit-scrollbar{display:none}
+.lb-chips .chip{flex:none;display:inline-flex;align-items:center;gap:5px}
+.lb-row{cursor:pointer}
+.lb-row.me{background:color-mix(in srgb,var(--go) 16%,var(--panel-2));border-radius:12px}
+.lb-r{flex:none;width:30px;text-align:center;font:900 17px var(--display);color:var(--muted)}
+.lb-row.top .lb-r{font-size:24px}
+.lb-v{font:900 17px var(--display)}
+.lb-row.top1 .lb-v{color:#ffd34a}
+.lb-note{font-size:12.5px;margin:6px 2px 0;display:flex;gap:6px;align-items:center}
+/* "you passed …" and the crown */
+.rkup{position:fixed;inset:0;z-index:2600;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(10,8,6,.72);backdrop-filter:blur(5px);animation:fadein .2s}
+.rkup.out{opacity:0;transition:opacity .25s}
+.rkup-in{width:100%;max-width:360px;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:20px;text-align:center;animation:rkpop .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes rkpop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+.rkup-l{display:inline-flex;gap:6px;align-items:center;font:900 12px var(--body);letter-spacing:.08em;text-transform:uppercase;color:#ffd34a;background:rgba(255,211,74,.12);padding:5px 10px;border-radius:999px}
+.rkup-faces{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:14px 0 6px;height:110px}
+.rkup-me{animation:rkup-rise .9s cubic-bezier(.2,1.4,.4,1) both}
+.rkup-them{opacity:.7;animation:rkup-fall .9s ease both;filter:grayscale(.4)}
+.rkup-arrow{font:900 34px var(--display);color:var(--go-hi,#9fdb63);animation:rkup-rise .9s .2s both}
+@keyframes rkup-rise{from{transform:translateY(30px)}to{transform:translateY(-14px)}}
+@keyframes rkup-fall{from{transform:translateY(-20px)}to{transform:translateY(12px)}}
+.rkup h3{font:900 24px var(--display);margin:6px 0 4px}
+.rkup-crown{display:flex;justify-content:center;margin:8px 0}
+.rkup.crown.r1 .rkup-in{border-color:#ffd34a;box-shadow:0 0 60px rgba(255,211,74,.35)}
+.cf-over{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:3000}
+/* champion borders: a shine runs around the ring */
+.avf-spin{transform-origin:50px 50px;animation:avfspin 2.6s linear infinite}
+@keyframes avfspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.avf-spin{animation:none}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
 .pc.wr{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMTcuOTMgMjAuNDFjNC45LS43NCA5LjU4LS41NyAxNC4xNCAwTTE0LjE4IDkuNjZjLTEuMDYgOC43NyAxLjEgMTAuNjggMy43NSAxMC43NWwtMy4zMSAxOC4xNmgyMC43NmwtMy4zMS0xOC4xNmMyLjY0LS4wNyA0LjgtMS45OCAzLjc1LTEwLjc1bC0zLjYxLS41My0xLjA3IDMuNjUtMy4xNS0uMS0uNTItMy43NmgtNC45NEwyMiAxMi42OGwtMy4xNS4xLTEuMDctMy42NXoiLz48cGF0aCBkPSJNMTcuOTMgMjAuNDFjNi44MyAwIDEzLjEyLjQxIDE0Ljk1IDE2LjU4bDIuMzIuMzgtMy4xMy0xNi40M2MtLjAzLS4zLTYuMDktMS44Mi0xNC4xNC0uNTMiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Im0xNC43OCAxMC4yMiAyLjI3LS4yOWMtMS45MS4zMi0yLjMgNS4zLTIuMyA1LjMtLjI1LS4xOC0uMi00LjkuMDMtNS4wMW0xMC41LS42N2MtMS42NSAwLTIuNTIgMi43NS0yLjUyIDIuNzVsLjMzLTIuNzN6bTcuNC4yNy45Mi4xMWMtLjc4LjUtMS41OSAyLTEuNTkgMnptLTE0LjIgMTEuMTQgMi42MS0uMjljLTIuNjIuMy00Ljg5IDEzLjExLTQuODkgMTMuMTF6Ii8+PHBhdGggZD0iTTM0LjAxIDkuNGMuMzYgNi4zNi0xLjk1IDEwLjYtOC4wNCAxMC41M2w0Ljc4LjU3YzcuNTIuMyA1LjEtMTAuOCA1LjA3LTEwLjg0eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuMiIgZD0iTTI1IDM2LjQ2cy05LjEzLjA0LTExLjcgMS42MmMtMS43MiAxLjA2LTIuMTMgMy42NS0xLjkgNi4zMmgyNy4yYy4yMy0yLjY3LS4xOC01LjI2LTEuOS02LjMyQzM0LjEyIDM2LjUgMjUgMzYuNDYgMjUgMzYuNDZ6Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI1IDM3LjE1UzE2LjI5IDM3IDEzLjM4IDM4LjhjLS4zNy4yMy0uNy44NC0uOTYgMS40LjI2LS4zNC41LS42Mi44OS0uODZDMTUuODcgMzcuNzggMjUgMzcuNzMgMjUgMzcuNzNzOS4xMy4wNSAxMS43IDEuNjJjLjM4LjI0LjU4LjUzLjg1Ljg3YTMgMyAwIDAgMC0xLjE1LTEuNkMzMy42NSAzNy4xNSAyNSAzNy4xNiAyNSAzNy4xNnoiLz48L3N2Zz4=')}
@@ -1483,7 +1589,7 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794105024";
+const CHESSNAT_BUILD = "1794106297";
 /* ===== Speech text helpers (shared by the page and the voice build script) ===== */
 const PIECE_WORD = {K: "king", Q: "queen", R: "rook", B: "bishop", N: "knight"};
 function speechNorm(t){ return String(t || "").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, " ").trim(); }
@@ -1550,11 +1656,11 @@ const Notify = {
   next(){
     const o = this.q.shift(); if (!o) return;
     const el = document.createElement("div"); el.className = "ntf " + (o.cls || ""); if (o.accent) el.style.setProperty("--na", o.accent);
-    el.innerHTML = `<div class="ntf-in">${o.icon ? `<div class="ntf-ic">${o.icon}</div>` : ""}<div class="ntf-t">${o.label ? `<small>${o.label}</small>` : ""}<b>${o.title || ""}</b>${o.text ? `<span>${o.text}</span>` : ""}</div>${(o.actions || []).map((x, i) => `<button class="ntf-b ${x.primary ? "go" : ""}" data-a="${i}">${x.label}</button>`).join("")}</div><i class="ntf-bar"></i>`;
+    el.innerHTML = `<div class="ntf-in">${o.icon ? `<div class="ntf-ic">${o.icon}</div>` : ""}<div class="ntf-t">${o.label ? `<small>${o.label}</small>` : ""}<b>${o.title || ""}</b>${o.text ? `<span>${o.text}</span>` : ""}</div>${(o.actions || []).map((x, i) => `<button class="ntf-b ${x.primary ? "go" : ""}" data-a="${i}">${x.label}</button>`).join("")}</div>`;
     document.body.appendChild(el); const cur = this.cur = {el, o, t0: performance.now()};
     const ms = o.ms || 4500; el.style.setProperty("--ms", ms + "ms");
     requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("in")));
-    if (o.sound) o.sound();
+    if (o.sound) o.sound(); else if (!/ntf-chat/.test(o.cls || "") && typeof Sound !== "undefined" && Sound.toast) Sound.toast();
     cur.timer = setTimeout(() => this.close(cur), ms);
     (o.actions || []).forEach((x, i) => el.querySelector(`[data-a="${i}"]`).onclick = e => { e.stopPropagation(); this.close(cur); x.fn && x.fn(); });
     /* tap opens, swipe up dismisses */
@@ -1725,6 +1831,7 @@ const LogBook = {key: null, rows: null};
 function logEvent(kind, data){
   const row = Object.assign({kind, ts:Date.now(), rating:S.puzzle.r}, data);
   if (typeof Ach !== "undefined") try { Ach.onEvent(kind, data || {}); } catch(e) {}
+  if (typeof Track !== "undefined") try { Track.push("done", kind, {m: (data && data.mode) || (kind === "game" ? "bot" : null), ok: data && (data.solved != null ? !!data.solved : data.result || null)}); } catch(e) {}
   if (Cloud.db) Cloud.queue = Cloud.queue.then(() => appendLog([row]));
   else { try { const k = "chessnat-log" + (Cloud.uid ? ":" + Cloud.uid : ""); const a = JSON.parse(localStorage.getItem(k) || "[]"); a.push(row); localStorage.setItem(k, JSON.stringify(a.slice(-400))); } catch(e) {} }
 }
@@ -1795,7 +1902,41 @@ const Sound = {ac:null, buf:{}, loading:false,
     const s = ac.createBufferSource(); s.buffer = b; const f = ac.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = freq; s.connect(f).connect(ac.destination); s.start(t); },
   tone(seq, type = "sine", gain = .16){ if (!S.settings.sound) return; this.init(); const ac = this.ac; if (!ac) return; let t = ac.currentTime;
     seq.forEach(([f, d, gap]) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = f; g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d + .02); t += gap || d * .6; }); },
-  right(){ this.tone([[784,.14,.09],[1047,.16,.09],[1319,.3]]); },
+  /* correct: the same little run, a semitone higher for every puzzle in a row (up to seven), so a streak sounds like it climbs */
+  right(){ const k = Math.pow(2, Math.min(7, Math.max(0, ((S.puzzle && S.puzzle.streak) || 1) - 1)) / 12); this.tone([[784 * k,.14,.09],[1047 * k,.16,.09],[1319 * k,.3]]);
+    if (((S.puzzle && S.puzzle.streak) || 0) >= 3 && this.fx()) this.sparkle(.22, Math.min(9, 2 + S.puzzle.streak), 2200, .025); },
+  /* ---- the reward kit: small synth bells, marimba, plucks, sparkles and air, all through one gentle compressor ---- */
+  fx(){ if (!S.settings.sound) return null; this.init(); const ac = this.ac; if (!ac) return null;
+    if (!this.bus){ const c = ac.createDynamicsCompressor(); c.threshold.value = -16; c.ratio.value = 3.5; c.attack.value = .003; c.release.value = .2; const g = ac.createGain(); g.gain.value = .95; c.connect(g).connect(ac.destination); this.bus = c; } return ac; },
+  mf(m){ return 440 * Math.pow(2, (m - 69) / 12); },
+  note(m, at, dur = .5, gain = .1, kind = "bell"){ const ac = this.ac, t = ac.currentTime + at, f = this.mf(m);
+    const P = {bell: [[1, 1, 1], [2.76, .32, .5], [5.4, .14, .3], [8.93, .06, .2]], marimba: [[1, 1, 1], [3.93, .22, .25], [9.8, .05, .1]], pluck: [[1, 1, 1], [2, .45, .6], [3, .2, .4], [4, .1, .3]], soft: [[1, 1, 1], [2, .15, .6]]}[kind] || [[1, 1, 1]];
+    P.forEach(([mul, a, dm]) => { const o = ac.createOscillator(), g = ac.createGain(), d = dur * dm; o.type = "sine"; o.frequency.setValueAtTime(f * mul, t);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(.0002, gain * a), t + (kind === "soft" ? .03 : .005)); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g).connect(this.bus); o.start(t); o.stop(t + d + .05); }); },
+  air(at, dur, f0, f1, gain = .06, q = 1.4){ const ac = this.ac, t = ac.currentTime + at, n = Math.floor(ac.sampleRate * dur), b = ac.createBuffer(1, n, ac.sampleRate), d = b.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * i / n);
+    const src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); src.buffer = b; f.type = "bandpass"; f.Q.value = q; f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur); g.gain.value = gain; src.connect(f).connect(g).connect(this.bus); src.start(t); },
+  sparkle(at, n = 8, base = 2400, gain = .03){ for (let i = 0; i < n; i++) this.note(88 + Math.floor(Math.random() * 14), at + i * .045 + Math.random() * .02, .35, gain * (1 - i / n * .5), "bell"); },
+  pop(at = 0, gain = .07){ const ac = this.ac, t = ac.currentTime + at, o = ac.createOscillator(), g = ac.createGain(); o.type = "sine"; o.frequency.setValueAtTime(950, t); o.frequency.exponentialRampToValueAtTime(260, t + .08); g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(.0001, t + .1); o.connect(g).connect(this.bus); o.start(t); o.stop(t + .12); },
+  /* tiny XP coin: each one within a couple of seconds climbs the scale */
+  xp(){ if (!this.fx()) return; const now = Date.now(); this._xpN = now - (this._xpT || 0) < 2500 ? Math.min(9, (this._xpN || 0) + 1) : 0; this._xpT = now;
+    const sc = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21]; this.note(84 + sc[this._xpN], 0, .25, .15, "marimba"); this.note(96 + sc[this._xpN], .03, .2, .05, "bell"); },
+  msgIn(){ if (!this.fx()) return; this.pop(0, .08); this.note(79, .05, .25, .09, "pluck"); this.note(86, .13, .4, .08, "pluck"); try { navigator.vibrate && navigator.vibrate(18); } catch(e) {} },
+  msgOut(){ if (!this.fx()) return; this.air(0, .16, 500, 2600, .1, 2); this.note(84, .09, .2, .09, "pluck"); },
+  tap(){ if (!this.fx()) return; this.note(91, 0, .08, .06, "pluck"); },
+  heart(){ if (!this.fx()) return; this.note(81, 0, .3, .08, "soft"); this.note(88, .12, .45, .08, "soft"); this.sparkle(.2, 4, 0, .02); },
+  unlock(){ if (!this.fx()) return; [72, 74, 76, 79, 81, 84, 86, 88, 91, 93].forEach((m, i) => this.note(m, i * .035, .5, .05, "pluck")); this.note(96, .4, 1.1, .07, "bell"); this.sparkle(.42, 7); },
+  levelUp(){ if (!this.fx()) return; this.air(0, .45, 300, 3200, .05);
+    [72, 76, 79, 84, 88].forEach((m, i) => this.note(m, .05 + i * .08, .5, .1, "marimba"));
+    [84, 88, 91, 96].forEach(m => this.note(m, .5, 1.6, .055, "bell")); this.note(60, .5, 1.2, .08, "soft"); this.sparkle(.55, 12, 0, .03);
+    try { navigator.vibrate && navigator.vibrate([30, 50, 30, 50, 80]); } catch(e) {} },
+  overtake(){ if (!this.fx()) return; this.air(0, .35, 250, 2800, .07); [79, 84, 88].forEach((m, i) => this.note(m, .3 + i * .08, .45, .1, "marimba")); this.note(91, .55, 1.3, .08, "bell"); this.note(67, .55, 1, .07, "soft"); this.sparkle(.6, 9); },
+  passedBy(){ if (!this.fx()) return; this.note(76, 0, .3, .07, "marimba"); this.note(72, .14, .3, .07, "marimba"); this.note(69, .28, .6, .07, "marimba"); },
+  crown(){ if (!this.fx()) return; const ac = this.ac;
+    [[67, 0, .18], [72, .14, .18], [76, .28, .18], [79, .42, .7]].forEach(([m, at, d]) => { const t = ac.currentTime + at, o = ac.createOscillator(), f = ac.createBiquadFilter(), g = ac.createGain(); o.type = "sawtooth"; o.frequency.value = this.mf(m); f.type = "lowpass"; f.frequency.setValueAtTime(900, t); f.frequency.linearRampToValueAtTime(2600, t + .08); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.07, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(f).connect(g).connect(this.bus); o.start(t); o.stop(t + d + .05); });
+    [84, 88, 91].forEach(m => this.note(m, .45, 1.8, .06, "bell")); this.sparkle(.5, 14); },
+  flame(){ if (!this.fx()) return; for (let i = 0; i < 7; i++) this.air(i * .05 + Math.random() * .03, .06, 900 + Math.random() * 1500, 500, .06, 3); this.air(0, .5, 200, 1200, .06, .8); this.note(84, .3, .6, .08, "marimba"); this.note(91, .4, .9, .06, "bell"); },
+  toast(){ if (!this.fx()) return; this.pop(0, .12); },
   /* celebration: a rising sparkle (longer for bigger cheers) and the announcer saying the word */
   /* celebration jingle (marimba and glockenspiel), bigger for bigger cheers; skipped if not loaded yet rather than playing late */
   cheer(tier){ const n = "cheer" + clamp(tier, 1, 4); if (this.buf[n]) this.play(n, .85); else this.tone([[1047,.09,.06],[1319,.09,.06],[1568,.2]], "triangle", .1); },
@@ -4728,62 +4869,63 @@ const JPawn = (() => {
 
 /* ===== Opening names: recognise the opening from the position (Lichess opening database, CC0) ===== */
 const OPENING_FAMILIES = {
-  "Italian Game": "White's bishop goes to c4 and aims at f7, the weakest square in Black's camp. Quick development, then c3 and d4.",
-  "Ruy Lopez": "The Spanish: White's bishop pins the knight that guards e5. A slow, deep fight for the centre.",
-  "Scotch Game": "White opens the centre at once with d4 and gets free piece play.",
-  "Petrov's Defense": "Black copies White and attacks e4 straight back. Very solid.",
-  "Philidor Defense": "Black holds e5 with ...d6. Solid but a bit passive.",
-  "King's Gambit": "White gives up the f-pawn to open the f-file and attack fast. Wild and risky for both sides.",
-  "Vienna Game": "White plays Nc3 first and keeps the f-pawn ready to push to f4.",
-  "Four Knights Game": "Both sides bring out their knights first. Calm and classical.",
-  "Three Knights Opening": "Both sides develop knights early, a calm classical start.",
-  "Sicilian Defense": "Black answers 1.e4 with ...c5 and fights for d4 from the side. The sharpest answer to 1.e4.",
-  "French Defense": "Black plays ...e6 and ...d5: a solid pawn chain, then counterattack against White's centre.",
-  "Caro-Kann Defense": "Black plays ...c6 and ...d5. Rock solid, and the light-squared bishop gets out before ...e6.",
-  "Scandinavian Defense": "Black hits e4 right away with ...d5 and takes back with the queen or the knight.",
-  "Pirc Defense": "Black lets White build a big centre, then attacks it with ...g6, ...Bg7 and ...e5 or ...c5.",
-  "Modern Defense": "Black fianchettoes the bishop first and attacks White's centre later.",
-  "Alekhine Defense": "Black's knight provokes White's pawns forward, then Black attacks the overextended centre.",
-  "Queen's Gambit Declined": "Black holds d5 with ...e6. One of the most solid defences in chess.",
-  "Queen's Gambit Accepted": "Black takes the c4-pawn and gives back the centre for free piece play.",
-  "Queen's Gambit": "White offers the c-pawn to pull Black's d-pawn away from the centre.",
-  "Slav Defense": "Black holds d5 with ...c6 and keeps the bishop free to come out.",
-  "London System": "White sets up d4, Bf4, e3, c3 and Nf3 against almost everything. Easy to learn, solid plans.",
-  "Queen's Pawn Game": "White starts with 1.d4. A slower, more positional game than 1.e4.",
-  "King's Indian Defense": "Black lets White take the centre, castles quickly and strikes back with ...e5, often attacking on the kingside.",
-  "Nimzo-Indian Defense": "Black pins the c3-knight with ...Bb4 to fight for e4.",
-  "Queen's Indian Defense": "Black controls e4 with a fianchettoed bishop on b7.",
-  "Grünfeld Defense": "Black gives White a big centre, then attacks it with pieces and ...c5.",
-  "Dutch Defense": "Black plays ...f5 to grab e4 and aims for a kingside attack.",
-  "Benoni Defense": "Black plays ...c5 against d4 and gets an unbalanced, dynamic game.",
-  "English Opening": "White starts with 1.c4 and controls d5 from the side.",
-  "Réti Opening": "White starts with 1.Nf3 and stays flexible, often with a fianchetto.",
-  "Zukertort Opening": "White starts with 1.Nf3, a flexible move that can turn into many openings.",
-  "Bishop's Opening": "White puts the bishop on c4 before the knight, often aiming at f7.",
-  "Center Game": "White opens the centre at once, but the queen comes out early.",
-  "Danish Gambit": "White gives up pawns for a big lead in development.",
-  "Englund Gambit": "A risky gambit for Black against 1.d4 with ...e5.",
-  "Elephant Gambit": "Black hits back with ...d5 at once. Risky but tricky.",
-  "Latvian Gambit": "Black plays ...f5 early. Very risky.",
-  "Owen Defense": "Black fianchettoes the queen's bishop with ...b6 against 1.e4.",
-  "Nimzowitsch Defense": "Black answers 1.e4 with ...Nc6.",
-  "Bird Opening": "White starts with 1.f4 and aims for e5.",
-  "Catalan Opening": "White combines d4 and c4 with a fianchettoed bishop on g2.",
-  "Trompowsky Attack": "White plays Bg5 early against ...Nf6.",
-  "Colle System": "White builds d4, e3, Bd3 and aims for e4 later.",
-  "King's Pawn Game": "1.e4: White takes the centre and opens lines for the queen and the bishop.",
-  "King's Knight Opening": "Both sides play e4 and e5, then White attacks e5 with the knight.",
-  "King's Indian Attack": "White sets up Nf3, g3, Bg2, d3 and O-O, then pushes e4–e5 against Black's king.",
-  "Bogo-Indian Defense": "Black gives a check with ...Bb4+ to develop quickly against 1.d4 and 2.c4.",
-  "Benko Gambit": "Black gives a pawn with ...b5 for long pressure on the queenside.",
-  "Ponziani Opening": "White prepares d4 with c3. Rare but tricky.",
-  "Indian Defense": "Black answers 1.d4 with ...Nf6 and keeps the setup flexible.",
-  "Old Indian Defense": "Black plays ...d6 and ...e5 against 1.d4. Solid and a bit slow.",
-  "Blackmar-Diemer Gambit": "White gives a pawn with d4, e4 and f3 for a fast attack.",
-  "Hungarian Opening": "White starts with 1.g3 and fianchettoes the bishop.",
-  "Grob Opening": "1.g4: an odd, risky first move.",
-  "Polish Opening": "1.b4: White grabs space on the queenside right away.",
-  "Bongcloud Attack": "The king walks out on move two. A joke opening: please don't!",
+  /* [icon, plain words for beginners] */
+  "Italian Game": ["🇮🇹", "White brings the bishop to c4, where it looks straight at f7, the weakest spot next to Black's king. The idea: get your pieces out fast, castle, then take the centre."],
+  "Ruy Lopez": ["🇪🇸", "Also called the Spanish. White's bishop jumps to b5 and annoys the knight that protects Black's e5 pawn. A slow, patient fight about the centre."],
+  "Scotch Game": ["🏴󠁧󠁢󠁳󠁣󠁴󠁿", "White pushes d4 straight away to break open the middle. Lots of free space for White's pieces."],
+  "Petrov's Defense": ["🇷🇺", "Black copies White: instead of defending e5, the knight attacks White's e4 pawn right back. Very safe for Black."],
+  "Philidor Defense": ["🇫🇷", "Black protects the e5 pawn with a small step, ...d6. Safe, but Black's pieces have less room."],
+  "King's Gambit": ["⚔️", "White gives away a pawn on move two to open a road towards Black's king. Wild and risky for both sides."],
+  "Vienna Game": ["🇦🇹", "White brings the knight to c3 first and keeps the f-pawn ready to rush forward to f4."],
+  "Four Knights Game": ["🐴", "Both players bring out both knights first. Calm, classical and easy to play."],
+  "Three Knights Opening": ["🐴", "Both players bring out their knights early. A calm, classical start."],
+  "Sicilian Defense": ["🌋", "Black answers 1.e4 with ...c5. Black doesn't copy White but fights for the centre from the side. Usually a sharp, exciting game."],
+  "French Defense": ["🇫🇷", "Black plays ...e6 and ...d5: a wall of pawns first, then Black attacks White's centre. Solid, but Black's light bishop gets stuck for a while."],
+  "Caro-Kann Defense": ["🛡️", "Black plays ...c6 and ...d5. Very solid: Black's pieces stay safe and the light bishop can still come out."],
+  "Scandinavian Defense": ["🇸🇪", "Black attacks White's e4 pawn on move one with ...d5. Black's queen often comes out early."],
+  "Pirc Defense": ["🇸🇮", "Black lets White build a big centre first, then attacks it later from the sides."],
+  "Modern Defense": ["🏹", "Black puts the bishop on g7, on the long diagonal, and attacks White's centre later."],
+  "Alekhine Defense": ["🐎", "Black's knight teases White's pawns forward. Then Black attacks the pawns that ran too far."],
+  "Queen's Gambit Declined": ["🛡️", "White offers a pawn, Black says no thanks and holds the centre with ...e6. One of the safest ways to play."],
+  "Queen's Gambit Accepted": ["👑", "White offers a pawn and Black takes it. Black gives up the centre for a while but gets free piece play."],
+  "Queen's Gambit": ["👑", "White offers the c-pawn to pull Black's d-pawn away from the centre. Not really a gift: White usually wins it back."],
+  "Slav Defense": ["🧱", "Black protects the d5 pawn with ...c6 and keeps the light bishop free to come out."],
+  "London System": ["💂", "White always sets up the same way: d4, bishop to f4, then e3, c3 and the knight to f3. Easy to learn, works against almost anything."],
+  "Queen's Pawn Game": ["♕", "White starts with the pawn in front of the queen, 1.d4. The game is usually slower and calmer than after 1.e4."],
+  "King's Indian Defense": ["🇮🇳", "Black lets White take the centre, castles quickly, then strikes back with ...e5 and often attacks White's king."],
+  "Nimzo-Indian Defense": ["🇮🇳", "Black's bishop goes to b4 and pins White's knight, so White can't easily push e4."],
+  "Queen's Indian Defense": ["🇮🇳", "Black's bishop goes to b7 and keeps an eye on the e4 square from far away."],
+  "Grünfeld Defense": ["🇦🇹", "Black lets White build a big centre, then attacks it with pieces."],
+  "Dutch Defense": ["🇳🇱", "Black pushes ...f5 to grab the e4 square and dreams of attacking White's king."],
+  "Benoni Defense": ["🔥", "Black plays ...c5 against 1.d4. Both sides get very different pawns, which makes the game sharp."],
+  "English Opening": ["🇬🇧", "White starts with 1.c4 and fights for the centre from the side."],
+  "Réti Opening": ["🐴", "White starts with the knight, 1.Nf3, and stays flexible."],
+  "Zukertort Opening": ["🐴", "White starts with the knight, 1.Nf3. It can turn into many different openings."],
+  "Bishop's Opening": ["⛪", "White brings the bishop to c4 before the knight, often aiming at f7."],
+  "Center Game": ["🎯", "White opens the centre right away, but the queen comes out early and can get chased."],
+  "Danish Gambit": ["🇩🇰", "White gives away pawns to get the pieces out very fast."],
+  "Englund Gambit": ["🎲", "A risky trick for Black against 1.d4. Good to know, dangerous to play."],
+  "Elephant Gambit": ["🐘", "Black hits back with ...d5 at once. Risky but full of traps."],
+  "Latvian Gambit": ["🇱🇻", "Black pushes ...f5 very early. Exciting, but very risky."],
+  "Owen Defense": ["🦉", "Black puts the bishop on b7 against 1.e4. Rare and a bit slow."],
+  "Nimzowitsch Defense": ["🐴", "Black answers 1.e4 with the knight, ...Nc6. Unusual."],
+  "Bird Opening": ["🐦", "White starts with 1.f4 and wants the e5 square."],
+  "Catalan Opening": ["🏰", "White plays d4 and c4 and puts the bishop on g2, on the long diagonal."],
+  "Trompowsky Attack": ["🇧🇷", "White's bishop jumps to g5 early to bother Black's knight."],
+  "Colle System": ["🇧🇪", "White builds d4, e3 and a bishop on d3, then pushes e4 later."],
+  "King's Pawn Game": ["♔", "White starts with the pawn in front of the king, 1.e4. It frees the queen and a bishop at once."],
+  "King's Knight Opening": ["🐴", "Both play e4 and e5, then White's knight attacks the e5 pawn."],
+  "King's Indian Attack": ["🗡️", "White sets up quietly with the knight, a bishop on g2 and castling, then attacks Black's king."],
+  "Bogo-Indian Defense": ["🇮🇳", "Black gives a check with the bishop to get the pieces out quickly."],
+  "Benko Gambit": ["⚡", "Black gives a pawn on the queenside for long pressure there."],
+  "Ponziani Opening": ["🇮🇹", "White prepares d4 with a little pawn move, c3. Rare but tricky."],
+  "Indian Defense": ["🇮🇳", "Black answers 1.d4 with the knight, ...Nf6, and waits to see what White does."],
+  "Old Indian Defense": ["🇮🇳", "Black plays ...d6 and ...e5 against 1.d4. Solid and a bit slow."],
+  "Blackmar-Diemer Gambit": ["⚡", "White gives a pawn for a fast attack."],
+  "Hungarian Opening": ["🇭🇺", "White starts with 1.g3 and puts the bishop on g2."],
+  "Grob Opening": ["🙃", "1.g4: a strange and risky first move."],
+  "Polish Opening": ["🇵🇱", "1.b4: White grabs space on the queenside right away."],
+  "Bongcloud Attack": ["☁️", "The king walks out on move two. A joke opening: please don't!"],
 };
 const OPENING_LESSONS = [
   [/Fried Liver|Two Knights/, "rep-twoknights"], [/Italian Game|Giuoco/, "rep-italian"], [/London System/, "rep-london"],
@@ -4810,16 +4952,23 @@ const Openings = {
     const r = this.ofFens(fens); if (this.map) this.memo.set(sig, r); return r;
   },
   ofPgn(pgn){ const g = new Chess(); if (!g.load_pgn(pgn || "", {sloppy: true})) return null; return this.ofGame(g, g.header().FEN); },
-  family(name){ const base = name.split(":")[0].trim(); if (OPENING_FAMILIES[base]) return OPENING_FAMILIES[base];
+  fam(name){ const base = name.split(":")[0].trim(); if (OPENING_FAMILIES[base]) return OPENING_FAMILIES[base];
     const k = Object.keys(OPENING_FAMILIES).filter(f => base.startsWith(f)).sort((x, y) => y.length - x.length)[0]; return k ? OPENING_FAMILIES[k] : null; },
+  family(name){ const f = this.fam(name); return f ? f[1] : null; },
+  icon(name){ const f = this.fam(name); return f ? f[0] : "📖"; },
+  opened: new Set(),
   lesson(name){ const hit = OPENING_LESSONS.find(([re]) => re.test(name)); return hit && lessonById(hit[1]) ? hit[1] : null; },
-  /* the small card in a game panel */
+  /* the opening tile: icon and name, big and bold. Tap it to fold out what the opening is about */
   card(o, extra){
     if (!o) return "";
-    const fam = this.family(o.name), les = this.lesson(o.name), done = les && S.lessons[les] && S.lessons[les].done;
-    return `<div class="opn ${extra && extra.fresh ? "new" : ""}"><span class="opn-ic">📖</span><div class="grow"><div class="opn-n">${esc(o.name)} <span class="opn-eco">${esc(o.eco)}</span></div>${fam ? `<p>${esc(fam)}</p>` : ""}${extra && extra.note ? `<p class="dim">${extra.note}</p>` : ""}</div>${typeof theoryFor === "function" && theoryFor(o.name) && !(extra && extra.noLesson) ? `<button class="btn sm" data-otheory="${theoryFor(o.name).id}">Theory</button>` : ""}${les && !(extra && extra.noLesson) ? `<button class="btn sm ${done ? "" : "go"}" data-olesson="${les}">${done ? "Review" : "Learn it"}</button>` : ""}</div>`;
+    const parts = o.name.split(":"), base = parts[0].trim(), vari = parts.slice(1).join(":").trim(), fam = this.family(o.name), open = this.opened.has(base);
+    const les = this.lesson(o.name), done = les && S.lessons[les] && S.lessons[les].done, th = typeof theoryFor === "function" && theoryFor(o.name), noL = extra && extra.noLesson;
+    const btns = `${th && !noL ? `<button class="btn sm" data-otheory="${th.id}">Theory</button>` : ""}${les && !noL ? `<button class="btn sm ${done ? "" : "go"}" data-olesson="${les}">${done ? "Review" : "Learn it"}</button>` : ""}`;
+    return `<div class="opn ${extra && extra.fresh ? "new" : ""} ${open ? "open" : ""}" data-obase="${esc(base)}"><button class="opn-h" data-otog aria-expanded="${open}"><span class="opn-ic">${this.icon(o.name)}</span><span class="opn-t"><b>${esc(base)}</b>${vari ? `<small>${esc(vari)}</small>` : ""}</span><span class="opn-ch" aria-hidden="true">›</span></button>
+      <div class="opn-b"><div class="opn-bi">${fam ? `<p>${esc(fam)}</p>` : ""}${extra && extra.note ? `<p class="dim">${extra.note}</p>` : ""}${btns ? `<div class="row opn-btns">${btns}</div>` : ""}</div></div></div>`;
   },
-  wire(root){ if (!root) return; root.querySelectorAll("[data-olesson]").forEach(b => b.onclick = () => App.go("lesson", {id: b.dataset.olesson})); root.querySelectorAll("[data-otheory]").forEach(b => b.onclick = () => App.go("theory", {id: b.dataset.otheory})); }
+  wire(root){ if (!root) return; root.querySelectorAll("[data-olesson]").forEach(b => b.onclick = () => App.go("lesson", {id: b.dataset.olesson})); root.querySelectorAll("[data-otheory]").forEach(b => b.onclick = () => App.go("theory", {id: b.dataset.otheory}));
+    root.querySelectorAll("[data-otog]").forEach(b => b.onclick = () => { const c = b.closest(".opn"), k = c.dataset.obase, on = !c.classList.contains("open"); c.classList.toggle("open", on); b.setAttribute("aria-expanded", on); if (on) this.opened.add(k); else this.opened.delete(k); Sound.play("Move", .3); }); }
 };
 
 /* ===== Game Review: Stockfish analysis with move classifications ===== */
@@ -4978,7 +5127,7 @@ Views.review = {
     let mv = ""; for (let i = 0; i < A.moves.length; i += 2){ const n = i / 2 + 1;
       const cell = j => { if (!A.moves[j]) return `<span></span>`; const c = A.cls[j]; const k = c ? CLS[c] : null; return `<span class="m ${A.ply === j + 1 ? "cur" : ""}" data-ply="${j + 1}">${k && ["brilliant","great","inaccuracy","mistake","miss","blunder"].includes(c) ? `<span class="cls" style="background:${k.c};width:16px;height:16px;font-size:9px;margin-right:4px">${k.sym}</span>` : ""}${esc(A.moves[j].san)}</span>`; };
       mv += `<span class="n">${n}.</span>${cell(i)}${cell(i + 1)}`; }
-    const opnCard = S.settings.openings !== false && A.open ? Openings.card(A.open, {note: A.moves.length > A.open.ply ? `Both sides followed known theory until move ${Math.floor((A.open.ply - 1) / 2) + 1}.` : ""}) : "";
+    const opnCard = S.settings.openings !== false && A.open ? Openings.card(A.open, {note: A.moves.length > A.open.ply ? `You both played known opening moves until move ${Math.floor((A.open.ply - 1) / 2) + 1}.` : ""}) : "";
     $("#sp").innerHTML = (top.includes("<!--OPN-->") ? top.replace("<!--OPN-->", opnCard) : opnCard + top) + `<div class="h-sec">Moves</div><div class="moves">${mv}</div>`;
     $$("#sp .m[data-ply]").forEach(s => s.onclick = () => this.go(+s.dataset.ply));
     $$("#sp [data-km]").forEach(s => s.onclick = () => this.go(+s.dataset.km)); Openings.wire($("#sp"));
@@ -5150,6 +5299,7 @@ const AV_ITEMS = [
   ["head", "none", "Nothing", 0], ["head", "yuzu", "Orange", 0], ["head", "bloom", "Flower clip", 0], ["head", "beanie", "Beanie", "t:pz-25"], ["head", "cap", "Cap", "t:games-10"], ["head", "band", "Headband", "t:streak-pz-5"],
   ["head", "wizard", "Wizard hat", "t:lessons-25"], ["head", "helmet", "Steel helmet", "t:bot-viktor"], ["head", "viking", "Viking helmet", "t:bot-ragnar"],
   ["head", "laurel", "Laurel wreath", "t:winstreak-5"], ["head", "crown", "Crown", "n:150"], ["head", "imperial", "Imperial crown", "n:300"],
+  ["head", "champ1", "Friends' Crown", "f:1"], ["head", "champ2", "Silver Circlet", "f:2"], ["head", "champ3", "Bronze Laurel", "f:3"],
   ["head", "knighthelm", "Knight's helm", "c:knight"], ["head", "mitre", "Bishop's mitre", "c:bishop"], ["head", "tower", "Tower crown", "c:rook"], ["head", "tiara", "Queen's tiara", "c:queen"], ["head", "kingcrown", "King's crown", "c:king"],
   // mask
   ["mask", "none", "Nothing", 0], ["mask", "domino", "Domino mask", "t:th-discoveredAttack-2"], ["mask", "ninja", "Ninja mask", "t:pzfast-50"], ["mask", "visor", "Knight visor", "t:th-fork-4"],
@@ -5422,6 +5572,8 @@ function itemUnlocked(it){
   if (typeof it.req === "string" && it.req.startsWith("n:")) return (typeof achCount === "function" ? achCount() : 0) >= +it.req.slice(2);
   if (typeof it.req === "string" && it.req.startsWith("t:")) return typeof achHas === "function" && achHas(it.req.slice(2));
   if (typeof it.req === "string" && it.req.startsWith("l:")) return typeof playerLevel === "function" && playerLevel() >= +it.req.slice(2);
+  /* held, not owned: the friends' crowns belong to whoever is in the top three right now */
+  if (typeof it.req === "string" && it.req.startsWith("f:")) return !!(S.champ && S.champ.rank <= +it.req.slice(2));
   return false;
 }
 function itemReqText(it){
@@ -5430,6 +5582,7 @@ function itemReqText(it){
   if (it.req.startsWith("r:")) return `Reach ${it.req.slice(2)} puzzle rating`;
   if (it.req.startsWith("c:")) return `Unlock the ${it.req.slice(2)} figure`;
   if (it.req.startsWith("l:")) return `Reach level ${it.req.slice(2)}`;
+  if (it.req.startsWith("f:")) return `Be in the top ${it.req.slice(2) === "1" ? "spot" : it.req.slice(2)} of a friends leaderboard`;
   const a = typeof achById === "function" ? achById(it.req.slice(2)) : null; return a ? `Trophy: ${a.name}` : "Locked";
 }
 /* turn the figure by dragging; solid bodies get real thickness from stacked layers */
@@ -5893,6 +6046,24 @@ const Av3D = (() => {
       const c = mesh(sph(.042, 16, 12), M("cloth", 0xffc93c), 0, 0, .022, f, ol); c.scale.z = .7;
       [[-.9, .11], [-2.3, .1]].forEach(([a, d]) => { const lf = mesh(sph(.05, 12, 8), M("cloth", 0x5aa84f), Math.cos(a) * d, Math.sin(a) * d, -.018, f, ol); lf.scale.set(1.5, .5, .2); lf.rotation.z = a; });
       return; }
+    /* the friends' crowns: gold for #1 (with little stars circling it), silver for #2, a bronze laurel for #3 */
+    if (k === "champ1" || k === "champ2"){ const one = k === "champ1", m = one ? M("gold", 0xf2c230) : M("metal", 0xe6ebf2), gem = one ? 0xe0234e : 0x5cc8ff, y0 = .28;
+      if (one) mesh(G("velvet3", () => new T.SphereGeometry(.25, 24, 10, 0, Math.PI * 2, 0, Math.PI / 2)), M("cloth", 0x7a1230), 0, y0 + .02, 0, g);
+      mesh(cyl(one ? .27 : .25, one ? .29 : .27, one ? .17 : .1, 40, true), M(one ? "gold" : "metal", one ? 0xf2c230 : 0xe6ebf2, {side: T.DoubleSide}), 0, y0, 0, g, ol);
+      mesh(tor(one ? .285 : .265, .02, 8, 40), m, 0, y0 - (one ? .08 : .05), 0, g).rotation.x = Math.PI / 2;
+      const n = one ? 8 : 10; for (let i = 0; i < n; i++){ const ang = i / n * Math.PI * 2, r = one ? .27 : .25, h = one ? .2 : i % 2 ? .07 : .13;
+        const sp = mesh(cone(one ? .05 : .03, h, 8), m, Math.sin(ang) * r, y0 + (one ? .08 : .05) + h / 2, Math.cos(ang) * r, g); sp.rotation.set(Math.cos(ang) * -.12, 0, Math.sin(ang) * .12);
+        mesh(sph(one ? .03 : .022, 10, 8), i % 2 && one ? M("gem", 0x5cc8ff) : m, Math.sin(ang) * r * 1.02, y0 + (one ? .08 : .05) + h + .01, Math.cos(ang) * r * 1.02, g); }
+      [[0, gem, .06], [Math.PI / 2, one ? 0x3f8f3a : 0xffffff, .04], [-Math.PI / 2, one ? 0x3f8f3a : 0xffffff, .04], [Math.PI, gem, .045]].forEach(([ang, c, sz]) => mesh(oct(sz), M("gem", c), Math.sin(ang) * (one ? .29 : .27), y0 + .01, Math.cos(ang) * (one ? .29 : .27), g).scale.set(.8, 1.2, .6));
+      if (one){ mesh(sph(.05), m, 0, y0 + .36, 0, g); mesh(box(.025, .11, .025), m, 0, y0 + .45, 0, g); mesh(box(.08, .025, .025), m, 0, y0 + .46, 0, g); }
+      sprite(rig, g, glowTex(), one ? 0xffd34a : 0xcfe6ff, one ? 1.1 : .85, 0, y0 + .1, 0, one ? .35 : .25);
+      sparkles(rig, g, [0, y0 + .12, 0], one ? .5 : .4, one ? 8 : 5, one ? 0xfff4c0 : 0xe8f4ff);
+      if (one){ const orb = new T.Group(); orb.position.y = y0 + .12; g.add(orb); for (let i = 0; i < 3; i++){ const st = mesh(oct(.035), M("glow", 0xfff1a0), Math.cos(i * 2.09) * .42, 0, Math.sin(i * 2.09) * .42, orb); sprite(rig, st, glowTex(), 0xffd34a, .2, 0, 0, 0, .8); }
+        rig.tick.push((dt, t) => { orb.rotation.y = t * 1.4; orb.position.y = .4 + Math.sin(t * 2) * .03; }); }
+      return; }
+    if (k === "champ3"){ const m = M("metal", 0xc8763a); for (let i = 0; i < 26; i++){ const ang = i / 26 * Math.PI * 2; if (Math.abs(Math.sin(ang / 2)) < .12) continue; const l = mesh(sph(.065, 10, 8), m, Math.sin(ang) * .31, .14 + Math.cos(ang) * .05, Math.cos(ang) * .31, g); l.scale.set(.5, 1.05, .25); l.rotation.set(0, ang, .6); }
+      mesh(tor(.305, .014, 6, 40), m, 0, .12, 0, g).rotation.x = Math.PI / 2 - .1; mesh(oct(.04), M("gem", 0xff8a3d), 0, .15, .31, g).scale.set(.8, 1.2, .6);
+      sparkles(rig, g, [0, .2, 0], .45, 5, 0xffe0c0); return; }
     if (k === "beanie"){ const m = M("cloth", 0xb3261e); const c = mesh(G("beanie", () => new T.SphereGeometry(.325, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2)), m, 0, .04, -.02, g, ol); c.rotation.x = -.25; const rim = mesh(tor(.31, .045, 10, 32), m, 0, .06, -.01, g); rim.rotation.x = Math.PI / 2 - .25; mesh(sph(.08), M("cloth", 0xf4f1ea), 0, .38, -.1, g, ol); }
     else if (k === "cap"){ const m = M("cloth", 0x2f6fb5); const c = mesh(G("capH", () => new T.SphereGeometry(.318, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2)), m, 0, .04, 0, g, ol); c.rotation.x = -.18; const br = mesh(cyl(.2, .2, .025, 24, false, -Math.PI / 2, Math.PI), m, 0, .09, .22, g); br.rotation.x = .12; mesh(sph(.025, 8, 6), m, 0, .36, -.05, g); }
     else if (k === "band"){ const b = mesh(tor(.305, .032, 8, 36), M("cloth", 0xd1202f), 0, .12, -.01, g); b.rotation.x = Math.PI / 2 - .2; [-1, 1].forEach(s => { const t = mesh(box(.05, .2, .015), M("cloth", 0xd1202f), s * .05, .02, -.33, g); t.rotation.set(.3, 0, s * .4); }); }
@@ -6310,14 +6481,16 @@ const Ach = {
     if (!S.ach.seenFirst){ S.ach.seenFirst = 1; if (list.length > 4){ this.pop(`<b>${list.length} trophies unlocked</b><span>For everything you've already done. ${items.length ? items.length + " new avatar items too." : ""}</span>`, ACH.find(a => a.id === list[0].id), true); return; } }
     if (list.length > 4){ list.sort((a, b) => b.tier - a.tier); this.pop(`<b>${list.length} trophies unlocked</b><span>Including ${esc(list[0].name)}.${items.length ? ` ${items.length} new item${items.length > 1 ? "s" : ""}.` : ""}</span>`, list[0], true); return; }
     list.forEach((a, i) => setTimeout(() => this.pop(`<b>${esc(a.name)}</b><span>${esc(a.desc)}</span>`, a, false), i * 1600));
+    if (items.length) setTimeout(() => Sound.unlock(), list.length * 1600 + 250);
     if (items.length) setTimeout(() => this.pop(`<b>New item${items.length > 1 ? "s" : ""}: ${esc(items.map(i => i.name).slice(0, 3).join(", "))}</b><span>Put ${items.length > 1 ? "them" : "it"} on your avatar.</span>`, {tier: 3, cat: "fun"}, true), list.length * 1600);
   },
   pop(html, a, many){
     const m = html.match(/<b>([\s\S]*?)<\/b>(?:<span>([\s\S]*?)<\/span>)?/) || [], tier = a ? a.tier || 1 : 1;
     const col = ["#ffd75e", "#cd8b5a", "#d3dce3", "#ffd75e", "#c08cff", "#ffb347", "#ff9be0"][Math.min(6, tier)] || "#ffd75e";
     Notify.show({cls: "ntf-trophy t" + tier, accent: col, icon: a && a.id ? achMedal(a, 48, true) : icon("trophy", 30), label: many ? "Trophies" : "Trophy unlocked" + (a && ACH_TIER[a.tier] ? " · " + ACH_TIER[a.tier].name : ""),
-      title: m[1] || "", text: m[2] || "", ms: 4600, sound: () => Sound.cheer(tier >= 4 ? 3 : tier >= 2 ? 2 : 1), onTap: () => App.go("awards", {tab: "trophies"}),
-      actions: [{label: "See", primary: true, fn: () => App.go("awards", {tab: "trophies"})}]});
+      title: m[1] || "", text: m[2] || "", ms: 5200, sound: () => Sound.cheer(tier >= 4 ? 3 : tier >= 2 ? 2 : 1),
+      /* tap: why you got it, right here (a group of trophies opens the list) */
+      onTap: () => { if (a && a.id && !many && typeof achDetail === "function") achDetail(a); else App.go("awards", {tab: "trophies"}); }});
   },
   /* things that happen once and aren't kept anywhere else */
   onEvent(kind, d){
@@ -6419,7 +6592,9 @@ const LV_COLORS = [
 LV_COLORS.forEach(([key, id, name, hex, L]) => { const list = AV_COLORS[key === "skin" || key === "hairC" || key === "fur" ? key : "cloth"]; if (!list.some(c => c[0] === id)) list.push([id, name, hex, "l:" + L]); });
 LV_FRAMES.forEach(([L, id, name]) => AV_ITEMS.push({slot: "frame", id, name, req: "l:" + L}));
 AV_ITEMS.push({slot: "frame", id: "recruit", name: "Recruiter", req: "t:recruit-1"});
-const LV_FRAME_IDS = new Set([...LV_FRAMES.map(f => f[1]), "recruit"]);
+/* held while you're in the top three of a friends leaderboard */
+[[1, "Champion"], [2, "Silver champion"], [3, "Bronze champion"]].forEach(([r, n]) => AV_ITEMS.push({slot: "frame", id: "champ" + r, name: n, req: "f:" + r}));
+const LV_FRAME_IDS = new Set([...LV_FRAMES.map(f => f[1]), "recruit", "champ1", "champ2", "champ3"]);
 function lvRewards(L){
   const out = [];
   LV_FRAMES.filter(f => f[0] === L).forEach(f => out.push({kind: "frame", id: f[1], name: f[2]}));
@@ -6437,7 +6612,7 @@ function addXP(n, why){
   const before = playerLevel(); S.xp = (S.xp || 0) + n; const after = playerLevel();
   if (after > (S.lvlSeen || before)){ for (let L = Math.max(before, S.lvlSeen || before) + 1; L <= after; L++) lvQueue.push(L); S.lvlSeen = after; setTimeout(lvNext, 900); }
   save();
-  if (why !== "quiet") xpFloat(n);
+  if (why !== "quiet"){ xpFloat(n); Sound.xp(); }
   if (typeof Social !== "undefined" && Social.syncCard && after > before) Social.syncCard();
 }
 /* a small "+8 XP" by the top bar, added up when several come quickly */
@@ -6466,7 +6641,7 @@ function lvNext(){
   el.innerHTML = `<div class="lvup-in"><div class="lvup-burst"></div><div class="lvup-n"><span>LEVEL</span><b>${L}</b></div><h3>Level up!</h3>
     ${rw.length ? `<div class="lvr-list">${rw.map(r => rewardHTML(r, L)).join("")}</div>` : `<p class="muted">Keep going: ${nx ? `the next reward comes at <b>level ${nx.L}</b>.` : "you've reached the top."}</p>`}
     <button class="btn go big" data-lvok style="width:100%;margin-top:14px">${lvQueue.length ? "Next" : "Nice!"}</button></div>`;
-  document.body.appendChild(el); Sound.cheer(L % 10 === 0 ? 4 : 3);
+  document.body.appendChild(el); Sound.levelUp(); if (typeof confettiBurst === "function") confettiBurst();
   const close = () => { el.classList.add("out"); setTimeout(() => { el.remove(); lvNext(); }, 260); };
   el.querySelector("[data-lvok]").onclick = close;
   el.querySelectorAll("[data-eq]").forEach(b => b.onclick = () => { S.avatar = Object.assign({}, S.avatar || {}, {frame: b.dataset.eq}); save(); renderRail(); if (typeof renderTop === "function") renderTop(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); b.textContent = "Wearing ✓"; b.disabled = true; });
@@ -6489,6 +6664,9 @@ const LVF = {
   lvamethyst: {a: "#e7c6ff", b: "#7b3fc4", dk: "#3a1466", w: 8, gems: "#b56bff", glow: "#b56bff"},
   lvwings:    {a: "#fff0a8", b: "#d49a1c", dk: "#6b4a07", w: 8, wings: 1, glow: "#ffd34a", gems: "#ffffff"},
   lvcelestial:{a: "#ffffff", b: "#7b5cff", dk: "#241a5c", w: 9, wings: 1, glow: "#9fe8ff", rainbow: 1, stars: 1, crown: 1},
+  champ1:     {a: "#fff3a6", b: "#e0a21c", dk: "#5c3d02", w: 9, gems: "#e0234e", crown: 1, glow: "#ffd34a", stars: 1, spin: "#fffbe0"},
+  champ2:     {a: "#ffffff", b: "#8fa0b5", dk: "#33404f", w: 8, gems: "#5cc8ff", glow: "#cfe6ff", stars: 1, spin: "#ffffff"},
+  champ3:     {a: "#ffc48a", b: "#a2581f", dk: "#4a2408", w: 8, laurel: "#e08a4a", laurelDk: "#6a3510", glow: "#ff9a50", spin: "#ffe0c0"},
   recruit:    {a: "#8ff0d8", b: "#1d8f7a", dk: "#0b3d34", w: 7, gems: "#ffd34a", banner: 1},
 };
 function levelFrameSVG(id, lv, compact){
@@ -6507,6 +6685,7 @@ function levelFrameSVG(id, lv, compact){
   /* the ring itself */
   front += `<circle cx="50" cy="50" r="${50 - sw / 2 + 1}" fill="none" stroke="${stroke}" stroke-width="${sw}"/><circle cx="50" cy="50" r="${50 - sw + 1.2}" fill="none" stroke="${F.dk}" stroke-width="1"/><circle cx="50" cy="50" r="50.5" fill="none" stroke="${F.dk}" stroke-width="1"/>`;
   if (id === "lvwood") front += [30, 75, 140, 200, 260, 320].map(a => `<path d="M50 ${2 + sw * .2} q3 ${sw * .3} 0 ${sw * .6}" stroke="${F.dk}" stroke-width=".9" fill="none" opacity=".6" transform="rotate(${a} 50 50)"/>`).join("");
+  if (F.spin) front += `<g class="avf-spin"><circle cx="50" cy="50" r="${50 - sw / 2 + 1}" fill="none" stroke="${F.spin}" stroke-width="${sw * .7}" stroke-linecap="round" stroke-dasharray="26 300" opacity=".9"/><circle cx="50" cy="50" r="${50 - sw / 2 + 1}" fill="none" stroke="${F.spin}" stroke-width="${sw * .5}" stroke-linecap="round" stroke-dasharray="10 316" stroke-dashoffset="-160" opacity=".6"/></g>`;
   if (F.rivets) front += Array.from({length: F.rivets}, (_, i) => `<circle cx="50" cy="${1 + sw / 2}" r="${compact ? 1.6 : 2}" fill="${F.a}" stroke="${F.dk}" stroke-width=".8" transform="rotate(${i * 360 / F.rivets + 22.5} 50 50)"/>`).join("");
   /* laurel: two branches climbing up both sides, leaves lying along the ring */
   if (F.laurel && !compact){ const leaf = (a, s, o) => `<ellipse cx="50" cy="${o}" rx="2.8" ry="7" fill="${F.laurel}" stroke="${F.laurelDk}" stroke-width=".9" transform="rotate(${a} 50 50) rotate(${s * 62} 50 ${o})"/>`;
@@ -6527,7 +6706,7 @@ function levelFrameSVG(id, lv, compact){
     if (!LV_FRAME_IDS.has(a.frame)) return base(cfg, size, rating);
     /* your own figure (wardrobe previews included) carries no rating or level of its own; friends' figures do */
     const mine = !cfg || cfg === S.avatar || (cfg._r == null && cfg._lv == null);
-    const lv = a._lv || (mine ? playerLevel() : 0), d = Math.round(size), compact = size < 52, F = levelFrameSVG(a.frame, lv, compact);
+    const champ = /^champ\d$/.test(a.frame), lv = champ ? "#" + a.frame.slice(5) : a._lv || (mine ? playerLevel() : 0), d = Math.round(size), compact = size < 52, F = levelFrameSVG(a.frame, lv, compact);
     const r = rating != null ? rating : a._r != null ? a._r : (mine ? S.puzzle.r : null), fi = frameTier(Object.assign({}, a, {frame: "auto"}), r);
     return `<span class="avb avb-lv" style="width:${d}px;height:${d}px">${F.back}<span class="avb-c">${Av3D.tag(Object.assign({}, a, {aura: "none", pet: "none"}), {w: d, h: d, mode: "bust", tier: avTier(cfg), rank: fi, fb: avatarSVG(Object.assign({}, a, {aura: "none"}), {head: true, size: d})})}</span>${F.front}</span>`;
   };
@@ -6581,6 +6760,7 @@ function itemReqShort(it){
   if (it.req.startsWith("n:")) return it.req.slice(2) + " trophies";
   if (it.req.startsWith("r:")) return it.req.slice(2) + " puzzle rating";
   if (it.req.startsWith("l:")) return "Level " + it.req.slice(2);
+  if (it.req.startsWith("f:")) return it.req.slice(2) === "1" ? "#1 of your friends" : "Top " + it.req.slice(2) + " of your friends";
   const a = achById(it.req.slice(2)); return a ? a.desc.replace(/\.$/, "") : "Locked";
 }
 function achProg(a){ if (!a || !a.prog) return null; try { const [c, g] = a.prog(); return {c: Math.min(c, g), g, p: Math.max(0, Math.min(1, c / g))}; } catch(e) { return null; } }
@@ -6593,7 +6773,7 @@ function detailSheet(html){
 function achDetail(a){
   const got = achHas(a.id), pr = achProg(a), items = AV_ITEMS.filter(i => i.req === "t:" + a.id);
   detailSheet(`<div style="display:flex;gap:12px;align-items:center">${achMedal(a, 52, got)}<div><div class="muted" style="font:800 11px var(--body);letter-spacing:.06em">${ACH_TIER[a.tier].name.toUpperCase()}</div><div style="font:900 20px var(--display)">${esc(a.name)}</div></div></div>
-    <p style="margin:10px 0 6px">${esc(a.desc)}</p>
+    ${got ? `<div class="muted" style="font:800 11px var(--body);letter-spacing:.06em;margin-top:12px">WHY YOU GOT IT</div>` : ""}<p style="margin:${got ? 4 : 10}px 0 6px;font-size:15px">${esc(a.desc)}</p>
     ${got ? `<p class="muted" style="margin:0">Unlocked on ${new Date(S.ach.got[a.id]).toLocaleDateString("en-GB")}</p>` : pr ? `<div class="bar" style="margin-top:6px"><i style="width:${Math.round(pr.p * 100)}%"></i></div><p class="muted" style="margin:4px 0 0">${pr.c.toLocaleString("en")} / ${pr.g.toLocaleString("en")}</p>` : `<p class="muted" style="margin:0">Not unlocked yet.</p>`}
     ${items.length ? `<div class="dreward"><span class="muted" style="font:800 11px var(--body);letter-spacing:.06em">REWARD</span>${items.map(i => `<b>${esc(i.name)}</b>`).join(" · ")}</div>` : ""}`);
 }
@@ -8120,13 +8300,14 @@ function renderRail(){
 
 const TABS = [["home", "Home", "home"], ["learn", "Learn", "book"], ["puzzles", "Puzzles", "puzzle"], ["play", "Play", "bot"], ["more", "More", "menu"]];
 const TAB_OF = {repertoire: "learn", repdrill: "learn", blitz: "play", battle: "play", theory: "learn", awards: "more", journey: "home", jlevel: "home", home: "home", learn: "learn", lesson: "learn", puzzles: "puzzles", rush: "puzzles", daily: "puzzles", train: "puzzles", coords: "puzzles", play: "play", bots: "play", friend: "play", local: "play", linkgame: "play", endgames: "play", trophies: "play", friends: "friends", chat: "friends", profile: "more", me: "more", review: "more", analysis: "more", stats: "more", settings: "more", account: "more"};
+Object.assign(TAB_OF, {friends: "friends", fprofile: "friends", chat: "friends"});
 function renderTabs(){
   let t = $("#tabbar"); if (!t) return; const cur = TAB_OF[App.route] || "home"; const dailyOpen = !S.daily.done[todayKey()];
   /* with accounts (website), Friends sits bottom right and "More" moves to the top bar */
   const tabs = Views.friends ? TABS.map(x => x[0] === "more" ? ["friends", "Friends", "users"] : x) : TABS;
   const fb = Views.friends && typeof friendsPending === "function" ? friendsPending() + (typeof Chat !== "undefined" ? Chat.total() : 0) : 0, fo = Views.friends && typeof friendsOnline === "function" ? friendsOnline() : 0;
   t.innerHTML = tabs.map(([k, n, ic]) => `<button class="${cur === k ? "on" : ""}" data-t="${k}">${icon(ic, 24)}<span>${n}</span>${k === "puzzles" && dailyOpen ? `<i class="dot"></i>` : ""}${k === "friends" ? (fb ? `<i class="tbadge">${fb}</i>` : fo ? `<i class="dot on"></i>` : "") : ""}</button>`).join("");
-  $$("[data-t]", t).forEach(b => b.onclick = () => b.dataset.t === "more" ? openSheet() : b.dataset.t === "friends" && typeof Chat !== "undefined" && Chat.total() && App.route !== "chat" ? App.go("chat") : App.go(b.dataset.t));
+  $$("[data-t]", t).forEach(b => b.onclick = () => (Sound.tap(), 0) || b.dataset.t === "more" ? openSheet() : b.dataset.t === "friends" && typeof Chat !== "undefined" && Chat.total() && App.route !== "chat" ? App.go("chat") : App.go(b.dataset.t));
 }
 function openSheet(){
   const sh = $("#sheet"); const rk = rankOf(S.puzzle.r);
@@ -8425,7 +8606,7 @@ function updateBadge(){ try { const n = flameCount(); if (navigator.setAppBadge)
 function flameCelebrate(n, shield){
   const el = document.createElement("div"); el.className = "flamecel";
   el.innerHTML = `<div class="fc-in"><div class="fc-fire">${FLAME_SVG}</div><div class="fc-n">${n}</div><div class="fc-t">${n === 1 ? "Flame lit!" : n + "-day flame!"}</div><div class="fc-s">${shield ? `${SHIELD_SVG} <b>+1 flame shield.</b> It saves your flame if you miss a day.` : "Come back tomorrow to keep it burning."}</div></div>`;
-  document.body.appendChild(el); Sound.cheer(n >= 7 ? 3 : 2);
+  document.body.appendChild(el); Sound.flame(); if (n >= 7) setTimeout(() => Sound.cheer(3), 500);
   el.onclick = () => el.remove(); setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 400); }, 2600);
 }
 { const base = dayTick;
@@ -8610,7 +8791,7 @@ const Social = (() => {
     await ensurePlayer(); requireId();
     beat(); setInterval(beat, 60000); document.addEventListener("visibilitychange", () => { if (!document.hidden) beat(); hereLoop(); });
     window.addEventListener("pagehide", () => here(false)); hereLoop();
-    listen(); setInterval(pollInvites, 30000); pollInvites();
+    listen(); setInterval(pollInvites, 30000); pollInvites(); setTimeout(() => load(), 4000); setInterval(() => { if (!document.hidden) load(); }, 5 * 60000);
     /* now and then (at most weekly, four times in all) a friendly nudge to invite someone */
     setTimeout(() => { const nag = S.invNag || {n: 0, ts: 0}; if (!player || !player.handle || (S.stat || {}).recruits || nag.n >= 4 || Date.now() - nag.ts < 7 * 864e5 || document.hidden || (S.puzzle.n || 0) < 5) return;
       S.invNag = {n: nag.n + 1, ts: Date.now()}; save();
@@ -8698,7 +8879,7 @@ const Social = (() => {
     }
     return {error: "That name is taken. Try another one."};
   }
-  const card = () => ({flame: typeof flameCount === "function" ? flameCount() : 0, flame_day: (S.flame && S.flame.last) || null, rating: S.puzzle.r, avatar: Object.assign({}, myAvatar(), typeof playerLevel === "function" ? {_lv: playerLevel(), _title: myTitle()} : {}), trophies: typeof achCount === "function" ? achCount() : 0, ratings: typeof RATED_CATS !== "undefined" ? Object.fromEntries(RATED_CATS.filter(([k]) => (S.ratings || {})[k]).map(([k]) => [k, S.ratings[k].r])) : null});
+  const card = () => ({flame: typeof flameCount === "function" ? flameCount() : 0, flame_day: (S.flame && S.flame.last) || null, rating: S.puzzle.r, avatar: Object.assign({}, myAvatar(), typeof playerLevel === "function" ? {_lv: playerLevel(), _title: myTitle(), _xp: S.xp || 0} : {}, {_jr: Object.keys((S.journey && S.journey.best) || {}).length, _champ: S.champ ? S.champ.rank : null}), trophies: typeof achCount === "function" ? achCount() : 0, ratings: typeof RATED_CATS !== "undefined" ? Object.fromEntries(RATED_CATS.filter(([k]) => (S.ratings || {})[k]).map(([k]) => [k, S.ratings[k].r])) : null});
   function beat(){ if (!player || document.hidden) return; sb.from("chess_players").update(Object.assign({last_seen: new Date().toISOString()}, card())).eq("id", me).then(() => {}, () => {}); }
   /* "I'm in the app": while the app is on screen the server sends no phone notifications (the app shows its own cards).
      Every 25 s while visible; cleared as soon as the app goes to the background. */
@@ -8716,7 +8897,7 @@ const Social = (() => {
         sb.from("chess_gifts").select("from_id,to_id,created_at").order("created_at", {ascending: false}).limit(1000)]);
       D.friends = f.data || []; D.duels = d.data || []; D.gifts = g.data || [];
       const ids = new Set(); D.friends.forEach(r => { ids.add(r.a); ids.add(r.b); }); D.duels.forEach(r => { ids.add(r.white); ids.add(r.black); }); ids.delete(me);
-      if (ids.size){ const {data} = await sb.from("chess_players").select("id,name,handle,rating,last_seen,avatar,trophies,ratings,referred_by").in("id", [...ids]); (data || []).forEach(p => { D.players[p.id] = p; }); }
+      if (ids.size){ const {data} = await sb.from("chess_players").select("id,name,handle,rating,last_seen,avatar,trophies,ratings,referred_by,flame,flame_day").in("id", [...ids]); (data || []).forEach(p => { D.players[p.id] = p; }); }
       loaded = Date.now(); loading = null;
       /* numbers for the friend trophies */
       const stg = standings(); S.stat = S.stat || {};
@@ -8729,6 +8910,7 @@ const Social = (() => {
       if (S.stat.recruits > (S.recruitPaid || 0) && typeof addXP === "function"){ const n = S.stat.recruits - (S.recruitPaid || 0); S.recruitPaid = S.stat.recruits; addXP(n * XP.recruit); }
       if (!S.stat.breakout){ const seq = {}; D.duels.slice().sort((x, y) => new Date(x.created_at) - new Date(y.created_at)).forEach(r => { if (r.result === "1/2-1/2") return; const opp = r.white === me ? r.black : r.white, iWon = (r.result === "1-0") === (r.white === me); if (iWon && seq[opp] === "lost") S.stat.breakout = 1; seq[opp] = iWon ? "won" : "lost"; }); }
       if (typeof Ach !== "undefined") Ach.soon();
+      if (typeof Ranks !== "undefined") setTimeout(() => Ranks.check(), 600);
     })().catch(() => { loading = null; });
     return loading;
   }
@@ -8845,7 +9027,7 @@ const Social = (() => {
     el.querySelectorAll("[data-ph]").forEach(b => b.onclick = async () => { const id = b.dataset.ph; if (!(await heart(id))) return;
       const d = $("#pdrop-" + id), c = el.querySelector(`[data-pc="${id}"]`), say = $("#psay-" + id);
       const p = document.createElement("span"); p.className = "poo"; p.textContent = "❤️"; p.style.left = (30 + Math.random() * 40) + "%"; d.appendChild(p);
-      Sound.tone([[660, .06, .05], [990, .14]], "sine", .1);
+      Sound.heart();
       setTimeout(() => { Av3D.react(c.querySelector(".cage-in"), "wave"); c.classList.remove("hit"); void c.offsetWidth; c.classList.add("hit"); say.textContent = rnd(HEART_LINES); say.classList.remove("show"); void say.offsetWidth; say.classList.add("show"); }, 520);
       setTimeout(() => p.remove(), 2600);
       const sp = c.querySelector(".plate span:last-child"); const o = standings()[id]; if (sp && o) sp.textContent = `Score ${o.w}:${o.l}${o.d ? " · " + o.d + "½" : ""} · ❤️ ${o.sent} sent`; });
@@ -8861,7 +9043,7 @@ const Social = (() => {
 
 /* ---------- the Friends page ---------- */
 Views.friends = {
-  async mount(main){ this.main = main; this.q = ""; this.tc = this.tc || (S.invTc && S.invTc.slice()) || [10, 2]; App.route = "friends"; if (Social.player && Social.player.handle) this.draw(); else this.main.innerHTML = `<div class="page"><h1 class="h-title">Friends</h1><p class="dim">Loading…</p></div>`;
+  async mount(main){ this.main = main; this.q = ""; App.route = "friends"; if (Social.player && Social.player.handle) this.draw(); else this.main.innerHTML = `<div class="page"><h1 class="h-title">Friends</h1><p class="dim">Loading…</p></div>`;
     const site = window.ChessSite || {}; if (!site.ready){ this.main.innerHTML = `<div class="page"><h1 class="h-title">Friends</h1><p class="muted">Accounts aren't set up on this site.</p></div>`; return; }
     await site.sessionReady;
     if (!site.getSession()){ this.main.innerHTML = `<div class="page" style="max-width:640px"><h1 class="h-title">Friends</h1><div class="unit" style="margin-top:12px"><h3>Sign in to add friends</h3><p class="muted">With an account you get a player name, can add friends, see who's online, invite them to a game, and lock them up in your Cages when you beat them.</p><button class="btn go" id="fsi">Sign in</button></div></div>`; $("#fsi").onclick = () => App.go("account"); return; }
@@ -8871,10 +9053,10 @@ Views.friends = {
     const me = Social.player, D = Social.data, st = Social.standings();
     if (!me || !me.handle){ const nameNow = me ? me.name : (S.name === "You" ? "" : S.name);
       main.innerHTML = `<div class="page" style="max-width:640px"><h1 class="h-title">Friends</h1><div class="unit" style="margin-top:12px"><h3>${me ? "Pick your player ID" : "Set up your player card"}</h3>
-        <p class="muted">Your <b>player ID</b> is unique, like <b>@natlordlord</b>. Friends use it to find you. Your <b>name</b> is what they see in games and in the cage.</p>
+        <p class="muted">Your <b>player ID</b> is unique, like <b>@rookie_rabbit</b>. Friends use it to find you. Your <b>name</b> is what they see in games and in the cage.</p>
         <form id="nmf" style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
           ${me ? "" : `<label class="muted">Name<input type="text" id="nm" maxlength="24" placeholder="e.g. Pupsi" value="${esc(nameNow)}" style="width:100%;margin-top:4px"></label>`}
-          <label class="muted">Player ID<div class="hdl-in"><span>@</span><input type="text" id="hd" maxlength="21" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="natlordlord" value="${esc(Social.suggestHandle())}"></div></label>
+          <label class="muted">Player ID<div class="hdl-in"><span>@</span><input type="text" id="hd" maxlength="21" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="rookie_rabbit" value="${esc(Social.suggestHandle())}"></div></label>
           <p class="dim" style="margin:0;font-size:12.5px">3 to 20 characters: letters a–z, numbers or _.</p>
           <button class="btn go" type="submit">Save</button></form><p id="nmerr" style="color:var(--bad);font-size:13px;margin:6px 0 0"></p></div></div>`;
       $("#hd").oninput = e => { const v = Social.cleanHandle(e.target.value).replace(/[^a-z0-9_]/g, ""); if (v !== e.target.value) e.target.value = v; };
@@ -8882,41 +9064,36 @@ Views.friends = {
     const other = r => r.a === me.id ? r.b : r.a;
     const friends = D.friends.filter(r => r.status === "accepted").map(other).sort((x, y) => (Social.isOnline(Social.P(y)) - Social.isOnline(Social.P(x))) || Social.P(x).name.localeCompare(Social.P(y).name));
     const incoming = D.friends.filter(r => r.status === "pending" && r.requested_by !== me.id).map(other), sent = D.friends.filter(r => r.status === "pending" && r.requested_by === me.id).map(other);
-    const person = (id, right) => { const p = Social.P(id), o = st[id], fr = friends.includes(id); return `<div class="li fr">${Social.face(p, 42)}<div class="grow"><div class="t">${Social.dot(p)}${esc(p.name)}${fr ? `<button class="nk-ed" data-nk="${id}" aria-label="Give ${esc(p.name)} a name" title="Give them a name only you see">${icon("pen", 14)}</button>` : ""}${p.rating ? ` <span class="muted">(${p.rating})</span>` : ""}</div><div class="s">${p.avatar && p.avatar._lv ? `Lv ${p.avatar._lv}${p.avatar._title ? " " + esc(p.avatar._title) : ""} · ` : ""}${p.realName ? `${esc(p.realName)} · ` : ""}${p.handle ? `@${esc(p.handle)} · ` : ""}${p.ratings && p.ratings.blitz ? `Blitz ${p.ratings.blitz} · ` : ""}${esc(Social.seen(p))}${o ? ` · score ${o.w}:${o.l}${o.cage === "mine" ? " · 🔒 in your cage" : o.cage === "theirs" ? " · you're in their cage" : ""}` : ""}</div></div>${right}</div>`; };
-    const TCS = [1, 3, 5, 10, 15], inc = S.invInc !== false; this.tc = [this.tc[0], inc ? 2 : 0]; S.invTc = this.tc.slice();
-    main.innerHTML = `<div class="page" style="max-width:760px"><h1 class="h-title">Friends</h1>
+    const person = (id, right, tap) => { const p = Social.P(id), o = st[id]; return `<div class="li fr ${tap ? "fr-tap" : ""}" ${tap ? `data-prof="${id}"` : ""}>${Social.face(p, 42)}<div class="grow"><div class="t">${Social.dot(p)}${esc(p.name)}${p.rating ? ` <span class="muted">(${p.rating})</span>` : ""}</div><div class="s">${p.avatar && p.avatar._lv ? `Lv ${p.avatar._lv}${p.avatar._title ? " " + esc(p.avatar._title) : ""} · ` : ""}${esc(Social.seen(p))}${o && o.cage === "mine" ? " · 🔒 in your cage" : o && o.cage === "theirs" ? " · you're in their cage" : ""}</div></div>${right}</div>`; };
+    main.innerHTML = `<div class="page" style="max-width:760px"><div class="fr-head"><h1 class="h-title">Friends</h1><button class="btn sm fr-news" id="fnews" hidden>${icon("bell", 18)} News</button></div>
       <div class="unit" style="margin-top:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">${Social.face(me, 54)}<div style="flex:1;min-width:180px"><div class="muted" style="font-size:12px;font-weight:800;letter-spacing:.06em">YOUR PLAYER CARD</div>${this.renaming ? `<form id="rnf" style="display:flex;flex-direction:column;gap:6px;margin-top:4px"><input type="text" id="rnv" maxlength="24" value="${esc(me.name)}" placeholder="Name"><div class="hdl-in ${me.handle_changes >= 1 ? "locked" : ""}"><span>@</span><input type="text" id="rnh" maxlength="21" autocapitalize="off" spellcheck="false" value="${esc(me.handle)}" ${me.handle_changes >= 1 ? "disabled" : ""}></div><p class="dim" style="margin:0;font-size:12px">${me.handle_changes >= 1 ? "Your player ID is fixed. Your name you can change any time." : "You can change your player ID once. Your name any time."}</p><div class="row"><button class="btn sm go" type="submit">Save</button><button class="btn sm" type="button" id="rnx">Cancel</button></div></form><p id="rnerr" style="color:var(--bad);font-size:13px;margin:4px 0 0"></p>` : `<div style="font:900 22px var(--display)">${esc(me.name)}</div><div class="hdl">@${esc(me.handle)} <button class="btn sm ghost" id="cpid">Copy ID</button></div>`}</div>${this.renaming ? "" : `<button class="btn sm" id="ren">Change</button>`}</div>
-      <div class="unit invcard"><div class="inv-ic">${icon("users", 26)}</div><div class="grow"><h3>Invite friends</h3><p class="muted">Send your link. When a friend joins, accepts and plays you, you get the <b>Recruiter</b> trophy, its border and <b>+500 XP</b>.${(S.stat || {}).recruits ? ` You've brought <b>${S.stat.recruits}</b> so far.` : ""}</p></div><button class="btn go" id="invshare">${icon("send", 18)} Invite</button></div>
-      <div class="unit"><h3>Add a friend</h3><form id="sf2" class="row" style="margin-top:8px"><input type="text" id="sq" placeholder="Player ID or name, e.g. @natlordlord" value="${esc(this.q)}" style="flex:1;min-width:160px"><button class="btn go" type="submit">Search</button></form><div id="sres"></div></div>
       ${incoming.length ? `<h2 class="h-sec">Friend requests</h2><div class="list">${incoming.map(id => person(id, `<button class="btn sm" data-rm="${id}">Decline</button><button class="btn sm go" data-acc="${id}">Accept</button>`)).join("")}</div>` : ""}
       <h2 class="h-sec" style="margin-top:16px">Your friends <span class="muted" style="font-weight:600">${friends.filter(id => Social.isOnline(Social.P(id))).length} online</span></h2>
-      ${friends.length ? `<div class="row" style="margin:0 0 8px"><span class="muted" style="font-size:13px">Invite with:</span>${TCS.map(m => `<button class="btn sm ${m === this.tc[0] ? "go" : ""}" data-tcs="${m}">${m} min</button>`).join("")}<button class="btn sm inc-tog ${inc ? "on" : ""}" id="inctog" aria-pressed="${inc}" title="Every move adds 2 seconds to your clock">${inc ? "✓ " : ""}+2 s per move</button></div>
-        <div class="list fr-list">${friends.map(id => person(id, `<div class="fr-act">
-          <button class="fa fa-play ${Social.isOnline(Social.P(id)) ? "on" : ""}" data-inv="${id}" aria-label="Play a game">${icon("knight", 22)}<span>Play</span></button>
-          <button class="fa" data-chat="${id}" aria-label="Chat">${icon("bubble", 24)}${typeof Chat !== "undefined" && Chat.unread[id] ? `<span class="cbadge">${Chat.unread[id]}</span>` : ""}<small>Chat</small></button>
-          <button class="fa" data-bat="${id}" aria-label="Puzzle Battle">${icon("bolt", 24)}<small>Battle</small></button>
-          ${st[id] && st[id].cage === "mine" ? `<button class="fa fa-heart" data-h="${id}" aria-label="Send a heart">${icon("heart", 24)}<small>Heart</small></button>` : ""}
-          <button class="fa fa-x" data-rmf="${id}" aria-label="Remove friend">${icon("xmark", 18)}</button></div>`)).join("")}</div>`
-        : `<div class="unit"><p class="muted" style="margin:0">No friends yet. Search for their player ID above, or play them live and tap “Add as friend” after the game.</p></div>`}
+      ${friends.length ? `<div class="list fr-list">${friends.map(id => person(id, `<div class="fr-act2">
+          ${st[id] && st[id].cage === "mine" ? `<button class="fa2 fa2-heart" data-h="${id}" aria-label="Send a heart">${icon("heart", 20)}</button>` : ""}
+          <button class="fa2 fa2-play ${Social.isOnline(Social.P(id)) ? "on" : ""}" data-inv="${id}" aria-label="Play">${icon("knight", 20)}<span>Play</span></button>
+          <button class="fa2 fa2-chat" data-chat="${id}" aria-label="Chat">${icon("bubble", 20)}<span>Chat</span>${typeof Chat !== "undefined" && Chat.unread[id] ? `<span class="cbadge">${Chat.unread[id]}</span>` : ""}</button></div>`, true)).join("")}</div>`
+        : `<div class="unit"><p class="muted" style="margin:0">No friends yet. Search for their player ID below, or play them live and tap “Add as friend” after the game.</p></div>`}
+      ${typeof Ranks !== "undefined" ? Ranks.html() : ""}
+      <div class="unit invcard"><div class="inv-ic">${icon("users", 26)}</div><div class="grow"><h3>Invite friends</h3><p class="muted">Send your link. When a friend joins, accepts and plays you, you get the <b>Recruiter</b> trophy, its border and <b>+500 XP</b>.${(S.stat || {}).recruits ? ` You've brought <b>${S.stat.recruits}</b> so far.` : ""}</p></div><button class="btn go" id="invshare">${icon("send", 18)} Invite</button></div>
+      <div class="unit"><h3>Add a friend</h3><form id="sf2" class="row" style="margin-top:8px"><input type="text" id="sq" placeholder="Player ID or name, e.g. @rookie_rabbit" value="${esc(this.q)}" style="flex:1;min-width:160px"><button class="btn go" type="submit">Search</button></form><div id="sres"></div></div>
       ${sent.length ? `<h2 class="h-sec" style="margin-top:16px">Requests you sent</h2><div class="list">${sent.map(id => person(id, `<button class="btn sm" data-rm="${id}">Cancel</button>`)).join("")}</div>` : ""}
       <p class="muted" style="margin-top:16px;font-size:13.5px">Beat a friend in a live game and they go into your cage in the <a href="#" id="gotr">Cages</a>. Lose and you're in theirs, until you win again.</p></div>`;
+    if (typeof News !== "undefined") News.isAdmin().then(a => { const b = $("#fnews"); if (a && b){ b.hidden = false; b.onclick = () => App.go("news"); } });
+    if (typeof Ranks !== "undefined") Ranks.wire(main, () => this.draw());
+    $$("[data-prof]", main).forEach(r => r.onclick = e => { if (e.target.closest("button")) return; App.go("fprofile", {id: r.dataset.prof}); });
     if ($("#ren")) $("#ren").onclick = () => { this.renaming = true; this.draw(); $("#rnv").focus(); };
     if ($("#rnx")) $("#rnx").onclick = () => { this.renaming = false; this.draw(); };
     if ($("#rnf")) $("#rnf").onsubmit = async e => { e.preventDefault(); let r = $("#rnh").disabled || Social.cleanHandle($("#rnh").value) === me.handle ? {} : await Social.setHandle($("#rnh").value); if (!r.error && $("#rnv").value.trim() !== me.name) r = await Social.setName($("#rnv").value); if (r.error){ $("#rnerr").textContent = r.error; return; } this.renaming = false; toast("Saved"); this.draw(); };
     if ($("#cpid")) $("#cpid").onclick = async () => { try { await navigator.clipboard.writeText("@" + me.handle); toast("Copied @" + me.handle); } catch(e) { toast("@" + me.handle); } };
     $("#gotr").onclick = e => { e.preventDefault(); App.go("trophies"); };
     $("#sf2").onsubmit = e => { e.preventDefault(); this.search($("#sq").value); };
-    $$("[data-tcs]", main).forEach(b => b.onclick = () => { this.tc = [+b.dataset.tcs, this.tc[1]]; S.invTc = this.tc.slice(); save(); this.draw(); });
-    if ($("#inctog")) $("#inctog").onclick = () => { S.invInc = S.invInc === false; save(); this.draw(); };
     $$("[data-acc]", main).forEach(b => b.onclick = async () => { await Social.accept(b.dataset.acc); this.draw(); });
     $$("[data-rm]", main).forEach(b => b.onclick = async () => { await Social.remove(b.dataset.rm); this.draw(); });
     if ($("#invshare")) $("#invshare").onclick = () => Social.shareInvite();
-    $$("[data-nk]", main).forEach(b => b.onclick = e => { e.stopPropagation(); Social.rename(b.dataset.nk, () => this.draw()); });
-    $$("[data-rmf]", main).forEach(b => b.onclick = async () => { if (!b.dataset.armed){ b.dataset.armed = 1; b.classList.add("armed"); b.innerHTML = "Remove?"; return; } await Social.remove(b.dataset.rmf); this.draw(); });
-    $$("[data-inv]", main).forEach(b => b.onclick = () => Social.invite(b.dataset.inv, this.tc));
-    $$("[data-bat]", main).forEach(b => b.onclick = () => Social.invite(b.dataset.bat, "battle"));
+    $$("[data-inv]", main).forEach(b => b.onclick = () => playSheet(b.dataset.inv));
     $$("[data-chat]", main).forEach(b => b.onclick = () => App.go("chat", {id: b.dataset.chat}));
-    $$("[data-h]", main).forEach(b => b.onclick = async () => { if (await Social.heart(b.dataset.h)){ toast("❤️ sent to " + Social.P(b.dataset.h).name); Sound.cheer(1); } });
+    $$("[data-h]", main).forEach(b => b.onclick = async () => { if (await Social.heart(b.dataset.h)){ toast("❤️ sent to " + Social.P(b.dataset.h).name); Sound.heart(); } });
     if (this.q) this.search(this.q);
   },
   async search(q){
@@ -8932,6 +9109,62 @@ Views.friends = {
       return `<div class="li fr">${Social.face(p, 38)}<div class="grow"><div class="t">${Social.dot(p)}${esc(p.name)}${p.rating ? ` <span class="muted">(${p.rating})</span>` : ""}</div><div class="s">${p.handle ? `@${esc(p.handle)} · ` : ""}${esc(Social.seen(p))}</div></div>${r === "friend" ? `<span class="pill go">Friends</span>` : r === "sent" ? `<span class="pill">Requested</span>` : `<button class="btn sm go" data-add="${p.id}">${r === "incoming" ? "Accept" : "Add friend"}</button>`}</div>`; }).join("")}</div>`
       : `<p class="muted" style="font-size:13px;margin:8px 0 0">Nobody called “${esc(q)}” yet. Ask your friend for their player ID. They need a Chess.nat account and a player card.</p>`;
     $$("[data-add]", out).forEach(b => b.onclick = async () => { b.disabled = true; await Social.request(b.dataset.add); this.draw(); });
+  }
+};
+/* Play with a friend: first what (a game or a puzzle battle), then how long */
+function playSheet(id){
+  const p = Social.P(id), TCS = [[1, "Bullet"], [3, "Blitz"], [5, "Blitz"], [10, "Rapid"], [15, "Rapid"]];
+  let tc = (S.invTc && S.invTc.slice()) || [10, 2]; const inc = () => S.invInc !== false;
+  const sh = detailSheet(`<div class="ps-h">${Social.face(p, 46)}<div><div class="muted" style="font:800 11px var(--body);letter-spacing:.06em">PLAY WITH</div><div style="font:900 21px var(--display)">${esc(p.name)}</div></div></div><div id="psb"></div>`);
+  const body = sh.el.querySelector("#psb");
+  const step1 = () => { body.innerHTML = `<div class="ps-opts"><button class="ps-o go" data-k="game"><span class="ps-ic">${icon("knight", 30)}</span><b>Live game</b><small>A real game, you against ${esc(p.name)}</small></button>
+      <button class="ps-o" data-k="battle"><span class="ps-ic">${icon("bolt", 30)}</span><b>Puzzle Battle</b><small>3 minutes, same puzzles. Whoever solves more wins.</small></button></div>`;
+    body.querySelector('[data-k="game"]').onclick = () => { Sound.play("Move", .5); step2(); };
+    body.querySelector('[data-k="battle"]').onclick = () => { sh.close(); Social.invite(id, "battle"); }; };
+  const step2 = () => { const i = inc(); tc = [tc[0], i ? 2 : 0];
+    body.innerHTML = `<button class="ps-back" data-back>‹ Back</button><div class="ps-lbl">How long?</div><div class="ps-tcs">${TCS.map(([m, n]) => `<button class="ps-tc ${m === tc[0] ? "on" : ""}" data-m="${m}"><b>${m}</b><small>min · ${n}</small></button>`).join("")}</div>
+      <button class="ps-inc ${i ? "on" : ""}" data-inc><span class="ps-box">${i ? "✓" : ""}</span>+2 seconds for every move</button>
+      <button class="btn go big" data-send style="width:100%;margin-top:12px">Send challenge · ${tc[0]}${i ? "+2" : ""} min</button>`;
+    body.querySelector("[data-back]").onclick = step1;
+    body.querySelectorAll("[data-m]").forEach(b => b.onclick = () => { tc = [+b.dataset.m, tc[1]]; S.invTc = tc.slice(); save(); Sound.play("Move", .4); step2(); });
+    body.querySelector("[data-inc]").onclick = () => { S.invInc = !inc(); save(); step2(); };
+    body.querySelector("[data-send]").onclick = () => { S.invTc = tc.slice(); save(); sh.close(); Social.invite(id, tc); }; };
+  step1();
+}
+/* a friend's own page: who they are, how strong, your games against each other; removing lives behind ⋯ */
+Views.fprofile = {
+  async mount(main, arg){ this.main = main; this.id = arg && arg.id; if (!Social.me) await Social.start(); await Social.load(); this.draw(); },
+  draw(){
+    const id = this.id, p = Social.P(id), D = Social.data, o = Social.standings()[id] || {w: 0, l: 0, d: 0}, rel = Social.rel(id), av = p.avatar || {};
+    const games = D.duels.filter(r => r.white === id || r.black === id).slice(0, 30);
+    const res = r => r.result === "1/2-1/2" ? ["Draw", "d"] : ((r.result === "1-0") === (r.white === Social.me)) ? ["Won", "w"] : ["Lost", "l"];
+    const fl = p.flame && p.flame_day && (Date.now() - new Date(p.flame_day).getTime()) < 2.2 * 864e5 ? p.flame : 0;
+    const stat = (v, t) => `<div class="fp-st"><b>${v}</b><span>${t}</span></div>`;
+    this.main.innerHTML = `<div class="page fp" style="max-width:720px">
+      <div class="fp-top"><button class="btn sm ghost" data-back>‹ Friends</button><button class="btn sm ghost fp-more" data-more aria-label="More">⋯</button></div>
+      <div class="fp-hero"><div class="fp-fig">${Social.face(p, 150)}</div><div class="fp-id">
+        <div class="fp-n">${Social.dot(p)}${esc(p.name)}</div>
+        <div class="muted">${p.realName ? esc(p.realName) + " · " : ""}${p.handle ? "@" + esc(p.handle) : ""}</div>
+        ${av._lv ? `<div class="fp-lv"><span class="lvchip">${av._lv}</span><b>${esc(av._title || "")}</b></div>` : ""}
+        <div class="muted" style="font-size:13px">${esc(Social.seen(p))}</div></div></div>
+      <div class="fp-stats">${stat(p.rating || "–", "Puzzles")}${p.ratings && p.ratings.blitz ? stat(p.ratings.blitz, "Blitz") : ""}${p.ratings && p.ratings.rapid ? stat(p.ratings.rapid, "Rapid") : ""}${stat(p.trophies || 0, "Trophies")}${stat((fl ? "🔥 " : "") + fl, "Flame")}${av._jr ? stat(av._jr, "Journey") : ""}</div>
+      ${rel === "friend" ? `<div class="fp-act"><button class="fa2 fa2-play on" data-inv>${icon("knight", 22)}<span>Play</span></button><button class="fa2 fa2-chat" data-chat>${icon("bubble", 22)}<span>Chat</span></button></div>` : `<div class="fp-act">${Social.friendChip(id)}</div>`}
+      <h2 class="h-sec">You vs ${esc(p.name)}</h2>
+      <div class="fp-h2h"><div class="w"><b>${o.w}</b><span>You won</span></div><div class="d"><b>${o.d}</b><span>Draws</span></div><div class="l"><b>${o.l}</b><span>${esc(p.name)} won</span></div></div>
+      ${o.cage ? `<p class="muted" style="margin:8px 0 0">${o.cage === "mine" ? `🔒 ${esc(p.name)} is in your cage.` : `😱 You're in ${esc(p.name)}'s cage. Win the next game to break out.`}</p>` : ""}
+      <div class="list fp-games">${games.length ? games.map(r => { const [t, k] = res(r); return `<div class="li"><span class="fp-r ${k}">${t}</span><div class="grow"><div class="t">${r.white === Social.me ? "You had white" : "You had black"}${r.moves ? ` · ${r.moves} moves` : ""}</div><div class="s">${esc(String(r.reason || "").replace(/^\w/, c => c.toUpperCase()))}</div></div><span class="muted" style="font-size:12.5px">${new Date(r.created_at).toLocaleDateString("en-GB", {day: "numeric", month: "short"})}</span></div>`; }).join("") : `<div class="li"><div class="grow muted">No games yet. Challenge ${esc(p.name)}!</div></div>`}</div></div>`;
+    const m = this.main;
+    m.querySelector("[data-back]").onclick = () => App.go("friends");
+    const pl = m.querySelector("[data-inv]"); if (pl) pl.onclick = () => playSheet(id);
+    const ch = m.querySelector("[data-chat]"); if (ch) ch.onclick = () => App.go("chat", {id});
+    Social.wire(m, () => this.draw());
+    m.querySelector("[data-more]").onclick = () => {
+      const sh = detailSheet(`<div style="font:900 20px var(--display)">${esc(p.name)}</div><div class="fp-menu">
+        ${rel === "friend" ? `<button class="btn" data-nk>${icon("pen", 18)} Give a nickname only you see</button>` : ""}
+        ${rel === "friend" ? `<button class="btn fp-rm" data-rm>${icon("xmark", 18)} Remove friend</button>` : ""}</div>`);
+      const nk = sh.el.querySelector("[data-nk]"); if (nk) nk.onclick = () => { sh.close(); Social.rename(id, () => this.draw()); };
+      const rm = sh.el.querySelector("[data-rm]"); if (rm) rm.onclick = async () => { if (!rm.dataset.armed){ rm.dataset.armed = 1; rm.classList.add("armed"); rm.innerHTML = `Really remove ${esc(p.name)}?`; return; } await Social.remove(id); sh.close(); toast(p.name + " removed"); App.go("friends"); };
+    };
   }
 };
 if (window.ChessSite && window.ChessSite.ready) setTimeout(() => Social.start(), 1500);
@@ -8953,7 +9186,7 @@ const Chat = (() => {
   function incoming(m){
     const o = m.from_id; last[o] = m;
     const v = Views.chat; if (App.route === "chat" && v.id === o && !document.hidden){ v.add(m); markRead(o, true); return; }
-    unread[o] = (unread[o] || 0) + 1; refreshBadges(); Sound.tone([[880, .05, .04], [1175, .09]], "sine", .08);
+    unread[o] = (unread[o] || 0) + 1; refreshBadges(); Sound.msgIn();
     Notify.show({key: "chat:" + o, cls: "ntf-chat", icon: Social.face(Social.P(o), 40), label: "Message", title: esc(Social.P(o).name), text: esc(m.body), ms: 4500, onTap: () => App.go("chat", {id: o})});
     if (App.route === "chat" && !v.id) v.draw();
   }
@@ -9017,7 +9250,7 @@ Views.chat = {
     $("#cform").onsubmit = e => { e.preventDefault(); const t = $("#ctext").value; if (!t.trim()) return; $("#ctext").value = "";
       /* show it right away, then swap in the saved message */
       const tmp = {id: "t" + Date.now(), from_id: Social.me, body: t.trim().slice(0, 500), created_at: new Date().toISOString()}; this.add(tmp);
-      Chat.send(id, t).then(m => { const el = document.querySelector(`[data-mid="${tmp.id}"]`); if (m && el) el.dataset.mid = m.id; else if (!m && el) el.classList.add("fail"); }); $("#ctext").focus(); };
+      Sound.msgOut(); Chat.send(id, t).then(m => { const el = document.querySelector(`[data-mid="${tmp.id}"]`); if (m && el) el.dataset.mid = m.id; else if (!m && el) el.classList.add("fail"); }); $("#ctext").focus(); };
     $$("[data-q]", main).forEach(b => b.onclick = () => sendT(b.dataset.q));
     const msgs = await Chat.thread(id); if (this.id !== id || App.route !== "chat") return;
     const box = $("#cmsgs"); box.innerHTML = msgs.length ? "" : `<p class="dim" style="text-align:center">No messages yet. Say hi!</p>`; msgs.forEach(m => this.add(m, true)); box.scrollTop = box.scrollHeight;
@@ -9030,7 +9263,7 @@ Views.chat = {
     const mine = m.from_id === Social.me, d = document.createElement("div"); d.className = "bub " + (mine ? "me" : "them"); d.dataset.mid = m.id;
     if (mine && m.read_at) d.dataset.read = "1";
     d.innerHTML = `<span>${esc(m.body)}</span><small>${chatTime(m.created_at)}${mine ? `<i class="tick">${TICK1}</i>` : ""}</small>`; box.appendChild(d); this.readLine(); box.scrollTop = box.scrollHeight; requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
-    if (!quiet && !mine) Sound.tone([[880, .05, .04]], "sine", .06);
+    if (!quiet && !mine) Sound.msgIn();
   }
 };
 /* sent: one tick. read: two green ticks, and "Read" under your newest read message */
@@ -9375,6 +9608,130 @@ Views.news = {
   window.addEventListener("pageshow", () => setTimeout(() => check(true), 300));
   window.addEventListener("chessnat:route", () => { if (pending && !busy()) setTimeout(() => { if (pending && !busy()) reloadNow(pending); }, 300); });
   setInterval(() => { if (pending && !busy()) reloadNow(pending); else check(); }, 5 * 60000); setTimeout(() => check(true), 2500); })();
+
+/* ===== Usage log: which pages people open, which modes they start, which buttons they tap.
+   Only in our own database (chess_events), no third party, no cookies, no text people type. Sent in small batches. ===== */
+const Track = (() => {
+  const q = [], sess = Math.random().toString(36).slice(2, 10), dev = /iPhone|iPad|Android/i.test(navigator.userAgent) ? (navigator.standalone || matchMedia("(display-mode: standalone)").matches ? "app" : "mobile") : "desktop";
+  let t = null, off = false, lastRoute = null, routeT = 0;
+  function push(kind, name, meta){ if (off) return; q.push({session: sess, kind, name: String(name || "").slice(0, 64), meta: meta || null, device: dev}); if (q.length > 60) q.splice(0, q.length - 60); clearTimeout(t); t = setTimeout(flush, 8000); }
+  async function flush(){
+    clearTimeout(t); if (!q.length || typeof Social === "undefined" || !Social.sb || !Social.me) return;
+    const rows = q.splice(0, q.length);
+    try { const {error} = await Social.sb.from("chess_events").insert(rows); if (error && /does not exist|schema cache/i.test(error.message)) off = true; } catch(e) {}
+  }
+  /* a short, stable label for a tapped control: its route, data key or its own words */
+  function label(b){
+    const d = b.dataset || {}, k = Object.keys(d).find(x => !/^(k|done)$/.test(x));
+    if (d.go) return "go:" + d.go;
+    if (k) return k + ":" + String(d[k]).slice(0, 30);
+    if (b.id) return "#" + b.id;
+    const txt = (b.getAttribute("aria-label") || b.textContent || "").replace(/\s+/g, " ").trim().slice(0, 30);
+    return txt || b.className.split(" ")[0] || "?";
+  }
+  document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("button, a, [data-go], .chip, .tab"); if (!b || b.closest(".chat-in, input, textarea")) return;
+    push("tap", label(b), {r: typeof App !== "undefined" ? App.route : null}); }, true);
+  /* page views, with the time spent on the page before */
+  function wrap(){ if (typeof App === "undefined" || App._tracked) return; App._tracked = true; const go = App.go.bind(App);
+    App.go = function(r, arg, back){ const now = Date.now(); if (lastRoute && lastRoute !== r) push("leave", lastRoute, {s: Math.round((now - routeT) / 1000)});
+      if (lastRoute !== r){ push("view", r, arg && typeof arg === "object" ? Object.fromEntries(Object.entries(arg).filter(([, v]) => typeof v !== "object").slice(0, 4)) : arg != null ? {a: String(arg).slice(0, 30)} : null); lastRoute = r; routeT = now; }
+      return go(r, arg, back); }; }
+  setTimeout(wrap, 0);
+  document.addEventListener("visibilitychange", () => { if (document.hidden){ if (lastRoute) push("leave", lastRoute, {s: Math.round((Date.now() - routeT) / 1000)}); flush(); } else { routeT = Date.now(); push("open", lastRoute || "start"); } });
+  setTimeout(() => push("open", "start", {v: typeof CHESSNAT_BUILD !== "undefined" ? CHESSNAT_BUILD : null}), 3000);
+  return {push, flush};
+})();
+
+/* full-screen confetti over everything, gone after a few seconds (level up, overtaking a friend, a new crown) */
+function confettiBurst(){
+  try { const cv = document.createElement("canvas"); cv.className = "cf-over"; document.body.appendChild(cv); const stop = newsConfetti(cv); setTimeout(() => { stop(); cv.remove(); }, 6500); } catch(e) {}
+}
+
+/* ===== Friends leaderboard: you and your friends, in puzzles, the journey, level, live ratings, trophies, flame.
+   Passing a friend pops up; the top three in any board (with at least three of you in it) wear the friends' crowns. ===== */
+const RANK_BOARDS = [
+  {k: "puzzle", t: "Puzzles", ic: "puzzle", of: p => p.rating, mine: () => S.puzzle.r, fmt: v => v},
+  {k: "journey", t: "Journey", ic: "map", of: p => (p.avatar || {})._jr, mine: () => Object.keys((S.journey && S.journey.best) || {}).length, fmt: v => v + (v === 1 ? " stop" : " stops")},
+  {k: "level", t: "Level", ic: "crown", of: p => { const a = p.avatar || {}; return a._xp != null ? a._xp : a._lv ? lvXpAt(a._lv) : null; }, mine: () => S.xp || 0, fmt: v => "Lv " + lvOf(v).L},
+  {k: "blitz", t: "Blitz", ic: "flame", of: p => (p.ratings || {}).blitz, mine: () => ((S.ratings || {}).blitz || {}).r, fmt: v => v},
+  {k: "rapid", t: "Rapid", ic: "clock", of: p => (p.ratings || {}).rapid, mine: () => ((S.ratings || {}).rapid || {}).r, fmt: v => v},
+  {k: "bullet", t: "Bullet", ic: "bolt", of: p => (p.ratings || {}).bullet, mine: () => ((S.ratings || {}).bullet || {}).r, fmt: v => v},
+  {k: "trophies", t: "Trophies", ic: "trophy", of: p => p.trophies, mine: () => typeof achCount === "function" ? achCount() : 0, fmt: v => v},
+  {k: "flame", t: "Flame", ic: "flame", of: p => p.flame && p.flame_day && Date.now() - new Date(p.flame_day).getTime() < 2.2 * 864e5 ? p.flame : 0, mine: () => typeof flameCount === "function" ? flameCount() : 0, fmt: v => "🔥 " + v},
+];
+function lvXpAt(L){ let x = 0; for (let k = 1; k < L; k++) x += lvNeed(k); return x; }
+const Ranks = {
+  board(){ return RANK_BOARDS.find(b => b.k === S.lbBoard) || RANK_BOARDS[0]; },
+  /* me and my friends with a value on this board, best first */
+  list(b){
+    if (typeof Social === "undefined" || !Social.me) return [];
+    const D = Social.data, ids = D.friends.filter(r => r.status === "accepted").map(r => r.a === Social.me ? r.b : r.a);
+    const out = ids.map(id => ({id, v: +b.of(Social.P(id)) || 0})).filter(x => x.v > 0);
+    const mv = +b.mine() || 0; if (mv > 0) out.push({id: Social.me, v: mv, me: true});
+    out.sort((x, y) => y.v - x.v || (x.me ? -1 : y.me ? 1 : 0)); out.forEach((x, i) => { x.rank = i + 1; }); return out;
+  },
+  html(){
+    if (typeof Social === "undefined" || !Social.me) return "";
+    const b = this.board(), L = this.list(b);
+    const medal = r => r === 1 ? "🥇" : r === 2 ? "🥈" : r === 3 ? "🥉" : r;
+    return `<h2 class="h-sec" style="margin-top:18px">Leaderboard</h2>
+      <div class="chips lb-chips">${RANK_BOARDS.map(x => `<button class="chip ${x.k === b.k ? "on" : ""}" data-lb="${x.k}">${icon(x.ic, 15)} ${x.t}</button>`).join("")}</div>
+      <div class="list lb-list">${L.length ? L.map(x => { const p = x.me ? Object.assign({}, Social.player || {}, {name: "You"}) : Social.P(x.id);
+        return `<div class="li lb-row ${x.me ? "me" : ""} ${x.rank <= 3 ? "top top" + x.rank : ""}" ${x.me ? "" : `data-lbp="${x.id}"`}><span class="lb-r">${medal(x.rank)}</span>${Social.face(x.me ? Social.player || {id: Social.me} : p, 36)}<div class="grow"><div class="t">${esc(p.name)}</div></div><b class="lb-v">${b.fmt(x.v)}</b></div>`; }).join("")
+        : `<div class="li"><div class="grow muted">Nobody on this board yet.</div></div>`}</div>
+      ${L.length >= 3 ? `<p class="dim lb-note">${icon("crown", 14)} The top three wear the friends' crowns and borders, as long as they hold the spot.</p>` : `<p class="dim lb-note">With three or more of you on a board, the top three win crowns and borders.</p>`}`;
+  },
+  wire(root, redraw){
+    root.querySelectorAll("[data-lb]").forEach(b => b.onclick = () => { S.lbBoard = b.dataset.lb; save(); Sound.play("Move", .35); redraw(); });
+    root.querySelectorAll("[data-lbp]").forEach(r => r.onclick = () => App.go("fprofile", {id: r.dataset.lbp}));
+  },
+  /* after each friends refresh: who did I pass, who passed me, and do I hold a crown */
+  check(){
+    if (typeof Social === "undefined" || !Social.me) return;
+    if (["play", "friend", "battle", "rush", "jlevel", "linkgame", "local", "endgames", "puzzles"].includes(App.route)) return;   /* not during a game: we look again later */
+    const above = S.lbAbove || (S.lbAbove = {}), seenIn = S.lbIn || (S.lbIn = {}), passed = [], lost = []; let best = null;
+    RANK_BOARDS.forEach(b => {
+      const L = this.list(b), me = L.find(x => x.me); const ids = L.map(x => x.id);
+      const nowAbove = me ? L.filter(x => x.rank < me.rank).map(x => x.id) : ids.filter(id => id !== Social.me);
+      if (me && above[b.k] && seenIn[b.k] && seenIn[b.k].includes(Social.me)){
+        above[b.k].filter(id => !nowAbove.includes(id) && ids.includes(id)).forEach(id => passed.push({b, id}));
+        nowAbove.filter(id => !above[b.k].includes(id) && seenIn[b.k].includes(id)).forEach(id => lost.push({b, id}));
+      }
+      above[b.k] = nowAbove; seenIn[b.k] = ids;
+      if (me && L.length >= 3 && me.rank <= 3 && (!best || me.rank < best.rank)) best = {rank: me.rank, board: b.k};
+    });
+    const was = S.champ ? S.champ.rank : 99, now = best ? best.rank : 99; S.champ = best;
+    /* lost a crown: take it off */
+    const av = myAvatar(); let off = false;
+    ["head", "frame"].forEach(sl => { const it = AV_ITEMS.find(i => i.slot === sl && i.id === av[sl]); if (it && String(it.req).startsWith("f:") && !itemUnlocked(it)){ av[sl] = sl === "head" ? "none" : "auto"; off = true; } });
+    save(); if (Social.syncCard) Social.syncCard(); if (off && typeof renderTop === "function") renderTop();
+    if (passed.length){ const x = passed[0]; setTimeout(() => this.popPassed(x, passed.length), 900); }
+    else if (lost.length){ const x = lost[0], p = Social.P(x.id); Notify.show({key: "lbl", icon: Social.face(p, 44), accent: "#ff8a3d", label: "Leaderboard · " + x.b.t, title: `${esc(p.name)} just passed you`, text: "Win your spot back!", ms: 6000, sound: () => Sound.passedBy && Sound.passedBy(), onTap: () => { S.lbBoard = x.b.k; App.go("friends"); }}); }
+    if (now < was) setTimeout(() => this.popCrown(best), passed.length ? 4200 : 1200);
+    else if (now > was && was <= 3 && off) toast("Someone took your crown. Win it back on the leaderboard!", 4000);
+    if (App.route === "friends" && Views.friends.draw && (passed.length || lost.length || now !== was)) Views.friends.draw();
+  },
+  popPassed(x, n){
+    const p = Social.P(x.id), me = Social.player || {id: Social.me}, el = document.createElement("div"); el.className = "rkup";
+    el.innerHTML = `<div class="rkup-in"><div class="rkup-l">${icon(x.b.ic, 16)} ${esc(x.b.t)}</div><div class="rkup-faces"><div class="rkup-me">${Social.face(me, 84)}</div><div class="rkup-arrow">↑</div><div class="rkup-them">${Social.face(p, 64)}</div></div>
+      <h3>You passed ${esc(p.name)}!</h3><p class="muted">${n > 1 ? `And ${n - 1} more. ` : ""}You're ahead in ${esc(x.b.t.toLowerCase())} now.</p>
+      <div class="row" style="gap:8px;margin-top:14px"><button class="btn" data-see style="flex:1">See board</button><button class="btn go" data-ok style="flex:1">Yes!</button></div></div>`;
+    document.body.appendChild(el); confettiBurst(); if (Sound.overtake) Sound.overtake(); else Sound.cheer(3);
+    const close = () => { el.classList.add("out"); setTimeout(() => el.remove(), 250); };
+    el.querySelector("[data-ok]").onclick = close; el.querySelector("[data-see]").onclick = () => { close(); S.lbBoard = x.b.k; App.go("friends"); };
+  },
+  popCrown(best){
+    const names = {1: ["Friends' Crown", "Champion border"], 2: ["Silver Circlet", "Silver border"], 3: ["Bronze Laurel", "Bronze border"]}[best.rank], b = RANK_BOARDS.find(x => x.k === best.board);
+    const el = document.createElement("div"); el.className = "rkup crown r" + best.rank;
+    el.innerHTML = `<div class="rkup-in"><div class="rkup-l">${icon(b.ic, 16)} ${esc(b.t)}</div><div class="rkup-crown">${Av3D.tag(Object.assign({}, myAvatar(), {head: "champ" + best.rank, aura: "none", pet: "none"}), {w: 150, h: 150, mode: "head", live: true, fps: 40})}</div>
+      <h3>You're #${best.rank} among your friends!</h3><p class="muted">The <b>${names[0]}</b> and the <b>${names[1]}</b> are yours, as long as you hold the spot.</p>
+      <div class="row" style="gap:8px;margin-top:14px"><button class="btn" data-ok style="flex:1">Later</button><button class="btn go" data-wear style="flex:1">Wear them</button></div></div>`;
+    document.body.appendChild(el); confettiBurst(); if (Sound.crown) Sound.crown(); else Sound.cheer(4);
+    const close = () => { el.classList.add("out"); setTimeout(() => el.remove(), 250); };
+    el.querySelector("[data-ok]").onclick = close;
+    el.querySelector("[data-wear]").onclick = () => { const av = myAvatar(); av.head = "champ" + best.rank; av.frame = "champ" + best.rank; save(); if (Social.syncCard) Social.syncCard(); if (typeof renderTop === "function") renderTop(); if (typeof renderRail === "function") renderRail(); close(); toast("Looking royal 👑"); };
+  }
+};
 
 boot();
 </script>
