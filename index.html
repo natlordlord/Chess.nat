@@ -2781,7 +2781,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794189416";
+const CHESSNAT_BUILD = "1794189872";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -7452,7 +7452,7 @@ const Av3D = (() => {
     [-1, 1].forEach(s => { const n = mesh(sph(.02, 10, 8), dk, s * .05, -.105, .243, head); n.scale.set(1.5, .6, .5); n.rotation.z = s * .5; });
     mesh(box(.007, .05, .01), padM, 0, -.17, .215, head);
     /* a capybara mouth: small lips on the snout, in the fur colour (darker) */
-    { const mg = new T.Group(); mg.position.set(0, -.2, .218); mg.rotation.x = -.25; mg.scale.setScalar(.75); head.add(mg); buildMouth(rig, a.mouth, mg, false, {w: .036}); }
+    { const mk = () => { const g = new T.Group(); g.position.set(0, -.2, .218); g.rotation.x = -.25; g.scale.setScalar(.75); head.add(g); return g; }, mg = mk(), tg = mk(); buildMouth(rig, a.mouth, mg, false, {w: .036}); buildMouth(rig, "talk", tg, false, {w: .036}); tg.visible = false; rig.mouth = {base: mg, talk: tg}; }
     /* tiny round ears on the top corners */
     [-1, 1].forEach(s => { const e = mesh(sph(.058, 16, 12), fur, s * .175, .27, -.04, head, ol); e.scale.set(1, .85, .55); e.rotation.z = -s * .35;
       const ei = mesh(sph(.034, 12, 8), padM, s * .175, .266, -.015, head); ei.scale.set(1, .8, .3); ei.rotation.z = -s * .35; });
@@ -7501,7 +7501,7 @@ const Av3D = (() => {
     [-1, 1].forEach(s => { const e = new T.Group(); e.position.set(s * .17, .2, .02); e.rotation.set(.65, s * .25, -s * .55); head.add(e);
       mesh(cone(.085, .17, 3), skin, 0, .07, 0, e, ol).scale.set(1, 1, .35); mesh(cone(.055, .11, 3), inner, 0, .06, .018, e).scale.set(1, 1, .2); });
     PIG.eyes.forEach(([x, y]) => { const s = Math.sign(x), e = new T.Group(); e.position.set(x, y, .24); head.add(e); orient(e, new T.Vector3(s * .2, .05, .98)); e.scale.setScalar(.82); eyeParts(e, eyeC, a, rig); rig.eyes.push(e); });
-    { const mg = new T.Group(); mg.position.set(0, -.165, .243); head.add(mg); buildMouth(rig, a.mouth, mg, true, {w: .046}); }
+    { const mk = () => { const g = new T.Group(); g.position.set(0, -.165, .243); head.add(g); return g; }, mg = mk(), tg = mk(); buildMouth(rig, a.mouth, mg, true, {w: .046}); buildMouth(rig, "talk", tg, true, {w: .046}); tg.visible = false; rig.mouth = {base: mg, talk: tg}; }
     [-1, 1].forEach(s => { const c = mesh(G("blush", () => new T.CircleGeometry(.045, 20)), new T.MeshBasicMaterial({color: 0xff6f8a, transparent: true, opacity: .35, depthWrite: false, toneMapped: false}), s * .17, -.06, .225, head); c.rotation.y = s * .55; rig.own.push(c.material); });
     animalBits(rig, a, head, PIG.eyes, .22, [.27, .02, 0]); tuft(rig, a, head, .29, .02);
     rig.tail = true;
@@ -7518,7 +7518,7 @@ const Av3D = (() => {
       const p = mesh(petal, m, 0, r, 0, g, ol); p.rotation.x = tilt; } });
     [-1, 1].forEach(s => { const lf = mesh(extr("leaf", [[0, 0], [.06, .06], [.05, .16], [0, .24], [-.05, .16], [-.06, .06]], .012, .006, true), M("cloth", 0x4f9a3c, {side: T.DoubleSide}), s * .07, -.3, .04, head, ol); lf.rotation.set(-.4, 0, s * 2.2); });
     FLOWER.eyes.forEach(([x, y]) => { const e = new T.Group(); e.position.set(x, y, .165); head.add(e); orient(e, new T.Vector3(Math.sign(x) * .12, .05, .99)); e.scale.setScalar(.9); eyeParts(e, eyeC, a, rig); rig.eyes.push(e); });
-    { const mg = new T.Group(); mg.position.set(0, FLOWER.mouth, .168); head.add(mg); buildMouth(rig, a.mouth, mg, true, {w: .042, base: 0xf0b48a}); }
+    { const mk = () => { const g = new T.Group(); g.position.set(0, FLOWER.mouth, .168); head.add(g); return g; }, mg = mk(), tg = mk(); buildMouth(rig, a.mouth, mg, true, {w: .042, base: 0xf0b48a}); buildMouth(rig, "talk", tg, true, {w: .042, base: 0xf0b48a}); tg.visible = false; rig.mouth = {base: mg, talk: tg}; }
     [-1, 1].forEach(s => { const c = mesh(G("blush", () => new T.CircleGeometry(.045, 20)), new T.MeshBasicMaterial({color: 0xff6f6f, transparent: true, opacity: .3, depthWrite: false, toneMapped: false}), s * .13, -.05, .168, head); rig.own.push(c.material); });
     animalBits(rig, a, head, FLOWER.eyes, .16, null);
   }
@@ -7532,7 +7532,7 @@ const Av3D = (() => {
   }
   function buildMouth(rig, mk, mg, F, o = {}){
     const base = new T.Color(o.base != null ? o.base : rig.skinHex != null ? rig.skinHex : 0xe0b896), lip = M("flesh", base.clone().lerp(new T.Color(F ? 0xc93f58 : 0x9c4246), F ? .62 : .5).getHex()), dark = M("dark", 0x2a0d0d), white = M("skin", 0xf6f2ea);
-    const open = mk === "grin" || mk === "laugh" || mk === "fangs";
+    const open = mk === "grin" || mk === "laugh" || mk === "fangs" || mk === "talk";
     if (!open){
       const W = o.w || .058, smile = {smile: .042, smirk: .036, neutral: .003}[mk] != null ? {smile: .042, smirk: .036, neutral: .003}[mk] : .03;
       const yc = x => { const u = x / W; return mk === "smirk" ? (u > 0 ? smile * 1.9 : smile * .15) * u * u : smile * u * u; }, zc = x => -x * x * 4.5;
@@ -7546,7 +7546,7 @@ const Av3D = (() => {
       return; }
     /* open: a real laugh. The top edge is a smile (corners up), the bottom drops in a deep round U.
        Inside: the dark mouth, the upper teeth right under the lip, the tongue at the bottom. The lips get thin when stretched. */
-    const W = (o.w || .058) * (mk === "laugh" ? 1.3 : mk === "grin" ? 1.16 : 1), K = mk === "laugh" ? .028 : .03, hO = {laugh: .066, grin: .028, fangs: .03}[mk];
+    const W = (o.w || .058) * (mk === "laugh" ? 1.3 : mk === "grin" ? 1.16 : mk === "talk" ? .82 : 1), K = mk === "laugh" ? .028 : mk === "talk" ? .008 : .03, hO = {laugh: .066, grin: .028, fangs: .03, talk: .05}[mk];
     const zc = x => -x * x * 4.2, u = x => Math.min(1, Math.abs(x / W));
     const yTop = x => K * u(x) * u(x) + .004 * (1 - u(x) * u(x));      /* the upper edge rises a bit in the middle too */
     const yBot = x => yTop(x) - hO * Math.pow(Math.max(0, 1 - u(x) * u(x)), .75);
@@ -7561,7 +7561,7 @@ const Av3D = (() => {
       /* the gaps between the teeth */
       for (let k = -3; k <= 3; k++){ const x = k * W * .19; mesh(box(.0012, hO * .8, .001), M("dark", 0xb8b0a0), x, (yTop(x) + yBot(x)) / 2, zc(x) + .0012, mg); } }
     else for (let k = -3; k <= 3; k++){ const x = k * W * .2; mesh(box(.0011, tH * .85, .001), M("dark", 0xc9c2b4), x, yTop(x) - tH * .45, zc(x) + .0011, mg); }
-    if (mk === "laugh"){ const tg = mesh(sph(1, 20, 14), M("flesh", 0xc9505e), 0, yBot(0) + hO * .16, zc(0) - .006, mg); tg.scale.set(W * .55, hO * .2, .01); }
+    if (mk === "laugh" || mk === "talk"){ const tg = mesh(sph(1, 20, 14), M("flesh", 0xc9505e), 0, yBot(0) + hO * .16, zc(0) - .006, mg); tg.scale.set(W * .55, hO * .2, .01); }
     if (mk === "fangs") [-1, 1].forEach(s => { const x = s * W * .55, f = mesh(cone(.0055, .022, 8), teeth, x, yTop(x) - tH - .008, zc(x) + .002, mg); f.rotation.z = Math.PI; });
     /* stretched lips: thin along the top, a bit fuller along the bottom */
     const N = 13, xs = Array.from({length: N}, (_, i) => -W * 1.04 + 2.08 * W * i / (N - 1));
@@ -7581,7 +7581,9 @@ const Av3D = (() => {
       if (a.nose === "button") mesh(sph(.033, 14, 10), rig.skin, 0, 0, 0, n, true);
       else if (a.nose === "round") mesh(sph(.05, 16, 12), rig.skin, 0, 0, 0, n, true).scale.set(1.05, .85, .8);
       else { const c = mesh(cone(.036, .1, 14), rig.skin, 0, -.01, .035, n, true); c.rotation.x = Math.PI / 2 + .35; } }
-    { const furry = ["full", "viking", "stubble"].includes(a.beard), mg = place(new T.Group(), 0, H.mouth, furry ? .014 : .002); head.add(mg); buildMouth(rig, a.mouth, mg, rig.F); }
+    { const furry = ["full", "viking", "stubble"].includes(a.beard), mg = place(new T.Group(), 0, H.mouth, furry ? .014 : .002); head.add(mg); buildMouth(rig, a.mouth, mg, rig.F);
+      /* the talking mouth: shown while the figure speaks, sings or gasps; it opens and closes with the syllables */
+      const tg = place(new T.Group(), 0, H.mouth, furry ? .014 : .002); head.add(tg); buildMouth(rig, "talk", tg, rig.F); tg.visible = false; rig.mouth = {base: mg, talk: tg}; }
     if (a.cheeks === "blush" || a.cheeks === "both") [-1, 1].forEach(s => { const c = place(new T.Mesh(G("blush", () => new T.CircleGeometry(.045, 20)), new T.MeshBasicMaterial({color: 0xff7a8a, transparent: true, opacity: .32, depthWrite: false, toneMapped: false})), s * .15, -.055, .004); head.add(c); rig.own.push(c.material); });
     if (a.cheeks === "freckles" || a.cheeks === "both"){ const fm = M("dark", 0x9a5530), rr = rnd(5);
       [-1, 1].forEach(s => { for (let i = 0; i < 13; i++){ const dx = (rr() - .5) * .1, dy = (rr() - .5) * .06; head.add(place(new T.Mesh(sph(.0065 + rr() * .0035, 8, 6), fm), s * .13 + dx * 1.2, -.035 + dy, .0015)); } });
@@ -7874,6 +7876,11 @@ const Av3D = (() => {
     rig.torso.scale.set(1 - P.br * .3, 1 + P.br, 1 - P.br * .3);
     rig.torso.rotation.y = lerp(rig.torso.rotation.y, P.tY, k); rig.torso.rotation.z = lerp(rig.torso.rotation.z, P.tZ, k); rig.torso.rotation.x = lerp(rig.torso.rotation.x, P.tX, k);
     if (rig.legs){ const [rl, ll] = rig.legs; rl.rotation.x = lerp(rl.rotation.x, P.rLx, k); rl.rotation.z = lerp(rl.rotation.z, P.rLz, k); ll.rotation.x = lerp(ll.rotation.x, P.lLx, k); ll.rotation.z = lerp(ll.rotation.z, P.lLz, k); }
+    if (rig.mouth){ const Mo = rig.mouth, em = rig.emote, singing = em && (em.fast || em.k === "cheer" || em.k === "dance");
+      if (live){ rig.chatT = (rig.chatT == null ? 6 + Math.random() * 10 : rig.chatT) - dt; if (rig.chatT < 0){ rig.chatT = 10 + Math.random() * 18; rig.talkUntil = rig.t + .5 + Math.random() * 1.1; } }
+      const talking = rig.t < (rig.talkUntil || 0) || singing;
+      Mo.base.visible = !talking; Mo.talk.visible = talking;
+      if (talking){ const t2 = rig.t * (singing ? 9 : 13), o = .18 + .82 * Math.abs(Math.sin(t2) * (.6 + .4 * Math.sin(t2 * .37 + 1.3))); Mo.talk.scale.y = lerp(Mo.talk.scale.y || 1, o, .55); } }
     rig.eyes.forEach((ey, i) => { const E = ey.userData.eye; if (!E){ ey.scale.y = P.eye < 1 ? P.eye : lerp(ey.scale.y, 1, k); return; }
       /* a wink closes one eye (the one on the figure's left), a blink both */
       const wink = rig.wink && rig.t < rig.wink.until && i === rig.wink.i ? 0 : 1, o = Math.min(P.eye, wink);
@@ -7968,7 +7975,8 @@ const Av3D = (() => {
       window.addEventListener("pointermove", e => { if (!d) return; const dx = e.clientX - d.x; if (!d.on && Math.abs(dx) > 4) d.on = true; if (!d.on) return; this.drg = true; const na = d.a + dx * .012; this.vel = (na - this.yaw) * .5; this.yaw = na; this.idle = 0; });
       const up = () => { if (d){ d = null; this.drg = false; } }; window.addEventListener("pointerup", up); window.addEventListener("pointercancel", up);
     }
-    emote(k){ if (this.rig){ const em = typeof EMOTE_BY !== "undefined" && EMOTE_BY[k]; this.rig.emote = {k, fast: !!em, t0: this.rig.t, d: em ? em.d : k === "power" ? 2.8 : k === "hit" ? .9 : k === "wink" ? .9 : 2.6}; this.idle = 0; this.yawWas = this.yaw; } }
+    talk(sec){ if (this.rig){ this.rig.talkUntil = this.rig.t + (sec || 1.6); this.idle = 0; } }
+    emote(k){ if (k === "talk"){ this.talk(1.8); return; } if (this.rig){ const em = typeof EMOTE_BY !== "undefined" && EMOTE_BY[k]; this.rig.emote = {k, fast: !!em, t0: this.rig.t, d: em ? em.d : k === "power" ? 2.8 : k === "hit" ? .9 : k === "wink" ? .9 : 2.6}; this.idle = 0; this.yawWas = this.yaw; } }
   }
   function kick(){ if (!raf) raf = requestAnimationFrame(loop); }
   let lastT = 0;
@@ -11669,7 +11677,8 @@ function natRoseOwned(){ if (natHas("rose") && !AV_ITEMS.some(i => i.slot === "r
 /* every item in one list: {kind, id, name, r} */
 function natItems(){ return [...NAT_BOARDS.filter(b => b.r).map(b => Object.assign({kind: "board"}, b)), ...NAT_SONGS.map(s => Object.assign({kind: "song"}, s)),
   ...NAT_SKINS.map(s => Object.assign({kind: "skin"}, s)), ...NAT_PSETS.map(s => Object.assign({kind: "pieces"}, s)), ...NAT_GLOWS.map(s => Object.assign({kind: "glow"}, s)), ...NAT_KNIVES.map(k => Object.assign({kind: "knife"}, k, {name: k.name + " | " + k.fin, type0: k.name})), ...(window.NAT_LINE_ITEMS || [])]; }
-const natItem = id => id === "rose" ? NAT_ROSE : natItems().find(i => i.id === id);
+/* the classic board has no rarity (everyone has it), so it isn't in the item list: it still has to be usable again */
+const natItem = id => id === "rose" ? NAT_ROSE : id === "classic" ? Object.assign({kind: "board"}, NAT_BOARDS[0]) : natItems().find(i => i.id === id);
 const natHas = id => (S.inv || []).includes(id);
 natRoseOwned();
 const fmtNat = n => Math.round(n).toLocaleString("de-DE");
@@ -11996,7 +12005,7 @@ function knifeInspect(k){
 }
 
 /* ---- using things ---- */
-function natEquip(it){
+function natEquip(it){ if (!it) return;
   if (it.kind === "board"){ S.settings.board = it.id; save(); natApplyBoard(); toast(`Board: ${it.name}`); }
   else if (it.kind === "song"){ S.settings.song = it.id; S.settings.music = true; save(); NatMusic.sync(); toast(`Music in games: ${it.name}`); }
   else if (it.kind === "skin"){ const a = myAvatar(); a.shape = it.shape; a[it.key] = it.id; save(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); renderRail(); if (typeof renderTop === "function") renderTop(); toast(`You're now: ${it.name}`); }
@@ -12258,11 +12267,18 @@ const LineVoice = (() => {
     try { if (audio){ audio.pause(); audio = null; } } catch(e) {}
     /* your own sound: a short recording (sent along with the line) */
     if (line.own){ const src = own || (S.ownSnd && S.ownSnd.d); if (src){ try { audio = new Audio(src); audio.play().catch(() => {}); } catch(e) {} } return; }
-    if (!("speechSynthesis" in window) || S.settings.sound === false) return;
+    if (S.settings.sound === false) return;
+    /* real recorded voices (natural German voices, made once and shipped with the app); the phone's own voice only if a file is missing */
+    try { const au = new Audio("/sounds/lines/" + line.id + ".mp3"); au.setAttribute("playsinline", ""); audio = au;
+      au.play().catch(e => { if (!e || e.name !== "NotAllowedError") synth(line); }); au.onerror = () => synth(line); return; } catch(e) {}
+    synth(line);
+  }
+  function synth(line){
+    if (!("speechSynthesis" in window)) return;
     try {
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(line.t), V = LINE_VOICE[line.v] || {}, v = pick();
-      u.lang = "de-DE"; if (v) u.voice = v; u.pitch = V.pitch != null ? V.pitch : 1; u.rate = V.rate || 1; u.volume = 1;
+      u.lang = "de-DE"; if (v) u.voice = v; u.pitch = 1; u.rate = 1; u.volume = 1;
       speechSynthesis.speak(u);
     } catch(e) {}
   }
