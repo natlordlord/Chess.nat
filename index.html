@@ -2781,7 +2781,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794188204";
+const CHESSNAT_BUILD = "1794188609";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -7100,7 +7100,7 @@ const Av3D = (() => {
     sc.add(new T.Mesh(new T.BoxGeometry(12, 12, 12), new T.MeshBasicMaterial({color: 0x3a3632, side: T.BackSide})));
     const panel = (c, k, x, y, z, w, h) => { const m = new T.Mesh(new T.PlaneGeometry(w, h), new T.MeshBasicMaterial({color: new T.Color(c).multiplyScalar(k), side: T.DoubleSide})); m.position.set(x, y, z); m.lookAt(0, 0, 0); sc.add(m); };
     panel(0xfff0dc, 7, -3.5, 3.5, 3.5, 3, 2.4); panel(0xd8e6ff, 3.5, 4.5, 1.5, 1, 1.6, 4); panel(0xffffff, 4, 0, 5.8, 0, 5, 3); panel(0xffd9a8, 2.5, 0, .5, -5.5, 6, 1.6); panel(0x9fb6ff, 1.2, -5, -1, -2, 2, 2);
-    const t = pm.fromScene(sc, .035).texture; pm.dispose(); return t;
+    const t = pm.fromScene(sc, .12).texture;   /* soft: hard panel edges showed as a jagged line across faces */ pm.dispose(); return t;
   }
   function lights(sc){
     const hemi = new T.HemisphereLight(0xfff4e6, 0x3d3530, .55), key = new T.DirectionalLight(0xfff1e0, 2.1), fill = new T.DirectionalLight(0xc8dcff, .65), rim = new T.DirectionalLight(0xffffff, 1.1);
@@ -7188,7 +7188,7 @@ const Av3D = (() => {
     else if (TIER === 1) m = new T.MeshPhongMaterial({color: c, map: o.map || null, shininess: kind === "cloth" ? 28 : kind === "flesh" ? 18 : kind === "hair" ? 55 : kind === "metal" || kind === "gold" ? 140 : 90, specular: kind === "gold" ? 0x8a6a20 : kind === "metal" ? 0x777777 : 0x3a3a3a, emissive: o.em ? c : 0x000000, emissiveIntensity: o.em ? .35 : 0});
     else {
       const P = TIER >= 3 ? T.MeshPhysicalMaterial : T.MeshStandardMaterial, b = {color: c, envMap: ENV, envMapIntensity: 1, map: o.map || null};
-      if (kind === "skin") Object.assign(b, {roughness: TIER >= 3 ? .26 : .38, metalness: 0}, TIER >= 3 ? {clearcoat: .55, clearcoatRoughness: .2} : {});
+      if (kind === "skin") Object.assign(b, {roughness: TIER >= 3 ? .5 : .6, metalness: 0, envMapIntensity: .55}, TIER >= 3 ? {clearcoat: .55, clearcoatRoughness: .2} : {});
       else if (kind === "flesh") Object.assign(b, {roughness: .55, metalness: 0, envMapIntensity: .6}, TIER >= 3 ? {sheen: .5, sheenRoughness: .6, sheenColor: new T.Color(0xffd0b0), clearcoat: .08, clearcoatRoughness: .5} : {});
       else if (kind === "hair") Object.assign(b, {roughness: .55, metalness: 0, envMapIntensity: .6}, TIER >= 3 ? {sheen: .4, sheenRoughness: .4, sheenColor: c.clone().lerp(new T.Color(0xffffff), .4)} : {});
       else if (kind === "cloth") Object.assign(b, {roughness: .86, metalness: 0, bumpMap: weaveTex(), bumpScale: .03, envMapIntensity: .5}, TIER >= 3 ? {sheen: .6, sheenRoughness: .5, sheenColor: c.clone().lerp(new T.Color(0xffffff), .2)} : {});
@@ -7282,7 +7282,12 @@ const Av3D = (() => {
   const shade = (c, k) => { const x = new T.Color(c); x.multiplyScalar(k); return x.getHex(); };
   /* chess glyph on the belt buckle: the figure you've earned */
   const glyphTex = cls => ctex("glyph" + cls, 64, 64, (g, w) => { g.fillStyle = "#e9c36a"; g.fillRect(0, 0, w, w); g.fillStyle = "#2a1d0e"; g.font = "900 46px serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText({pawn: "♟", knight: "♞", bishop: "♝", rook: "♜", queen: "♛", king: "♚"}[cls] || "♟", w / 2, w / 2 + 3); }, {srgb: 1});
-  const stubbleTex = c => ctex("stub" + c, 128, 128, (g, w) => { const rr = rnd(9); g.fillStyle = c; for (let i = 0; i < 900; i++){ const x = rr() * w, y = rr() * w; if (y < w * .2) continue; g.globalAlpha = .35 + rr() * .4; g.fillRect(x, y, 1.6, 1.6); } }, {srgb: 1});
+  /* stubble: thousands of short dark hairs, thin at the top edge so it fades into the cheeks */
+  const stubbleTex = c => ctex("stub2" + c, 256, 256, (g, w) => { const rr = rnd(9); g.fillStyle = c; for (let i = 0; i < 6500; i++){ const x = rr() * w, y = rr() * w, k = Math.min(1, y / (w * .35)); if (rr() > k) continue; g.globalAlpha = (.55 + rr() * .45) * k; g.fillRect(x, y, 2.2, 2.6); } }, {srgb: 1});
+  /* a full beard: dense strands over a solid base, soft fringe at the top */
+  const beardTex = c => ctex("beard2" + c, 256, 256, (g, w) => { const rr = rnd(17); const grd = g.createLinearGradient(0, 0, 0, w); grd.addColorStop(0, "rgba(0,0,0,0)"); grd.addColorStop(.22, c); grd.addColorStop(1, c); g.fillStyle = grd; g.fillRect(0, 0, w, w);
+    g.strokeStyle = "rgba(0,0,0,.35)"; g.lineWidth = 1.4; for (let i = 0; i < 900; i++){ const x = rr() * w, y = w * .2 + rr() * w * .8; g.globalAlpha = .4 + rr() * .5; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (rr() - .5) * 4, y + 6 + rr() * 8); g.stroke(); }
+    g.strokeStyle = "rgba(255,255,255,.18)"; for (let i = 0; i < 300; i++){ const x = rr() * w, y = w * .25 + rr() * w * .75; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (rr() - .5) * 3, y + 5 + rr() * 6); g.stroke(); } }, {srgb: 1});
 
   function build(cfg, tier, o = {}){
     TIER = tier;
@@ -7419,7 +7424,8 @@ const Av3D = (() => {
       const pts = []; for (let i = 0; i <= 26; i++){ const y = -.34 + i * .8 / 26; const r = H.prof(y); if (r > 0 || i === 0) pts.push(V2(r, y)); }
       mesh(lathe("head" + key, pts.map(p => [p.x, p.y]), 40), skin, 0, 0, 0, head, ol);
       if (H.human){ [-1, 1].forEach(s => { const e = mesh(sph(.06, 14, 10), skin, s * .262, -.01, -.01, head, ol); e.scale.set(.45, 1, .8); });
-        const j = mesh(sph(.2, 24, 16), skin, 0, -.13, .06, head); j.scale.set(rig.F ? .88 : 1, rig.F ? .7 : .75, .9); }
+        /* the jaw: only a soft bulge under the chin (higher up, its edge cut a jagged line across the face) */
+        const j = mesh(sph(.2, 32, 20), skin, 0, -.185, .02, head); j.scale.set(rig.F ? .86 : .96, .55, .8); }
       if (cls === "bishop" && !H.human){ mesh(sph(.06), skin, 0, .46, 0, head, ol); const sl = mesh(box(.025, .2, .02), M("dark", 0x2a2420), .1, .26, .14, head); sl.rotation.set(-.5, 0, -.6); }
       if (cls === "rook" && !H.human){ for (let i = 0; i < 6; i++){ const ang = i / 6 * Math.PI * 2 + Math.PI / 6; const b = mesh(box(.12, .11, .08), skin, Math.sin(ang) * .24, .32, Math.cos(ang) * .24, head, ol); b.rotation.y = ang; } }
       if (cls === "queen" && !H.human){ const cm = M("gold", 0xe0b13a); mesh(tor(.22, .028, 8, 36), cm, 0, .26, 0, head).rotation.x = Math.PI / 2; for (let i = 0; i < 8; i++){ const ang = i / 8 * Math.PI * 2; mesh(cone(.03, .1, 8), cm, Math.sin(ang) * .22, .32, Math.cos(ang) * .22, head); mesh(sph(.028, 10, 8), skin, Math.sin(ang) * .22, .39, Math.cos(ang) * .22, head); } }
@@ -7519,25 +7525,30 @@ const Av3D = (() => {
   function buildFace(rig, a, head, H, key, hairC){
     const dark = rig.F ? M("flesh", 0xb04a58) : M("dark", 0x3a2420), browM = M("hair", shade(hairC, .8)), place = (m, x, y, push) => { const f = faceAt(H, x, y, push); m.position.copy(f.p); orient(m, f.n); return m; };
     if (a.brows !== "none") H.eyes.forEach(([x, y]) => { const s = Math.sign(x), b = place(new T.Group(), x, y + .082, .004); head.add(b);
-      const m = mesh(caps(a.brows === "thick" ? .019 : .012, .065), browM, 0, 0, 0, b); m.rotation.z = Math.PI / 2 + ({soft: -s * .12, straight: 0, angry: s * .38, thick: -s * .05}[a.brows] || 0); });
+      const up = a.mouth === "smirk" && s < 0; if (up) b.position.y += .022;
+      const m = mesh(caps(a.brows === "thick" ? .024 : .016, .07), browM, 0, 0, 0, b); m.rotation.z = Math.PI / 2 + ({soft: -s * .12, straight: 0, angry: s * .42, thick: -s * .05}[a.brows] || 0) + (up ? .25 : 0); });
     if (a.nose !== "none"){ const n = place(new T.Group(), 0, -.035, a.nose === "pointed" ? 0 : -.006); head.add(n);
       if (a.nose === "button") mesh(sph(.033, 14, 10), rig.skin, 0, 0, 0, n, true);
       else if (a.nose === "round") mesh(sph(.05, 16, 12), rig.skin, 0, 0, 0, n, true).scale.set(1.05, .85, .8);
       else { const c = mesh(cone(.036, .1, 14), rig.skin, 0, -.01, .035, n, true); c.rotation.x = Math.PI / 2 + .35; } }
-    { const mg = place(new T.Group(), 0, H.mouth, .004), mk = a.mouth; head.add(mg);
+    { const furry = ["full", "viking", "stubble"].includes(a.beard), mg = place(new T.Group(), 0, H.mouth, furry ? .02 : .004), mk = a.mouth; head.add(mg); mg.scale.set(1.3, 1.3, 1);
       if (mk === "neutral"){ const m = mesh(caps(.009, .06), dark, 0, 0, 0, mg); m.rotation.z = Math.PI / 2; }
       else if (mk === "laugh"){ const m = mesh(sph(.05, 16, 10, ), M("dark", 0x3a1414), 0, -.005, -.01, mg); m.scale.set(1.1, .7, .45); mesh(sph(.025, 10, 8), M("flesh", 0xd65a6a), 0, -.025, .005, mg).scale.set(1.2, .6, .5); mesh(box(.07, .016, .01), M("skin", 0xffffff), 0, .018, .006, mg); }
       else { const m = mesh(tor(.055, .011, 6, 16, Math.PI), dark, 0, 0, 0, mg); m.rotation.z = Math.PI; if (mk === "smirk"){ m.rotation.z = Math.PI + .35; m.position.x = .015; m.scale.set(.85, .7, 1); }
         if (mk === "grin"){ const t2 = mesh(G("teeth", () => new T.CircleGeometry(.05, 16, Math.PI, Math.PI)), M("skin", 0xffffff), 0, .003, .003, mg); }
         if (mk === "fangs") [-1, 1].forEach(s => { const f = mesh(cone(.012, .04, 8), M("skin", 0xffffff), s * .03, -.03, .006, mg); f.rotation.z = Math.PI; }); } }
     if (a.cheeks === "blush" || a.cheeks === "both") [-1, 1].forEach(s => { const c = place(new T.Mesh(G("blush", () => new T.CircleGeometry(.045, 20)), new T.MeshBasicMaterial({color: 0xff7a8a, transparent: true, opacity: .32, depthWrite: false, toneMapped: false})), s * .15, -.055, .004); head.add(c); rig.own.push(c.material); });
-    if (a.cheeks === "freckles" || a.cheeks === "both") [-1, 1].forEach(s => [[0, 0], [.025, .012], [-.02, .015], [.012, -.02], [-.028, -.012], [.035, -.01]].forEach(([dx, dy]) => head.add(place(new T.Mesh(sph(.006, 6, 4), M("dark", 0x8a5532)), s * .14 + dx, -.04 + dy, .001))));
+    if (a.cheeks === "freckles" || a.cheeks === "both"){ const fm = M("dark", 0x9a5530), rr = rnd(5);
+      [-1, 1].forEach(s => { for (let i = 0; i < 13; i++){ const dx = (rr() - .5) * .1, dy = (rr() - .5) * .06; head.add(place(new T.Mesh(sph(.0065 + rr() * .0035, 8, 6), fm), s * .13 + dx * 1.2, -.035 + dy, .0015)); } });
+      for (let i = 0; i < 6; i++) head.add(place(new T.Mesh(sph(.007, 8, 6), fm), (rr() - .5) * .07, -.005 + (rr() - .5) * .02, .002)); }
     const b = a.beard; if (b === "none") return;
     const hm = M("hair", hairC);
-    if (b === "stubble") mesh(faceShell(H, -.32, -.06, 1.006, key), M("hair", hairC, {map: stubbleTex("#" + hairC.toString(16).padStart(6, "0")), transparent: true}), 0, 0, 0, head);
+    const hcs = "#" + hairC.toString(16).padStart(6, "0");
+    if (b === "stubble") mesh(faceShell(H, -.36, -.03, 1.008, key), M("hair", 0xffffff, {map: stubbleTex(hcs), transparent: true}), 0, 0, 0, head);
+    if (b === "full" || b === "viking") mesh(faceShell(H, -.4, -.02, 1.02, key), M("hair", 0xffffff, {map: beardTex(hcs), transparent: true}), 0, 0, 0, head);
     if (b === "full" || b === "viking"){ mesh(G("beard" + key, () => { const pts = []; for (let i = 0; i <= 12; i++){ const y = -.4 + i * .24 / 12; pts.push(V2(Math.max(.001, (H.prof(y) || .05) * 1.08 + (y < -.3 ? .02 : 0)), y)); } return new T.LatheGeometry(pts, 28, -1.35, 2.7); }), hm, 0, 0, 0, head, true);
       [-1, 1].forEach(s => { const sb = mesh(box(.035, .16, .06), hm, s * .25, -.08, .03, head); sb.rotation.z = -s * .1; }); }
-    if (["mustache", "goatee", "full", "viking"].includes(b)) [-1, 1].forEach(s => { const m = place(new T.Group(), s * .035, H.mouth + .035, .01); head.add(m); const mm = mesh(sph(.035, 12, 8), hm, 0, 0, 0, m); mm.scale.set(1.3, .55, .6); mm.rotation.z = s * .25; });
+    if (["mustache", "goatee", "full", "viking"].includes(b)) [-1, 1].forEach(s => { const m = place(new T.Group(), s * .042, H.mouth + .045, b === "full" || b === "viking" ? .03 : .014); head.add(m); const mm = mesh(sph(.04, 14, 10), hm, 0, 0, 0, m); mm.scale.set(1.45, .62, .7); mm.rotation.z = s * .28; });
     if (b === "goatee"){ const g = place(new T.Group(), 0, H.mouth - .07, .008); head.add(g); mesh(sph(.04, 12, 8), hm, 0, -.01, 0, g).scale.set(.9, 1.3, .7); }
     if (b === "viking") [-1, 1].forEach(s => { mesh(G("braid" + s, () => taper([[s * .06, -.34, .2], [s * .07, -.48, .17], [s * .06, -.6, .14]], .028, .02, 6, 10)), hm, 0, 0, 0, head); mesh(sph(.022, 8, 6), M("gold", 0xe0b13a), s * .06, -.62, .14, head); });
   }
