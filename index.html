@@ -2786,7 +2786,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794191325";
+const CHESSNAT_BUILD = "1794262168";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -3203,7 +3203,7 @@ const Sound = {ac:null, buf:{}, loading:false,
     try { this.ac = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return; }
     if (this.loading) return; this.loading = true;
     ["Move","Capture","Check","Mate","Victory","Defeat","GenericNotify","cheer1","cheer2","cheer3","cheer4"].forEach(n => {
-      fetch("sounds/" + n + ".mp3?v=3").then(r => r.arrayBuffer()).then(b => new Promise((res, rej) => this.ac.decodeAudioData(b, res, rej))).then(d => { this.buf[n] = d; }).catch(() => {});
+      fetch("sounds/" + n + ".mp3?v=4").then(r => r.arrayBuffer()).then(b => new Promise((res, rej) => this.ac.decodeAudioData(b, res, rej))).then(d => { this.buf[n] = d; }).catch(() => {});
     }); },
   play(n, vol = 1){ if (!S.settings.sound) return; this.init(); const ac = this.ac; if (!ac) return;
     if (this.buf[n]){ const s = ac.createBufferSource(); s.buffer = this.buf[n]; const g = ac.createGain(); g.gain.value = vol; s.connect(g).connect(ac.destination); s.start(); return; }
@@ -12220,7 +12220,7 @@ Views.shop = {
   }
 };
 
-/* ===== Sprüche: funny voice lines with comic voices, made by the phone's own speech (no recordings, no songs).
+/* ===== Sprüche: funny voice lines. The first ones are Nathan's own recordings; the rest use comic voices from the phone's own speech.
    In a game: 💬 under the board → tap one → a bubble pops up at your name and the voice says it; your friend sees and hears it too.
    A few come free, the rest from chests and the shop. The rarest "line" is your own: record your own sound and use it like the others. ===== */
 const LINE_VOICE = {
@@ -12232,11 +12232,17 @@ const LINE_VOICE = {
   sly:   {pitch: 0.85, rate: 1.05}};
 /* id, the line, its emoji, the voice, rarity ("free" = everyone has it) */
 const NAT_LINES = [
+  /* Nathan's own recordings (sounds/lines/<id>.mp3): free for everyone and first in the picker */
+  {id: "l-schachmatt", t: "Schachmatt!",                       e: "♚",  v: "hype", r: "free"},
   {id: "l-hallo",   t: "Hallo hallo!",                         e: "👋", v: "kid",  r: "free"},
+  {id: "l-digger",  t: "Digga!",                               e: "🤨", v: "sly",  r: "free"},
+  {id: "l-bodenlos", t: "Bodenlos.",                           e: "🕳️", v: "deep", r: "free"},
+  {id: "l-istdasgut", t: "Ist das gut? Ist das gut?",          e: "🤔", v: "kid",  r: "free"},
+  {id: "l-skip",    t: "Und skip!",                            e: "⏭️", v: "sly",  r: "free"},
+  {id: "l-verpiss", t: "Verpiss dich von da!",                 e: "👉", v: "deep", r: "free"},
+  {id: "l-hund",    t: "Verfickter Hund!",                     e: "🐕", v: "deep", r: "free"},
   {id: "l-gg",      t: "GG!",                                  e: "🤝", v: "hype", r: "free"},
   {id: "l-oha",     t: "Ohaaa!",                               e: "😮", v: "kid",  r: "free"},
-  {id: "l-digger",  t: "Digger, was war das?",                 e: "🤨", v: "sly",  r: "free"},
-  {id: "l-bodenlos", t: "Bodenlos.",                           e: "🕳️", v: "deep", r: "rare"},
   {id: "l-keks",    t: "Schachmatt, Keks!",                    e: "🍪", v: "kid",  r: "rare"},
   {id: "l-tschuess", t: "Tschüssi!",                           e: "👋", v: "kid",  r: "rare"},
   {id: "l-easy",    t: "Easy.",                                e: "😎", v: "posh", r: "rare"},
@@ -12283,7 +12289,7 @@ const LineVoice = (() => {
     if (S.settings.sound === false) return;
     if (line.own){ const src = own !== undefined ? own : (S.ownSnd && S.ownSnd.d);   /* someone else's line never plays my own sound */ if (ownOk(src)){ try { audio = new Audio(src); audio.play().catch(() => {}); } catch(e) {} } return; }
     /* first the real recording the team made for this line (if there is one), else the voice file shipped with the app, else the phone's own voice */
-    const bundled = () => { try { const au = new Audio("/sounds/lines/" + line.id + ".mp3"); au.setAttribute("playsinline", ""); audio = au;
+    const bundled = () => { try { const au = new Audio("/sounds/lines/" + line.id + ".mp3?v=2"); au.setAttribute("playsinline", ""); audio = au;
       au.play().catch(e => { if (!e || e.name !== "NotAllowedError") synth(line); }); au.onerror = () => synth(line); } catch(e){ synth(line); } };
     const site = window.ChessSite, sb = site && site.sb;
     if (sb && REAL[line.id] !== false){ try { const au = new Audio(sb.storage.from("news").getPublicUrl("lines/" + line.id).data.publicUrl); au.setAttribute("playsinline", ""); audio = au;
@@ -13961,7 +13967,7 @@ Views.news = {
       const msg = $("#lrmsg", box);
       $$("[data-lplay]", box).forEach(b => b.onclick = () => { const r = this.lrec[b.dataset.lplay]; new Audio(r.url).play().catch(() => {}); });
       $$("[data-lhear]", box).forEach(b => b.onclick = () => new Audio(url(b.dataset.lhear) + "?t=" + Date.now()).play().catch(() => {}));
-      $$("[data-ldef]", box).forEach(b => b.onclick = () => new Audio("/sounds/lines/" + b.dataset.ldef + ".mp3").play().catch(() => {}));
+      $$("[data-ldef]", box).forEach(b => b.onclick = () => new Audio("/sounds/lines/" + b.dataset.ldef + ".mp3?v=2").play().catch(() => {}));
       $$("[data-lup]", box).forEach(b => b.onclick = async () => { const id = b.dataset.lup, r = this.lrec[id]; b.disabled = true; msg.textContent = "Lade hoch…";
         let {error} = await sb.storage.from("news").upload("lines/" + id, r.blob, {contentType: r.type, upsert: false});
         /* already recorded once: replace it (works once the replace permission is in) */

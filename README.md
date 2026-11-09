@@ -54,7 +54,7 @@ den App-Modus ein (kein Zoomen, kein Gummiband-Scrollen) und zeigt in Safari den
 | `puzzles/` | Lichess-Puzzle-Datenbank (CC0), nach Rating in 100er-Schritten |
 | `engine/sf.js` | Stockfish 10 (GPL) |
 | `voice/` | Coach-Stimme (Kokoro, Apache 2.0) |
-| `sounds/` | Zug-Geräusche (Lichess, AGPL) |
+| `sounds/` | Zug-Geräusche (Lichess, AGPL); `Mate.mp3` und die ersten Sprüche in `sounds/lines/` sind Nathans eigene Aufnahmen |
 | `vendor/` | chess.js (BSD), supabase-js (MIT) |
 
 Figuren „Staunty“ von sadsnake1 (CC BY-NC-SA 4.0), nur für private, nicht-kommerzielle Nutzung.
