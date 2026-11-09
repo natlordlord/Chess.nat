@@ -2649,7 +2649,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794181225";
+const CHESSNAT_BUILD = "1794183835";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11958,6 +11958,9 @@ Views.shop = {
    The way in, in this order: get the app → allow notifications → create the account → confirm the email
    (you're signed in by yourself when you come back) → pick your player ID → a short welcome. Only then news and other cards. ===== */
 const AUTH_RATE = /rate limit|only request this after|too many|429/i, AUTH_RATE_TXT = "We can't send more emails right now (there's an hourly limit). Try again in about an hour, or sign in with your password.";
+/* the mail service itself failed (e.g. its login is wrong): say it plainly instead of the server's English */
+const AUTH_MAIL = /error sending (confirmation|recovery|magic link|invite)?\s*e?mail|sending email/i, AUTH_MAIL_TXT = "The confirmation email couldn't be sent right now. That's on our side, not yours. Please try again in a few minutes.";
+const authErrTxt = t => !t ? "" : AUTH_RATE.test(t) ? AUTH_RATE_TXT : AUTH_MAIL.test(t) ? AUTH_MAIL_TXT : t;
 const authInApp = () => !!(window.ChessApp && window.ChessApp.isApp);
 const authHad = () => { try { return localStorage.getItem("chessnat-hadacct") === "1"; } catch(e) { return false; } };
 const authRef = () => { try { return new URLSearchParams(location.search).get("ref") || localStorage.getItem("chessnat-ref"); } catch(e) { return null; } };
@@ -11975,7 +11978,7 @@ function authForm(root, o = {}){
         ${window.CHESSNAT_CONFIG && window.CHESSNAT_CONFIG.google ? `<button class="btn" type="button" id="gg">Continue with Google</button>` : ""}
       </form>
       <p class="auth-sw">${mode === "up" ? `Already have an account? <a href="#" id="sw">Sign in</a>` : `New here? <a href="#" id="sw">Create an account</a> · <a href="#" id="fg">Forgot password</a>`}</p>`;
-    const err = t => { $("#aerr", root).textContent = t && AUTH_RATE.test(t) ? AUTH_RATE_TXT : (t || ""); };
+    const err = t => { $("#aerr", root).textContent = authErrTxt(t); };
     if (window.CHESSNAT_AUTH_ERROR){ err(window.CHESSNAT_AUTH_ERROR); window.CHESSNAT_AUTH_ERROR = null; }
     $("#sw", root).onclick = e => { e.preventDefault(); const em = $("#em", root).value; mode = mode === "up" ? "in" : "up"; render(); $("#em", root).value = em; };
     if ($("#fg", root)) $("#fg", root).onclick = async e => { e.preventDefault(); const em = $("#em", root).value.trim(); if (!em) return err("Enter your email first.");
@@ -12111,7 +12114,7 @@ const Onboard = (() => {
         if (!r.error){ mark("tour"); clearInterval(poll); return; }   /* signed in: the page reloads by itself */
         if (manual) toast(r.error.message === "Email not confirmed" ? "Not confirmed yet. Tap the link in the email first." : r.error.message, 3000); };
       $("#onchk", card).onclick = () => tryIn(true);
-      $("#onres", card).onclick = async () => { const r = await site.resend(pending.em); toast(r.error ? (AUTH_RATE.test(r.error.message) ? AUTH_RATE_TXT : r.error.message) : "Sent again ✓", r.error ? 4500 : 2200); };
+      $("#onres", card).onclick = async () => { const r = await site.resend(pending.em); toast(r.error ? authErrTxt(r.error.message) : "Sent again ✓", r.error ? 4500 : 2200); };
       $("#onchg", card).onclick = () => { pending = null; show("account"); };
       clearInterval(poll); poll = setInterval(() => { if (!document.hidden) tryIn(false); }, 6000);
       document.addEventListener("visibilitychange", () => { if (!document.hidden && step === "verify") tryIn(false); });
