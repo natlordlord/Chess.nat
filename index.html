@@ -2783,7 +2783,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794190723";
+const CHESSNAT_BUILD = "1794190780";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -10702,7 +10702,7 @@ Views.friend = {
     if (o && o.presence.emo && this.emoApi) this.emoApi.opEmote(o.presence.emo);
     /* a voice line from the other side: their bubble at the top, their voice */
     { const ln = o && o.presence.line; if (ln && ln.n && ln.n !== this.lastLine){ const first = this.lastLine == null; this.lastLine = ln.n;
-      if ((!first || Date.now() - (ln.ts || 0) < 8000) && typeof LINE_BY !== "undefined" && LINE_BY[ln.id] && s.seat !== "spec") lineBubble("#topbar", LINE_BY[ln.id], ln.own); } }
+      if ((!first || Date.now() - (ln.ts || 0) < 8000) && typeof LINE_BY !== "undefined" && LINE_BY[ln.id] && s.seat !== "spec"){ lineBubble("#topbar", LINE_BY[ln.id], ln.own); try { this.emoApi && this.emoApi.stages.op && this.emoApi.stages.op.emote("talk"); } catch(e) {} } } }
     if (this.vcx && s.seat !== "spec") this.vcx.peer(o ? o.presence : null);
     if (this.ranked && !s.result && s.moves.length >= 2 && (s.seat === "w" || s.seat === "b")){
       if (!o && !this.goneT){ toast("Your opponent left. If they don't come back within a minute, you win.", 4000);
@@ -10828,7 +10828,7 @@ Views.friend = {
   },
   emote(e){ if (!this.st) return; this.st.emo = e; this.publish(); },
   /* a voice line: sent once; your own recorded sound travels along only for a few seconds */
-  line(l){ const s = this.st; if (!s || !l) return; s.line = {id: l.id, n: Date.now() % 1e9, ts: Date.now(), own: l.own && S.ownSnd ? S.ownSnd.d : undefined}; this.publish();
+  line(l){ const s = this.st; if (!s || !l) return; try { this.emoApi && this.emoApi.stages.me && this.emoApi.stages.me.emote("talk"); } catch(e) {} s.line = {id: l.id, n: Date.now() % 1e9, ts: Date.now(), own: l.own && S.ownSnd ? S.ownSnd.d : undefined}; this.publish();
     if (s.line.own) setTimeout(() => { if (this.st && this.st.line) delete this.st.line.own; }, 8000); },
   /* the lobby: before the first move both figures stand on the board, you can dance at each other.
      It goes away with the first move, or when you tap Play. */
@@ -13934,7 +13934,9 @@ Views.news = {
       $$("[data-lhear]", box).forEach(b => b.onclick = () => new Audio(url(b.dataset.lhear) + "?t=" + Date.now()).play().catch(() => {}));
       $$("[data-ldef]", box).forEach(b => b.onclick = () => new Audio("/sounds/lines/" + b.dataset.ldef + ".mp3").play().catch(() => {}));
       $$("[data-lup]", box).forEach(b => b.onclick = async () => { const id = b.dataset.lup, r = this.lrec[id]; b.disabled = true; msg.textContent = "Lade hoch…";
-        const {error} = await sb.storage.from("news").upload("lines/" + id, r.blob, {contentType: r.type, upsert: false});
+        let {error} = await sb.storage.from("news").upload("lines/" + id, r.blob, {contentType: r.type, upsert: false});
+        /* already recorded once: replace it (works once the replace permission is in) */
+        if (error && /exist|duplicate/i.test(error.message)) ({error} = await sb.storage.from("news").upload("lines/" + id, r.blob, {contentType: r.type, upsert: true}));
         if (error){ b.disabled = false; msg.textContent = /exist|duplicate/i.test(error.message) ? "Diesen Spruch hast du schon eingesprochen. Zum Ersetzen muss ich erst eine kleine Freigabe einspielen, frag mich kurz." : "Fehler: " + error.message; return; }
         delete this.lrec[id]; this.lhave[id] = true; draw(); $("#lrmsg", box).textContent = "✓ Gespeichert. Alle hören jetzt deine Aufnahme."; });
       $$("[data-lrec]", box).forEach(b => {
