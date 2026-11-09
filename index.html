@@ -2781,7 +2781,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794189872";
+const CHESSNAT_BUILD = "1794190323";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -5009,7 +5009,7 @@ Views.learn = {
       ${typeof playerProfile === "function" ? (P => `<button class="unit pf-card" id="pfc" style="margin-top:12px"><div class="pf-piece sm"><i class="pc ${P.type.piece}"></i></div><div style="flex:1;min-width:200px;text-align:left"><div class="muted" style="font-weight:800;font-size:12px;letter-spacing:.06em">YOUR CHESS PROFILE</div><div style="font:900 20px var(--display)">${esc(P.type.name)}</div><div class="muted" style="font-size:13.5px">Openings for you: ${esc(P.rep.white.name)} as White, ${esc(P.rep.e4.name)} against 1.e4. Find out why.</div></div><span class="btn sm go">Open</span></button>`)(playerProfile()) : ""}
       <button class="unit pf-card" id="thc" style="margin-top:12px"><div class="pf-piece sm" style="display:flex;align-items:center;justify-content:center;color:#fff">${icon("scroll", 30)}</div><div style="flex:1;min-width:200px;text-align:left"><div class="muted" style="font-weight:800;font-size:12px;letter-spacing:.06em">OPENING THEORY</div><div style="font:900 20px var(--display)">${typeof THEORY !== "undefined" ? THEORY.length : ""} deep-dive articles</div><div class="muted" style="font-size:13.5px">Sicilian, Italian, Caro-Kann, London and more: ideas, structures, plans and lines.</div></div><span class="btn sm go">Open</span></button>
       ${units.map((u, ui) => { const ls = u.lessons; const d = ls.filter(l => S.lessons[l.id] && S.lessons[l.id].done).length;
-        return `<div class="unit" style="margin-top:12px"><div class="row" style="justify-content:space-between"><div><div class="muted" style="font-weight:800;font-size:12px;letter-spacing:.06em">UNIT ${ui + 1} · TARGET ${esc(u.target.toUpperCase())}</div><h3>${esc(u.title)}</h3><p class="muted" style="margin:2px 0 0">${esc(u.desc)}</p></div><div class="row" style="gap:6px">${d < ls.length ? `<button class="btn sm ghost" data-skipu="${u.id}">I know this</button>` : ""}<span class="pill ${d === ls.length ? "go" : ""}">${d}/${ls.length}</span></div></div>
+        return `<div class="unit" style="margin-top:12px"><div class="row" style="justify-content:space-between"><div><div class="muted" style="font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase"><span>Unit ${ui + 1}</span> · <span>Goal:</span> <span>${esc(u.target)}</span></div><h3>${esc(u.title)}</h3><p class="muted" style="margin:2px 0 0">${esc(u.desc)}</p></div><div class="row" style="gap:6px">${d < ls.length ? `<button class="btn sm ghost" data-skipu="${u.id}">I know this</button>` : ""}<span class="pill ${d === ls.length ? "go" : ""}">${d}/${ls.length}</span></div></div>
         <div class="lessons">${ls.map((l, i) => { const st = S.lessons[l.id]; return `<button class="lsn ${st && st.done ? "done" : ""}" data-l="${l.id}"><span class="n">${st && st.done ? "✓" : i + 1}</span><span style="min-width:0"><div class="t">${esc(l.title)}</div><div class="s">${esc(l.sub || "")}</div></span></button>`; }).join("")}</div></div>`; }).join("")}</div>`;
     if ($("#pfc")) $("#pfc").onclick = () => App.go("profile");
     if ($("#thc")) $("#thc").onclick = () => App.go("theory");
@@ -5031,7 +5031,7 @@ Views.lesson = {
     this.step();
   },
   unmount(){ this.dead = true; this.clearTimers(); Voice.stop(); Engine.clear(); if (this.unmountExtra){ this.unmountExtra(); this.unmountExtra = null; } },
-  clearTimers(){ this.timers.forEach(t => clearTimeout(t)); this.timers = []; },
+  clearTimers(){ (this.timers || []).forEach(t => clearTimeout(t)); this.timers = []; },
   later(fn, ms){ const t = setTimeout(() => { if (!this.dead) fn(); }, ms); this.timers.push(t); return t; },
   step(){
     this.clearTimers(); Voice.stop(); window.__pzMat = null; this.board.premoveFor = null; this.board.cancelPremove && this.board.cancelPremove(); this.board.overlay(null); this.board.badge(null); this.board.setArrows([]); this.board.mark({}); this.board.setThreats({}); if (this.lastStep !== this.L.id + this.i){ this.gameFails = 0; this.lastStep = this.L.id + this.i; } if (this.unmountExtra){ this.unmountExtra(); this.unmountExtra = null; }
@@ -11253,7 +11253,7 @@ Views.home = {
         <button class="hr-lv" data-go="me" aria-label="Your level">${levelCardHTML(true)}</button>
         <div class="hr-goal"><span>Journey to 1600</span><div class="bar sm"><i style="width:${Math.round(pct * 100)}%"></i></div><b>${Math.round(pct * 100)}%</b></div>
       </div>
-      <div class="unit" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><div style="min-width:180px"><div class="muted" style="font-weight:800;font-size:13px;letter-spacing:.06em">TODAY'S PLAN</div><div style="font:900 22px var(--display)">${planDone() ? "Done for today ✓" : PLAN.filter(([k, n]) => planVal(k) >= n).length + " of " + PLAN.length}</div><div class="dim" style="font-size:12.5px">${icon("flame", 14)} ${S.plan.streak} day streak · best ${S.plan.best}</div></div>
+      <div class="unit" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><div style="min-width:180px"><div class="muted" style="font-weight:800;font-size:13px;letter-spacing:.06em">TODAY'S PLAN</div><div style="font:900 22px var(--display)">${planDone() ? "Done for today ✓" : PLAN.filter(([k, n]) => planVal(k) >= n).length + " / " + PLAN.length}</div><div class="dim" style="font-size:12.5px">${icon("flame", 14)} ${S.plan.streak} day streak · best ${S.plan.best}</div></div>
         <div style="flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">${PLAN.filter(([k, n]) => !(planVal(k) >= n && popped[k] && !toPop.includes(k))).map(([k, n, t]) => { const v = Math.min(n, planVal(k)); return `<button class="lsn ${v >= n ? "done" : ""} ${toPop.includes(k) ? "pop" : ""}" data-plan="${k}"><span class="n">${v >= n ? "✓" : v}</span><span><div class="t">${t}</div><div class="s">${v} / ${n}</div></span></button>`; }).join("")}</div></div>
       ${typeof goalCardHTML === "function" ? goalCardHTML() : ""}
       <div class="tiles">
@@ -11426,8 +11426,8 @@ Views.me = {
       ${typeof natItem === "function" ? (k => k ? `<button class="unit me-knife" id="meknife" style="--rc:${NAT_R[NAT_RI[k.r]].c}"><span class="mk-pic">${knifeSVG(k)}</span><span class="grow" style="text-align:left"><small style="color:${NAT_R[NAT_RI[k.r]].c};font-weight:900">${NAT_R[NAT_RI[k.r]].n.toUpperCase()} KNIFE</small><b>${esc(k.name)}</b><span class="eur sm">≈ ${fmtEur(k.eur)}</span></span></button>` : "")(S.knife && natHas(S.knife) ? natItem(S.knife) : null) : ""}
       <div class="mebtns">
         <button class="mb" data-go="awards" data-tab="wardrobe">${icon("user", 26)}<b>Wardrobe</b><small>Dress your figure</small></button>
-        <button class="mb" data-go="shop" data-tab="coll">${icon("coin", 26)}<b>Collection</b><small>${typeof natItems === "function" ? natItems().filter(i => natHas(i.id)).length + " of " + natItems().length : ""}</small></button>
-        <button class="mb" data-go="awards" data-tab="trophies">${icon("trophy", 26)}<b>Trophies</b><small>${n} of ${ACH.length}</small></button>
+        <button class="mb" data-go="shop" data-tab="coll">${icon("coin", 26)}<b>Collection</b><small>${typeof natItems === "function" ? natItems().filter(i => natHas(i.id)).length + " / " + natItems().length : ""}</small></button>
+        <button class="mb" data-go="awards" data-tab="trophies">${icon("trophy", 26)}<b>Trophies</b><small>${n} / ${ACH.length}</small></button>
         <button class="mb" data-go="friends">${icon("users", 26)}<b>Friends</b><small>${on ? on + " online" : "Add and challenge"}</small></button>
         <button class="mb" data-go="${typeof Views.account === "object" ? "account" : "settings"}">${icon("gear", 26)}<b>Account</b><small>${sess ? esc((sess.user.email || "").split("@")[0]) : "Sign in to sync"}</small></button>
       </div>
@@ -12139,7 +12139,7 @@ Views.shop = {
       <h2 class="h-sec">Piece glows</h2><div class="shop-grid">${NAT_GLOWS.filter(g => g.price).map(g => this.card(Object.assign({kind: "glow"}, g), true)).join("")}</div>
       <h2 class="h-sec">Boards</h2><div class="shop-grid">${NAT_BOARDS.filter(x => x.r && x.r !== "ultra" && !x.pass).map(x => this.card(Object.assign({kind: "board"}, x), true)).join("")}</div>
       <div class="unit shop-real"><b>Buy NatCoins with money</b><p class="dim" style="margin:4px 0 0">Not yet. Everything here comes from playing.</p></div>
-      <details class="unit shop-odds"><summary>Drop chances</summary><p class="dim" style="margin:8px 0">Each chest: ${NAT_R.map(r => `<b style="color:${r.c}">${r.n}</b> ${r.p} %`).join(" · ")}. Chests with a minimum rarity roll only among those. Knives come from Mythic chests and better. Items you already have turn into NatCoins.</p></details>`;
+      <details class="unit shop-odds"><summary>Drop chances</summary><p class="dim" style="margin:8px 0"><span>Each chest:</span> ${NAT_R.map(r => `<b style="color:${r.c}">${r.n}</b> ${r.p} %`).join(" · ")}</p><p class="dim" style="margin:0 0 8px">Chests with a minimum rarity roll only among those. Knives come from Mythic chests and better. Items you already have turn into NatCoins.</p></details>`;
     if (t === "coll") body.innerHTML = this.coll();
     if (t === "pass") body.innerHTML = Quests.html() + this.pass();
     { const g = $("[data-gift]", body); if (g) g.onclick = () => { giftClaim(); this.draw(); }; }
