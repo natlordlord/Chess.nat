@@ -2628,6 +2628,86 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 .gift-ppl{max-height:320px;overflow:auto}
 .gift-p{display:flex;align-items:center;gap:10px;cursor:pointer}
 .gift-p input{width:20px;height:20px;accent-color:var(--go);flex:none}
+/* ===== first start v3: get-the-app picture, open-the-app picture, everything allowed in one go ===== */
+.onb-ok{align-self:center;display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;background:color-mix(in srgb,var(--go) 18%,transparent);color:var(--go);font:900 14px var(--body)}
+.onb-ok span{color:var(--fg)}
+.onb-install h2,.onb-open h2{font-size:24px}
+.onb-inst{width:100%}
+.onb-or{font-size:12.5px;color:var(--muted);margin-top:-4px}
+.onb-demo{display:flex;flex-direction:column;align-items:center;gap:10px}
+.dm-phone{position:relative;width:min(232px,62vw);aspect-ratio:9/17.5;border-radius:34px;background:#0b0b0d;padding:9px;box-shadow:0 0 0 2px #2c2c30,0 22px 50px rgba(0,0,0,.55),0 0 60px color-mix(in srgb,var(--go) 22%,transparent)}
+.dm-phone::before{content:"";position:absolute;top:15px;left:50%;width:62px;height:17px;border-radius:12px;background:#000;transform:translateX(-50%);z-index:5}
+.dm-scr{position:relative;width:100%;height:100%;border-radius:26px;overflow:hidden;background:#1b1d1a;font:600 9.5px/1.25 var(--body);color:#eee;text-align:left}
+.dm-scr.in>*{animation:dmIn .35s ease both}
+@keyframes dmIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.dm-page{position:absolute;inset:0;padding:40px 14px 0;background:linear-gradient(180deg,#2a3a1f,#1b1d1a 55%);display:flex;flex-direction:column;gap:7px;align-items:center}
+.dm-page .dm-logo img{width:40px;height:40px;border-radius:10px}
+.dm-page>i{display:block;width:80%;height:7px;border-radius:4px;background:rgba(255,255,255,.18)}.dm-page>i.s{width:55%}
+.dm-board{width:78%;aspect-ratio:1;border-radius:6px;margin-top:6px;background:repeating-conic-gradient(#769656 0 25%,#eeeed2 0 50%) 0 0/25% 25%;opacity:.9}
+.dm-bar26{position:absolute;left:8px;right:8px;bottom:12px;display:flex;align-items:center;gap:6px;z-index:2}
+.dm-bar26 .c{width:26px;height:26px;border-radius:50%;background:rgba(60,60,64,.92);display:grid;place-items:center;font-size:14px}
+.dm-bar26 .pill{flex:1;height:28px;border-radius:15px;background:rgba(60,60,64,.95);display:flex;align-items:center;gap:5px;padding:0 8px}
+.dm-bar26 .pill em{flex:1;font-style:normal;font-size:8.5px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dm-bar26 .pill b,.dm-barold b,.dm-topbar b,.dm-barsam b{display:grid;place-items:center;width:22px;height:22px;border-radius:50%}
+.dm-barold,.dm-barsam{position:absolute;left:0;right:0;bottom:0;height:42px;padding-bottom:8px;background:rgba(40,40,44,.97);display:flex;justify-content:space-around;align-items:center;font-size:13px;color:#4ea3ff;z-index:2}
+.dm-barsam{color:#ddd}
+.dm-topbar{position:absolute;left:0;right:0;top:0;height:44px;padding:24px 8px 0;background:#2a2a2e;display:flex;align-items:center;gap:6px;z-index:2}
+.dm-topbar em{flex:1;height:20px;border-radius:10px;background:#3c3c41;font-style:normal;font-size:8.5px;display:flex;align-items:center;padding:0 8px}
+.dm-topbar~.dm-page{padding-top:56px}
+.dm-menu{position:absolute;z-index:3;min-width:62%;border-radius:12px;background:rgba(48,48,52,.98);box-shadow:0 8px 24px rgba(0,0,0,.5);overflow:hidden}
+.dm-menu.l{left:8px;bottom:48px}.dm-menu.r{right:6px;top:30px}
+.dm-row{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.07);font-size:9.5px}
+.dm-row b{display:grid;place-items:center;font-weight:400;opacity:.85}
+.dm-sheet{position:absolute;left:0;right:0;bottom:0;height:62%;z-index:3;border-radius:16px 16px 0 0;background:#2b2b2f;padding:10px 8px;display:flex;flex-direction:column;gap:8px;box-shadow:0 -8px 24px rgba(0,0,0,.4)}
+.dm-sh-h,.dm-add{display:flex;align-items:center;gap:8px}
+.dm-sh-h img,.dm-add img{width:28px;height:28px;border-radius:7px}
+.dm-sh-h small,.dm-add small{display:block;font-size:8px;opacity:.6;font-weight:500}
+.dm-apps{display:flex;justify-content:space-around}.dm-apps i{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#3a7bd5,#5ac8fa)}.dm-apps i:nth-child(2){background:linear-gradient(135deg,#34c759,#30d158)}.dm-apps i:nth-child(3){background:linear-gradient(135deg,#ff9f0a,#ffd60a)}.dm-apps i:nth-child(4){background:#636366}
+.dm-list{border-radius:10px;background:#3a3a3f;overflow:hidden}
+.dm-list.dm-low{position:absolute;left:8px;right:8px;bottom:14px;z-index:3;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.dm-full{position:absolute;inset:0;z-index:4;background:#1c1c1e;padding-top:30px}
+.dm-top{display:flex;justify-content:space-between;align-items:center;padding:8px 9px;font-size:9px;color:#4ea3ff}.dm-top b{color:#fff;font-size:9.5px}
+.dm-full .dm-add{margin:10px 9px;padding:9px;border-radius:10px;background:#2c2c2e}
+.dm-dlg{position:absolute;left:10%;right:10%;top:40%;z-index:3;border-radius:14px;background:#303034;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+.dm-btns{display:flex;justify-content:flex-end;gap:14px;margin-top:12px;font-size:10px;color:#8ab4f8}
+.dm-grid{position:absolute;left:0;right:0;bottom:0;z-index:3;border-radius:16px 16px 0 0;background:#2b2b2f;padding:12px 8px 18px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.dm-grid div{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:8px;padding:5px;border-radius:9px}
+.dm-grid i{width:24px;height:24px;border-radius:50%;background:#3d3d42;display:grid;place-items:center;font-style:normal;font-size:12px}
+.dm-home{position:absolute;inset:0;padding:44px 12px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px 10px;align-content:start;background:linear-gradient(160deg,#30456b,#5b3a6e 55%,#2a2a40)}
+.dm-home span{display:flex;flex-direction:column;align-items:center;gap:3px}
+.dm-home span i{width:36px;height:36px;border-radius:10px;background:hsl(var(--h) 55% 55%);opacity:.75}
+.dm-home .dm-me img{width:36px;height:36px;border-radius:10px;box-shadow:0 0 0 2px #fff,0 0 18px var(--go);animation:dmPop 1s cubic-bezier(.2,1.6,.4,1) both}
+.dm-home .dm-me small{font-size:7.5px;color:#fff}
+@keyframes dmPop{0%{transform:scale(0)}100%{transform:none}}
+.dm-splash{position:absolute;inset:0;display:grid;place-items:center;background:#1b1d1a}.dm-splash img{width:72px;height:72px;border-radius:18px;animation:dmPop .7s cubic-bezier(.2,1.6,.4,1) both}
+.dm-swipe{position:absolute;left:50%;bottom:6px;width:70px;height:4px;border-radius:3px;background:#fff;transform:translateX(-50%);z-index:3}
+.dm-finger{position:absolute;z-index:9;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:rgba(255,255,255,.55);border:2px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.5);transition:left .55s cubic-bezier(.4,0,.2,1),top .55s cubic-bezier(.4,0,.2,1),opacity .2s;pointer-events:none;
+  /* the phone frame has 9px padding: the finger moves within the screen */
+  transform-origin:center}
+.dm-phone .dm-finger{margin:-15px 0 0 -15px}
+.dm-finger.tap{animation:dmTap .5s ease}
+.dm-finger.tap::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--go);animation:dmRing .6s ease-out forwards}
+@keyframes dmTap{0%,100%{transform:scale(1)}40%{transform:scale(.72)}}
+@keyframes dmRing{0%{transform:scale(.6);opacity:1}100%{transform:scale(2.2);opacity:0}}
+.dm-finger.swipe{animation:dmSwipe .8s ease forwards}
+@keyframes dmSwipe{0%{transform:none}100%{transform:translateY(-90px);opacity:0}}
+.dm-scr .hot{outline:2px solid transparent;transition:background .2s,outline-color .2s}
+.dm-scr .hot.press{background:color-mix(in srgb,var(--go) 55%,transparent)!important;outline-color:var(--go);border-radius:6px}
+.dm-row.hot{font-weight:900}
+.dm-steps{display:flex;gap:6px}.dm-steps i{width:7px;height:7px;border-radius:50%;background:var(--line)}.dm-steps i.on{background:var(--go);width:18px;border-radius:4px;transition:width .2s}
+/* everything allowed in one go */
+.onb-perm2{position:relative;width:220px;height:150px;margin:0 auto}
+.onb-perm2 .pp{position:absolute;display:grid;place-items:center;border-radius:50%;color:#fff;box-shadow:0 10px 26px rgba(0,0,0,.35);animation:ppFloat 3s ease-in-out infinite}
+.onb-perm2 .p4{left:72px;top:30px;width:78px;height:78px;background:var(--go);animation-delay:.2s}
+.onb-perm2 .p1{left:6px;top:12px;width:56px;height:56px;background:#e9b64a}
+.onb-perm2 .p2{right:6px;top:8px;width:56px;height:56px;background:#5aa3e0;animation-delay:.6s}
+.onb-perm2 .p3{right:30px;bottom:0;width:52px;height:52px;background:#e2523e;animation-delay:1s}
+.onb-perm2 .pb{position:absolute;font-style:normal;font-size:22px;animation:ppFloat 2.6s ease-in-out infinite}.onb-perm2 .b1{left:20px;bottom:10px}.onb-perm2 .b2{left:100px;bottom:-4px;animation-delay:.5s}.onb-perm2 .b3{left:150px;top:-6px;animation-delay:.9s}
+@keyframes ppFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.onb-list{display:flex;flex-direction:column;gap:8px;text-align:left;margin:2px 0 4px}
+.onb-list div{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--panel-2);font-size:14px}
+.onb-list svg{flex:none;color:var(--go)}
+.dm-phone.and{border-radius:26px}.dm-phone.and .dm-scr{border-radius:19px}.dm-phone.and::before{width:12px;height:12px;top:17px;border-radius:50%}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -2649,7 +2729,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794183835";
+const CHESSNAT_BUILD = "1794186006";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -12040,98 +12120,191 @@ function siteBanner(){
   return `<div class="unit" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;border:1px solid var(--go)"><div style="flex:1;min-width:200px"><h3>Save your progress</h3><p class="muted" style="margin:2px 0 0">Create a free account so your rating, lessons and games follow you to every device.</p></div><button class="btn go" onclick="App.go('account')">${authHad() ? "Sign in" : "Create account"}</button></div>`;
 }
 
-/* ===== the first start ===== */
+/* ===== the first start =====
+   In the browser: create the account, confirm the email, then a big moving picture shows how to put Chess.nat on the home screen,
+   and a second one how to open it from there. In the app: sign in once if needed (iPhone apps have their own storage),
+   allow notifications, microphone, camera and sound in one go, pick the player ID, short welcome. Every screen has a way on. */
 const Onboard = (() => {
   const KEY = "chessnat-onb", get = () => { try { return localStorage.getItem(KEY) || ""; } catch(e) { return ""; } }, mark = v => { try { localStorage.setItem(KEY, v); } catch(e) {} };
   let el = null, step = null, pending = null, poll = null;
   const isIOS = () => !!(window.ChessApp && window.ChessApp.isIOS), ua = navigator.userAgent, isAndroid = /Android/i.test(ua), mobile = isIOS() || isAndroid;
-  const safari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(ua);
-  const pushable = () => "Notification" in window && "serviceWorker" in navigator && "PushManager" in window && Notification.permission === "default";
-  const SHARE = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>`;
-  const active = () => !!el || get() === "tour";
+  const safari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA\/|FBAN|FBAV|Instagram|Line\//.test(ua);
+  const active = () => !!el || ["tour", "app", "perm"].includes(get());
+  /* while the browser part of the start runs, the player-ID card waits for the app */
+  const holdId = () => (mobile && !authInApp() && get() === "app") || (authInApp() && get() === "perm");
   function shell(){
     if (!el){ el = document.createElement("div"); el.className = "onb"; document.body.appendChild(el); document.body.classList.add("onboarding"); if (typeof Focus !== "undefined") Focus.set(true); }
     return el;
   }
-  function close(){ if (!el) return; const e = el; el = null; e.classList.add("out"); setTimeout(() => e.remove(), 250); document.body.classList.remove("onboarding"); clearInterval(poll); poll = null; }
+  function close(){ if (!el) return; const e = el; el = null; e.classList.add("out"); setTimeout(() => e.remove(), 250); document.body.classList.remove("onboarding"); clearInterval(poll); poll = null; if (demoT) clearTimeout(demoT); }
   const dots = (i, n) => `<div class="onb-dots">${Array.from({length: n}, (_, k) => `<i class="${k < i ? "done" : k === i ? "on" : ""}"></i>`).join("")}</div>`;
-  /* the steps someone still has in front of them */
+  const WEB = ["account", "verify", "install", "open"], APP = ["login", "perm", "id"];
+  const pushable = () => "Notification" in window && "serviceWorker" in navigator && "PushManager" in window && Notification.permission === "default";
   const micAsked = () => { try { return localStorage.getItem("chessnat-mic") === "1"; } catch(e) { return true; } };
   const micable = () => !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && !micAsked();
-  /* notifications and the microphone are asked together, right at the start (in the app; Safari on iPhone can't do notifications) */
-  const plan = () => (authInApp() || !mobile ? [] : ["install"]).concat((pushable() || micable()) && !(isIOS() && !authInApp()) ? ["push"] : [], ["account"]);
+
+  /* ---------- the moving picture: a little phone that shows every tap ---------- */
+  const T = x => typeof I18N !== "undefined" ? I18N.t(x) : x;
+  const ICO = {
+    share: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>`,
+    burger: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>`,
+    plus: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/></svg>`,
+    dots: `<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>`,
+    tabs: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="7" y="7" width="13" height="13" rx="3"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/></svg>`};
+  const LOGO = `<img src="/icons/icon-192.png" alt="">`;
+  const page = `<div class="dm-page"><div class="dm-logo">${LOGO}</div><i></i><i></i><i class="s"></i><div class="dm-board"></div></div>`;
+  const row = (t, ic, hot) => `<div class="dm-row${hot ? " hot" : ""}"><span>${T(t)}</span>${ic ? `<b>${ic}</b>` : ""}</div>`;
+  const addDlg = (cancel, title, add) => `<div class="dm-full"><div class="dm-top"><span>${T(cancel)}</span><b>${T(title)}</b><span class="hot">${T(add)}</span></div><div class="dm-add">${LOGO}<div><b>Chess.nat</b><small>chess-nat.vercel.app</small></div></div></div>`;
+  const iosBar26 = `<div class="dm-bar26"><span class="c">‹</span><span class="pill"><b class="hot">${ICO.burger}</b><em>chess-nat.vercel.app</em><i>↻</i></span><span class="c">${ICO.tabs}</span></div>`;
+  const iosBarOld = `<div class="dm-barold"><span>‹</span><span>›</span><b class="hot">${ICO.share}</b><span>📖</span><span>${ICO.tabs}</span></div>`;
+  const sheet = inner => `<div class="dm-sheet"><div class="dm-sh-h">${LOGO}<div><b>Chess.nat</b><small>chess-nat.vercel.app</small></div></div><div class="dm-apps"><i></i><i></i><i></i><i></i></div>${inner}</div>`;
+  /* every scene: what the screen shows, and where the finger taps (in % of the screen) */
+  const DEMOS = {
+    ios26: [{s: page + iosBar26, at: [31, 93]},
+      {s: page + `<div class="dm-menu l">${row("Share", ICO.share, 1)}${row("Add Bookmark", "☆")}${row("Translate", "Aあ")}</div>` + iosBar26, at: [30, 67]},
+      {s: page + sheet(`<div class="dm-list">${row("Copy", "⧉")}${row("Show more", "⌄", 1)}</div>`), at: [40, 86]},
+      {s: page + sheet(`<div class="dm-list">${row("Copy", "⧉")}${row("Add to Reading List", "◎")}${row("Add Bookmark", "☆")}${row("Add to Home Screen", ICO.plus, 1)}</div>`), at: [45, 89]},
+      {s: addDlg("Cancel", "Add to Home Screen", "Add"), at: [86, 7]}],
+    iosold: [{s: page + iosBarOld, at: [50, 94]},
+      {s: page + sheet(`<div class="dm-list">${row("Copy", "⧉")}${row("Add to Reading List", "◎")}${row("Add Bookmark", "☆")}${row("Add to Home Screen", ICO.plus, 1)}</div>`), at: [45, 89]},
+      {s: addDlg("Cancel", "Add to Home Screen", "Add"), at: [86, 7]}],
+    ioschrome: [{s: `<div class="dm-topbar"><em>chess-nat.vercel.app</em><b class="hot">${ICO.share}</b></div>` + page, at: [88, 6]},
+      {s: page + sheet(`<div class="dm-list">${row("Copy", "⧉")}${row("Add to Reading List", "◎")}${row("Add Bookmark", "☆")}${row("Add to Home Screen", ICO.plus, 1)}</div>`), at: [45, 89]},
+      {s: addDlg("Cancel", "Add to Home Screen", "Add"), at: [86, 7]}],
+    android: [{s: `<div class="dm-topbar"><em>chess-nat.vercel.app</em><b class="hot">${ICO.dots}</b></div>` + page, at: [91, 6]},
+      {s: `<div class="dm-topbar"><em>chess-nat.vercel.app</em><b>${ICO.dots}</b></div>` + page + `<div class="dm-menu r">${row("New tab")}${row("History")}${row("Downloads")}${row("Add to home screen", "", 1)}${row("Settings")}</div>`, at: [62, 40]},
+      {s: page + `<div class="dm-dlg"><div class="dm-add">${LOGO}<div><b>Install app?</b><small>Chess.nat</small></div></div><div class="dm-btns"><span>${T("Cancel")}</span><span class="hot">${T("Install")}</span></div></div>`, at: [75, 58]}],
+    samsung: [{s: page + `<div class="dm-barsam"><span>‹</span><span>›</span><span>⌂</span><span>${ICO.tabs}</span><b class="hot">${ICO.burger}</b></div>`, at: [90, 94]},
+      {s: page + `<div class="dm-grid">${["Bookmarks", "Downloads", "History", "Add page to", "Settings", "Share"].map((t, i) => `<div class="${i === 3 ? "hot" : ""}"><i>${i === 3 ? "＋" : "•"}</i><span>${T(t)}</span></div>`).join("")}</div>`, at: [22, 80]},
+      {s: page + `<div class="dm-list dm-low">${row("Bookmarks", "☆")}${row("Quick access", "▦")}${row("Home screen", ICO.plus, 1)}</div>`, at: [45, 89]},
+      {s: page + `<div class="dm-dlg"><div class="dm-add">${LOGO}<div><b>Chess.nat</b><small>${T("Home screen")}</small></div></div><div class="dm-btns"><span>${T("Cancel")}</span><span class="hot">${T("Add")}</span></div></div>`, at: [75, 58]}],
+    /* then: close the tab (swipe home) and tap the new icon */
+    home: [{s: page + `<div class="dm-swipe"></div>`, at: [50, 97], swipe: true},
+      {s: `<div class="dm-home">${Array.from({length: 15}, (_, i) => i === 10 ? `<span class="dm-me hot">${LOGO}<small>Chess.nat</small></span>` : `<span style="--h:${(i * 47) % 360}"><i></i></span>`).join("")}</div>`, at: [70, 64]},
+      {s: `<div class="dm-splash">${LOGO}</div>`, at: null}]};
+  const flavour = () => {
+    if (isIOS()){ if (/CriOS|FxiOS|EdgiOS/.test(ua)) return "ioschrome"; const v = +((/Version\/(\d+)/.exec(ua) || [])[1] || 0); return v >= 26 ? "ios26" : "iosold"; }
+    if (/SamsungBrowser/.test(ua)) return "samsung";
+    return "android";
+  };
+  let demoT = 0;
+  function demo(box, kind){
+    const scenes = DEMOS[kind]; let i = 0;
+    box.innerHTML = `<div class="dm-phone${(kind === "home" ? isAndroid : /android|samsung/.test(kind)) ? " and" : ""}"><div class="dm-scr"></div><span class="dm-finger"></span></div><div class="dm-steps">${scenes.filter(x => x.at).map(() => "<i></i>").join("")}</div>`;
+    const scr = box.querySelector(".dm-scr"), fin = box.querySelector(".dm-finger"), pips = box.querySelectorAll(".dm-steps i");
+    const show = () => {
+      if (!box.isConnected) return; const sc = scenes[i], last = i === scenes.length - 1;
+      scr.innerHTML = sc.s; scr.classList.remove("in"); void scr.offsetWidth; scr.classList.add("in");
+      pips.forEach((p, k) => p.classList.toggle("on", k === Math.min(i, pips.length - 1)));
+      fin.classList.remove("tap", "swipe"); fin.style.opacity = sc.at ? 1 : 0;
+      if (sc.at){
+        /* the finger goes to the highlighted button itself (so it always sits right on it), else to the given spot */
+        const h = scr.querySelector(".hot"), ph = box.querySelector(".dm-phone").getBoundingClientRect();
+        if (h && !sc.swipe){ const r = h.getBoundingClientRect(); fin.style.left = ((r.left + r.width / 2 - ph.left) / ph.width * 100) + "%"; fin.style.top = ((r.top + r.height / 2 - ph.top) / ph.height * 100) + "%"; }
+        else { fin.style.left = sc.at[0] + "%"; fin.style.top = sc.at[1] + "%"; }
+        setTimeout(() => { if (!box.isConnected) return; fin.classList.add(sc.swipe ? "swipe" : "tap"); const h = scr.querySelector(".hot"); if (h) h.classList.add("press"); }, 700); }
+      clearTimeout(demoT); demoT = setTimeout(() => { i = (i + 1) % scenes.length; show(); }, last ? 2600 : 1900);
+    };
+    clearTimeout(demoT); show();
+  }
+
   function show(s){
-    step = s; const P = plan(), i = Math.max(0, P.indexOf(s)), ref = authRef(), card = shell();
+    step = s; const ref = authRef(), card = shell(), L = authInApp() ? APP : WEB, i = Math.max(0, L.indexOf(s)), n = authInApp() ? APP.length : (mobile ? WEB.length : 2);
     let body = "";
-    if (s === "install"){
-      body = `<div class="onb-logo"><img src="/icons/icon-192.png" alt="" width="76" height="76"></div>
+    if (s === "account"){
+      body = `<div class="onb-logo"><img src="/icons/icon-192.png" alt="" width="68" height="68"></div>
         <h2>${ref ? "@" + esc(ref) + " invited you" : "Welcome to Chess.nat"}</h2><p class="onb-sub">Learn chess, solve puzzles, play friends. Free.</p>
-        <div class="onb-box"><div class="onb-k">Step 1 · Get the app</div>
-        ${isIOS() ? (safari ? `<ol class="onb-steps"><li><span class="onb-ic">${SHARE}</span><span>Tap Share at the bottom of Safari</span></li><li><span class="onb-ic">＋</span><span>Choose “Add to Home Screen”</span></li><li><span class="onb-ic">♟</span><span>Open Chess.nat from your home screen</span></li></ol>`
-            : `<p>Open chess-nat.vercel.app in Safari, then tap Share and “Add to Home Screen”.</p>`)
-          : `<p>Install Chess.nat, then open it from your home screen. It runs full screen and can send you notifications.</p><button class="btn go big" id="oninst" style="width:100%">Install app</button>`}</div>
-        <button class="btn ghost" id="onweb">Continue in the browser</button>`;
-    } else if (s === "push"){
-      body = `<div class="onb-perm"><span class="onb-bell">${icon("bell", 44)}</span><span class="onb-bell mic">${VoiceChat.ok() ? `<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>` : ""}</span></div>
-        <h2>Notifications, microphone & camera</h2>
-        <p class="onb-sub">So you know when a friend challenges you or it's your move, and so you can talk in games and send voice and video messages. Allow it once, then Chess.nat doesn't have to ask again.</p>
-        <button class="btn go big" id="onpush" style="width:100%">Allow all</button><button class="btn ghost" id="onlater">Later</button>`;
-    } else if (s === "account"){
-      body = `<h2>${ref ? "Create your account" : "Your account"}</h2><p class="onb-sub">Your rating, lessons, friends and games stay with you, on every device.</p>
+        <div id="onaf"></div><button class="btn ghost onb-skip" id="onskip">Play without an account</button>`;
+    } else if (s === "login"){
+      body = `<div class="onb-logo"><img src="/icons/icon-192.png" alt="" width="68" height="68"></div><h2>Almost there!</h2>
+        <p class="onb-sub">Sign in once in the app, with the email and password you just used.</p>
         <div id="onaf"></div><button class="btn ghost onb-skip" id="onskip">Play without an account</button>`;
     } else if (s === "verify"){
       body = `<div class="onb-bell">${icon("send", 46)}</div><h2>Confirm your email</h2>
-        <p class="onb-sub">We sent a link to ${esc(pending.em)}. Tap it, then come back here. You're signed in automatically.</p>
+        <p class="onb-sub">We sent a link to ${esc(pending.em)}. Tap it, it opens a new tab. This page goes on by itself.</p>
         <div class="onb-wait"><i></i><span>Waiting for your confirmation…</span></div>
         <button class="btn go big" id="onchk" style="width:100%">I've confirmed it</button>
         <div class="onb-row"><button class="btn ghost" id="onres">Send the email again</button><button class="btn ghost" id="onchg">Different email</button></div>
-        <p class="dim onb-note">Nothing there? Look in spam. The link opens in your browser; that's fine, come back to this app afterwards.</p>`;
+        <p class="dim onb-note">Nothing there? Look in spam.</p>`;
+    } else if (s === "install"){
+      const ev = window.ChessInstall && window.ChessInstall.ev;
+      body = `<div class="onb-ok">✓ <span>${pending && pending.confirmed ? "Email confirmed" : "Your account is ready"}</span></div>
+        <h2>Now put Chess.nat on your home screen</h2>
+        ${ev ? `<button class="btn go big onb-inst" id="oninst">${icon("download", 20)} Install app</button><div class="onb-or">or like this:</div>` : ""}
+        <div class="onb-demo" id="ondemo"></div>
+        <button class="btn go big" id="ondone" style="width:100%">Done ✓</button>
+        <button class="btn ghost onb-skip" id="onweb">Keep playing in the browser</button>`;
+    } else if (s === "open"){
+      body = `<div class="onb-ok">✓ <span>On your home screen</span></div><h2>Close this tab and open the app</h2>
+        <div class="onb-demo" id="ondemo"></div>
+        <button class="btn ghost onb-skip" id="onback">Show me again how to add it</button>
+        <button class="btn ghost onb-skip" id="onweb">Keep playing in the browser</button>`;
+    } else if (s === "perm"){
+      body = `<div class="onb-perm2"><span class="pp p1">${icon("bell", 30)}</span><span class="pp p2">${icon("mic", 30)}</span><span class="pp p3">${icon("video", 30)}</span><span class="pp p4">${icon("users", 34)}</span><i class="pb b1">💬</i><i class="pb b2">♞</i><i class="pb b3">🔔</i></div>
+        <h2>Chat and play with your friends</h2>
+        <div class="onb-list"><div>${icon("bell", 20)}<span>When a friend challenges you or it's your move</span></div><div>${icon("mic", 20)}<span>Voice messages and talking in games</span></div><div>${icon("video", 20)}<span>Video messages and photos</span></div></div>
+        <button class="btn go big" id="onpush" style="width:100%">Allow everything</button><button class="btn ghost" id="onlater">Later</button>`;
     }
-    card.innerHTML = `<div class="onb-in">${s === "verify" ? dots(P.length, P.length + 1) : dots(i, P.length + 1)}${body}</div>`;
-    const next = () => { const k = P.indexOf(s); show(P[k + 1] || "account"); };
-    if (s === "install"){
-      const b = $("#oninst", card); if (b) b.onclick = async () => { if (window.ChessInstall) await window.ChessInstall.run(); };
-      $("#onweb", card).onclick = () => next();
-      window.addEventListener("appinstalled", () => { if (step === "install"){ card.querySelector(".onb-box").innerHTML = `<div class="onb-k">Installed ✓</div><p>Open <b>Chess.nat</b> from your home screen to continue there.</p>`; } }, {once: true});
-    } else if (s === "push"){
-      /* never stuck here: every question gets a time limit, and the step moves on whatever the phone answers */
-      const limit = (p, ms) => Promise.race([Promise.resolve(p).catch(() => null), new Promise(r => setTimeout(r, ms))]);
-      let went = false; const go = () => { if (went || step !== "push") return; went = true; next(); };
-      $("#onpush", card).onclick = async e => { const b = e.currentTarget; if (b.disabled) return; b.disabled = true; b.textContent = "One moment…";
-        setTimeout(() => { const l = $("#onlater", card); if (l && step === "push" && !went){ l.textContent = "Continue"; l.classList.remove("ghost"); l.classList.add("go"); } }, 4000);
-        try {
-          if (pushable()){ await limit(Notification.requestPermission(), 10000); if (Notification.permission === "granted") toast("Notifications on 🔔"); }
-          if (micable() && typeof MediaPerm !== "undefined"){ try { localStorage.setItem("chessnat-mic", "1"); } catch(e) {} const ok = await limit(MediaPerm.askAll(), 8000); if (ok === false) toast("No camera or microphone access. You can allow it later on your profile.", 3500); }
-        } catch(err) {}
-        go(); };
-      $("#onlater", card).onclick = () => go();
-    } else if (s === "account"){
-      authForm($("#onaf", card), {mode: authHad() ? "in" : "up", onSignedUp: (em, pw) => verify(em, pw), onSignedIn: () => { mark("tour"); }});
+    card.innerHTML = `<div class="onb-in onb-${s}">${dots(i, n)}${body}</div>`;
+    if (s === "account" || s === "login"){
+      authForm($("#onaf", card), {mode: s === "login" || authHad() ? "in" : "up", onSignedUp: (em, pw) => verify(em, pw), onSignedIn: () => { mark(afterIn()); }});
       $("#onskip", card).onclick = () => { mark("done"); close(); release(); };
     } else if (s === "verify"){
       const site = window.ChessSite;
-      const tryIn = async manual => { if (!pending) return; const r = await site.signIn(pending.em, pending.pw);
-        if (!r.error){ mark("tour"); clearInterval(poll); return; }   /* signed in: the page reloads by itself */
-        if (manual) toast(r.error.message === "Email not confirmed" ? "Not confirmed yet. Tap the link in the email first." : r.error.message, 3000); };
+      const tryIn = async manual => { if (!pending || step !== "verify") return; const r = await site.signIn(pending.em, pending.pw);
+        if (!r.error){ mark(afterIn()); clearInterval(poll); return; }   /* signed in: the page reloads by itself */
+        if (manual) toast(r.error.message === "Email not confirmed" ? "Not confirmed yet. Tap the link in the email first." : authErrTxt(r.error.message), 3000); };
       $("#onchk", card).onclick = () => tryIn(true);
       $("#onres", card).onclick = async () => { const r = await site.resend(pending.em); toast(r.error ? authErrTxt(r.error.message) : "Sent again ✓", r.error ? 4500 : 2200); };
       $("#onchg", card).onclick = () => { pending = null; show("account"); };
-      clearInterval(poll); poll = setInterval(() => { if (!document.hidden) tryIn(false); }, 6000);
+      clearInterval(poll); poll = setInterval(() => { if (!document.hidden) tryIn(false); }, 5000);
       document.addEventListener("visibilitychange", () => { if (!document.hidden && step === "verify") tryIn(false); });
+    } else if (s === "install"){
+      demo($("#ondemo", card), flavour());
+      const b = $("#oninst", card); if (b) b.onclick = async () => { await window.ChessInstall.run(); };
+      $("#ondone", card).onclick = () => show("open");
+      $("#onweb", card).onclick = () => web();
+      window.addEventListener("appinstalled", () => { if (step === "install") show("open"); }, {once: true});
+    } else if (s === "open"){
+      demo($("#ondemo", card), "home");
+      $("#onback", card).onclick = () => show("install");
+      $("#onweb", card).onclick = () => web();
+    } else if (s === "perm"){
+      /* everything in one go; never stuck: each question has a time limit, and the step moves on whatever the phone answers */
+      const limit = (p, ms) => Promise.race([Promise.resolve(p).catch(() => null), new Promise(r => setTimeout(r, ms))]);
+      let went = false; const go = () => { if (went || step !== "perm") return; went = true; afterPerm(); };
+      $("#onpush", card).onclick = async e => { const b = e.currentTarget; if (b.disabled) return; b.disabled = true; b.textContent = T("One moment…");
+        setTimeout(() => { const l = $("#onlater", card); if (l && step === "perm" && !went){ l.textContent = T("Continue"); l.classList.remove("ghost"); l.classList.add("go"); } }, 4000);
+        setTimeout(go, 25000);
+        S.settings.sound = true; save();
+        try { if (typeof Sound !== "undefined" && Sound.init) Sound.init(); } catch(err) {}
+        try {
+          if (pushable() && typeof Push !== "undefined"){ const r = await limit(Push.enable(), 12000); if (r && r.ok) toast("Notifications on 🔔"); }
+          if (micable() && typeof MediaPerm !== "undefined"){ try { localStorage.setItem("chessnat-mic", "1"); } catch(err) {} const ok = await limit(MediaPerm.askAll(), 10000); if (ok === false) toast("No camera or microphone access. You can allow it later on your profile.", 3500); }
+        } catch(err) {}
+        go(); };
+      $("#onlater", card).onclick = () => go();
     }
   }
+  /* where a fresh sign-in goes: in a phone's browser to the app picture, in the app (or on a computer) to the welcome */
+  const afterIn = () => mobile && !authInApp() ? "app" : authInApp() ? "perm" : "tour";
   function verify(em, pw){ pending = {em, pw}; show("verify"); }
+  function web(){
+    /* this browser isn't signed in (the email link opened somewhere new): sign in here instead */
+    const site = window.ChessSite; if (!site || !site.getSession || !site.getSession()){ mark("done"); close(); release(); App.go("account"); return; }
+    mark("tour"); close(); if (typeof Social !== "undefined" && Social.requireId) setTimeout(() => Social.requireId(), 300); setTimeout(tour, 900); }
+  function afterPerm(){ mark("tour"); close(); if (typeof Social !== "undefined" && Social.requireId) setTimeout(() => Social.requireId(), 300); setTimeout(tour, 900); }
   /* the welcome after the first sign-in: what you can do here, then the app is yours */
   function tour(){
     const P = typeof Social !== "undefined" ? Social.player : null;
-    if (!P || !P.handle || document.querySelector(".idsetup")){ setTimeout(tour, 1200); return; }
+    if (!P || !P.handle || document.querySelector(".idsetup")){ tour.n = (tour.n || 0) + 1; if (tour.n < 200) setTimeout(tour, 1200); else { mark("done"); release(); } return; }
     const card = shell(), name = P.name || S.name || "";
-    const row = (ic, t, d, go) => `<button class="onb-f" data-go="${go}">${icon(ic, 26)}<span><b>${t}</b><small>${d}</small></span></button>`;
+    const rowF = (ic, t, d, go) => `<button class="onb-f" data-go="${go}">${icon(ic, 26)}<span><b>${t}</b><small>${d}</small></span></button>`;
     card.innerHTML = `<div class="onb-in onb-tour"><div class="onb-party">🎉</div><h2>Welcome, ${esc(name)}!</h2><p class="onb-sub">You're in. Here's what you can do:</p>
-      <div class="onb-fs">${row("globe", "Play", "Bots at your level, real people online, puzzle duels.", "play")}
-        ${row("book", "Learn", "Lessons from zero, the Journey, a daily puzzle.", "learn")}
-        ${row("users", "Friends", `Your ID is @${esc(P.handle)}. Add friends, chat, send voice messages and play together.`, "friends")}
-        ${row("trophy", "Collect", "Trophies, outfits and emotes for your figure.", "awards")}</div>
+      <div class="onb-fs">${rowF("globe", "Play", "Bots at your level, real people online, puzzle duels.", "play")}
+        ${rowF("book", "Learn", "Lessons from zero, the Journey, a daily puzzle.", "learn")}
+        ${rowF("users", "Friends", `Your ID is @${esc(P.handle)}. Add friends, chat, send voice messages and play together.`, "friends")}
+        ${rowF("trophy", "Collect", "Trophies, outfits and emotes for your figure.", "awards")}</div>
       <button class="btn big" id="oninv" style="width:100%">${icon("users", 18)} Invite friends</button>
       <button class="btn go big" id="ongo" style="width:100%">Let's go</button></div>`;
     Sound.cheer && Sound.cheer(2);
@@ -12142,27 +12315,31 @@ const Onboard = (() => {
   }
   /* everything that waited for the onboarding (news, notification card, trophies) may come now */
   function release(){ if (typeof Focus !== "undefined") Focus.set(false); if (typeof Push !== "undefined"){ Push._asked = false; setTimeout(() => Push.auto(), 2500); } if (typeof News !== "undefined") setTimeout(() => News.daily(), 4000); }
-  /* the email link opened in the browser, but the account lives in the app: say so, big and clear */
-  function confirmedScreen(){ const card = shell();
-    card.innerHTML = `<div class="onb-in onb-done"><div class="onb-check">✓</div><h2>Email confirmed!</h2>
-      <p class="onb-sub">Now go back to the Chess.nat app on your home screen. You'll be signed in there by yourself and can carry on.</p>
-      <div class="onb-box"><ol class="onb-steps"><li><span class="onb-ic">1</span><span>Close this browser tab</span></li><li><span class="onb-ic"><img src="/icons/icon-192.png" alt="" width="22" height="22" style="border-radius:5px"></span><span>Open Chess.nat from your home screen</span></li></ol></div>
-      <button class="btn ghost" id="onweb2">Play in the browser instead</button></div>`;
-    $("#onweb2", card).onclick = () => { close(); release(); App.go("account"); }; }
   async function start(){
     const site = window.ChessSite; if (!site || !site.ready) return;
-    await site.sessionReady; const s = site.getSession(), st = get();
+    await site.sessionReady; const s = site.getSession(), st = get(), app = authInApp();
     if (s){ try { localStorage.setItem("chessnat-hadacct", "1"); } catch(e) {}
+      if (app){
+        if (st === "done") return;
+        if (st === "tour"){ if (typeof Focus !== "undefined") Focus.set(true); setTimeout(tour, 1500); return; }
+        /* first time in the app: everything allowed in one go (if there is anything left to ask) */
+        if (pushable() || micable()){ mark("perm"); show("perm"); } else afterPerm();
+        return; }
+      if (mobile && (st === "app" || st === "" || st === "perm")){ if (window.CHESSNAT_CONFIRMED || AUTH_FRESH()) pending = Object.assign({}, pending, {confirmed: true}); mark("app"); show("install"); return; }
       if (st === "tour"){ if (typeof Focus !== "undefined") Focus.set(true); setTimeout(tour, 1500); }
-      else if (st !== "done") mark("done");   /* already signed in before the onboarding existed */
+      else if (st !== "done") mark("done");
       return; }
-    if (window.CHESSNAT_CONFIRMED){ if (!authInApp() && mobile){ confirmedScreen(); return; } if (App.route !== "account") App.go("account"); return; }
+    /* the email link opened somewhere without the account (another browser, the mail app's own browser): confirmed, now get the app */
+    if (window.CHESSNAT_CONFIRMED){ if (!app && mobile){ pending = {confirmed: true}; mark("app"); show("install"); return; } if (App.route !== "account") App.go("account"); return; }
+    if (app){ if (st === "done") return; show("login"); return; }
     if (st === "done" && !authRef()) return;
     if (st === "done" && authRef() && authHad()) return;
-    show(plan()[0]);
+    if (st === "app" && mobile){ show("install"); return; }
+    show("account");
   }
+  const AUTH_FRESH = () => !!window.CHESSNAT_LINKED;
   setTimeout(start, 400);
-  return {active, verify, mark, start, show};
+  return {active, verify, mark, start, show, holdId, demo};
 })();
 window.Onboard = Onboard;
 
@@ -12264,6 +12441,8 @@ const Social = (() => {
   }
   function requireId(preview){
     if ((!ok() && !preview) || (player && player.handle) || document.querySelector(".idsetup")) return;
+    /* during the first start in a phone's browser, the ID is picked later in the app */
+    if (!preview && window.Onboard && window.Onboard.holdId && window.Onboard.holdId()) return;
     const nameNow = player ? player.name : (S.name === "You" ? "" : S.name || "");
     const el = document.createElement("div"); el.className = "idsetup";
     el.innerHTML = `<div class="ids-card"><div class="ids-ic">${typeof icon === "function" ? icon("user", 34) : ""}</div><div class="ids-t">Your player card</div>

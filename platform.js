@@ -19,6 +19,8 @@
       if (AUTH_IN.code || AUTH_IN.recovery){ const q = new URLSearchParams(location.search); q.delete("code"); const qs = q.toString(); history.replaceState(null, "", location.pathname + (qs ? "?" + qs : "") + (AUTH_IN.recovery ? "#account" : (location.hash && !/access_token|type=/.test(location.hash) ? location.hash : ""))); }
       /* the email was confirmed in a browser that didn't start the sign-up: tell the person to go back to the app */
       if (AUTH_IN.code && !session) window.CHESSNAT_CONFIRMED = true;
+      /* the email link signed this browser in: the first start says "Email confirmed" */
+      if (AUTH_IN.code && session) window.CHESSNAT_LINKED = true;
     } catch(e) {}
   }) : Promise.resolve(null);
   /* a password-reset link: sign in with it on this device only to set a new password */
