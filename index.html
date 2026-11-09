@@ -2708,6 +2708,26 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 .onb-list div{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--panel-2);font-size:14px}
 .onb-list svg{flex:none;color:var(--go)}
 .dm-phone.and{border-radius:26px}.dm-phone.and .dm-scr{border-radius:19px}.dm-phone.and::before{width:12px;height:12px;top:17px;border-radius:50%}
+/* iOS 26 Safari picture */
+.dm-menu26{position:absolute;z-index:3;left:12%;right:12%;bottom:46px;border-radius:18px;background:rgba(58,60,58,.97);box-shadow:0 10px 30px rgba(0,0,0,.55);padding:4px 0;overflow:hidden}
+.dm-menu26 .dm-row{border:0;justify-content:flex-end;flex-direction:row-reverse;gap:9px;padding:7px 12px}
+.dm-menu26 hr{border:0;border-top:1px solid rgba(255,255,255,.12);margin:3px 12px}
+.dm-sh26{position:absolute;left:4px;right:4px;bottom:4px;top:30%;z-index:3;border-radius:22px;background:rgba(44,46,45,.98);padding:12px 9px;display:flex;flex-direction:column;gap:9px;box-shadow:0 -8px 30px rgba(0,0,0,.45)}
+.dm-sh26.more{top:9%}
+.dm-sh26 .dm-sh-h{align-items:flex-start}
+.dm-tile{width:34px;height:34px;border-radius:9px;background:#fff;display:grid;place-items:center;flex:none}.dm-tile img{width:24px!important;height:24px!important;border-radius:4px!important}
+.dm-sh26 .dm-sh-h em{display:inline-block;margin-top:3px;padding:2px 7px;border-radius:9px;background:#454746;font-style:normal;font-size:7.5px}
+.dm-ppl{display:flex;justify-content:space-around;padding-top:6px;border-top:1px solid rgba(255,255,255,.1)}.dm-ppl i{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#6b7280,#9ca3af)}
+.dm-apps26{display:flex;justify-content:space-around;padding-top:6px;border-top:1px solid rgba(255,255,255,.1)}.dm-apps26 span{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:6.5px}
+.dm-apps26 i{width:26px;height:26px;border-radius:7px}.dm-apps26 .a1{background:#1e88e5}.dm-apps26 .a2{background:#34c759}.dm-apps26 .a3{background:#3b82f6}.dm-apps26 .a4{background:#fde68a}
+.dm-rbs{display:flex;justify-content:space-around;padding-top:6px;border-top:1px solid rgba(255,255,255,.1)}
+.dm-rb{display:flex;flex-direction:column;align-items:center;gap:3px;width:24%;font-size:6.5px;text-align:center;line-height:1.2;border-radius:8px;padding:2px 0}
+.dm-rb i{width:28px;height:28px;border-radius:50%;background:#454746;display:grid;place-items:center;font-style:normal;font-size:11px}
+.dm-sh26 .dm-list{background:#454746;border-radius:12px}.dm-sh26 .dm-list .dm-row{flex-direction:row-reverse;justify-content:flex-end;gap:8px}
+.onb-spam{display:flex;gap:10px;align-items:center;text-align:left;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,#e9b64a 18%,transparent);border:1px solid #e9b64a;color:var(--fg);font:800 15px/1.35 var(--body)}
+.onb-spam b{font-size:22px}
+.me-out{display:flex;flex-direction:column;align-items:center;gap:8px;margin:28px 0 8px;padding-top:18px;border-top:1px solid var(--line)}
+.me-out .btn{min-width:200px}.me-out .btn.armed{background:var(--bad);color:#fff}
 
 .pc.wk{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNy42NyAxNS4yMnYtMy41NGg0LjQ0VjcuMjVoLTQuOTNWMy4zNkgyMi44djMuOWgtNC45M3Y0LjQyaDQuNDR2My41NSIvPjxyZWN0IHdpZHRoPSI5LjQiIGhlaWdodD0iMi43OSIgeD0iMjAuMyIgeT0iMTQuMjEiIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ5PSIxLjM5Ii8+PHBhdGggZD0iTTI2LjQyIDE0LjIxYy43MiAwIDEuMy42MyAxLjMgMS40cy0uNTggMS40LTEuMyAxLjRoMS45N2MuNzIgMCAxLjMtLjYzIDEuMy0xLjRzLS41OC0xLjQtMS4zLTEuNHoiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yMS42MyAxNC44NGMtLjQgMC0uNzIuMzUtLjcyLjc4IDAgLjQyLjMyLjc3LjcyLjc3aC44OGMtLjQgMC0uNzMtLjM1LS43My0uNzggMC0uNDIuMzItLjc3LjcyLS43N3oiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0zMy42MyAzNi45OXM3Ljc4LTEzLjMyIDYuNjItMTUuOTJjLTEuMTctMi42LTguNDgtNC41LTE1LjI1LTQuNXMtMTQuMDggMS45LTE1LjI1IDQuNWMtMS4xNiAyLjYgNi42MSAxNS45MiA2LjYxIDE1LjkyeiIvPjxwYXRoIGQ9Ik0yNSAxNi41OGMxNS45MyAyLjYyIDEyLjU3IDkuMzUgNi42NCAyMi41NGwyLjAyLTEuNzNzNy43NS0xMy43MiA2LjU5LTE2LjMyYy0xLjU1LTIuODMtNy41LTQuMTYtMTUuMjUtNC41eiIgb3BhY2l0eT0iLjE1Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTIzLjc3IDE3LjNjLTMuOS0uMTktMTQuNjMgMS44LTEzLjUgNS4wMS44IDMuNzMgMi43NSA3LjI1IDQuNSAxMC41LTUuNjktMTAuMzMtNS45NC0xMy43NyA5LTE1LjUyek0yMy4zOSA0bC0uMDIgMy4zaC41NWwuMDItMy4zem0tNC45MyAzLjg3djMuMmguNzd2LTMuMnptNC40MSAzLjIxLjAzIDIuNDloLjUybC0uMDMtMi40OXoiLz48cGF0aCBkPSJNMjYuMTkgMy4zNnYzLjloLjk5di0zLjl6bTQuNDQgMy45djQuOTRoMS40OFY3LjI1em0tNC40NCA0LjQydjIuNWgxLjQ4di0yLjV6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjUgMzYuNDZzLTkuMTMuMDQtMTEuNyAxLjYyYy0xLjcyIDEuMDYtMi4xMyAzLjY1LTEuOSA2LjMyaDI3LjJjLjIzLTIuNjctLjE4LTUuMjYtMS45LTYuMzJDMzQuMTIgMzYuNSAyNSAzNi40NiAyNSAzNi40NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUgMzcuMTVTMTYuMjkgMzcgMTMuMzggMzguOGMtLjM3LjIzLS43Ljg0LS45NiAxLjQuMjYtLjM0LjUtLjYyLjg5LS44NkMxNS44NyAzNy43OCAyNSAzNy43MyAyNSAzNy43M3M5LjEzLjA1IDExLjcgMS42MmMuMzguMjQuNTguNTQuODUuODdhMyAzIDAgMCAwLTEuMTUtMS42QzMzLjY1IDM3LjE1IDI1IDM3LjE2IDI1IDM3LjE2eiIvPjwvc3ZnPg==')}
 .pc.wq{background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGltYWdlLXJlbmRlcmluZz0ib3B0aW1pemVRdWFsaXR5IiBzaGFwZS1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdGV4dC1yZW5kZXJpbmc9Imdlb21ldHJpY1ByZWNpc2lvbiIgdmlld0JveD0iMCAwIDUwIDUwIj48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNC45NTkgNS4wOTRhMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2IDIuOTU4IDIuOTU4IDMuMzE2IDkwIDAgMCAzLjMxNiAyLjk1OSAyLjk1OCAzLjMxNiA5MCAwIDAgMy4zMTYtMi45NTkgMi45NTggMy4zMTYgOTAgMCAwLTMuMzE2LTIuOTU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjgzNiA1LjczMmMtLjM3Ni0uMjEtMy43MjQuODA2LTIuMTg1IDMuNTc2LS4yMzUtMS41NDUuNDM4LTMuMjAzIDIuMTg1LTMuNTc2Ii8+PHBhdGggZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjM2MzYzNjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS4yIiBkPSJNMjQuOTU5IDExLjAxMWMtNi41MDcgMC05LjU5NSA1Ljg4NC05LjU5NSAxMC4zNThoMTkuMjYzYzAtNC40NzQtMy4xNi0xMC4zNTgtOS42NjgtMTAuMzU4Ii8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTE4LjE2MSAxNC45NzdjMS4wNDItMS40NzggMi45Mi0zLjIyIDYuODQtMy4zOC0uMzEuMjc3LTQuNzg4IDEuMTM4LTYuODQgMy4zOCIvPjxwYXRoIGQ9Ik0yNC44MzYgNS4wMDdzLjA0Ni4yMzggMCAwYzIuNDggMS4xMjkgMi4wNSAzLjg0Ny44MTcgNS41NDcgNy4zNTQgMy44MDMgMi4yMTMgOC42NjkgMi4yMTIgOC42NjhoMi43MDFjMS43NjIgMS4yODcgNy4yMDktMi43NDEtMy44MzUtOC42NyAzLjUyOC0zLjExNS4wOTctNS42MDYtMS44OTUtNS41NDZ6IiBvcGFjaXR5PSIuMTUiLz48cGF0aCBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiMzYzNjM2MiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAxNS4yMjVjLTEuOTcxIDAtMi4zNDggMi42NS00LjEzNyAyLjg2LTEuODIuMjEzLTMuMzgxLTIuMzEyLTUuMjUtMS43MzctMS40OTUuNDYtLjc3OCAyLjYtMS44MDUgMy4xNzUtMS40MDIuNzg1LTMuMTg1LTEuODMyLTUuMjktLjI5OCA2LjgzOCA4LjgyOSA4LjA4NSAxMi4zNzcgNy45ODMgMTguODE5aDE2Ljk5OGMtLjEwMy02LjQ0MyAxLjE0NC05Ljk5IDcuOTgzLTE4LjgyLTIuMTA2LTEuNTMzLTMuODg5IDEuMDg0LTUuMjkuMy0xLjAyNy0uNTc2LS4zMTEtMi43MTYtMS44MDYtMy4xNzYtMS44NjgtLjU3NS0zLjQyOSAxLjk1LTUuMjUgMS43MzYtMS43ODktLjIxLTIuMTY2LTIuODYtNC4xMzctMi44NnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOS44OTUgMTkuMzRjLS4xMzYtLjAxLS4zMzEuMDU2LS40NTguMDg1IDMuMDgxIDQuMSA2LjU3NSA5LjUzNyA3LjA5OSAxMi40MTctMS40MDctNC45MzMtMy4yNjctOS41NjItNi4xNC0xMi40NzJ6Ii8+PHBhdGggZD0iTTM5Ljk3NCAxOC43MzVjLTkuNDg1IDEwLjAwMy05LjkyNCAxNy45ODUtMTYuOTQxIDE5LjMxaDEwLjQ3NmMtLjEwMy02LjQ0MyAxLjE0NS05Ljk5IDcuOTgzLTE4LjgxOSAwIDAtLjY4OC0uNzU2LTEuNTE4LS40OTEiIG9wYWNpdHk9Ii4xNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNC45MTIgMTguOTQ1Yy4yMDMtLjA4OCAxLjE4NC0xLjgwOCAxLjk4LTEuOTUtMS40Mi0uMzQ2LTEuNjE4LS4wNDYtMS45OCAxLjk1bTcuNTk5LTEuMDY5Yy45NTMtLjg0NyAxLjYzMy0yLjY1NSAzLjIzOC0xLjg0NS0uNzk4LS4yMy0yLjIxNSAxLjA0LTMuMjM4IDEuODQ1bTguNjA5LjI1N2MuMjEuMDcgMi4xNzYtMS42NDIgMi44NjItMS4yMTggMCAwLTEuNDMgMS4xMi0yLjg2MiAxLjIxOCIvPjxwYXRoIGZpbGw9IiNmMGYwZjAiIHN0cm9rZT0iIzNjM2MzYyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIxLjIiIGQ9Ik0yNSAzNi40NTdzLTkuMTMuMDQ4LTExLjY5MSAxLjYyYy0xLjcyNyAxLjA2LTIuMTM1IDMuNjUtMS45IDYuMzIzaDI3LjE4MmMuMjM1LTIuNjcyLS4xNzItNS4yNjQtMS45LTYuMzI0LTIuNTYtMS41NzEtMTEuNjktMS42Mi0xMS42OS0xLjYyeiIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0yNSAzNy4xNDdzLTguNzEyLS4xMzctMTEuNjI0IDEuNjY2Yy0uMzcuMjI5LS43Ljg0LS45NTQgMS4zOS4yNjEtLjMzMS41MDItLjYxMy44ODctLjg0OUMxNS44NjkgMzcuNzgzIDI1IDM3LjczNCAyNSAzNy43MzRzOS4xMzIuMDQ5IDExLjY5MiAxLjYyYy4zOTEuMjQuNTkzLjUzMi44NTYuODcuMDI2LS4wNzYtLjQwOS0xLjE1OC0xLjE0NC0xLjU5NkMzMy42NDggMzcuMTM2IDI1IDM3LjE0NyAyNSAzNy4xNDciLz48L3N2Zz4=')}
@@ -2729,7 +2749,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794186006";
+const CHESSNAT_BUILD = "1794187610";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11284,6 +11304,7 @@ Views.me = {
         ${window.ChessInstall && ChessInstall.can() ? `<button class="tile" id="meinst">${icon("download", 36)}<h3>Get the app</h3><p>On your home screen, full screen, with notifications. iPhone and Android.</p></button>` : ""}
         <button class="tile" data-go="stats">${icon("chart", 36)}<h3>Stats</h3><p>Rating history and puzzle themes.</p></button>
         <button class="tile" data-go="friends" data-tab="cages">${icon("cage", 36)}<h3>Cages</h3><p>${caughtBots().length} bots caught.</p></button></div>
+      ${window.ChessSite && ChessSite.getSession && ChessSite.getSession() ? `<div class="me-out"><span class="muted" data-notr>${esc(ChessSite.getSession().user.email || "")}</span><button class="btn" id="meout">${icon("xmark", 16)} Sign out</button></div>` : ""}
     </div>`;
     this.stage = heroStage($("#mest"), av, {tier}); $("#mest").insertAdjacentHTML("beforeend", `<span class="me-dress">${icon("user", 14)} Wardrobe</span>`);
     /* tap your figure: straight into the wardrobe (a drag only turns it) */
@@ -11295,6 +11316,8 @@ Views.me = {
     $$("[data-lang]", main).forEach(b => b.onclick = () => { if (b.dataset.lang !== I18N.lang) I18N.set(b.dataset.lang); });
     { const pt = main.querySelector("[data-ptype]"); if (pt) pt.onclick = () => App.go("profile"); }
     const mi = $("#meinst"); if (mi) mi.onclick = () => ChessInstall.run();
+    /* sign out: tap, then tap once more to be sure */
+    const mo = $("#meout"); if (mo) mo.onclick = () => { if (!mo.dataset.armed){ mo.dataset.armed = 1; mo.classList.add("armed"); mo.textContent = I18N.t("Really sign out? Tap again"); return; } mo.disabled = true; ChessSite.signOut(); };
     this.friends(); this.push(); { const m = $("#memedia"); if (m && typeof MediaPerm !== "undefined") MediaPerm.card(m); }
   },
   push(){ const el = $("#mepush"); if (!el || typeof Push === "undefined") return; el.innerHTML = `<h2 class="h-sec" style="margin-top:18px">Notifications</h2>${Push.card()}`; Push.wire(el, () => this.push()); },
@@ -12157,13 +12180,19 @@ const Onboard = (() => {
   const addDlg = (cancel, title, add) => `<div class="dm-full"><div class="dm-top"><span>${T(cancel)}</span><b>${T(title)}</b><span class="hot">${T(add)}</span></div><div class="dm-add">${LOGO}<div><b>Chess.nat</b><small>chess-nat.vercel.app</small></div></div></div>`;
   const iosBar26 = `<div class="dm-bar26"><span class="c">‹</span><span class="pill"><b class="hot">${ICO.burger}</b><em>chess-nat.vercel.app</em><i>↻</i></span><span class="c">${ICO.tabs}</span></div>`;
   const iosBarOld = `<div class="dm-barold"><span>‹</span><span>›</span><b class="hot">${ICO.share}</b><span>📖</span><span>${ICO.tabs}</span></div>`;
+  const round = (t, ic, hot) => `<div class="dm-rb${hot ? " hot" : ""}"><i>${ic}</i><span>${T(t)}</span></div>`;
+  const sh26 = more => `<div class="dm-sh26${more ? " more" : ""}"><div class="dm-sh-h"><span class="dm-tile">${LOGO}</span><div><b>Chess.nat</b><small>chess-nat.vercel.app</small><em>${T("Options")} ›</em></div></div>
+    ${more ? "" : `<div class="dm-ppl"><i></i><i></i><i></i><i></i></div><div class="dm-apps26"><span><i class="a1"></i>AirDrop</span><span><i class="a2"></i>${T("Messages")}</span><span><i class="a3"></i>Mail</span><span><i class="a4"></i>${T("Notes")}</span></div>`}
+    <div class="dm-rbs">${round("Copy", "⧉")}${round("Add to Bookmarks", "▯")}${round("Add to Reading List", "◎◎")}${round(more ? "Show less" : "Show more", more ? "︿" : "﹀", !more)}</div>
+    ${more ? `<div class="dm-list">${row("Add Bookmark to …", "📖")}${row("Add to Favourites", "☆")}${row("Find on Page", "⌕")}${row("Add to Home Screen", ICO.plus, 1)}</div>` : ""}</div>`;
   const sheet = inner => `<div class="dm-sheet"><div class="dm-sh-h">${LOGO}<div><b>Chess.nat</b><small>chess-nat.vercel.app</small></div></div><div class="dm-apps"><i></i><i></i><i></i><i></i></div>${inner}</div>`;
   /* every scene: what the screen shows, and where the finger taps (in % of the screen) */
   const DEMOS = {
+    /* iOS 26 Safari, as it really looks: ≡ in the address bar → Share → "Show more" → 4th row "Add to Home Screen" → Add */
     ios26: [{s: page + iosBar26, at: [31, 93]},
-      {s: page + `<div class="dm-menu l">${row("Share", ICO.share, 1)}${row("Add Bookmark", "☆")}${row("Translate", "Aあ")}</div>` + iosBar26, at: [30, 67]},
-      {s: page + sheet(`<div class="dm-list">${row("Copy", "⧉")}${row("Show more", "⌄", 1)}</div>`), at: [40, 86]},
-      {s: page + sheet(`<div class="dm-list">${row("Copy", "⧉")}${row("Add to Reading List", "◎")}${row("Add Bookmark", "☆")}${row("Add to Home Screen", ICO.plus, 1)}</div>`), at: [45, 89]},
+      {s: page + `<div class="dm-menu26">${row("Share", ICO.share, 1)}${row("Add to Bookmarks", "▯")}${row("Add Bookmark to …", "📖")}<hr>${row("Find on Page", "⌕")}${row("Page Zoom", "⊕")}</div>` + iosBar26, at: [30, 60]},
+      {s: page + sh26(false), at: [86, 90]},
+      {s: page + sh26(true), at: [45, 93]},
       {s: addDlg("Cancel", "Add to Home Screen", "Add"), at: [86, 7]}],
     iosold: [{s: page + iosBarOld, at: [50, 94]},
       {s: page + sheet(`<div class="dm-list">${row("Copy", "⧉")}${row("Add to Reading List", "◎")}${row("Add Bookmark", "☆")}${row("Add to Home Screen", ICO.plus, 1)}</div>`), at: [45, 89]},
@@ -12222,10 +12251,10 @@ const Onboard = (() => {
     } else if (s === "verify"){
       body = `<div class="onb-bell">${icon("send", 46)}</div><h2>Confirm your email</h2>
         <p class="onb-sub">We sent a link to ${esc(pending.em)}. Tap it, it opens a new tab. This page goes on by itself.</p>
+        <div class="onb-spam"><b>⚠️</b><span>The email almost always lands in your spam folder. Look there first!</span></div>
         <div class="onb-wait"><i></i><span>Waiting for your confirmation…</span></div>
         <button class="btn go big" id="onchk" style="width:100%">I've confirmed it</button>
-        <div class="onb-row"><button class="btn ghost" id="onres">Send the email again</button><button class="btn ghost" id="onchg">Different email</button></div>
-        <p class="dim onb-note">Nothing there? Look in spam.</p>`;
+        <div class="onb-row"><button class="btn ghost" id="onres">Send the email again</button><button class="btn ghost" id="onchg">Different email</button></div>`;
     } else if (s === "install"){
       const ev = window.ChessInstall && window.ChessInstall.ev;
       body = `<div class="onb-ok">✓ <span>${pending && pending.confirmed ? "Email confirmed" : "Your account is ready"}</span></div>
@@ -13270,6 +13299,7 @@ const MEGA_SVG = `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" st
 const PLAY_SVG = `<svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>`;
 const PAUSE_SVG = `<svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>`;
 const NEWS_VID = "🎥 Videobotschaft", NEWS_VOICE = "🎤 Sprachnachricht";
+const NEWS_BOOT = Date.now();
 const News = {
   admin: null,
   sb(){ return window.ChessSite && window.ChessSite.sb; },
@@ -13278,6 +13308,9 @@ const News = {
   /* once per day and news item; not in the middle of a game */
   async daily(){
     if (document.hidden || this.busy || document.querySelector(".newsx")) return;
+    /* only for signed-in players, and never as the first thing: the app has been open for a minute and a half */
+    const site = window.ChessSite; if (!site || !site.getSession || !site.getSession()) return;
+    const wait = NEWS_BOOT + 90000 - Date.now(); if (wait > 0){ clearTimeout(this._t); this._t = setTimeout(() => this.daily(), wait + 500); return; }
     if (typeof Onboard !== "undefined" && Onboard.active()) return;   /* the welcome news waits until the first start is done */
     if (["friend", "bots", "rush", "battle", "lesson", "repdrill"].includes(App.route) && App.busy && App.busy()) return;
     this.busy = true; const n = await this.latest(); this.busy = false; if (!n) return;
