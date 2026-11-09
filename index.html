@@ -2781,7 +2781,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794188609";
+const CHESSNAT_BUILD = "1794189082";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -7451,7 +7451,8 @@ const Av3D = (() => {
     const pad = mesh(sph(.1, 24, 14), padM, 0, -.11, .205, head); pad.scale.set(1.5, .52, .38);
     [-1, 1].forEach(s => { const n = mesh(sph(.02, 10, 8), dk, s * .05, -.105, .243, head); n.scale.set(1.5, .6, .5); n.rotation.z = s * .5; });
     mesh(box(.007, .05, .01), padM, 0, -.17, .215, head);
-    [-1, 1].forEach(s => { const m = mesh(tor(.022, .006, 6, 12, Math.PI), dk, s * .021, -.2, .208, head); m.rotation.z = Math.PI; });
+    /* a capybara mouth: small lips on the snout, in the fur colour (darker) */
+    { const mg = new T.Group(); mg.position.set(0, -.205, .205); head.add(mg); buildMouth(rig, a.mouth, mg, false, {w: .036}); }
     /* tiny round ears on the top corners */
     [-1, 1].forEach(s => { const e = mesh(sph(.058, 16, 12), fur, s * .175, .27, -.04, head, ol); e.scale.set(1, .85, .55); e.rotation.z = -s * .35;
       const ei = mesh(sph(.034, 12, 8), padM, s * .175, .266, -.015, head); ei.scale.set(1, .8, .3); ei.rotation.z = -s * .35; });
@@ -7500,7 +7501,7 @@ const Av3D = (() => {
     [-1, 1].forEach(s => { const e = new T.Group(); e.position.set(s * .17, .2, .02); e.rotation.set(.65, s * .25, -s * .55); head.add(e);
       mesh(cone(.085, .17, 3), skin, 0, .07, 0, e, ol).scale.set(1, 1, .35); mesh(cone(.055, .11, 3), inner, 0, .06, .018, e).scale.set(1, 1, .2); });
     PIG.eyes.forEach(([x, y]) => { const s = Math.sign(x), e = new T.Group(); e.position.set(x, y, .24); head.add(e); orient(e, new T.Vector3(s * .2, .05, .98)); e.scale.setScalar(.82); eyeParts(e, eyeC, a, rig); rig.eyes.push(e); });
-    { const m = mesh(tor(.035, .008, 6, 14, Math.PI), dk, 0, -.165, .245, head); m.rotation.z = Math.PI; }
+    { const mg = new T.Group(); mg.position.set(0, -.165, .243); head.add(mg); buildMouth(rig, a.mouth, mg, true, {w: .046}); }
     [-1, 1].forEach(s => { const c = mesh(G("blush", () => new T.CircleGeometry(.045, 20)), new T.MeshBasicMaterial({color: 0xff6f8a, transparent: true, opacity: .35, depthWrite: false, toneMapped: false}), s * .17, -.06, .225, head); c.rotation.y = s * .55; rig.own.push(c.material); });
     animalBits(rig, a, head, PIG.eyes, .22, [.27, .02, 0]); tuft(rig, a, head, .29, .02);
     rig.tail = true;
@@ -7517,9 +7518,44 @@ const Av3D = (() => {
       const p = mesh(petal, m, 0, r, 0, g, ol); p.rotation.x = tilt; } });
     [-1, 1].forEach(s => { const lf = mesh(extr("leaf", [[0, 0], [.06, .06], [.05, .16], [0, .24], [-.05, .16], [-.06, .06]], .012, .006, true), M("cloth", 0x4f9a3c, {side: T.DoubleSide}), s * .07, -.3, .04, head, ol); lf.rotation.set(-.4, 0, s * 2.2); });
     FLOWER.eyes.forEach(([x, y]) => { const e = new T.Group(); e.position.set(x, y, .165); head.add(e); orient(e, new T.Vector3(Math.sign(x) * .12, .05, .99)); e.scale.setScalar(.9); eyeParts(e, eyeC, a, rig); rig.eyes.push(e); });
-    { const m = mesh(tor(.045, .01, 6, 16, Math.PI), M("dark", 0x3a1a10), 0, FLOWER.mouth, .17, head); m.rotation.z = Math.PI; if (a.mouth === "laugh" || a.mouth === "grin") m.scale.set(1.2, 1.4, 1); }
+    { const mg = new T.Group(); mg.position.set(0, FLOWER.mouth, .168); head.add(mg); buildMouth(rig, a.mouth, mg, true, {w: .042, base: 0xf0b48a}); }
     [-1, 1].forEach(s => { const c = mesh(G("blush", () => new T.CircleGeometry(.045, 20)), new T.MeshBasicMaterial({color: 0xff6f6f, transparent: true, opacity: .3, depthWrite: false, toneMapped: false}), s * .13, -.05, .168, head); rig.own.push(c.material); });
     animalBits(rig, a, head, FLOWER.eyes, .16, null);
+  }
+  /* a mouth with real lips: a fuller lower lip, a curved upper lip with a little dip in the middle, corners that turn up in a smile.
+     Open ones (grin, laugh, fangs) show the dark inside, teeth and a tongue. Everything bends round the face. */
+  function lipGeo(pts, rMid, rEnd, flat, segs = 20){
+    const curve = new T.CatmullRomCurve3(pts.map(p => new T.Vector3(...p))), rs = 10, g = new T.TubeGeometry(curve, segs, 1, rs, false), pos = g.attributes.position, n = new T.Vector3(), c = new T.Vector3();
+    for (let i = 0; i <= segs; i++){ const t = i / segs, r = rEnd + (rMid - rEnd) * Math.pow(Math.sin(Math.PI * t), .6); curve.getPointAt(t, c);
+      for (let j = 0; j <= rs; j++){ const k = i * (rs + 1) + j; n.fromBufferAttribute(pos, k).sub(c); n.z *= flat; n.multiplyScalar(r); pos.setXYZ(k, c.x + n.x, c.y + n.y, c.z + n.z); } }
+    g.computeVertexNormals(); return g;
+  }
+  function buildMouth(rig, mk, mg, F, o = {}){
+    const base = new T.Color(o.base != null ? o.base : rig.skinHex != null ? rig.skinHex : 0xe0b896), lip = M("flesh", base.clone().lerp(new T.Color(F ? 0xc93f58 : 0x9c4246), F ? .62 : .5).getHex()), dark = M("dark", 0x2a0d0d), white = M("skin", 0xf6f2ea);
+    const open = mk === "grin" || mk === "laugh" || mk === "fangs", W = (o.w || .058) * (mk === "laugh" ? 1.12 : mk === "grin" ? 1.08 : 1);
+    const smile = {smile: .042, smirk: .036, grin: .042, laugh: .028, fangs: .02, neutral: .003}[mk] != null ? {smile: .042, smirk: .036, grin: .042, laugh: .028, fangs: .02, neutral: .003}[mk] : .012;
+    const yc = x => { const u = x / W; let k = smile * u * u; if (mk === "smirk") k = (u > 0 ? smile * 1.9 : smile * .15) * u * u; return k; };
+    const zc = x => -x * x * 4.5;
+    const hO = {grin: .03, laugh: .052, fangs: .03}[mk] || 0;
+    const N = 9, xs = Array.from({length: N}, (_, i) => -W + 2 * W * i / (N - 1));
+    const bow = x => { const u = Math.abs(x / W); return u < .2 ? -.003 * (1 - u / .2) : 0; };   /* the little dip in the middle of the upper lip */
+    const shape = x => Math.pow(Math.cos(Math.PI * x / (2 * W)), .7);
+    const upPts = xs.map(x => [x, yc(x) + (open ? hO * .1 : 0) + .006 * shape(x) + bow(x), zc(x) + .002]);
+    const loPts = xs.map(x => [x, yc(x) - (open ? hO * shape(x) : 0) - .0085 * shape(x), zc(x) + .0025]);
+    mesh(G(`lipU${mk}${W}`, () => lipGeo(upPts, .0092, .0018, .62)), lip, 0, 0, 0, mg);
+    mesh(G(`lipL${mk}${W}`, () => lipGeo(loPts, .0125, .002, .66)), lip, 0, 0, 0, mg);
+    if (!open){
+      /* closed: the line where the lips meet, and small dimples at the corners */
+      mesh(G(`lipM${mk}${W}`, () => lipGeo(xs.map(x => [x * 1.02, yc(x * 1.02), zc(x) + .0035]), .0016, .0011, 1, 16)), dark, 0, 0, 0, mg);
+      [-1, 1].forEach(s => { if (mk === "smirk" && s < 0) return; mesh(sph(.0035, 8, 6), M("flesh", base.clone().multiplyScalar(.8).getHex()), s * W * 1.06, yc(s * W) + .002, zc(s * W) + .001, mg); });
+      return; }
+    /* open: the inside, teeth, tongue */
+    const cy = (yc(0) + yc(0) - hO) / 2;
+    const cav = mesh(sph(1, 20, 14), dark, 0, cy + .002, -.006, mg); cav.scale.set(W * .95, hO * .62 + .004, .016);
+    const tU = mesh(G(`teethU${W}`, () => lipGeo(xs.slice(1, -1).map(x => [x * .88, yc(x * .88) - .0065, zc(x) + .004]), .0068, .0035, .75, 16)), white, 0, 0, 0, mg);
+    if (mk === "laugh"){ mesh(G(`teethL${W}`, () => lipGeo(xs.slice(2, -2).map(x => [x * .85, yc(x * .85) - hO * shape(x) + .007, zc(x) + .003]), .0052, .003, .75, 14)), white, 0, 0, 0, mg);
+      const tg = mesh(sph(1, 16, 12), M("flesh", 0xd65a6a), 0, yc(0) - hO * .72, -.002, mg); tg.scale.set(W * .55, .012, .012); }
+    if (mk === "fangs") [-1, 1].forEach(s => { const f = mesh(cone(.0055, .02, 8), white, s * W * .5, yc(s * W * .5) - .011, zc(s * W * .5) + .003, mg); f.rotation.z = Math.PI; });
   }
   /* brows, nose, mouth, cheeks and facial hair */
   function buildFace(rig, a, head, H, key, hairC){
@@ -7531,12 +7567,7 @@ const Av3D = (() => {
       if (a.nose === "button") mesh(sph(.033, 14, 10), rig.skin, 0, 0, 0, n, true);
       else if (a.nose === "round") mesh(sph(.05, 16, 12), rig.skin, 0, 0, 0, n, true).scale.set(1.05, .85, .8);
       else { const c = mesh(cone(.036, .1, 14), rig.skin, 0, -.01, .035, n, true); c.rotation.x = Math.PI / 2 + .35; } }
-    { const furry = ["full", "viking", "stubble"].includes(a.beard), mg = place(new T.Group(), 0, H.mouth, furry ? .02 : .004), mk = a.mouth; head.add(mg); mg.scale.set(1.3, 1.3, 1);
-      if (mk === "neutral"){ const m = mesh(caps(.009, .06), dark, 0, 0, 0, mg); m.rotation.z = Math.PI / 2; }
-      else if (mk === "laugh"){ const m = mesh(sph(.05, 16, 10, ), M("dark", 0x3a1414), 0, -.005, -.01, mg); m.scale.set(1.1, .7, .45); mesh(sph(.025, 10, 8), M("flesh", 0xd65a6a), 0, -.025, .005, mg).scale.set(1.2, .6, .5); mesh(box(.07, .016, .01), M("skin", 0xffffff), 0, .018, .006, mg); }
-      else { const m = mesh(tor(.055, .011, 6, 16, Math.PI), dark, 0, 0, 0, mg); m.rotation.z = Math.PI; if (mk === "smirk"){ m.rotation.z = Math.PI + .35; m.position.x = .015; m.scale.set(.85, .7, 1); }
-        if (mk === "grin"){ const t2 = mesh(G("teeth", () => new T.CircleGeometry(.05, 16, Math.PI, Math.PI)), M("skin", 0xffffff), 0, .003, .003, mg); }
-        if (mk === "fangs") [-1, 1].forEach(s => { const f = mesh(cone(.012, .04, 8), M("skin", 0xffffff), s * .03, -.03, .006, mg); f.rotation.z = Math.PI; }); } }
+    { const furry = ["full", "viking", "stubble"].includes(a.beard), mg = place(new T.Group(), 0, H.mouth, furry ? .014 : .002); head.add(mg); buildMouth(rig, a.mouth, mg, rig.F); }
     if (a.cheeks === "blush" || a.cheeks === "both") [-1, 1].forEach(s => { const c = place(new T.Mesh(G("blush", () => new T.CircleGeometry(.045, 20)), new T.MeshBasicMaterial({color: 0xff7a8a, transparent: true, opacity: .32, depthWrite: false, toneMapped: false})), s * .15, -.055, .004); head.add(c); rig.own.push(c.material); });
     if (a.cheeks === "freckles" || a.cheeks === "both"){ const fm = M("dark", 0x9a5530), rr = rnd(5);
       [-1, 1].forEach(s => { for (let i = 0; i < 13; i++){ const dx = (rr() - .5) * .1, dy = (rr() - .5) * .06; head.add(place(new T.Mesh(sph(.0065 + rr() * .0035, 8, 6), fm), s * .13 + dx * 1.2, -.035 + dy, .0015)); } });
@@ -7552,16 +7583,35 @@ const Av3D = (() => {
     if (b === "goatee"){ const g = place(new T.Group(), 0, H.mouth - .07, .008); head.add(g); mesh(sph(.04, 12, 8), hm, 0, -.01, 0, g).scale.set(.9, 1.3, .7); }
     if (b === "viking") [-1, 1].forEach(s => { mesh(G("braid" + s, () => taper([[s * .06, -.34, .2], [s * .07, -.48, .17], [s * .06, -.6, .14]], .028, .02, 6, 10)), hm, 0, 0, 0, head); mesh(sph(.022, 8, 6), M("gold", 0xe0b13a), s * .06, -.62, .14, head); });
   }
+  /* real eyes: a white ball with iris, pupil and a wet highlight on its surface, and eyelids that blink, wink and set the look
+     (round, wide, almond, sleepy). The iris moves a little, like it's looking around. */
+  const LIDM = new Map();
+  const LID = {round: [-.85, .7], wide: [-1.05, .85], almond: [-.55, .5], sleepy: [-.12, .6]};
   function eyeParts(e, c, a, rig){
-    const sh = {almond: [1.18, .8], sleepy: [1.05, 1], wide: [1.15, 1.2]}[a.eyeshape] || [1, 1.1];
-    {
-      mesh(sph(.05, 18, 14), M("skin", 0xfbfaf6), 0, 0, 0, e).scale.set(sh[0], sh[1], .5);
-      mesh(sph(.032, 16, 12), M(a.eyes === "gold" || a.eyes === "glow" ? "gem" : "dark", c), 0, 0, .017, e).scale.set(1, 1.05, .45);
-      mesh(sph(.017, 10, 8), M("dark", 0x0d0b0a), 0, 0, .027, e).scale.set(1, 1, .5);
-      mesh(sph(.008, 8, 6), M("glow", 0xffffff), .011, .013, .034, e);
-    }
-    if (rig && rig.F && TIER > 0){ const l = mesh(tor(.052, .007, 4, 12, Math.PI), M("dark", 0x1a1414), 0, .006, .012, e); l.scale.set(sh[0], sh[1], 1); [-1, 1].forEach(s => { const f = mesh(box(.022, .006, .006), M("dark", 0x1a1414), s * .055 * sh[0], .02, .012, e); f.rotation.z = s * .5; }); }
-    if (a.eyeshape === "sleepy" && rig){ const lid = mesh(G("lid", () => new T.SphereGeometry(.054, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2)), rig.skin, 0, -.004, .002, e); lid.rotation.x = Math.PI / 2 - .25; lid.scale.set(sh[0], 1, .62); }
+    const r = .046, sk = (rig && rig.skin) || M("flesh", 0xe0b896), F = rig && rig.F;
+    const ball = new T.Group(); e.add(ball); ball.scale.set(1, 1, .82);
+    mesh(G("eyeball", () => new T.SphereGeometry(r, 28, 20)), M("skin", 0xfbf9f4), 0, 0, 0, ball);
+    /* the look group turns the iris and pupil */
+    const look = new T.Group(); ball.add(look);
+    const cap = (rr, ang, mat, key) => { const m = mesh(G("ecap" + key, () => new T.SphereGeometry(rr, 28, 8, 0, Math.PI * 2, 0, ang)), mat, 0, 0, 0, look); m.rotation.x = Math.PI / 2; return m; };
+    const irisM = M(a.eyes === "gold" || a.eyes === "glow" ? "gem" : "skin", c);
+    cap(r * 1.004, .62, irisM, "i");
+    cap(r * 1.008, .5, M("skin", new T.Color(c).multiplyScalar(.55).getHex()), "ir");   /* a darker ring inside the iris gives it depth */
+    cap(r * 1.012, .4, irisM, "i2");
+    cap(r * 1.016, .26, M("dark", 0x070605), "p");
+    mesh(sph(.0062, 8, 6), M("glow", 0xffffff), .013, .015, r * .92, look);
+    mesh(sph(.003, 6, 4), M("glow", 0xffffff, {op: .7}), -.011, -.009, r * .96, look);
+    /* the lids: skin shells around the ball; the upper one closes for a blink */
+    const sh = LID[a.eyeshape] || LID.round, lidG = G("lidU", () => new T.SphereGeometry(r * 1.1, 28, 12, 0, Math.PI * 2, 0, Math.PI / 2)), lidL = G("lidL", () => new T.SphereGeometry(r * 1.09, 28, 10, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2));
+    const lidM = LIDM.get(sk.uuid) || (() => { const m = sk.clone(); m.side = T.DoubleSide; LIDM.set(sk.uuid, m); return m; })();
+    const up = new T.Group(); ball.add(up); mesh(lidG, lidM, 0, 0, 0, up);
+    /* the lash line on the upper lid's edge (with lashes for the girls) */
+    const lash = mesh(G("lash", () => new T.TorusGeometry(r * 1.1, F ? .0042 : .003, 5, 24, Math.PI)), M("dark", 0x1a1210), 0, 0, 0, up); lash.rotation.x = Math.PI / 2;
+    if (F) for (let k = 0; k < 5; k++){ const ang = -.9 + k * .45, l = mesh(cone(.0035, .016, 4), M("dark", 0x1a1210), Math.sin(ang) * r * 1.1, .004, Math.cos(ang) * r * 1.1, up); l.rotation.set(.9, 0, -ang * .6); }
+    const lo = new T.Group(); ball.add(lo); mesh(lidL, lidM, 0, 0, 0, lo); lo.rotation.x = sh[1];
+    up.rotation.x = sh[0];
+    e.userData.eye = {up, lo, look, open: sh[0], shut: .35, lookT: 0, gx: 0, gy: 0};
+    if (a.eyeshape === "sleepy") lo.rotation.x = .5;
   }
   function buildHair(rig, k, c, head, H){
     const hm = k === "flame" ? M("cloth", 0xff6a1a, {em: .8}) : M("hair", c), r = H.prof(0) || .3, rr = rig.rr, hs = M("hair", c, {side: T.DoubleSide});
@@ -7792,11 +7842,14 @@ const Av3D = (() => {
       else if (e.k === "dance"){ mix("fRz", Math.sin(s * 7) * .14); P.fY += Math.abs(Math.sin(s * 7)) * .07 * w; mix("rSz", -1.2 + Math.sin(s * 7) * .8); mix("lSz", 1.2 + Math.sin(s * 7 + Math.PI) * .8); mix("rEz", -.6); mix("lEz", .6); mix("hY", Math.sin(s * 3.5) * .3); mix("fRy", Math.sin(s * 3.5) * .35); }
       else if (e.k === "flex"){ mix("rSz", -1.45); mix("lSz", 1.45); mix("rSx", 0); mix("lSx", 0); mix("rEz", -1.75 + Math.sin(s * 9) * .08); mix("lEz", 1.75 - Math.sin(s * 9) * .08); mix("rEx", 0); mix("lEx", 0); mix("hX", -.12); P.br += .03 * w; }
       else if (e.k === "power"){ const b = s > .9; mix("rSz", b ? -1.3 : -.55); mix("lSz", b ? 1.3 : .55); mix("rSx", b ? 0 : .35); mix("lSx", b ? 0 : .35); mix("hX", b ? -.2 : .25); P.fY += (b ? .32 : -.08) * w; if (b && !e.burst){ e.burst = 1; if (rig.onBurst) rig.onBurst(); } }
+      else if (e.k === "wink"){ if (!e.did){ e.did = 1; rig.wink = {i: 0, until: rig.t + .5}; } mix("hZ", -.12); mix("hY", .15); }
       else if (e.k === "hit"){ mix("fZ", -.08); mix("hY", Math.sin(s * 25) * .45 * (1 - s / d)); P.eye = .25; }
       else if (EMOTE_ANIM[e.k]) EMOTE_ANIM[e.k](s, d, mix, P, w, e, rig);
     } }
     /* blink */
-    if (live){ rig.blink -= dt; if (rig.blink < 0){ if (rig.blink < -.13) rig.blink = 2.5 + Math.random() * 3.5; else P.eye = Math.min(P.eye, .1); } }
+    if (live){ rig.blink -= dt; if (rig.blink < 0){ if (rig.blink < -.15) rig.blink = 2.5 + Math.random() * 3.5; else P.eye = Math.min(P.eye, 0); }
+      /* once in a while a cheeky wink */
+      rig.winkT = (rig.winkT == null ? 12 + Math.random() * 20 : rig.winkT) - dt; if (rig.winkT < 0){ rig.winkT = 18 + Math.random() * 30; rig.wink = {i: 0, until: rig.t + .35}; } }
     /* apply */
     const R = rig.R, L = rig.L;
     R.sh.rotation.x = lerp(R.sh.rotation.x, P.rSx, k); R.sh.rotation.z = lerp(R.sh.rotation.z, P.rSz, k); R.el.rotation.x = lerp(R.el.rotation.x, P.rEx, k); R.el.rotation.z = lerp(R.el.rotation.z, P.rEz, k);
@@ -7806,7 +7859,13 @@ const Av3D = (() => {
     rig.torso.scale.set(1 - P.br * .3, 1 + P.br, 1 - P.br * .3);
     rig.torso.rotation.y = lerp(rig.torso.rotation.y, P.tY, k); rig.torso.rotation.z = lerp(rig.torso.rotation.z, P.tZ, k); rig.torso.rotation.x = lerp(rig.torso.rotation.x, P.tX, k);
     if (rig.legs){ const [rl, ll] = rig.legs; rl.rotation.x = lerp(rl.rotation.x, P.rLx, k); rl.rotation.z = lerp(rl.rotation.z, P.rLz, k); ll.rotation.x = lerp(ll.rotation.x, P.lLx, k); ll.rotation.z = lerp(ll.rotation.z, P.lLz, k); }
-    rig.eyes.forEach(ey => { ey.scale.y = P.eye < 1 ? P.eye : lerp(ey.scale.y, 1, k); });
+    rig.eyes.forEach((ey, i) => { const E = ey.userData.eye; if (!E){ ey.scale.y = P.eye < 1 ? P.eye : lerp(ey.scale.y, 1, k); return; }
+      /* a wink closes one eye (the one on the figure's left), a blink both */
+      const wink = rig.wink && rig.t < rig.wink.until && i === rig.wink.i ? 0 : 1, o = Math.min(P.eye, wink);
+      E.up.rotation.x = o < 1 ? E.shut + (E.open - E.shut) * o : lerp(E.up.rotation.x, E.open, k * 1.5);
+      /* now and then the eyes look somewhere else, then back */
+      if (live && rig.t > E.lookT){ E.lookT = rig.t + 1.2 + Math.random() * 2.5; const far = Math.random() < .35; E.gx = far ? (Math.random() - .5) * .5 : 0; E.gy = far ? (Math.random() - .5) * .25 : 0; if (i) { const e0 = rig.eyes[0].userData.eye; if (e0){ E.gx = e0.gx; E.gy = e0.gy; E.lookT = e0.lookT; } } }
+      E.look.rotation.y = lerp(E.look.rotation.y, E.gx, .2); E.look.rotation.x = lerp(E.look.rotation.x, -E.gy, .2); });
     if (rig.cape && live){ const pos = rig.cape.g.attributes.position, b = rig.cape.base; for (let i = 0; i < pos.count; i++){ const y = b[i * 3 + 1], f = (.53 - y) / 1.06; pos.setZ(i, b[i * 3 + 2] - f * f * (.06 + Math.sin(t * 2.2 + y * 4 + b[i * 3] * 3) * .05)); pos.setX(i, b[i * 3] + f * Math.sin(t * 1.7 + y * 3) * .02); } pos.needsUpdate = true; }
     if (rig.wings) rig.wings.forEach(([wg, s]) => { wg.rotation.y = s * (live ? .25 + Math.sin(t * (tier >= 4 ? 3 : 1.6)) * (tier >= 4 ? .3 : .12) : .25); });
     if (rig.rune){ rig.rune.rotation.z = t * .5; rig.rune.material.opacity = .65 + Math.sin(t * 2) * .2; }
@@ -7894,7 +7953,7 @@ const Av3D = (() => {
       window.addEventListener("pointermove", e => { if (!d) return; const dx = e.clientX - d.x; if (!d.on && Math.abs(dx) > 4) d.on = true; if (!d.on) return; this.drg = true; const na = d.a + dx * .012; this.vel = (na - this.yaw) * .5; this.yaw = na; this.idle = 0; });
       const up = () => { if (d){ d = null; this.drg = false; } }; window.addEventListener("pointerup", up); window.addEventListener("pointercancel", up);
     }
-    emote(k){ if (this.rig){ const em = typeof EMOTE_BY !== "undefined" && EMOTE_BY[k]; this.rig.emote = {k, fast: !!em, t0: this.rig.t, d: em ? em.d : k === "power" ? 2.8 : k === "hit" ? .9 : 2.6}; this.idle = 0; this.yawWas = this.yaw; } }
+    emote(k){ if (this.rig){ const em = typeof EMOTE_BY !== "undefined" && EMOTE_BY[k]; this.rig.emote = {k, fast: !!em, t0: this.rig.t, d: em ? em.d : k === "power" ? 2.8 : k === "hit" ? .9 : k === "wink" ? .9 : 2.6}; this.idle = 0; this.yawWas = this.yaw; } }
   }
   function kick(){ if (!raf) raf = requestAnimationFrame(loop); }
   let lastT = 0;
