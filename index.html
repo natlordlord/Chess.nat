@@ -2786,7 +2786,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794265129";
+const CHESSNAT_BUILD = "1794268000";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -12225,65 +12225,48 @@ Views.shop = {
   }
 };
 
-/* ===== Sprüche: funny voice lines. The first ones are Nathan's own recordings; the rest use comic voices from the phone's own speech.
-   In a game: 💬 under the board → tap one → a bubble pops up at your name and the voice says it; your friend sees and hears it too.
-   A few come free, the rest from chests and the shop. The rarest "line" is your own: record your own sound and use it like the others. ===== */
-const LINE_VOICE = {
-  kid:   {pitch: 1.95, rate: 1.18},   /* chipmunk */
-  deep:  {pitch: 0.15, rate: 0.82},   /* monster */
-  hype:  {pitch: 1.45, rate: 1.4},    /* sports announcer on coffee */
-  robo:  {pitch: 0.55, rate: 0.92},
-  posh:  {pitch: 1.15, rate: 0.78},   /* very slow and very sure of itself */
-  sly:   {pitch: 0.85, rate: 1.05}};
-/* id, the line, its emoji, the voice, rarity ("free" = everyone has it) */
+/* ===== Sprüche: voice lines, all of them Nathan's own recordings (sounds/lines/<id>.mp3). No computer voices.
+   In a game: 💬 under the board → tap one → a bubble pops up at your name and the recording plays; your friend sees and hears it too.
+   All recordings are free for everyone. The one "line" to unlock is your own: record your own sound and use it like the others. ===== */
+/* id, the line, its emoji, rarity ("free" = everyone has it) */
 const NAT_LINES = [
-  /* Nathan's own recordings (sounds/lines/<id>.mp3): free for everyone and first in the picker */
-  {id: "l-schachmatt", t: "Schachmatt!",                       e: "♚",  v: "hype", r: "free"},
-  {id: "l-hallo",   t: "Hallo hallo!",                         e: "👋", v: "kid",  r: "free"},
-  {id: "l-digger",  t: "Digga!",                               e: "🤨", v: "sly",  r: "free"},
-  {id: "l-bodenlos", t: "Bodenlos.",                           e: "🕳️", v: "deep", r: "free"},
-  {id: "l-istdasgut", t: "Ist das gut? Ist das gut?",          e: "🤔", v: "kid",  r: "free"},
-  {id: "l-skip",    t: "Und skip!",                            e: "⏭️", v: "sly",  r: "free"},
-  {id: "l-verpiss", t: "Verpiss dich von da!",                 e: "👉", v: "deep", r: "free"},
-  {id: "l-hund",    t: "Verfickter Hund!",                     e: "🐕", v: "deep", r: "free"},
-  {id: "l-gg",      t: "GG!",                                  e: "🤝", v: "hype", r: "free"},
-  {id: "l-oha",     t: "Ohaaa!",                               e: "😮", v: "kid",  r: "free"},
-  {id: "l-keks",    t: "Schachmatt, Keks!",                    e: "🍪", v: "kid",  r: "rare"},
-  {id: "l-tschuess", t: "Tschüssi!",                           e: "👋", v: "kid",  r: "rare"},
-  {id: "l-easy",    t: "Easy.",                                e: "😎", v: "posh", r: "rare"},
-  {id: "l-langsam", t: "Zu langsam!",                          e: "🐢", v: "hype", r: "rare"},
-  {id: "l-sheesh",  t: "Sheeesh!",                             e: "🥶", v: "hype", r: "rare"},
-  {id: "l-ayo",     t: "Ayo?!",                                e: "😳", v: "kid",  r: "rare"},
-  {id: "l-cringe",  t: "Cringe.",                              e: "😬", v: "deep", r: "rare"},
-  {id: "l-int",     t: "Du bist nicht so intelligent, oder?",  e: "🧠", v: "posh", r: "super"},
-  {id: "l-ehrenlos", t: "Ehrenlos!",                           e: "😤", v: "deep", r: "super"},
-  {id: "l-skill",   t: "Skill Issue.",                         e: "📉", v: "robo", r: "super"},
-  {id: "l-npc",     t: "Das war ein NPC-Zug.",                 e: "🤖", v: "robo", r: "super"},
-  {id: "l-chill",   t: "Diggi, chill mal.",                    e: "🧊", v: "sly",  r: "super"},
-  {id: "l-schlaf",  t: "Du bist dran. Schlaf nicht ein!",      e: "😴", v: "kid",  r: "super"},
-  {id: "l-genie",   t: "Ich bin ein Genie.",                   e: "✨", v: "posh", r: "epic"},
-  {id: "l-gibauf",  t: "Brudi, gib auf.",                      e: "🏳️", v: "deep", r: "epic"},
-  {id: "l-wallah",  t: "Wallah, Glück gehabt.",                e: "🍀", v: "sly",  r: "epic"},
-  {id: "l-damn",    t: "Damn damn damn!",                      e: "💥", v: "hype", r: "epic"},
-  {id: "l-plan",    t: "Ich hab einen Plan. Glaub ich.",       e: "🤔", v: "kid",  r: "epic"},
-  {id: "l-main",    t: "Main Character Energy.",               e: "⭐", v: "posh", r: "mythic"},
-  {id: "l-weh",     t: "Alter, das tut weh.",                  e: "🤕", v: "deep", r: "mythic"},
-  {id: "l-move",    t: "Was ein Move! Was ein Move!",          e: "🔥", v: "hype", r: "mythic"},
-  {id: "l-lost",    t: "Du bist so lost.",                     e: "🧭", v: "sly",  r: "mythic"},
-  {id: "l-gm",      t: "Großmeister am Werk. Bitte nicht stören.", e: "👑", v: "posh", r: "legend"},
-  {id: "l-own",     t: "Your own sound",                       e: "🎙️", v: "kid",  r: "legend", own: true}];
+  {id: "l-schachmatt", t: "Schachmatt!",                       e: "♚",  r: "free"},
+  {id: "l-schach",  t: "Schach!",                              e: "♟️", r: "free"},
+  {id: "l-hallo",   t: "Hallo hallo!",                         e: "👋", r: "free"},
+  {id: "l-dran",    t: "Du bist dran!",                        e: "⏰", r: "free"},
+  {id: "l-digger",  t: "Digga!",                               e: "🤨", r: "free"},
+  {id: "l-waswar",  t: "Was war das?",                         e: "😳", r: "free"},
+  {id: "l-bodenlos", t: "Bodenlos.",                           e: "🕳️", r: "free"},
+  {id: "l-istdasgut", t: "Ist das gut? Ist das gut?",          e: "🤔", r: "free"},
+  {id: "l-weiss",   t: "Weiß ich nicht.",                      e: "🤷", r: "free"},
+  {id: "l-skip",    t: "Und skip!",                            e: "⏭️", r: "free"},
+  {id: "l-verpiss", t: "Verpiss dich von da!",                 e: "👉", r: "free"},
+  {id: "l-hund",    t: "Verfickter Hund!",                     e: "🐕", r: "free"},
+  {id: "l-lahm",    t: "Lahmer!",                              e: "🐌", r: "free"},
+  {id: "l-richtig", t: "Richtig!",                             e: "✅", r: "free"},
+  {id: "l-geilo",   t: "Geilo!",                               e: "🤩", r: "free"},
+  {id: "l-brillant", t: "Brillant!",                           e: "💎", r: "free"},
+  {id: "l-sahne",   t: "Allererste Sahne!",                    e: "🍰", r: "free"},
+  {id: "l-ohyeah",  t: "Oh yeah!",                             e: "🙌", r: "free"},
+  {id: "l-levelup", t: "Level up!",                            e: "⬆️", r: "free"},
+  {id: "l-frei",    t: "Freigeschaltet!",                      e: "🔓", r: "free"},
+  {id: "l-ueberholt", t: "Überholt!",                          e: "🏎️", r: "free"},
+  {id: "l-platz1",  t: "Platz 1!",                             e: "🥇", r: "free"},
+  {id: "l-gewonnen", t: "Was, gewonnen?!",                     e: "🏆", r: "free"},
+  {id: "l-verloren", t: "Oh Mann, verloren.",                  e: "😩", r: "free"},
+  {id: "l-remis",   t: "Unentschieden.",                       e: "⚖️", r: "free"},
+  {id: "l-gg",      t: "GG!",                                  e: "🤝", r: "free"},
+  {id: "l-carlsen", t: "Wie cool ist das denn? Morgen spiele ich gegen Magnus Carlsen.", e: "😎", r: "free"},
+  {id: "l-woche",   t: "Puh, was war das für eine Woche! Die ersten 23 Züge waren echt genial!", e: "😮‍💨", r: "free"},
+  {id: "l-own",     t: "Your own sound",                       e: "🎙️", r: "legend", own: true}];
 const LINE_BY = Object.fromEntries(NAT_LINES.map(l => [l.id, l]));
 /* the ones you can find, as items for chests, the shop and the collection */
 window.NAT_LINE_ITEMS = NAT_LINES.filter(l => l.r !== "free").map(l => ({kind: "line", id: l.id, name: l.own ? "Your own sound" : l.t, r: l.r, e: l.e}));
 const lineHas = id => { const l = LINE_BY[id]; return !!l && (l.r === "free" || natHas(id)); };
 const linesOwned = () => NAT_LINES.filter(l => lineHas(l.id));
 
-/* ---- the voice ---- */
+/* ---- the voice: only real recordings, never a computer voice ---- */
 const LineVoice = (() => {
-  let voices = [];
-  const load = () => { try { voices = speechSynthesis.getVoices() || []; } catch(e) {} };
-  try { load(); speechSynthesis.onvoiceschanged = load; } catch(e) {}
-  const pick = () => voices.find(v => /^de(-|_|$)/i.test(v.lang) && /Anna|Petra|Helena|Google/i.test(v.name)) || voices.find(v => /^de/i.test(v.lang)) || null;
   let audio = null; const REAL = {};
   /* a recorded sound is only ever a short inline recording, never a link to somewhere else */
   const ownOk = s => typeof s === "string" && s.length <= 92000 && /^data:audio\/[a-z0-9.+-]+(;[a-z0-9=.+-]+)*;base64,/i.test(s);
@@ -12293,23 +12276,13 @@ const LineVoice = (() => {
     /* your own sound: a short recording (sent along with the line) */
     if (S.settings.sound === false) return;
     if (line.own){ const src = own !== undefined ? own : (S.ownSnd && S.ownSnd.d);   /* someone else's line never plays my own sound */ if (ownOk(src)){ try { audio = new Audio(src); audio.play().catch(() => {}); } catch(e) {} } return; }
-    /* first the real recording the team made for this line (if there is one), else the voice file shipped with the app, else the phone's own voice */
-    const bundled = () => { try { const au = new Audio("/sounds/lines/" + line.id + ".mp3?v=2"); au.setAttribute("playsinline", ""); audio = au;
-      au.play().catch(e => { if (!e || e.name !== "NotAllowedError") synth(line); }); au.onerror = () => synth(line); } catch(e){ synth(line); } };
+    /* a newer recording uploaded in the app (if there is one), else Nathan's recording shipped with the app. If neither plays: silence. */
+    const bundled = () => { try { const au = new Audio("/sounds/lines/" + line.id + ".mp3?v=3"); au.setAttribute("playsinline", ""); audio = au; au.play().catch(() => {}); } catch(e) {} };
     const site = window.ChessSite, sb = site && site.sb;
     if (sb && REAL[line.id] !== false){ try { const au = new Audio(sb.storage.from("news").getPublicUrl("lines/" + line.id).data.publicUrl); au.setAttribute("playsinline", ""); audio = au;
       au.onerror = () => { REAL[line.id] = false; if (audio === au) bundled(); }; au.oncanplay = () => { REAL[line.id] = true; };
       au.play().catch(e => { if (e && e.name === "NotAllowedError") return; }); return; } catch(e) {} }
     bundled();
-  }
-  function synth(line){
-    if (!("speechSynthesis" in window)) return;
-    try {
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(line.t), V = LINE_VOICE[line.v] || {}, v = pick();
-      u.lang = "de-DE"; if (v) u.voice = v; u.pitch = V.pitch || 1; u.rate = V.rate || 1; u.volume = 1;
-      speechSynthesis.speak(u);
-    } catch(e) {}
   }
   return {say};
 })();
@@ -12324,8 +12297,7 @@ function lineBubble(where, line, own){
   el.style.left = Math.max(10, Math.min(innerWidth - 10, r.left + 54)) + "px";
   el.style.top = (r.top < innerHeight / 2 ? r.bottom + 6 : r.top - 6) + "px";
   document.body.appendChild(el);
-  try { Sound.play && Sound.play("GenericNotify", .35); } catch(e) {}
-  setTimeout(() => LineVoice.say(line, own), 120);
+  LineVoice.say(line, own);   /* straight away, no notification sound in front */
   setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 300); }, 3200);
 }
 
@@ -13964,15 +13936,15 @@ Views.news = {
     const sb = News.sb(), url = id => sb.storage.from("news").getPublicUrl("lines/" + id).data.publicUrl, L = NAT_LINES.filter(l => !l.own);
     this.lrec = this.lrec || {}; this.lhave = this.lhave || {};
     const draw = () => {
-      box.innerHTML = `<h3>🎙 Sprüche einsprechen</h3><p class="dim" style="margin:4px 0 8px;font-size:13px">Knopf gedrückt halten, Spruch sagen, loslassen. Anhören, dann „Für alle speichern“. Ab dann hören alle Spieler deine Aufnahme statt der künstlichen Stimme. Gern mit Comic-Stimme, mit Freunden, mit voller Meme-Energie.</p>
+      box.innerHTML = `<h3>🎙 Sprüche einsprechen</h3><p class="dim" style="margin:4px 0 8px;font-size:13px">Knopf gedrückt halten, Spruch sagen, loslassen. Anhören, dann „Für alle speichern“. Ab dann hören alle Spieler diese neue Aufnahme statt der mitgelieferten.</p>
         <div class="list lr-list">${L.map(l => { const has = this.lhave[l.id], rec = this.lrec[l.id];
-          return `<div class="li lr-row"><span class="lr-e">${l.e}</span><div class="grow"><div class="t" data-notr>${esc(l.t)}</div><div class="s">${has === true ? "✓ Deine Aufnahme ist live" : has === false ? "Standardstimme" : "…"}${rec ? ` · neu aufgenommen (${rec.secs}s)` : ""}</div></div>
+          return `<div class="li lr-row"><span class="lr-e">${l.e}</span><div class="grow"><div class="t" data-notr>${esc(l.t)}</div><div class="s">${has === true ? "✓ Deine Aufnahme ist live" : has === false ? "Mitgelieferte Aufnahme" : "…"}${rec ? ` · neu aufgenommen (${rec.secs}s)` : ""}</div></div>
             <div class="lr-b"><button class="btn sm lr-rec" data-lrec="${l.id}">●</button>${rec ? `<button class="btn sm" data-lplay="${l.id}">▶</button><button class="btn sm go" data-lup="${l.id}">Für alle speichern</button>` : has === true ? `<button class="btn sm" data-lhear="${l.id}">▶</button>` : `<button class="btn sm" data-ldef="${l.id}">▶ alt</button>`}</div></div>`; }).join("")}</div>
         <p class="dim" id="lrmsg" style="font-size:12.5px;margin:8px 0 0"></p>`;
       const msg = $("#lrmsg", box);
       $$("[data-lplay]", box).forEach(b => b.onclick = () => { const r = this.lrec[b.dataset.lplay]; new Audio(r.url).play().catch(() => {}); });
       $$("[data-lhear]", box).forEach(b => b.onclick = () => new Audio(url(b.dataset.lhear) + "?t=" + Date.now()).play().catch(() => {}));
-      $$("[data-ldef]", box).forEach(b => b.onclick = () => new Audio("/sounds/lines/" + b.dataset.ldef + ".mp3?v=2").play().catch(() => {}));
+      $$("[data-ldef]", box).forEach(b => b.onclick = () => new Audio("/sounds/lines/" + b.dataset.ldef + ".mp3?v=3").play().catch(() => {}));
       $$("[data-lup]", box).forEach(b => b.onclick = async () => { const id = b.dataset.lup, r = this.lrec[id]; b.disabled = true; msg.textContent = "Lade hoch…";
         let {error} = await sb.storage.from("news").upload("lines/" + id, r.blob, {contentType: r.type, upsert: false});
         /* already recorded once: replace it (works once the replace permission is in) */
