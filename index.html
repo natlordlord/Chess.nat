@@ -2786,7 +2786,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794190865";
+const CHESSNAT_BUILD = "1794191325";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -7418,7 +7418,7 @@ const Av3D = (() => {
     else if (H.knight){
       const g = extr("horse", HORSE, .26, .06, true); mesh(g, skin, 0, 0, 0, head, ol);
       mesh(sph(.035, 10, 8), M("dark", 0x2a2420), .33, -.13, .17, head); mesh(sph(.035, 10, 8), M("dark", 0x2a2420), .33, -.13, -.17, head);
-      [1, -1].forEach(s => { const e = new T.Group(); e.position.set(.12, .12, s * .2); head.add(e); e.rotation.y = s > 0 ? 0 : Math.PI; eyeParts(e, eyeC, a); rig.eyes.push(e); });
+      [1, -1].forEach(s => { const e = new T.Group(); e.position.set(.12, .12, s * .2); head.add(e); e.rotation.y = s > 0 ? 0 : Math.PI; eyeParts(e, eyeC, a, rig); rig.eyes.push(e); });
       if (a.hair !== "none"){ const hm = a.hair === "flame" ? M("cloth", 0xff7a1f, {em: .9}) : M("hair", hairC);
         for (let i = 0; i < 7; i++){ const t = i / 6, x = -.26 + t * .2, y = .2 - t * .45; const m = mesh(box(.09, .12, .1), hm, x - .04, y + .15, 0, head); m.rotation.z = .5 + t * .4; }
         if (a.hair === "flame") flames(rig, head, [-.2, .35, 0], .2, 14); }
@@ -7885,7 +7885,7 @@ const Av3D = (() => {
       if (live){ rig.chatT = (rig.chatT == null ? 6 + Math.random() * 10 : rig.chatT) - dt; if (rig.chatT < 0){ rig.chatT = 10 + Math.random() * 18; rig.talkUntil = rig.t + .5 + Math.random() * 1.1; } }
       const talking = rig.t < (rig.talkUntil || 0) || singing;
       Mo.base.visible = !talking; Mo.talk.visible = talking;
-      if (talking){ const t2 = rig.t * (singing ? 9 : 13), o = .18 + .82 * Math.abs(Math.sin(t2) * (.6 + .4 * Math.sin(t2 * .37 + 1.3))); Mo.talk.scale.y = lerp(Mo.talk.scale.y || 1, o, .55); } }
+      if (talking){ const t2 = rig.t * (singing ? 9 : 13), o = .18 + .82 * Math.abs(Math.sin(t2) * (.6 + .4 * Math.sin(t2 * .37 + 1.3))); const by = Mo.talk.userData.sy || (Mo.talk.userData.sy = Mo.talk.scale.y || 1); Mo.talk.scale.y = lerp(Mo.talk.scale.y || by, by * o, .55); } }
     rig.eyes.forEach((ey, i) => { const E = ey.userData.eye; if (!E){ ey.scale.y = P.eye < 1 ? P.eye : lerp(ey.scale.y, 1, k); return; }
       /* a wink closes one eye (the one on the figure's left), a blink both */
       const wink = rig.wink && rig.t < rig.wink.until && i === rig.wink.i ? 0 : 1, o = Math.min(P.eye, wink);
@@ -10140,6 +10140,8 @@ Views.duel = {
   },
   /* my emote goes to the other phone through the room */
   sendEmo(e){ if (!this.room || !this.me) return; this.me.emo = e; this.room.presence(this.me).catch(() => {}); },
+  line(l){ if (!this.room || !this.me || !l) return; this.me.line = {id: l.id, n: Date.now() % 1e9, ts: Date.now(), own: undefined};   /* duels can be with strangers: recorded sounds stay out */ this.room.presence(this.me).catch(() => {});
+  },
   /* the lobby: both figures, the room code, dance while you wait; the host starts the duel */
   lobby(code, host){
     const ov = this.board.overlay(`<div class="card-over lobby"><h3 id="lbt">Puzzle Duel</h3><p class="lb-hint">Tap 🕺 to dance: your opponent sees it live.</p>${EmoStage.html({opName: "…"})}
@@ -10226,6 +10228,9 @@ Views.duel = {
     if (this.emoApi){ if (P.avatar && !this.lobbyOp && document.querySelector("#main .overlay .lobby")){ this.lobbyOp = true; this.emoApi.setOp(P.avatar, P.name); Sound.play("GenericNotify", .5);
         this.panel(); const t = $("#lbt"); if (t) t.textContent = (P.name || "Your friend") + " is here!"; const w = $("#dwait"); if (w) w.textContent = "Waiting for " + (P.name || "the host") + " to start…"; }
       if (P.emo) this.emoApi.opEmote(P.emo); }
+    /* a voice line from the other side */
+    { const ln = P.line; if (ln && ln.n && ln.n !== this.lastLine){ const first = this.lastLine == null; this.lastLine = ln.n;
+      if ((!first || Date.now() - (ln.ts || 0) < 8000) && typeof LINE_BY !== "undefined" && LINE_BY[ln.id]) lineBubble("#topbar", LINE_BY[ln.id], ""); } }
     if (P.name && P.name !== this.oppName){ this.oppName = P.name; this.oppFace = P.avatar && typeof avatarBadge === "function" ? avatarBadge(P.avatar, 34) : this.oppFace; this.bars(); this.panel(); }
     if (this.side === "h"){
       /* the guest is here: build puzzles that fit both of us, then start */
@@ -10664,7 +10669,7 @@ Views.friend = {
     let room = null; try { room = window.claude && window.claude.use ? await window.claude.use("room") : null; } catch(e) {}
     if (!room){ this.menu("Live games aren't set up on this site yet (Supabase keys missing in config.js). Play by link works anyway."); return; }
     let R; try { R = await room.join("g-" + code); } catch(e){ this.menu("Couldn't open the game room (" + (e.code || e.message) + "). Check your internet connection and try again, or use Play by link."); return; }
-    this.R = R; this.code = code; this.chat = []; this.lastSay = {}; this.hadOpp = false;
+    this.R = R; this.code = code; this.chat = []; this.lastSay = {}; this.lastLine = null; this.hadOpp = false;
     /* voice: the host calls, the guest answers */
     if (this.vcx) this.vcx.destroy(); this.vcx = VoiceChat.create({offerer: () => !!(this.st && this.st.host), publish: () => this.publish(), name: () => { const o = this.opp(); return o ? nickOf(o.by, o.presence.name || "your friend") : ""; }}); this.vcx.mount();
     const saved = liveLoad(code);
@@ -10705,7 +10710,7 @@ Views.friend = {
     if (o && o.presence.emo && this.emoApi) this.emoApi.opEmote(o.presence.emo);
     /* a voice line from the other side: their bubble at the top, their voice */
     { const ln = o && o.presence.line; if (ln && ln.n && ln.n !== this.lastLine){ const first = this.lastLine == null; this.lastLine = ln.n;
-      if ((!first || Date.now() - (ln.ts || 0) < 8000) && typeof LINE_BY !== "undefined" && LINE_BY[ln.id] && s.seat !== "spec"){ lineBubble("#topbar", LINE_BY[ln.id], ln.own); try { this.emoApi && this.emoApi.stages.op && this.emoApi.stages.op.emote("talk"); } catch(e) {} } } }
+      if ((!first || Date.now() - (ln.ts || 0) < 8000) && typeof LINE_BY !== "undefined" && LINE_BY[ln.id] && s.seat !== "spec"){ lineBubble("#topbar", LINE_BY[ln.id], this.ranked ? "" : (ln.own || "")); try { this.emoApi && this.emoApi.stages.op && this.emoApi.stages.op.emote("talk"); } catch(e) {} } } }
     if (this.vcx && s.seat !== "spec") this.vcx.peer(o ? o.presence : null);
     if (this.ranked && !s.result && s.moves.length >= 2 && (s.seat === "w" || s.seat === "b")){
       if (!o && !this.goneT){ toast("Your opponent left. If they don't come back within a minute, you win.", 4000);
@@ -10831,7 +10836,7 @@ Views.friend = {
   },
   emote(e){ if (!this.st) return; this.st.emo = e; this.publish(); },
   /* a voice line: sent once; your own recorded sound travels along only for a few seconds */
-  line(l){ const s = this.st; if (!s || !l) return; try { this.emoApi && this.emoApi.stages.me && this.emoApi.stages.me.emote("talk"); } catch(e) {} s.line = {id: l.id, n: Date.now() % 1e9, ts: Date.now(), own: l.own && S.ownSnd ? S.ownSnd.d : undefined}; this.publish();
+  line(l){ const s = this.st; if (!s || !l) return; try { this.emoApi && this.emoApi.stages.me && this.emoApi.stages.me.emote("talk"); } catch(e) {} s.line = {id: l.id, n: Date.now() % 1e9, ts: Date.now(), own: l.own && S.ownSnd && !this.ranked ? S.ownSnd.d : undefined}; this.publish();
     if (s.line.own) setTimeout(() => { if (this.st && this.st.line) delete this.st.line.own; }, 8000); },
   /* the lobby: before the first move both figures stand on the board, you can dance at each other.
      It goes away with the first move, or when you tap Play. */
@@ -12117,11 +12122,12 @@ function passClaim(t, prem){
 
 /* ---- the shop page ---- */
 const SHOP_CHESTS = [{id: "c1", name: "Chest", price: 300, floor: 0, n: 1}, {id: "c3", name: "Big Chest", price: 1000, floor: 2, n: 1, note: "Epic or better"}, {id: "c5", name: "Mega Chest", price: 3000, floor: 3, n: 1, note: "Mythic or better"}];
-function shopDaily(){ const seed = hashStr(todayKey() + "shop"); const pool = natItems().filter(i => i.kind !== "knife" && i.r !== "ultra" && !i.pass && !natHas(i.id));
+function shopDaily(){ const seed = hashStr(todayKey() + "shop"); const pool = natItems().filter(i => i.kind !== "knife" && i.r !== "ultra" && !i.pass);
+  /* the day's four are picked from everything, so buying one doesn't reshuffle the rest; owned ones are only hidden */
   const out = []; for (let k = 0; out.length < 4 && k < pool.length * 3; k++){ const it = pool[(seed + k * 7919) % pool.length]; if (it && !out.includes(it)) out.push(it); }
-  /* the deal of the day: the first one is 40 % off */
-  if (out[0]) out[0] = Object.assign({}, out[0], {deal: true, was: NAT_PRICE[out[0].r], price: Math.round(NAT_PRICE[out[0].r] * .6 / 10) * 10});
-  return out; }
+  /* the deal of the day: the first one is 40 % off (gone for today once bought) */
+  if (out[0]){ const was = out[0].price != null ? out[0].price : NAT_PRICE[out[0].r]; out[0] = Object.assign({}, out[0], {deal: true, was, price: Math.round(was * .6 / 10) * 10}); }
+  return out.filter(i => !natHas(i.id)); }
 Views.shop = {
   mount(main, arg){ this.main = main; this.tab = (arg && arg.tab) || this.tab || "shop"; this.draw(); },
   unmount(){},
@@ -12152,7 +12158,7 @@ Views.shop = {
     const o = $("[data-open]", body); if (o) o.onclick = () => chestOpen();
     $$("[data-prac]", body).forEach(x => x.onclick = () => { const k = +x.dataset.prac; chestOpen(k < 0 ? {practice: true} : {practice: true, force: k}); });
     $$("[data-buyc]", body).forEach(x => x.onclick = () => this.buyChest(SHOP_CHESTS.find(c => c.id === x.dataset.buyc), x));
-    $$("[data-buy]", body).forEach(x => x.onclick = () => this.buyItem(shopDaily().find(i => i.id === x.dataset.buy) || natItem(x.dataset.buy), x));
+    $$("[data-buy]", body).forEach(x => x.onclick = () => this.buyItem((x.dataset.deal != null && shopDaily().find(i => i.id === x.dataset.buy && i.deal)) || natItem(x.dataset.buy), x));
     $$("[data-eq]", body).forEach(x => x.onclick = () => { natEquip(natItem(x.dataset.eq)); this.draw(); });
     $$("[data-kn]", body).forEach(x => x.onclick = () => knifeInspect(natItem(x.dataset.kn)));
     $$("[data-play]", body).forEach(x => x.onclick = () => { if (LINE_BY[x.dataset.play]){ LineVoice.say(LINE_BY[x.dataset.play]); return; } const s = NAT_SONGS.find(y => y.id === x.dataset.play); NatMusic.preview(s); toast(`♪ ${s.name} (8 seconds)`); });
@@ -12178,7 +12184,7 @@ Views.shop = {
     natGive(it.id); Sound.cheer(3); toast(`${it.name} is yours!`); natEquip(it); this.draw(); },
   card(i, buy){ const R = NAT_R[NAT_RI[i.r]], own = natHas(i.id) || i.id === "classic", price = i.price != null ? i.price : NAT_PRICE[i.r];
     return `<div class="unit shop-i r-${i.r}" style="--rc:${R ? R.c : "#888"}"><div class="si-pic">${natPreview(i, 64)}</div><small style="color:${R ? R.c : ""};font-weight:800">${R ? R.n : "Free"}</small><b>${esc(i.name)}</b>
-      ${i.deal ? `<span class="deal">-40 %</span>` : ""}${own ? `<button class="btn ${this.isOn(i) ? "" : "go"}" data-eq="${i.id}" ${this.isOn(i) ? "disabled" : ""}>${this.isOn(i) ? "In use ✓" : "Use"}</button>` : buy && price ? `<button class="btn go" data-buy="${i.id}">${i.was ? `<s>${fmtNat(i.was)}</s> ` : ""}${NAT_COIN} ${fmtNat(price)}</button>` : `<span class="pill">Chest only</span>`}</div>`; },
+      ${i.deal ? `<span class="deal">-40 %</span>` : ""}${own ? `<button class="btn ${this.isOn(i) ? "" : "go"}" data-eq="${i.id}" ${this.isOn(i) ? "disabled" : ""}>${this.isOn(i) ? "In use ✓" : "Use"}</button>` : buy && price ? `<button class="btn go" data-buy="${i.id}"${i.deal ? " data-deal" : ""}>${i.was ? `<s>${fmtNat(i.was)}</s> ` : ""}${NAT_COIN} ${fmtNat(price)}</button>` : `<span class="pill">Chest only</span>`}</div>`; },
   isOn(i){ return i.kind === "board" ? (S.settings.board || "classic") === i.id : i.kind === "song" ? S.settings.song === i.id && S.settings.music !== false : i.kind === "skin" ? myAvatar()[i.key] === i.id && myAvatar().shape === i.shape : i.kind === "knife" ? S.knife === i.id : i.kind === "pieces" ? S.settings.pset === i.id : i.kind === "glow" ? S.settings.glow === i.id : false; },
   coll(){
     const all = natItems(), own = all.filter(i => natHas(i.id)).length;
@@ -12268,12 +12274,14 @@ const LineVoice = (() => {
   try { load(); speechSynthesis.onvoiceschanged = load; } catch(e) {}
   const pick = () => voices.find(v => /^de(-|_|$)/i.test(v.lang) && /Anna|Petra|Helena|Google/i.test(v.name)) || voices.find(v => /^de/i.test(v.lang)) || null;
   let audio = null; const REAL = {};
+  /* a recorded sound is only ever a short inline recording, never a link to somewhere else */
+  const ownOk = s => typeof s === "string" && s.length <= 92000 && /^data:audio\/[a-z0-9.+-]+(;[a-z0-9=.+-]+)*;base64,/i.test(s);
   function say(line, own){
     if (!line) return;
     try { if (audio){ audio.pause(); audio = null; } } catch(e) {}
     /* your own sound: a short recording (sent along with the line) */
-    if (line.own){ const src = own || (S.ownSnd && S.ownSnd.d); if (src){ try { audio = new Audio(src); audio.play().catch(() => {}); } catch(e) {} } return; }
     if (S.settings.sound === false) return;
+    if (line.own){ const src = own !== undefined ? own : (S.ownSnd && S.ownSnd.d);   /* someone else's line never plays my own sound */ if (ownOk(src)){ try { audio = new Audio(src); audio.play().catch(() => {}); } catch(e) {} } return; }
     /* first the real recording the team made for this line (if there is one), else the voice file shipped with the app, else the phone's own voice */
     const bundled = () => { try { const au = new Audio("/sounds/lines/" + line.id + ".mp3"); au.setAttribute("playsinline", ""); audio = au;
       au.play().catch(e => { if (!e || e.name !== "NotAllowedError") synth(line); }); au.onerror = () => synth(line); } catch(e){ synth(line); } };
@@ -12288,7 +12296,7 @@ const LineVoice = (() => {
     try {
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(line.t), V = LINE_VOICE[line.v] || {}, v = pick();
-      u.lang = "de-DE"; if (v) u.voice = v; u.pitch = 1; u.rate = 1; u.volume = 1;
+      u.lang = "de-DE"; if (v) u.voice = v; u.pitch = V.pitch || 1; u.rate = V.rate || 1; u.volume = 1;
       speechSynthesis.speak(u);
     } catch(e) {}
   }
@@ -12334,12 +12342,16 @@ function ownSoundSheet(){
     <div class="row" style="justify-content:center;gap:8px;margin-top:10px"><button class="btn" id="osplay" ${S.ownSnd ? "" : "disabled"}>▶ Listen</button><button class="btn" id="osdel" ${S.ownSnd ? "" : "disabled"}>${icon("trash", 16)} Delete</button></div>
     <p class="dim" id="osmsg" style="margin:8px 0 0;font-size:13px"></p></div>`);
   const root = sh.el, rec = root.querySelector("#osrec"), msg = root.querySelector("#osmsg");
-  let mr = null, chunks = [], t0 = 0, stream = null, stopT = 0;
-  const stop = () => { clearTimeout(stopT); if (mr && mr.state !== "inactive") try { mr.stop(); } catch(e) {} };
-  rec.addEventListener("pointerdown", async e => { e.preventDefault(); if (mr) return;
-    try { stream = await (typeof VoiceChat !== "undefined" ? VoiceChat.mic() : navigator.mediaDevices.getUserMedia({audio: true})); } catch(err){ msg.textContent = I18N.t("No microphone access."); return; }
+  let mr = null, chunks = [], t0 = 0, stream = null, stopT = 0, busy = false, held = false;
+  const kill = st => { try { st && st.getTracks().forEach(t => t.stop()); } catch(e) {} };
+  const stop = () => { held = false; clearTimeout(stopT); if (mr && mr.state !== "inactive") try { mr.stop(); } catch(e) {} };
+  rec.addEventListener("pointerdown", async e => { e.preventDefault(); held = true; if (mr || busy) return; busy = true;
+    try { stream = await (typeof VoiceChat !== "undefined" ? VoiceChat.mic() : navigator.mediaDevices.getUserMedia({audio: true})); } catch(err){ busy = false; msg.textContent = I18N.t("No microphone access."); return; }
+    busy = false;
+    /* let go while the microphone was still being asked for: don't record */
+    if (!held || !sh.el.isConnected){ kill(stream); msg.textContent = I18N.t("Hold the button a little longer."); return; }
     const type = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm"].find(t => window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || "";
-    try { mr = new MediaRecorder(stream, type ? {mimeType: type, audioBitsPerSecond: 24000} : undefined); } catch(err){ msg.textContent = I18N.t("Recording isn't supported here."); return; }
+    try { mr = new MediaRecorder(stream, type ? {mimeType: type, audioBitsPerSecond: 24000} : undefined); } catch(err){ kill(stream); mr = null; msg.textContent = I18N.t("Recording isn't supported here."); return; }
     chunks = []; t0 = Date.now(); rec.textContent = I18N.t("Recording… let go to stop"); rec.classList.add("bad");
     mr.ondataavailable = ev => { if (ev.data && ev.data.size) chunks.push(ev.data); };
     mr.onstop = () => { try { stream.getTracks().forEach(t => t.stop()); } catch(err) {} rec.classList.remove("bad"); rec.textContent = "● " + I18N.t("Hold to record"); const ms = Date.now() - t0; mr = null;
@@ -12360,10 +12372,12 @@ const LineBtn = (() => {
     const r = typeof App !== "undefined" ? App.route : "";
     if (r === "friend" && Views.friend && Views.friend.st && Views.friend.st.seat && Views.friend.st.seat !== "spec") return "friend";
     if (r === "bots" && Views.bots && Views.bots.G) return "bots";
+    if (r === "duel" && Views.duel && Views.duel.room) return "duel";
     return null; };
   function send(line){
     const w = where(); lineBubble("#botbar", line); try { dayTick("line"); } catch(e) {}
     if (w === "friend") Views.friend.line(line);
+    if (w === "duel") Views.duel.line(line);
     if (w === "bots" && Math.random() < .5){ const free = NAT_LINES.filter(l => !l.own && (l.r === "free" || l.r === "rare" || l.r === "super")), b = free[Math.floor(Math.random() * free.length)];
       setTimeout(() => { if (where() === "bots") lineBubble("#topbar", Object.assign({}, b, {v: b.v === "kid" ? "deep" : b.v})); }, 1900 + Math.random() * 1200); }
   }
@@ -12524,7 +12538,7 @@ function siteBanner(){
    allow notifications, microphone, camera and sound in one go, pick the player ID, short welcome. Every screen has a way on. */
 const Onboard = (() => {
   const KEY = "chessnat-onb", get = () => { try { return localStorage.getItem(KEY) || ""; } catch(e) { return ""; } }, mark = v => { try { localStorage.setItem(KEY, v); } catch(e) {} };
-  let el = null, step = null, pending = null, poll = null;
+  let el = null, step = null, pending = null, poll = null, visHook = null, pollWait = 0;
   const isIOS = () => !!(window.ChessApp && window.ChessApp.isIOS), ua = navigator.userAgent, isAndroid = /Android/i.test(ua), mobile = isIOS() || isAndroid;
   const safari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA\/|FBAN|FBAV|Instagram|Line\//.test(ua);
   const active = () => !!el || ["tour", "app", "perm"].includes(get());
@@ -12655,14 +12669,17 @@ const Onboard = (() => {
       $("#onskip", card).onclick = () => { mark("done"); close(); release(); };
     } else if (s === "verify"){
       const site = window.ChessSite;
-      const tryIn = async manual => { if (!pending || step !== "verify") return; const r = await site.signIn(pending.em, pending.pw);
+      const tryIn = async manual => { if (!pending || step !== "verify") return; if (!manual && Date.now() < pollWait) return; const r = await site.signIn(pending.em, pending.pw);
         if (!r.error){ mark(afterIn()); clearInterval(poll); return; }   /* signed in: the page reloads by itself */
+        /* too many tries: wait a minute before checking again by itself */
+        if (r.error.status === 429 || /rate limit|too many/i.test(r.error.message || "")){ pollWait = Date.now() + 60000; if (manual) toast("Too many tries. Wait a minute, then tap again.", 3500); return; }
         if (manual) toast(r.error.message === "Email not confirmed" ? "Not confirmed yet. Tap the link in the email first." : authErrTxt(r.error.message), 3000); };
       $("#onchk", card).onclick = () => tryIn(true);
       $("#onres", card).onclick = async () => { const r = await site.resend(pending.em); toast(r.error ? authErrTxt(r.error.message) : "Sent again ✓", r.error ? 4500 : 2200); };
       $("#onchg", card).onclick = () => { pending = null; show("account"); };
-      clearInterval(poll); poll = setInterval(() => { if (!document.hidden) tryIn(false); }, 5000);
-      document.addEventListener("visibilitychange", () => { if (!document.hidden && step === "verify") tryIn(false); });
+      clearInterval(poll); poll = setInterval(() => { if (!document.hidden) tryIn(false); }, 15000);
+      if (visHook) document.removeEventListener("visibilitychange", visHook);
+      visHook = () => { if (!document.hidden && step === "verify") tryIn(false); }; document.addEventListener("visibilitychange", visHook);
     } else if (s === "install"){
       demo($("#ondemo", card), flavour());
       const b = $("#oninst", card); if (b) b.onclick = async () => { await window.ChessInstall.run(); };
