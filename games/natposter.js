@@ -344,8 +344,23 @@
         if (v.phase === "play" && f.by !== PNet.me && f.t !== PNet.me && v.alive && dist(this.me, f) < R0){ this.splash = {x: f.x, y: f.y, t: now(), p: Array.from({length: 14}, () => ({a: Math.random() * 7, v: 60 + Math.random() * 140, r: 3 + Math.random() * 6}))};
           const x = this.sfx; x.tone(0, 900, 300, .5, .09, "sawtooth"); x.noise(0, .3, 1500, 300, .12, "bandpass"); Haptic.go([40, 30, 80]); } }
       if (v.snd && v.snd.k !== this.sndK){ this.sndK = v.snd.k; this.sound(v.snd.n); }
+      /* the sabotage alarm keeps going while reactor or oxygen run down, the power comes back with a rising hum */
+      { const crit = v.phase === "play" && v.sab && (v.sab.type === "reactor" || v.sab.type === "o2"); if (crit && !this.klx){ this.klx = setInterval(() => { if (!this.el || !this.v || !this.v.sab || this.v.phase !== "play") { clearInterval(this.klx); this.klx = 0; return; } this.sound("klaxon"); }, 1100); } if (!crit && this.klx){ clearInterval(this.klx); this.klx = 0; }
+        const sb = v.sab ? v.sab.type : null; if (this.sabWas && !sb && v.phase === "play") this.sound("power"); this.sabWas = sb; }
+      /* the imposter hears when the knife is ready again */
+      if (v.imp && v.alive && v.phase === "play"){ const kr = this.left("kill") <= 0; if (kr && this.killWas === false) this.sound("ready"); this.killWas = kr; } else this.killWas = null;
+      /* votes land one after the other when the meeting ends */
+      if (v.phase === "eject" && v.eject && this.stampK !== Math.round((this.ejectT || 0) / 2000)){ this.stampK = Math.round((this.ejectT || 0) / 2000); const n = Object.keys(v.eject.votes || {}).length; for (let i = 0; i < Math.min(n, 15); i++) setTimeout(() => this.sound("stamp"), 150 + i * 140); }
       this.hud();
     },
+    /* the turn into landscape (and back out): the game lies small and upright first, then turns and grows to fill the screen */
+    turnKF(){ const el = this.el, IW = innerWidth, IH = innerHeight, dx = IW / 2 - IH / 2, dy = IH / 2 - IW / 2, k = Math.min(IW / IH, IH / IW);
+      return [{transform: `translate(${dx}px,${dy}px) rotate(0deg) scale(${k})`, transformOrigin: "50% 50%", boxShadow: "0 0 0 200vmax rgba(7,8,12,.0)", borderRadius: "18px"}, {transform: `translate(${dx}px,${dy}px) rotate(90deg) scale(1)`, transformOrigin: "50% 50%", boxShadow: "0 0 0 200vmax #07080c", borderRadius: "0px"}]; },
+    turnIn(){ const el = this.el; if (!el || !el.animate || matchMedia("(prefers-reduced-motion: reduce)").matches) return; try {
+        if (this.rot) el.animate(this.turnKF(), {duration: 520, easing: "cubic-bezier(.3,.9,.25,1)"});
+        else el.animate([{opacity: 0, transform: "scale(.94)"}, {opacity: 1, transform: "scale(1)"}], {duration: 320, easing: "ease-out"}); } catch(e) {} },
+    turnOut(cb){ const el = this.el; if (!el || !el.animate || !this.rot) return cb(); let done = false; const go = () => { if (!done){ done = true; cb(); } };
+      try { const a = el.animate(this.turnKF().reverse(), {duration: 420, easing: "cubic-bezier(.5,0,.75,.1)", fill: "forwards"}); a.onfinish = go; setTimeout(go, 520); } catch(e) { go(); } },
     full(){ if (PG.st.npNoFull) return; const d = document.documentElement; try { if (document.fullscreenElement || document.webkitFullscreenElement) return;
         const go = d.requestFullscreen ? d.requestFullscreen({navigationUI: "hide"}) : d.webkitRequestFullscreen ? d.webkitRequestFullscreen() : null;
         if (go && go.then) go.then(() => { try { screen.orientation && screen.orientation.lock && screen.orientation.lock("landscape").catch(() => {}); } catch(e) {} }).catch(() => {}); } catch(e) {} },
@@ -394,7 +409,20 @@
       else if (n === "light" || n === "fixed"){ x.chord(0, [72, 76, 79], .6, .07, "triangle"); }
       else if (n === "cheer"){ PG.cheer(4); x.chord(0, [60, 64, 67, 72], 1.8, .06, "triangle"); } else if (n === "lose"){ x.chord(0, [48, 51, 55], 2.2, .07, "sawtooth"); x.tone(0, 110, 40, 2, .15); }
       else if (n === "reveal"){ this.roleSound(this.v && this.v.imp); }
-      else if (n === "task"){ Sound.xp ? Sound.xp() : Sound.right(); } },
+      else if (n === "task"){ [0, .075, .15].forEach((t, i) => { const f = [1319, 1661, 1976][i]; x.tone(t, f, f, .22 + i * .08, .07, "triangle"); x.tone(t, f * 2, f * 2, .12, .02, "sine"); }); x.noise(.15, .35, 6000, 9000, .025, "highpass"); Haptic.go([12, 30, 12]);
+        if (this.v && this.v.tasks && this.v.tasks.length && this.v.tasks.every(q => q[1])) setTimeout(() => { x.chord(0, [76, 80, 83, 88], 1.1, .05, "triangle"); x.chord(.12, [88, 92, 95], .9, .025, "sine"); Haptic.go([20, 40, 20, 40, 60]); }, 420); }
+      else if (n === "open"){ x.noise(0, .14, 700, 2600, .05, "bandpass", .9); x.tone(.06, 520, 780, .09, .05, "triangle"); }
+      else if (n === "close"){ x.noise(0, .12, 2400, 600, .04, "bandpass", .9); x.tone(0, 700, 420, .08, .04, "triangle"); }
+      else if (n === "click"){ x.tone(0, 1450, 1200, .035, .05, "square"); }
+      else if (n === "vent"){ x.tone(0, 190, 80, .16, .12, "square"); x.noise(0, .22, 1200, 200, .18, "lowpass"); x.noise(.08, .32, 3000, 700, .06, "bandpass", .7); Haptic.go([30, 20, 30]); }
+      else if (n === "sabgo"){ x.tone(0, 300, 90, .35, .12, "sawtooth"); x.noise(0, .25, 2000, 300, .08, "bandpass"); Haptic.go(40); }
+      else if (n === "klaxon"){ x.tone(0, 560, 560, .45, .045, "sawtooth"); x.tone(.5, 420, 420, .45, .045, "sawtooth"); }
+      else if (n === "power"){ x.tone(0, 120, 900, .45, .08, "sawtooth"); x.chord(.35, [72, 76, 79, 84], .7, .05, "triangle"); Haptic.go([20, 30, 40]); }
+      else if (n === "ready"){ x.tone(0, 2400, 4200, .14, .05, "sine"); x.noise(0, .14, 7000, 4000, .05, "highpass"); }
+      else if (n === "votein"){ x.noise(0, .07, 2500, 800, .14, "bandpass"); x.tone(0, 240, 120, .1, .14, "square"); Haptic.go(20); }
+      else if (n === "stamp"){ x.noise(0, .08, 1400, 300, .16, "lowpass"); x.tone(0, 150, 90, .1, .12, "square"); }
+      else if (n === "beep"){ x.tone(0, 880, 880, .12, .06, "square"); }
+      else if (n === "go"){ x.tone(0, 1760, 1760, .35, .07, "square"); x.chord(.02, [76, 83, 88], .5, .03, "triangle"); } },
     mount(){
       this.stop(); const el = this.el = document.createElement("div"); el.className = "np"; el.setAttribute("data-notr", "");
       el.innerHTML = `<canvas class="np-cv"></canvas><div class="np-top"><button class="np-menu np-quit" data-x="quit">🚪</button><button class="np-menu np-mic" data-x="mic" hidden>🎙️</button><div class="np-bar"><i></i><span>${T("TASKS", "AUFGABEN")}</span></div><button class="np-menu np-emob" data-x="emo">😀</button><div class="np-emos"></div><button class="np-mapb" data-x="map">${icon("map", 20)}<span>${T("Map", "Karte")}</span></button></div>
@@ -413,7 +441,7 @@
           if (!rot) el.animate([{transform: `rotate(${th}deg) scale(.8)`, transformOrigin: "50% 50%", boxShadow: "0 0 0 200vmax #07080c"}, {transform: "rotate(0deg) scale(1)", transformOrigin: "50% 50%", boxShadow: "0 0 0 200vmax #07080c"}], {duration: 460, easing: "cubic-bezier(.2,.85,.25,1)"});
           else el.animate([{opacity: 0, filter: "blur(6px)"}, {opacity: 1, filter: "blur(0)"}], {duration: 380, easing: "ease-out"}); } catch(e) {} } el.classList.toggle("land", w > h); el.style.setProperty("--h", h + "px");
         { const I = this.insets(), m2 = rot ? {st: I.r, sb: I.l, sl: I.t, sr: I.b} : {st: I.t, sb: I.b, sl: I.l, sr: I.r}; Object.entries(m2).forEach(([k, val]) => el.style.setProperty("--" + k, val + "px")); } el.style.width = w + "px"; el.style.height = h + "px"; this.cv.width = w * d; this.cv.height = h * d; this.dpr = d; this.zoom = Math.max(.5, Math.min(1.2, Math.min(w, h) / 560)); };
-      this.rs(); window.addEventListener("resize", this.rs);
+      this.rs(); window.addEventListener("resize", this.rs); this.turnIn();
       /* joystick: touch anywhere on the left part of the screen */
       const joy = el.querySelector(".np-joy"), knob = joy.querySelector("i");
       const startJ = (x, y, pid) => { this.joy = {x0: x, y0: y, dx: 0, dy: 0, pid}; joy.style.left = x + "px"; joy.style.top = y + "px"; joy.classList.add("on"); knob.style.transform = "translate(-50%,-50%)"; };
@@ -501,7 +529,7 @@
       if (x === "mic"){ if (!PVoice.on){ this.vTried = 1; PVoice.start().then(ok => { if (!ok) toast(T("Microphone not allowed. Allow it in the settings.", "Mikrofon nicht erlaubt. Erlaube es in den Einstellungen."), 3500); this.hud(); }); return; }
         const mu = PVoice.toggleMute(); toast(mu ? T("You're muted", "Du bist stumm") : T("Mic on", "Mikro an"), 1200); this.hud(); return; }
       if (x === "quit" || x === "leave"){ Haptic.go(15); return this.openPanel("quit"); }
-      if (x === "qyes"){ Haptic.go([20, 40, 20]); this.closePanel(); setTimeout(() => { PNet.leave(); App.go("games"); }, 120); return; }
+      if (x === "qyes"){ Haptic.go([20, 40, 20]); this.closePanel(); this.turnOut(() => { PNet.leave(); App.go("games"); }); return; }
       if (x === "tolobby"){ if (PNet.P && PNet.P.solo) return; return this.act({a: "tolobby"}); }
       if (x === "map") { this.mapOpen = !this.mapOpen; this.hud(); return; }
       if (x === "kill" && t.kill && this.left("kill") <= 0) return this.act({a: "kill", v: t.kill.id});
@@ -511,19 +539,19 @@
       if (x === "use"){
         if (t.fix === "ra" || t.fix === "rb") return this.openMini("reactor", () => {}, {de: "Reaktor stabilisieren", en: "Stabilise reactor", key: t.fix});
         if (t.fix) return this.openMini(FIX[t.fix].g, () => this.act({a: "fix", v: t.fix}), {en: t.fix === "comms" ? "Restore comms" : t.fix === "lights" ? "Fix lights" : "Enter O2 code", de: t.fix === "comms" ? "Funk wiederherstellen" : t.fix === "lights" ? "Licht reparieren" : "O₂-Code eingeben"});
-        if (t.task) return this.openMini(t.task.g, () => { if (!v.imp){ this.act({a: "task", v: t.task.id}); this.sound("task"); } }, t.task);
+        if (t.task){ this.sound("open"); return this.openMini(t.task.g, () => { if (!v.imp){ this.act({a: "task", v: t.task.id}); this.sound("task"); } }, t.task); }
         if (t.cams) return this.openCams();
         if (t.admin) return this.openAdmin();
         if (t.vitals) return this.openVitals();
         if (t.button && v.emer > 0) return this.act({a: "button"});
         if (t.button) return toast(T("You've used your emergency meeting.", "Du hast dein Notfall-Meeting schon benutzt."));
       }
-      if (x === "vent"){ if (this.vent){ this.vent = null; this.send(true); Sound.play("Move", .7); } else if (t.vent && t.vent.id){ this.vent = t.vent.id; this.me.x = t.vent.x; this.me.y = t.vent.y; this.send(true); Sound.play("Capture", .5); } this.hud(); return; }
+      if (x === "vent"){ if (this.vent){ this.vent = null; this.send(true); this.sound("vent"); } else if (t.vent && t.vent.id){ this.vent = t.vent.id; this.me.x = t.vent.x; this.me.y = t.vent.y; this.send(true); Sound.play("Capture", .5); } this.hud(); return; }
       if (x === "vgo"){ const vt = VENTS.find(q => q.id === val); if (vt){ this.vent = vt.id; this.me.x = vt.x; this.me.y = vt.y; this.send(true); Sound.play("Move", .5); this.hud(); } return; }
       if (x === "sabrow"){ this.sabRow = !this.sabRow; this.hud(); return; }
       if (x === "sab"){ this.mapOpen = false; this.sabRow = false; this.act({a: "sab", v: val}); this.hud(); return; }
       if (x === "door"){ this.mapOpen = false; return this.act({a: "door", v: val}); }
-      if (x === "vote") return this.act({a: "vote", v: val});
+      if (x === "vote"){ this.sound("votein"); return this.act({a: "vote", v: val}); }
       if (x === "qc"){ this.qcMode = val || null; this.overlay(); return; }
       if (x === "say"){ this.qcMode = null; Haptic.go(8); this.act({a: "say", v: val}); this.overlay(); return; }
       if (x === "again") return this.act({a: "again"});
@@ -574,7 +602,7 @@
       if (lb._h !== lbH && !(this.quitN && now() - (this.quitT || 0) < 2500)){ lb._h = lbH; lb.innerHTML = lbH; }
       if (v.phase === "lobby"){ const hum = ((this.m && this.m.players) || []).filter(p => p.on), rdy = hum.filter(p => (POS[p.id] || {}).rdy || (p.id === PNet.me && this.ready)).length, enough = hum.length + (v.lob.fill || 0) >= v.lob.min, all = hum.length > 0 && rdy === hum.length && enough;
         if (all && !this.lcd) this.lcd = now() + 3000; if (!all) this.lcd = 0;
-        const tb2 = el.querySelector(".np-tbar"); if (this.lcd){ tb2.classList.add("on"); const l = Math.max(0, this.lcd - now()); tb2.firstChild.style.width = (l / 30) + "%"; tb2.lastChild.style.display = ""; tb2.lastChild.textContent = T(`Everyone is ready · ${Math.ceil(l / 1000)}`, `Alle bereit · ${Math.ceil(l / 1000)}`); if (l <= 0 && v.host && !this.lcdGo){ this.lcdGo = 1; setTimeout(() => { this.lcdGo = 0; }, 3000); this.act({a: "start"}); } } else tb2.classList.remove("on");
+        const tb2 = el.querySelector(".np-tbar"); if (this.lcd){ tb2.classList.add("on"); const l = Math.max(0, this.lcd - now()); tb2.firstChild.style.width = (l / 30) + "%"; tb2.lastChild.style.display = ""; tb2.lastChild.textContent = T(`Everyone is ready · ${Math.ceil(l / 1000)}`, `Alle bereit · ${Math.ceil(l / 1000)}`); { const sc = Math.ceil(l / 1000); if (sc !== this.lcdS){ this.lcdS = sc; this.sound(sc > 0 ? "beep" : "go"); } } if (l <= 0 && v.host && !this.lcdGo){ this.lcdGo = 1; setTimeout(() => { this.lcdGo = 0; }, 3000); this.act({a: "start"}); } } else tb2.classList.remove("on");
         const rb = el.querySelector('[data-x="ready"]'); if (rb){ rb.classList.toggle("go", !!this.ready); const sp = rb.querySelector(".np-cnt"); const tx = `${rdy}/${hum.length}`; if (sp && sp.textContent !== tx) sp.textContent = tx; } }
       const mb = el.querySelector(".np-mapb"), mbH = v.imp ? `<b>⚡</b><span>${this.left("sabCd") > 0 && !v.sab ? Math.ceil(this.left("sabCd") / 1000) + " s" : T("Sabotage", "Sabotage")}</span>` : `${icon("map", 20)}<span>${T("Map", "Karte")}</span>`; if (mb._h !== mbH){ mb._h = mbH; mb.innerHTML = mbH; mb.classList.toggle("imp", v.imp); }
       /* how long until something happens: a bar at the top */
@@ -1050,10 +1078,11 @@
       c.restore();
     },
     /* ---------------- minigames ---------------- */
-    closeMini(){ const bx = this.el && this.el.querySelector(".np-mini"); if (bx) bx.classList.remove("walk"); if (this.mini){ this.mini.stop && this.mini.stop(); this.mini = null; } const m = this.el && this.el.querySelector(".np-mini"); if (m){ m.innerHTML = ""; m.classList.remove("on"); } },
+    closeMini(){ const bx = this.el && this.el.querySelector(".np-mini"); if (bx) bx.classList.remove("walk"); if (this.mini && !this.mini.done && this.mini.g !== "vitals") this.sound("close"); if (this.mini){ this.mini.stop && this.mini.stop(); this.mini = null; } const m = this.el && this.el.querySelector(".np-mini"); if (m){ m.innerHTML = ""; m.classList.remove("on"); } },
     openMini(g, done, task){
-      this.closeMini(); const box = this.el.querySelector(".np-mini"), me = {stop: null, g}; this.mini = me; this.joy = null; if (g === "scan") this.send(true);
-      const finish = () => { Haptic.go([20, 30, 20]); box.querySelector(".np-mg").classList.add("ok"); setTimeout(() => { if (this.mini === me){ this.closeMini(); done(); } }, 450); };
+      this.closeMini(); const box = this.el.querySelector(".np-mini"), me = {stop: null, g}; this.mini = me; this.joy = null;
+      if (!box._clk){ box._clk = 1; box.addEventListener("pointerdown", e => { const b = e.target.closest("button,[data-w],[data-k],.np-wire,.np-sw,.np-key,i,span"); if (b && this.mini && this.mini.g !== "vitals" && !e.target.closest(".np-x,[data-c]")) this.sound("click"); }, true); } if (g === "scan") this.send(true);
+      const finish = () => { Haptic.go([20, 30, 20]); box.querySelector(".np-mg").classList.add("ok"); setTimeout(() => { if (this.mini === me){ me.done = 1; this.closeMini(); done(); } }, 450); };
       box.classList.add("on");
       box.innerHTML = `<div class="np-mg"><div class="np-mgh"><b>${esc(task ? T(task.en, task.de) : g === "hold" ? T("Hold the panel", "Platte halten") : T("Fix it", "Reparieren"))}</b><button class="np-x" data-c>×</button></div><div class="np-mgb"></div></div>`;
       box.querySelector("[data-c]").onclick = () => { Sound.tap(); this.closeMini(); };
