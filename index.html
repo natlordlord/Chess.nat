@@ -2786,7 +2786,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794287869";
+const CHESSNAT_BUILD = "1794305582";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11410,6 +11410,8 @@ function boot(){
   else if (h.startsWith("duel-") && h.length > 5) App.go("duel", {join: h.slice(5)});
   else App.go(Views[h] && h !== "lesson" ? h : "home");
   /* Android back: close what's open, otherwise go back one screen */
+  /* no edge swipes while a Natposter round fills the screen */
+  document.addEventListener("touchstart", e => { if (!document.documentElement.classList.contains("np-on")) return; const t = e.touches[0]; if (t && (t.clientX < 28 || t.clientX > innerWidth - 28)) e.preventDefault(); }, {passive: false});
   window.addEventListener("popstate", () => {
     /* in a running Natposter round a swipe or the back button never leaves the game */
     if (document.documentElement.classList.contains("np-on") && !document.querySelector(".dsheet:not(.out)")){ try { history.pushState({r: App.route}, "", "#" + App.route); } catch(e) {} try { toast(I18N.lang === "de" ? "Zum Verlassen: oben links 🚪 dreimal tippen" : "To leave: tap 🚪 top left three times"); } catch(e) {} return; }
@@ -11421,7 +11423,7 @@ function boot(){
     const want = location.hash.slice(1);
     if (App.stack.length){ App.back(); } else if (want && want !== App.route && Views[want]) App.go(want, undefined, true); else if (App.route !== "home") App.go("home", undefined, true);
   });
-  window.addEventListener("hashchange", () => { if (App._popping) return; const r = location.hash.slice(1); if (r !== App.route && Views[r] && r !== "lesson") App.go(r); if (r.startsWith("g-") && Views.friend && App.route !== "friend") App.go("friend", {join: r.slice(2)}); if (r.startsWith("m-")){ const p = parseLinkHash(r); const cur = App.route === "linkgame" && Views.linkgame.gid && p && p.gid === Views.linkgame.gid && p.moves.length === (Views.linkgame.rec.moves || []).length; if (!cur) App.go("linkgame", {hash: r}); } });
+  window.addEventListener("hashchange", () => { if (App._popping) return; if (document.documentElement.classList.contains("np-on")){ if (location.hash.slice(1) !== App.route) try { history.replaceState(history.state, "", "#" + App.route); } catch(e) {} return; } const r = location.hash.slice(1); if (r !== App.route && Views[r] && r !== "lesson") App.go(r); if (r.startsWith("g-") && Views.friend && App.route !== "friend") App.go("friend", {join: r.slice(2)}); if (r.startsWith("m-")){ const p = parseLinkHash(r); const cur = App.route === "linkgame" && Views.linkgame.gid && p && p.gid === Views.linkgame.gid && p.moves.length === (Views.linkgame.rec.moves || []).length; if (!cur) App.go("linkgame", {hash: r}); } });
   document.addEventListener("pointerdown", () => Sound.init(), {once: true});
 }
 
@@ -14286,15 +14288,15 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=25"></script>
-<script src="games/imposter.js?v=25"></script>
-<script src="games/werwolf.js?v=25"></script>
-<script src="games/cards.js?v=25"></script>
-<script src="games/heads.js?v=25"></script>
-<script src="games/more.js?v=25"></script>
-<script src="games/net.js?v=25"></script>
-<script src="games/online.js?v=25"></script>
-<script src="games/natposter.js?v=25"></script>
+<script src="games/core.js?v=26"></script>
+<script src="games/imposter.js?v=26"></script>
+<script src="games/werwolf.js?v=26"></script>
+<script src="games/cards.js?v=26"></script>
+<script src="games/heads.js?v=26"></script>
+<script src="games/more.js?v=26"></script>
+<script src="games/net.js?v=26"></script>
+<script src="games/online.js?v=26"></script>
+<script src="games/natposter.js?v=26"></script>
 <script>boot();</script>
 </body>
 </html>

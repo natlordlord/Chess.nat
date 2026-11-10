@@ -100,6 +100,7 @@
   /* positions of everyone, fed by "mv" messages and by this phone's own movement */
   const POS = {};
   PG.onMv = m => { if (m && m.t === "mvb" && Array.isArray(m.l)){ m.l.forEach(([id, x, y, f, g, mv, sc, v, em, ek]) => PG.onMv({id, x, y, f, g, m: mv, sc, v, em, ek})); return; } if (!m || !m.id) return; const p = POS[m.id] || (POS[m.id] = {x: m.x, y: m.y, dx: m.x, dy: m.y}); const x = +m.x || 0, y = +m.y || 0, t = now(); p.buf = p.buf || []; const last = p.buf[p.buf.length - 1]; if (last && Math.hypot(last.x - x, last.y - y) > 320) p.buf = []; p.buf.push({t, x, y}); if (p.buf.length > 8) p.buf.shift();
+    p.rdy = !!m.rd;
     if (m.ek != null && m.ek !== p.ek && m.em >= 0 && m.em < WEMO.length){ p.ek = m.ek; p.em = m.em; p.emT = t; }
     if (!!m.v !== !!p.v) p.vt = t; p.x = x; p.y = y; p.g = !!m.g; p.v = !!m.v; p.f = m.f || 1; p.t = t; p.mv = !!m.m; p.sc = !!m.sc; };
 
@@ -293,7 +294,8 @@
 
   /* ---------------- this phone: the screen, the joystick, the buttons ---------------- */
   const IMG = {}; const img = (key, src) => { if (IMG[key]) return IMG[key]; const i = new Image(); i.src = src; IMG[key] = i; return i; };
-  const avImg = (pid, av) => { const k = "av:" + pid + ":" + (av ? JSON.stringify(av).length : 0); if (IMG[k]) return IMG[k];
+  const fp = o => { const j = o ? JSON.stringify(o) : ""; let h = 5381; for (let i = 0; i < j.length; i++) h = (h * 33 ^ j.charCodeAt(i)) >>> 0; return h.toString(36); };
+  const avImg = (pid, av) => { const k = "av:" + pid + ":" + fp(av); if (IMG[k]) return IMG[k];
     let svg = ""; try { svg = avatarSVG(Object.assign({}, av || {}, {aura: "none", pet: "none"}), {fit: true}); } catch(e) {}
     svg = svg.replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" ').replace('width="100%" height="100%"', 'width="200" height="256"');
     return img(k, "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg)); };
@@ -312,7 +314,7 @@
       if (v.phase === "lobby" && this.v && this.v.phase !== "lobby") this.lobbyIn = 0;
       if (v.gid && v.gid !== this.gid){ this.gid = v.gid; this.shown = {}; this.deathT = {}; this.evShow = null; this.dblT = 0; }
       this.v = v; this.m = m; this.act = act; const t = now();
-      if (v.phase === "lobby" && !this.lobbyIn){ this.lobbyIn = 1; this.me.x = BTN.x - 160 + Math.random() * 320; this.me.y = BTN.y + 140 + Math.random() * 40; this.vent = null; this.closeMini(); this.send(true); }
+      if (v.phase === "lobby" && !this.lobbyIn){ this.lobbyIn = 1; this.ready = false; this.lcd = 0; this.me.x = BTN.x - 160 + Math.random() * 320; this.me.y = BTN.y + 140 + Math.random() * 40; this.vent = null; this.closeMini(); this.send(true); }
       this.ends = {kill: t + (v.kill || 0), meet: v.meet ? t + v.meet.left : 0, sab: v.sab && v.sab.left ? t + v.sab.left : 0, sabCd: t + (v.sabCd || 0)};
       CLOSED = Object.keys(v.doors || {}).flatMap(k => DOORS[k] || []); this.ends.doorCd = t + (v.doorCd || 0); if (v.eject) this.ejectT = t - (v.eject.shown || 0);
       if (v.round !== this.introRound){ this.introRound = v.round; this.introEnd = t + (v.intro || 0); }
@@ -331,8 +333,9 @@
     full(){ if (PG.st.npNoFull) return; const d = document.documentElement; try { if (document.fullscreenElement || document.webkitFullscreenElement) return;
         const go = d.requestFullscreen ? d.requestFullscreen({navigationUI: "hide"}) : d.webkitRequestFullscreen ? d.webkitRequestFullscreen() : null;
         if (go && go.then) go.then(() => { try { screen.orientation && screen.orientation.lock && screen.orientation.lock("landscape").catch(() => {}); } catch(e) {} }).catch(() => {}); } catch(e) {} },
+    insets(){ try { const d = document.createElement("div"); d.style.cssText = "position:fixed;top:0;left:0;visibility:hidden;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)"; document.body.appendChild(d); const cs = getComputedStyle(d), r = {t: parseFloat(cs.paddingTop) || 0, r: parseFloat(cs.paddingRight) || 0, b: parseFloat(cs.paddingBottom) || 0, l: parseFloat(cs.paddingLeft) || 0}; d.remove(); return r; } catch(e) { return {t: 0, r: 0, b: 0, l: 0}; } },
     /* only when the page really reaches under the status bar may the game be as tall as the screen */
-    sat(){ try { const d = document.createElement("div"); d.style.cssText = "position:fixed;top:0;left:0;width:1px;height:env(safe-area-inset-top,0px);height:max(env(safe-area-inset-top,0px),env(safe-area-inset-left,0px),env(safe-area-inset-right,0px));visibility:hidden"; document.body.appendChild(d); const h = d.offsetHeight; d.remove(); return h; } catch(e) { return 0; } },
+    sat(){ try { const d = document.createElement("div"); d.style.cssText = "position:fixed;top:0;left:0;width:1px;height:var(--st,0px);height:max(var(--st,0px),var(--sl,0px),var(--sr,0px));visibility:hidden"; document.body.appendChild(d); const h = d.offsetHeight; d.remove(); return h; } catch(e) { return 0; } },
     unfull(){ try { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); else if (document.webkitFullscreenElement && document.webkitExitFullscreen) document.webkitExitFullscreen(); } catch(e) {} },
     stop(){ PVoice.stop(); this.vTried = 0; cancelAnimationFrame(this.raf); this.raf = 0; if (this.el){ this.el.remove(); this.unfull(); } this.el = null; this.fullTried = 0; if (this.pop) window.removeEventListener("popstate", this.pop, true); document.documentElement.classList.remove("np-on"); window.removeEventListener("keydown", this.kd); window.removeEventListener("keyup", this.ku); window.removeEventListener("resize", this.rs); },
     /* synth sounds, all through the app's sound engine (respects the sound switch) */
@@ -379,25 +382,27 @@
     mount(){
       this.stop(); const el = this.el = document.createElement("div"); el.className = "np"; el.setAttribute("data-notr", "");
       el.innerHTML = `<canvas class="np-cv"></canvas><div class="np-top"><button class="np-menu np-quit" data-x="quit">🚪</button><button class="np-menu np-mic" data-x="mic" hidden>🎙️</button><div class="np-bar"><i></i><span>${T("TASKS", "AUFGABEN")}</span></div><button class="np-menu np-emob" data-x="emo">😀</button><div class="np-emos"></div><button class="np-mapb" data-x="map">${icon("map", 20)}<span>${T("Map", "Karte")}</span></button></div>
-        <div class="np-tasks"></div><div class="np-alert"></div><div class="np-ev"></div><div class="np-lob"></div><div class="np-tbar"><i></i><span></span></div><div class="np-joy"><i></i></div><div class="np-btns"></div><div class="np-ov"></div><div class="np-mini"></div>`;
+        <div class="np-panel"></div><div class="np-tasks"></div><div class="np-alert"></div><div class="np-ev"></div><div class="np-lob"></div><div class="np-tbar"><i></i><span></span></div><div class="np-joy"><i></i></div><div class="np-btns"></div><div class="np-ov"></div><div class="np-mini"></div>`;
       document.body.appendChild(el); document.documentElement.classList.add("np-on"); this.full();
       this.pop = e => { if (!this.el || document.querySelector(".dsheet:not(.out)")) return; e.stopImmediatePropagation(); try { history.pushState({r: App.route}, "", "#" + App.route); } catch(_) {} toast(T("To leave: ☰ → Leave", "Zum Verlassen: ☰ → Verlassen")); };
 
       el.addEventListener("pointerdown", () => { if (!this.fullTried){ this.fullTried = 1; this.full(); }
         if (!this.audio){ try { const a = this.audio = new Audio(); a.setAttribute("playsinline", ""); a.preload = "auto"; a.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA="; a.play().then(() => a.pause()).catch(() => {}); } catch(e) {} } }, true);
-      el.querySelector(".np-ov").addEventListener("click", e => { if (this.mapOpen && !e.target.closest(".np-map")){ this.mapOpen = false; this.hud(); } });
+
       el.querySelector(".np-mini").addEventListener("click", e => { if (e.target.classList.contains("np-mini") && this.mini && this.mini.light){ Sound.tap(); this.closeMini(); } });
       this.cv = el.querySelector("canvas"); this.ctx = this.cv.getContext("2d");
-      this.rs = () => { const d = Math.min(2, window.devicePixelRatio || 1), up = innerHeight > innerWidth, sat = this.sat(), big = navigator.standalone && sat > 0, IH = Math.max(innerHeight, big && up ? screen.height : 0), IW = Math.max(innerWidth, big && !up ? screen.height : 0), rot = PG.st.npPortrait ? false : up, w = rot ? IH : IW, h = rot ? IW : IH; this.rot = rot; el.classList.toggle("rot", rot); el.classList.toggle("land", w > h); el.style.setProperty("--h", h + "px"); el.style.width = w + "px"; el.style.height = h + "px"; this.cv.width = w * d; this.cv.height = h * d; this.dpr = d; this.zoom = Math.max(.5, Math.min(1.2, Math.min(w, h) / 560)); };
+      this.rs = () => { const d = Math.min(2, window.devicePixelRatio || 1), up = innerHeight > innerWidth, sat = this.sat(), big = navigator.standalone && sat > 0, IH = Math.max(innerHeight, big && up ? screen.height : 0), IW = Math.max(innerWidth, big && !up ? screen.height : 0), rot = PG.st.npPortrait ? false : up, w = rot ? IH : IW, h = rot ? IW : IH; this.rot = rot; el.classList.toggle("rot", rot); el.classList.toggle("land", w > h); el.style.setProperty("--h", h + "px");
+        { const I = this.insets(), m2 = rot ? {st: I.r, sb: I.l, sl: I.t, sr: I.b} : {st: I.t, sb: I.b, sl: I.l, sr: I.r}; Object.entries(m2).forEach(([k, val]) => el.style.setProperty("--" + k, val + "px")); } el.style.width = w + "px"; el.style.height = h + "px"; this.cv.width = w * d; this.cv.height = h * d; this.dpr = d; this.zoom = Math.max(.5, Math.min(1.2, Math.min(w, h) / 560)); };
       this.rs(); window.addEventListener("resize", this.rs);
       /* joystick: touch anywhere on the left part of the screen */
       const joy = el.querySelector(".np-joy"), knob = joy.querySelector("i");
       const startJ = (x, y, pid) => { this.joy = {x0: x, y0: y, dx: 0, dy: 0, pid}; joy.style.left = x + "px"; joy.style.top = y + "px"; joy.classList.add("on"); knob.style.transform = "translate(-50%,-50%)"; };
       const moveJ = (x, y) => { const j = this.joy; if (!j) return; let dx = x - j.x0, dy = y - j.y0; const d = Math.hypot(dx, dy), m = 56; if (d > m){ dx *= m / d; dy *= m / d; } j.dx = dx / m; j.dy = dy / m; knob.style.transform = `translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`; };
       const endJ = () => { this.joy = null; joy.classList.remove("on"); };
-      this.cv.addEventListener("pointerdown", e => { if (this.mini || this.v && this.v.phase !== "play" && this.v.phase !== "lobby") return; e.preventDefault(); const l = LOC(e); startJ(l.x, l.y, e.pointerId); try { this.cv.setPointerCapture(e.pointerId); } catch(_) {} });
+      this.cv.addEventListener("pointerdown", e => { if ((this.mini && !this.mini.walk) || this.v && this.v.phase !== "play" && this.v.phase !== "lobby") return; e.preventDefault(); const l = LOC(e); this.tap0 = {x: l.x, y: l.y, t: now()}; startJ(l.x, l.y, e.pointerId); try { this.cv.setPointerCapture(e.pointerId); } catch(_) {} });
       this.cv.addEventListener("pointermove", e => { if (this.joy && e.pointerId === this.joy.pid){ const l = LOC(e); moveJ(l.x, l.y); } });
-      ["pointerup", "pointercancel"].forEach(t => this.cv.addEventListener(t, e => { if (this.joy && e.pointerId === this.joy.pid) endJ(); }));
+      ["pointerup", "pointercancel"].forEach(t => this.cv.addEventListener(t, e => { if (this.joy && e.pointerId === this.joy.pid) endJ();
+        if (t === "pointerup" && this.tap0 && now() - this.tap0.t < 280){ const l = LOC(e); if (Math.hypot(l.x - this.tap0.x, l.y - this.tap0.y) < 14){ if (this.mapOpen){ this.mapOpen = false; this.hud(); } else if (this.mini && this.mini.walk) this.closeMini(); } } this.tap0 = null; }));
       this.kd = e => { if (/^(Arrow|Key[WASD])/.test(e.code)){ this.keys[e.code] = 1; e.preventDefault(); } if (e.code === "KeyE" || e.code === "Space") { const b = this.el && this.el.querySelector(".np-act.main"); if (b) b.click(); } if (e.code === "KeyQ"){ const b = this.el && this.el.querySelector('[data-x="kill"]'); if (b) b.click(); } };
       this.ku = e => { delete this.keys[e.code]; };
       window.addEventListener("keydown", this.kd); window.addEventListener("keyup", this.ku);
@@ -418,7 +423,7 @@
     step(dt){
       const v = this.v; if (!v) return;
       let ix = 0, iy = 0;
-      if ((v.phase === "play" || v.phase === "lobby") && !this.mini && !this.vent && !this.intro()){
+      if ((v.phase === "play" || v.phase === "lobby") && (!this.mini || this.mini.walk) && !this.vent && !this.intro() && !this.panel){
         if (this.joy){ ix = this.joy.dx; iy = this.joy.dy; }
         const k = this.keys; if (k.ArrowLeft || k.KeyA) ix -= 1; if (k.ArrowRight || k.KeyD) ix += 1; if (k.ArrowUp || k.KeyW) iy -= 1; if (k.ArrowDown || k.KeyS) iy += 1;
         const m = Math.hypot(ix, iy); if (m > 1){ ix /= m; iy /= m; }
@@ -447,12 +452,12 @@
         if (rt >= c.t){ /* nothing newer yet: keep going a little in the same direction, then stop */ const pr = b[b.length - 2]; const k = pr && c.t - pr.t > 0 ? Math.min(rt - c.t, 150) / (c.t - pr.t) : 0; p.dx = c.x + (pr ? (c.x - pr.x) * k : 0); p.dy = c.y + (pr ? (c.y - pr.y) * k : 0); return; }
         const f = (rt - a.t) / Math.max(1, c.t - a.t); p.dx = a.x + (c.x - a.x) * f; p.dy = a.y + (c.y - a.y) * f;
         p.mv = Math.hypot(c.x - a.x, c.y - a.y) > 2; });
-      { const q0 = POS[PNet.me]; if (q0 && !!q0.v !== !!this.vent) q0.vt = now(); }
+      { const q0 = POS[PNet.me]; if (q0 && !!q0.v !== !!this.vent) q0.vt = now(); if (q0) q0.rdy = !!(v.phase === "lobby" && this.ready); }
       POS[PNet.me] = Object.assign(POS[PNet.me] || {}, {x: me.x, y: me.y, dx: me.x, dy: me.y, g: this.ghost(), v: !!this.vent, f: me.f, mv: moving, sc: !!(this.mini && this.mini.g === "scan")});
       if (now() - (this.hudT || 0) > 250){ this.hudT = now(); this.hud(); }
     },
-    send(force){ const me = this.me, t = now(), l = this.lastSend, sc = !!(this.mini && this.mini.g === "scan"), emo = this.emo && now() - this.emo.t < 2600 ? this.emo : null, ch = (emo && emo.k !== l.ek) || Math.abs(me.x - (l.x || 0)) + Math.abs(me.y - (l.y || 0)) > 2 || !!this.vent !== !!l.v || this.ghost() !== !!l.g || sc !== !!l.sc;
-      if (force || (ch && t - this.sent > 190) || t - this.sent > 1500){ this.sent = t; this.lastSend = {x: me.x, y: me.y, v: !!this.vent, g: this.ghost(), sc, ek: emo ? emo.k : l.ek}; PNet.raw(Object.assign({t: "mv", x: Math.round(me.x), y: Math.round(me.y), f: me.f, g: this.ghost() ? 1 : 0, v: this.vent ? 1 : 0, m: me.mv ? 1 : 0, sc: sc ? 1 : 0}, emo ? {em: emo.i, ek: emo.k} : {})); } },
+    send(force){ const me = this.me, t = now(), l = this.lastSend, rd = !!(this.v && this.v.phase === "lobby" && this.ready), sc = !!(this.mini && this.mini.g === "scan"), emo = this.emo && now() - this.emo.t < 2600 ? this.emo : null, ch = (emo && emo.k !== l.ek) || rd !== !!l.rd || Math.abs(me.x - (l.x || 0)) + Math.abs(me.y - (l.y || 0)) > 2 || !!this.vent !== !!l.v || this.ghost() !== !!l.g || sc !== !!l.sc;
+      if (force || (ch && t - this.sent > 190) || t - this.sent > 1500){ this.sent = t; this.lastSend = {x: me.x, y: me.y, v: !!this.vent, g: this.ghost(), sc, rd, ek: emo ? emo.k : l.ek}; PNet.raw(Object.assign({t: "mv", x: Math.round(me.x), y: Math.round(me.y), f: me.f, g: this.ghost() ? 1 : 0, v: this.vent ? 1 : 0, m: me.mv ? 1 : 0, sc: sc ? 1 : 0, rd: rd ? 1 : 0}, emo ? {em: emo.i, ek: emo.k} : {})); } },
     /* who/what is close enough for the buttons */
     targets(){
       const v = this.v, me = this.me, out = {}; if (!v || v.phase !== "play") return out;
@@ -496,13 +501,22 @@
       }
       if (x === "vent"){ if (this.vent){ this.vent = null; this.send(true); Sound.play("Move", .7); } else if (t.vent && t.vent.id){ this.vent = t.vent.id; this.me.x = t.vent.x; this.me.y = t.vent.y; this.send(true); Sound.play("Capture", .5); } this.hud(); return; }
       if (x === "vgo"){ const vt = VENTS.find(q => q.id === val); if (vt){ this.vent = vt.id; this.me.x = vt.x; this.me.y = vt.y; this.send(true); Sound.play("Move", .5); this.hud(); } return; }
-      if (x === "sab"){ this.mapOpen = false; return this.act({a: "sab", v: val}); }
+      if (x === "sabrow"){ this.sabRow = !this.sabRow; this.hud(); return; }
+      if (x === "sab"){ this.mapOpen = false; this.sabRow = false; this.act({a: "sab", v: val}); this.hud(); return; }
       if (x === "door"){ this.mapOpen = false; return this.act({a: "door", v: val}); }
       if (x === "vote") return this.act({a: "vote", v: val});
       if (x === "qc"){ this.qcMode = val || null; this.overlay(); return; }
       if (x === "say"){ this.qcMode = null; Haptic.go(8); this.act({a: "say", v: val}); this.overlay(); return; }
       if (x === "again") return this.act({a: "again"});
-      if (["start", "settings", "invite", "look"].includes(x)) return this.act({a: x});
+      if (x === "ready"){ this.ready = !this.ready; this.send(true); Haptic.go(this.ready ? [15, 30, 15] : 10); if (this.ready) this.sfx.chord(0, [67, 71, 74], .3, .05, "triangle"); this.hud(); return; }
+      if (x === "settings") return this.openPanel("set");
+      if (x === "look") return this.openPanel("look");
+      if (x === "pclose") return this.closePanel();
+      if (x === "popt"){ const [k, raw] = val.split("|"), o = (PG.online.natposter.opts || []).find(q => q.k === k); if (!o || !this.v.host) return; const c = o.c.find(q => String(q[0]) === raw); if (c){ PNet.setOpt(k, c[0]); setTimeout(() => this.panelDraw(), 80); } return; }
+      if (x === "pview"){ if (val === "rot"){ PG.st.npPortrait = !PG.st.npPortrait; PG.persist(); this.rs(); } else if (val === "full"){ PG.st.npNoFull = !PG.st.npNoFull; PG.persist(); PG.st.npNoFull ? this.unfull() : this.full(); } else if (val === "voice"){ PG.st.npNoVoice = !PG.st.npNoVoice; PG.persist(); } this.panelDraw(); return; }
+      if (x === "pslot"){ this.lookSlot = val; this.panelDraw(); return; }
+      if (x === "pitem"){ const [sl, id] = val.split("|"); try { S.avatar = Object.assign({}, S.avatar || {}, {[sl]: id}); save(); } catch(e) {} PNet.refresh(); Haptic.go(8); this.panelDraw(); return; }
+      if (["start", "invite"].includes(x)) return this.act({a: x});
       if (x === "lobby") return this.act({a: "lobby"});
     },
     menu(){
@@ -529,21 +543,25 @@
     /* ---- HUD: task bar, task list, buttons, overlays ---- */
     hud(){
       const v = this.v, el = this.el; if (!v || !el) return;
-      el.classList.toggle("mapon", !!this.mapOpen && v.phase === "play");
+      el.classList.toggle("mapon", !!this.mapOpen && v.phase === "play"); el.querySelector(".np-ov").classList.toggle("pass", !!this.mapOpen && v.phase === "play");
       { const mb2 = el.querySelector(".np-mic"); mb2.hidden = !this.vWant; const st = !PVoice.on ? "off" : PVoice.muted ? "muted" : PVoice.mic ? (PVoice.talking(PNet.me) ? "talk" : "live") : "quiet";
         const ic = st === "off" ? "🎙️" : st === "muted" || st === "quiet" ? "🔇" : "🎙️"; if (mb2.dataset.st !== st){ mb2.dataset.st = st; mb2.textContent = ic; } }
       el.classList.toggle("ghost", !v.alive); el.classList.toggle("imp", v.imp); el.classList.toggle("lob", v.phase === "lobby");
       const lb = el.querySelector(".np-lob"), lbH = v.phase === "lobby" ? `<div class="np-lobc"><b>${esc(v.lob.code.toUpperCase())}</b><span>${v.lob.n}${v.lob.fill ? ` + ${v.lob.fill} 🤖` : ""} / 15</span></div>
-        <button class="np-lb" data-x="invite">📨<span>${T("Invite", "Einladen")}</span></button><button class="np-lb" data-x="look">👕<span>${T("Look", "Aussehen")}</span></button><button class="np-lb" data-x="settings">⚙️<span>${T("Settings", "Einstellungen")}</span></button>${this.vWant ? `<button class="np-lb np-vlb ${PVoice.on ? (PVoice.muted ? "muted" : "live") : ""}" data-x="mic">${PVoice.on ? (PVoice.muted ? "🔇" : "🎙️") : "🎙️"}<span>${PVoice.on ? `${PVoice.peers().length + 1} ${T("in voice", "im Talk")}` : T("Voice", "Sprache")}</span></button>` : ""}<button class="np-lb" data-x="leave">🚪<span>${T("Leave", "Verlassen")}</span></button>
+        <button class="np-lb" data-x="invite">📨<span>${T("Invite", "Einladen")}</span></button><button class="np-lb" data-x="look">👕<span>${T("Look", "Aussehen")}</span></button><button class="np-lb" data-x="settings">⚙️<span>${T("Settings", "Einstellungen")}</span></button>${this.vWant ? `<button class="np-lb np-vlb ${PVoice.on ? (PVoice.muted ? "muted" : "live") : ""}" data-x="mic">${PVoice.on ? (PVoice.muted ? "🔇" : "🎙️") : "🎙️"}<span>${PVoice.on ? `${PVoice.peers().length + 1} ${T("in voice", "im Talk")}` : T("Voice", "Sprache")}</span></button>` : ""}<button class="np-lb" data-x="leave">🚪<span>${T("Leave", "Verlassen")}</span></button><button class="np-lb np-rdy" data-x="ready">✋<span>${T("Ready", "Bereit")}</span></button>
         ${v.host ? `<button class="np-lb go" data-x="start" ${v.lob.n + (v.lob.fill || 0) < v.lob.min ? "disabled" : ""}>▶<span>${v.lob.n + (v.lob.fill || 0) < v.lob.min ? T(`${v.lob.min} needed`, `${v.lob.min} nötig`) : T("Start", "Start")}</span></button>` : `<span class="np-wait">${T("Waiting for the host…", "Warte auf den Gastgeber…")}</span>`}` : "";
       if (lb._h !== lbH && !(this.quitN && now() - (this.quitT || 0) < 2500)){ lb._h = lbH; lb.innerHTML = lbH; }
+      if (v.phase === "lobby"){ const hum = ((this.m && this.m.players) || []).filter(p => p.on), rdy = hum.filter(p => (POS[p.id] || {}).rdy || (p.id === PNet.me && this.ready)).length, enough = hum.length + (v.lob.fill || 0) >= v.lob.min, all = hum.length > 0 && rdy === hum.length && enough;
+        if (all && !this.lcd) this.lcd = now() + 3000; if (!all) this.lcd = 0;
+        const tb2 = el.querySelector(".np-tbar"); if (this.lcd){ tb2.classList.add("on"); const l = Math.max(0, this.lcd - now()); tb2.firstChild.style.width = (l / 30) + "%"; tb2.lastChild.style.display = ""; tb2.lastChild.textContent = T(`Everyone is ready · ${Math.ceil(l / 1000)}`, `Alle bereit · ${Math.ceil(l / 1000)}`); if (l <= 0 && v.host && !this.lcdGo){ this.lcdGo = 1; setTimeout(() => { this.lcdGo = 0; }, 3000); this.act({a: "start"}); } } else tb2.classList.remove("on");
+        const rb = el.querySelector('[data-x="ready"]'); if (rb){ rb.classList.toggle("go", !!this.ready); const sp = rb.querySelector("span"); const tx = `${this.ready ? "✓ " : ""}${T("Ready", "Bereit")} ${rdy}/${hum.length}`; if (sp && sp.textContent !== tx) sp.textContent = tx; } }
       const mb = el.querySelector(".np-mapb"), mbH = v.imp ? `<b>⚡</b><span>${this.left("sabCd") > 0 && !v.sab ? Math.ceil(this.left("sabCd") / 1000) + " s" : T("Sabotage", "Sabotage")}</span>` : `${icon("map", 20)}<span>${T("Map", "Karte")}</span>`; if (mb._h !== mbH){ mb._h = mbH; mb.innerHTML = mbH; mb.classList.toggle("imp", v.imp); }
       /* how long until something happens: a bar at the top */
       { const tb = el.querySelector(".np-tbar"); let f = -1, lab = "";
         if (v.phase === "play" && this.intro()){ const l = this.introEnd - now(); f = l / 3500; lab = T("Get ready", "Gleich geht's los"); }
         else if (v.phase === "meet"){ const l = this.left("meet"); f = l / (v.meetTot || 90000); lab = ""; }
         else if (v.phase === "eject" && v.eject){ const l = Math.max(0, (v.eject.tot || 7600) - (now() - (this.ejectT || now()))); f = l / (v.eject.tot || 7600); lab = T(`Back to the station in ${Math.ceil(l / 1000)} s`, `Zurück zur Station in ${Math.ceil(l / 1000)} s`); }
-        tb.classList.toggle("on", f >= 0); if (f >= 0){ tb.firstChild.style.width = Math.max(0, Math.min(100, f * 100)) + "%"; if (tb.lastChild.textContent !== lab) tb.lastChild.textContent = lab; tb.lastChild.style.display = lab ? "" : "none"; } }
+        if (v.phase !== "lobby") tb.classList.toggle("on", f >= 0); if (f >= 0){ tb.firstChild.style.width = Math.max(0, Math.min(100, f * 100)) + "%"; if (tb.lastChild.textContent !== lab) tb.lastChild.textContent = lab; tb.lastChild.style.display = lab ? "" : "none"; } }
       /* crew event */
       { const eb = el.querySelector(".np-ev"), E = v.phase === "play" ? v.ev : null, R = v.evRes && !this.shown["e" + v.evRes.k] && v.evRes.ok ? v.evRes : null;
         if (R && !this.evShow){ this.evShow = {k: R.k, t: now()}; } const okNow = this.evShow && now() - this.evShow.t < 3500;
@@ -570,6 +588,9 @@
           if (v.role === "sher" && v.alive && !v.shot) B.push(`<button class="np-act kill ${t.shoot ? "on" : ""}" data-x="shoot" ${t.shoot ? "" : "disabled"}>🔫<span>${T("Shoot", "Schießen")}</span></button>`);
           if (v.role === "sci" && v.alive) B.push(`<button class="np-act on" data-x="vitals">💓<span>${T("Vitals", "Vital")}</span></button>`);
           if ((v.imp || v.role === "eng") && v.alive) B.push(`<button class="np-act ${t.vent ? "on" : ""}" data-x="vent" ${t.vent ? "" : "disabled"}>🕳️<span>${T("Vent", "Schacht")}</span></button>`);
+          if (v.imp && (v.phase === "play")){ const cd = this.left("sabCd"), off = cd > 0 || !!v.sab;
+            B.push(`<button class="np-act sabb ${this.sabRow ? "on" : ""}" data-x="sabrow">⚡<span>${off && cd > 0 ? Math.ceil(cd / 1000) + " s" : T("Sabotage", "Sabotage")}</span></button>`);
+            if (this.sabRow) [["lights", "💡"], ["comms", "📡"], ["reactor", "☢️"], ["o2", "🫁"]].forEach(([k, e]) => B.push(`<button class="np-act np-sabq" data-x="sab" data-v="${k}" ${off ? "disabled" : ""}>${e}</button>`)); }
           if (v.alive) B.push(`<button class="np-act rep ${t.report ? "on" : ""}" data-x="report" ${t.report ? "" : "disabled"}>📣<span>${T("Report", "Melden")}</span></button>`);
           if (!(v.imp && !v.alive)){ const use = t.fix || t.task || t.cams || t.admin || t.vitals || t.button, ic = t.fix || t.task ? ["✋", T("Use", "Benutzen")] : t.cams ? ["📹", T("Cameras", "Kameras")] : t.admin ? ["🗺️", T("Admin", "Lageplan")] : t.vitals ? ["💓", T("Vitals", "Vitalwerte")] : t.button ? ["🚨", T("Meeting", "Meeting")] : ["✋", T("Use", "Benutzen")]; B.push(`<button class="np-act main ${use ? "on" : ""}" data-x="use" ${use ? "" : "disabled"}>${ic[0]}<span>${ic[1]}</span></button>`); }
         }
@@ -707,6 +728,21 @@
         let id = 0; if (!show()) id = setInterval(() => { if (show()) clearInterval(id); }, 300);
         return () => { clearInterval(id); try { au && au.pause(); } catch(e) {} if (!done){ done = true; fin(-99999); } }; }
     },
+    /* panels on top of the lobby: game settings and your outfit, in landscape like the rest */
+    openPanel(k){ this.panel = k; this.joy = null; this.panelDraw(); },
+    closePanel(){ this.panel = null; const pn = this.el && this.el.querySelector(".np-panel"); if (pn){ pn.classList.remove("on"); pn.innerHTML = ""; } },
+    panelDraw(){ const pn = this.el && this.el.querySelector(".np-panel"); if (!pn || !this.panel) return; pn.classList.add("on");
+      const head = t => `<div class="np-ph"><b>${t}</b><button class="np-x" data-x="pclose">×</button></div>`;
+      if (this.panel === "set"){ const m = this.m || {}, cur = Object.assign({}, PNet.defaults("natposter"), m.opts || {}), host = this.v && this.v.host, L = x => Array.isArray(x) ? T(x[0], x[1]) : x;
+        const rows = (PG.online.natposter.opts || []).filter(o => !o.solo).map(o => `<div class="np-prow"><span>${esc(L(o.l))}</span><div class="np-chips">${o.c.map(c => `<button class="np-chip ${String(cur[o.k]) === String(c[0]) ? "on" : ""}" data-x="popt" data-v="${o.k}|${c[0]}" ${host ? "" : "disabled"}>${esc(L(c[1]))}</button>`).join("")}</div></div>`).join("");
+        const view = `<div class="np-prow"><span>${T("Screen", "Bildschirm")}</span><div class="np-chips"><button class="np-chip ${PG.st.npPortrait ? "" : "on"}" data-x="pview" data-v="rot">${PG.st.npPortrait ? T("Upright", "Hochformat") : T("Sideways", "Querformat")}</button><button class="np-chip ${PG.st.npNoFull ? "" : "on"}" data-x="pview" data-v="full">${T("Full screen", "Vollbild")}</button><button class="np-chip ${PG.st.npNoVoice ? "" : "on"}" data-x="pview" data-v="voice">${T("Voice chat", "Sprachchat")}</button></div></div>`;
+        pn.innerHTML = `<div class="np-pbox">${head("⚙️ " + T("Settings", "Einstellungen"))}<div class="np-pbody">${host ? "" : `<p class="muted" style="margin:0 0 6px">${T("Only the host changes the game settings.", "Nur der Gastgeber ändert die Spieleinstellungen.")}</p>`}${rows}<div class="np-psep"></div>${view}</div></div>`; return; }
+      /* outfit */
+      const av = (() => { try { return myAvatar(); } catch(e) { return {}; } })(), SL = [["shape", T("Figure", "Figur")], ["hair", T("Hair", "Haare")], ["head", T("Hat", "Hut")], ["expr", T("Face", "Gesicht")], ["eyes", T("Eyes", "Augen")], ["glasses", T("Glasses", "Brille")], ["shirt", T("Top", "Oberteil")], ["coat", T("Jacket", "Jacke")], ["pants", T("Trousers", "Hose")], ["shoes", T("Shoes", "Schuhe")]];
+      const sl = this.lookSlot || "hair", items = (typeof AV_ITEMS !== "undefined" ? AV_ITEMS : []).map(a => Array.isArray(a) ? {slot: a[0], id: a[1], name: a[2], req: a[3]} : a).filter(a => a.slot === sl).filter(it => { try { return itemUnlocked(it); } catch(e) { return !it.req; } });
+      let prev = ""; try { prev = avatarSVG(Object.assign({}, av, {aura: "none"}), {fit: true}); } catch(e) {}
+      pn.innerHTML = `<div class="np-pbox look">${head("👕 " + T("Your look", "Dein Aussehen"))}<div class="np-look"><div class="np-lprev">${prev}</div><div class="np-lside"><div class="np-chips np-slots">${SL.map(([k, n]) => `<button class="np-chip ${k === sl ? "on" : ""}" data-x="pslot" data-v="${k}">${n}</button>`).join("")}</div>
+        <div class="np-chips np-items">${items.map(it => `<button class="np-chip ${String(av[sl]) === String(it.id) ? "on" : ""}" data-x="pitem" data-v="${sl}|${esc(it.id)}">${esc(it.name)}</button>`).join("") || `<span class="muted">${T("Nothing unlocked yet", "Noch nichts freigeschaltet")}</span>`}</div></div></div></div>`; },
     sayText(pk, x){ const n = x && esc(this.nm(x));
       return pk === "emo" ? `<span class="np-cemo">${EMO[+x] || "❓"}</span>` : pk === "where" ? T(`I was ${roomIn(x)}.`, `Ich war ${roomIn(x)}.`) : pk === "body" ? T(`The body was ${roomIn(x)}!`, `Die Leiche lag ${roomIn(x)}!`)
         : pk === "nothing" ? T("I didn't see anything.", "Ich hab nichts gesehen.") : pk === "self" ? T("It wasn't me!", "Ich war's nicht!") : pk === "skip" ? T("Let's skip.", "Lasst uns skippen.")
@@ -754,7 +790,7 @@
     },
     nosig(box){ box.innerHTML = `<div class="np-mg np-cams"><div class="np-mgh"><b>📡 ${T("No signal", "Kein Signal")}</b><button class="np-x" data-c>×</button></div><div class="np-static"></div><p class="muted">${T("Comms are sabotaged", "Der Funk ist sabotiert")}</p></div>`; box.querySelector("[data-c]").onclick = () => { Sound.tap(); this.closeMini(); }; this.sound("static"); },
     openVitals(){
-      this.closeMini(); const box = this.el.querySelector(".np-mini"), me = {stop: null, light: 1}; this.mini = me; this.joy = null; box.classList.add("on");
+      this.closeMini(); const box = this.el.querySelector(".np-mini"), me = {stop: null, light: 1, walk: 1}; this.mini = me; box.classList.add("on", "walk");
       if (this.v.sab && this.v.sab.type === "comms") return this.nosig(box);
       const P = this.pl(), draw = () => { const v = this.v; box.querySelector(".np-vit").innerHTML = P.map(p => { const dead = v.deadList.includes(p.id); return `<div class="${dead ? "dead" : ""}"><span class="np-hd">${(() => { try { return avatarSVG(Object.assign({}, p.av || {}, {aura: "none", pet: "none"}), {head: true, size: 44}); } catch(e) { return ""; } })()}</span><b>${esc(p.name)}</b><svg viewBox="0 0 120 30"><path d="${dead ? "M0 15H120" : "M0 15H40L48 4L56 26L62 15H120"}" stroke="${dead ? "#E2523E" : "#8FC458"}" stroke-width="3" fill="none"/></svg><small>${dead ? T("DEAD", "TOT") : "OK"}</small></div>`; }).join(""); };
       box.innerHTML = `<div class="np-mg np-cams"><div class="np-mgh"><b>💓 ${T("Vitals", "Vitalwerte")}</b><button class="np-x" data-c>×</button></div><div class="np-vit"></div></div>`;
@@ -918,7 +954,7 @@
       /* the chess lounge: a big knight */
       const kn = pieceImg("wn"); if (kn.complete && kn.naturalWidth) c.drawImage(kn, 730, 740, 120, 120); const bk = pieceImg("bk"); if (bk.complete && bk.naturalWidth) c.drawImage(bk, 860, 700, 70, 70);
     },
-    faceOf(id, f){ const F = this.faces || (this.faces = {}), t = now(); let e = F[id]; if (!e){ e = F[id] = {v: f, t}; }
+    faceOf(id, f){ return f; const F = this.faces || (this.faces = {}), t = now(); let e = F[id]; if (!e){ e = F[id] = {v: f, t}; }
       const dt = Math.min(.1, (t - e.t) / 1000); e.t = t; if (e.v !== f){ const d = f - e.v, st = dt * 12; e.v = Math.abs(d) <= st ? f : e.v + Math.sign(d) * st; }
       const v = e.v; return Math.abs(v) < .12 ? (v < 0 ? -.12 : .12) : v; },
     /* how far someone is into a vent: 0 = standing, 1 = gone */
@@ -952,13 +988,14 @@
       c.restore(); if (vk > 0){ c.restore(); if (vk > .55){ c.restore(); return; } }
       /* the pet from the avatar flies along beside you */
       if (p.av && p.av.pet && p.av.pet !== "none" && !o.ghost){ const pi = petImg(p.av); if (pi && pi.complete && pi.naturalWidth){ const t2 = now() / 400 + (p.id.charCodeAt(0) || 0), px = -(o.f || 1) * 48 + Math.cos(t2) * 6, py = -70 + Math.sin(t2 * 1.7) * 7; c.drawImage(pi, px - 18, py - 23, 36, 46); } }
+      if (this.v && this.v.phase === "lobby" && !o.body){ const q = POS[p.id]; if ((q && q.rdy) || (p.id === PNet.me && this.ready)){ c.fillStyle = "#7FB24A"; c.beginPath(); c.arc(30, -h + 8 + bob, 13, 0, 7); c.fill(); c.strokeStyle = "#fff"; c.lineWidth = 4; c.beginPath(); c.moveTo(24, -h + 8 + bob); c.lineTo(29, -h + 13 + bob); c.lineTo(37, -h + 2 + bob); c.stroke(); } }
       /* an emote bubble above the head */
       { const q = POS[p.id]; if (q && q.emT && now() - q.emT < 2500 && WEMO[q.em]){ const k = (now() - q.emT) / 2500, yy = -h - 34 + bob - Math.min(1, k * 6) * 8; c.globalAlpha = k > .85 ? (1 - k) / .15 : 1; c.fillStyle = "#F4F2EE"; c.beginPath(); c.roundRect ? c.roundRect(-26, yy - 22, 52, 44, 16) : c.rect(-26, yy - 22, 52, 44); c.fill(); c.beginPath(); c.moveTo(-6, yy + 20); c.lineTo(6, yy + 20); c.lineTo(0, yy + 30); c.fill(); c.font = "30px system-ui"; c.textAlign = "center"; c.fillText(WEMO[q.em], 0, yy + 11); c.globalAlpha = o.ghost ? .45 : 1; } }
       c.font = "800 15px Figtree,system-ui,sans-serif"; c.textAlign = "center"; const tw = c.measureText(p.name).width + 12; c.fillStyle = "rgba(20,19,17,.72)"; c.beginPath(); c.roundRect ? c.roundRect(-tw / 2, -h + bob - 2, tw, 20, 10) : c.rect(-tw / 2, -h + bob - 2, tw, 20); c.fill(); c.fillStyle = o.red ? "#F07B68" : "#fff"; c.fillText(p.name, 0, -h + 13 + bob);
       c.restore();
     },
     /* ---------------- minigames ---------------- */
-    closeMini(){ if (this.mini){ this.mini.stop && this.mini.stop(); this.mini = null; } const m = this.el && this.el.querySelector(".np-mini"); if (m){ m.innerHTML = ""; m.classList.remove("on"); } },
+    closeMini(){ const bx = this.el && this.el.querySelector(".np-mini"); if (bx) bx.classList.remove("walk"); if (this.mini){ this.mini.stop && this.mini.stop(); this.mini = null; } const m = this.el && this.el.querySelector(".np-mini"); if (m){ m.innerHTML = ""; m.classList.remove("on"); } },
     openMini(g, done, task){
       this.closeMini(); const box = this.el.querySelector(".np-mini"), me = {stop: null, g}; this.mini = me; this.joy = null; if (g === "scan") this.send(true);
       const finish = () => { Haptic.go([20, 30, 20]); box.querySelector(".np-mg").classList.add("ok"); setTimeout(() => { if (this.mini === me){ this.closeMini(); done(); } }, 450); };
@@ -971,6 +1008,7 @@
   NP.kd = NP.ku = NP.rs = () => {};
   window.__npTo = p => { NP.me.x = p.x; NP.me.y = p.y; NP.send(true); }; window.__npMe = () => ({x: Math.round(NP.me.x), y: Math.round(NP.me.y)});
   window.__npToId = id => { const q = POS[id]; if (q) window.__npTo({x: q.x + 30, y: q.y}); };
+  window.__npDbg = () => ({mini: !!NP.mini, vent: !!NP.vent, intro: NP.intro(), panel: NP.panel, joy: NP.joy, ph: NP.v && NP.v.phase});
   window.__npDu = () => NP.du && {seed: NP.du.seed, stage: NP.du.stage, t: Date.now() - NP.du.t0, el: NP.v && NP.v.meet && NP.v.meet.mg && NP.v.meet.mg.el};
   window.__npOpen = g => NP.openMini(g, () => {}); window.__npClose = () => NP.closeMini();
   window.__npCams = () => NP.openCams(); window.__npAdmin = () => NP.openAdmin();
@@ -1061,29 +1099,41 @@ html.np-on .tabbar,html.np-on .pg-pill{display:none!important}
 html.np-on .dsheet{z-index:2800!important}html.np-on .toast{z-index:2900!important}
 .np.mapon .np-top{z-index:8}
 .np.rot{transform-origin:top left;transform:rotate(90deg) translateY(-100%)}
-.np.rot .np-top{top:10px;left:calc(env(safe-area-inset-top,0px) + 10px);right:calc(env(safe-area-inset-bottom,0px) + 10px)}
-.np.rot .np-tasks{top:62px;left:calc(env(safe-area-inset-top,0px) + 10px)}.np.rot .np-alert{top:62px;right:calc(env(safe-area-inset-bottom,0px) + 10px)}
-.np.rot .np-btns{bottom:14px;right:calc(env(safe-area-inset-bottom,0px) + 14px)}
+.np.rot .np-top{top:10px;left:calc(var(--st,0px) + 10px);right:calc(var(--sb,0px) + 10px)}
+.np.rot .np-tasks{top:62px;left:calc(var(--st,0px) + 10px)}.np.rot .np-alert{top:62px;right:calc(var(--sb,0px) + 10px)}
+.np.rot .np-btns{bottom:14px;right:calc(var(--sb,0px) + 14px)}
 .np-cv{position:absolute;inset:0;width:100%;height:100%;display:block}
-.np-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);left:10px;right:10px;display:flex;gap:8px;align-items:center;pointer-events:none}
+.np-top{position:absolute;top:calc(var(--st,0px) + 10px);left:10px;right:10px;display:flex;gap:8px;align-items:center;pointer-events:none}
 .np-top>*{pointer-events:auto}
 .np-menu,.np-mapb{width:44px;height:44px;border-radius:12px;border:0;background:rgba(33,31,28,.85);color:var(--fg);font:900 20px var(--body);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 -3px 0 rgba(0,0,0,.3);cursor:pointer}
 .np-bar{flex:1;height:26px;border-radius:8px;background:rgba(33,31,28,.85);position:relative;overflow:hidden;box-shadow:inset 0 0 0 2px rgba(0,0,0,.35)}
 .np-bar i{position:absolute;inset:0 auto 0 0;background:var(--go);transition:width .4s;width:0}
 .np-bar span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:900 12px var(--body);letter-spacing:.12em;text-shadow:0 1px 2px rgba(0,0,0,.6)}
-.np-tasks{position:absolute;top:calc(env(safe-area-inset-top,0px) + 62px);left:10px;max-width:min(260px,60vw);background:rgba(33,31,28,.78);border-radius:10px;padding:8px 10px;font:700 12.5px/1.45 var(--body);pointer-events:none}
+.np-tasks{position:absolute;top:calc(var(--st,0px) + 62px);left:10px;max-width:min(260px,60vw);background:rgba(33,31,28,.78);border-radius:10px;padding:8px 10px;font:700 12.5px/1.45 var(--body);pointer-events:none}
 .np-tasks .done{color:var(--go-hi);text-decoration:line-through;opacity:.8}.np-tasks small{display:block;color:var(--muted);font-weight:600}.np-red{color:#F07B68;font:900 15px var(--display)}
-.np-alert{position:absolute;top:calc(env(safe-area-inset-top,0px) + 62px);right:10px;left:auto;max-width:min(300px,50vw);background:var(--bad);color:#fff;border-radius:10px;padding:8px 12px;font:800 13.5px var(--body);display:none;animation:npPulse 1s infinite}
+.np-alert{position:absolute;top:calc(var(--st,0px) + 62px);right:10px;left:auto;max-width:min(300px,50vw);background:var(--bad);color:#fff;border-radius:10px;padding:8px 12px;font:800 13.5px var(--body);display:none;animation:npPulse 1s infinite}
 .np-alert.on{display:block}.np-alert small{display:block;font-weight:600;opacity:.9}.np-alert b{font:900 18px var(--mono)}
 @keyframes npPulse{50%{filter:brightness(1.25)}}
 .np-joy{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;background:rgba(244,242,238,.08);border:2px solid rgba(244,242,238,.18);display:none;pointer-events:none}
 .np-joy.on{display:block}.np-joy i{position:absolute;left:50%;top:50%;width:54px;height:54px;border-radius:50%;background:rgba(244,242,238,.35);transform:translate(-50%,-50%)}
-.np-btns{position:absolute;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;flex-wrap:wrap-reverse;justify-content:flex-end;gap:10px;max-width:220px}
+.np-btns{position:absolute;right:12px;bottom:calc(var(--sb,0px) + 14px);display:flex;flex-wrap:wrap-reverse;justify-content:flex-end;gap:10px;max-width:220px}
 .np-act{width:96px;height:96px;border-radius:22px;border:0;background:rgba(61,58,53,.88);color:var(--fg);font-size:36px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:inset 0 -5px 0 rgba(0,0,0,.3);cursor:pointer;opacity:.45;transition:transform .1s}
 .np-act span{font:900 12.5px var(--body);letter-spacing:.04em;text-transform:uppercase}
 .np-act.on{opacity:1}
 .pg-np-hero{display:block;padding:22px 18px;border-radius:14px;margin-top:8px;min-height:0!important;text-align:left}.pg-np-hero .pg-np-ship{font-size:56px}.np-act.main.on{background:var(--go);box-shadow:inset 0 -5px 0 var(--go-deep)}.np-act.kill.on{background:var(--bad);box-shadow:inset 0 -5px 0 #a8382a}.np-act.rep.on{background:#E9B64A;color:#2A1E05}
 .np-act:active,.np-act.pr{transform:scale(.92)}
+.np-ov.pass{pointer-events:none;background:transparent!important}.np-ov.pass .np-map{pointer-events:auto}
+.np-mini.walk{pointer-events:none;background:transparent;align-items:flex-start;justify-content:flex-end;padding-top:calc(var(--st,0px) + 60px)}.np-mini.walk>*{pointer-events:auto;max-width:min(460px,60%);max-height:calc(var(--h,100vh) - 90px);overflow:auto}
+.np-act.sabb{background:#5a1e17;color:#FFD9D2}.np-act.sabb.on{background:var(--bad);color:#fff}.np-sabq{font-size:24px}
+.np-panel{position:absolute;inset:0;z-index:9;display:none;align-items:center;justify-content:center;background:rgba(6,7,12,.6);padding:calc(var(--st,0px) + 10px) calc(var(--sr,0px) + 10px) calc(var(--sb,0px) + 10px) calc(var(--sl,0px) + 10px)}.np-panel.on{display:flex}
+.np-pbox{width:min(900px,100%);max-height:100%;display:flex;flex-direction:column;background:var(--panel);border-radius:18px;box-shadow:0 18px 50px rgba(0,0,0,.6);overflow:hidden}
+.np-ph{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06)}.np-ph b{font:900 18px var(--display)}
+.np-pbody{overflow:auto;padding:10px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:4px 18px;align-content:start}.np-pbody>p,.np-psep{grid-column:1/-1}.np-psep{height:1px;background:rgba(255,255,255,.08);margin:6px 0}
+.np-prow{display:flex;flex-direction:column;gap:4px;padding:5px 0}.np-prow>span{font:800 12.5px var(--body);color:var(--muted)}
+.np-chips{display:flex;flex-wrap:wrap;gap:5px}.np-chip{border:0;border-radius:999px;background:var(--panel-3);color:var(--fg);font:800 12.5px var(--body);padding:6px 11px;cursor:pointer}.np-chip.on{background:var(--go);color:#fff}.np-chip[disabled]{opacity:.55}.np-chip[disabled].on{opacity:.9}
+.np-look{display:flex;gap:14px;padding:10px 14px;min-height:0;overflow:hidden}.np-lprev{flex:0 0 auto;width:min(170px,26%);aspect-ratio:200/256;align-self:center;background:radial-gradient(circle at 50% 70%,#3D3A35,#211F1C);border-radius:16px}.np-lprev svg{width:100%!important;height:100%!important}
+.np-lside{flex:1;display:flex;flex-direction:column;gap:8px;min-width:0;overflow:auto}.np-slots{padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08)}
+.np-rdy.go{background:var(--go)!important;box-shadow:inset 0 -3px 0 var(--go-deep)!important}
 .np-emob{font-size:20px!important}.np-emos{position:absolute;top:52px;right:0;display:none;gap:4px;background:rgba(33,31,28,.95);border-radius:14px;padding:6px;box-shadow:0 8px 20px rgba(0,0,0,.5);z-index:3;flex-wrap:wrap;width:196px}.np-emos.on{display:flex}
 .np-emos button{width:42px;height:42px;border:0;border-radius:10px;background:var(--panel-3);font-size:22px;cursor:pointer}.np-top{position:absolute}.np.lob .np-emos{display:none!important}
 .np-rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}.np-rules>div{background:var(--panel-2);border-radius:14px;padding:10px 8px;text-align:center;display:flex;flex-direction:column;gap:2px}.np-rules span{font-size:30px}.np-rules b{font:900 14px var(--display)}.np-rules small{font:600 11.5px/1.25 var(--body);color:var(--muted)}
@@ -1144,9 +1194,9 @@ html.np-on .xpchip{z-index:2950!important}
 .np-mclose{position:absolute;right:-10px;top:-10px;z-index:2;width:36px;height:36px}
 .np-mcd{position:absolute;left:14px;top:14px;z-index:2;background:rgba(20,19,17,.85);border-radius:999px;padding:3px 10px;font:800 12px var(--mono);color:var(--fg)}
 .np-tbar{position:absolute;left:0;right:0;top:0;height:6px;background:rgba(255,255,255,.08);z-index:9;display:none;pointer-events:none}.np-tbar.on{display:block}
-.np-tbar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--go),#E9B64A);transition:width .26s linear;box-shadow:0 0 10px rgba(143,196,88,.6)}
+.np-tbar i{position:absolute;inset:0 auto 0 0;background:var(--go);transition:width .26s linear}
 .np-tbar span{position:absolute;top:10px;left:50%;transform:translateX(-50%);white-space:nowrap;background:rgba(20,19,17,.85);border-radius:999px;padding:3px 12px;font:800 12px var(--body);color:var(--fg);letter-spacing:.02em}
-.np-ev{position:absolute;top:calc(env(safe-area-inset-top,0px) + 62px);left:50%;transform:translateX(-50%);max-width:min(420px,70%);background:#1f5560;color:#fff;border-radius:10px;padding:7px 12px;font:800 13.5px var(--body);display:none;text-align:center;box-shadow:0 0 0 2px #5AD1E0,0 6px 18px rgba(0,0,0,.4);pointer-events:none}
+.np-ev{position:absolute;top:calc(var(--st,0px) + 62px);left:50%;transform:translateX(-50%);max-width:min(420px,70%);background:#1f5560;color:#fff;border-radius:10px;padding:7px 12px;font:800 13.5px var(--body);display:none;text-align:center;box-shadow:0 0 0 2px #5AD1E0,0 6px 18px rgba(0,0,0,.4);pointer-events:none}
 .np-ev.on{display:block}.np-ev.ok{background:var(--go);box-shadow:0 0 0 2px var(--go-hi)}.np-ev small{display:block;font-weight:600;opacity:.92}.np.rot .np-ev{top:62px}
 .np-hold{width:100%;position:relative;overflow:hidden;background:var(--bad)!important;color:#fff!important;box-shadow:inset 0 -4px 0 #a8382a!important;touch-action:none;user-select:none;-webkit-user-select:none}
 .np-hold i{position:absolute;inset:0 auto 0 0;width:0;background:rgba(255,255,255,.3);transition:width .1s}.np-hold.on i{width:100%;transition:width 1.1s linear}.np-hold span{position:relative}
@@ -1218,7 +1268,7 @@ html.np-on .xpchip{z-index:2950!important}
 @keyframes npDrip{to{height:var(--h)}}
 .np-ov{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(6,7,12,.72);padding:16px;z-index:5}
 .np-ov.on{display:flex}
-.np-lob{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);transform:translateX(-50%);display:none;gap:8px;align-items:center;background:rgba(33,31,28,.88);border-radius:14px;padding:8px;box-shadow:0 8px 20px rgba(0,0,0,.45)}
+.np-lob{position:absolute;left:50%;top:calc(var(--st,0px) + 10px);transform:translateX(-50%);display:none;gap:8px;align-items:center;background:rgba(33,31,28,.88);border-radius:14px;padding:8px;box-shadow:0 8px 20px rgba(0,0,0,.45)}
 .np.lob .np-lob{display:flex}.np.lob .np-top,.np.lob .np-tasks,.np.lob .np-btns{display:none}.np.rot .np-lob{top:10px}
 .np-lobc{display:flex;flex-direction:column;align-items:center;padding:0 8px;line-height:1.1}.np-lobc b{font:900 20px var(--mono);letter-spacing:.12em}.np-lobc span{font:800 11px var(--body);color:var(--muted)}
 .np-lb{display:flex;flex-direction:column;align-items:center;gap:2px;border:0;border-radius:10px;background:var(--panel-3);color:var(--fg);padding:6px 10px;font-size:20px;cursor:pointer;box-shadow:inset 0 -3px 0 rgba(0,0,0,.3)}

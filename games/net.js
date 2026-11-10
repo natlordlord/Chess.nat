@@ -418,7 +418,7 @@ PG.friendList = (box, code, game, inLobby) => {
 (() => {
   const c = PNet.fromHash(location.hash);
   if (c){ window.__pgJoin = c; try { history.replaceState(null, "", "#lobby"); } catch(e) {} }
-  window.addEventListener("hashchange", () => { const k = PNet.fromHash(location.hash); if (k) App.go("lobby", {join: k}); });
+  window.addEventListener("hashchange", () => { if (document.documentElement.classList.contains("np-on")) return; const k = PNet.fromHash(location.hash); if (k) App.go("lobby", {join: k}); });
   Object.assign(TAB_OF, {lobby: "games"});
   const css = `.pg-lbar{gap:8px;align-items:center;margin-bottom:6px}
 .pg-inv{display:flex;gap:14px;align-items:center}
