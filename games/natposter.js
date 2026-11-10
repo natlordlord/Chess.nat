@@ -323,8 +323,8 @@
       this.ku = e => { delete this.keys[e.code]; };
       window.addEventListener("keydown", this.kd); window.addEventListener("keyup", this.ku);
       const FAST = ".np-btns,.np-top,.np-lob";
-      el.addEventListener("pointerdown", e => { const b = e.target.closest("[data-x]"); if (!b || b.disabled || !b.closest(FAST)) return; e.preventDefault(); b._pd = now(); b.classList.add("pr"); setTimeout(() => b.classList.remove("pr"), 140); Sound.tap(); this.click(b.dataset.x, b.dataset.v); });
-      el.addEventListener("click", e => { const b = e.target.closest("[data-x]"); if (!b || b.disabled) return; if (b.closest(FAST) && now() - (b._pd || 0) < 800) return; Sound.tap(); this.click(b.dataset.x, b.dataset.v); });
+      el.addEventListener("pointerdown", e => { const b = e.target.closest("[data-x]"); if (!b || b.disabled || !b.closest(FAST)) return; e.preventDefault(); b._pd = now(); b.classList.add("pr"); setTimeout(() => b.classList.remove("pr"), 140); Sound.tap(); this.lastBtn = b; this.click(b.dataset.x, b.dataset.v); });
+      el.addEventListener("click", e => { const b = e.target.closest("[data-x]"); if (!b || b.disabled) return; if (b.closest(FAST) && now() - (b._pd || 0) < 800) return; Sound.tap(); this.lastBtn = b; this.click(b.dataset.x, b.dataset.v); });
       let last = performance.now(); const loop = t => { const dt = Math.min(.05, (t - last) / 1000); last = t; try { this.step(dt); this.render(); } catch(err) { console.error(err); } this.raf = requestAnimationFrame(loop); };
       this.raf = requestAnimationFrame(loop);
     },
@@ -383,10 +383,10 @@
     click(x, val){
       const v = this.v, t = this.targets();
       if (x === "menu") return this.menu();
-      if (x === "quit"){ const b = this.el.querySelector(".np-quit"); this.quitN = (now() - (this.quitT || 0) < 2500 ? this.quitN || 0 : 0) + 1; this.quitT = now(); Haptic.go(20);
+      if (x === "quit" || x === "leave"){ const b = this.lastBtn && this.lastBtn.isConnected ? this.lastBtn : this.el.querySelector(".np-quit"); if (b._orig == null) b._orig = b.innerHTML; this.quitN = (now() - (this.quitT || 0) < 2500 ? this.quitN || 0 : 0) + 1; this.quitT = now(); Haptic.go(20);
         if (this.quitN >= 3){ this.quitN = 0; b.innerHTML = "👋"; setTimeout(() => { PNet.leave(); App.go("games"); }, 380); return; }
-        b.classList.add("arm"); b.innerHTML = `🚪<small>${3 - this.quitN}×</small>`; toast(T(`Tap ${3 - this.quitN} more time${3 - this.quitN > 1 ? "s" : ""} to leave`, `Noch ${3 - this.quitN}× tippen zum Verlassen`), 1600);
-        clearTimeout(this.quitTm); this.quitTm = setTimeout(() => { this.quitN = 0; if (b.isConnected){ b.classList.remove("arm"); b.innerHTML = "🚪"; } }, 2500); return; }
+        b.classList.add("arm"); b.innerHTML = x === "leave" ? `🚪<span>${T(`${3 - this.quitN}× more`, `Noch ${3 - this.quitN}×`)}</span>` : `🚪<small>${3 - this.quitN}×</small>`; toast(T(`Tap ${3 - this.quitN} more time${3 - this.quitN > 1 ? "s" : ""} to leave`, `Noch ${3 - this.quitN}× tippen zum Verlassen`), 1600);
+        clearTimeout(this.quitTm); this.quitTm = setTimeout(() => { this.quitN = 0; if (b.isConnected){ b.classList.remove("arm"); b.innerHTML = b._orig; } b._orig = null; }, 2500); return; }
       if (x === "map") { this.mapOpen = !this.mapOpen; this.hud(); return; }
       if (x === "kill" && t.kill && this.left("kill") <= 0) return this.act({a: "kill", v: t.kill.id});
       if (x === "report" && t.report) return this.act({a: "report", v: t.report.id});
@@ -408,7 +408,6 @@
       if (x === "qc"){ this.qcMode = val || null; this.overlay(); return; }
       if (x === "say"){ this.qcMode = null; Haptic.go(8); this.act({a: "say", v: val}); this.overlay(); return; }
       if (x === "again") return this.act({a: "again"});
-      if (x === "leave") return this.sure(T("Leave the lobby?", "Lobby verlassen?"), () => { PNet.leave(); App.go("games"); });
       if (["start", "settings", "invite", "look"].includes(x)) return this.act({a: x});
       if (x === "lobby") return this.act({a: "lobby"});
     },
@@ -440,7 +439,7 @@
       const lb = el.querySelector(".np-lob"), lbH = v.phase === "lobby" ? `<div class="np-lobc"><b>${esc(v.lob.code.toUpperCase())}</b><span>${v.lob.n}${v.lob.fill ? ` + ${v.lob.fill} 🤖` : ""} / 15</span></div>
         <button class="np-lb" data-x="invite">📨<span>${T("Invite", "Einladen")}</span></button><button class="np-lb" data-x="look">👕<span>${T("Look", "Aussehen")}</span></button><button class="np-lb" data-x="settings">⚙️<span>${T("Settings", "Einstellungen")}</span></button><button class="np-lb" data-x="leave">🚪<span>${T("Leave", "Verlassen")}</span></button>
         ${v.host ? `<button class="np-lb go" data-x="start" ${v.lob.n + (v.lob.fill || 0) < v.lob.min ? "disabled" : ""}>▶<span>${v.lob.n + (v.lob.fill || 0) < v.lob.min ? T(`${v.lob.min} needed`, `${v.lob.min} nötig`) : T("Start", "Start")}</span></button>` : `<span class="np-wait">${T("Waiting for the host…", "Warte auf den Gastgeber…")}</span>`}` : "";
-      if (lb._h !== lbH){ lb._h = lbH; lb.innerHTML = lbH; }
+      if (lb._h !== lbH && !(this.quitN && now() - (this.quitT || 0) < 2500)){ lb._h = lbH; lb.innerHTML = lbH; }
       const mb = el.querySelector(".np-mapb"), mbH = v.imp ? `<b>⚡</b><span>${this.left("sabCd") > 0 && !v.sab ? Math.ceil(this.left("sabCd") / 1000) + " s" : T("Sabotage", "Sabotage")}</span>` : `${icon("map", 20)}<span>${T("Map", "Karte")}</span>`; if (mb._h !== mbH){ mb._h = mbH; mb.innerHTML = mbH; mb.classList.toggle("imp", v.imp); }
       /* how long until something happens: a bar at the top */
       { const tb = el.querySelector(".np-tbar"); let f = -1, lab = "";
@@ -709,6 +708,12 @@
       c.fillStyle = "#1B1A18"; c.fillRect(2100, 640, 30, 300); for (let j = 0; j < 8; j++){ c.fillStyle = (Math.floor(t * 2 + j) % 4) ? "#5AA3E0" : "#8FC458"; c.fillRect(2106, 652 + j * 36, 18, 10); }
       /* cafeteria: benches */
       [[1110, 230], [1450, 230], [1110, 470], [1450, 470]].forEach(([x, y]) => { c.fillStyle = "#3D3A35"; c.fillRect(x - 56, y + 50, 112, 12); c.fillRect(x - 56, y - 62, 112, 12); });
+      /* fans on the walls */
+      [[380, 990], [1900, 960], [680, 1160], [2420, 980]].forEach(([x, y]) => { c.fillStyle = "#1B1A18"; c.beginPath(); c.arc(x, y, 26, 0, 7); c.fill(); c.save(); c.translate(x, y); c.rotate(now() / 120); c.fillStyle = "#5f5a52"; for (let k = 0; k < 4; k++){ c.rotate(Math.PI / 2); c.beginPath(); c.ellipse(0, -11, 6, 12, 0, 0, 7); c.fill(); } c.restore(); c.fillStyle = "#8C867C"; c.beginPath(); c.arc(x, y, 5, 0, 7); c.fill(); });
+      /* side windows of the reactor and the medbay */
+      [[60, 680], [60, 860], [300, 300]].forEach(([x, y], i) => { c.fillStyle = "#5f5a52"; c.fillRect(x, y, 14, 90); c.fillStyle = "#070810"; c.fillRect(x + 3, y + 4, 8, 82); c.fillStyle = "#fff"; [0, 1, 2].forEach(j => { c.globalAlpha = .4 + .5 * Math.abs(Math.sin(now() / 800 + i + j)); c.fillRect(x + 5, y + 14 + j * 26 + i * 4, 2, 2); }); c.globalAlpha = 1; });
+      /* hazard stripes in the doorways */
+      c.save(); c.globalAlpha = .35; Object.values(DOORS).flat().forEach(dr => { const vert = dr.h > dr.w; for (let k = 0; k < (vert ? dr.h : dr.w); k += 16){ c.fillStyle = (k / 16) % 2 ? "#1B1A18" : "#E9B64A"; vert ? c.fillRect(dr.x + 4, dr.y + k, dr.w - 8, 8) : c.fillRect(dr.x + k, dr.y + 4, 8, dr.h - 8); } }); c.restore();
       /* the chess lounge: a big knight */
       const kn = pieceImg("wn"); if (kn.complete && kn.naturalWidth) c.drawImage(kn, 730, 740, 120, 120); const bk = pieceImg("bk"); if (bk.complete && bk.naturalWidth) c.drawImage(bk, 860, 700, 70, 70);
     },
@@ -864,6 +869,11 @@ html.np-on .tabbar,html.np-on .pg-pill{display:none!important}
 .np-act.on{opacity:1}
 .pg-np-hero{display:block;padding:22px 18px;border-radius:14px;margin-top:8px;min-height:0!important;text-align:left}.pg-np-hero .pg-np-ship{font-size:56px}.np-act.main.on{background:var(--go);box-shadow:inset 0 -5px 0 var(--go-deep)}.np-act.kill.on{background:var(--bad);box-shadow:inset 0 -5px 0 #a8382a}.np-act.rep.on{background:#E9B64A;color:#2A1E05}
 .np-act:active,.np-act.pr{transform:scale(.92)}
+.np-lb.arm{background:var(--bad)!important;animation:npPulse .5s infinite}
+.np.land .np-cams{width:min(940px,100%)}.np.land .np-camg{grid-template-columns:repeat(4,minmax(0,1fr))}
+.np.land .np-course svg{max-height:calc(var(--h) - 110px);display:block;margin:0 auto;width:auto;max-width:100%}
+.np.land .np-ov .np-card{padding:12px 18px}.np.land .np-card .np-big{font-size:24px;margin:2px 0}.np.land .np-card .np-faces .np-hd{width:46px;height:46px}.np.land .np-card p{margin:4px 0 8px}.np.land .np-card .btn.big{min-height:0;padding:9px 14px}
+.np.land .np-adm svg{height:calc(var(--h) - 140px);width:100%;display:block;margin:0 auto}.np.land .np-cams>p{margin:2px 0 0;font-size:12px}
 .np-quit{position:relative;font-size:19px!important}.np-quit.arm{background:var(--bad)!important;animation:npPulse .5s infinite}.np-quit small{position:absolute;right:-4px;bottom:-4px;background:#fff;color:#a8382a;border-radius:999px;font:900 10px var(--body);padding:1px 4px}
 .np-mh{display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;margin-bottom:6px}.np-mh .np-tm{margin:0;font-size:28px}
 .np-mfoot{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.np-mfoot .muted{font-size:12.5px}
