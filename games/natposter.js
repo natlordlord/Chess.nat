@@ -153,6 +153,7 @@
       {k: "meet", l: ["Meeting time", "Meeting-Zeit"], d: 60, c: [[45, "45 s"], [60, "60 s"], [90, "90 s"]]},
       {k: "spd", l: ["Speed", "Tempo"], d: 1, c: [[.8, ["Slow", "Langsam"]], [1, ["Normal", "Normal"]], [1.25, ["Fast", "Schnell"]]]},
       {k: "vis", l: ["Crew vision", "Sicht der Crew"], d: 1, c: [[.75, ["Small", "Klein"]], [1, ["Normal", "Normal"]], [1.4, ["Wide", "Weit"]]]},
+      {k: "voice", online: true, l: ["Voice chat (talk in meetings, the dead are silent)", "Sprachchat (reden im Meeting, Tote sind stumm)"], d: 1, c: [[1, ["On", "An"]], [0, ["Off", "Aus"]]]},
       {k: "duel", l: ["Minigame at emergency meetings (winner votes twice)", "Minispiel im Notfall-Meeting (Gewinner hat 2 Stimmen)"], d: 1, c: [[1, ["Yes", "Ja"]], [0, ["No", "Nein"]]]},
       {k: "conf", l: ["Reveal ejected role", "Rolle beim Rauswurf zeigen"], d: 1, c: [[1, ["Yes", "Ja"]], [0, ["No", "Nein"]]]}],
     extra(o, solo){ return solo ? +o.bots || 0 : +o.fill || 0; },
@@ -274,6 +275,10 @@
       if (v.round !== this.introRound){ this.introRound = v.round; this.introEnd = t + (v.intro || 0); }
       if (!this.el || !this.el.isConnected) this.mount();
       if (v.spawn && v.spawn.k !== this.spawnK){ this.spawnK = v.spawn.k; this.me.x = v.spawn.x; this.me.y = v.spawn.y; this.vent = null; this.closeMini(); this.send(true); }
+      { const solo = PNet.P && PNet.P.solo, want = !solo && m && (m.opts || {}).voice !== 0 && !PG.st.npNoVoice;
+        if (want && !PVoice.on && !PVoice.starting && !this.vTried){ this.vTried = 1; PVoice.start().then(() => this.hud()); }
+        if (!want && PVoice.on) PVoice.stop();
+        const talk = v.phase === "lobby" || v.phase === "end" || ((v.phase === "meet" || v.phase === "eject") && v.alive); PVoice.setMic(talk); this.vWant = want; }
       if (v.snd && v.snd.k !== this.sndK){ this.sndK = v.snd.k; this.sound(v.snd.n); }
       this.hud();
     },
@@ -283,7 +288,7 @@
     /* only when the page really reaches under the status bar may the game be as tall as the screen */
     sat(){ try { const d = document.createElement("div"); d.style.cssText = "position:fixed;top:0;left:0;width:1px;height:env(safe-area-inset-top,0px);height:max(env(safe-area-inset-top,0px),env(safe-area-inset-left,0px),env(safe-area-inset-right,0px));visibility:hidden"; document.body.appendChild(d); const h = d.offsetHeight; d.remove(); return h; } catch(e) { return 0; } },
     unfull(){ try { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); else if (document.webkitFullscreenElement && document.webkitExitFullscreen) document.webkitExitFullscreen(); } catch(e) {} },
-    stop(){ cancelAnimationFrame(this.raf); this.raf = 0; if (this.el){ this.el.remove(); this.unfull(); } this.el = null; this.fullTried = 0; if (this.pop) window.removeEventListener("popstate", this.pop, true); document.documentElement.classList.remove("np-on"); window.removeEventListener("keydown", this.kd); window.removeEventListener("keyup", this.ku); window.removeEventListener("resize", this.rs); },
+    stop(){ PVoice.stop(); this.vTried = 0; cancelAnimationFrame(this.raf); this.raf = 0; if (this.el){ this.el.remove(); this.unfull(); } this.el = null; this.fullTried = 0; if (this.pop) window.removeEventListener("popstate", this.pop, true); document.documentElement.classList.remove("np-on"); window.removeEventListener("keydown", this.kd); window.removeEventListener("keyup", this.ku); window.removeEventListener("resize", this.rs); },
     /* synth sounds, all through the app's sound engine (respects the sound switch) */
     sfx: {
       ac(){ return Sound.fx && Sound.fx() ? Sound.ac : null; },
@@ -324,7 +329,7 @@
       else if (n === "task"){ Sound.xp ? Sound.xp() : Sound.right(); } },
     mount(){
       this.stop(); const el = this.el = document.createElement("div"); el.className = "np"; el.setAttribute("data-notr", "");
-      el.innerHTML = `<canvas class="np-cv"></canvas><div class="np-top"><button class="np-menu np-quit" data-x="quit">🚪</button><div class="np-bar"><i></i><span>${T("TASKS", "AUFGABEN")}</span></div><button class="np-mapb" data-x="map">${icon("map", 20)}<span>${T("Map", "Karte")}</span></button></div>
+      el.innerHTML = `<canvas class="np-cv"></canvas><div class="np-top"><button class="np-menu np-quit" data-x="quit">🚪</button><button class="np-menu np-mic" data-x="mic" hidden>🎙️</button><div class="np-bar"><i></i><span>${T("TASKS", "AUFGABEN")}</span></div><button class="np-mapb" data-x="map">${icon("map", 20)}<span>${T("Map", "Karte")}</span></button></div>
         <div class="np-tasks"></div><div class="np-alert"></div><div class="np-ev"></div><div class="np-lob"></div><div class="np-tbar"><i></i><span></span></div><div class="np-joy"><i></i></div><div class="np-btns"></div><div class="np-ov"></div><div class="np-mini"></div>`;
       document.body.appendChild(el); document.documentElement.classList.add("np-on"); this.full();
       this.pop = e => { if (!this.el || document.querySelector(".dsheet:not(.out)")) return; e.stopImmediatePropagation(); try { history.pushState({r: App.route}, "", "#" + App.route); } catch(_) {} toast(T("To leave: ☰ → Leave", "Zum Verlassen: ☰ → Verlassen")); };
@@ -409,6 +414,8 @@
     click(x, val){
       const v = this.v, t = this.targets();
       if (x === "menu") return this.menu();
+      if (x === "mic"){ if (!PVoice.on){ this.vTried = 1; PVoice.start().then(ok => { if (!ok) toast(T("Microphone not allowed. Allow it in the settings.", "Mikrofon nicht erlaubt. Erlaube es in den Einstellungen."), 3500); this.hud(); }); return; }
+        const mu = PVoice.toggleMute(); toast(mu ? T("You're muted", "Du bist stumm") : T("Mic on", "Mikro an"), 1200); this.hud(); return; }
       if (x === "quit" || x === "leave"){ const b = this.lastBtn && this.lastBtn.isConnected ? this.lastBtn : this.el.querySelector(".np-quit"); if (b._orig == null) b._orig = b.innerHTML; this.quitN = (now() - (this.quitT || 0) < 2500 ? this.quitN || 0 : 0) + 1; this.quitT = now(); Haptic.go(20);
         if (this.quitN >= 3){ this.quitN = 0; b.innerHTML = "👋"; setTimeout(() => { PNet.leave(); App.go("games"); }, 380); return; }
         b.classList.add("arm"); b.innerHTML = x === "leave" ? `🚪<span>${T(`${3 - this.quitN}× more`, `Noch ${3 - this.quitN}×`)}</span>` : `🚪<small>${3 - this.quitN}×</small>`; toast(T(`Tap ${3 - this.quitN} more time${3 - this.quitN > 1 ? "s" : ""} to leave`, `Noch ${3 - this.quitN}× tippen zum Verlassen`), 1600);
@@ -462,6 +469,8 @@
     hud(){
       const v = this.v, el = this.el; if (!v || !el) return;
       el.classList.toggle("mapon", !!this.mapOpen && v.phase === "play");
+      { const mb2 = el.querySelector(".np-mic"); mb2.hidden = !this.vWant; const st = !PVoice.on ? "off" : PVoice.muted ? "muted" : PVoice.mic ? (PVoice.talking(PNet.me) ? "talk" : "live") : "quiet";
+        const ic = st === "off" ? "🎙️" : st === "muted" || st === "quiet" ? "🔇" : "🎙️"; if (mb2.dataset.st !== st){ mb2.dataset.st = st; mb2.textContent = ic; } }
       el.classList.toggle("ghost", !v.alive); el.classList.toggle("imp", v.imp); el.classList.toggle("lob", v.phase === "lobby");
       const lb = el.querySelector(".np-lob"), lbH = v.phase === "lobby" ? `<div class="np-lobc"><b>${esc(v.lob.code.toUpperCase())}</b><span>${v.lob.n}${v.lob.fill ? ` + ${v.lob.fill} 🤖` : ""} / 15</span></div>
         <button class="np-lb" data-x="invite">📨<span>${T("Invite", "Einladen")}</span></button><button class="np-lb" data-x="look">👕<span>${T("Look", "Aussehen")}</span></button><button class="np-lb" data-x="settings">⚙️<span>${T("Settings", "Einstellungen")}</span></button><button class="np-lb" data-x="leave">🚪<span>${T("Leave", "Verlassen")}</span></button>
@@ -516,7 +525,7 @@
       else if (v.phase === "meet" && v.meet.mg && (!v.meet.mg.done || !this.duelDone || this.duelDone.s !== v.meet.mg.seed || now() - this.duelDone.t < RES)){ h = `<div class="np-duel" data-k="${v.meet.mg.seed}"></div>`; }
       else if (v.phase === "meet"){ const m = v.meet, canVote = v.alive && !m.my, W = m.mg && m.mg.win;
         h = `<div class="np-meet np-mt"><div class="np-ml"><div class="np-mh"><div><div class="np-k">${m.body ? "💀 " + T("Body reported", "Leiche gemeldet") : "🚨 " + T("Emergency meeting", "Notfall-Meeting")}</div><div class="np-big" style="font-size:20px;margin:2px 0 0">${m.body ? T(`${nm(m.by)} found ${nm(m.body)}`, `${nm(m.by)} hat ${nm(m.body)} gefunden`) : T(`called by ${nm(m.by)}`, `einberufen von ${nm(m.by)}`)}</div></div><div class="np-tm" data-cd="meet"></div></div>
-          <div class="np-vgrid">${P.map(p => { const dead = v.deadList.includes(p.id); return `<button class="np-vote ${m.my === p.id ? "sel" : ""} ${dead ? "dead" : ""} ${W === p.id ? "crown" : ""}" data-x="vote" data-v="${esc(p.id)}" ${!canVote || dead ? "disabled" : ""}><span class="np-hd">${head(p.id)}</span><b>${esc(p.name)}</b>${W === p.id ? `<em class="np-crown">👑 ×2</em>` : ""}${m.voted.includes(p.id) ? `<i>✓</i>` : ""}${dead ? `<i>✝</i>` : ""}</button>`; }).join("")}</div>
+          <div class="np-vgrid">${P.map(p => { const dead = v.deadList.includes(p.id); return `<button class="np-vote ${m.my === p.id ? "sel" : ""} ${dead ? "dead" : ""} ${W === p.id ? "crown" : ""}" data-pid="${esc(p.id)}" data-x="vote" data-v="${esc(p.id)}" ${!canVote || dead ? "disabled" : ""}><span class="np-hd">${head(p.id)}</span><b>${esc(p.name)}</b>${W === p.id ? `<em class="np-crown">👑 ×2</em>` : ""}${m.voted.includes(p.id) ? `<i>✓</i>` : ""}${dead ? `<i>✝</i>` : ""}</button>`; }).join("")}</div>
           <div class="np-mfoot"><button class="btn ${m.my === "skip" ? "go" : ""}" data-x="vote" data-v="skip" ${canVote ? "" : "disabled"}>${T("Skip vote", "Überspringen")}</button><span class="muted">${!v.alive ? T("Ghosts don't vote.", "Geister stimmen nicht ab.") : m.my ? T("Voted. Talk it out!", "Abgestimmt. Redet drüber!") : T("Talk, then vote.", "Redet, dann stimmt ab.")}</span></div></div>
           <div class="np-chat"><div class="np-log">${(m.chat || []).map(([id, pk, x], i) => `<div class="np-cm ${id === PNet.me ? "me" : ""} ${i >= (this.chatSeen || 0) ? "new" : ""}"><span class="np-hd sm">${head(id)}</span><div><b>${nm(id)}</b><span>${this.sayText(pk, x)}</span></div></div>`).join("") || `<p class="muted np-c0">${T("Say something…", "Sag was…")}</p>`}</div>${v.alive ? this.qcHTML(m) : ""}</div></div>`; }
       if (v.phase === "eject" && now() - (this.ejectT || 0) < 2800){ const e = v.eject, by = {}; Object.entries(e.votes || {}).forEach(([a, b]) => { (by[b] = by[b] || []).push(a); });
@@ -540,6 +549,7 @@
         const sec = Math.ceil(this.left("meet") / 1000); if (sec <= 5 && sec > 0 && sec !== this.lastTick){ this.lastTick = sec; this.sfx.tone(0, sec === 1 ? 660 : 880, sec === 1 ? 660 : 880, .09, .07, "square"); Haptic.go(sec === 1 ? 40 : 12); } }
       else { this.chatN = null; this.qcMode = null; this.chatSeen = 0; }
       this.duelTick(v, ov);
+      if (PVoice.on) ov.querySelectorAll("[data-pid]").forEach(b => b.classList.toggle("talk", PVoice.talking(b.dataset.pid)));
       ov.querySelectorAll("[data-cd]").forEach(e => { const n = Math.ceil(this.left(e.dataset.cd) / 1000); const t = e.dataset.cd === "meet" ? String(n) : n + " s"; if (e.textContent !== t) e.textContent = t; });
     },
     /* minigame at the meeting: wheel, play, result */
@@ -974,6 +984,8 @@ html.np-on .dsheet{z-index:2800!important}html.np-on .toast{z-index:2900!importa
 .np-act.on{opacity:1}
 .pg-np-hero{display:block;padding:22px 18px;border-radius:14px;margin-top:8px;min-height:0!important;text-align:left}.pg-np-hero .pg-np-ship{font-size:56px}.np-act.main.on{background:var(--go);box-shadow:inset 0 -5px 0 var(--go-deep)}.np-act.kill.on{background:var(--bad);box-shadow:inset 0 -5px 0 #a8382a}.np-act.rep.on{background:#E9B64A;color:#2A1E05}
 .np-act:active,.np-act.pr{transform:scale(.92)}
+.np-mic[data-st="off"]{opacity:.55}.np-mic[data-st="live"]{background:var(--go)!important}.np-mic[data-st="muted"]{background:var(--bad)!important}.np-mic[data-st="quiet"]{opacity:.75}
+.np-vote.talk{box-shadow:0 0 0 3px var(--go-hi),0 0 16px rgba(143,196,88,.6)}
 .np-duel{width:min(620px,100%);background:var(--panel);border-radius:16px;padding:12px;box-shadow:0 14px 40px rgba(0,0,0,.6);text-align:center;max-height:calc(var(--h,100vh) - 20px);overflow:hidden;display:flex;flex-direction:column}
 .du-k{font:900 13px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;justify-content:center;gap:10px}.du-tl{color:var(--fg);font-family:var(--mono)}
 .du-win2{position:relative;overflow:hidden;border-radius:12px;background:#1B1A18;padding:10px 0}.du-strip{display:flex;gap:12px;width:max-content;will-change:transform}

@@ -72,6 +72,7 @@ const PNet = (() => {
   function hostMsg(m){
     if (!m || m.code !== P.code) return;
     if (m.t === "mv" || m.t === "mvb"){ PG.onMv && PG.onMv(m); return; }
+    if (m.t === "rtc"){ PVoice.onMsg(m); return; }
     if (m.t === "hi"){ const n = String(m.name || "").replace(/\s+/g, " ").trim().slice(0, 16) || T("Player", "Spieler");
       const r = P.roster.find(x => x.id === m.id), uid = typeof m.uid === "string" && /^[0-9a-f-]{36}$/.test(m.uid) ? m.uid : null;
       const av = m.av && typeof m.av === "object" && JSON.stringify(m.av).length < 1500 ? m.av : null;
@@ -107,6 +108,7 @@ const PNet = (() => {
   function clientMsg(m){
     if (!m || m.code !== P.code) return;
     if (m.t === "mv" || m.t === "mvb"){ PG.onMv && PG.onMv(m); return; }
+    if (m.t === "rtc"){ PVoice.onMsg(m); return; }
     if (m.t === "v"){ if (P.msg && m.seq < P.msg.seq && m.host === P.msg.host && P.msg.seq - m.seq < 50) return;
       P.msg = m; P.last = Date.now(); P.gotMe = m.players.some(p => p.id === me); P.game = m.game; redraw(); }
     else if (m.t === "kick" && m.id === me){ leave(true); toast(T("The host removed you from the lobby.", "Der Gastgeber hat dich aus der Lobby entfernt."), 3500); if (App.route === "lobby") App.go("games"); }
@@ -158,6 +160,57 @@ const PNet = (() => {
   return {refresh, practice, raw, me, ok, link, newCode, host, resume, join, act, leave, setGame, setOpt, begin, toLobby, kick, fromHash, get P(){ return P; }, nameOf: id => P ? nameOf(id) : "", myName, defaults};
 })();
 PG.online = {};
+
+/* ---------- voice chat: every phone talks straight to every other phone (WebRTC); the party channel only carries the hand-shake.
+   The game decides when your microphone is open (e.g. only in meetings, and never when you're dead). ---------- */
+const PVoice = (() => {
+  const ICE = [{urls: "stun:stun.l.google.com:19302"}, {urls: "stun:stun.cloudflare.com:3478"}];
+  let stream = null, on = false, starting = null, mic = false, mute = false, pcs = {}, lastHi = 0, hiT = 0, lvT = 0;
+  const level = {}, an = {};
+  const send = (to, d) => PNet.raw({t: "rtc", to, d});
+  const me = () => PNet.me;
+  async function start(){
+    if (on || starting) return starting; if (!navigator.mediaDevices || !window.RTCPeerConnection) return false;
+    starting = (async () => { try { stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true}, video: false}); }
+      catch(e) { starting = null; PVoice.denied = true; return false; }
+      on = true; PVoice.denied = false; applyMic(); watch(me(), stream); send("*", {hi: 1}); lastHi = Date.now();
+      hiT = setInterval(() => { if (on) send("*", {hi: 1}); }, 4000); lvT = setInterval(levels, 180); starting = null; return true; })();
+    return starting;
+  }
+  function stop(){ if (!on && !starting) return; if (on) send("*", {bye: 1}); on = false; clearInterval(hiT); clearInterval(lvT); Object.keys(pcs).forEach(close); if (stream) stream.getTracks().forEach(t => t.stop()); stream = null; }
+  function close(id){ const x = pcs[id]; if (!x) return; try { x.pc.close(); } catch(e) {} if (x.au){ x.au.srcObject = null; x.au.remove(); } delete pcs[id]; delete level[id]; delete an[id]; }
+  function applyMic(){ if (stream) stream.getAudioTracks().forEach(t => { t.enabled = mic && !mute; }); }
+  function peer(id){
+    if (pcs[id]) return pcs[id];
+    const pc = new RTCPeerConnection({iceServers: ICE}), x = pcs[id] = {pc, making: false, ignore: false, polite: me() > id, au: null, t: Date.now()};
+    if (stream) stream.getTracks().forEach(t => pc.addTrack(t, stream));
+    pc.onicecandidate = e => { if (e.candidate) send(id, {cand: e.candidate.toJSON ? e.candidate.toJSON() : e.candidate}); };
+    pc.onnegotiationneeded = async () => { try { x.making = true; await pc.setLocalDescription(); send(id, {desc: {type: pc.localDescription.type, sdp: pc.localDescription.sdp}}); } catch(e) {} finally { x.making = false; } };
+    pc.ontrack = e => { const st = e.streams && e.streams[0] || new MediaStream([e.track]); if (!x.au){ x.au = document.createElement("audio"); x.au.autoplay = true; x.au.setAttribute("playsinline", ""); x.au.style.display = "none"; document.body.appendChild(x.au); }
+      x.au.srcObject = st; x.au.play().catch(() => {}); watch(id, st); };
+    pc.onconnectionstatechange = () => { if (pc.connectionState === "failed" || pc.connectionState === "closed") close(id); };
+    return x;
+  }
+  /* who is talking right now: a little level meter per voice */
+  function watch(id, st){ try { const ac = Sound.ac; if (!ac) return; const src = ac.createMediaStreamSource(st), a = ac.createAnalyser(); a.fftSize = 256; src.connect(a); an[id] = a; } catch(e) {} }
+  function levels(){ const buf = new Uint8Array(128); Object.entries(an).forEach(([id, a]) => { a.getByteTimeDomainData(buf); let m = 0; for (let i = 0; i < buf.length; i++) m = Math.max(m, Math.abs(buf[i] - 128)); level[id] = m > 10; }); }
+  async function onMsg(m){
+    if (!on || !m || !m.id || m.id === me() || (m.to !== "*" && m.to !== me())) return; const d = m.d || {}, id = m.id;
+    if (d.bye){ close(id); return; }
+    if (d.hi){ const y = pcs[id]; if (y && y.pc.connectionState !== "connected" && Date.now() - y.t > 5000 && me() < id) close(id); if (!pcs[id]){ peer(id); send(id, {hi: 1}); } return; }
+    const x = peer(id); x.q = (x.q || Promise.resolve()).then(() => handle(x, d, id)); }
+  /* one message at a time per peer, so a candidate never overtakes the offer it belongs to */
+  async function handle(x, d, id){ const pc = x.pc;
+    try {
+      if (d.desc){ const offer = d.desc.type === "offer", collide = offer && (x.making || pc.signalingState !== "stable"); x.ignore = !x.polite && collide; if (x.ignore) return;
+        await pc.setRemoteDescription(d.desc); if (offer){ await pc.setLocalDescription(); send(id, {desc: {type: pc.localDescription.type, sdp: pc.localDescription.sdp}}); } }
+      else if (d.cand){ try { await pc.addIceCandidate(d.cand); } catch(e) { if (!x.ignore) throw e; } }
+    } catch(e) { console.warn("voice", e); }
+  }
+  return {start, stop, onMsg, get on(){ return on; }, get starting(){ return !!starting; }, denied: false,
+    setMic(v){ mic = !!v; applyMic(); }, get mic(){ return mic; }, toggleMute(){ mute = !mute; applyMic(); return mute; }, get muted(){ return mute; },
+    talking: id => !!level[id], peers: () => Object.keys(pcs).filter(id => pcs[id].pc.connectionState === "connected")};
+})();
 
 /* ---------- safe rendering of a view: plain text, *bold*, line breaks; never HTML from another phone ---------- */
 const PView = (() => {
