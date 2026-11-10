@@ -184,19 +184,20 @@ PG.online = {};
    The game decides when your microphone is open (e.g. only in meetings, and never when you're dead). ---------- */
 const PVoice = (() => {
   const ICE = [{urls: "stun:stun.l.google.com:19302"}, {urls: "stun:stun.cloudflare.com:3478"}];
-  let stream = null, on = false, starting = null, mic = false, mute = false, pcs = {}, lastHi = 0, hiT = 0, lvT = 0;
+  let stream = null, keep = null, keepT = 0, on = false, starting = null, mic = false, mute = false, pcs = {}, lastHi = 0, hiT = 0, lvT = 0;
   const level = {}, an = {};
   const send = (to, d) => PNet.raw({t: "rtc", to, d});
   const me = () => PNet.me;
   async function start(){
     if (on || starting) return starting; if (!navigator.mediaDevices || !window.RTCPeerConnection) return false;
-    starting = (async () => { try { stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true}, video: false}); }
+    /* the microphone is asked for once: the stream stays with the app (muted) between lobby and rounds, so the phone doesn't ask again every game */
+    starting = (async () => { try { clearTimeout(keepT); if (keep && keep.getAudioTracks().some(t => t.readyState === "live")) stream = keep; else { stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true}, video: false}); keep = stream; } }
       catch(e) { starting = null; PVoice.denied = true; return false; }
       on = true; PVoice.denied = false; applyMic(); watch(me(), stream); send("*", {hi: 1}); lastHi = Date.now();
       hiT = setInterval(() => { if (on) send("*", {hi: 1}); }, 4000); lvT = setInterval(levels, 180); starting = null; return true; })();
     return starting;
   }
-  function stop(){ if (!on && !starting) return; if (on) send("*", {bye: 1}); on = false; clearInterval(hiT); clearInterval(lvT); Object.keys(pcs).forEach(close); if (stream) stream.getTracks().forEach(t => t.stop()); stream = null; }
+  function stop(){ if (!on && !starting) return; if (on) send("*", {bye: 1}); on = false; clearInterval(hiT); clearInterval(lvT); Object.keys(pcs).forEach(close); if (stream) stream.getTracks().forEach(t => { t.enabled = false; }); stream = null; clearTimeout(keepT); keepT = setTimeout(() => { if (!on && keep){ keep.getTracks().forEach(t => t.stop()); keep = null; } }, 10 * 60e3); }
   function close(id){ const x = pcs[id]; if (!x) return; try { x.pc.close(); } catch(e) {} if (x.au){ x.au.srcObject = null; x.au.remove(); } delete pcs[id]; delete level[id]; delete an[id]; }
   function applyMic(){ if (stream) stream.getAudioTracks().forEach(t => { t.enabled = mic && !mute; }); }
   function peer(id){

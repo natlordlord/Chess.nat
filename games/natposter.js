@@ -407,7 +407,11 @@
 
       el.querySelector(".np-mini").addEventListener("click", e => { if (e.target.classList.contains("np-mini") && this.mini && this.mini.light){ Sound.tap(); this.closeMini(); } });
       this.cv = el.querySelector("canvas"); this.ctx = this.cv.getContext("2d");
-      this.rs = () => { const d = Math.min(2, window.devicePixelRatio || 1), up = innerHeight > innerWidth, sat = this.sat(), big = navigator.standalone && sat > 0, IH = Math.max(innerHeight, big && up ? screen.height : 0), IW = Math.max(innerWidth, big && !up ? screen.height : 0), rot = PG.st.npPortrait ? false : up, w = rot ? IH : IW, h = rot ? IW : IH; this.rot = rot; el.classList.toggle("rot", rot); el.classList.toggle("land", w > h); el.style.setProperty("--h", h + "px");
+      this.rs = () => { const d = Math.min(2, window.devicePixelRatio || 1), up = innerHeight > innerWidth, sat = this.sat(), big = navigator.standalone && sat > 0, IH = Math.max(innerHeight, big && up ? screen.height : 0), IW = Math.max(innerWidth, big && !up ? screen.height : 0), rot = PG.st.npPortrait ? false : up, w = rot ? IH : IW, h = rot ? IW : IH, was = this.rot; this.rot = rot; el.classList.toggle("rot", rot);
+        /* turning the phone: the game turns into place instead of jumping */
+        if (was != null && was !== rot && el.animate){ try { const ang = (screen.orientation && screen.orientation.angle) || window.orientation || 0, th = (ang === 90 || ang === -270) ? -90 : 90;
+          if (!rot) el.animate([{transform: `rotate(${th}deg) scale(.8)`, transformOrigin: "50% 50%", boxShadow: "0 0 0 200vmax #07080c"}, {transform: "rotate(0deg) scale(1)", transformOrigin: "50% 50%", boxShadow: "0 0 0 200vmax #07080c"}], {duration: 460, easing: "cubic-bezier(.2,.85,.25,1)"});
+          else el.animate([{opacity: 0, filter: "blur(6px)"}, {opacity: 1, filter: "blur(0)"}], {duration: 380, easing: "ease-out"}); } catch(e) {} } el.classList.toggle("land", w > h); el.style.setProperty("--h", h + "px");
         { const I = this.insets(), m2 = rot ? {st: I.r, sb: I.l, sl: I.t, sr: I.b} : {st: I.t, sb: I.b, sl: I.l, sr: I.r}; Object.entries(m2).forEach(([k, val]) => el.style.setProperty("--" + k, val + "px")); } el.style.width = w + "px"; el.style.height = h + "px"; this.cv.width = w * d; this.cv.height = h * d; this.dpr = d; this.zoom = Math.max(.5, Math.min(1.2, Math.min(w, h) / 560)); };
       this.rs(); window.addEventListener("resize", this.rs);
       /* joystick: touch anywhere on the left part of the screen */
