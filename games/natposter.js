@@ -93,7 +93,7 @@
 
   /* positions of everyone, fed by "mv" messages and by this phone's own movement */
   const POS = {};
-  PG.onMv = m => { if (m && m.t === "mvb" && Array.isArray(m.l)){ m.l.forEach(([id, x, y, f, g, mv, sc]) => PG.onMv({id, x, y, f, g, m: mv, sc})); return; } if (!m || !m.id) return; const p = POS[m.id] || (POS[m.id] = {x: m.x, y: m.y, dx: m.x, dy: m.y}); const x = +m.x || 0, y = +m.y || 0, t = now(); p.buf = p.buf || []; const last = p.buf[p.buf.length - 1]; if (last && Math.hypot(last.x - x, last.y - y) > 320) p.buf = []; p.buf.push({t, x, y}); if (p.buf.length > 8) p.buf.shift();
+  PG.onMv = m => { if (m && m.t === "mvb" && Array.isArray(m.l)){ m.l.forEach(([id, x, y, f, g, mv, sc, v]) => PG.onMv({id, x, y, f, g, m: mv, sc, v})); return; } if (!m || !m.id) return; const p = POS[m.id] || (POS[m.id] = {x: m.x, y: m.y, dx: m.x, dy: m.y}); const x = +m.x || 0, y = +m.y || 0, t = now(); p.buf = p.buf || []; const last = p.buf[p.buf.length - 1]; if (last && Math.hypot(last.x - x, last.y - y) > 320) p.buf = []; p.buf.push({t, x, y}); if (p.buf.length > 8) p.buf.shift();
     if (!!m.v !== !!p.v) p.vt = t; p.x = x; p.y = y; p.g = !!m.g; p.v = !!m.v; p.f = m.f || 1; p.t = t; p.mv = !!m.m; p.sc = !!m.sc; };
 
   /* ---------------- practice bots: the app's chess bots, run by the host's phone ---------------- */
@@ -107,10 +107,13 @@
       this.list(G).forEach(b => { const id = b.id, p = POS[id] || (POS[id] = Object.assign({}, s.spawn[id])), m = this.mem[id] || (this.mem[id] = {path: [], wait: 0, goal: null}), alive = s.alive[id], imp = s.imps.includes(id);
         if (s.phase === "meet" && alive && (m.said || 0) < 2 && now() - (s.meet.mg ? s.meet.mg.end + RES : s.meet.start) > (m.st || (m.st = 1800 + Math.random() * 6500))){ m.said = (m.said || 0) + 1; m.st = now() - (s.meet.mg ? s.meet.mg.end + RES : s.meet.start) + 2500 + Math.random() * 7000; const r = roomAt(p.x, p.y), bd = s.meet.body && s.bodies.find(x => x.id === s.meet.body), others = G.ids.filter(x => x !== id && s.alive[x]);
           const line = m.said === 2 ? (Math.random() < .55 ? "emo|" + Math.floor(Math.random() * EMO.length) : Math.random() < .5 ? "skip" : "nothing")
-            : s.meet.by === id && bd ? "body|" + ((roomAt(bd.x, bd.y) || {}).id || "hall") : m.sus && s.alive[m.sus] && Math.random() < .7 ? "sus|" + m.sus : imp && Math.random() < .35 ? (Math.random() < .5 ? "self" : "sus|" + PG.pick(others.filter(x => !s.imps.includes(x)))) : Math.random() < .2 && others.length ? "with|" + PG.pick(others) : "where|" + ((r || {}).id || "hall");
+            : m.saw && s.alive[m.saw] && !imp ? "sus|" + m.saw : s.meet.by === id && bd ? "body|" + ((roomAt(bd.x, bd.y) || {}).id || "hall") : m.sus && s.alive[m.sus] && Math.random() < .7 ? "sus|" + m.sus : imp && Math.random() < .35 ? (Math.random() < .5 ? "self" : "sus|" + PG.pick(others.filter(x => !s.imps.includes(x)))) : Math.random() < .2 && others.length ? "with|" + PG.pick(others) : "where|" + ((r || {}).id || "hall");
           eng.act(G, id, {a: "say", v: line}, api); api.push(); }
         if (s.phase === "meet"){ m.path = []; m.goal = null; if (alive && !s.meet.votes[id] && now() - (s.meet.mg ? s.meet.mg.end + RES : s.meet.start) > (m.vt || (m.vt = 4000 + Math.random() * 12000))){ const sus = m.sus && s.alive[m.sus] && m.sus !== id ? m.sus : null; const opts = G.ids.filter(x => s.alive[x] && x !== id && !(imp && s.imps.includes(x)));
-            eng.act(G, id, {a: "vote", v: sus && Math.random() < .7 ? sus : Math.random() < .45 ? "skip" : PG.pick(opts) || "skip"}, api); api.push(); } return; }
+            const tally = {}; Object.values(s.meet.votes).forEach(x => { if (x !== "skip") tally[x] = (tally[x] || 0) + 1; }); const top = Object.entries(tally).sort((a, b) => b[1] - a[1])[0];
+            const pickV = m.saw && s.alive[m.saw] && !imp ? m.saw : sus && Math.random() < .7 ? sus : top && top[0] !== id && !(imp && s.imps.includes(top[0])) && top[1] >= 2 && Math.random() < .5 ? top[0] : Math.random() < .45 ? "skip" : PG.pick(opts) || "skip";
+            eng.act(G, id, {a: "vote", v: pickV}, api); api.push(); } return; }
+        if (s.phase === "play" && m.saw && !s.alive[m.saw]) m.saw = null;
         m.vt = 0; m.said = 0; m.st = 0; if (s.phase !== "play" || now() < s.intro){ if (s.spawn[id] && m.sk !== s.spawnK){ m.sk = s.spawnK; Object.assign(p, s.spawn[id]); m.path = []; m.goal = null; } out.push([id, p.x, p.y, p.f || 1, alive ? 0 : 1, 0]); return; }
         if (s.spawn[id] && m.sk !== s.spawnK){ m.sk = s.spawnK; Object.assign(p, s.spawn[id]); m.path = []; m.goal = null; }
         const crewSeen = r => G.ids.filter(x => x !== id && s.alive[x] && !s.imps.includes(x) && POS[x] && dist(p, POS[x]) < r);
@@ -118,7 +121,11 @@
         if (imp && alive){
           if (!s.sab && now() >= s.sabAt && Math.random() < .002){ eng.act(G, id, {a: "sab", v: PG.pick(["lights", "lights", "comms", "reactor", "o2"])}, api); api.push(); }
           if (now() >= s.killAt[id]){ const t = crewSeen(500).find(x => G.ids.filter(y => y !== id && y !== x && s.alive[y] && POS[y] && dist(POS[y], POS[x]) < 380).length === 0);
-            if (t){ if (dist(p, POS[t]) <= KILL_R * .8){ eng.act(G, id, {a: "kill", v: t}, api); api.push(); m.path = []; m.goal = null; m.wait = 1.5; } else { m.path = [{x: POS[t].x, y: POS[t].y}]; m.goal = {hunt: t}; } } }
+            if (t){ if (dist(p, POS[t]) <= KILL_R * .8){ eng.act(G, id, {a: "kill", v: t}, api); api.push(); m.path = []; m.goal = null; m.wait = .6;
+                const vt = VENTS.filter(x => dist(x, p) < 600).sort((a, b) => dist(a, p) - dist(b, p))[0]; if (vt && Math.random() < .65){ m.path = route(p, vt); m.goal = {vent: vt.id}; } }
+              else { m.path = [{x: POS[t].x, y: POS[t].y}]; m.goal = {hunt: t}; const tr = roomAt(POS[t].x, POS[t].y); if (tr && tr.id !== "caf" && now() >= (s.doorAt || 0) && Math.random() < .01){ eng.act(G, id, {a: "door", v: tr.id}, api); api.push(); } } } }
+          if (m.vin){ if (now() >= m.vin.out){ const to = VENTS.find(x => x.id === m.vin.to); Object.assign(p, {x: to.x, y: to.y}); POS[id].v = false; POS[id].vt = now(); m.vin = null; m.goal = null; m.path = []; m.wait = .5; }
+            out.push([id, Math.round(p.x), Math.round(p.y), p.f || 1, 0, 0, 0, 1]); PG.onMv({id, x: p.x, y: p.y, f: p.f || 1, g: 0, m: 0, v: 1}); return; }
         }
         /* crew bots report what they see and fix sabotage */
         if (m.goal && m.goal.ev != null && !s.ev){ m.goal = null; m.path = []; m.wait = 0; }
@@ -132,11 +139,16 @@
         if (m.wait > 0){ m.wait -= dt; if (m.wait <= 0 && m.goal && m.goal.task && !imp){ eng.act(G, id, {a: "task", v: m.goal.task}, api); api.push(); m.goal = null; } if (m.wait <= 0 && m.goal && m.goal.fix){ if (m.goal.fix !== "ra" && m.goal.fix !== "rb"){ eng.act(G, id, {a: "fix", v: m.goal.fix}, api); api.push(); m.goal = null; } else if (s.sab && s.sab.type === "reactor" && (m.holdT = (m.holdT || 0) + 1) < 400){ m.wait = .5; eng.act(G, id, {a: "hold", v: m.goal.fix}, api); api.push(); } else { m.goal = null; m.holdT = 0; } } out.push([id, Math.round(p.x), Math.round(p.y), p.f || 1, alive ? 0 : 1, 0, m.goal && m.goal.task === "sc" ? 1 : 0]); PG.onMv({id, x: p.x, y: p.y, f: p.f || 1, g: alive ? 0 : 1, m: 0, sc: m.goal && m.goal.task === "sc" ? 1 : 0}); return; }
         if (!m.path.length){
           if (m.goal && m.goal.ev != null && s.ev){ m.wait = 1; }
+          else if (m.goal && m.goal.vent && imp && alive){ const vt = VENTS.find(x => x.id === m.goal.vent); m.vin = {out: now() + 900 + Math.random() * 2200, to: PG.pick(vt.to)}; p.x = vt.x; p.y = vt.y; PG.onMv({id, x: p.x, y: p.y, f: p.f || 1, g: 0, m: 0, v: 1}); return; }
+          else if (m.goal && m.goal.fake){ m.wait = 3 + Math.random() * 4; m.goal = null; }
+          else if (m.goal && m.goal.follow && s.alive[m.goal.follow] && POS[m.goal.follow] && now() < m.goal.until){ m.path = route(p, {x: POS[m.goal.follow].x + 60 - Math.random() * 120, y: POS[m.goal.follow].y + 40}); }
           else if (m.goal && m.goal.task){ m.wait = 5 + Math.random() * 5; }
           else if (m.goal && m.goal.fix && s.sab){ m.wait = 2.5; }
           else if (m.goal && m.goal.walk){ m.goal = null; m.wait = .4 + Math.random() * 2.2; if (Math.random() < .5) p.f = -(p.f || 1); }
           else { m.goal = null; const left = s.tasks[id].filter(t => !s.done[id][t]); const tk = TASKS.find(t => t.id === (imp ? PG.pick(s.tasks[id]) : left[0]));
-            if (tk && Math.random() < (imp ? .6 : .55)){ m.goal = {task: imp ? null : tk.id}; m.path = route(p, {x: tk.x + (Math.random() * 30 - 15), y: tk.y + 40}); }
+            const pals = G.ids.filter(x => x !== id && s.alive[x] && POS[x] && dist(POS[x], p) < 500);
+            if (!imp && pals.length && Math.random() < .25){ const f = PG.pick(pals); m.goal = {follow: f, until: now() + 7000 + Math.random() * 8000}; m.path = route(p, POS[f]); }
+            else if (tk && Math.random() < (imp ? .6 : .55)){ m.goal = imp ? {fake: 1} : {task: tk.id}; m.path = route(p, {x: tk.x + (Math.random() * 30 - 15), y: tk.y + 40}); }
             else { const r = PG.pick(ROOMS); m.path = route(p, {x: r.x + 40 + Math.random() * (r.w - 80), y: r.y + 50 + Math.random() * (r.h - 90)}); m.goal = {walk: 1}; } }
         }
         const w = m.path[0]; if (w){ const dx = w.x - p.x, dy = w.y - p.y, d = Math.hypot(dx, dy), sp = SPEED * (+G.opts.spd || 1) * .72 * dt * (alive ? 1 : 1.1);
@@ -223,6 +235,7 @@
       if (s.phase !== "play" || now() < s.intro) return;
       if (a.a === "kill" && imp && alive && now() >= s.killAt[id] && !me.v){ const t = a.v, tp = POS[t];
         if (!t || !s.alive[t] || s.imps.includes(t) || !tp || dist(me, tp) > KILL_R * 1.35) return;
+        if (!(s.sab && s.sab.type === "lights")) BOT.list(G).forEach(b => { if (b.id === t || !s.alive[b.id] || s.imps.includes(b.id) || !POS[b.id] || dist(POS[b.id], me) > VIS.crew * .85) return; const mm = BOT.mem[b.id] || (BOT.mem[b.id] = {path: [], wait: 0, goal: null}); mm.saw = id; });
         const kv = PG.pick(KILLS), dbl = s.log.some(l => now() - l[0] < 4000 && l[1] !== id);
         s.alive[t] = false; s.bodies.push({id: t, x: Math.round(tp.x), y: Math.round(tp.y), k: kv}); s.killAt[id] = now() + G.opts.cd * 1000; s.log.push([now(), id, t]);
         s.killed = s.killed || {}; s.killed[t] = {by: id, k: ++G.sk, v: kv}; s.ps = s.ps || {}; s.ps[id] = {k: "p" + (++G.sk), n: "kill"}; s.ps[t] = {k: "p" + (++G.sk), n: "died"};
@@ -791,7 +804,8 @@
       const t = now();
       HALLS.forEach(a => { const hz = a.w > a.h; c.strokeStyle = "#4a4640"; c.lineWidth = 7; c.beginPath(); if (hz){ c.moveTo(a.x, a.y + 12); c.lineTo(a.x + a.w, a.y + 12); } else { c.moveTo(a.x + 12, a.y); c.lineTo(a.x + 12, a.y + a.h); } c.stroke();
         c.strokeStyle = "#5f5a52"; c.lineWidth = 3; c.beginPath(); if (hz){ c.moveTo(a.x, a.y + 24); c.lineTo(a.x + a.w, a.y + 24); } else { c.moveTo(a.x + 24, a.y); c.lineTo(a.x + 24, a.y + a.h); } c.stroke();
-        c.fillStyle = "#5f5a52"; for (let k = 40; k < (hz ? a.w : a.h); k += 90) hz ? c.fillRect(a.x + k, a.y + 6, 8, 12) : c.fillRect(a.x + 6, a.y + k, 12, 8); });
+        c.fillStyle = "#5f5a52"; for (let k = 40; k < (hz ? a.w : a.h); k += 90) hz ? c.fillRect(a.x + k, a.y + 6, 8, 12) : c.fillRect(a.x + 6, a.y + k, 12, 8);
+        for (let k = 30, i = 0; k < (hz ? a.w : a.h); k += 60, i++){ const gl = .25 + .35 * Math.max(0, Math.sin(t / 300 - i * .7)); c.fillStyle = `rgba(143,196,88,${gl})`; const x = hz ? a.x + k : a.x + a.w - 14, y = hz ? a.y + a.h - 14 : a.y + k; c.beginPath(); c.arc(x, y, 4, 0, 7); c.fill(); } });
       ROOMS.forEach((r, i) => {
         const g = c.createRadialGradient(r.x + r.w / 2, r.y + r.h / 2, 10, r.x + r.w / 2, r.y + r.h / 2, Math.max(r.w, r.h) * .62); g.addColorStop(0, "rgba(255,236,200,.07)"); g.addColorStop(1, "rgba(255,236,200,0)"); c.fillStyle = g; c.fillRect(r.x, r.y, r.w, r.h);
         c.fillStyle = "#45413b"; c.fillRect(r.x, r.y, r.w, 40); c.fillStyle = "rgba(0,0,0,.32)"; c.fillRect(r.x, r.y + 40, r.w, 7); c.fillStyle = "#5f5a52"; c.fillRect(r.x, r.y + 38, r.w, 2);
