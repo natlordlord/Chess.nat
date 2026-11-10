@@ -365,7 +365,9 @@
       else if (n === "evok"){ PG.cheer(2); x.chord(0, [64, 68, 71, 76], 1.2, .06, "triangle"); Haptic.go([20, 30, 20, 30, 60]); }
       else if (n === "meet"){ this.banner = {t: now()}; if (this.v && this.v.meet && !this.v.meet.body){ [0, .6, 1.2].forEach(t => { x.tone(t, 1318, 1310, 1.3, .1, "sine"); x.tone(t, 659, 655, 1.5, .08, "triangle"); x.tone(t, 1976, 1960, .6, .03, "sine"); }); }
         else [0, .45, .9, 1.35].forEach(t => { x.tone(t, 880, 660, .4, .12, "square"); }); Haptic.go([80, 60, 80, 60, 80]); }
-      else if (n === "eject"){ x.noise(0, 2.2, 800, 90, .14, "lowpass", .6); x.tone(.2, 300, 60, 2, .05, "sine"); }
+      else if (n === "eject"){ for (let i = 0; i < 26; i++){ const t = i * .07; x.noise(t, .06, 2600, 1500, .03 + i * .004, "bandpass", .8); }
+        x.noise(1.85, .9, 9000, 4000, .12, "highpass"); x.tone(1.85, 110, 55, .6, .25, "sine"); Haptic.go([20, 20, 20, 20, 20, 20, 120]);
+        x.noise(2.8, 2, 800, 90, .14, "lowpass", .6); x.tone(3, 300, 60, 2, .05, "sine"); }
       else if (n === "alarm"){ [0, .5, 1, 1.5].forEach(t => x.tone(t, 760, 760, .3, .1, "square")); Haptic.go([100, 100, 100, 100, 100]); }
       else if (n === "dark"){ x.tone(0, 220, 55, .7, .2, "sawtooth"); x.noise(0, .6, 1200, 80, .1, "lowpass"); Haptic.go(60); }
       else if (n === "static"){ x.noise(0, 1.1, 3000, 800, .12, "bandpass", .4); x.tone(.1, 1200, 300, .5, .04, "square"); Haptic.go([30, 30, 30]); }
@@ -586,7 +588,7 @@
           <div class="np-mfoot"><button class="btn ${m.my === "skip" ? "go" : ""}" data-x="vote" data-v="skip" ${canVote ? "" : "disabled"}>${T("Skip vote", "Überspringen")}</button><span class="muted">${!v.alive ? T("Ghosts don't vote.", "Geister stimmen nicht ab.") : m.my ? T("Voted. Talk it out!", "Abgestimmt. Redet drüber!") : T("Talk, then vote.", "Redet, dann stimmt ab.")}</span></div></div>
           <div class="np-chat"><div class="np-log">${(m.chat || []).map(([id, pk, x], i) => `<div class="np-cm ${id === PNet.me ? "me" : ""} ${i >= (this.chatSeen || 0) ? "new" : ""}"><span class="np-hd sm">${head(id)}</span><div><b>${nm(id)}</b><span>${this.sayText(pk, x)}</span></div></div>`).join("") || `<p class="muted np-c0">${T("Say something…", "Sag was…")}</p>`}</div>${v.alive ? this.qcHTML(m) : ""}</div></div>`; }
       if (v.phase === "eject" && now() - (this.ejectT || 0) < 2800){ const e = v.eject, by = {}; Object.entries(e.votes || {}).forEach(([a, b]) => { (by[b] = by[b] || []).push(a); });
-        const row = (id, label, dead) => `<div class="np-vr ${e.id === id ? "out" : ""} ${dead ? "dead" : ""}">${id !== "skip" ? `<span class="np-hd">${head(id)}</span>` : `<span class="np-hd np-skip">⏭</span>`}<b>${label}</b><span class="np-vh">${(by[id] || []).map(x => `<span class="np-hd sm">${head(x)}</span>`).join("")}</span></div>`;
+        const row = (id, label, dead) => `<div class="np-vr ${e.id === id ? "out" : ""} ${dead ? "dead" : ""}">${id !== "skip" ? `<span class="np-hd">${head(id)}</span>` : `<span class="np-hd np-skip">⏭</span>`}<b>${label}</b><span class="np-vh">${(by[id] || []).map(x => `<span class="np-hd sm" style="--i:${Object.keys(e.votes || {}).indexOf(x)}">${head(x)}</span>`).join("")}</span></div>`;
         h = `<div class="np-meet"><div class="np-k">${T("Votes", "Abstimmung")}</div><div class="np-vgrid">${P.map(p => row(p.id, esc(p.name), v.deadList.includes(p.id) && p.id !== e.id)).join("")}</div>${row("skip", T("Skipped", "Übersprungen"))}</div>`; }
       else if (v.phase === "eject"){ const e = v.eject, n0 = e.id ? this.nm(e.id) : "";
         const txt = e.id ? (e.conf ? (e.imp ? T(`${n0} was a Natposter.`, `${n0} war ein Natposter.`) : T(`${n0} was not a Natposter.`, `${n0} war kein Natposter.`)) : T(`${n0} was ejected.`, `${n0} wurde rausgeworfen.`)) : T("Nobody was ejected.", "Niemand wurde rausgeworfen.");
@@ -1280,7 +1282,10 @@ html.np-on .xpchip{z-index:2950!important}
 .np-camg canvas{width:100%;height:auto;display:block}.np-camg span{position:absolute;left:8px;top:6px;font:800 11px var(--body);color:#F07B68;letter-spacing:.06em;text-shadow:0 1px 2px #000}
 .np-adm svg{width:100%;height:auto;display:block;border-radius:10px;background:#0B0C12}
 .np-vr{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:12px;background:var(--panel-2);text-align:left;min-width:0;flex-wrap:wrap}
-.np-vr b{font:800 14px var(--body);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.np-vr.out{box-shadow:0 0 0 2px var(--bad)}.np-vr.dead{opacity:.4}
+.np-vr b{font:800 14px var(--body);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.np-vr.out{box-shadow:0 0 0 2px var(--bad);animation:npOut .5s 1.8s both}
+@keyframes npOut{0%{box-shadow:0 0 0 0 transparent}50%{transform:scale(1.06);box-shadow:0 0 0 4px var(--bad),0 0 24px rgba(226,82,62,.7)}100%{box-shadow:0 0 0 2px var(--bad)}}
+.np-vh .np-hd.sm{animation:npFly .35s cubic-bezier(.2,1.4,.5,1) both;animation-delay:calc(var(--i,0) * 110ms + 150ms)}
+@keyframes npFly{from{transform:translateY(-36px) scale(.2);opacity:0}}.np-vr.dead{opacity:.4}
 .np-vh{display:flex;flex-wrap:wrap;gap:2px;width:100%}.np-hd.sm{width:22px;height:22px}
 .np-skip{display:inline-flex!important;align-items:center;justify-content:center;font-size:20px}
 .np-ast{position:relative;height:230px;border-radius:12px;background:radial-gradient(circle at 30% 40%,#1e2033,#0B0C12);overflow:hidden}
