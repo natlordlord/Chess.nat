@@ -663,6 +663,7 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 .th-h{font:900 18px var(--display);margin:18px 0 6px}
 .th-p{font-size:14.5px;line-height:1.6;margin:0 0 10px;color:var(--fg)}
 .th-note{background:var(--panel-2);border:1px solid var(--line);border-left:3px solid var(--go);border-radius:10px;padding:10px 12px;margin-bottom:10px;position:sticky;top:0;z-index:2}
+@media (max-width:900px){.th-note{position:static;padding:8px 10px}.th-note b{font-size:15px!important}.th-note p{font-size:13.5px!important}}
 .th-note.trap{border-left-color:var(--bad)}
 .th-note b{font:900 16px var(--display);display:block;margin:2px 0 4px}
 .th-note p{margin:0;font-size:14px;line-height:1.45}
@@ -2788,7 +2789,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794312851";
+const CHESSNAT_BUILD = "1794314479";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -3736,7 +3737,17 @@ function sizeBoard(){
   }
   document.documentElement.style.setProperty("--bs", bs + "px");
 }
-window.addEventListener("resize", sizeBoard); window.addEventListener("orientationchange", () => setTimeout(sizeBoard, 200));
+/* on a phone the text under the board must stay readable: if the controls take more room than planned (two rows of buttons, a long title),
+   the board gets a little smaller until the text area has enough height */
+function fitPanel(){
+  if (window.innerWidth > 900) return; const sp = document.querySelector("#main .side .scroll"); if (!sp || !sp.isConnected || !sp.offsetParent) return;
+  const want = Math.min(190, Math.round(window.innerHeight * .2)), h = sp.clientHeight; if (h >= want - 4) return;
+  const root = document.documentElement, cur = parseFloat(getComputedStyle(root).getPropertyValue("--bs")) || 0; if (!cur) return;
+  const nb = Math.max(216, Math.floor((cur - (want - h)) / 8) * 8); if (nb < cur) root.style.setProperty("--bs", nb + "px");
+}
+let fitT = 0; const fitSoon = () => { if (fitT) return; fitT = requestAnimationFrame(() => { fitT = 0; fitPanel(); }); };
+window.addEventListener("resize", () => { sizeBoard(); setTimeout(fitPanel, 60); }); window.addEventListener("orientationchange", () => setTimeout(() => { sizeBoard(); fitPanel(); }, 200));
+(function watchFoot(){ if (!document.body) return setTimeout(watchFoot, 300); new MutationObserver(muts => { if (muts.some(m => m.target && m.target.closest && m.target.closest(".side .foot, #topbar"))) fitSoon(); }).observe(document.body, {childList: true, subtree: true}); })();
 
 /* ===== Puzzle runner (shared by rated, rush, daily, training) ===== */
 function PuzzleRunner(board, hooks = {}){
@@ -9529,7 +9540,7 @@ Views.theory = {
     if (!lines.length){ this.article(); return; }
     this.main.innerHTML = stageHTML();
     const board = this.board = makeBoard($("#bw"), {orientation: A.side || "w", history: false}); board.canPick = () => false;
-    $("#topbar").innerHTML = `<span class="pill">Theory</span><span class="nm" style="margin-left:6px">${esc(A.name)}</span>`; $("#botbar").innerHTML = "";
+    $("#topbar").innerHTML = `<span class="pill">Theory</span><span class="nm" style="margin-left:6px">${esc(A.name)}</span>`; $("#botbar").innerHTML = ""; if (window.innerWidth <= 900) $("#botbar").style.display = "none";
     tapNav($("#bw"), {active: () => !!this.A, step: d => this.go(this.ply + d), jump: d => this.go(d > 0 ? 999 : 0)});
     document.onkeydown = e => { if (e.key === "ArrowRight") this.go(this.ply + 1); if (e.key === "ArrowLeft") this.go(this.ply - 1); };
     this.go(0);
@@ -11249,7 +11260,7 @@ const App = {
     try { if (location.hash !== "#" + r){ if (!back && this.view && !this._popping) history.pushState({r}, "", "#" + r); else history.replaceState({r}, "", "#" + r); } } catch(e) {}
     const main = $("#main"); main.innerHTML = ""; main.scrollTop = 0; window.scrollTo(0, 0);
     document.body.classList.toggle("busy", this.busy()); renderRail(); renderTabs(); const sh = $("#sheet"); if (sh) sh.hidden = true; sizeBoard();
-    this.view.mount(main, arg);
+    this.view.mount(main, arg); setTimeout(fitPanel, 30);
     /* going back: land where you were on that page */
     if (back){ const sn = this.snaps[r]; if (sn && sn.scroll){ const put = () => { if (this.route === r && main.scrollHeight > sn.scroll) main.scrollTop = sn.scroll; }; put(); requestAnimationFrame(put); setTimeout(put, 120); } }
     if (!back) try { window.dispatchEvent(new Event("chessnat:route")); } catch(e) {}
