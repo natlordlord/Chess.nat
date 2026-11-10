@@ -36,11 +36,11 @@
   const KILLS = ["stab", "head", "chess", "shot", "bite"];
   /* the minigame at an emergency meeting: a wheel picks it, everybody plays, the winner's vote counts twice */
   const DUELS = {react: {d: 6000, e: "⚡", en: "Reaction", de: "Reaktion"}, tap: {d: 5000, e: "👆", en: "Tap race", de: "Tipp-Rennen"}, snake: {d: 15000, e: "🐍", en: "Snake", de: "Snake"},
-    mate: {d: 20000, e: "♞", en: "Mate in 1", de: "Matt in 1"}, song: {d: 15000, e: "🎵", en: "Name that song", de: "Songraten"}};
+    mate: {d: 20000, e: "♞", en: "Mate in 1", de: "Matt in 1"}, math: {d: 12000, e: "➗", en: "Quick maths", de: "Kopfrechnen"}, stroop: {d: 12000, e: "🎨", en: "Colour trap", de: "Farben-Falle"}, balloon: {d: 10000, e: "🎈", en: "Balloon", de: "Ballon"}, song: {d: 15000, e: "🎵", en: "Name that song", de: "Songraten"}};
   const SPIN = 2800, RES = 3200;
   const MATES = ["6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1", "k7/8/1K6/8/8/8/8/7Q w - - 0 1", "6rk/6pp/8/6N1/8/8/8/6K1 w - - 0 1", "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 1", "5rk1/5ppp/8/8/8/8/1Q3PPP/6K1 w - - 0 1", "7k/7p/8/8/8/8/6R1/1R4K1 w - - 0 1"];
   const rng = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
-  const botScore = g => g === "react" ? -(260 + Math.random() * 380) : g === "tap" ? 14 + Math.floor(Math.random() * 20) : g === "snake" ? Math.floor(Math.random() * 9) : g === "mate" ? (Math.random() < .7 ? -(4000 + Math.random() * 12000) : -99999) : (Math.random() < .45 ? -(2000 + Math.random() * 7000) : -99999);
+  const botScore = g => g === "math" ? 3 + Math.floor(Math.random() * 7) : g === "stroop" ? 2 + Math.floor(Math.random() * 8) : g === "balloon" ? (Math.random() < .35 ? 0 : 20 + Math.floor(Math.random() * 60)) : g === "react" ? -(260 + Math.random() * 380) : g === "tap" ? 14 + Math.floor(Math.random() * 20) : g === "snake" ? Math.floor(Math.random() * 9) : g === "mate" ? (Math.random() < .7 ? -(4000 + Math.random() * 12000) : -99999) : (Math.random() < .45 ? -(2000 + Math.random() * 7000) : -99999);
   /* songs: 30-second previews from Apple's public search, only the first seconds are played */
   const SONG_Q = ["Taylor Swift", "Ed Sheeran", "Apache 207", "Cro", "Helene Fischer", "The Weeknd", "Dua Lipa", "Rihanna", "Queen", "ABBA", "Coldplay", "Peter Fox", "Miley Cyrus", "Harry Styles", "Bruno Mars", "Eminem", "Linkin Park", "Michael Jackson", "Kraftklub", "Sido", "Billie Eilish", "Imagine Dragons", "Adele", "David Guetta"];
   const songPick = () => new Promise((res, rej) => { const cb = "__npS" + Math.random().toString(36).slice(2), sc = document.createElement("script");
@@ -77,7 +77,12 @@
   /* the station as a graph: rooms and halls that touch, the doorway between them */
   const ADJ = AREAS.map((a, i) => AREAS.map((b, j) => j).filter(j => { if (j === i) return false; const b = AREAS[j], x1 = Math.max(a.x, b.x), x2 = Math.min(a.x + a.w, b.x + b.w), y1 = Math.max(a.y, b.y), y2 = Math.min(a.y + a.h, b.y + b.h); return x1 <= x2 + 1 && y1 <= y2 + 1 && (x2 - x1 > 30 || y2 - y1 > 30); }));
   const areaOf = (x, y) => AREAS.findIndex(a => x >= a.x && x <= a.x + a.w && y >= a.y && y <= a.y + a.h);
-  const mid = a => ({x: a.x + a.w / 2, y: a.y + a.h / 2});
+  /* things you can't walk through: the reactor core and the cafeteria tables */
+  const OBST = [{x: 240, y: 800, r: 86}, {x: 1280, y: 340, r: 68}, {x: 1110, y: 230, r: 38}, {x: 1450, y: 230, r: 38}, {x: 1110, y: 470, r: 38}, {x: 1450, y: 470, r: 38}, {x: 1440, y: 1190, r: 30}];
+  const free = (from, x, y) => OBST.every(o => { const d1 = Math.hypot(x - o.x, y - o.y); return d1 >= o.r || d1 > Math.hypot(from.x - o.x, from.y - o.y); });
+  /* bots cross a room through its hub, which isn't on top of furniture */
+  const HUB = {caf: {x: 1280, y: 500}, rea: {x: 370, y: 920}, lab: {x: 1250, y: 1380}};
+  const mid = a => { const r = ROOMS.find(q => q === a); return r && HUB[r.id] ? HUB[r.id] : {x: a.x + a.w / 2, y: a.y + a.h / 2}; };
   const door = (a, b) => { const x1 = Math.max(a.x, b.x), x2 = Math.min(a.x + a.w, b.x + b.w), y1 = Math.max(a.y, b.y), y2 = Math.min(a.y + a.h, b.y + b.h); return {x: (x1 + x2) / 2, y: (y1 + y2) / 2}; };
   function route(from, to){
     const s0 = areaOf(from.x, from.y), t0 = areaOf(to.x, to.y); if (s0 < 0 || t0 < 0 || s0 === t0) return [to];
@@ -377,7 +382,7 @@
       const moving = Math.abs(ix) + Math.abs(iy) > .05, me = this.me;
       if (moving){ const sp = SPEED * (v.spd || 1) * (this.ghost() ? 1.15 : 1) * dt, nx = me.x + ix * sp, ny = me.y + iy * sp;
         if (this.ghost()){ me.x = Math.max(20, Math.min(W - 20, nx)); me.y = Math.max(20, Math.min(H - 20, ny)); }
-        else { if (walk(nx, me.y)) me.x = nx; if (walk(me.x, ny)) me.y = ny; }
+        else { if (walk(nx, me.y) && free(me, nx, me.y)) me.x = nx; if (walk(me.x, ny) && free(me, me.x, ny)) me.y = ny; }
         if (Math.abs(ix) > .1) me.f = ix < 0 ? -1 : 1;
         if (!this.ghost() && now() - this.lastStep > 300){ this.lastStep = now(); this.step2 = !this.step2; if (Sound.fx && Sound.fx()){ const ac = Sound.ac, t0 = ac.currentTime, n = Math.floor(ac.sampleRate * .045), bf = ac.createBuffer(1, n, ac.sampleRate), dd = bf.getChannelData(0); for (let i = 0; i < n; i++) dd[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3); const src = ac.createBufferSource(), fl = ac.createBiquadFilter(), g = ac.createGain(); src.buffer = bf; fl.type = "lowpass"; fl.frequency.value = this.step2 ? 520 : 440; g.gain.value = .05; src.connect(fl); fl.connect(g); g.connect(ac.destination); src.start(t0); } } }
       me.mv = moving; this.send();
@@ -511,6 +516,7 @@
         }
       }
       const bh = B.join(""); if (bt._h !== bh){ bt._h = bh; bt.innerHTML = bh; }
+      this.noArrow = [...el.querySelectorAll(".np-btns>*,.np-tasks,.np-top>*,.np-alert.on,.np-ev.on")].filter(x => x.offsetWidth).map(x => { let l = 0, t = 0, n = x; while (n && n !== el){ l += n.offsetLeft; t += n.offsetTop; n = n.offsetParent; } return [l, t, x.offsetWidth, x.offsetHeight]; });
       this.overlay();
     },
     overlay(){
@@ -567,9 +573,9 @@
         return; }
       if (t < SPIN){ if (D.stage !== "spin"){ D.stage = "spin"; const keys = Object.keys(DUELS), seq = []; for (let i = 0; i < 5; i++) keys.forEach(k => seq.push(k)); const idx = keys.length * 4 + keys.indexOf(mg.g);
           box.innerHTML = `<div class="du-spin"><div class="du-k">🎲 ${T("Minigame! The winner votes twice", "Minispiel! Der Gewinner hat 2 Stimmen")}</div><div class="du-win2"><div class="du-strip">${seq.map(k => `<div class="du-tile"><span>${DUELS[k].e}</span><b>${esc(T(DUELS[k].en, DUELS[k].de))}</b></div>`).join("")}</div><i class="du-ptr"></i></div></div>`;
-          const strip = box.querySelector(".du-strip"), left = Math.max(300, SPIN - t - 500); requestAnimationFrame(() => { strip.style.transition = `transform ${left}ms cubic-bezier(.12,.75,.2,1)`; strip.style.transform = `translateX(calc(50% - ${idx * 132 + 62}px))`; });
+          const strip = box.querySelector(".du-strip"), left = Math.max(300, SPIN - t - 500); requestAnimationFrame(() => { strip.style.transition = `transform ${left}ms cubic-bezier(.12,.75,.2,1)`; strip.style.transform = `translateX(${Math.round(box.querySelector(".du-win2").clientWidth / 2 - (idx * 132 + 60))}px)`; });
           for (let i = 0, at = 0; at < left; i++){ at += 50 + i * i * 2.2; const a2 = at; setTimeout(() => { if (this.du === D && D.stage === "spin") this.sfx.tone(0, 900, 900, .03, .04, "square"); }, a2); }
-          setTimeout(() => { if (this.du === D) { this.sfx.chord(0, [72, 76, 79], .4, .06, "triangle"); Haptic.go(30); } }, left); }
+          setTimeout(() => { if (this.du === D) { this.sfx.chord(0, [72, 76, 79], .4, .06, "triangle"); Haptic.go(30); const tl = box.querySelectorAll(".du-tile")[idx]; if (tl) tl.classList.add("win"); } }, left); }
         return; }
       if (D.stage === "spin" || !D.stage){ D.stage = "play"; const R = rng(mg.seed), endAt = D.t0 + SPIN + mg.d;
         const fin = sc => { if (D.sent) return; D.sent = 1; D.my = sc; if (v.alive) PNet.act({a: "mgs", v: sc}); const st = box.querySelector(".du-st"); if (st) st.innerHTML = `${T("Your result", "Dein Ergebnis")}: <b>${this.duelFmt(mg.g, sc)}</b> · ${T("waiting…", "warte…")}`; };
@@ -579,7 +585,7 @@
         const oldStop = D.stop; D.stop = () => { clearInterval(D.tick); oldStop && oldStop(); }; }
     },
     headOf(id){ const p = this.pl().find(x => x.id === id); try { return avatarSVG(Object.assign({}, p && p.av || {}, {aura: "none", pet: "none"}), {head: true, size: 44}); } catch(e) { return ""; } },
-    duelFmt(g, sc){ if (sc == null) return "–"; if (sc <= -9000) return T("✗", "✗"); return g === "react" ? Math.round(-sc) + " ms" : g === "tap" ? sc + "×" : g === "snake" ? "🍎 " + Math.floor(sc) : (Math.round(-sc / 100) / 10).toFixed(1) + " s"; },
+    duelFmt(g, sc){ if (sc == null) return "–"; if (sc <= -9000) return T("✗", "✗"); if (g === "math" || g === "stroop") return "✓ " + sc; if (g === "balloon") return sc ? sc + " %" : "💥"; return g === "react" ? Math.round(-sc) + " ms" : g === "tap" ? sc + "×" : g === "snake" ? "🍎 " + Math.floor(sc) : (Math.round(-sc / 100) / 10).toFixed(1) + " s"; },
     DG: {
       react(g, R, fin){ const wait = 900 + R() * 3200; let gT = 0, done = false; g.innerHTML = `<button class="du-react">${T("Wait for green…", "Warte auf Grün…")}</button>`; const b = g.firstChild;
         const tm = setTimeout(() => { if (done) return; gT = now(); b.classList.add("go"); b.textContent = T("TAP!", "JETZT!"); Haptic.go(25); }, wait);
@@ -588,6 +594,23 @@
       tap(g, R, fin){ let n = 0, on = true; g.innerHTML = `<button class="du-tap"><b>0</b><span>${T("Tap tap tap!", "Tipp, tipp, tipp!")}</span></button>`; const b = g.firstChild, c = b.querySelector("b");
         b.addEventListener("pointerdown", e => { e.preventDefault(); if (!on) return; n++; c.textContent = n; b.classList.remove("hit"); void b.offsetWidth; b.classList.add("hit"); if (n % 5 === 0) Haptic.go(6); this.sfx.tone(0, 500 + Math.min(n, 40) * 18, 500 + Math.min(n, 40) * 18, .04, .03, "square"); });
         return () => { on = false; fin(n); }; },
+      math(g, R, fin){ let n = 0, on = true; const next = () => { const op = R() < .5 ? "+" : R() < .5 ? "−" : "×", a = op === "×" ? 2 + Math.floor(R() * 9) : 5 + Math.floor(R() * 45), b = op === "×" ? 2 + Math.floor(R() * 9) : 2 + Math.floor(R() * (op === "−" ? a - 1 : 40));
+          const res = op === "+" ? a + b : op === "−" ? a - b : a * b, opts = [res]; while (opts.length < 4){ const w = res + Math.round((R() - .5) * 20) || res + 1; if (!opts.includes(w)) opts.push(w); } opts.sort(() => R() - .5);
+          g.innerHTML = `<div class="du-math"><div class="du-q">${a} ${op} ${b}</div><div class="du-opts">${opts.map(o => `<button data-a="${o}">${o}</button>`).join("")}</div><div class="du-cnt">✓ ${n}</div></div>`;
+          g.querySelectorAll("[data-a]").forEach(b2 => b2.addEventListener("pointerdown", e => { e.preventDefault(); if (!on) return; if (+b2.dataset.a === res){ n++; Sound.play("Move", .4); Haptic.go(6); next(); } else { b2.classList.add("bad"); Sound.wrong(); on = false; setTimeout(() => { on = true; next(); }, 700); } })); };
+        next(); return () => { on = false; fin(n); }; },
+      stroop(g, R, fin){ const C = [["#E2523E", T("RED", "ROT")], ["#5AA3E0", T("BLUE", "BLAU")], ["#8FC458", T("GREEN", "GRÜN")], ["#E9B64A", T("YELLOW", "GELB")]]; let n = 0, on = true;
+        const next = () => { const w = Math.floor(R() * 4); let ink = Math.floor(R() * 4); if (ink === w) ink = (ink + 1 + Math.floor(R() * 3)) % 4;
+          g.innerHTML = `<div class="du-math"><p class="muted" style="margin:0">${T("Tap the colour of the ink, not the word", "Tippe die Farbe der Schrift, nicht das Wort")}</p><div class="du-q" style="color:${C[ink][0]}">${C[w][1]}</div><div class="du-opts">${C.map((c, i) => `<button data-c="${i}" style="background:${c[0]}"></button>`).join("")}</div><div class="du-cnt">✓ ${n}</div></div>`;
+          g.querySelectorAll("[data-c]").forEach(b2 => b2.addEventListener("pointerdown", e => { e.preventDefault(); if (!on) return; if (+b2.dataset.c === ink){ n++; Sound.play("Move", .4); Haptic.go(6); next(); } else { n = Math.max(0, n - 1); Sound.wrong(); on = false; b2.classList.add("bad"); setTimeout(() => { on = true; next(); }, 600); } })); };
+        next(); return () => { on = false; fin(n); }; },
+      balloon(g, R, fin){ const pop = 45 + R() * 55; let sz = 0, done = false;
+        g.innerHTML = `<div class="du-bal"><div class="du-b"><span>🎈</span></div><div class="du-bbtn"><button class="du-pump">${T("Pump", "Pumpen")}</button><button class="du-cash">${T("Stop & keep", "Stopp & behalten")}</button></div><div class="du-cnt">0 %</div><p class="muted" style="margin:2px 0 0">${T("Bigger wins, but it may pop", "Größer gewinnt, aber er kann platzen")}</p></div>`;
+        const b = g.querySelector(".du-b span"), cnt = g.querySelector(".du-cnt");
+        g.querySelector(".du-pump").addEventListener("pointerdown", e => { e.preventDefault(); if (done) return; sz += 3 + Math.round(R() * 3); b.style.transform = `scale(${1 + sz / 45})`; cnt.textContent = sz + " %"; this.sfx.tone(0, 200 + sz * 6, 260 + sz * 6, .08, .04, "sine"); Haptic.go(5);
+          if (sz >= pop){ done = true; b.textContent = "💥"; b.style.transform = "scale(2)"; Sound.play("Capture", .9); Haptic.go([60, 30, 60]); cnt.textContent = T("Popped!", "Geplatzt!"); fin(0); } });
+        g.querySelector(".du-cash").addEventListener("pointerdown", e => { e.preventDefault(); if (done) return; done = true; Sound.play("Move", .6); cnt.textContent = "✓ " + sz + " %"; fin(sz); });
+        return () => { if (!done){ done = true; fin(sz); } }; },
       snake(g, R, fin){ const CW = 16, CH = 10; let sn = [[4, 5], [3, 5], [2, 5]], dir = [1, 0], nd = [1, 0], food = null, eaten = 0, dead = false;
         g.innerHTML = `<div class="du-snake"><canvas width="${CW * 20}" height="${CH * 20}"></canvas><div class="du-pad"><button data-d="0,-1">▲</button><button data-d="-1,0">◀</button><button data-d="1,0">▶</button><button data-d="0,1">▼</button></div></div>`;
         const cv = g.querySelector("canvas"), c = cv.getContext("2d"); const place = () => { do { food = [Math.floor(R() * CW), Math.floor(R() * CH)]; } while (sn.some(q => q[0] === food[0] && q[1] === food[1])); }; place();
@@ -751,7 +774,9 @@
         if (v.ev && v.alive){ const fr = v.ev.pads.find(pd => !this.onPad(pd)) || v.ev.pads[0]; pts.push([fr, "#5AD1E0"]); }
         const m = 46 * d, cx = cw / 2, cy = ch / 2;
         pts.forEach(([p, col]) => { const sx = cx + (p.x - me.x) * z, sy = cy + (p.y - me.y) * z; if (sx > m && sx < cw - m && sy > m && sy < ch - m) return;
-          const dx = sx - cx, dy = sy - cy, k = Math.min((cx - m) / Math.max(1, Math.abs(dx)), (cy - m) / Math.max(1, Math.abs(dy))), ax = cx + dx * k, ay = cy + dy * k, an = Math.atan2(dy, dx);
+          const dx = sx - cx, dy = sy - cy, k = Math.min((cx - m) / Math.max(1, Math.abs(dx)), (cy - m) / Math.max(1, Math.abs(dy))), an = Math.atan2(dy, dx); let ax = cx + dx * k, ay = cy + dy * k;
+          const hit = (x, y) => (this.noArrow || []).some(r => x > r[0] * d - 14 * d && x < (r[0] + r[2]) * d + 14 * d && y > r[1] * d - 14 * d && y < (r[1] + r[3]) * d + 14 * d);
+          for (let f = .96; f > .25 && hit(ax, ay); f -= .04){ ax = cx + dx * k * f; ay = cy + dy * k * f; }
           c.save(); c.translate(ax, ay); c.rotate(an); c.globalAlpha = .75 + pulse * .25; c.fillStyle = col; c.strokeStyle = "rgba(0,0,0,.6)"; c.lineWidth = 2 * d;
           c.beginPath(); c.moveTo(16 * d, 0); c.lineTo(-10 * d, -12 * d); c.lineTo(-5 * d, 0); c.lineTo(-10 * d, 12 * d); c.closePath(); c.fill(); c.stroke(); c.restore(); }); }
     },
@@ -869,7 +894,7 @@
     }
   };
   NP.kd = NP.ku = NP.rs = () => {};
-  window.__npTo = p => { NP.me.x = p.x; NP.me.y = p.y; NP.send(true); };
+  window.__npTo = p => { NP.me.x = p.x; NP.me.y = p.y; NP.send(true); }; window.__npMe = () => ({x: Math.round(NP.me.x), y: Math.round(NP.me.y)});
   window.__npToId = id => { const q = POS[id]; if (q) window.__npTo({x: q.x + 30, y: q.y}); };
   window.__npDu = () => NP.du && {seed: NP.du.seed, stage: NP.du.stage, t: Date.now() - NP.du.t0, el: NP.v && NP.v.meet && NP.v.meet.mg && NP.v.meet.mg.el};
   window.__npOpen = g => NP.openMini(g, () => {}); window.__npClose = () => NP.closeMini();
@@ -990,6 +1015,7 @@ html.np-on .dsheet{z-index:2800!important}html.np-on .toast{z-index:2900!importa
 .du-k{font:900 13px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;justify-content:center;gap:10px}.du-tl{color:var(--fg);font-family:var(--mono)}
 .du-win2{position:relative;overflow:hidden;border-radius:12px;background:#1B1A18;padding:10px 0}.du-strip{display:flex;gap:12px;width:max-content;will-change:transform}
 .du-tile{width:120px;height:110px;border-radius:14px;background:var(--panel-3);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;flex:0 0 auto}.du-tile span{font-size:46px;line-height:1}.du-tile b{font:800 12px var(--body)}
+.du-tile.win{background:var(--go);box-shadow:0 0 24px rgba(143,196,88,.7);animation:duHit .3s 2}
 .du-ptr{position:absolute;left:50%;top:0;bottom:0;width:4px;margin-left:-2px;background:var(--go);box-shadow:0 0 12px var(--go)}
 .du-play{display:flex;flex-direction:column;min-height:0;flex:1}.du-g{display:flex;justify-content:center;align-items:center;min-height:0;flex:1}.du-st{margin-top:6px;font-size:13px;min-height:18px}
 .du-react{width:100%;height:min(220px,calc(var(--h,100vh) - 140px));border:0;border-radius:16px;background:#7a1a12;color:#fff;font:900 32px var(--display);cursor:pointer;touch-action:none}.du-react.go{background:var(--go)}.du-react.bad{background:#3a1d18}.du-react.ok{background:var(--go-deep)}
@@ -997,6 +1023,10 @@ html.np-on .dsheet{z-index:2800!important}html.np-on .toast{z-index:2900!importa
 @keyframes duHit{50%{transform:scale(.94)}}
 .du-snake{display:flex;gap:10px;align-items:center;justify-content:center}.du-snake canvas{width:min(320px,62vw);height:auto;border-radius:10px;background:#0B0C12;touch-action:none}.np.land .du-snake canvas{width:auto;height:min(200px,calc(var(--h,100vh) - 140px))}
 .du-pad{display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(2,46px);gap:4px}.du-pad button{border:0;border-radius:10px;background:var(--panel-3);color:var(--fg);font-size:18px;touch-action:none}.du-pad [data-d="0,-1"]{grid-column:2}.du-pad [data-d="-1,0"]{grid-column:1;grid-row:2}.du-pad [data-d="0,1"]{grid-column:2;grid-row:2}.du-pad [data-d="1,0"]{grid-column:3;grid-row:2}
+.du-math{width:min(420px,100%)}.du-q{font:900 44px var(--display);margin:4px 0 10px}.du-cnt{font:800 14px var(--mono);margin-top:8px;color:var(--go-hi)}.du-opts button.bad{background:var(--bad)!important;opacity:.6}
+.du-opts button[data-c]{height:54px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.25)}.np.land .du-q{font-size:34px;margin:0 0 6px}
+.du-bal{display:flex;flex-direction:column;align-items:center;gap:8px}.du-b{height:min(140px,calc(var(--h,100vh) - 230px));display:flex;align-items:center;justify-content:center;min-height:70px}.du-b span{font-size:54px;display:inline-block;transition:transform .12s}
+.du-bbtn{display:flex;gap:10px}.du-bbtn button{border:0;border-radius:12px;padding:12px 18px;font:900 15px var(--body);color:#fff;cursor:pointer;touch-action:none}.du-pump{background:#5AA3E0;box-shadow:inset 0 -4px 0 #3b7bb0}.du-cash{background:var(--go);box-shadow:inset 0 -4px 0 var(--go-deep)}
 .du-board{width:min(260px,calc(var(--h,100vh) - 150px))!important;margin:0 auto}
 .du-song{width:100%}.du-eq{display:flex;gap:5px;justify-content:center;height:34px;align-items:flex-end;margin-bottom:8px}.du-eq i{width:8px;background:var(--go);border-radius:3px;animation:duEq .6s ease-in-out infinite alternate}.du-eq i:nth-child(2){animation-delay:.15s}.du-eq i:nth-child(3){animation-delay:.3s}.du-eq i:nth-child(4){animation-delay:.1s}.du-eq i:nth-child(5){animation-delay:.25s}
 @keyframes duEq{from{height:6px}to{height:34px}}
