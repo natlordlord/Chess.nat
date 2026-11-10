@@ -516,6 +516,8 @@
       if (x === "pview"){ if (val === "rot"){ PG.st.npPortrait = !PG.st.npPortrait; PG.persist(); this.rs(); } else if (val === "full"){ PG.st.npNoFull = !PG.st.npNoFull; PG.persist(); PG.st.npNoFull ? this.unfull() : this.full(); } else if (val === "voice"){ PG.st.npNoVoice = !PG.st.npNoVoice; PG.persist(); } this.panelDraw(); return; }
       if (x === "pslot"){ this.lookSlot = val; this.panelDraw(); return; }
       if (x === "pitem"){ const [sl, id] = val.split("|"); try { S.avatar = Object.assign({}, S.avatar || {}, {[sl]: id}); save(); } catch(e) {} PNet.refresh(); Haptic.go(8); this.panelDraw(); return; }
+      if (x === "invite") return this.openPanel("inv");
+      if (x === "pshare") return this.shareLink();
       if (["start", "invite"].includes(x)) return this.act({a: x});
       if (x === "lobby") return this.act({a: "lobby"});
     },
@@ -548,13 +550,13 @@
         const ic = st === "off" ? "🎙️" : st === "muted" || st === "quiet" ? "🔇" : "🎙️"; if (mb2.dataset.st !== st){ mb2.dataset.st = st; mb2.textContent = ic; } }
       el.classList.toggle("ghost", !v.alive); el.classList.toggle("imp", v.imp); el.classList.toggle("lob", v.phase === "lobby");
       const lb = el.querySelector(".np-lob"), lbH = v.phase === "lobby" ? `<div class="np-lobc"><b>${esc(v.lob.code.toUpperCase())}</b><span>${v.lob.n}${v.lob.fill ? ` + ${v.lob.fill} 🤖` : ""} / 15</span></div>
-        <button class="np-lb" data-x="invite">📨<span>${T("Invite", "Einladen")}</span></button><button class="np-lb" data-x="look">👕<span>${T("Look", "Aussehen")}</span></button><button class="np-lb" data-x="settings">⚙️<span>${T("Settings", "Einstellungen")}</span></button>${this.vWant ? `<button class="np-lb np-vlb ${PVoice.on ? (PVoice.muted ? "muted" : "live") : ""}" data-x="mic">${PVoice.on ? (PVoice.muted ? "🔇" : "🎙️") : "🎙️"}<span>${PVoice.on ? `${PVoice.peers().length + 1} ${T("in voice", "im Talk")}` : T("Voice", "Sprache")}</span></button>` : ""}<button class="np-lb" data-x="leave">🚪<span>${T("Leave", "Verlassen")}</span></button><button class="np-lb np-rdy" data-x="ready">✋<span>${T("Ready", "Bereit")}</span></button>
-        ${v.host ? `<button class="np-lb go" data-x="start" ${v.lob.n + (v.lob.fill || 0) < v.lob.min ? "disabled" : ""}>▶<span>${v.lob.n + (v.lob.fill || 0) < v.lob.min ? T(`${v.lob.min} needed`, `${v.lob.min} nötig`) : T("Start", "Start")}</span></button>` : `<span class="np-wait">${T("Waiting for the host…", "Warte auf den Gastgeber…")}</span>`}` : "";
+        <button class="np-lb" data-x="invite">📨<span>${T("Invite", "Einladen")}</span></button><button class="np-lb" data-x="look">👕<span>${T("Outfit", "Outfit")}</span></button><button class="np-lb" data-x="settings">⚙️<span>${T("Options", "Optionen")}</span></button>${this.vWant ? `<button class="np-lb np-vlb ${PVoice.on ? (PVoice.muted ? "muted" : "live") : ""}" data-x="mic">${PVoice.on ? (PVoice.muted ? "🔇" : "🎙️") : "🎙️"}<span>${T("Voice", "Talk")}</span>${PVoice.on ? `<i class="np-cnt">${PVoice.peers().length + 1}</i>` : ""}</button>` : ""}<button class="np-lb" data-x="leave">🚪<span>${T("Leave", "Raus")}</span></button><button class="np-lb np-rdy" data-x="ready">✋<span>${T("Ready", "Bereit")}</span><i class="np-cnt"></i></button>
+        ${v.host ? `<button class="np-lb go" data-x="start" ${v.lob.n + (v.lob.fill || 0) < v.lob.min ? "disabled" : ""}>▶<span>${T("Start", "Start")}</span>${v.lob.n + (v.lob.fill || 0) < v.lob.min ? `<i class="np-cnt">${v.lob.n + (v.lob.fill || 0)}/${v.lob.min}</i>` : ""}</button>` : `<button class="np-lb np-wait" disabled>⏳<span>${T("Host", "Host")}</span></button>`}` : "";
       if (lb._h !== lbH && !(this.quitN && now() - (this.quitT || 0) < 2500)){ lb._h = lbH; lb.innerHTML = lbH; }
       if (v.phase === "lobby"){ const hum = ((this.m && this.m.players) || []).filter(p => p.on), rdy = hum.filter(p => (POS[p.id] || {}).rdy || (p.id === PNet.me && this.ready)).length, enough = hum.length + (v.lob.fill || 0) >= v.lob.min, all = hum.length > 0 && rdy === hum.length && enough;
         if (all && !this.lcd) this.lcd = now() + 3000; if (!all) this.lcd = 0;
         const tb2 = el.querySelector(".np-tbar"); if (this.lcd){ tb2.classList.add("on"); const l = Math.max(0, this.lcd - now()); tb2.firstChild.style.width = (l / 30) + "%"; tb2.lastChild.style.display = ""; tb2.lastChild.textContent = T(`Everyone is ready · ${Math.ceil(l / 1000)}`, `Alle bereit · ${Math.ceil(l / 1000)}`); if (l <= 0 && v.host && !this.lcdGo){ this.lcdGo = 1; setTimeout(() => { this.lcdGo = 0; }, 3000); this.act({a: "start"}); } } else tb2.classList.remove("on");
-        const rb = el.querySelector('[data-x="ready"]'); if (rb){ rb.classList.toggle("go", !!this.ready); const sp = rb.querySelector("span"); const tx = `${this.ready ? "✓ " : ""}${T("Ready", "Bereit")} ${rdy}/${hum.length}`; if (sp && sp.textContent !== tx) sp.textContent = tx; } }
+        const rb = el.querySelector('[data-x="ready"]'); if (rb){ rb.classList.toggle("go", !!this.ready); const sp = rb.querySelector(".np-cnt"); const tx = `${rdy}/${hum.length}`; if (sp && sp.textContent !== tx) sp.textContent = tx; } }
       const mb = el.querySelector(".np-mapb"), mbH = v.imp ? `<b>⚡</b><span>${this.left("sabCd") > 0 && !v.sab ? Math.ceil(this.left("sabCd") / 1000) + " s" : T("Sabotage", "Sabotage")}</span>` : `${icon("map", 20)}<span>${T("Map", "Karte")}</span>`; if (mb._h !== mbH){ mb._h = mbH; mb.innerHTML = mbH; mb.classList.toggle("imp", v.imp); }
       /* how long until something happens: a bar at the top */
       { const tb = el.querySelector(".np-tbar"); let f = -1, lab = "";
@@ -730,9 +732,16 @@
     },
     /* panels on top of the lobby: game settings and your outfit, in landscape like the rest */
     openPanel(k){ this.panel = k; this.joy = null; this.panelDraw(); },
+    async shareLink(){ const P = PNet.P; if (!P) return; const url = PNet.link(P.code); try { if (navigator.share){ await navigator.share({title: "Natposter", url}); return; } } catch(e) { if (e && e.name === "AbortError") return; } try { await navigator.clipboard.writeText(url); toast(T("Link copied", "Link kopiert")); } catch(e) {} },
     closePanel(){ this.panel = null; const pn = this.el && this.el.querySelector(".np-panel"); if (pn){ pn.classList.remove("on"); pn.innerHTML = ""; } },
     panelDraw(){ const pn = this.el && this.el.querySelector(".np-panel"); if (!pn || !this.panel) return; pn.classList.add("on");
       const head = t => `<div class="np-ph"><b>${t}</b><button class="np-x" data-x="pclose">×</button></div>`;
+      if (this.panel === "inv"){ const P = PNet.P, m = this.m || {}, code = P && P.code ? P.code : ""; if (pn._inv === code && pn.querySelector(".np-inv")) return; pn._inv = code;
+        pn.innerHTML = `<div class="np-pbox inv">${head("📨 " + T("Invite", "Einladen"))}<div class="np-inv"><div class="np-invl"><div class="np-iqr"></div><b class="np-icode">${esc(code.toUpperCase())}</b><button class="np-chip on" data-x="pshare">🔗 ${T("Share link", "Link teilen")}</button></div><div class="np-invr list"></div></div></div>`;
+        try { PG.qr(PNet.link(code)).then(svg => { const q = pn.querySelector(".np-iqr"); if (q) q.innerHTML = svg; }); } catch(e) {}
+        const fl = pn.querySelector(".np-invr"); try { PG.friendList(fl, code, "natposter", (m.players || []).map(p => p.uid).filter(Boolean)); } catch(e) {}
+        if (!fl.innerHTML) fl.innerHTML = `<p class="muted" style="margin:4px 0">${T("Show the QR code or share the link.", "Zeig den QR-Code oder teil den Link.")}</p>`; return; }
+      pn._inv = null;
       if (this.panel === "set"){ const m = this.m || {}, cur = Object.assign({}, PNet.defaults("natposter"), m.opts || {}), host = this.v && this.v.host, L = x => Array.isArray(x) ? T(x[0], x[1]) : x;
         const rows = (PG.online.natposter.opts || []).filter(o => !o.solo).map(o => `<div class="np-prow"><span>${esc(L(o.l))}</span><div class="np-chips">${o.c.map(c => `<button class="np-chip ${String(cur[o.k]) === String(c[0]) ? "on" : ""}" data-x="popt" data-v="${o.k}|${c[0]}" ${host ? "" : "disabled"}>${esc(L(c[1]))}</button>`).join("")}</div></div>`).join("");
         const view = `<div class="np-prow"><span>${T("Screen", "Bildschirm")}</span><div class="np-chips"><button class="np-chip ${PG.st.npPortrait ? "" : "on"}" data-x="pview" data-v="rot">${PG.st.npPortrait ? T("Upright", "Hochformat") : T("Sideways", "Querformat")}</button><button class="np-chip ${PG.st.npNoFull ? "" : "on"}" data-x="pview" data-v="full">${T("Full screen", "Vollbild")}</button><button class="np-chip ${PG.st.npNoVoice ? "" : "on"}" data-x="pview" data-v="voice">${T("Voice chat", "Sprachchat")}</button></div></div>`;
@@ -968,6 +977,7 @@
       const dt = Math.min(.1, (t - e.t) / 1000); e.t = t; if (e.v !== f){ const d = f - e.v, st = dt * 12; e.v = Math.abs(d) <= st ? f : e.v + Math.sign(d) * st; }
       const v = e.v; return Math.abs(v) < .12 ? (v < 0 ? -.12 : .12) : v; },
     /* how far someone is into a vent: 0 = standing, 1 = gone */
+    beamSnd(me){ if (now() - (this.bsT || 0) < 400) return; this.bsT = now(); const x = this.sfx; if (!x) return; try { x.tone(0, 240, 1400, .75, .06, "sine"); x.tone(.18, 700, 2100, .5, .035, "triangle"); x.tone(.5, 1760, 1760, .25, .03, "sine"); } catch(e) {} if (!me) Haptic.go(12); },
     ventK(q){ const T0 = 380, a = now() - (q.vt || 0); if (q.v) return a >= T0 ? 1 : a / T0; return a >= T0 ? 0 : 1 - a / T0; },
     figure(c, x, y, p, o){
       const im = avImg(p.id, p.av), h = 118, w = h * 200 / 256, bob = o.mv ? Math.sin(now() / 90) * 3 : 0;
@@ -987,13 +997,20 @@
         if (k === "bite"){ c.font = "30px system-ui"; c.fillText("🦴", -40, -20); c.fillText("🦴", -10, 30); }
         if (k === "shot"){ c.fillStyle = "#1a0705"; [[-20, 4], [6, -10], [14, 12]].forEach(([a, b]) => { c.beginPath(); c.arc(a, b, 5, 0, 7); c.fill(); }); }
         c.restore(); return; }
+      const BM = this.beams || (this.beams = {}); if (BM[p.id] == null){ const lob = this.v && this.v.phase === "lobby"; BM[p.id] = lob ? now() : 0; if (lob) this.beamSnd(p.id === PNet.me); }
+      let fa = 1, fsy = 1; const bk = BM[p.id] ? (now() - BM[p.id]) / 1400 : 1;
+      if (bk < 1){ const a = bk < .75 ? 1 : (1 - bk) / .25, wd = 36 + 64 * Math.sin(Math.min(1, bk * 1.3) * Math.PI);
+        const g = c.createLinearGradient(0, -340, 0, 20); g.addColorStop(0, "rgba(120,210,255,0)"); g.addColorStop(.6, `rgba(160,225,255,${.42 * a})`); g.addColorStop(1, `rgba(225,247,255,${.85 * a})`); c.fillStyle = g; c.fillRect(-wd / 2, -340, wd, 356);
+        c.strokeStyle = "rgb(200,240,255)"; c.lineWidth = 3; [0, .33, .66].forEach(q => { const r = (bk * 2.2 + q) % 1; c.globalAlpha = (1 - r) * a; c.beginPath(); c.ellipse(0, 16, 22 + r * 54, 7 + r * 17, 0, 0, 7); c.stroke(); });
+        c.globalAlpha = a; c.fillStyle = "#fff"; for (let i = 0; i < 10; i++){ const sd = (i * 37 % 11) / 11, yy = 12 - ((bk * 1.7 + sd) % 1) * 280; c.fillRect(Math.sin(i * 2.3) * wd * .42 - 2, yy, 4, 4); }
+        c.globalAlpha = 1; fa = Math.max(0, Math.min(1, (bk - .18) / .45)); fsy = 1 + (1 - fa) * .9; if (fa <= 0){ c.restore(); return; } c.globalAlpha = fa; }
       if (o.ghost){ c.globalAlpha = .45; y += Math.sin(now() / 400) * 6; }
       if (o.sc){ const k = (now() / 900) % 1, yy = 10 - k * (h - 10); c.fillStyle = "rgba(127,178,74,.18)"; c.beginPath(); c.ellipse(0, 14, 44, 14, 0, 0, 7); c.fill(); c.fillStyle = "rgba(143,196,88,.55)"; c.fillRect(-40, yy, 80, 5); c.strokeStyle = "rgba(143,196,88,.7)"; c.lineWidth = 3; c.beginPath(); c.ellipse(0, 14, 44, 14, 0, 0, 7); c.stroke(); }
       c.fillStyle = "rgba(0,0,0,.3)"; c.beginPath(); c.ellipse(0, 16, 26, 8, 0, 0, 7); c.fill();
       if (o.me){ c.strokeStyle = "rgba(143,196,88,.8)"; c.lineWidth = 3; c.beginPath(); c.ellipse(0, 16, 30, 10, 0, 0, 7); c.stroke(); }
       const fs = this.faceOf(p.id, o.f || 1), vk = o.vk || 0;
       if (vk > 0){ c.save(); c.beginPath(); c.rect(-w, -h * 2, w * 2, h * 2 + 16); c.clip(); c.translate(0, vk * (h - 4)); }
-      c.save(); c.scale(fs, 1);
+      c.save(); c.scale(fs / fsy, fsy);
       if (im.complete && im.naturalWidth) c.drawImage(im, -w / 2, -h + 18 + bob, w, h); else { c.fillStyle = "#BAB5AC"; c.beginPath(); c.arc(0, -30, 26, 0, 7); c.fill(); }
       c.restore(); if (vk > 0){ c.restore(); if (vk > .55){ c.restore(); return; } }
       /* the pet from the avatar flies along beside you */
@@ -1133,6 +1150,9 @@ html.np-on .dsheet{z-index:2800!important}html.np-on .toast{z-index:2900!importa
 .np-mini.walk{pointer-events:none;background:transparent;align-items:flex-start;justify-content:flex-end;padding-top:calc(var(--st,0px) + 60px);padding-right:calc(var(--sr,0px) + 12px)}.np-mini.walk>*{pointer-events:auto;max-width:min(460px,60%);max-height:calc(var(--h,100vh) - 90px);overflow:auto}
 .np-act.sabb{background:#5a1e17;color:#FFD9D2}.np-act.sabb.on{background:var(--bad);color:#fff}.np-sabq{font-size:24px}
 .np-panel{position:absolute;inset:0;z-index:9;display:none;align-items:center;justify-content:center;background:rgba(6,7,12,.6);padding:calc(var(--st,0px) + 10px) calc(var(--sr,0px) + 10px) calc(var(--sb,0px) + 10px) calc(var(--sl,0px) + 10px)}.np-panel.on{display:flex}
+.np-pbox.inv{width:min(640px,100%)}.np-inv{display:flex;gap:16px;align-items:flex-start;min-height:0}.np-invl{display:flex;flex-direction:column;align-items:center;gap:8px;flex:0 0 auto}
+.np-iqr{width:150px;height:150px;background:#fff;border-radius:12px;padding:8px}.np-iqr svg{width:100%;height:100%;display:block}.np-icode{font:900 26px var(--mono);letter-spacing:.14em}
+.np-invr{flex:1;min-width:0;max-height:calc(var(--h,100vh) - var(--st,0px) - var(--sb,0px) - 110px);overflow:auto;margin:0}.np-invr .li{padding:8px 4px}
 .np-pbox{width:min(900px,100%);max-height:100%;display:flex;flex-direction:column;background:var(--panel);border-radius:18px;box-shadow:0 18px 50px rgba(0,0,0,.6);overflow:hidden}
 .np-ph{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06)}.np-ph b{font:900 18px var(--display)}
 .np-pbody{overflow:auto;padding:10px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:4px 18px;align-content:start}.np-pbody>p,.np-psep{grid-column:1/-1}.np-psep{height:1px;background:rgba(255,255,255,.08);margin:6px 0}
@@ -1275,12 +1295,16 @@ html.np-on .xpchip{z-index:2950!important}
 @keyframes npDrip{to{height:var(--h)}}
 .np-ov{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(6,7,12,.72);padding:calc(var(--st,0px) + 12px) calc(var(--sr,0px) + 12px) calc(var(--sb,0px) + 12px) calc(var(--sl,0px) + 12px);z-index:5}
 .np-ov.on{display:flex}
-.np-lob{position:absolute;left:50%;top:calc(var(--st,0px) + 10px);transform:translateX(-50%);display:none;gap:8px;align-items:center;background:rgba(33,31,28,.88);border-radius:14px;padding:8px;box-shadow:0 8px 20px rgba(0,0,0,.45)}
+.np-lob{position:absolute;left:calc(50% + (var(--sl,0px) - var(--sr,0px)) / 2);transform:translateX(-50%);width:max-content;max-width:calc(100% - var(--sl,0px) - var(--sr,0px) - 20px);top:calc(var(--st,0px) + 10px);display:none;gap:6px;align-items:stretch;background:rgba(33,31,28,.88);border-radius:14px;padding:8px;box-shadow:0 8px 20px rgba(0,0,0,.45)}
 .np.lob .np-lob{display:flex}.np.lob .np-top,.np.lob .np-tasks,.np.lob .np-btns{display:none}
 .np-lobc{display:flex;flex-direction:column;align-items:center;padding:0 8px;line-height:1.1}.np-lobc b{font:900 20px var(--mono);letter-spacing:.12em}.np-lobc span{font:800 11px var(--body);color:var(--muted)}
-.np-lb{display:flex;flex-direction:column;align-items:center;gap:2px;border:0;border-radius:10px;background:var(--panel-3);color:var(--fg);padding:6px 10px;font-size:20px;cursor:pointer;box-shadow:inset 0 -3px 0 rgba(0,0,0,.3)}
+.np-lb{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;border-radius:10px;background:var(--panel-3);color:var(--fg);padding:0 4px;width:84px;flex:0 1 84px;min-width:0;height:56px;font-size:20px;line-height:1;cursor:pointer;box-shadow:inset 0 -3px 0 rgba(0,0,0,.3)}
+.np-lb span{display:block;max-width:100%;font-size:10px!important;letter-spacing:.02em!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.np-lb{container-type:inline-size}@container (max-width:62px){.np-lb span{font-size:8.5px!important;letter-spacing:0!important}}
+.np-cnt{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#F4F2EE;color:#211F1C;font:900 10.5px/18px var(--mono);font-style:normal;box-shadow:0 2px 4px rgba(0,0,0,.4)}.np-cnt:empty{display:none}
+.np-lob{overflow:visible}.np-lobc{flex:0 0 auto;justify-content:center;min-width:72px}
 .np-lb span{font:800 10.5px var(--body);text-transform:uppercase;letter-spacing:.04em}.np-lb.go{background:var(--go);box-shadow:inset 0 -3px 0 var(--go-deep)}.np-lb[disabled]{opacity:.5}
-.np-wait{font:700 12px var(--body);color:var(--muted);padding:0 6px;max-width:110px}
+.np-lb.np-wait{opacity:.55}
 .np-mapb{width:auto!important;padding:0 12px;gap:6px}.np-mapb span{font:900 12px var(--body);letter-spacing:.06em;text-transform:uppercase}
 .np-role{text-align:center;width:100%;animation:npRole .9s ease-out}.np-role .np-k{color:#9fb6ff}.np-role.imp .np-k{color:#F07B68}
 .np-rbig{font:900 min(16vw,86px)/1 var(--display);color:#8ab4ff;letter-spacing:-.02em;text-shadow:0 0 30px rgba(90,140,255,.45);margin:6px 0 14px}
