@@ -198,7 +198,7 @@
       if (s.phase === "meet" && s.meet.mg && !s.meet.mg.done){ const mg = s.meet.mg;
         if (mg.g === "song" && !mg.song && now() > mg.t0 + SPIN - 300){ s.meet.until -= DUELS.song.d - DUELS.tap.d; mg.g = "tap"; mg.end = mg.t0 + SPIN + DUELS.tap.d; ch = true; }
         if (now() >= mg.end + 700){ (s.bots || []).forEach(b => { if (s.alive[b.id] && mg.sc[b.id] == null){ mg.sc[b.id] = botScore(mg.g); mg.at[b.id] = now(); } });
-          const A = G.ids.filter(x => s.alive[x] && mg.sc[x] != null).sort((a, b) => mg.sc[b] - mg.sc[a] || (mg.at[a] || 0) - (mg.at[b] || 0)); mg.win = A[0] && mg.sc[A[0]] > -9000 ? A[0] : null; mg.done = now(); G.sk++; s.snd = {k: "s" + G.sk, n: "mgwin"}; ch = true; } }
+          const A = G.ids.filter(x => s.alive[x] && mg.sc[x] != null).sort((a, b) => mg.sc[b] - mg.sc[a] || (mg.at[a] || 0) - (mg.at[b] || 0)); mg.win = A[0] && mg.sc[A[0]] > -9000 ? A[0] : null; if (mg.win){ s.dw = s.dw || {}; s.dw[mg.win] = (s.dw[mg.win] || 0) + 1; } mg.done = now(); G.sk++; s.snd = {k: "s" + G.sk, n: "mgwin"}; ch = true; } }
       if (s.phase === "meet" && (now() >= s.meet.until || G.ids.filter(id => s.alive[id]).every(id => s.meet.votes[id]))){ this.tally(G); ch = true; }
       if (s.phase === "eject" && now() >= s.eject.until){ s.eject = null; this.resume(G); this.win(G); ch = true; }
       if (s.doors) for (const k in s.doors) if (s.doors[k] <= now()){ delete s.doors[k]; ch = true; }
@@ -253,7 +253,8 @@
         doors: s.doors ? Object.fromEntries(Object.entries(s.doors).filter(([k, t]) => t > now()).map(([k, t]) => [k, t - now()])) : {}, doorCd: imp ? Math.max(0, (s.doorAt || 0) - now()) : 0,
         held: s.sab && s.sab.h ? {ra: !!(s.sab.h.ra && s.sab.h.ra.until > now()), rb: !!(s.sab.h.rb && s.sab.h.rb.until > now())} : null, two: G.ids.filter(x => s.alive[x]).length >= 5,
         bots: s.bots || [], deadList: G.ids.filter(x => !s.alive[x]), killedBy: s.killed && s.killed[id] ? s.killed[id] : null,
-        win: s.phase === "end" ? s.win : null, imps: s.phase === "end" ? s.imps : null, spawn: s.spawn && s.spawn[id] ? Object.assign({k: s.spawnK}, s.spawn[id]) : null, host: id === G.host,
+        win: s.phase === "end" ? s.win : null, imps: s.phase === "end" ? s.imps : null,
+        stats: s.phase === "end" ? G.ids.map(x => ({id: x, imp: s.imps.includes(x), alive: !!s.alive[x], k: s.log.filter(l => l[1] === x).length, by: s.killed && s.killed[x] ? s.killed[x].by : null, t: s.imps.includes(x) ? 0 : s.tasks[x].filter(t => s.done[x][t]).length, tt: s.imps.includes(x) ? 0 : s.tasks[x].length, w: (s.dw || {})[x] || 0})) : null, spawn: s.spawn && s.spawn[id] ? Object.assign({k: s.spawnK}, s.spawn[id]) : null, host: id === G.host,
         snd: (() => { const a = s.snd, b = s.ps && s.ps[id]; return !a ? b : !b ? a : (+String(a.k).slice(1) > +String(b.k).slice(1) ? a : b); })()};
     }};
 
@@ -478,7 +479,7 @@
         const ic = st === "off" ? "🎙️" : st === "muted" || st === "quiet" ? "🔇" : "🎙️"; if (mb2.dataset.st !== st){ mb2.dataset.st = st; mb2.textContent = ic; } }
       el.classList.toggle("ghost", !v.alive); el.classList.toggle("imp", v.imp); el.classList.toggle("lob", v.phase === "lobby");
       const lb = el.querySelector(".np-lob"), lbH = v.phase === "lobby" ? `<div class="np-lobc"><b>${esc(v.lob.code.toUpperCase())}</b><span>${v.lob.n}${v.lob.fill ? ` + ${v.lob.fill} 🤖` : ""} / 15</span></div>
-        <button class="np-lb" data-x="invite">📨<span>${T("Invite", "Einladen")}</span></button><button class="np-lb" data-x="look">👕<span>${T("Look", "Aussehen")}</span></button><button class="np-lb" data-x="settings">⚙️<span>${T("Settings", "Einstellungen")}</span></button><button class="np-lb" data-x="leave">🚪<span>${T("Leave", "Verlassen")}</span></button>
+        <button class="np-lb" data-x="invite">📨<span>${T("Invite", "Einladen")}</span></button><button class="np-lb" data-x="look">👕<span>${T("Look", "Aussehen")}</span></button><button class="np-lb" data-x="settings">⚙️<span>${T("Settings", "Einstellungen")}</span></button>${this.vWant ? `<button class="np-lb np-vlb ${PVoice.on ? (PVoice.muted ? "muted" : "live") : ""}" data-x="mic">${PVoice.on ? (PVoice.muted ? "🔇" : "🎙️") : "🎙️"}<span>${PVoice.on ? `${PVoice.peers().length + 1} ${T("in voice", "im Talk")}` : T("Voice", "Sprache")}</span></button>` : ""}<button class="np-lb" data-x="leave">🚪<span>${T("Leave", "Verlassen")}</span></button>
         ${v.host ? `<button class="np-lb go" data-x="start" ${v.lob.n + (v.lob.fill || 0) < v.lob.min ? "disabled" : ""}>▶<span>${v.lob.n + (v.lob.fill || 0) < v.lob.min ? T(`${v.lob.min} needed`, `${v.lob.min} nötig`) : T("Start", "Start")}</span></button>` : `<span class="np-wait">${T("Waiting for the host…", "Warte auf den Gastgeber…")}</span>`}` : "";
       if (lb._h !== lbH && !(this.quitN && now() - (this.quitT || 0) < 2500)){ lb._h = lbH; lb.innerHTML = lbH; }
       const mb = el.querySelector(".np-mapb"), mbH = v.imp ? `<b>⚡</b><span>${this.left("sabCd") > 0 && !v.sab ? Math.ceil(this.left("sabCd") / 1000) + " s" : T("Sabotage", "Sabotage")}</span>` : `${icon("map", 20)}<span>${T("Map", "Karte")}</span>`; if (mb._h !== mbH){ mb._h = mbH; mb.innerHTML = mbH; mb.classList.toggle("imp", v.imp); }
@@ -543,8 +544,12 @@
           <div class="np-type" style="--n:${txt.length}">${esc(txt)}</div>${e.conf ? `<p class="np-left">${T(`${e.left} Natposter${e.left === 1 ? "" : "s"} left.`, `Noch ${e.left} Natposter übrig.`)}</p>` : ""}</div>`; }
       if (v.phase === "end"){ const crew = v.win !== "imp" && v.win !== "boom" && v.win !== "o2", mine = crew !== v.imp;
         h = `<div class="np-card ${crew ? "" : "imp"}"><div class="np-k">${mine ? T("Victory", "Sieg") : T("Defeat", "Niederlage")}</div><div class="np-big">${crew ? (v.win === "tasks" ? T("Crew wins: all tasks done", "Crew gewinnt: alle Aufgaben erledigt") : T("Crew wins", "Die Crew gewinnt")) : v.win === "boom" ? T("Reactor exploded. Natposter wins", "Reaktor explodiert. Natposter gewinnt") : v.win === "o2" ? T("Out of oxygen. Natposter wins", "Kein Sauerstoff mehr. Natposter gewinnt") : T("Natposter wins", "Natposter gewinnt")}</div>
-          <div class="np-faces">${v.imps.map(id => `<span><span class="np-hd">${head(id)}</span><b>${nm(id)}</b></span>`).join("")}</div><p>${T(v.imps.length > 1 ? "were the Natposters" : "was the Natposter", v.imps.length > 1 ? "waren die Natposter" : "war der Natposter")}</p>
+          ${v.stats ? `<div class="np-stats">${v.stats.slice().sort((a, b) => (b.imp - a.imp) || (b.k - a.k) || (b.t - a.t)).map(r => `<div class="${r.imp ? "imp" : ""} ${r.id === PNet.me ? "me" : ""}"><span class="np-hd sm">${head(r.id)}</span><b>${nm(r.id)}</b>${r.imp ? `<em class="np-tag">Natposter</em>` : ""}
+            <span class="np-st">${r.imp ? `🔪 ${r.k}` : `✅ ${r.t}/${r.tt}`}${r.w ? ` · 👑 ${r.w}` : ""}${!r.alive ? (r.by ? ` · ✝ ${nm(r.by)}` : " · 🚀") : ""}</span></div>`).join("")}</div>`
+            : `<div class="np-faces">${v.imps.map(id => `<span><span class="np-hd">${head(id)}</span><b>${nm(id)}</b></span>`).join("")}</div>`}
           ${v.host ? `<button class="btn go big" data-x="again">${T("Play again", "Nochmal")}</button><button class="btn ghost" data-x="lobby" style="margin-top:6px">${T("Lobby", "Lobby")}</button>` : `<p class="muted">${T("Waiting for the host…", "Warte auf den Gastgeber…")}</p>`}</div>`; }
+      if (v.phase === "end" && v.stats && this.xpGid !== v.gid && typeof addXP === "function"){ this.xpGid = v.gid; const r = v.stats.find(x => x.id === PNet.me), crew = v.win !== "imp" && v.win !== "boom" && v.win !== "o2", won = r && crew !== r.imp;
+        if (r){ let xp = (won ? 30 : 12) + r.k * 6 + r.t * 2 + r.w * 5; if (PNet.P && PNet.P.solo) xp = Math.round(xp / 2); setTimeout(() => { try { addXP(xp, "natposter"); } catch(e) {} }, 1200); } }
       if (this.mapOpen && v.phase === "play") h = this.mapHTML();
       if (v.killedBy && v.phase !== "play" && v.phase !== "end" && !this.shown["k" + v.killedBy.k] && this.deathT && this.deathT[v.killedBy.k] && now() - this.deathT[v.killedBy.k] < 3200) h = this.deathHTML(v.killedBy);
       const kind = h ? (h.match(/class="np-(\w+)/) || [])[1] + (v.phase || "") : "";
@@ -1009,6 +1014,12 @@ html.np-on .dsheet{z-index:2800!important}html.np-on .toast{z-index:2900!importa
 .np-act.on{opacity:1}
 .pg-np-hero{display:block;padding:22px 18px;border-radius:14px;margin-top:8px;min-height:0!important;text-align:left}.pg-np-hero .pg-np-ship{font-size:56px}.np-act.main.on{background:var(--go);box-shadow:inset 0 -5px 0 var(--go-deep)}.np-act.kill.on{background:var(--bad);box-shadow:inset 0 -5px 0 #a8382a}.np-act.rep.on{background:#E9B64A;color:#2A1E05}
 .np-act:active,.np-act.pr{transform:scale(.92)}
+html.np-on .xpchip{z-index:2950!important}
+.np-vlb.live{background:var(--go)!important;box-shadow:inset 0 -3px 0 var(--go-deep)!important}.np-vlb.muted{background:var(--bad)!important}
+.np-stats{display:flex;flex-direction:column;gap:4px;text-align:left;margin:8px 0 10px;max-height:calc(var(--h,100vh) - 210px);overflow:auto}.np-stats>div{display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.22);border-radius:10px;padding:4px 8px;font:700 13px var(--body)}
+.np-stats>div.imp{background:rgba(226,82,62,.18)}.np-stats>div.me{outline:2px solid var(--go)}.np-stats b{flex:0 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.np-stats .np-hd.sm{width:24px;height:24px}
+.np-tag{font-style:normal;font:900 10px var(--body);background:var(--bad);color:#fff;border-radius:999px;padding:1px 6px;text-transform:uppercase}.np-st{margin-left:auto;font:700 12px var(--body);color:var(--muted);white-space:nowrap}
+.np.land .np-ov .np-card{width:min(640px,100%)}.np.land .np-stats{display:grid;grid-template-columns:1fr 1fr}
 .np-mic[data-st="off"]{opacity:.55}.np-mic[data-st="live"]{background:var(--go)!important}.np-mic[data-st="muted"]{background:var(--bad)!important}.np-mic[data-st="quiet"]{opacity:.75}
 .np-vote.talk{box-shadow:0 0 0 3px var(--go-hi),0 0 16px rgba(143,196,88,.6)}
 .np-duel{width:min(620px,100%);background:var(--panel);border-radius:16px;padding:12px;box-shadow:0 14px 40px rgba(0,0,0,.6);text-align:center;max-height:calc(var(--h,100vh) - 20px);overflow:hidden;display:flex;flex-direction:column}
