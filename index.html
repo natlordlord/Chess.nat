@@ -2536,20 +2536,20 @@ html[data-bfx="petals"] .board::after{background-image:radial-gradient(3px 2px a
 .np-pset{display:inline-flex;align-items:flex-end;justify-content:center;border-radius:12px;background:linear-gradient(135deg,#eeeed2 50%,#769656 50%);position:relative;flex:none;overflow:hidden}
 .np-pset .pc{position:static;display:block;width:50%;height:62%;transform:none;cursor:default}
 html[data-pset="shadow"] .board .pc,.ps-shadow .pc{filter:drop-shadow(3px 5px 2px rgba(0,0,0,.55)) contrast(1.15)}
-html[data-pset="icep"] .board .pc[class*=" w"],.ps-icep .pc[class*=" w"]{filter:sepia(.4) hue-rotate(160deg) saturate(2.4) brightness(1.08) drop-shadow(0 0 3px #bfe9ff)}
-html[data-pset="icep"] .board .pc[class*=" b"],.ps-icep .pc[class*=" b"]{filter:sepia(1) hue-rotate(170deg) saturate(3) brightness(.85) drop-shadow(0 0 3px #6fc7ff)}
-html[data-pset="neonp"] .board .pc[class*=" w"],.ps-neonp .pc[class*=" w"]{filter:drop-shadow(0 0 2px #3df0ff) drop-shadow(0 0 6px #3df0ff) brightness(1.1)}
-html[data-pset="neonp"] .board .pc[class*=" b"],.ps-neonp .pc[class*=" b"]{filter:drop-shadow(0 0 2px #ff3df0) drop-shadow(0 0 6px #ff3df0)}
-html[data-pset="ghost"] .board .pc,.ps-ghost .pc{opacity:.72;filter:drop-shadow(0 0 5px rgba(255,255,255,.75)) saturate(.4)}
-html[data-pset="gems"] .board .pc[class*=" w"],.ps-gems .pc[class*=" w"]{filter:sepia(1) saturate(6) hue-rotate(-40deg) brightness(.95) drop-shadow(0 0 3px rgba(255,40,80,.7))}
-html[data-pset="gems"] .board .pc[class*=" b"],.ps-gems .pc[class*=" b"]{filter:sepia(1) saturate(6) hue-rotate(185deg) brightness(.9) drop-shadow(0 0 3px rgba(60,120,255,.8))}
-html[data-pset="lavap"] .board .pc[class*=" w"],.ps-lavap .pc[class*=" w"]{filter:sepia(1) saturate(5) hue-rotate(-15deg) brightness(1.05) drop-shadow(0 0 4px #ff7a1a)}
-html[data-pset="lavap"] .board .pc[class*=" b"],.ps-lavap .pc[class*=" b"]{filter:drop-shadow(0 0 3px #ff5a1f) drop-shadow(0 0 7px rgba(255,90,20,.7))}
-html[data-pset="goldsilver"] .board .pc[class*=" w"],.ps-goldsilver .pc[class*=" w"]{filter:sepia(1) saturate(3.2) hue-rotate(3deg) brightness(1.02) contrast(1.1) drop-shadow(0 0 3px rgba(255,210,63,.8))}
-html[data-pset="goldsilver"] .board .pc[class*=" b"],.ps-goldsilver .pc[class*=" b"]{filter:grayscale(1) invert(.72) brightness(1.05) contrast(1.35) drop-shadow(0 0 2px rgba(255,255,255,.8))}
+html[data-pset="icep"] .board .pc[class*=" w"],.ps-icep .pc[class*=" w"]{filter:sepia(.4) hue-rotate(160deg) saturate(2.4) brightness(1.08)}
+html[data-pset="icep"] .board .pc[class*=" b"],.ps-icep .pc[class*=" b"]{filter:sepia(1) hue-rotate(170deg) saturate(3) brightness(.85)}
+html[data-pset="neonp"] .board .pc[class*=" w"],.ps-neonp .pc[class*=" w"]{filter:sepia(1) saturate(5) hue-rotate(140deg) brightness(1.15)}
+html[data-pset="neonp"] .board .pc[class*=" b"],.ps-neonp .pc[class*=" b"]{filter:sepia(1) saturate(6) hue-rotate(255deg) brightness(.95)}
+html[data-pset="ghost"] .board .pc,.ps-ghost .pc{opacity:.72;filter:saturate(.4)}
+html[data-pset="gems"] .board .pc[class*=" w"],.ps-gems .pc[class*=" w"]{filter:sepia(1) saturate(6) hue-rotate(-40deg) brightness(.95)}
+html[data-pset="gems"] .board .pc[class*=" b"],.ps-gems .pc[class*=" b"]{filter:sepia(1) saturate(6) hue-rotate(185deg) brightness(.9)}
+html[data-pset="lavap"] .board .pc[class*=" w"],.ps-lavap .pc[class*=" w"]{filter:sepia(1) saturate(5) hue-rotate(-15deg) brightness(1.05)}
+html[data-pset="lavap"] .board .pc[class*=" b"],.ps-lavap .pc[class*=" b"]{filter:sepia(1) saturate(4) hue-rotate(-25deg) brightness(.7)}
+html[data-pset="goldsilver"] .board .pc[class*=" w"],.ps-goldsilver .pc[class*=" w"]{filter:sepia(1) saturate(3.2) hue-rotate(3deg) brightness(1.02) contrast(1.1)}
+html[data-pset="goldsilver"] .board .pc[class*=" b"],.ps-goldsilver .pc[class*=" b"]{filter:grayscale(1) invert(.72) brightness(1.05) contrast(1.35)}
 html[data-pset="prism"] .board .pc,.ps-prism .pc{animation:psPrism 5s linear infinite}
 html[data-pset="prism"] .board .pc[class*=" b"],.ps-prism .pc[class*=" b"]{animation-delay:-2.5s}
-@keyframes psPrism{0%{filter:sepia(1) saturate(5) hue-rotate(0deg) drop-shadow(0 0 4px rgba(255,255,255,.6))}100%{filter:sepia(1) saturate(5) hue-rotate(360deg) drop-shadow(0 0 4px rgba(255,255,255,.6))}}
+@keyframes psPrism{0%{filter:sepia(1) saturate(5) hue-rotate(0deg)}100%{filter:sepia(1) saturate(5) hue-rotate(360deg)}}
 /* ===== piece glows (the "these are yours" light) ===== */
 html[data-glow] .pc.mine,.np-glow .pc.mine{filter:drop-shadow(0 0 3px var(--ga)) drop-shadow(0 0 10px var(--gb));animation:pcmineC 1.4s ease-in-out infinite}
 @keyframes pcmineC{50%{filter:drop-shadow(0 0 5px var(--ga)) drop-shadow(0 0 18px var(--gb)) drop-shadow(0 0 4px var(--gb))}}
@@ -2795,7 +2795,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794315069";
+const CHESSNAT_BUILD = "1794315184";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
