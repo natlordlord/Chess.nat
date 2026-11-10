@@ -27,14 +27,21 @@
     {id: "nu", room: "lab", x: 1250, y: 1150, g: "numbers", de: "Proben sortieren", en: "Sort samples"}, {id: "id", room: "bri", x: 2400, y: 950, g: "swipe", de: "Ausweis scannen", en: "Swipe card"},
     {id: "sc", room: "med", x: 520, y: 430, g: "scan", de: "Körperscan", en: "Body scan"}, {id: "fu", room: "sto", x: 1150, y: 960, g: "hold", de: "Treibstoff tanken", en: "Refuel"},
     {id: "fi", room: "o2", x: 1780, y: 690, g: "switches", de: "Filter wechseln", en: "Change filters"}, {id: "co", room: "nav", x: 2110, y: 1300, g: "course", de: "Kurs setzen", en: "Chart course"},
-    {id: "as", room: "bri", x: 2150, y: 640, g: "numbers", de: "Systeme prüfen", en: "Run checks"}, {id: "dl", room: "lab", x: 1460, y: 1300, g: "upload", de: "Daten laden", en: "Download data"}];
+    {id: "as", room: "bri", x: 2150, y: 640, g: "numbers", de: "Systeme prüfen", en: "Run checks"}, {id: "dl", room: "lab", x: 1460, y: 1300, g: "upload", de: "Daten laden", en: "Download data"},
+    {id: "ast", room: "bri", x: 2260, y: 960, g: "asteroids", de: "Asteroiden abwehren", en: "Clear asteroids"}, {id: "tr", room: "sto", x: 1430, y: 690, g: "trash", de: "Müll entsorgen", en: "Empty trash"}];
+  const STA = {cams: {x: 1920, y: 440}, admin: {x: 2300, y: 860}};
   const FIX = {lights: {x: 650, y: 1410, g: "switches"}, ra: {x: 100, y: 650, g: "hold"}, rb: {x: 380, y: 650, g: "hold"}};
   const BTN = {x: 1280, y: 340};
   const VIS = {crew: 340, dark: 125, imp: 470};
   const SPEED = 270, KILL_R = 115, USE_R = 95, REPORT_R = 150, VENT_R = 75;
+  /* doors: the doorway between a room and each hall that touches it */
+  const DOORS = {}; ROOMS.forEach(r => { DOORS[r.id] = HALLS.map(hl => { const x1 = Math.max(r.x, hl.x), x2 = Math.min(r.x + r.w, hl.x + hl.w), y1 = Math.max(r.y, hl.y), y2 = Math.min(r.y + r.h, hl.y + hl.h);
+    if (x1 > x2 + 1 || y1 > y2 + 1) return null; const vert = x2 - x1 < y2 - y1; return vert ? {x: (x1 + x2) / 2 - 12, y: y1, w: 24, h: y2 - y1} : {x: x1, y: (y1 + y2) / 2 - 12, w: x2 - x1, h: 24}; }).filter(Boolean); });
+  let CLOSED = [];
+  const blocked = (x, y) => CLOSED.some(d => x > d.x - RAD && x < d.x + d.w + RAD && y > d.y - RAD && y < d.y + d.h + RAD);
   const roomAt = (x, y) => ROOMS.find(r => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h);
   const inA = (x, y) => AREAS.some(a => x >= a.x && x <= a.x + a.w && y >= a.y && y <= a.y + a.h);
-  const walk = (x, y) => inA(x - RAD, y) && inA(x + RAD, y) && inA(x, y - RAD) && inA(x, y + RAD + 6) && inA(x - RAD * .7, y + RAD * .7) && inA(x + RAD * .7, y + RAD * .7);
+  const walk = (x, y) => !blocked(x, y) && inA(x - RAD, y) && inA(x + RAD, y) && inA(x, y - RAD) && inA(x, y + RAD + 6) && inA(x - RAD * .7, y + RAD * .7) && inA(x + RAD * .7, y + RAD * .7);
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   const RN = r => T(r.en, r.de);
   const spawnAt = (i, n) => { const a = i / Math.max(1, n) * Math.PI * 2 - Math.PI / 2; return {x: Math.round(BTN.x + Math.cos(a) * 150), y: Math.round(BTN.y + 20 + Math.sin(a) * 120)}; };
@@ -53,7 +60,8 @@
 
   /* positions of everyone, fed by "mv" messages and by this phone's own movement */
   const POS = {};
-  PG.onMv = m => { if (m && m.t === "mvb" && Array.isArray(m.l)){ m.l.forEach(([id, x, y, f, g, mv]) => PG.onMv({id, x, y, f, g, m: mv})); return; } if (!m || !m.id) return; const p = POS[m.id] || (POS[m.id] = {x: m.x, y: m.y, dx: m.x, dy: m.y}); p.x = +m.x || 0; p.y = +m.y || 0; p.g = !!m.g; p.v = !!m.v; p.f = m.f || 1; p.t = now(); p.mv = !!m.m; };
+  PG.onMv = m => { if (m && m.t === "mvb" && Array.isArray(m.l)){ m.l.forEach(([id, x, y, f, g, mv]) => PG.onMv({id, x, y, f, g, m: mv})); return; } if (!m || !m.id) return; const p = POS[m.id] || (POS[m.id] = {x: m.x, y: m.y, dx: m.x, dy: m.y}); const x = +m.x || 0, y = +m.y || 0, t = now(); p.buf = p.buf || []; const last = p.buf[p.buf.length - 1]; if (last && Math.hypot(last.x - x, last.y - y) > 320) p.buf = []; p.buf.push({t, x, y}); if (p.buf.length > 8) p.buf.shift();
+    p.x = x; p.y = y; p.g = !!m.g; p.v = !!m.v; p.f = m.f || 1; p.t = t; p.mv = !!m.m; };
 
   /* ---------------- practice bots: the app's chess bots, run by the host's phone ---------------- */
   const BOT = {G: null, id: 0, last: 0, mem: {},
@@ -78,9 +86,9 @@
         /* crew bots report what they see and fix sabotage */
         if (alive && !imp){ const body = s.bodies.find(bd => dist(p, bd) < (s.sab && s.sab.type === "lights" ? VIS.dark : VIS.crew));
           if (body){ if (dist(p, body) <= REPORT_R * .8){ m.sus = G.ids.filter(x => x !== id && s.alive[x] && POS[x] && dist(POS[x], body) < 420).sort(() => Math.random() - .5)[0] || null; eng.act(G, id, {a: "report", v: body.id}, api); api.push(); return; } if (!m.goal || !m.goal.body){ m.path = route(p, body); m.goal = {body: body.id}; } }
-          if (s.sab && (!m.goal || !m.goal.fix)){ const k = s.sab.type === "lights" ? "lights" : !s.sab.ra ? "ra" : !s.sab.rb ? "rb" : null; if (k && Math.random() < .02){ m.path = route(p, FIX[k]); m.goal = {fix: k}; } }
+          if (s.sab && (!m.goal || !m.goal.fix)){ const others = this.list(G).filter(b2 => b2.id !== id && this.mem[b2.id] && this.mem[b2.id].goal && this.mem[b2.id].goal.fix === "ra").length; const k = s.sab.type === "lights" ? "lights" : others ? "rb" : PG.pick(["ra", "rb"]); if (k && Math.random() < .02){ m.path = route(p, FIX[k]); m.goal = {fix: k}; } }
         }
-        if (m.wait > 0){ m.wait -= dt; if (m.wait <= 0 && m.goal && m.goal.task && !imp){ eng.act(G, id, {a: "task", v: m.goal.task}, api); api.push(); m.goal = null; } if (m.wait <= 0 && m.goal && m.goal.fix){ eng.act(G, id, {a: "fix", v: m.goal.fix}, api); api.push(); m.goal = null; } out.push([id, p.x, p.y, p.f || 1, alive ? 0 : 1, 0]); return; }
+        if (m.wait > 0){ m.wait -= dt; if (m.wait <= 0 && m.goal && m.goal.task && !imp){ eng.act(G, id, {a: "task", v: m.goal.task}, api); api.push(); m.goal = null; } if (m.wait <= 0 && m.goal && m.goal.fix){ if (m.goal.fix === "lights"){ eng.act(G, id, {a: "fix", v: "lights"}, api); api.push(); m.goal = null; } else if (s.sab && s.sab.type === "reactor" && (m.holdT = (m.holdT || 0) + 1) < 400){ m.wait = .5; eng.act(G, id, {a: "hold", v: m.goal.fix}, api); api.push(); } else { m.goal = null; m.holdT = 0; } } out.push([id, p.x, p.y, p.f || 1, alive ? 0 : 1, 0]); return; }
         if (!m.path.length){
           if (m.goal && m.goal.task){ m.wait = 5 + Math.random() * 5; }
           else if (m.goal && m.goal.fix && s.sab){ m.wait = 2.5; }
@@ -90,7 +98,7 @@
         }
         const w = m.path[0]; if (w){ const dx = w.x - p.x, dy = w.y - p.y, d = Math.hypot(dx, dy), sp = SPEED * .72 * dt * (alive ? 1 : 1.1);
           if (d <= sp){ p.x = w.x; p.y = w.y; m.path.shift(); } else { p.x += dx / d * sp; p.y += dy / d * sp; if (Math.abs(dx) > 2) p.f = dx < 0 ? -1 : 1; } }
-        p.dx = p.x; p.dy = p.y; p.g = !alive; p.t = now(); p.mv = !!w;
+        PG.onMv({id, x: p.x, y: p.y, f: p.f || 1, g: alive ? 0 : 1, m: w ? 1 : 0});
         out.push([id, Math.round(p.x), Math.round(p.y), p.f || 1, alive ? 0 : 1, w ? 1 : 0]);
       });
       if (out.length && now() - (this.sent || 0) > 180){ this.sent = now(); PNet.raw({t: "mvb", l: out}); }
@@ -131,15 +139,16 @@
     tally(G){ const s = G.s, c = {}; Object.values(s.meet.votes).forEach(v => { c[v] = (c[v] || 0) + 1; });
       const top = Object.entries(c).filter(([k]) => k !== "skip").sort((a, b) => b[1] - a[1]); const skip = c.skip || 0;
       const out = top.length && top[0][1] > skip && !(top[1] && top[1][1] === top[0][1]) ? top[0][0] : null;
-      s.lastVotes = Object.assign({}, s.meet.votes); s.eject = {id: out, imp: out ? s.imps.includes(out) : false, until: now() + 6500, left: out ? s.imps.filter(x => s.alive[x] && x !== out).length : s.imps.filter(x => s.alive[x]).length};
+      s.lastVotes = Object.assign({}, s.meet.votes); s.eject = {id: out, imp: out ? s.imps.includes(out) : false, start: now(), until: now() + 10500, left: out ? s.imps.filter(x => s.alive[x] && x !== out).length : s.imps.filter(x => s.alive[x]).length};
       if (out) s.alive[out] = false; s.phase = "eject"; s.meet = null; G.sk++; s.snd = {k: "s" + G.sk, n: "eject"}; },
     resume(G){ const s = G.s; s.bodies = []; s.spawnK++; const A = G.ids; s.spawn = Object.fromEntries(A.map((id, i) => [id, spawnAt(i, A.length)])); A.forEach(id => { Object.assign(POS[id] || (POS[id] = {}), s.spawn[id]); s.killAt[id] = now() + G.opts.cd * 1000; });
-      if (s.sab && s.sab.type === "reactor") s.sab = null; s.sabAt = Math.max(s.sabAt, now() + 10000); s.phase = "play"; if (!this.win(G)) {} },
+      if (s.sab && s.sab.type === "reactor") s.sab = null; s.doors = {}; s.sabAt = Math.max(s.sabAt, now() + 10000); s.phase = "play"; if (!this.win(G)) {} },
     tick(G, api){ const s = G.s; let ch = false; if (s.bots && s.bots.length && s.phase !== "end") BOT.run(G, api); if (s.phase === "end") BOT.stop();
       if (s.phase === "play" && s.sab && s.sab.type === "reactor" && now() >= s.sab.until){ s.phase = "end"; s.win = "boom"; s.sab = null; G.sk++; s.snd = {k: "s" + G.sk, n: "lose"}; ch = true; }
       if (s.phase === "meet" && (now() >= s.meet.until || G.ids.filter(id => s.alive[id]).every(id => s.meet.votes[id]))){ this.tally(G); ch = true; }
       if (s.phase === "eject" && now() >= s.eject.until){ s.eject = null; this.resume(G); this.win(G); ch = true; }
-      return ch || s.phase === "meet" || s.phase === "eject" || (s.phase === "play" && (!!s.sab || now() < s.intro)); },
+      if (s.doors) for (const k in s.doors) if (s.doors[k] <= now()){ delete s.doors[k]; ch = true; }
+      return ch || s.phase === "meet" || s.phase === "eject" || (s.phase === "play" && (!!s.sab || now() < s.intro || (s.doors && Object.keys(s.doors).length > 0))); },
     act(G, id, a, api){ const s = G.s, me = POS[id] || {x: 0, y: 0}, alive = s.alive[id], imp = s.imps.includes(id);
       if (a.a === "again" && id === G.host && s.phase === "end"){ this.start(G); return; }
       if (s.phase === "meet" && a.a === "vote" && alive && !s.meet.votes[id] && (a.v === "skip" || s.alive[a.v])){ s.meet.votes[id] = a.v; return; }
@@ -152,15 +161,22 @@
       if (a.a === "button" && alive && s.emer[id] > 0 && dist(me, BTN) < USE_R * 1.8 && !(s.sab && s.sab.type === "reactor")){ s.emer[id]--; this.meeting(G, id, null); return; }
       if (a.a === "task" && !imp && s.tasks[id].includes(a.v) && !s.done[id][a.v]){ s.done[id][a.v] = 1; this.win(G); return; }
       if (a.a === "sab" && imp && !s.sab && now() >= s.sabAt && ["lights", "reactor"].includes(a.v)){ s.sab = {type: a.v, until: a.v === "reactor" ? now() + 45000 : 0, ra: 0, rb: 0}; s.sabAt = now() + 35000; G.sk++; s.snd = {k: "s" + G.sk, n: a.v === "lights" ? "dark" : "alarm"}; return; }
+      if (a.a === "door" && imp && alive && now() >= (s.doorAt || 0) && ROOMS.some(r => r.id === a.v)){ s.doors = s.doors || {}; s.doors[a.v] = now() + 10000; s.doorAt = now() + 22000; G.sk++; s.snd = {k: "s" + G.sk, n: "door"}; return; }
+      if (a.a === "hold" && s.sab && s.sab.type === "reactor" && (a.v === "ra" || a.v === "rb") && dist(me, FIX[a.v]) < USE_R * 1.6){ s.sab.h = s.sab.h || {}; s.sab.h[a.v] = {id, until: now() + 1400};
+        const A = s.sab.h.ra, B = s.sab.h.rb, two = G.ids.filter(x => s.alive[x]).length >= 5;
+        if (!two){ s.sab[a.v] = 1; } else if (A && B && A.until > now() && B.until > now() && A.id !== B.id){ s.sab.ra = s.sab.rb = 1; }
+        if (s.sab.ra && s.sab.rb){ s.sab = null; G.sk++; s.snd = {k: "s" + G.sk, n: "fixed"}; } return; }
       if (a.a === "fix" && s.sab){ if (s.sab.type === "lights" && a.v === "lights"){ s.sab = null; G.sk++; s.snd = {k: "s" + G.sk, n: "light"}; }
         else if (s.sab.type === "reactor" && (a.v === "ra" || a.v === "rb")){ s.sab[a.v] = 1; if (s.sab.ra && s.sab.rb){ s.sab = null; G.sk++; s.snd = {k: "s" + G.sk, n: "fixed"}; } } return; }
     },
     view(G, id, api){ const s = G.s, imp = s.imps.includes(id), p = this.prog(G);
-      return {custom: "np", k: "np" + s.round, phase: s.phase, round: s.round, alive: !!s.alive[id], imp, mates: imp ? s.imps : [], tasks: imp ? [] : s.tasks[id].map(t => [t, !!s.done[id][t]]),
+      return {nImp: s.imps.length, custom: "np", k: "np" + s.round, phase: s.phase, round: s.round, alive: !!s.alive[id], imp, mates: imp ? s.imps : [], tasks: imp ? [] : s.tasks[id].map(t => [t, !!s.done[id][t]]),
         fake: imp ? s.tasks[id] : [], prog: p.tot ? p.d / p.tot : 0, bodies: s.bodies, kill: imp ? Math.max(0, s.killAt[id] - now()) : 0, emer: s.emer[id], intro: Math.max(0, s.intro - now()),
         sab: s.sab ? {type: s.sab.type, left: s.sab.until ? Math.max(0, s.sab.until - now()) : 0, ra: s.sab.ra, rb: s.sab.rb} : null, sabCd: imp ? Math.max(0, s.sabAt - now()) : 0,
         meet: s.meet ? {by: s.meet.by, body: s.meet.body, left: Math.max(0, s.meet.until - now()), voted: Object.keys(s.meet.votes), my: s.meet.votes[id] || null} : null,
-        eject: s.eject ? {id: s.eject.id, imp: s.eject.imp, conf: !!G.opts.conf, left: s.eject.left, votes: s.lastVotes} : null,
+        eject: s.eject ? {id: s.eject.id, imp: s.eject.imp, conf: !!G.opts.conf, left: s.eject.left, votes: s.lastVotes, shown: now() - s.eject.start} : null,
+        doors: s.doors ? Object.fromEntries(Object.entries(s.doors).filter(([k, t]) => t > now()).map(([k, t]) => [k, t - now()])) : {}, doorCd: imp ? Math.max(0, (s.doorAt || 0) - now()) : 0,
+        held: s.sab && s.sab.h ? {ra: !!(s.sab.h.ra && s.sab.h.ra.until > now()), rb: !!(s.sab.h.rb && s.sab.h.rb.until > now())} : null, two: G.ids.filter(x => s.alive[x]).length >= 5,
         bots: s.bots || [], deadList: G.ids.filter(x => !s.alive[x]), killedBy: s.killed && s.killed[id] ? s.killed[id] : null,
         win: s.phase === "end" ? s.win : null, imps: s.phase === "end" ? s.imps : null, spawn: s.spawn && s.spawn[id] ? Object.assign({k: s.spawnK}, s.spawn[id]) : null, host: id === G.host,
         snd: (() => { const a = s.snd, b = s.ps && s.ps[id]; return !a ? b : !b ? a : (+String(a.k).slice(1) > +String(b.k).slice(1) ? a : b); })()};
@@ -175,10 +191,16 @@
   const pieceImg = cls => { if (IMG[cls]) return IMG[cls]; const e = document.createElement("i"); e.className = "pc " + cls; e.style.cssText = "position:absolute;left:-99px"; document.body.appendChild(e); const u = (getComputedStyle(e).backgroundImage.match(/url\("?(.*?)"?\)$/) || [])[1]; e.remove(); return img(cls, u || ""); };
   const STARS = Array.from({length: 260}, () => [Math.random() * (W + 800) - 400, Math.random() * (H + 800) - 400, Math.random() * 1.6 + .3, Math.random()]);
 
-  const NP = {el: null, v: null, m: null, act: null, raf: 0, me: {x: BTN.x, y: BTN.y + 150, f: 1}, joy: null, keys: {}, sent: 0, lastSend: {}, mini: null, vent: null, spawnK: 0, shown: {}, sndK: null, lastStep: 0, zoom: 1, mapOpen: false,
+  /* landscape: the game is always played sideways; on a phone held upright the whole screen is turned */
+  const LOC = e => NP.rot ? {x: e.clientY, y: innerWidth - e.clientX} : {x: e.clientX, y: e.clientY};
+  const REL = (e, el) => { const p = LOC(e); let x = 0, y = 0, n = el; while (n && n !== NP.el){ x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; } return {x: p.x - x, y: p.y - y}; };
+  const NP = {dust: [], el: null, v: null, m: null, act: null, raf: 0, me: {x: BTN.x, y: BTN.y + 150, f: 1}, joy: null, keys: {}, sent: 0, lastSend: {}, mini: null, vent: null, spawnK: 0, shown: {}, sndK: null, lastStep: 0, zoom: 1, mapOpen: false,
     draw(body, v, m, act){
+      if (v.phase === "lobby" && this.v && this.v.phase !== "lobby") this.lobbyIn = 0;
       this.v = v; this.m = m; this.act = act; const t = now();
+      if (v.phase === "lobby" && !this.lobbyIn){ this.lobbyIn = 1; this.me.x = BTN.x - 160 + Math.random() * 320; this.me.y = BTN.y + 140 + Math.random() * 40; this.vent = null; this.closeMini(); this.send(true); }
       this.ends = {kill: t + (v.kill || 0), meet: v.meet ? t + v.meet.left : 0, sab: v.sab && v.sab.left ? t + v.sab.left : 0, sabCd: t + (v.sabCd || 0)};
+      CLOSED = Object.keys(v.doors || {}).flatMap(k => DOORS[k] || []); this.ends.doorCd = t + (v.doorCd || 0); if (v.eject) this.ejectT = t - (v.eject.shown || 0);
       if (v.round !== this.introRound){ this.introRound = v.round; this.introEnd = t + (v.intro || 0); }
       if (!this.el || !this.el.isConnected) this.mount();
       if (v.spawn && v.spawn.k !== this.spawnK){ this.spawnK = v.spawn.k; this.me.x = v.spawn.x; this.me.y = v.spawn.y; this.vent = null; this.closeMini(); this.send(true); }
@@ -186,31 +208,47 @@
       this.hud();
     },
     stop(){ cancelAnimationFrame(this.raf); this.raf = 0; if (this.el) this.el.remove(); this.el = null; document.documentElement.classList.remove("np-on"); window.removeEventListener("keydown", this.kd); window.removeEventListener("keyup", this.ku); window.removeEventListener("resize", this.rs); },
-    sound(n){ const fx = Sound.fx && Sound.fx();
-      if (n === "kill"){ Sound.play("Capture", 1); Haptic.go([60, 40, 60]); }
-      else if (n === "died"){ Sound.play("Capture", 1); Sound.play("Defeat", .6); Haptic.go([200, 80, 300]); }
-      else if (n === "meet"){ if (fx){ [0, .32, .64].forEach(t => { Sound.note(76, t, .25, .12, "pluck"); Sound.note(72, t + .16, .25, .12, "pluck"); }); } Haptic.go([80, 60, 80, 60, 80]); }
-      else if (n === "eject"){ if (fx) Sound.air(0, 1.4, 900, 120, .12, .8); }
-      else if (n === "alarm"){ if (fx) [0, .5, 1, 1.5].forEach(t => Sound.note(81, t, .3, .1, "pluck")); Haptic.go([100, 100, 100, 100, 100]); }
-      else if (n === "dark"){ if (fx) Sound.air(0, .6, 1200, 80, .1, 1); Haptic.go(60); }
-      else if (n === "light" || n === "fixed"){ Sound.right ? Sound.right() : Sound.play("Move"); }
-      else if (n === "cheer"){ PG.cheer(4); Sound.play("Victory", .7); } else if (n === "lose"){ Sound.play("Defeat", .8); } else if (n === "reveal"){ Sound.unlock && Sound.unlock(); }
+    /* synth sounds, all through the app's sound engine (respects the sound switch) */
+    sfx: {
+      ac(){ return Sound.fx && Sound.fx() ? Sound.ac : null; },
+      noise(t, dur, f0, f1, gain, type = "bandpass", q = 1){ const ac = this.ac(); if (!ac) return; const n = Math.floor(ac.sampleRate * dur), b = ac.createBuffer(1, n, ac.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+        const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(), t0 = ac.currentTime + t; s.buffer = b; f.type = type; f.Q.value = q; f.frequency.setValueAtTime(f0, t0); f.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t0 + dur);
+        g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(gain, t0 + Math.min(.08, dur / 3)); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur); s.connect(f); f.connect(g); g.connect(ac.destination); s.start(t0); },
+      tone(t, f0, f1, dur, gain, type = "sine"){ const ac = this.ac(); if (!ac) return; const o = ac.createOscillator(), g = ac.createGain(), t0 = ac.currentTime + t; o.type = type; o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t0 + dur);
+        g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(gain, t0 + .02); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur); o.connect(g); g.connect(ac.destination); o.start(t0); o.stop(t0 + dur + .05); },
+      chord(t, notes, dur, gain, type){ notes.forEach(m => this.tone(t, 440 * Math.pow(2, (m - 69) / 12), 440 * Math.pow(2, (m - 69) / 12), dur, gain, type)); }
+    },
+    roleSound(imp){ const x = this.sfx; Haptic.go(imp ? [40, 60, 160] : [30, 50, 30]);
+      x.noise(0, .7, 5200, 2800, .14, "bandpass", .7); /* psst */
+      if (imp){ x.tone(.85, 70, 40, 2.4, .22, "sawtooth"); x.chord(.85, [45, 48, 51], 2.2, .06, "triangle"); x.noise(.85, 1.6, 300, 60, .08, "lowpass"); x.chord(1.6, [57, 60, 63], 1.6, .045, "sine"); }
+      else { x.chord(.85, [60, 64, 67], 1.6, .06, "triangle"); x.chord(1.15, [67, 72, 76], 1.6, .05, "sine"); x.noise(.85, 1, 2000, 6000, .03, "highpass"); } },
+    sound(n){ const x = this.sfx;
+      if (n === "kill"){ x.noise(0, .12, 6000, 2000, .25, "highpass"); x.noise(.05, .35, 900, 120, .3, "lowpass"); x.tone(.05, 160, 50, .4, .3); Haptic.go([60, 40, 120]); this.flash(); }
+      else if (n === "died"){ this.flash(); this.slash = now(); x.noise(0, .12, 6000, 2000, .25, "highpass"); x.noise(.05, .5, 900, 80, .35, "lowpass"); x.tone(.05, 140, 40, .6, .35); x.chord(.5, [38, 41, 44], 2, .07, "sawtooth"); Haptic.go([200, 80, 300]); }
+      else if (n === "meet"){ this.banner = {t: now()}; [0, .45, .9, 1.35].forEach(t => { x.tone(t, 880, 660, .4, .12, "square"); }); Haptic.go([80, 60, 80, 60, 80]); }
+      else if (n === "eject"){ x.noise(0, 2.2, 800, 90, .14, "lowpass", .6); x.tone(.2, 300, 60, 2, .05, "sine"); }
+      else if (n === "alarm"){ [0, .5, 1, 1.5].forEach(t => x.tone(t, 760, 760, .3, .1, "square")); Haptic.go([100, 100, 100, 100, 100]); }
+      else if (n === "dark"){ x.tone(0, 220, 55, .7, .2, "sawtooth"); x.noise(0, .6, 1200, 80, .1, "lowpass"); Haptic.go(60); }
+      else if (n === "door"){ x.noise(0, .25, 400, 120, .25, "lowpass"); x.tone(.02, 90, 60, .25, .2, "square"); Haptic.go(40); }
+      else if (n === "light" || n === "fixed"){ x.chord(0, [72, 76, 79], .6, .07, "triangle"); }
+      else if (n === "cheer"){ PG.cheer(4); x.chord(0, [60, 64, 67, 72], 1.8, .06, "triangle"); } else if (n === "lose"){ x.chord(0, [48, 51, 55], 2.2, .07, "sawtooth"); x.tone(0, 110, 40, 2, .15); }
+      else if (n === "reveal"){ this.roleSound(this.v && this.v.imp); }
       else if (n === "task"){ Sound.xp ? Sound.xp() : Sound.right(); } },
     mount(){
       this.stop(); const el = this.el = document.createElement("div"); el.className = "np"; el.setAttribute("data-notr", "");
-      el.innerHTML = `<canvas class="np-cv"></canvas><div class="np-top"><button class="np-menu" data-x="menu">☰</button><div class="np-bar"><i></i><span>${T("TASKS", "AUFGABEN")}</span></div><button class="np-mapb" data-x="map">${icon("map", 20)}</button></div>
-        <div class="np-tasks"></div><div class="np-alert"></div><div class="np-joy"><i></i></div><div class="np-btns"></div><div class="np-ov"></div><div class="np-mini"></div>`;
+      el.innerHTML = `<canvas class="np-cv"></canvas><div class="np-top"><button class="np-menu" data-x="menu">☰</button><div class="np-bar"><i></i><span>${T("TASKS", "AUFGABEN")}</span></div><button class="np-mapb" data-x="map">${icon("map", 20)}<span>${T("Map", "Karte")}</span></button></div>
+        <div class="np-tasks"></div><div class="np-alert"></div><div class="np-lob"></div><div class="np-joy"><i></i></div><div class="np-btns"></div><div class="np-ov"></div><div class="np-mini"></div>`;
       document.body.appendChild(el); document.documentElement.classList.add("np-on");
       this.cv = el.querySelector("canvas"); this.ctx = this.cv.getContext("2d");
-      this.rs = () => { const d = Math.min(2, window.devicePixelRatio || 1); this.cv.width = innerWidth * d; this.cv.height = innerHeight * d; this.dpr = d; this.zoom = Math.max(.5, Math.min(1.2, Math.min(innerWidth, innerHeight) / 560)); };
+      this.rs = () => { const d = Math.min(2, window.devicePixelRatio || 1), rot = PG.st.npPortrait ? false : innerHeight > innerWidth, w = rot ? innerHeight : innerWidth, h = rot ? innerWidth : innerHeight; this.rot = rot; el.classList.toggle("rot", rot); el.style.width = w + "px"; el.style.height = h + "px"; this.cv.width = w * d; this.cv.height = h * d; this.dpr = d; this.zoom = Math.max(.5, Math.min(1.2, Math.min(w, h) / 560)); };
       this.rs(); window.addEventListener("resize", this.rs);
       /* joystick: touch anywhere on the left part of the screen */
       const joy = el.querySelector(".np-joy"), knob = joy.querySelector("i");
       const startJ = (x, y, pid) => { this.joy = {x0: x, y0: y, dx: 0, dy: 0, pid}; joy.style.left = x + "px"; joy.style.top = y + "px"; joy.classList.add("on"); knob.style.transform = "translate(-50%,-50%)"; };
       const moveJ = (x, y) => { const j = this.joy; if (!j) return; let dx = x - j.x0, dy = y - j.y0; const d = Math.hypot(dx, dy), m = 56; if (d > m){ dx *= m / d; dy *= m / d; } j.dx = dx / m; j.dy = dy / m; knob.style.transform = `translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`; };
       const endJ = () => { this.joy = null; joy.classList.remove("on"); };
-      this.cv.addEventListener("pointerdown", e => { if (this.mini || this.v && this.v.phase !== "play") return; e.preventDefault(); startJ(e.clientX, e.clientY, e.pointerId); try { this.cv.setPointerCapture(e.pointerId); } catch(_) {} });
-      this.cv.addEventListener("pointermove", e => { if (this.joy && e.pointerId === this.joy.pid) moveJ(e.clientX, e.clientY); });
+      this.cv.addEventListener("pointerdown", e => { if (this.mini || this.v && this.v.phase !== "play" && this.v.phase !== "lobby") return; e.preventDefault(); const l = LOC(e); startJ(l.x, l.y, e.pointerId); try { this.cv.setPointerCapture(e.pointerId); } catch(_) {} });
+      this.cv.addEventListener("pointermove", e => { if (this.joy && e.pointerId === this.joy.pid){ const l = LOC(e); moveJ(l.x, l.y); } });
       ["pointerup", "pointercancel"].forEach(t => this.cv.addEventListener(t, e => { if (this.joy && e.pointerId === this.joy.pid) endJ(); }));
       this.kd = e => { if (/^(Arrow|Key[WASD])/.test(e.code)){ this.keys[e.code] = 1; e.preventDefault(); } if (e.code === "KeyE" || e.code === "Space") { const b = this.el && this.el.querySelector(".np-act.main"); if (b) b.click(); } if (e.code === "KeyQ"){ const b = this.el && this.el.querySelector('[data-x="kill"]'); if (b) b.click(); } };
       this.ku = e => { delete this.keys[e.code]; };
@@ -220,6 +258,7 @@
       this.raf = requestAnimationFrame(loop);
     },
     ghost(){ return this.v && !this.v.alive; },
+    flash(){ if (!this.el) return; this.el.classList.remove("flash"); void this.el.offsetWidth; this.el.classList.add("flash"); },
     pl(){ return ((this.m && this.m.players) || []).concat((this.v && this.v.bots) || []); },
     nm(id){ const p = this.pl().find(x => x.id === id); return p ? p.name : "?"; },
     left(k){ return Math.max(0, ((this.ends || {})[k] || 0) - now()); },
@@ -228,7 +267,7 @@
     step(dt){
       const v = this.v; if (!v) return;
       let ix = 0, iy = 0;
-      if (v.phase === "play" && !this.mini && !this.vent && !this.intro()){
+      if ((v.phase === "play" || v.phase === "lobby") && !this.mini && !this.vent && !this.intro()){
         if (this.joy){ ix = this.joy.dx; iy = this.joy.dy; }
         const k = this.keys; if (k.ArrowLeft || k.KeyA) ix -= 1; if (k.ArrowRight || k.KeyD) ix += 1; if (k.ArrowUp || k.KeyW) iy -= 1; if (k.ArrowDown || k.KeyS) iy += 1;
         const m = Math.hypot(ix, iy); if (m > 1){ ix /= m; iy /= m; }
@@ -238,10 +277,18 @@
         if (this.ghost()){ me.x = Math.max(20, Math.min(W - 20, nx)); me.y = Math.max(20, Math.min(H - 20, ny)); }
         else { if (walk(nx, me.y)) me.x = nx; if (walk(me.x, ny)) me.y = ny; }
         if (Math.abs(ix) > .1) me.f = ix < 0 ? -1 : 1;
-        if (!this.ghost() && now() - this.lastStep > 330){ this.lastStep = now(); Sound.play("Move", .12); } }
+        if (!this.ghost() && now() - this.lastStep > 300){ this.lastStep = now(); this.step2 = !this.step2; if (Sound.fx && Sound.fx()){ const ac = Sound.ac, t0 = ac.currentTime, n = Math.floor(ac.sampleRate * .045), bf = ac.createBuffer(1, n, ac.sampleRate), dd = bf.getChannelData(0); for (let i = 0; i < n; i++) dd[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3); const src = ac.createBufferSource(), fl = ac.createBiquadFilter(), g = ac.createGain(); src.buffer = bf; fl.type = "lowpass"; fl.frequency.value = this.step2 ? 520 : 440; g.gain.value = .05; src.connect(fl); fl.connect(g); g.connect(ac.destination); src.start(t0); } } }
       me.mv = moving; this.send();
       /* smooth everyone else towards where they said they are */
-      Object.entries(POS).forEach(([id, p]) => { if (id === PNet.me) return; if (p.dx == null || Math.hypot(p.dx - p.x, p.dy - p.y) > 400){ p.dx = p.x; p.dy = p.y; } p.dx += (p.x - p.dx) * Math.min(1, dt * 8); p.dy += (p.y - p.dy) * Math.min(1, dt * 8); });
+      const rt = now() - 230;
+      Object.entries(POS).forEach(([id, p]) => { if (id === PNet.me) return; const b = p.buf;
+        if (!b || !b.length){ p.dx = p.x; p.dy = p.y; return; }
+        if (rt <= b[0].t){ p.dx = b[0].x; p.dy = b[0].y; return; }
+        let i = b.length - 1; while (i > 0 && b[i - 1].t > rt) i--;
+        const a = b[i - 1] || b[0], c = b[i];
+        if (rt >= c.t){ /* nothing newer yet: keep going a little in the same direction, then stop */ const pr = b[b.length - 2]; const k = pr && c.t - pr.t > 0 ? Math.min(rt - c.t, 150) / (c.t - pr.t) : 0; p.dx = c.x + (pr ? (c.x - pr.x) * k : 0); p.dy = c.y + (pr ? (c.y - pr.y) * k : 0); return; }
+        const f = (rt - a.t) / Math.max(1, c.t - a.t); p.dx = a.x + (c.x - a.x) * f; p.dy = a.y + (c.y - a.y) * f;
+        p.mv = Math.hypot(c.x - a.x, c.y - a.y) > 2; });
       POS[PNet.me] = Object.assign(POS[PNet.me] || {}, {x: me.x, y: me.y, dx: me.x, dy: me.y, g: this.ghost(), v: !!this.vent, f: me.f, mv: moving});
       if (now() - (this.hudT || 0) > 250){ this.hudT = now(); this.hud(); }
     },
@@ -258,6 +305,7 @@
       if (v.sab){ if (v.sab.type === "lights" && dist(me, FIX.lights) <= USE_R) out.fix = "lights"; if (v.sab.type === "reactor"){ if (!v.sab.ra && dist(me, FIX.ra) <= USE_R) out.fix = "ra"; if (!v.sab.rb && dist(me, FIX.rb) <= USE_R) out.fix = "rb"; } }
       const mine = (v.imp ? v.fake.map(t => [t, false]) : v.tasks).filter(([t, d]) => !d).map(([t]) => TASKS.find(x => x.id === t)).find(t => dist(me, t) <= USE_R);
       if (mine) out.task = mine;
+      if (v.alive && dist(me, STA.cams) <= USE_R) out.cams = true; if (dist(me, STA.admin) <= USE_R) out.admin = true;
       return out;
     },
     click(x, val){
@@ -267,34 +315,44 @@
       if (x === "kill" && t.kill && this.left("kill") <= 0) return this.act({a: "kill", v: t.kill.id});
       if (x === "report" && t.report) return this.act({a: "report", v: t.report.id});
       if (x === "use"){
+        if (t.fix === "ra" || t.fix === "rb") return this.openMini("reactor", () => {}, {de: "Reaktor stabilisieren", en: "Stabilise reactor", key: t.fix});
         if (t.fix) return this.openMini(FIX[t.fix].g, () => this.act({a: "fix", v: t.fix}));
         if (t.task) return this.openMini(t.task.g, () => { if (!v.imp){ this.act({a: "task", v: t.task.id}); this.sound("task"); } }, t.task);
+        if (t.cams) return this.openCams();
+        if (t.admin) return this.openAdmin();
         if (t.button && v.emer > 0) return this.act({a: "button"});
         if (t.button) return toast(T("You've used your emergency meeting.", "Du hast dein Notfall-Meeting schon benutzt."));
       }
       if (x === "vent"){ if (this.vent){ this.vent = null; this.send(true); Sound.play("Move", .7); } else if (t.vent && t.vent.id){ this.vent = t.vent.id; this.me.x = t.vent.x; this.me.y = t.vent.y; this.send(true); Sound.play("Capture", .5); } this.hud(); return; }
       if (x === "vgo"){ const vt = VENTS.find(q => q.id === val); if (vt){ this.vent = vt.id; this.me.x = vt.x; this.me.y = vt.y; this.send(true); Sound.play("Move", .5); this.hud(); } return; }
       if (x === "sab") return this.act({a: "sab", v: val});
+      if (x === "door"){ this.mapOpen = false; return this.act({a: "door", v: val}); }
       if (x === "vote") return this.act({a: "vote", v: val});
       if (x === "again") return this.act({a: "again"});
+      if (["start", "settings", "invite", "look"].includes(x)) return this.act({a: x});
       if (x === "lobby") return this.act({a: "lobby"});
     },
     menu(){
       const v = this.v; const sh = detailSheet(`<h3 style="margin:0 0 8px">Natposter</h3><p class="muted" style="margin:0 0 12px">${T("Move with the stick on the left (or WASD). Use = E, Kill = Q.", "Laufen mit dem Stick links (oder WASD). Benutzen = E, Töten = Q.")}</p>
         ${v.host ? `<button class="btn" data-m="lobby" style="width:100%;margin-bottom:8px">${T("End game · back to the lobby", "Spiel beenden · zurück zur Lobby")}</button>` : ""}
+        <button class="btn" data-m="rot" style="width:100%;margin-bottom:8px">${PG.st.npPortrait ? T("Play sideways", "Querformat") : T("Play upright", "Hochformat")}</button>
         <button class="btn" data-m="leave" style="width:100%">${T("Leave", "Verlassen")}</button>`);
-      sh.el.querySelectorAll("[data-m]").forEach(b => b.onclick = () => { sh.close(); if (b.dataset.m === "lobby") this.act({a: "lobby"}); else { PNet.leave(); App.go("games"); } });
+      sh.el.querySelectorAll("[data-m]").forEach(b => b.onclick = () => { sh.close(); if (b.dataset.m === "rot"){ PG.st.npPortrait = !PG.st.npPortrait; PG.persist(); this.rs(); return; } if (b.dataset.m === "lobby") this.act({a: "lobby"}); else { PNet.leave(); App.go("games"); } });
     },
     /* ---- HUD: task bar, task list, buttons, overlays ---- */
     hud(){
       const v = this.v, el = this.el; if (!v || !el) return;
-      el.classList.toggle("ghost", !v.alive); el.classList.toggle("imp", v.imp);
+      el.classList.toggle("ghost", !v.alive); el.classList.toggle("imp", v.imp); el.classList.toggle("lob", v.phase === "lobby");
+      const lb = el.querySelector(".np-lob"), lbH = v.phase === "lobby" ? `<div class="np-lobc"><b>${esc(v.lob.code.toUpperCase())}</b><span>${v.lob.n} / 15</span></div>
+        <button class="np-lb" data-x="invite">📨<span>${T("Invite", "Einladen")}</span></button><button class="np-lb" data-x="look">👕<span>${T("Look", "Aussehen")}</span></button><button class="np-lb" data-x="settings">⚙️<span>${T("Settings", "Einstellungen")}</span></button>
+        ${v.host ? `<button class="np-lb go" data-x="start" ${v.lob.n < v.lob.min ? "disabled" : ""}>▶<span>${v.lob.n < v.lob.min ? T(`${v.lob.min} needed`, `${v.lob.min} nötig`) : T("Start", "Start")}</span></button>` : `<span class="np-wait">${T("Waiting for the host…", "Warte auf den Gastgeber…")}</span>`}` : "";
+      if (lb._h !== lbH){ lb._h = lbH; lb.innerHTML = lbH; }
       el.querySelector(".np-bar i").style.width = Math.round(v.prog * 100) + "%";
       const tl = el.querySelector(".np-tasks"), tasksHtml = v.imp ? `<b class="np-red">${T("Natposter", "Natposter")}</b><small>${T("Kill, vent, sabotage. Don't get caught.", "Töten, Schächte, Sabotage. Nicht erwischen lassen.")}</small>${v.mates.length > 1 ? `<small>${T("Team: ", "Team: ")}${v.mates.filter(x => x !== PNet.me).map(x => esc(this.nm(x))).join(", ")}</small>` : ""}`
         : `${!v.alive ? `<b>👻 ${T("You're a ghost: finish your tasks", "Du bist ein Geist: mach deine Aufgaben")}</b>` : ""}${v.tasks.map(([t, d]) => { const k = TASKS.find(x => x.id === t), r = ROOMS.find(x => x.id === k.room); return `<div class="${d ? "done" : ""}">${esc(RN(r))}: ${esc(T(k.en, k.de))}</div>`; }).join("")}`;
       if (tl._h !== tasksHtml){ tl._h = tasksHtml; tl.innerHTML = tasksHtml; }
       /* alerts: sabotage */
-      const al = el.querySelector(".np-alert"), sab = v.sab, alH = sab ? (sab.type === "reactor" ? `☢️ ${T("Reactor meltdown", "Reaktor-Kernschmelze")} <b>${Math.ceil(this.left("sab") / 1000)}</b> <small>${T("Hold both panels in the reactor", "Beide Platten im Reaktor halten")} ${sab.ra ? "✓" : "○"} ${sab.rb ? "✓" : "○"}</small>` : `💡 ${T("Lights out! Fix them in Electrical", "Licht aus! In der Elektrik reparieren")}`) : "";
+      const al = el.querySelector(".np-alert"), sab = v.sab, alH = sab ? (sab.type === "reactor" ? `☢️ ${T("Reactor meltdown", "Reaktor-Kernschmelze")} <b>${Math.ceil(this.left("sab") / 1000)}</b> <small>${v.two ? T("Two people: hold both panels at once", "Zwei Leute: beide Platten gleichzeitig halten") : T("Hold both panels in the reactor", "Beide Platten im Reaktor halten")} ${sab.ra || (v.held && v.held.ra) ? "✋" : "○"} ${sab.rb || (v.held && v.held.rb) ? "✋" : "○"}</small>` : `💡 ${T("Lights out! Fix them in Electrical", "Licht aus! In der Elektrik reparieren")}`) : "";
       if (al._h !== alH){ al._h = alH; al.innerHTML = alH; al.classList.toggle("on", !!alH); }
       if (sab && sab.type === "reactor" && Math.ceil(this.left("sab") / 1000) !== this.lastAlarm){ this.lastAlarm = Math.ceil(this.left("sab") / 1000); if (this.lastAlarm % 2 === 0 && Sound.fx && Sound.fx()) Sound.note(81, 0, .2, .07, "pluck"); if (this.lastAlarm <= 10) Haptic.go(30); }
       /* action buttons */
@@ -305,7 +363,7 @@
           if (v.imp && v.alive) B.push(`<button class="np-act kill ${t.kill && this.left("kill") <= 0 ? "on" : ""}" data-x="kill" ${t.kill && this.left("kill") <= 0 ? "" : "disabled"}>🔪<span>${this.left("kill") > 0 ? Math.ceil(this.left("kill") / 1000) : T("Kill", "Töten")}</span></button>`);
           if (v.imp && v.alive) B.push(`<button class="np-act ${t.vent ? "on" : ""}" data-x="vent" ${t.vent ? "" : "disabled"}>🕳️<span>${T("Vent", "Schacht")}</span></button>`);
           if (v.alive) B.push(`<button class="np-act rep ${t.report ? "on" : ""}" data-x="report" ${t.report ? "" : "disabled"}>📣<span>${T("Report", "Melden")}</span></button>`);
-          const use = t.fix || t.task || t.button; B.push(`<button class="np-act main ${use ? "on" : ""}" data-x="use" ${use ? "" : "disabled"}>${t.button && !t.task && !t.fix ? "🚨" : "✋"}<span>${t.button && !t.task && !t.fix ? T("Meeting", "Meeting") : T("Use", "Benutzen")}</span></button>`);
+          const use = t.fix || t.task || t.cams || t.admin || t.button, ic = t.fix || t.task ? ["✋", T("Use", "Benutzen")] : t.cams ? ["📹", T("Cameras", "Kameras")] : t.admin ? ["🗺️", T("Admin", "Lageplan")] : t.button ? ["🚨", T("Meeting", "Meeting")] : ["✋", T("Use", "Benutzen")]; B.push(`<button class="np-act main ${use ? "on" : ""}" data-x="use" ${use ? "" : "disabled"}>${ic[0]}<span>${ic[1]}</span></button>`);
         }
       }
       const bh = B.join(""); if (bt._h !== bh){ bt._h = bh; bt.innerHTML = bh; }
@@ -314,15 +372,20 @@
     overlay(){
       const v = this.v, ov = this.el.querySelector(".np-ov"), P = this.pl(), nm = id => esc(this.nm(id)), HC = this.hc || (this.hc = {}), head = id => { const p = P.find(x => x.id === id), k = id + (p && p.av ? JSON.stringify(p.av).length : 0); if (HC[k]) return HC[k]; try { return HC[k] = avatarSVG(Object.assign({}, p && p.av || {}, {aura: "none", pet: "none"}), {head: true, size: 54}); } catch(e) { return ""; } };
       let h = "";
-      if (v.phase === "play" && this.intro()) h = `<div class="np-card ${v.imp ? "imp" : ""}"><div class="np-k">${T("You are", "Du bist")}</div><div class="np-big">${v.imp ? "Natposter" : T("Crew", "Crew")}</div><div class="np-face">${head(PNet.me)}</div><p>${v.imp ? T("Kill the crew without getting caught.", "Töte die Crew, ohne erwischt zu werden.") + (v.mates.length > 1 ? "<br>" + T("Team: ", "Team: ") + v.mates.filter(x => x !== PNet.me).map(nm).join(", ") : "") : T("Do your tasks. Find the Natposter.", "Erledige deine Aufgaben. Finde den Natposter.")}</p></div>`;
-      if (v.phase === "play" && v.killedBy && !this.shown["k" + v.killedBy.k]){ h = `<div class="np-card imp"><div class="np-face">${head(v.killedBy.by)}</div><div class="np-big">${T("You were killed", "Du wurdest getötet")}</div><p>${T("You're a ghost now. Finish your tasks!", "Du bist jetzt ein Geist. Mach deine Aufgaben fertig!")}</p><button class="btn go" data-x="seen" data-v="k${v.killedBy.k}">OK</button></div>`; }
-      if (v.phase === "meet"){ const m = v.meet, alive = P.filter(p => !v.deadList.includes(p.id) && v.views !== 0), canVote = v.alive && !m.my;
+      if (v.phase === "play" && this.intro()){ const line = v.imp ? v.mates : this.pl().map(p => p.id);
+        h = `<div class="np-role ${v.imp ? "imp" : ""}"><div class="np-k">${T("You are", "Du bist")}</div><div class="np-rbig">${v.imp ? "Natposter" : "Crew"}</div><div class="np-lineup">${line.map(id => `<span class="${id === PNet.me ? "me" : ""}"><span class="np-hd">${head(id)}</span><b>${nm(id)}</b></span>`).join("")}</div><p>${v.imp ? T("Kill the crew. Don't get caught.", "Töte die Crew. Lass dich nicht erwischen.") : T(`There ${v.nImp > 1 ? "are" : "is"} ${v.nImp || 1} Natposter${v.nImp > 1 ? "s" : ""} among you.`, `Unter euch ${v.nImp > 1 ? "sind" : "ist"} ${v.nImp || 1} Natposter.`)}</p></div>`; }
+      if (v.phase === "play" && v.killedBy && !this.shown["k" + v.killedBy.k]){ h = `<div class="np-killed"><div class="np-kface">${head(v.killedBy.by)}</div><i class="np-slash"></i><i class="np-splat"></i><div class="np-big">${T("You were killed", "Du wurdest getötet")}</div><p>${T(`by ${nm(v.killedBy.by)}. You're a ghost now: finish your tasks.`, `von ${nm(v.killedBy.by)}. Du bist jetzt ein Geist: Mach deine Aufgaben fertig.`)}</p><button class="btn go" data-x="seen" data-v="k${v.killedBy.k}">OK</button></div>`; }
+      if (v.phase === "meet" && this.banner && now() - this.banner.t < 2400){ h = `<div class="np-banner ${v.meet.body ? "body" : ""}"><div>${v.meet.body ? "💀" : "🚨"}</div><b>${v.meet.body ? T("Dead body reported", "Leiche gefunden") : T("Emergency meeting", "Notfall-Meeting")}</b><span>${v.meet.body ? T(`${nm(v.meet.by)} found ${nm(v.meet.body)}`, `${nm(v.meet.by)} hat ${nm(v.meet.body)} gefunden`) : T(`called by ${nm(v.meet.by)}`, `einberufen von ${nm(v.meet.by)}`)}</span></div>`; }
+      else if (v.phase === "meet"){ const m = v.meet, alive = P.filter(p => !v.deadList.includes(p.id) && v.views !== 0), canVote = v.alive && !m.my;
         h = `<div class="np-meet"><div class="np-k">${m.body ? "💀 " + T("Body reported", "Leiche gemeldet") : "🚨 " + T("Emergency meeting", "Notfall-Meeting")}</div><div class="np-big" style="font-size:22px">${m.body ? T(`${nm(m.by)} found ${nm(m.body)}`, `${nm(m.by)} hat ${nm(m.body)} gefunden`) : T(`called by ${nm(m.by)}`, `einberufen von ${nm(m.by)}`)}</div>
-          <div class="np-tm">${Math.ceil(this.left("meet") / 1000)}</div>
+          <div class="np-tm" data-cd="meet"></div>
           <div class="np-vgrid">${P.map(p => { const dead = v.deadList.includes(p.id); return `<button class="np-vote ${m.my === p.id ? "sel" : ""} ${dead ? "dead" : ""}" data-x="vote" data-v="${esc(p.id)}" ${!canVote || dead || p.id === PNet.me && false ? "disabled" : ""}><span class="np-hd">${head(p.id)}</span><b>${esc(p.name)}</b>${m.voted.includes(p.id) ? `<i>✓</i>` : ""}${dead ? `<i>✝</i>` : ""}</button>`; }).join("")}</div>
           <button class="btn ${m.my === "skip" ? "go" : ""}" data-x="vote" data-v="skip" ${canVote ? "" : "disabled"}>${T("Skip vote", "Überspringen")}</button>
           <p class="muted" style="margin:6px 0 0">${!v.alive ? T("Ghosts don't vote.", "Geister stimmen nicht ab.") : m.my ? T("Voted. Talk it out!", "Abgestimmt. Redet drüber!") : T("Talk, then vote.", "Redet, dann stimmt ab.")}</p></div>`; }
-      if (v.phase === "eject"){ const e = v.eject;
+      if (v.phase === "eject" && now() - (this.ejectT || 0) < 4200){ const e = v.eject, by = {}; Object.entries(e.votes || {}).forEach(([a, b]) => { (by[b] = by[b] || []).push(a); });
+        const row = (id, label, dead) => `<div class="np-vr ${e.id === id ? "out" : ""} ${dead ? "dead" : ""}">${id !== "skip" ? `<span class="np-hd">${head(id)}</span>` : `<span class="np-hd np-skip">⏭</span>`}<b>${label}</b><span class="np-vh">${(by[id] || []).map(x => `<span class="np-hd sm">${head(x)}</span>`).join("")}</span></div>`;
+        h = `<div class="np-meet"><div class="np-k">${T("Votes", "Abstimmung")}</div><div class="np-vgrid">${P.map(p => row(p.id, esc(p.name), v.deadList.includes(p.id) && p.id !== e.id)).join("")}</div>${row("skip", T("Skipped", "Übersprungen"))}</div>`; }
+      else if (v.phase === "eject"){ const e = v.eject;
         h = `<div class="np-eject">${e.id ? `<div class="np-float">${head(e.id)}</div>` : ""}<div class="np-big">${e.id ? (e.conf ? (e.imp ? T(`${nm(e.id)} was a Natposter.`, `${nm(e.id)} war ein Natposter.`) : T(`${nm(e.id)} was not a Natposter.`, `${nm(e.id)} war kein Natposter.`)) : T(`${nm(e.id)} was ejected.`, `${nm(e.id)} wurde rausgeworfen.`)) : T("Nobody was ejected.", "Niemand wurde rausgeworfen.")}</div>
           ${e.conf ? `<p>${T(`${e.left} Natposter${e.left === 1 ? "" : "s"} left.`, `Noch ${e.left} Natposter übrig.`)}</p>` : ""}</div>`; }
       if (v.phase === "end"){ const crew = v.win !== "imp" && v.win !== "boom", mine = crew !== v.imp;
@@ -330,17 +393,39 @@
           <div class="np-faces">${v.imps.map(id => `<span><span class="np-hd">${head(id)}</span><b>${nm(id)}</b></span>`).join("")}</div><p>${T(v.imps.length > 1 ? "were the Natposters" : "was the Natposter", v.imps.length > 1 ? "waren die Natposter" : "war der Natposter")}</p>
           ${v.host ? `<button class="btn go big" data-x="again">${T("Play again", "Nochmal")}</button><button class="btn ghost" data-x="lobby" style="margin-top:6px">${T("Lobby", "Lobby")}</button>` : `<p class="muted">${T("Waiting for the host…", "Warte auf den Gastgeber…")}</p>`}</div>`; }
       if (this.mapOpen && v.phase === "play") h = this.mapHTML();
-      if (ov._h !== h){ ov._h = h; ov.innerHTML = h; ov.classList.toggle("on", !!h); ov.querySelectorAll('[data-x="seen"]').forEach(b => b.onclick = e => { e.stopPropagation(); this.shown[b.dataset.v.slice(0)] = 1; this.shown[b.dataset.v] = 1; this.overlay(); });
+      const kind = h ? (h.match(/class="np-(\w+)/) || [])[1] + (v.phase || "") : "";
+      if (ov._h !== h){ ov.classList.toggle("still", kind === ov._kind); ov._kind = kind; ov._h = h; ov.innerHTML = h; ov.classList.toggle("on", !!h); ov.querySelectorAll('[data-x="seen"]').forEach(b => b.onclick = e => { e.stopPropagation(); this.shown[b.dataset.v.slice(0)] = 1; this.shown[b.dataset.v] = 1; this.overlay(); });
         if (v.phase === "meet" || v.phase === "eject" || v.phase === "end") this.closeMini(); }
-      if (v.killedBy && this.shown["k" + v.killedBy.k] === undefined && ov.querySelector('[data-x="seen"]')) {}
+      ov.querySelectorAll("[data-cd]").forEach(e => { const n = Math.ceil(this.left(e.dataset.cd) / 1000); const t = e.dataset.cd === "meet" ? String(n) : n + " s"; if (e.textContent !== t) e.textContent = t; });
     },
     mapHTML(){ const v = this.v, s = 0.13, mine = (v.imp ? [] : v.tasks).filter(([t, d]) => !d).map(([t]) => TASKS.find(x => x.id === t));
       return `<div class="np-map"><div class="np-k">${T("Map", "Karte")}</div><svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">${AREAS.map(a => `<rect x="${a.x}" y="${a.y}" width="${a.w}" height="${a.h}" fill="#3D3A35" stroke="#211F1C" stroke-width="10"/>`).join("")}
         ${ROOMS.map(r => `<text x="${r.x + r.w / 2}" y="${r.y + r.h / 2}" fill="#BAB5AC" font-size="44" font-weight="800" text-anchor="middle" font-family="Figtree,sans-serif">${esc(RN(r))}</text>`).join("")}
         ${mine.map(t => `<circle cx="${t.x}" cy="${t.y}" r="26" fill="#E9B64A"/>`).join("")}${v.sab ? Object.entries(FIX).filter(([k]) => v.sab.type === "lights" ? k === "lights" : k !== "lights").map(([k, f]) => `<circle cx="${f.x}" cy="${f.y}" r="34" fill="#E2523E"/>`).join("") : ""}
         <circle cx="${this.me.x}" cy="${this.me.y}" r="34" fill="#8FC458" stroke="#fff" stroke-width="8"/></svg>
-        ${v.imp && v.alive ? `<div class="np-sab"><button class="btn ${this.left("sabCd") > 0 || v.sab ? "" : "go"}" data-x="sab" data-v="lights" ${this.left("sabCd") > 0 || v.sab ? "disabled" : ""}>💡 ${T("Lights", "Licht")}</button><button class="btn ${this.left("sabCd") > 0 || v.sab ? "" : "go"}" data-x="sab" data-v="reactor" ${this.left("sabCd") > 0 || v.sab ? "disabled" : ""}>☢️ ${T("Reactor", "Reaktor")}</button>${this.left("sabCd") > 0 ? `<small>${Math.ceil(this.left("sabCd") / 1000)} s</small>` : ""}</div>` : ""}
+        ${v.imp && v.alive ? `<div class="np-sab"><button class="btn ${this.left("sabCd") > 0 || v.sab ? "" : "go"}" data-x="sab" data-v="lights" ${this.left("sabCd") > 0 || v.sab ? "disabled" : ""}>💡 ${T("Lights", "Licht")}</button><button class="btn ${this.left("sabCd") > 0 || v.sab ? "" : "go"}" data-x="sab" data-v="reactor" ${this.left("sabCd") > 0 || v.sab ? "disabled" : ""}>☢️ ${T("Reactor", "Reaktor")}</button>${this.left("sabCd") > 0 ? `<small data-cd="sabCd"></small>` : ""}</div>` : ""}
+        ${v.imp && v.alive ? `<div class="np-k" style="margin-top:4px">🚪 ${T("Close doors", "Türen schließen")}${this.left("doorCd") > 0 ? ` · <span data-cd="doorCd"></span>` : ""}</div><div class="np-doors">${ROOMS.filter(r => r.id !== "caf").map(r => `<button class="btn sm ${v.doors && v.doors[r.id] ? "go" : ""}" data-x="door" data-v="${r.id}" ${this.left("doorCd") > 0 ? "disabled" : ""}>${esc(RN(r))}</button>`).join("")}</div>` : ""}
         <button class="btn ghost" data-x="map">${T("Close", "Schließen")}</button></div>`; },
+    /* ---- cameras (Comms) and the admin table (Bridge) ---- */
+    openCams(){
+      this.closeMini(); const box = this.el.querySelector(".np-mini"), me = {stop: null}; this.mini = me; this.joy = null; box.classList.add("on");
+      const CAM = ["caf", "sto", "nav", "ele"].map(id => ROOMS.find(r => r.id === id));
+      box.innerHTML = `<div class="np-mg np-cams"><div class="np-mgh"><b>📹 ${T("Cameras", "Kameras")}</b><button class="np-x" data-c>×</button></div><div class="np-camg">${CAM.map(r => `<div><canvas width="320" height="200"></canvas><span>● ${esc(RN(r))}</span></div>`).join("")}</div></div>`;
+      box.querySelector("[data-c]").onclick = () => { Sound.tap(); this.closeMini(); };
+      const cvs = [...box.querySelectorAll("canvas")]; Sound.play("Move", .5);
+      const tick = () => { cvs.forEach((cv, i) => { const r = CAM[i], c = cv.getContext("2d"), z = Math.min(cv.width / (r.w + 80), cv.height / (r.h + 80)); c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = "#0B0C12"; c.fillRect(0, 0, cv.width, cv.height);
+        this.scene(c, z, cv.width / 2 - (r.x + r.w / 2) * z, cv.height / 2 - (r.y + r.h / 2) * z, true); c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = "rgba(127,178,74,.06)"; for (let y = 0; y < cv.height; y += 4) c.fillRect(0, y, cv.width, 1); }); };
+      tick(); const id = setInterval(tick, 200); me.stop = () => clearInterval(id);
+    },
+    openAdmin(){
+      this.closeMini(); const box = this.el.querySelector(".np-mini"), me = {stop: null}; this.mini = me; this.joy = null; box.classList.add("on");
+      const draw = () => { const cnt = {}; this.pl().forEach(p => { const q = p.id === PNet.me ? this.me : POS[p.id]; if (!q || q.g || q.v || (this.v.deadList.includes(p.id) && p.id !== PNet.me)) return; const r = roomAt(q.dx != null ? q.dx : q.x, q.dy != null ? q.dy : q.y); if (r) cnt[r.id] = (cnt[r.id] || 0) + 1; });
+        this.v.bodies.forEach(b => { const r = roomAt(b.x, b.y); if (r) cnt[r.id] = (cnt[r.id] || 0) + 1; });
+        box.querySelector(".np-adm").innerHTML = `<svg viewBox="0 0 ${W} ${H}">${AREAS.map(a => `<rect x="${a.x}" y="${a.y}" width="${a.w}" height="${a.h}" fill="#3D3A35" stroke="#211F1C" stroke-width="10"/>`).join("")}${ROOMS.map(r => `<text x="${r.x + r.w / 2}" y="${r.y + 46}" fill="#8C867C" font-size="38" font-weight="800" text-anchor="middle" font-family="Figtree,sans-serif">${esc(RN(r))}</text>${Array.from({length: cnt[r.id] || 0}, (_, i) => `<circle cx="${r.x + r.w / 2 - ((cnt[r.id] - 1) * 30) + i * 60}" cy="${r.y + r.h / 2 + 20}" r="24" fill="#F4F2EE"/>`).join("")}`).join("")}</svg>`; };
+      box.innerHTML = `<div class="np-mg np-cams"><div class="np-mgh"><b>🗺️ ${T("Admin", "Lageplan")}</b><button class="np-x" data-c>×</button></div><div class="np-adm"></div><p class="muted">${T("Who is in which room right now", "Wer gerade in welchem Raum ist")}</p></div>`;
+      box.querySelector("[data-c]").onclick = () => { Sound.tap(); this.closeMini(); };
+      draw(); const id = setInterval(draw, 500); me.stop = () => clearInterval(id); Sound.play("Move", .5);
+    },
     /* ---- the world ---- */
     render(){
       const v = this.v, c = this.ctx, cv = this.cv; if (!v || !c) return;
@@ -349,7 +434,12 @@
       const ox = cw / 2 - me.x * z, oy = ch / 2 - me.y * z;
       /* stars, slower than the station */
       c.fillStyle = "#fff"; STARS.forEach(([x, y, r, a]) => { const sx = (x - me.x * .35) * z * .6 + cw / 2, sy = (y - me.y * .35) * z * .6 + ch / 2; if (sx < -5 || sy < -5 || sx > cw + 5 || sy > ch + 5) return; c.globalAlpha = .25 + a * .6; c.fillRect(sx, sy, r * d, r * d); });
-      c.globalAlpha = 1; c.setTransform(z, 0, 0, z, ox, oy);
+      c.globalAlpha = 1;
+      const R0 = this.scene(c, z, ox, oy, false);
+      this.after(c, cw, ch, z, R0);
+    },
+    scene(c, z, ox, oy, cam){
+      const v = this.v, me = this.me; c.setTransform(z, 0, 0, z, ox, oy);
       /* hull */
       c.fillStyle = "#211F1C"; AREAS.forEach(a => { c.fillRect(a.x - 14, a.y - 14, a.w + 28, a.h + 28); });
       AREAS.forEach(a => { c.fillStyle = "#33302C"; c.fillRect(a.x, a.y, a.w, a.h); });
@@ -363,20 +453,41 @@
       const mine = v.imp ? v.fake : v.tasks.filter(([t, dn]) => !dn).map(([t]) => t), pulse = (Math.sin(now() / 250) + 1) / 2;
       TASKS.forEach(t => { const my = mine.includes(t.id); c.fillStyle = "#1B1A18"; c.fillRect(t.x - 22, t.y - 22, 44, 44); c.fillStyle = my && !v.imp ? `rgba(233,182,74,${.55 + pulse * .45})` : "#4a4640"; c.fillRect(t.x - 14, t.y - 14, 28, 28); });
       if (v.sab) Object.entries(FIX).forEach(([k, f]) => { if (v.sab.type === "lights" ? k !== "lights" : k === "lights" || v.sab[k]) return; c.fillStyle = `rgba(226,82,62,${.5 + pulse * .5})`; c.beginPath(); c.arc(f.x, f.y, 26, 0, 7); c.fill(); });
+      /* closed doors */
+      CLOSED.forEach(dr => { c.fillStyle = "#1B1A18"; c.fillRect(dr.x - 2, dr.y - 2, dr.w + 4, dr.h + 4); c.fillStyle = "#8C867C"; const vert = dr.h > dr.w; for (let k = 0; k < (vert ? dr.h : dr.w); k += 18) vert ? c.fillRect(dr.x + 3, dr.y + k, dr.w - 6, 10) : c.fillRect(dr.x + k, dr.y + 3, 10, dr.h - 6); });
+      /* cameras and the admin table */
+      c.fillStyle = "#1B1A18"; c.fillRect(STA.cams.x - 40, STA.cams.y - 26, 80, 52); c.fillStyle = "#5AA3E0"; [0, 1, 2, 3].forEach(i => c.fillRect(STA.cams.x - 34 + (i % 2) * 36, STA.cams.y - 20 + Math.floor(i / 2) * 22, 32, 18));
+      c.fillStyle = "#1B1A18"; c.fillRect(STA.admin.x - 60, STA.admin.y - 34, 120, 68); c.fillStyle = "rgba(127,178,74,.55)"; c.fillRect(STA.admin.x - 52, STA.admin.y - 26, 104, 52);
       /* bodies */
       v.bodies.forEach(b => { const p = this.pl().find(x => x.id === b.id) || {id: b.id, name: "?"}; this.figure(c, b.x, b.y, p, {body: true}); });
       /* people */
-      const R0 = !v.alive ? 99999 : v.imp ? VIS.imp : v.sab && v.sab.type === "lights" ? VIS.dark : VIS.crew;
+      const R0 = cam ? 99999 : !v.alive ? 99999 : v.imp ? VIS.imp : v.sab && v.sab.type === "lights" ? VIS.dark : VIS.crew;
       const list = this.pl().map(p => ({p, q: p.id === PNet.me ? Object.assign({}, POS[p.id] || {}, {dx: me.x, dy: me.y}) : POS[p.id]})).filter(o => o.q && o.q.dx != null).sort((a, b) => a.q.dy - b.q.dy);
       list.forEach(({p, q}) => { const self = p.id === PNet.me, gh = q.g || (v.deadList.includes(p.id) && !v.bodies.some(b => b.id === p.id) && false);
-        if (!self){ if (q.v) return; if (q.g && v.alive) return; if (v.alive && dist(me, {x: q.dx, y: q.dy}) > R0 + 20) return; if (now() - (q.t || 0) > 15000) return; }
-        if (self && this.vent) return;
-        this.figure(c, q.dx, q.dy, p, {ghost: q.g, f: q.f, mv: q.mv, red: v.imp && v.mates.includes(p.id) && !self, me: self}); });
+        if (!self){ if (q.v) return; if (q.g && (v.alive || cam)) return; if (v.alive && dist(me, {x: q.dx, y: q.dy}) > R0 + 20) return; if (now() - (q.t || 0) > 15000) return; }
+        if (self && (this.vent || (cam && q.g))) return;
+        if (q.mv && !q.g && !cam && Math.random() < .25) this.dust.push({x: q.dx + (Math.random() * 20 - 10), y: q.dy + 14, t: now()});
+        this.figure(c, q.dx, q.dy, p, {ghost: q.g, f: q.f, mv: q.mv, red: v.imp && v.mates.includes(p.id) && !self, me: self && !cam}); });
+      /* little dust clouds where people walk */
+      if (!cam){ this.dust = this.dust.filter(p => now() - p.t < 450); this.dust.forEach(p => { const a = 1 - (now() - p.t) / 450; c.fillStyle = `rgba(186,181,172,${a * .35})`; c.beginPath(); c.arc(p.x, p.y, 4 + (1 - a) * 8, 0, 7); c.fill(); }); }
+      return R0;
+    },
+    after(c, cw, ch, z, R0){
+      const v = this.v, pulse = (Math.sin(now() / 250) + 1) / 2;
       /* darkness outside your sight */
       c.setTransform(1, 0, 0, 1, 0, 0);
       if (v.alive){ const rad = R0 * z, g = c.createRadialGradient(cw / 2, ch / 2, rad * .55, cw / 2, ch / 2, rad); g.addColorStop(0, "rgba(6,7,12,0)"); g.addColorStop(1, "rgba(6,7,12,.93)"); c.fillStyle = g; c.fillRect(0, 0, cw, ch); }
       if (this.vent){ c.fillStyle = "rgba(6,7,12,.55)"; c.fillRect(0, 0, cw, ch); }
       if (v.sab && v.sab.type === "reactor"){ c.fillStyle = `rgba(226,82,62,${.08 + pulse * .12})`; c.fillRect(0, 0, cw, ch); }
+      /* arrows at the edge of the screen: yellow to your tasks, red to what needs fixing */
+      if (v.phase === "play" && !this.vent){ const me = this.me, d = this.dpr, pts = [];
+        if (!v.imp) v.tasks.filter(([t, dn]) => !dn).map(([t]) => TASKS.find(x => x.id === t)).sort((a, b) => dist(me, a) - dist(me, b)).slice(0, 3).forEach(t => pts.push([t, "#E9B64A"]));
+        if (v.sab) Object.entries(FIX).forEach(([k, f]) => { if (v.sab.type === "lights" ? k === "lights" : k !== "lights" && !v.sab[k]) pts.push([f, "#E2523E"]); });
+        const m = 46 * d, cx = cw / 2, cy = ch / 2;
+        pts.forEach(([p, col]) => { const sx = cx + (p.x - me.x) * z, sy = cy + (p.y - me.y) * z; if (sx > m && sx < cw - m && sy > m && sy < ch - m) return;
+          const dx = sx - cx, dy = sy - cy, k = Math.min((cx - m) / Math.max(1, Math.abs(dx)), (cy - m) / Math.max(1, Math.abs(dy))), ax = cx + dx * k, ay = cy + dy * k, an = Math.atan2(dy, dx);
+          c.save(); c.translate(ax, ay); c.rotate(an); c.globalAlpha = .75 + pulse * .25; c.fillStyle = col; c.strokeStyle = "rgba(0,0,0,.6)"; c.lineWidth = 2 * d;
+          c.beginPath(); c.moveTo(16 * d, 0); c.lineTo(-10 * d, -12 * d); c.lineTo(-5 * d, 0); c.lineTo(-10 * d, 12 * d); c.closePath(); c.fill(); c.stroke(); c.restore(); }); }
     },
     floor(c, r){
       if (r.floor === "board"){ const n = 40; for (let y = r.y; y < r.y + r.h; y += n) for (let x = r.x; x < r.x + r.w; x += n){ c.fillStyle = ((x - r.x) / n + (y - r.y) / n) % 2 ? "#769656" : "#EEEED2"; c.globalAlpha = .55; c.fillRect(x, y, Math.min(n, r.x + r.w - x), Math.min(n, r.y + r.h - y)); } c.globalAlpha = 1; return; }
@@ -406,7 +517,9 @@
     figure(c, x, y, p, o){
       const im = avImg(p.id, p.av), h = 118, w = h * 200 / 256, bob = o.mv ? Math.sin(now() / 90) * 3 : 0;
       c.save(); c.translate(x, y);
-      if (o.body){ c.globalAlpha = .9; c.fillStyle = "rgba(226,82,62,.35)"; c.beginPath(); c.ellipse(0, 10, 46, 16, 0, 0, 7); c.fill(); c.rotate(-Math.PI / 2); if (im.complete && im.naturalWidth) { c.filter = "grayscale(.6) brightness(.8)"; c.drawImage(im, -w / 2 - 20, -h + 30, w, h); c.filter = "none"; } c.restore(); return; }
+      if (o.body){ c.fillStyle = "#7a1a12"; c.beginPath(); c.ellipse(-6, 14, 70, 24, 0, 0, 7); c.fill(); c.fillStyle = "#a82a1e"; c.beginPath(); c.ellipse(-10, 12, 52, 16, 0, 0, 7); c.fill();
+        [[44, -6, 7], [-62, 4, 6], [30, 30, 5], [-30, 32, 4], [58, 22, 4]].forEach(([a, b, r]) => { c.beginPath(); c.arc(a, b, r, 0, 7); c.fill(); });
+        c.font = "34px system-ui"; c.textAlign = "center"; c.save(); c.translate(34, 2); c.rotate(.6); c.fillText("🦴", 0, 0); c.restore(); c.globalAlpha = .95; c.rotate(-Math.PI / 2); if (im.complete && im.naturalWidth) { c.filter = "grayscale(.6) brightness(.8)"; c.drawImage(im, -w / 2 - 20, -h + 30, w, h); c.filter = "none"; } c.restore(); return; }
       if (o.ghost){ c.globalAlpha = .45; y += Math.sin(now() / 400) * 6; }
       c.fillStyle = "rgba(0,0,0,.3)"; c.beginPath(); c.ellipse(0, 16, 26, 8, 0, 0, 7); c.fill();
       if (o.me){ c.strokeStyle = "rgba(143,196,88,.8)"; c.lineWidth = 3; c.beginPath(); c.ellipse(0, 16, 30, 10, 0, 0, 7); c.stroke(); }
@@ -424,21 +537,42 @@
       box.classList.add("on");
       box.innerHTML = `<div class="np-mg"><div class="np-mgh"><b>${esc(task ? T(task.en, task.de) : g === "hold" ? T("Hold the panel", "Platte halten") : T("Fix it", "Reparieren"))}</b><button class="np-x" data-c>×</button></div><div class="np-mgb"></div></div>`;
       box.querySelector("[data-c]").onclick = () => { Sound.tap(); this.closeMini(); };
-      (MG[g] || MG.hold)(box.querySelector(".np-mgb"), finish, me);
+      (MG[g] || MG.hold)(box.querySelector(".np-mgb"), finish, me, {act: a => this.act(a), view: () => this.v, key: task && task.key});
     }
   };
   NP.kd = NP.ku = NP.rs = () => {};
   window.__npTo = p => { NP.me.x = p.x; NP.me.y = p.y; NP.send(true); };
   window.__npToId = id => { const q = POS[id]; if (q) window.__npTo({x: q.x + 30, y: q.y}); };
   window.__npOpen = g => NP.openMini(g, () => {}); window.__npClose = () => NP.closeMini();
+  window.__npCams = () => NP.openCams(); window.__npAdmin = () => NP.openAdmin();
   PG.custom.np = {draw: (b, v, m, a) => NP.draw(b, v, m, a), stop: () => NP.stop()};
 
   /* the minigames: short, all in the app's look */
   const MG = {
+    reactor(el, done, me, ctx){ el.innerHTML = `<div class="np-up"><div class="np-hand">✋</div><p class="muted" data-st></p></div>`;
+      const h = el.querySelector(".np-hand"), st = el.querySelector("[data-st]"); let id = null;
+      const show = () => { const v = ctx.view(), two = v.two, other = ctx.key === "ra" ? "rb" : "ra", held = v.held || {}; if (!v.sab){ done(); return; }
+        st.textContent = two ? (held[other] ? T("The other panel is held. Hold on!", "Die andere Platte wird gehalten. Festhalten!") : T("Someone has to hold the other panel at the same time", "Jemand muss gleichzeitig die andere Platte halten")) : T("Press and hold", "Gedrückt halten"); };
+      const go = e => { e.preventDefault(); h.classList.add("on"); clearInterval(id); ctx.act({a: "hold", v: ctx.key}); id = setInterval(() => { ctx.act({a: "hold", v: ctx.key}); Haptic.go(12); }, 500); };
+      const up = () => { h.classList.remove("on"); clearInterval(id); };
+      h.addEventListener("pointerdown", go); ["pointerup", "pointerleave", "pointercancel"].forEach(t => h.addEventListener(t, up));
+      show(); const sid = setInterval(show, 300); me.stop = () => { clearInterval(id); clearInterval(sid); }; },
+    asteroids(el, done, me){ let hit = 0; const need = 10;
+      el.innerHTML = `<div class="np-ast"><span class="np-ast-n">0 / ${need}</span></div>`; const box = el.querySelector(".np-ast"), n = box.querySelector(".np-ast-n");
+      const spawn = () => { if (!box.isConnected) return; const a = document.createElement("button"); a.className = "np-rock"; a.textContent = "🪨"; const y = 10 + Math.random() * 70; a.style.top = y + "%"; a.style.animationDuration = (2.2 + Math.random() * 1.6) + "s";
+        a.onpointerdown = e => { e.preventDefault(); if (a.dataset.x) return; a.dataset.x = 1; a.textContent = "💥"; Sound.play("Capture", .5); Haptic.go(15); hit++; n.textContent = hit + " / " + need; setTimeout(() => a.remove(), 200); if (hit >= need) done(); };
+        a.addEventListener("animationend", () => a.remove()); box.appendChild(a); };
+      spawn(); const id = setInterval(spawn, 480); me.stop = () => clearInterval(id); },
+    trash(el, done, me){ el.innerHTML = `<div class="np-trash"><div class="np-bin"><i></i></div><div class="np-lever"><b></b></div></div><p class="muted">${T("Pull the lever down and hold", "Hebel runterziehen und halten")}</p>`;
+      const lv = el.querySelector(".np-lever"), kn = lv.querySelector("b"), fill = el.querySelector(".np-bin i"); let d = null, p = 100, id = null;
+      kn.addEventListener("pointerdown", e => { e.preventDefault(); d = {y0: LOC(e).y}; try { kn.setPointerCapture(e.pointerId); } catch(_) {} });
+      kn.addEventListener("pointermove", e => { if (!d) return; const max = lv.clientHeight - kn.clientHeight, y = Math.max(0, Math.min(max, LOC(e).y - d.y0)); kn.style.transform = `translateY(${y}px)`; d.down = y >= max - 4;
+        if (d.down && !id){ id = setInterval(() => { p -= 4; fill.style.height = Math.max(0, p) + "%"; if (p % 20 === 0) Haptic.go(10); if (p <= 0){ clearInterval(id); done(); } }, 100); } if (!d.down && id){ clearInterval(id); id = null; } });
+      kn.addEventListener("pointerup", () => { d = null; kn.style.transform = ""; clearInterval(id); id = null; }); me.stop = () => clearInterval(id); },
     wires(el, done){ const C = ["#E2523E", "#5AA3E0", "#E9B64A", "#8FC458"], R2 = PG.shuffle([0, 1, 2, 3]), con = {};
       el.innerHTML = `<div class="np-wires"><svg viewBox="0 0 300 240"></svg>${C.map((c, i) => `<i class="l" data-l="${i}" style="top:${20 + i * 55}px;background:${c}"></i>`).join("")}${R2.map((c, i) => `<i class="r" data-r="${c}" style="top:${20 + i * 55}px;background:${C[c]}"></i>`).join("")}</div>`;
       const svg = el.querySelector("svg"), box = el.querySelector(".np-wires"); let drag = null;
-      const pt = e => { const r = box.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * 300, (e.clientY - r.top) / r.height * 240]; };
+      const pt = e => { const r = REL(e, box); return [r.x / box.clientWidth * 300, r.y / box.clientHeight * 240]; };
       const draw = (tmp) => { svg.innerHTML = Object.entries(con).map(([l, r]) => `<line x1="34" y1="${42 + l * 55}" x2="266" y2="${42 + R2.indexOf(+r) * 55}" stroke="${C[l]}" stroke-width="12" stroke-linecap="round"/>`).join("") + (tmp ? `<line x1="34" y1="${42 + tmp.l * 55}" x2="${tmp.x}" y2="${tmp.y}" stroke="${C[tmp.l]}" stroke-width="12" stroke-linecap="round"/>` : ""); };
       box.addEventListener("pointerdown", e => { const l = e.target.closest("[data-l]"); if (!l) return; e.preventDefault(); drag = {l: +l.dataset.l}; try { box.setPointerCapture(e.pointerId); } catch(_) {} });
       box.addEventListener("pointermove", e => { if (!drag) return; const [x, y] = pt(e); draw({l: drag.l, x, y}); });
@@ -463,14 +597,14 @@
       const pl = el.querySelector("polyline"); el.querySelectorAll("[data-p]").forEach(g => g.addEventListener("click", () => { const i = +g.dataset.p; if (i !== next) { Sound.wrong(); return; } g.querySelector("circle").setAttribute("fill", "#7FB24A"); Sound.play("Move", .5); next++; pl.setAttribute("points", pts.slice(0, next).map(p => p.join(",")).join(" ")); if (next === pts.length) done(); })); },
     swipe(el, done){ el.innerHTML = `<div class="np-swipe"><div class="track"><i class="card">🪪</i></div><p class="muted" data-m>${T("Swipe the card at a steady speed", "Zieh die Karte gleichmäßig durch")}</p></div>`;
       const tr = el.querySelector(".track"), cd = el.querySelector(".card"), msg = el.querySelector("[data-m]"); let d = null;
-      cd.addEventListener("pointerdown", e => { e.preventDefault(); d = {x0: e.clientX, t0: now()}; try { cd.setPointerCapture(e.pointerId); } catch(_) {} });
-      cd.addEventListener("pointermove", e => { if (!d) return; const max = tr.clientWidth - cd.clientWidth; const x = Math.max(0, Math.min(max, e.clientX - d.x0)); cd.style.transform = `translateX(${x}px)`; d.x = x; d.max = max; });
+      cd.addEventListener("pointerdown", e => { e.preventDefault(); d = {x0: LOC(e).x, t0: now()}; try { cd.setPointerCapture(e.pointerId); } catch(_) {} });
+      cd.addEventListener("pointermove", e => { if (!d) return; const max = tr.clientWidth - cd.clientWidth; const x = Math.max(0, Math.min(max, LOC(e).x - d.x0)); cd.style.transform = `translateX(${x}px)`; d.x = x; d.max = max; });
       cd.addEventListener("pointerup", () => { if (!d) return; const ms = now() - d.t0, ok = d.x >= d.max - 4; cd.style.transform = ""; if (!ok) msg.textContent = T("All the way through!", "Ganz durchziehen!"); else if (ms < 450) msg.textContent = T("Too fast. Try again.", "Zu schnell. Nochmal."); else if (ms > 1600) msg.textContent = T("Too slow. Try again.", "Zu langsam. Nochmal."); else { done(); return; } Sound.wrong(); d = null; }); },
     chess(el, done){
       /* mate in one, on the app's own board colours and pieces */
       const L = ["6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1", "k7/8/1K6/8/8/8/8/7Q w - - 0 1", "6rk/6pp/8/6N1/8/8/8/6K1 w - - 0 1", "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 1", "5rk1/5ppp/8/8/8/8/1Q3PPP/6K1 w - - 0 1", "7k/7p/8/8/8/8/6R1/1R4K1 w - - 0 1"];
       const g = new Chess(PG.pick(L)); let sel = null;
-      const draw = (msg) => { const B = g.board(); el.innerHTML = `<div class="np-board">${B.map((row, r) => row.map((p, f) => { const sq = "abcdefgh"[f] + (8 - r); return `<div class="sq ${(r + f) % 2 ? "d" : "l"} ${sel === sq ? "sel" : ""}" data-q="${sq}">${p ? `<i class="np-pc pc ${p.color}${p.type}"></i>` : ""}</div>`; }).join("")).join("")}</div><p class="muted">${msg || T("White to move: find the checkmate", "Weiß am Zug: Finde das Matt")}</p>`;
+      const draw = (msg) => { const B = g.board(); el.innerHTML = `<div class="np-cboard">${B.map((row, r) => row.map((p, f) => { const sq = "abcdefgh"[f] + (8 - r); return `<div class="sq ${(r + f) % 2 ? "d" : "l"} ${sel === sq ? "sel" : ""}" data-q="${sq}">${p ? `<i class="np-pc pc ${p.color}${p.type}"></i>` : ""}</div>`; }).join("")).join("")}</div><p class="muted">${msg || T("White to move: find the checkmate", "Weiß am Zug: Finde das Matt")}</p>`;
         el.querySelectorAll("[data-q]").forEach(d => d.onclick = () => { const q = d.dataset.q, p = g.get(q);
           if (p && p.color === "w"){ sel = q; Sound.play("Move", .3); return draw(); }
           if (!sel) return; const m = g.move({from: sel, to: q, promotion: "q"}); sel = null; if (!m) return draw();
@@ -480,8 +614,12 @@
   };
 
   /* ---------------- look ---------------- */
-  const css = `.np{position:fixed;inset:0;z-index:2700;background:#0B0C12;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;color:var(--fg);font-family:var(--body)}
+  const css = `.np{position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:2700;background:#0B0C12;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;color:var(--fg);font-family:var(--body)}
 html.np-on .tabbar,html.np-on .pg-pill{display:none!important}
+.np.rot{transform-origin:top left;transform:rotate(90deg) translateY(-100%)}
+.np.rot .np-top{top:10px;left:calc(env(safe-area-inset-top,0px) + 10px);right:calc(env(safe-area-inset-bottom,0px) + 10px)}
+.np.rot .np-tasks{top:62px;left:calc(env(safe-area-inset-top,0px) + 10px)}.np.rot .np-alert{top:62px;right:calc(env(safe-area-inset-bottom,0px) + 10px)}
+.np.rot .np-btns{bottom:14px;right:calc(env(safe-area-inset-bottom,0px) + 14px)}
 .np-cv{position:absolute;inset:0;width:100%;height:100%;display:block}
 .np-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);left:10px;right:10px;display:flex;gap:8px;align-items:center;pointer-events:none}
 .np-top>*{pointer-events:auto}
@@ -504,6 +642,33 @@ html.np-on .tabbar,html.np-on .pg-pill{display:none!important}
 .np-act:active{transform:scale(.94)}
 .np-ov{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(6,7,12,.72);padding:16px;z-index:5}
 .np-ov.on{display:flex}
+.np-lob{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);transform:translateX(-50%);display:none;gap:8px;align-items:center;background:rgba(33,31,28,.88);border-radius:14px;padding:8px;box-shadow:0 8px 20px rgba(0,0,0,.45)}
+.np.lob .np-lob{display:flex}.np.lob .np-top,.np.lob .np-tasks,.np.lob .np-btns{display:none}.np.rot .np-lob{top:10px}
+.np-lobc{display:flex;flex-direction:column;align-items:center;padding:0 8px;line-height:1.1}.np-lobc b{font:900 20px var(--mono);letter-spacing:.12em}.np-lobc span{font:800 11px var(--body);color:var(--muted)}
+.np-lb{display:flex;flex-direction:column;align-items:center;gap:2px;border:0;border-radius:10px;background:var(--panel-3);color:var(--fg);padding:6px 10px;font-size:20px;cursor:pointer;box-shadow:inset 0 -3px 0 rgba(0,0,0,.3)}
+.np-lb span{font:800 10.5px var(--body);text-transform:uppercase;letter-spacing:.04em}.np-lb.go{background:var(--go);box-shadow:inset 0 -3px 0 var(--go-deep)}.np-lb[disabled]{opacity:.5}
+.np-wait{font:700 12px var(--body);color:var(--muted);padding:0 6px;max-width:110px}
+.np-mapb{width:auto!important;padding:0 12px;gap:6px}.np-mapb span{font:900 12px var(--body);letter-spacing:.06em;text-transform:uppercase}
+.np-role{text-align:center;width:100%;animation:npRole .9s ease-out}.np-role .np-k{color:#9fb6ff}.np-role.imp .np-k{color:#F07B68}
+.np-rbig{font:900 min(16vw,86px)/1 var(--display);color:#8ab4ff;letter-spacing:-.02em;text-shadow:0 0 30px rgba(90,140,255,.45);margin:6px 0 14px}
+.np-role.imp .np-rbig{color:#E2523E;text-shadow:0 0 34px rgba(226,82,62,.6)}
+.np-lineup{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}.np-lineup>span{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;opacity:.8}.np-lineup>span.me{opacity:1;transform:scale(1.15)}.np-lineup .np-hd{width:54px;height:54px}
+.np-role p{color:var(--muted)}
+@keyframes npRole{0%{opacity:0;transform:scale(1.3);filter:blur(6px)}100%{opacity:1;transform:none;filter:none}}
+.np-killed{position:relative;text-align:center;width:min(440px,100%);background:#1a0c0a;border:2px solid var(--bad);border-radius:16px;padding:22px;overflow:hidden;animation:pgPop .3s}
+.np-kface{width:120px;height:120px;margin:0 auto;border-radius:50%;overflow:hidden;background:#3a1d18;animation:npLunge .5s ease-out}
+.np-kface .avatar{width:100%!important;height:100%!important}
+@keyframes npLunge{0%{transform:scale(.4) translateY(40px)}70%{transform:scale(1.15)}100%{transform:none}}
+.np-slash{position:absolute;left:-10%;top:30%;width:120%;height:10px;background:linear-gradient(90deg,transparent,#fff 40%,#fff 60%,transparent);transform:rotate(-24deg) scaleX(0);animation:npSlash .35s .35s ease-out forwards;box-shadow:0 0 16px #fff}
+@keyframes npSlash{0%{transform:rotate(-24deg) scaleX(0)}60%{transform:rotate(-24deg) scaleX(1);opacity:1}100%{transform:rotate(-24deg) scaleX(1);opacity:0}}
+.np-splat{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 30% 35%,rgba(168,42,30,.85) 0 14%,transparent 15%),radial-gradient(circle at 62% 28%,rgba(168,42,30,.75) 0 7%,transparent 8%),radial-gradient(circle at 70% 55%,rgba(168,42,30,.7) 0 10%,transparent 11%),radial-gradient(circle at 22% 62%,rgba(168,42,30,.6) 0 5%,transparent 6%);opacity:0;animation:npSplat .4s .6s forwards}
+@keyframes npSplat{to{opacity:.85}}
+.np-killed .np-big,.np-killed p,.np-killed button{position:relative}
+.np-banner{width:100%;text-align:center;padding:26px 10px;background:repeating-linear-gradient(-45deg,#3a1d18 0 22px,#2a1411 22px 44px);border-top:4px solid var(--warn);border-bottom:4px solid var(--warn);animation:npBan .5s ease-out}
+.np-banner.body{border-color:var(--bad)}.np-banner div{font-size:60px}.np-banner b{display:block;font:900 min(9vw,48px)/1.05 var(--display);text-transform:uppercase;letter-spacing:.02em}.np-banner span{color:var(--muted);font-weight:700}
+@keyframes npBan{0%{transform:scaleY(0)}100%{transform:none}}
+.np-ov.still .np-card,.np-ov.still .np-meet,.np-ov.still .np-map{animation:none}
+.np-hd svg{width:100%!important;height:100%!important;display:block}
 .np-card,.np-meet,.np-map{background:var(--panel);border-radius:16px;padding:20px;width:min(440px,100%);max-height:100%;overflow:auto;text-align:center;box-shadow:0 14px 40px rgba(0,0,0,.6);animation:pgPop .3s}
 .np-card.imp{background:#3a1d18;border:2px solid var(--bad)}
 .np-k{font:800 12px var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
@@ -537,9 +702,27 @@ html.np-on .tabbar,html.np-on .pg-pill{display:none!important}
 .np-num{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.np-num button{height:70px;border-radius:12px;border:0;background:var(--panel-3);color:var(--fg);font:900 26px var(--display);cursor:pointer;box-shadow:inset 0 -4px 0 rgba(0,0,0,.3)}.np-num button.ok{background:var(--go)}
 .np-course svg{width:100%;background:#0B0C12;border-radius:12px}
 .np-swipe .track{height:90px;border-radius:14px;background:#1B1A18;position:relative;padding:8px;box-shadow:inset 0 3px 8px rgba(0,0,0,.5)}.np-swipe .card{position:absolute;left:8px;top:8px;width:110px;height:74px;border-radius:10px;background:#F4F2EE;font-size:44px;display:flex;align-items:center;justify-content:center;font-style:normal;cursor:grab;touch-action:none}
-.np-board{display:grid;grid-template-columns:repeat(8,1fr);border-radius:6px;overflow:hidden;width:min(100%,calc(100dvh - 130px));margin:0 auto;aspect-ratio:1}.np-board .sq{position:relative;cursor:pointer}.np-board .sq.l{background:var(--sq-l)}.np-board .sq.d{background:var(--sq-d)}.np-board .sq.sel{box-shadow:inset 0 0 0 100px var(--hl-sel)}
+.np-cboard{display:grid;grid-template-columns:repeat(8,1fr);border-radius:6px;overflow:hidden;width:min(100%,calc(100dvh - 130px));margin:0 auto;aspect-ratio:1}.np-cboard .sq{position:relative;cursor:pointer}.np-cboard .sq.l{background:var(--sq-l)}.np-cboard .sq.d{background:var(--sq-d)}.np-cboard .sq.sel{box-shadow:inset 0 0 0 100px var(--hl-sel)}
 .np-pc{position:absolute!important;inset:0;width:100%!important;height:100%!important;transform:none!important;pointer-events:none}
-.np.ghost .np-cv{filter:saturate(.6)}`;
+.np.ghost .np-cv{filter:saturate(.6)}
+.np::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle,rgba(226,82,62,0) 30%,rgba(226,82,62,.75));opacity:0}
+.np.flash::after{animation:npFlash .7s ease-out}
+@keyframes npFlash{0%{opacity:1}100%{opacity:0}}
+.np-doors{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0 10px}
+.np-cams{width:min(640px,100%)}.np-camg{display:grid;grid-template-columns:1fr 1fr;gap:8px}.np-camg>div{position:relative;border-radius:10px;overflow:hidden;background:#0B0C12}
+.np-camg canvas{width:100%;height:auto;display:block}.np-camg span{position:absolute;left:8px;top:6px;font:800 11px var(--body);color:#F07B68;letter-spacing:.06em;text-shadow:0 1px 2px #000}
+.np-adm svg{width:100%;height:auto;display:block;border-radius:10px;background:#0B0C12}
+.np-vr{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:12px;background:var(--panel-2);text-align:left;min-width:0;flex-wrap:wrap}
+.np-vr b{font:800 14px var(--body);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.np-vr.out{box-shadow:0 0 0 2px var(--bad)}.np-vr.dead{opacity:.4}
+.np-vh{display:flex;flex-wrap:wrap;gap:2px;width:100%}.np-hd.sm{width:22px;height:22px}
+.np-skip{display:inline-flex!important;align-items:center;justify-content:center;font-size:20px}
+.np-ast{position:relative;height:230px;border-radius:12px;background:radial-gradient(circle at 30% 40%,#1e2033,#0B0C12);overflow:hidden}
+.np-ast-n{position:absolute;left:10px;top:8px;font:900 15px var(--body);color:var(--go-hi)}
+.np-rock{position:absolute;left:100%;border:0;background:none;font-size:34px;cursor:pointer;animation:npRock 3s linear forwards;padding:6px}
+@keyframes npRock{to{left:-60px;transform:rotate(-360deg)}}
+.np-trash{display:flex;gap:16px;justify-content:center;align-items:stretch;height:200px}
+.np-bin{width:110px;border-radius:12px;background:#1B1A18;position:relative;overflow:hidden;border:3px solid #4a4640}.np-bin i{position:absolute;left:0;right:0;bottom:0;height:100%;background:linear-gradient(#8c7a55,#5a4b33);transition:height .1s}
+.np-lever{width:46px;border-radius:23px;background:#1B1A18;position:relative;padding:4px}.np-lever b{display:block;width:38px;height:56px;border-radius:19px;background:var(--bad);box-shadow:inset 0 -4px 0 rgba(0,0,0,.3);cursor:grab;touch-action:none}`;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
   /* in the Games list: online only */

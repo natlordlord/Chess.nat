@@ -54,7 +54,7 @@ const PG = (() => {
       const f = box.querySelector("form"); if (f){ const inp = f.querySelector("input");
         f.onsubmit = e => { e.preventDefault(); const n = inp.value.trim().replace(/\s+/g, " "); if (!n) return;
           const a = players(); if (a.some(x => x.toLowerCase() === n.toLowerCase())){ toast(T("That name is already in.", "Den Namen gibt es schon.")); return; }
-          a.push(n); setPlayers(a); Sound.tap(); draw(true); onChange && onChange(); };
+          a.push(n); setPlayers(a); draw(true); onChange && onChange(); };
         if (keep){ const i2 = box.querySelector("form input"); if (i2) i2.focus(); } }
     };
     draw(); return {redraw: draw};
@@ -122,6 +122,9 @@ const PG = (() => {
   const cheer = (n = 2) => { try { Sound.cheer(n); } catch(e) {} };
   return {ART, data: {}, custom: {}, de, T, h, st, persist, shuffle, pick, vib, players, setPlayers, opt, draw, every, later, onLeave, stopAll, awake, playersUI, choices, passCard, card, revealRound, timer, playerGrid, scoreList, games, add, cheer, running: false};
 })();
+
+/* every button on a game page plops once (one listener for the whole app, never stacked) */
+document.addEventListener("click", e => { const b = e.target.closest && e.target.closest(".pg button"); if (!b || b.disabled || b.hasAttribute("data-quiet") || b.id === "pgback" || b.id === "lleave") return; Sound.tap(); });
 
 /* ---- the look: only the app's own colours, fonts and shapes ---- */
 (() => {
@@ -237,11 +240,10 @@ Views.party = {
     PG.st.last = g.id; PG.persist(); PG.running = false;
     main.innerHTML = `<div class="page pg" data-notr style="max-width:640px"><button class="btn ghost sm" id="pgback">← ${T("Games", "Spiele")}</button>${PG.online && PG.online[g.id] && g.id !== "natposter" ? `<button class="unit pg-onl" id="pgon"><span class="pg-onl-i">📱📱📱</span><span style="flex:1;text-align:left"><b>${T("Everyone on their own phone", "Jeder mit eigenem Handy")}</b><small>${T("Open a lobby and invite your friends", "Lobby öffnen und Freunde einladen")}</small></span>${icon("users", 22)}</button>` : ""}<div id="pgbody"></div></div>`;
     const body = $("#pgbody", main), back = $("#pgback", main), onl = $("#pgon", main);
-    if (onl) onl.onclick = () => { Sound.tap(); App.go("lobby", {host: true, game: g.id}); };
+    if (onl) onl.onclick = () => App.go("lobby", {host: true, game: g.id});
     /* leaving a running game asks once more */
     back.onclick = () => { if (PG.running && !back.dataset.armed){ back.dataset.armed = 1; back.textContent = T("End the game? Tap again", "Spiel beenden? Nochmal tippen"); PG.later(() => { delete back.dataset.armed; back.textContent = "← " + T("Games", "Spiele"); }, 3000); return; } App.go("games"); };
     /* every button plops like a pawn, the way the whole app does */
-    main.addEventListener("click", e => { const b = e.target.closest("button"); if (b && !b.disabled && !b.hasAttribute("data-quiet") && b.id !== "pgback") Sound.tap(); });
     const ctx = {body, main, T, title: (en, dg) => `<h1 class="h-title" style="margin-top:6px">${T(en, dg)}</h1>`,
       start(){ if (onl) onl.style.display = "none"; PG.running = true; PG.awake(true); window.scrollTo(0, 0); main.scrollTop = 0; },
       stop(){ if (onl) onl.style.display = ""; PG.running = false; PG.awake(false); },

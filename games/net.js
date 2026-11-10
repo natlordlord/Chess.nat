@@ -152,8 +152,9 @@ const PNet = (() => {
 
   /* someone opened an invite link */
   const fromHash = h => { const m = /^#?p-([a-z0-9]{4,12})$/i.exec(h || ""); return m ? m[1].toLowerCase() : null; };
+  const refresh = () => { if (!P) return; if (P.isHost){ const r = P.roster.find(x => x.id === me); if (r){ r.av = myAv(); r.name = myName() || r.name; } push(); } else hello(); };
   const raw = m => { if (P && P.conn) P.conn.send(Object.assign({code: P.code, id: me}, m)); };
-  return {practice, raw, me, ok, link, newCode, host, resume, join, act, leave, setGame, setOpt, begin, toLobby, kick, fromHash, get P(){ return P; }, nameOf: id => P ? nameOf(id) : "", myName, defaults};
+  return {refresh, practice, raw, me, ok, link, newCode, host, resume, join, act, leave, setGame, setOpt, begin, toLobby, kick, fromHash, get P(){ return P; }, nameOf: id => P ? nameOf(id) : "", myName, defaults};
 })();
 PG.online = {};
 
@@ -231,7 +232,7 @@ Views.lobby = {
     if (arg && arg.host){ PNet.host(arg.game); }
     else if (code && (!PNet.P || PNet.P.code !== code)) return this.ask(code);
     else if (!PNet.P && !PNet.resume()) return this.start();
-    this.draw();
+    PNet.refresh(); this.draw();
   },
   unmount(){ if (PG.custom) Object.values(PG.custom).forEach(c => c.stop && c.stop()); document.documentElement.classList.remove("pg-night"); setTimeout(() => window.dispatchEvent(new Event("chessnat:route")), 0); },
   /* no lobby yet: make one or type a code */
@@ -259,7 +260,6 @@ Views.lobby = {
     if (!main.querySelector(".pg-lob")){
       main.innerHTML = `<div class="page pg pg-lob" data-notr style="max-width:640px"><div class="row pg-lbar"><span class="pill" id="lcode"></span><span class="grow"></span><button class="btn ghost sm" id="lleave"></button></div><div id="lbody"></div></div>`;
       const lv = $("#lleave", main); lv.onclick = () => { if (!lv.dataset.armed){ lv.dataset.armed = 1; lv.textContent = T("Sure? Tap again", "Sicher? Nochmal tippen"); setTimeout(() => { if (lv.isConnected){ delete lv.dataset.armed; this.draw(); } }, 3000); return; } PNet.leave(); App.go("games"); };
-      main.addEventListener("click", e => { const b = e.target.closest("button"); if (b && !b.disabled && !b.hasAttribute("data-quiet") && b.id !== "lleave") Sound.tap(); });
     }
     const lv = $("#lleave", main); if (!lv.dataset.armed) lv.textContent = P.solo ? T("End", "Beenden") : P.isHost ? T("Close lobby", "Lobby schließen") : T("Leave", "Verlassen");
     const m = P.isHost ? P.msg : P.msg, conn = P.conn && P.conn.live;
@@ -267,6 +267,10 @@ Views.lobby = {
     const body = $("#lbody", main);
     if (!m){ body.innerHTML = `<div class="pg-stage"><div class="pg-moon">📡</div><p class="pg-say">${T("Connecting…", "Verbinde…")}<small>${T("Waiting for the host's phone. Is the code right and the host's app open?", "Warte auf das Handy des Gastgebers. Stimmt der Code und ist die App beim Gastgeber offen?")}</small></p></div>`; body._json = null; return; }
     if (!P.isHost && Date.now() - P.last > 15000) toast(T("Lost the host… reconnecting", "Verbindung zum Gastgeber weg… verbinde neu"), 1800);
+    if (m.lobby && m.game === "natposter" && !P.solo && !this.npSet && PG.custom.np){ body._json = null; body._lk = null;
+      const lv = {custom: "np", k: "lobby", phase: "lobby", round: 0, alive: true, imp: false, mates: [], tasks: [], fake: [], prog: 0, bodies: [], kill: 0, emer: 0, intro: 0, sab: null, sabCd: 0, meet: null, eject: null, deadList: [], bots: [], doors: {}, host: P.isHost, lob: {code: P.code, n: m.players.filter(p => p.on).length, min: (PG.online.natposter || {}).min || 4}};
+      PG.custom.np.draw(body, lv, m, a => { if (a.a === "start") PNet.begin(); else if (a.a === "settings"){ this.npSet = true; PG.custom.np.stop(); this.draw(); } else if (a.a === "invite") this.inviteSheet(m); else if (a.a === "look") App.go("me"); });
+      return; }
     if (m.lobby){ if (PG.custom) Object.values(PG.custom).forEach(c => c.stop && c.stop()); return this.lobby(body, m); }
     body._lk = null;
     const v = m.views[PNet.me];
@@ -284,6 +288,13 @@ Views.lobby = {
       <button class="btn go big" id="lgo" style="max-width:400px">${T("Play", "Spielen")}</button></div>`;
     $$("[data-ok]", body).forEach(b => b.onclick = () => { const o = e.opts.find(x => x.k === b.dataset.ok), v = (typeof o.c === "function" ? o.c() : o.c).find(c => String(c[0]) === b.dataset.ov)[0]; PNet.setOpt(o.k, v); });
     $("#lgo", body).onclick = () => PNet.begin();
+  },
+  inviteSheet(m){
+    const {T} = PG, P = PNet.P; const sh = detailSheet(`<div style="text-align:center"><div class="pg-qr" id="iqr" style="margin:0 auto"></div><div class="pg-name" style="letter-spacing:.14em;font-size:34px;margin-top:8px">${esc(P.code.toUpperCase())}</div>
+      <button class="btn go" id="ish" style="margin:8px 0">${icon("send", 16)} ${T("Share link", "Link teilen")}</button></div><div id="ifl" class="list"></div>`);
+    PG.qr(PNet.link(P.code)).then(svg => { const q = sh.el.querySelector("#iqr"); if (q) q.innerHTML = svg; });
+    sh.el.querySelector("#ish").onclick = async () => { const url = PNet.link(P.code); try { if (navigator.share){ await navigator.share({title: "Natposter", url}); return; } } catch(e) { if (e && e.name === "AbortError") return; } try { await navigator.clipboard.writeText(url); toast(T("Link copied", "Link kopiert")); } catch(e) {} };
+    const fl = sh.el.querySelector("#ifl"); if (fl) PG.friendList(fl, P.code, m.game, m.players.map(p => p.uid).filter(Boolean));
   },
   lobby(body, m){
     const {T, h} = PG, P = PNet.P, isH = P.isHost, e = PG.online[m.game], g = PG.games.find(x => x.id === m.game);
@@ -303,9 +314,11 @@ Views.lobby = {
       ${isH ? `<div class="unit" style="width:100%;text-align:left;margin:0"><h3>${T("Game", "Spiel")}</h3><div class="grid2" style="margin-top:8px">${Object.keys(PG.online).map(id => { const gg = PG.games.find(x => x.id === id); return gg ? `<button class="btn ${id === m.game ? "go" : ""}" data-g="${id}" style="justify-content:flex-start;gap:8px">${icon(gg.icon, 20)}<span style="text-align:left">${h(T(gg.name[0], gg.name[1]))}</span></button>` : ""; }).join("")}</div>
           ${e && e.opts && e.opts.length ? e.opts.filter(o => !o.solo).map(o => `<div style="margin-top:12px"><div class="pg-who" style="text-align:left">${h(T(o.l[0], o.l[1]))}</div><div class="pg-opt">${(typeof o.c === "function" ? o.c() : o.c).map(([v, l]) => `<button class="btn sm ${String(m.opts[o.k]) === String(v) ? "go" : ""}" data-ok="${o.k}" data-ov="${esc(String(v))}">${h(Array.isArray(l) ? T(l[0], l[1]) : l)}</button>`).join("")}</div></div>`).join("") : ""}
           ${e && e.note ? `<p class="pg-sub" style="margin-top:10px">${h(T(e.note[0], e.note[1]))}</p>` : ""}
+          ${m.game === "natposter" ? `<button class="btn big" id="lnp" style="margin-top:14px;width:100%">🚀 ${T("Back to the station", "Zurück zur Station")}</button>` : ""}
           <button class="btn go big" id="lgo" style="margin-top:14px" ${online.length < need ? "disabled" : ""}>${online.length < need ? T(`${need} players needed`, `Mindestens ${need} Spieler`) : T("Start", "Los geht's")}</button></div>`
-        : `<div class="pg-big" style="min-height:0">${g ? icon(g.icon, 40) : ""}<span class="k">${T("Next game", "Nächstes Spiel")}</span><div class="q">${g ? h(T(g.name[0], g.name[1])) : "…"}</div><p class="pg-hint" style="margin:0">${T("The host starts the game. Keep this screen open.", "Der Gastgeber startet das Spiel. Lass diesen Bildschirm offen.")}</p></div>`}
+        : `${m.game === "natposter" ? `<button class="btn go big" id="lnp" style="width:100%">🚀 ${T("Back to the station", "Zurück zur Station")}</button>` : ""}<div class="pg-big" style="min-height:0">${g ? icon(g.icon, 40) : ""}<span class="k">${T("Next game", "Nächstes Spiel")}</span><div class="q">${g ? h(T(g.name[0], g.name[1])) : "…"}</div><p class="pg-hint" style="margin:0">${T("The host starts the game. Keep this screen open.", "Der Gastgeber startet das Spiel. Lass diesen Bildschirm offen.")}</p></div>`}
     </div>`;
+    const bn2 = !isH && $("#lnp", body); if (bn2) bn2.onclick = () => { this.npSet = false; body._lk = null; this.draw(); };
     const fl = $("#lfl", body); if (fl) PG.friendList(fl, P.code, m.game, m.players.map(p => p.uid).filter(Boolean));
     $$("[data-fr]", body).forEach(b => b.onclick = async () => { b.disabled = true; await Social.request(b.dataset.fr); b.textContent = "✓"; });
     if (isH){
@@ -317,6 +330,7 @@ Views.lobby = {
       $$("[data-ok]", body).forEach(b => b.onclick = () => { const o = e.opts.find(x => x.k === b.dataset.ok), v = (typeof o.c === "function" ? o.c() : o.c).find(c => String(c[0]) === b.dataset.ov)[0]; PNet.setOpt(o.k, v); });
       $$("[data-kick]", body).forEach(b => b.onclick = () => PNet.kick(b.dataset.kick));
       const go = $("#lgo", body); if (go) go.onclick = () => PNet.begin();
+      const bn = $("#lnp", body); if (bn) bn.onclick = () => { this.npSet = false; body._lk = null; this.draw(); };
     }
   }
 };
