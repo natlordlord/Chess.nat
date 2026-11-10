@@ -423,6 +423,13 @@
         const k = this.keys; if (k.ArrowLeft || k.KeyA) ix -= 1; if (k.ArrowRight || k.KeyD) ix += 1; if (k.ArrowUp || k.KeyW) iy -= 1; if (k.ArrowDown || k.KeyS) iy += 1;
         const m = Math.hypot(ix, iy); if (m > 1){ ix /= m; iy /= m; }
       }
+      /* the host lets the fill-up bots stroll around the cafeteria while everyone waits */
+      if (v.phase === "lobby" && v.host && v.bots && v.bots.length){ const LB = this.lb || (this.lb = {}), r = ROOMS.find(q => q.id === "caf"), out = [];
+        v.bots.forEach((b, i) => { const q = LB[b.id] || (LB[b.id] = {x: r.x + 80 + i * 70, y: r.y + r.h - 70, tx: 0, ty: 0, w: Math.random() * 2, f: 1});
+          if (q.w > 0) q.w -= dt; else { if (!q.tx || Math.hypot(q.tx - q.x, q.ty - q.y) < 6){ let tx, ty, k = 0; do { tx = r.x + 60 + Math.random() * (r.w - 120); ty = r.y + 80 + Math.random() * (r.h - 120); k++; } while (k < 12 && OBST.some(o => Math.hypot(tx - o.x, ty - o.y) < o.r + 30)); q.tx = tx; q.ty = ty; if (Math.random() < .5) q.w = .5 + Math.random() * 2; }
+            else { const dx = q.tx - q.x, dy = q.ty - q.y, d = Math.hypot(dx, dy), sp = SPEED * .6 * dt, nx = q.x + dx / d * Math.min(sp, d), ny = q.y + dy / d * Math.min(sp, d); if (free(q, nx, ny)){ q.x = nx; q.y = ny; if (Math.abs(dx) > 2) q.f = dx < 0 ? -1 : 1; } else q.tx = 0; } }
+          const mv = q.w <= 0 && !!q.tx; PG.onMv({id: b.id, x: q.x, y: q.y, f: q.f, g: 0, m: mv ? 1 : 0}); out.push([b.id, Math.round(q.x), Math.round(q.y), q.f, 0, mv ? 1 : 0]); });
+        if (now() - (this.lbSent || 0) > 200){ this.lbSent = now(); PNet.raw({t: "mvb", l: out}); } }
       const moving = Math.abs(ix) + Math.abs(iy) > .05, me = this.me;
       if (moving){ const sp = SPEED * (v.spd || 1) * (this.ghost() ? 1.15 : 1) * dt, nx = me.x + ix * sp, ny = me.y + iy * sp;
         if (this.ghost()){ me.x = Math.max(20, Math.min(W - 20, nx)); me.y = Math.max(20, Math.min(H - 20, ny)); }
