@@ -144,7 +144,9 @@
         <div class="tp-vs"><div>${e.home_logo ? `<img src="${h(e.home_logo)}" alt="">` : ""}<b>${h(e.home)}</b></div><div class="tp-vsc">${e.state === "pre" ? "vs." : e.sport === "fb" ? `${e.score_h ?? 0}:${e.score_a ?? 0}` : "✓"}</div><div>${e.away_logo ? `<img src="${h(e.away_logo)}" alt="">` : ""}<b>${h(e.away)}</b></div></div>
         ${e.sport === "fb" && st.yc != null ? `<div class="tp-stats c">🟨 ${st.yc} · 🟥 ${st.rc || 0} · ${T("Penalties", "Elfmeter")} ${st.pens || 0} · ⛳ ${st.cor || 0}</div>` : ""}
         ${e.model && e.model.lh != null ? `<p class="tp-note">${T("Expected goals (model)", "Erwartete Tore (Modell)")}: <b>${e.model.lh} : ${e.model.la}</b>${e.odds_src && e.odds_src !== "model" && e.odds_src !== "manual" ? ` · ${T("odds based on", "Quoten nach")} ${h(e.odds_src)}` : ""}</p>` : ""}
-        ${open && e.sport === "fb" && (e.markets || []).some(m => m.k === "cs") ? (() => { const sc = Tipp.scores[e.id]; return `<div class="tp-pick"><div class="tp-dg" data-side="h"><button data-d="1" aria-label="+">▲</button><b>${sc ? sc.h : "–"}</b><button data-d="-1" aria-label="−">▼</button></div><span class="tp-colon">:</span><div class="tp-dg" data-side="a"><button data-d="1" aria-label="+">▲</button><b>${sc ? sc.a : "–"}</b><button data-d="-1" aria-label="−">▼</button></div><button class="tp-kib" data-kiscore>🤖<small>${T("AI", "KI")}</small></button></div><p class="tp-pk-sum">${sc ? T("✓ Winner · goals · exact score are picked", "✓ Sieger · Tore · genaues Ergebnis sind gewählt") : T("Set the score: winner, goals and exact result pick themselves", "Ergebnis einstellen: Sieger, Tore und genaues Ergebnis wählen sich selbst")}</p>`; })()
+        ${open && e.sport === "fb" && (e.markets || []).some(m => m.k === "cs") ? (() => { const sc = Tipp.scores[e.id]; return `<div class="tp-pick"><div class="tp-dg" data-side="h"><small>${h(e.home)}</small><b>${sc ? sc.h : ""}</b></div><span class="tp-colon">:</span><div class="tp-dg" data-side="a"><small>${h(e.away)}</small><b>${sc ? sc.a : ""}</b></div><button class="tp-kib" data-kiscore>🤖<small>${T("AI", "KI")}</small></button></div>
+            <div class="tp-pad" hidden>${[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map(n => `<button data-n="${n}" ${n === 0 ? 'class="z"' : ""}>${n}</button>`).join("")}</div>
+            <p class="tp-pk-sum">${sc ? T("✓ Winner · goals · exact score are picked", "✓ Sieger · Tore · genaues Ergebnis sind gewählt") : T("Tap the boxes and type the score", "Tipp auf die Felder und gib das Ergebnis ein")}</p>`; })()
           : open ? `<button class="btn ghost sm" data-kiev="${h(e.id)}" style="margin:2px 0 8px">🤖 ${T("Nat-KI picks a tip", "KI-Tipp für dieses Spiel")}</button>` : ""}
         ${mine.length ? `<div class="tp-mine">${mine.map(t => this.tipRow(t, e)).join("")}</div>` : ""}
         ${Object.entries(groups).map(([g, ms]) => `<div class="tp-g">${h(g)}</div>${ms.map(mk).join("")}`).join("")}
@@ -156,10 +158,16 @@
       const pick = d.el.querySelector(".tp-pick");
       if (pick){ const dg = side => pick.querySelector(`[data-side="${side}"] b`), sum = d.el.querySelector(".tp-pk-sum"), sync = () => { d.el.querySelectorAll(`.tp-o[data-ev]`).forEach(x => x.classList.toggle("on", Tipp.inSlip(e.id, x.dataset.k, x.dataset.p))); this.slipBar(); this.syncCards(); if (sum) sum.textContent = T("✓ Winner · goals · exact score are picked", "✓ Sieger · Tore · genaues Ergebnis sind gewählt"); };
         const set = (sh, sa) => { Tipp.score(e, sh, sa); dg("h").textContent = sh; dg("a").textContent = sa; sync(); };
-        pick.querySelectorAll("[data-d]").forEach(b => b.onclick = () => { if (this.spinning) return; const cur = Tipp.scores[e.id] || {h: 0, a: 0}, side = b.closest("[data-side]").dataset.side, v = Math.max(0, Math.min(9, cur[side] + (Tipp.scores[e.id] ? +b.dataset.d : Math.max(0, +b.dataset.d))));
-          Sound.tap(); if (navigator.vibrate) try { navigator.vibrate(6); } catch(_) {} const n = Object.assign({}, cur, {[side]: v}); set(n.h, n.a); const el = dg(side); el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); });
+        /* tap a box, the big number pad opens; home first, then away, then it closes by itself */
+        const pad = d.el.querySelector(".tp-pad"), cur = Object.assign({}, Tipp.scores[e.id] || {}); let focus = null;
+        const foc = side => { focus = side; pick.querySelectorAll(".tp-dg").forEach(x => x.classList.toggle("on", x.dataset.side === side)); pad.hidden = !side; if (side) pad.classList.remove("in"), void pad.offsetWidth, pad.classList.add("in"); };
+        pick.querySelectorAll(".tp-dg").forEach(x => x.onclick = () => { if (this.spinning) return; Sound.tap(); foc(focus === x.dataset.side ? null : x.dataset.side); });
+        pad.querySelectorAll("[data-n]").forEach(b => b.onclick = () => { if (!focus) return; const n = +b.dataset.n, side = focus; cur[side] = n; const el = dg(side); el.textContent = n; el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump");
+          Sound.tap(); if (navigator.vibrate) try { navigator.vibrate(8); } catch(_) {}
+          const other = side === "h" ? "a" : "h"; if (cur[other] == null){ foc(other); return; }
+          foc(null); set(cur.h, cur.a); if (Sound.play) Sound.play("Move", .6); });
         pick.querySelector("[data-kiscore]").onclick = () => { if (this.spinning) return; const r = Tipp.kiScore(e); this.spinning = 1; Sound.tap(); pick.classList.add("spin");
-          this.roll(dg("h"), r.h, 900); this.roll(dg("a"), r.a, 1350, () => { this.spinning = 0; pick.classList.remove("spin"); set(r.h, r.a); if (Sound.play) Sound.play("Move", .7); if (navigator.vibrate) try { navigator.vibrate([15, 30, 15]); } catch(_) {} }); }; }
+          foc(null); this.roll(dg("h"), r.h, 900); this.roll(dg("a"), r.a, 1350, () => { this.spinning = 0; pick.classList.remove("spin"); cur.h = r.h; cur.a = r.a; set(r.h, r.a); if (Sound.play) Sound.play("Move", .7); if (navigator.vibrate) try { navigator.vibrate([15, 30, 15]); } catch(_) {} }); }; }
       const kb = d.el.querySelector("[data-kiev]"); if (kb) kb.onclick = () => { const r = Tipp.kiPick(e, Math.random() < .5); if (!r) return; if (!Tipp.inSlip(e.id, r.m.k, r.o.p)) Tipp.toggle(e, r.m, r.o);
         d.el.querySelectorAll(`.tp-o[data-ev]`).forEach(x => x.classList.toggle("on", Tipp.inSlip(e.id, x.dataset.k, x.dataset.p))); toast(`🤖 ${r.m.t}: ${r.o.l} (${q2(r.o.q)})`); this.slipBar(); this.syncCards(); };
       d.el.querySelectorAll("[data-settle]").forEach(b => b.onclick = async () => { if (!b.dataset.arm){ b.dataset.arm = 1; b.textContent = T("Sure? Tap again", "Sicher? Nochmal tippen"); return; }
@@ -335,13 +343,16 @@
 .tp-chips{scroll-behavior:smooth;margin:12px -16px 4px;padding:2px 16px 4px}.tp-chips .chip{transition:background .25s,color .25s,transform .2s}.tp-chips .chip.on{transform:scale(1.04)}
 #tpbody.tp-in-r{animation:tpInR .28s cubic-bezier(.2,.8,.25,1)}#tpbody.tp-in-l{animation:tpInL .28s cubic-bezier(.2,.8,.25,1)}
 @keyframes tpInR{from{opacity:0;transform:translateX(26px)}}@keyframes tpInL{from{opacity:0;transform:translateX(-26px)}}
-.tp-pick{display:flex;align-items:center;justify-content:center;gap:10px;margin:2px 0 4px}.tp-dg{display:flex;flex-direction:column;align-items:center;gap:2px}
-.tp-dg button{width:58px;height:34px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);border-radius:10px;font-size:15px;cursor:pointer}.tp-dg button:active{transform:scale(.94)}
-.tp-dg b{width:64px;height:64px;display:grid;place-items:center;background:var(--panel-2);border:2px solid var(--line);border-radius:16px;font:900 38px var(--display);font-variant-numeric:tabular-nums}
+.tp-pick{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:2px 0 4px}.tp-dg{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;max-width:110px}
+.tp-dg small{font:800 11.5px var(--body);color:var(--muted);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp-dg b{width:78px;height:78px;display:grid;place-items:center;background:var(--panel-2);border:2px solid var(--line);border-radius:18px;font:900 44px var(--display);font-variant-numeric:tabular-nums;transition:border-color .15s,box-shadow .15s}
+.tp-dg b:empty::after{content:"?";color:var(--muted);opacity:.45}.tp-dg.on b{border-color:var(--go);box-shadow:0 0 0 4px color-mix(in srgb,var(--go) 28%,transparent)}
+.tp-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0 6px}.tp-pad[hidden]{display:none}.tp-pad.in{animation:tpPad .22s cubic-bezier(.2,.9,.3,1)}@keyframes tpPad{from{opacity:0;transform:translateY(10px)}}
+.tp-pad button{height:58px;border:0;border-radius:14px;background:var(--panel-2);color:var(--fg);font:900 26px var(--display);box-shadow:inset 0 -3px 0 rgba(0,0,0,.25);cursor:pointer}.tp-pad button:active{transform:translateY(2px);background:var(--go);color:#fff}.tp-pad .z{grid-column:2}
 .tp-dg b.bump{animation:tpBump .28s cubic-bezier(.3,1.6,.5,1)}@keyframes tpBump{from{transform:scale(1.25)}}
 .tp-pick.spin .tp-dg b{border-color:var(--go);box-shadow:0 0 0 3px color-mix(in srgb,var(--go) 30%,transparent)}
 .tp-colon{font:900 34px var(--display);color:var(--muted)}
-.tp-kib{width:58px;height:64px;margin-left:6px;border:0;border-radius:16px;background:linear-gradient(180deg,#5AA3E0,#3B7FC0);color:#fff;font-size:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:inset 0 -4px 0 rgba(0,0,0,.2);cursor:pointer}.tp-kib small{font:900 11px var(--body)}.tp-kib:active{transform:translateY(2px)}
+.tp-kib{width:58px;height:78px;margin-left:6px;border:0;border-radius:16px;background:linear-gradient(180deg,#5AA3E0,#3B7FC0);color:#fff;font-size:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:inset 0 -4px 0 rgba(0,0,0,.2);cursor:pointer}.tp-kib small{font:900 11px var(--body)}.tp-kib:active{transform:translateY(2px)}
 .tp-pk-sum{text-align:center;color:var(--muted);font:700 12.5px var(--body);margin:2px 0 10px}
 .tp-myscore{background:color-mix(in srgb,var(--go) 22%,var(--panel-2))}
 .tp-kis h3{margin:0 0 10px}.tp-kr{display:flex;align-items:center;gap:8px;background:var(--panel-2);border-radius:12px;padding:8px 10px;margin-bottom:6px;transition:background .3s}
