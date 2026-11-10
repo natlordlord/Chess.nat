@@ -2795,7 +2795,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794315184";
+const CHESSNAT_BUILD = "1794315837";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11350,7 +11350,7 @@ Views.play = {
     main.innerHTML = `<div class="page"><h1 class="h-title">Play</h1>
       <div class="unit" style="display:flex;gap:12px;align-items:center;margin-top:10px">${botAvatar(rec, 56)}<div style="flex:1;min-width:0"><div class="muted" style="font-size:12px;font-weight:800">RECOMMENDED BOT</div><div style="font:900 20px var(--display)">${esc(rec.name)} <span class="muted">${rec.r}</span></div><div class="muted" style="font-size:13px">${esc(rec.lesson)}</div></div><button class="btn go" id="prec">Play</button></div>
       <div class="tiles">
-        <button class="tile" data-go="online" style="border:1px solid var(--go)">${icon("globe", 40)}<h3>Play Online</h3><p>Rated games against real people. Your official rating.</p></button>
+        <button class="tile" data-go="online">${icon("globe", 40)}<h3>Play Online</h3><p>Rated games against real people. Your official rating.</p></button>
         <button class="tile" data-go="bots">${icon("bot", 40)}<h3>Play Bots</h3><p>${BOTS.length} bots from ${BOTS[0].r} to ${BOTS[BOTS.length - 1].r}.</p></button>
         <button class="tile" data-go="battle">${icon("swords", 40)}<h3>Puzzle Battle</h3><p>Duel, Sprint or Survival against friends or bots.</p></button>
         <button class="tile" data-go="blitz">${icon("flame", 40)}<h3>Blitz & Ranked</h3><p>Rated games on the clock and Puzzle Battles.</p></button>
@@ -14327,15 +14327,15 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=29"></script>
-<script src="games/imposter.js?v=29"></script>
-<script src="games/werwolf.js?v=29"></script>
-<script src="games/cards.js?v=29"></script>
-<script src="games/heads.js?v=29"></script>
-<script src="games/more.js?v=29"></script>
-<script src="games/net.js?v=29"></script>
-<script src="games/online.js?v=29"></script>
-<script src="games/natposter.js?v=29"></script>
+<script src="games/core.js?v=30"></script>
+<script src="games/imposter.js?v=30"></script>
+<script src="games/werwolf.js?v=30"></script>
+<script src="games/cards.js?v=30"></script>
+<script src="games/heads.js?v=30"></script>
+<script src="games/more.js?v=30"></script>
+<script src="games/net.js?v=30"></script>
+<script src="games/online.js?v=30"></script>
+<script src="games/natposter.js?v=30"></script>
 <script>boot();</script>
 </body>
 </html>

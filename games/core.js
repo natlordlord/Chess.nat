@@ -168,7 +168,7 @@ document.addEventListener("click", e => { const b = e.target.closest && e.target
 .pg-meta{font:700 12px var(--body);color:var(--dim);margin-top:auto;padding-top:4px}
 .pg-onl{display:flex;align-items:center;gap:12px;width:100%;border:1px solid var(--go);cursor:pointer;color:var(--fg);margin:10px 0 0;text-align:left;font:inherit}
 .pg-onl small{display:block;color:var(--muted);font-size:13px;font-weight:600}.pg-onl b{font:800 16px var(--display)}.pg-onl-i{font-size:18px;letter-spacing:-6px;margin-right:6px}
-.pg-gt{position:relative;overflow:hidden}
+.pg-gt{position:relative;overflow:hidden}.pg-all .pg-gt{border:1px solid var(--line)!important}.pg-code{display:flex;justify-content:center;margin-top:14px}.pg-code .btn{gap:8px}
 .pg-gt::before{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:var(--ac);opacity:.16}
 .pg-art{width:52px;height:52px;border-radius:14px;background:var(--ac);display:flex;align-items:center;justify-content:center;font-size:30px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.22);position:relative}
 .pg-gt h3{position:relative}.pg-gt p{position:relative}
@@ -216,17 +216,17 @@ Object.assign(ICONS, {
 
 /* ===== Hub ===== */
 Views.games = {
+  /* one plain grid: pick what you want to play. Chess opens its own choices (online, bots, duel…), every party game opens its game */
   mount(main){
-    const {T, h} = PG;
-    main.innerHTML = `<div class="page"><h1 class="h-title">${T("Games", "Spiele")}</h1>
-      <div class="tiles" style="margin-top:14px">
-        <button class="tile pg-chess" data-go="play" style="grid-column:span 2;border:1px solid var(--go)"><span class="deco"><i class="pc wn"></i></span>${icon("knight", 40)}<span class="pill go">${T("The original", "Das Original")}</span><h3>${T("Chess", "Schach")}</h3><p>${T("Online, bots, friends, battles.", "Online, Bots, Freunde, Battles.")}</p></button>
-      </div>
-      <div class="tiles" style="margin-top:12px" data-notr><button class="tile" data-lobby style="grid-column:span 2;border:1px solid var(--go)">${icon("users", 40)}<span class="pill go">${T("New", "Neu")}</span><h3>${T("Play together", "Zusammen spielen")}</h3><p>${T("Everyone on their own phone. Invite friends or show the QR code.", "Jeder am eigenen Handy. Freunde einladen oder QR-Code zeigen.")}</p>${typeof PNet !== "undefined" && PNet.P ? `<span class="pg-meta" style="color:var(--go-hi)">● ${T("Your lobby is open", "Deine Lobby ist offen")} · ${esc(PNet.P.code.toUpperCase())}</span>` : ""}</button></div>
+    const {T, h} = PG, open = typeof PNet !== "undefined" && PNet.P && !PNet.P.solo;
+    const tile = (attr, art, ac, name, sub) => `<button class="tile pg-gt" ${attr} style="--ac:${ac}"><span class="pg-art">${art}</span><h3>${name}</h3><p>${sub}</p></button>`;
+    const list = [tile(`data-go="play"`, `<i class="pc wn" style="width:38px;height:38px;display:block"></i>`, "#7FB24A", T("Chess", "Schach"), T("Online, bots, friends, duel, battle.", "Online, Bots, Freunde, Duell, Battle."))]
+      .concat(PG.games.some(g => g.id === "natposter") ? [tile(`data-g="natposter"`, "🚀", "#7B5CD6", "Natposter", T("Space station, tasks, a traitor.", "Raumstation, Aufgaben, ein Verräter."))] : [])
+      .concat(PG.games.filter(g => g.id !== "natposter").map(g => { const a = PG.ART[g.id] || ["🎲", "#7FB24A"]; return tile(`data-g="${g.id}"`, a[0], a[1], h(T(g.name[0], g.name[1])), h(T(g.sub[0], g.sub[1]))); }));
+    main.innerHTML = `<div class="page"><h1 class="h-title">${T("Play", "Spielen")}</h1>
       <div id="pgrj" data-notr></div>
-      <div class="pg-sec" data-notr>${T("Party games", "Partyspiele")}</div>
-      ${PG.games.some(g => g.id === "natposter") ? `<button class="tile pg-np" data-g="natposter" data-notr><span class="pg-np-stars"></span><span class="pg-np-ship">🚀</span><span class="pill bad" style="position:relative">${T("New", "Neu")}</span><h3 style="position:relative;font-size:24px">Natposter</h3><p style="position:relative">${T("Space station, tasks, a traitor. Everyone on their own phone.", "Raumstation, Aufgaben, ein Verräter. Jeder am eigenen Handy.")}</p><span class="pg-meta" style="position:relative">${T("Solo with bots or up to 15 friends", "Allein mit Bots oder bis 15 Freunde")}</span></button>` : ""}
-      <div class="tiles" data-notr>${PG.games.filter(g => g.id !== "natposter").map(g => { const a = PG.ART[g.id] || ["🎲", "#7FB24A"]; return `<button class="tile pg-gt" data-g="${g.id}" style="--ac:${a[1]}"><span class="pg-art">${a[0]}</span><h3>${h(T(g.name[0], g.name[1]))}</h3><p>${h(T(g.sub[0], g.sub[1]))}</p><span class="pg-meta">${h(T(g.meta[0], g.meta[1]))}</span></button>`; }).join("")}</div></div>`;
+      <div class="tiles pg-all" data-notr style="margin-top:12px">${list.join("")}</div>
+      <div class="pg-code" data-notr><button class="btn ghost" data-lobby>${icon("users", 18)} ${open ? T("Back to your lobby", "Zurück zur Lobby") + " · " + h(PNet.P.code.toUpperCase()) : T("Join with a code", "Mit Code beitreten")}</button></div></div>`;
     $$("[data-go]", main).forEach(b => b.onclick = () => { Sound.tap(); App.go(b.dataset.go); });
     $$("[data-g]", main).forEach(b => b.onclick = () => { Sound.tap(); App.go("party", {g: b.dataset.g}); });
     const lb = main.querySelector("[data-lobby]"); if (lb) lb.onclick = () => { Sound.tap(); App.go("lobby"); };
