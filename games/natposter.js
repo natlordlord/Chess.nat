@@ -34,6 +34,20 @@
     oa: {x: 1680, y: 900, g: "code", s: "o2"}, ob: {x: 2120, y: 900, g: "code", s: "o2"}, comms: {x: 2150, y: 230, g: "tune", s: "comms"}};
   const SABS = ["lights", "reactor", "o2", "comms"], CRIT = {reactor: 1, o2: 1};
   const KILLS = ["stab", "head", "chess", "shot", "bite"];
+  /* the minigame at an emergency meeting: a wheel picks it, everybody plays, the winner's vote counts twice */
+  const DUELS = {react: {d: 6000, e: "⚡", en: "Reaction", de: "Reaktion"}, tap: {d: 5000, e: "👆", en: "Tap race", de: "Tipp-Rennen"}, snake: {d: 15000, e: "🐍", en: "Snake", de: "Snake"},
+    mate: {d: 20000, e: "♞", en: "Mate in 1", de: "Matt in 1"}, song: {d: 15000, e: "🎵", en: "Name that song", de: "Songraten"}};
+  const SPIN = 2800, RES = 3200;
+  const MATES = ["6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1", "k7/8/1K6/8/8/8/8/7Q w - - 0 1", "6rk/6pp/8/6N1/8/8/8/6K1 w - - 0 1", "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 1", "5rk1/5ppp/8/8/8/8/1Q3PPP/6K1 w - - 0 1", "7k/7p/8/8/8/8/6R1/1R4K1 w - - 0 1"];
+  const rng = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const botScore = g => g === "react" ? -(260 + Math.random() * 380) : g === "tap" ? 14 + Math.floor(Math.random() * 20) : g === "snake" ? Math.floor(Math.random() * 9) : g === "mate" ? (Math.random() < .7 ? -(4000 + Math.random() * 12000) : -99999) : (Math.random() < .45 ? -(2000 + Math.random() * 7000) : -99999);
+  /* songs: 30-second previews from Apple's public search, only the first seconds are played */
+  const SONG_Q = ["Taylor Swift", "Ed Sheeran", "Apache 207", "Cro", "Helene Fischer", "The Weeknd", "Dua Lipa", "Rihanna", "Queen", "ABBA", "Coldplay", "Peter Fox", "Miley Cyrus", "Harry Styles", "Bruno Mars", "Eminem", "Linkin Park", "Michael Jackson", "Kraftklub", "Sido", "Billie Eilish", "Imagine Dragons", "Adele", "David Guetta"];
+  const songPick = () => new Promise((res, rej) => { const cb = "__npS" + Math.random().toString(36).slice(2), sc = document.createElement("script");
+    const done = () => { clearTimeout(to); try { delete window[cb]; } catch(e) {} sc.remove(); }, to = setTimeout(() => { done(); rej(new Error("timeout")); }, 2600);
+    window[cb] = d => { done(); const seen = {}, L = PG.shuffle((d && d.results || []).filter(r => r.previewUrl && r.trackName && /^https:\/\/[a-z0-9.-]+\.(apple|mzstatic)\.com\//.test(r.previewUrl)).filter(r => { const k = r.trackName.toLowerCase().replace(/\s*\(.*$/, ""); if (seen[k]) return false; seen[k] = 1; return true; }));
+      if (L.length < 4) return rej(new Error("few")); const pick = L.slice(0, 4), a = Math.floor(Math.random() * 4); res({url: pick[a].previewUrl, opts: pick.map(r => r.trackName.replace(/\s*\((feat|ft)\..*$/i, "").slice(0, 50)), a, by: String(pick[a].artistName || "").slice(0, 40)}); };
+    sc.onerror = () => { done(); rej(new Error("net")); }; sc.src = `https://itunes.apple.com/search?term=${encodeURIComponent(PG.pick(SONG_Q))}&entity=song&limit=40&country=DE&callback=${cb}`; document.head.appendChild(sc); });
   /* quick chat in meetings: only ready-made lines, so nothing anyone types ever shows on another phone */
   const IN = {med: "in der Krankenstation", caf: "in der Kantine", com: "im Funkraum", rea: "im Reaktor", chess: "in der Schach-Lounge", sto: "im Lager", o2: "im Sauerstoffraum", bri: "auf der Brücke", ele: "in der Elektrik", lab: "im Labor", nav: "in der Navigation", hall: "im Gang"};
   const EMO = ["😱", "🤔", "🙄", "😂", "🔪", "👀", "🤫", "😤"];
@@ -86,11 +100,11 @@
       const G = this.G; if (!G || !G.s || !PNet.P || !PNet.P.G || PNet.P.G !== G){ this.stop(); return; }
       const s = G.s, dt = (now() - this.last) / 1000; this.last = now(); const eng = PG.online.natposter, out = [];
       this.list(G).forEach(b => { const id = b.id, p = POS[id] || (POS[id] = Object.assign({}, s.spawn[id])), m = this.mem[id] || (this.mem[id] = {path: [], wait: 0, goal: null}), alive = s.alive[id], imp = s.imps.includes(id);
-        if (s.phase === "meet" && alive && (m.said || 0) < 2 && now() - s.meet.start > (m.st || (m.st = 1800 + Math.random() * 6500))){ m.said = (m.said || 0) + 1; m.st = now() - s.meet.start + 2500 + Math.random() * 7000; const r = roomAt(p.x, p.y), bd = s.meet.body && s.bodies.find(x => x.id === s.meet.body), others = G.ids.filter(x => x !== id && s.alive[x]);
+        if (s.phase === "meet" && alive && (m.said || 0) < 2 && now() - (s.meet.mg ? s.meet.mg.end + RES : s.meet.start) > (m.st || (m.st = 1800 + Math.random() * 6500))){ m.said = (m.said || 0) + 1; m.st = now() - (s.meet.mg ? s.meet.mg.end + RES : s.meet.start) + 2500 + Math.random() * 7000; const r = roomAt(p.x, p.y), bd = s.meet.body && s.bodies.find(x => x.id === s.meet.body), others = G.ids.filter(x => x !== id && s.alive[x]);
           const line = m.said === 2 ? (Math.random() < .55 ? "emo|" + Math.floor(Math.random() * EMO.length) : Math.random() < .5 ? "skip" : "nothing")
             : s.meet.by === id && bd ? "body|" + ((roomAt(bd.x, bd.y) || {}).id || "hall") : m.sus && s.alive[m.sus] && Math.random() < .7 ? "sus|" + m.sus : imp && Math.random() < .35 ? (Math.random() < .5 ? "self" : "sus|" + PG.pick(others.filter(x => !s.imps.includes(x)))) : Math.random() < .2 && others.length ? "with|" + PG.pick(others) : "where|" + ((r || {}).id || "hall");
           eng.act(G, id, {a: "say", v: line}, api); api.push(); }
-        if (s.phase === "meet"){ m.path = []; m.goal = null; if (alive && !s.meet.votes[id] && now() - s.meet.start > (m.vt || (m.vt = 4000 + Math.random() * 12000))){ const sus = m.sus && s.alive[m.sus] && m.sus !== id ? m.sus : null; const opts = G.ids.filter(x => s.alive[x] && x !== id && !(imp && s.imps.includes(x)));
+        if (s.phase === "meet"){ m.path = []; m.goal = null; if (alive && !s.meet.votes[id] && now() - (s.meet.mg ? s.meet.mg.end + RES : s.meet.start) > (m.vt || (m.vt = 4000 + Math.random() * 12000))){ const sus = m.sus && s.alive[m.sus] && m.sus !== id ? m.sus : null; const opts = G.ids.filter(x => s.alive[x] && x !== id && !(imp && s.imps.includes(x)));
             eng.act(G, id, {a: "vote", v: sus && Math.random() < .7 ? sus : Math.random() < .45 ? "skip" : PG.pick(opts) || "skip"}, api); api.push(); } return; }
         m.vt = 0; m.said = 0; m.st = 0; if (s.phase !== "play" || now() < s.intro){ if (s.spawn[id] && m.sk !== s.spawnK){ m.sk = s.spawnK; Object.assign(p, s.spawn[id]); m.path = []; m.goal = null; } out.push([id, p.x, p.y, p.f || 1, alive ? 0 : 1, 0]); return; }
         if (s.spawn[id] && m.sk !== s.spawnK){ m.sk = s.spawnK; Object.assign(p, s.spawn[id]); m.path = []; m.goal = null; }
@@ -139,6 +153,7 @@
       {k: "meet", l: ["Meeting time", "Meeting-Zeit"], d: 60, c: [[45, "45 s"], [60, "60 s"], [90, "90 s"]]},
       {k: "spd", l: ["Speed", "Tempo"], d: 1, c: [[.8, ["Slow", "Langsam"]], [1, ["Normal", "Normal"]], [1.25, ["Fast", "Schnell"]]]},
       {k: "vis", l: ["Crew vision", "Sicht der Crew"], d: 1, c: [[.75, ["Small", "Klein"]], [1, ["Normal", "Normal"]], [1.4, ["Wide", "Weit"]]]},
+      {k: "duel", l: ["Minigame at emergency meetings (winner votes twice)", "Minispiel im Notfall-Meeting (Gewinner hat 2 Stimmen)"], d: 1, c: [[1, ["Yes", "Ja"]], [0, ["No", "Nein"]]]},
       {k: "conf", l: ["Reveal ejected role", "Rolle beim Rauswurf zeigen"], d: 1, c: [[1, ["Yes", "Ja"]], [0, ["No", "Nein"]]]}],
     extra(o, solo){ return solo ? +o.bots || 0 : +o.fill || 0; },
     start(G){
@@ -162,8 +177,10 @@
       const A = G.ids.filter(id => s.alive[id]), I = A.filter(id => s.imps.includes(id)).length, C = A.length - I, p = this.prog(G);
       let w = null; if (I === 0) w = "crew"; else if (p.tot && p.d >= p.tot) w = "tasks"; else if (I >= C) w = "imp";
       if (!w) return false; s.phase = "end"; s.win = w; s.sab = null; G.sk++; s.snd = {k: "s" + G.sk, n: w === "imp" ? "lose" : "cheer"}; return true; },
-    meeting(G, by, body){ const s = G.s; s.ev = null; s.evAt = Math.max(s.evAt || 0, now() + 60000); s.phase = "meet"; s.mc++; s.meet = {by, body, until: now() + G.opts.meet * 1000, votes: {}, start: now()}; if (s.sab && s.sab.type === "lights") {} G.sk++; s.snd = {k: "s" + G.sk, n: "meet"}; },
-    tally(G){ const s = G.s, c = {}; Object.values(s.meet.votes).forEach(v => { c[v] = (c[v] || 0) + 1; });
+    meeting(G, by, body){ const s = G.s; s.ev = null; s.evAt = Math.max(s.evAt || 0, now() + 60000); s.phase = "meet"; s.mc++; s.meet = {by, body, until: now() + G.opts.meet * 1000, votes: {}, start: now()};
+      if (!body && +(G.opts.duel == null ? 1 : G.opts.duel) !== 0){ const g = PG.pick(Object.keys(DUELS)), mg = s.meet.mg = {g, seed: Math.floor(Math.random() * 1e9), t0: now() + 1800, sc: {}, at: {}}; mg.end = mg.t0 + SPIN + DUELS[g].d; s.meet.until += 1800 + SPIN + DUELS[g].d + RES;
+        if (g === "song") songPick().then(q => { if (s.meet && s.meet.mg === mg && mg.g === "song"){ mg.song = q; PNet.refresh(); } }).catch(() => {}); } if (s.sab && s.sab.type === "lights") {} G.sk++; s.snd = {k: "s" + G.sk, n: "meet"}; },
+    tally(G){ const s = G.s, c = {}; const W = s.meet.mg && s.meet.mg.win; Object.entries(s.meet.votes).forEach(([who, v]) => { c[v] = (c[v] || 0) + (who === W ? 2 : 1); });
       const top = Object.entries(c).filter(([k]) => k !== "skip").sort((a, b) => b[1] - a[1]); const skip = c.skip || 0;
       const out = top.length && top[0][1] > skip && !(top[1] && top[1][1] === top[0][1]) ? top[0][0] : null;
       s.lastVotes = Object.assign({}, s.meet.votes); s.eject = {id: out, imp: out ? s.imps.includes(out) : false, start: now(), until: now() + 7600, left: out ? s.imps.filter(x => s.alive[x] && x !== out).length : s.imps.filter(x => s.alive[x]).length};
@@ -172,6 +189,10 @@
       if (s.sab && CRIT[s.sab.type]) s.sab = null; s.doors = {}; s.sabAt = Math.max(s.sabAt, now() + 10000); s.phase = "play"; if (!this.win(G)) {} },
     tick(G, api){ const s = G.s; let ch = false; if (s.bots && s.bots.length && s.phase !== "end") BOT.run(G, api); if (s.phase === "end") BOT.stop();
       if (s.phase === "play" && s.sab && CRIT[s.sab.type] && now() >= s.sab.until){ s.phase = "end"; s.win = s.sab.type === "o2" ? "o2" : "boom"; s.sab = null; G.sk++; s.snd = {k: "s" + G.sk, n: "lose"}; ch = true; }
+      if (s.phase === "meet" && s.meet.mg && !s.meet.mg.done){ const mg = s.meet.mg;
+        if (mg.g === "song" && !mg.song && now() > mg.t0 + SPIN - 300){ s.meet.until -= DUELS.song.d - DUELS.tap.d; mg.g = "tap"; mg.end = mg.t0 + SPIN + DUELS.tap.d; ch = true; }
+        if (now() >= mg.end + 700){ (s.bots || []).forEach(b => { if (s.alive[b.id] && mg.sc[b.id] == null){ mg.sc[b.id] = botScore(mg.g); mg.at[b.id] = now(); } });
+          const A = G.ids.filter(x => s.alive[x] && mg.sc[x] != null).sort((a, b) => mg.sc[b] - mg.sc[a] || (mg.at[a] || 0) - (mg.at[b] || 0)); mg.win = A[0] && mg.sc[A[0]] > -9000 ? A[0] : null; mg.done = now(); G.sk++; s.snd = {k: "s" + G.sk, n: "mgwin"}; ch = true; } }
       if (s.phase === "meet" && (now() >= s.meet.until || G.ids.filter(id => s.alive[id]).every(id => s.meet.votes[id]))){ this.tally(G); ch = true; }
       if (s.phase === "eject" && now() >= s.eject.until){ s.eject = null; this.resume(G); this.win(G); ch = true; }
       if (s.doors) for (const k in s.doors) if (s.doors[k] <= now()){ delete s.doors[k]; ch = true; }
@@ -190,6 +211,8 @@
         M.chat = M.chat || []; M.cnt = M.cnt || {}; M.last = M.last || {}; if ((M.cnt[id] || 0) >= 14 || now() - (M.last[id] || 0) < 1100) return;
         const ok = pk === "emo" ? /^[0-9]$/.test(x) && +x < EMO.length : (pk === "where" || pk === "body") ? (x === "hall" || ROOMS.some(r => r.id === x)) : (pk === "sus" || pk === "with" || pk === "vent") ? G.ids.includes(x) && x !== id : x === "";
         if (!ok) return; M.chat.push([id, pk, x]); if (M.chat.length > 40) M.chat.shift(); M.cnt[id] = (M.cnt[id] || 0) + 1; M.last[id] = now(); return; }
+      if (s.phase === "meet" && a.a === "mgs" && alive && s.meet.mg && !s.meet.mg.done && s.meet.mg.sc[id] == null && typeof a.v === "number" && isFinite(a.v)){ s.meet.mg.sc[id] = Math.max(-1e6, Math.min(1e6, a.v)); s.meet.mg.at[id] = now(); return; }
+      if (s.phase === "meet" && a.a === "vote" && s.meet.mg && !s.meet.mg.done) return;
       if (s.phase === "meet" && a.a === "vote" && alive && !s.meet.votes[id] && (a.v === "skip" || s.alive[a.v])){ s.meet.votes[id] = a.v; return; }
       if (s.phase !== "play" || now() < s.intro) return;
       if (a.a === "kill" && imp && alive && now() >= s.killAt[id] && !me.v){ const t = a.v, tp = POS[t];
@@ -218,7 +241,7 @@
       return {gid: s.gid, nImp: s.imps.length, custom: "np", k: "np" + s.round, phase: s.phase, round: s.round, alive: !!s.alive[id], imp, mates: imp ? s.imps : [], tasks: imp ? [] : s.tasks[id].map(t => [t, !!s.done[id][t]]),
         fake: imp ? s.tasks[id] : [], prog: p.tot ? p.d / p.tot : 0, bodies: s.bodies, kill: imp ? Math.max(0, s.killAt[id] - now()) : 0, emer: s.emer[id], intro: Math.max(0, s.intro - now()),
         sab: s.sab ? {type: s.sab.type, left: s.sab.until ? Math.max(0, s.sab.until - now()) : 0, ra: s.sab.ra, rb: s.sab.rb, oa: s.sab.oa, ob: s.sab.ob} : null, spd: +G.opts.spd || 1, vis: +G.opts.vis || 1, sabCd: imp ? Math.max(0, s.sabAt - now()) : 0,
-        meet: s.meet ? {chat: s.meet.chat || [], by: s.meet.by, body: s.meet.body, left: Math.max(0, s.meet.until - now()), voted: Object.keys(s.meet.votes), my: s.meet.votes[id] || null} : null,
+        meet: s.meet ? {mg: s.meet.mg ? {g: s.meet.mg.g, seed: s.meet.mg.seed, el: now() - s.meet.mg.t0, d: DUELS[s.meet.mg.g].d, done: !!s.meet.mg.done, win: s.meet.mg.win || null, sc: s.meet.mg.sc, song: s.meet.mg.song || null} : null, chat: s.meet.chat || [], by: s.meet.by, body: s.meet.body, left: Math.max(0, s.meet.until - now()), voted: Object.keys(s.meet.votes), my: s.meet.votes[id] || null} : null,
         eject: s.eject ? {id: s.eject.id, imp: s.eject.imp, conf: !!G.opts.conf, left: s.eject.left, votes: s.lastVotes, shown: now() - s.eject.start, tot: s.eject.until - s.eject.start} : null, meetTot: G.opts.meet * 1000,
         ev: s.ev ? {id: s.ev.id, room: s.ev.room, de: s.ev.de, en: s.ev.en, pads: s.ev.pads, occ: s.ev.occ, left: Math.max(0, s.ev.until - now()), hold: s.ev.hold ? now() - s.ev.hold : 0} : null, evRes: s.evRes || null, dbl: imp && s.dbl ? s.dbl : null,
         doors: s.doors ? Object.fromEntries(Object.entries(s.doors).filter(([k, t]) => t > now()).map(([k, t]) => [k, t - now()])) : {}, doorCd: imp ? Math.max(0, (s.doorAt || 0) - now()) : 0,
@@ -286,6 +309,7 @@
         else if (kv === "bite"){ x.tone(.3, 60, 120, 1.2, .1, "sawtooth"); hit(1.5, 500); x.noise(1.6, .3, 600, 100, .3, "lowpass"); }
         x.chord(2.3, [38, 41, 44], 2, .07, "sawtooth"); this.slash = now(); }
       else if (n === "double"){ this.dblT = now(); x.noise(0, .12, 6000, 2000, .25, "highpass"); x.noise(.05, .35, 900, 120, .3, "lowpass"); x.tone(.05, 160, 50, .4, .3); x.chord(.35, [45, 48, 52], 1.2, .06, "sawtooth"); x.chord(.55, [57, 60, 64], 1, .05, "square"); Haptic.go([60, 40, 60, 40, 160]); this.flash(); }
+      else if (n === "mgwin"){ x.chord(0, [60, 64, 67], .25, .07, "square"); x.chord(.22, [64, 67, 72], .25, .07, "square"); x.chord(.44, [67, 72, 76], .9, .08, "triangle"); Haptic.go([30, 40, 30, 40, 90]); }
       else if (n === "evstart"){ x.chord(0, [67, 71, 74], .5, .06, "triangle"); x.chord(.25, [69, 73, 76], .6, .06, "triangle"); Haptic.go([30, 40, 30]); }
       else if (n === "evok"){ PG.cheer(2); x.chord(0, [64, 68, 71, 76], 1.2, .06, "triangle"); Haptic.go([20, 30, 20, 30, 60]); }
       else if (n === "meet"){ this.banner = {t: now()}; [0, .45, .9, 1.35].forEach(t => { x.tone(t, 880, 660, .4, .12, "square"); }); Haptic.go([80, 60, 80, 60, 80]); }
@@ -305,7 +329,8 @@
       document.body.appendChild(el); document.documentElement.classList.add("np-on"); this.full();
       this.pop = e => { if (!this.el || document.querySelector(".dsheet:not(.out)")) return; e.stopImmediatePropagation(); try { history.pushState({r: App.route}, "", "#" + App.route); } catch(_) {} toast(T("To leave: ☰ → Leave", "Zum Verlassen: ☰ → Verlassen")); };
 
-      el.addEventListener("pointerdown", () => { if (!this.fullTried){ this.fullTried = 1; this.full(); } }, true);
+      el.addEventListener("pointerdown", () => { if (!this.fullTried){ this.fullTried = 1; this.full(); }
+        if (!this.audio){ try { const a = this.audio = new Audio(); a.setAttribute("playsinline", ""); a.preload = "auto"; a.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA="; a.play().then(() => a.pause()).catch(() => {}); } catch(e) {} } }, true);
       el.querySelector(".np-ov").addEventListener("click", e => { if (this.mapOpen && !e.target.closest(".np-map")){ this.mapOpen = false; this.hud(); } });
       el.querySelector(".np-mini").addEventListener("click", e => { if (e.target.classList.contains("np-mini") && this.mini && this.mini.light){ Sound.tap(); this.closeMini(); } });
       this.cv = el.querySelector("canvas"); this.ctx = this.cv.getContext("2d");
@@ -488,9 +513,10 @@
       if (v.phase === "play" && v.killedBy && !this.shown["k" + v.killedBy.k] && (this.deathT = this.deathT || {}) && (this.deathT[v.killedBy.k] = this.deathT[v.killedBy.k] || now()) && now() - this.deathT[v.killedBy.k] < 3200) h = this.deathHTML(v.killedBy);
       else if (v.phase === "play" && v.killedBy && !this.shown["k" + v.killedBy.k]){ h = `<div class="np-killed"><div class="np-kface">${head(v.killedBy.by)}</div><i class="np-slash"></i><i class="np-splat"></i><i class="np-drips">${[8, 19, 33, 47, 58, 71, 86].map((x, i) => `<b style="left:${x}%;--d:${.6 + (i % 3) * .25}s;--h:${30 + (i * 37) % 55}%;width:${6 + (i * 5) % 9}px"></b>`).join("")}</i><div class="np-big">${T("You were killed", "Du wurdest getötet")}</div><p>${T(`by ${nm(v.killedBy.by)}. You're a ghost now: finish your tasks.`, `von ${nm(v.killedBy.by)}. Du bist jetzt ein Geist: Mach deine Aufgaben fertig.`)}</p><button class="btn go" data-x="seen" data-v="k${v.killedBy.k}">OK</button></div>`; }
       if (v.phase === "meet" && this.banner && now() - this.banner.t < 1700){ h = `<div class="np-banner ${v.meet.body ? "body" : ""}"><div>${v.meet.body ? "💀" : "🚨"}</div><b>${v.meet.body ? T("Dead body reported", "Leiche gefunden") : T("Emergency meeting", "Notfall-Meeting")}</b><span>${v.meet.body ? T(`${nm(v.meet.by)} found ${nm(v.meet.body)}`, `${nm(v.meet.by)} hat ${nm(v.meet.body)} gefunden`) : T(`called by ${nm(v.meet.by)}`, `einberufen von ${nm(v.meet.by)}`)}</span></div>`; }
-      else if (v.phase === "meet"){ const m = v.meet, canVote = v.alive && !m.my;
+      else if (v.phase === "meet" && v.meet.mg && (!v.meet.mg.done || !this.duelDone || this.duelDone.s !== v.meet.mg.seed || now() - this.duelDone.t < RES)){ h = `<div class="np-duel" data-k="${v.meet.mg.seed}"></div>`; }
+      else if (v.phase === "meet"){ const m = v.meet, canVote = v.alive && !m.my, W = m.mg && m.mg.win;
         h = `<div class="np-meet np-mt"><div class="np-ml"><div class="np-mh"><div><div class="np-k">${m.body ? "💀 " + T("Body reported", "Leiche gemeldet") : "🚨 " + T("Emergency meeting", "Notfall-Meeting")}</div><div class="np-big" style="font-size:20px;margin:2px 0 0">${m.body ? T(`${nm(m.by)} found ${nm(m.body)}`, `${nm(m.by)} hat ${nm(m.body)} gefunden`) : T(`called by ${nm(m.by)}`, `einberufen von ${nm(m.by)}`)}</div></div><div class="np-tm" data-cd="meet"></div></div>
-          <div class="np-vgrid">${P.map(p => { const dead = v.deadList.includes(p.id); return `<button class="np-vote ${m.my === p.id ? "sel" : ""} ${dead ? "dead" : ""}" data-x="vote" data-v="${esc(p.id)}" ${!canVote || dead ? "disabled" : ""}><span class="np-hd">${head(p.id)}</span><b>${esc(p.name)}</b>${m.voted.includes(p.id) ? `<i>✓</i>` : ""}${dead ? `<i>✝</i>` : ""}</button>`; }).join("")}</div>
+          <div class="np-vgrid">${P.map(p => { const dead = v.deadList.includes(p.id); return `<button class="np-vote ${m.my === p.id ? "sel" : ""} ${dead ? "dead" : ""} ${W === p.id ? "crown" : ""}" data-x="vote" data-v="${esc(p.id)}" ${!canVote || dead ? "disabled" : ""}><span class="np-hd">${head(p.id)}</span><b>${esc(p.name)}</b>${W === p.id ? `<em class="np-crown">👑 ×2</em>` : ""}${m.voted.includes(p.id) ? `<i>✓</i>` : ""}${dead ? `<i>✝</i>` : ""}</button>`; }).join("")}</div>
           <div class="np-mfoot"><button class="btn ${m.my === "skip" ? "go" : ""}" data-x="vote" data-v="skip" ${canVote ? "" : "disabled"}>${T("Skip vote", "Überspringen")}</button><span class="muted">${!v.alive ? T("Ghosts don't vote.", "Geister stimmen nicht ab.") : m.my ? T("Voted. Talk it out!", "Abgestimmt. Redet drüber!") : T("Talk, then vote.", "Redet, dann stimmt ab.")}</span></div></div>
           <div class="np-chat"><div class="np-log">${(m.chat || []).map(([id, pk, x], i) => `<div class="np-cm ${id === PNet.me ? "me" : ""} ${i >= (this.chatSeen || 0) ? "new" : ""}"><span class="np-hd sm">${head(id)}</span><div><b>${nm(id)}</b><span>${this.sayText(pk, x)}</span></div></div>`).join("") || `<p class="muted np-c0">${T("Say something…", "Sag was…")}</p>`}</div>${v.alive ? this.qcHTML(m) : ""}</div></div>`; }
       if (v.phase === "eject" && now() - (this.ejectT || 0) < 2800){ const e = v.eject, by = {}; Object.entries(e.votes || {}).forEach(([a, b]) => { (by[b] = by[b] || []).push(a); });
@@ -513,7 +539,72 @@
       if (v.phase === "meet" && v.meet){ const n = (v.meet.chat || []).length; if (n > (this.chatN || 0) && this.chatN != null){ const last = v.meet.chat[n - 1]; if (last && last[0] !== PNet.me){ this.sfx.tone(0, 1200, 900, .08, .05, "sine"); this.sfx.tone(.06, 1500, 1500, .06, .04, "sine"); } } this.chatN = n;
         const sec = Math.ceil(this.left("meet") / 1000); if (sec <= 5 && sec > 0 && sec !== this.lastTick){ this.lastTick = sec; this.sfx.tone(0, sec === 1 ? 660 : 880, sec === 1 ? 660 : 880, .09, .07, "square"); Haptic.go(sec === 1 ? 40 : 12); } }
       else { this.chatN = null; this.qcMode = null; this.chatSeen = 0; }
+      this.duelTick(v, ov);
       ov.querySelectorAll("[data-cd]").forEach(e => { const n = Math.ceil(this.left(e.dataset.cd) / 1000); const t = e.dataset.cd === "meet" ? String(n) : n + " s"; if (e.textContent !== t) e.textContent = t; });
+    },
+    /* minigame at the meeting: wheel, play, result */
+    duelTick(v, ov){
+      const mg = v.phase === "meet" && v.meet && v.meet.mg, box = ov.querySelector(".np-duel");
+      if (mg && mg.done && (!this.duelDone || this.duelDone.s !== mg.seed)) this.duelDone = {s: mg.seed, t: now()};
+      if (!mg || !box){ if (this.du && this.du.stop) this.du.stop(); this.du = null; return; }
+      let D = this.du; if (!D || D.seed !== mg.seed || D.box !== box){ if (D && D.stop) D.stop(); D = this.du = {seed: mg.seed, box, t0: now() - mg.el, stage: "", g: mg.g}; }
+      const t = now() - D.t0, P = this.pl();
+      if (D.g !== mg.g){ D.g = mg.g; if (D.stage === "spin") D.stage = ""; }
+      if (mg.done){ if (D.stage !== "res"){ if (D.stop) D.stop(); D.stage = "res"; const rows = P.filter(p => mg.sc[p.id] != null).sort((a, b) => mg.sc[b.id] - mg.sc[a.id]), w = mg.win;
+          box.innerHTML = `<div class="du-res"><div class="du-k">${DUELS[mg.g].e} ${esc(T(DUELS[mg.g].en, DUELS[mg.g].de))}</div>${w ? `<div class="du-win"><span class="np-hd">${this.headOf(w)}</span><div><b>👑 ${esc(this.nm(w))}</b><span>${T("wins: 2 votes this meeting", "gewinnt: 2 Stimmen in diesem Meeting")}</span></div></div>` : `<div class="du-win"><b>${T("Nobody won", "Keiner hat gewonnen")}</b></div>`}
+            <div class="du-rank">${rows.slice(0, 6).map((p, i) => `<div class="${p.id === PNet.me ? "me" : ""}"><span>${i + 1}.</span><b>${esc(p.name)}</b><em>${this.duelFmt(mg.g, mg.sc[p.id])}</em></div>`).join("")}</div>${mg.g === "song" && mg.song ? `<p class="muted">🎵 ${esc(mg.song.opts[mg.song.a])} · ${esc(mg.song.by)}</p>` : ""}</div>`;
+          if (w === PNet.me) PG.cheer(3); }
+        return; }
+      if (t < SPIN){ if (D.stage !== "spin"){ D.stage = "spin"; const keys = Object.keys(DUELS), seq = []; for (let i = 0; i < 5; i++) keys.forEach(k => seq.push(k)); const idx = keys.length * 4 + keys.indexOf(mg.g);
+          box.innerHTML = `<div class="du-spin"><div class="du-k">🎲 ${T("Minigame! The winner votes twice", "Minispiel! Der Gewinner hat 2 Stimmen")}</div><div class="du-win2"><div class="du-strip">${seq.map(k => `<div class="du-tile"><span>${DUELS[k].e}</span><b>${esc(T(DUELS[k].en, DUELS[k].de))}</b></div>`).join("")}</div><i class="du-ptr"></i></div></div>`;
+          const strip = box.querySelector(".du-strip"), left = Math.max(300, SPIN - t - 500); requestAnimationFrame(() => { strip.style.transition = `transform ${left}ms cubic-bezier(.12,.75,.2,1)`; strip.style.transform = `translateX(calc(50% - ${idx * 132 + 62}px))`; });
+          for (let i = 0, at = 0; at < left; i++){ at += 50 + i * i * 2.2; const a2 = at; setTimeout(() => { if (this.du === D && D.stage === "spin") this.sfx.tone(0, 900, 900, .03, .04, "square"); }, a2); }
+          setTimeout(() => { if (this.du === D) { this.sfx.chord(0, [72, 76, 79], .4, .06, "triangle"); Haptic.go(30); } }, left); }
+        return; }
+      if (D.stage === "spin" || !D.stage){ D.stage = "play"; const R = rng(mg.seed), endAt = D.t0 + SPIN + mg.d;
+        const fin = sc => { if (D.sent) return; D.sent = 1; D.my = sc; if (v.alive) PNet.act({a: "mgs", v: sc}); const st = box.querySelector(".du-st"); if (st) st.innerHTML = `${T("Your result", "Dein Ergebnis")}: <b>${this.duelFmt(mg.g, sc)}</b> · ${T("waiting…", "warte…")}`; };
+        box.innerHTML = `<div class="du-play"><div class="du-k">${DUELS[mg.g].e} ${esc(T(DUELS[mg.g].en, DUELS[mg.g].de))} <span class="du-tl"></span></div><div class="du-g"></div><div class="du-st muted">${v.alive ? "" : "👻 " + T("You're watching", "Du schaust zu")}</div></div>`;
+        const g = box.querySelector(".du-g"); D.stop = v.alive ? (this.DG[mg.g] || this.DG.tap).call(this, g, R, fin, mg) : null;
+        D.tick = setInterval(() => { const l = Math.max(0, endAt - now()), tl = box.querySelector(".du-tl"); if (tl) tl.textContent = Math.ceil(l / 1000) + " s"; if (l <= 0){ clearInterval(D.tick); if (D.stop){ const s0 = D.stop; D.stop = null; s0(); } } }, 200);
+        const oldStop = D.stop; D.stop = () => { clearInterval(D.tick); oldStop && oldStop(); }; }
+    },
+    headOf(id){ const p = this.pl().find(x => x.id === id); try { return avatarSVG(Object.assign({}, p && p.av || {}, {aura: "none", pet: "none"}), {head: true, size: 44}); } catch(e) { return ""; } },
+    duelFmt(g, sc){ if (sc == null) return "–"; if (sc <= -9000) return T("✗", "✗"); return g === "react" ? Math.round(-sc) + " ms" : g === "tap" ? sc + "×" : g === "snake" ? "🍎 " + Math.floor(sc) : (Math.round(-sc / 100) / 10).toFixed(1) + " s"; },
+    DG: {
+      react(g, R, fin){ const wait = 900 + R() * 3200; let gT = 0, done = false; g.innerHTML = `<button class="du-react">${T("Wait for green…", "Warte auf Grün…")}</button>`; const b = g.firstChild;
+        const tm = setTimeout(() => { if (done) return; gT = now(); b.classList.add("go"); b.textContent = T("TAP!", "JETZT!"); Haptic.go(25); }, wait);
+        b.addEventListener("pointerdown", e => { e.preventDefault(); if (done) return; done = true; clearTimeout(tm); if (!gT){ b.classList.add("bad"); b.textContent = T("Too early!", "Zu früh!"); Sound.wrong(); fin(-9999); } else { const ms = now() - gT; b.classList.add("ok"); b.textContent = ms + " ms"; Sound.play("Capture", .5); fin(-ms); } });
+        return () => { clearTimeout(tm); if (!done){ done = true; fin(-9000); } }; },
+      tap(g, R, fin){ let n = 0, on = true; g.innerHTML = `<button class="du-tap"><b>0</b><span>${T("Tap tap tap!", "Tipp, tipp, tipp!")}</span></button>`; const b = g.firstChild, c = b.querySelector("b");
+        b.addEventListener("pointerdown", e => { e.preventDefault(); if (!on) return; n++; c.textContent = n; b.classList.remove("hit"); void b.offsetWidth; b.classList.add("hit"); if (n % 5 === 0) Haptic.go(6); this.sfx.tone(0, 500 + Math.min(n, 40) * 18, 500 + Math.min(n, 40) * 18, .04, .03, "square"); });
+        return () => { on = false; fin(n); }; },
+      snake(g, R, fin){ const CW = 16, CH = 10; let sn = [[4, 5], [3, 5], [2, 5]], dir = [1, 0], nd = [1, 0], food = null, eaten = 0, dead = false;
+        g.innerHTML = `<div class="du-snake"><canvas width="${CW * 20}" height="${CH * 20}"></canvas><div class="du-pad"><button data-d="0,-1">▲</button><button data-d="-1,0">◀</button><button data-d="1,0">▶</button><button data-d="0,1">▼</button></div></div>`;
+        const cv = g.querySelector("canvas"), c = cv.getContext("2d"); const place = () => { do { food = [Math.floor(R() * CW), Math.floor(R() * CH)]; } while (sn.some(q => q[0] === food[0] && q[1] === food[1])); }; place();
+        const turn = d => { if (d[0] === -dir[0] && d[1] === -dir[1]) return; nd = d; };
+        g.querySelectorAll("[data-d]").forEach(b => b.addEventListener("pointerdown", e => { e.preventDefault(); turn(b.dataset.d.split(",").map(Number)); Haptic.go(5); }));
+        let sw = null; cv.addEventListener("pointerdown", e => { const l = LOC(e); sw = l; }); cv.addEventListener("pointerup", e => { if (!sw) return; const l = LOC(e), dx = l.x - sw.x, dy = l.y - sw.y; sw = null; if (Math.max(Math.abs(dx), Math.abs(dy)) < 12) return; turn(Math.abs(dx) > Math.abs(dy) ? [Math.sign(dx), 0] : [0, Math.sign(dy)]); });
+        const draw = () => { c.fillStyle = "#0B0C12"; c.fillRect(0, 0, cv.width, cv.height); c.fillStyle = "#E2523E"; c.beginPath(); c.arc(food[0] * 20 + 10, food[1] * 20 + 10, 7, 0, 7); c.fill(); sn.forEach((q, i) => { c.fillStyle = dead ? "#8C867C" : i ? "#7FB24A" : "#B6E07E"; c.fillRect(q[0] * 20 + 1, q[1] * 20 + 1, 18, 18); }); };
+        const id = setInterval(() => { if (dead) return; dir = nd; const h = [sn[0][0] + dir[0], sn[0][1] + dir[1]];
+          if (h[0] < 0 || h[1] < 0 || h[0] >= CW || h[1] >= CH || sn.some(q => q[0] === h[0] && q[1] === h[1])){ dead = true; Sound.wrong(); Haptic.go(60); draw(); fin(eaten); return; }
+          sn.unshift(h); if (h[0] === food[0] && h[1] === food[1]){ eaten++; Sound.play("Capture", .4); place(); } else sn.pop(); draw(); }, 150); draw();
+        return () => { clearInterval(id); if (!dead) fin(eaten + .5); }; },
+      mate(g, R, fin){ const ch = new Chess(MATES[Math.floor(R() * MATES.length)]), t0 = now(); let sel = null, pen = 0, done = false;
+        const draw = msg => { const B = ch.board(); g.innerHTML = `<div class="np-cboard du-board">${B.map((row, r) => row.map((p, f) => { const sq = "abcdefgh"[f] + (8 - r); return `<div class="sq ${(r + f) % 2 ? "d" : "l"} ${sel === sq ? "sel" : ""}" data-q="${sq}">${p ? `<i class="np-pc pc ${p.color}${p.type}"></i>` : ""}</div>`; }).join("")).join("")}</div><p class="muted" style="margin:4px 0 0">${msg || T("White mates in one", "Weiß setzt matt in 1")}</p>`;
+          g.querySelectorAll("[data-q]").forEach(d => d.addEventListener("pointerdown", e => { e.preventDefault(); if (done) return; const q = d.dataset.q, pc = ch.get(q);
+            if (pc && pc.color === "w"){ sel = q; Sound.play("Move", .3); return draw(); } if (!sel) return;
+            const mv = ch.move({from: sel, to: q, promotion: "q"}); sel = null; if (!mv) return draw();
+            if (ch.in_checkmate ? ch.in_checkmate() : ch.isCheckmate()){ done = true; Sound.play("Mate", .8); draw("✓ " + T("Mate!", "Matt!")); fin(-(now() - t0 + pen)); return; }
+            ch.undo(); pen += 2000; Sound.wrong(); draw(T("Not mate: +2 s", "Kein Matt: +2 s")); })); };
+        draw(); return () => { if (!done){ done = true; fin(-99999); } }; },
+      song(g, R, fin, mg){ let done = false, t0 = 0; const au = this.audio;
+        const show = () => { const q = this.v && this.v.meet && this.v.meet.mg && this.v.meet.mg.song; if (!q){ g.innerHTML = `<p class="muted">${T("Loading a song…", "Lade einen Song…")}</p>`; return false; }
+          g.innerHTML = `<div class="du-song"><div class="du-eq">${"<i></i>".repeat(5)}</div><div class="du-opts">${q.opts.map((o, i) => `<button data-o="${i}">${esc(o)}</button>`).join("")}</div></div>`; t0 = now();
+          try { if (au && /^https:\/\/[a-z0-9.-]+\.(apple|mzstatic)\.com\//.test(q.url)){ au.src = q.url; au.currentTime = 0; au.volume = 1; au.play().catch(() => {}); setTimeout(() => { try { if (au.src === q.url) au.pause(); } catch(e) {} }, 7000); } } catch(e) {}
+          g.querySelectorAll("[data-o]").forEach(b => b.addEventListener("pointerdown", e => { e.preventDefault(); if (done) return; done = true; const ok = +b.dataset.o === q.a; b.classList.add(ok ? "ok" : "bad"); if (!ok) g.querySelector(`[data-o="${q.a}"]`).classList.add("ok"); ok ? Sound.play("Capture", .6) : Sound.wrong(); fin(ok ? -(now() - t0) : -99999); try { au.pause(); } catch(e) {} }));
+          return true; };
+        let id = 0; if (!show()) id = setInterval(() => { if (show()) clearInterval(id); }, 300);
+        return () => { clearInterval(id); try { au && au.pause(); } catch(e) {} if (!done){ done = true; fin(-99999); } }; }
     },
     sayText(pk, x){ const n = x && esc(this.nm(x));
       return pk === "emo" ? `<span class="np-cemo">${EMO[+x] || "❓"}</span>` : pk === "where" ? T(`I was ${roomIn(x)}.`, `Ich war ${roomIn(x)}.`) : pk === "body" ? T(`The body was ${roomIn(x)}!`, `Die Leiche lag ${roomIn(x)}!`)
@@ -770,6 +861,7 @@
   NP.kd = NP.ku = NP.rs = () => {};
   window.__npTo = p => { NP.me.x = p.x; NP.me.y = p.y; NP.send(true); };
   window.__npToId = id => { const q = POS[id]; if (q) window.__npTo({x: q.x + 30, y: q.y}); };
+  window.__npDu = () => NP.du && {seed: NP.du.seed, stage: NP.du.stage, t: Date.now() - NP.du.t0, el: NP.v && NP.v.meet && NP.v.meet.mg && NP.v.meet.mg.el};
   window.__npOpen = g => NP.openMini(g, () => {}); window.__npClose = () => NP.closeMini();
   window.__npCams = () => NP.openCams(); window.__npAdmin = () => NP.openAdmin();
   PG.custom.np = {draw: (b, v, m, a) => NP.draw(b, v, m, a), stop: () => NP.stop()};
@@ -882,6 +974,24 @@ html.np-on .dsheet{z-index:2800!important}html.np-on .toast{z-index:2900!importa
 .np-act.on{opacity:1}
 .pg-np-hero{display:block;padding:22px 18px;border-radius:14px;margin-top:8px;min-height:0!important;text-align:left}.pg-np-hero .pg-np-ship{font-size:56px}.np-act.main.on{background:var(--go);box-shadow:inset 0 -5px 0 var(--go-deep)}.np-act.kill.on{background:var(--bad);box-shadow:inset 0 -5px 0 #a8382a}.np-act.rep.on{background:#E9B64A;color:#2A1E05}
 .np-act:active,.np-act.pr{transform:scale(.92)}
+.np-duel{width:min(620px,100%);background:var(--panel);border-radius:16px;padding:12px;box-shadow:0 14px 40px rgba(0,0,0,.6);text-align:center;max-height:calc(var(--h,100vh) - 20px);overflow:hidden;display:flex;flex-direction:column}
+.du-k{font:900 13px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;justify-content:center;gap:10px}.du-tl{color:var(--fg);font-family:var(--mono)}
+.du-win2{position:relative;overflow:hidden;border-radius:12px;background:#1B1A18;padding:10px 0}.du-strip{display:flex;gap:12px;width:max-content;will-change:transform}
+.du-tile{width:120px;height:110px;border-radius:14px;background:var(--panel-3);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;flex:0 0 auto}.du-tile span{font-size:46px;line-height:1}.du-tile b{font:800 12px var(--body)}
+.du-ptr{position:absolute;left:50%;top:0;bottom:0;width:4px;margin-left:-2px;background:var(--go);box-shadow:0 0 12px var(--go)}
+.du-play{display:flex;flex-direction:column;min-height:0;flex:1}.du-g{display:flex;justify-content:center;align-items:center;min-height:0;flex:1}.du-st{margin-top:6px;font-size:13px;min-height:18px}
+.du-react{width:100%;height:min(220px,calc(var(--h,100vh) - 140px));border:0;border-radius:16px;background:#7a1a12;color:#fff;font:900 32px var(--display);cursor:pointer;touch-action:none}.du-react.go{background:var(--go)}.du-react.bad{background:#3a1d18}.du-react.ok{background:var(--go-deep)}
+.du-tap{width:min(240px,100%);height:min(200px,calc(var(--h,100vh) - 140px));border:0;border-radius:50%;background:var(--go);box-shadow:inset 0 -8px 0 var(--go-deep);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;touch-action:none}.du-tap b{font:900 56px var(--display)}.du-tap span{font:800 13px var(--body)}.du-tap.hit{animation:duHit .12s}
+@keyframes duHit{50%{transform:scale(.94)}}
+.du-snake{display:flex;gap:10px;align-items:center;justify-content:center}.du-snake canvas{width:min(320px,62vw);height:auto;border-radius:10px;background:#0B0C12;touch-action:none}.np.land .du-snake canvas{width:auto;height:min(200px,calc(var(--h,100vh) - 140px))}
+.du-pad{display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(2,46px);gap:4px}.du-pad button{border:0;border-radius:10px;background:var(--panel-3);color:var(--fg);font-size:18px;touch-action:none}.du-pad [data-d="0,-1"]{grid-column:2}.du-pad [data-d="-1,0"]{grid-column:1;grid-row:2}.du-pad [data-d="0,1"]{grid-column:2;grid-row:2}.du-pad [data-d="1,0"]{grid-column:3;grid-row:2}
+.du-board{width:min(260px,calc(var(--h,100vh) - 150px))!important;margin:0 auto}
+.du-song{width:100%}.du-eq{display:flex;gap:5px;justify-content:center;height:34px;align-items:flex-end;margin-bottom:8px}.du-eq i{width:8px;background:var(--go);border-radius:3px;animation:duEq .6s ease-in-out infinite alternate}.du-eq i:nth-child(2){animation-delay:.15s}.du-eq i:nth-child(3){animation-delay:.3s}.du-eq i:nth-child(4){animation-delay:.1s}.du-eq i:nth-child(5){animation-delay:.25s}
+@keyframes duEq{from{height:6px}to{height:34px}}
+.du-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}.du-opts button{border:0;border-radius:12px;background:var(--panel-3);color:var(--fg);font:800 14px var(--body);padding:12px 8px;cursor:pointer;touch-action:none}.du-opts .ok{background:var(--go)}.du-opts .bad{background:var(--bad)}
+.du-res .du-win{display:flex;align-items:center;justify-content:center;gap:12px;margin:6px 0 10px;animation:pgPop .4s}.du-win .np-hd{width:60px;height:60px}.du-win b{display:block;font:900 24px var(--display);color:#E9B64A}.du-win span{font:700 13px var(--body);color:var(--muted)}
+.du-rank{display:flex;flex-direction:column;gap:3px;max-width:360px;margin:0 auto;text-align:left}.du-rank>div{display:flex;gap:8px;font:700 14px var(--body);padding:3px 8px;border-radius:8px;background:var(--panel-2)}.du-rank>div.me{outline:2px solid var(--go)}.du-rank b{flex:1}.du-rank em{font-style:normal;font-family:var(--mono)}
+.np-crown{position:absolute;left:4px;top:-8px;font-style:normal;font:900 11px var(--body);background:#E9B64A;color:#2A1E05;border-radius:999px;padding:1px 6px}.np-vote.crown{border-color:#E9B64A}
 .np-lb.arm{background:var(--bad)!important;animation:npPulse .5s infinite}
 .np.land .np-cams{width:min(940px,100%)}.np.land .np-camg{grid-template-columns:repeat(4,minmax(0,1fr))}
 .np.land .np-course svg{max-height:calc(var(--h) - 110px);display:block;margin:0 auto;width:auto;max-width:100%}
