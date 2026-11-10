@@ -183,7 +183,19 @@ PG.online = {};
 /* ---------- voice chat: every phone talks straight to every other phone (WebRTC); the party channel only carries the hand-shake.
    The game decides when your microphone is open (e.g. only in meetings, and never when you're dead). ---------- */
 const PVoice = (() => {
-  const ICE = [{urls: "stun:stun.l.google.com:19302"}, {urls: "stun:stun.cloudflare.com:3478"}];
+  const STUN = [{urls: "stun:stun.l.google.com:19302"}, {urls: "stun:stun.cloudflare.com:3478"}];
+  /* phones on mobile data or behind strict routers can't reach each other directly: a TURN relay passes the audio through.
+     Open Relay's shared-secret TURN; the short-lived login is made here (HMAC of the expiry), so there's nothing to sign up for. */
+  let ICE = STUN, iceAt = 0;
+  async function iceServers(){
+    if (ICE !== STUN && Date.now() - iceAt < 6 * 3600e3) return ICE;
+    try { const user = Math.floor(Date.now() / 1000 + 24 * 3600) + ":chessnat", enc = new TextEncoder();
+      const k = await crypto.subtle.importKey("raw", enc.encode("openrelayprojectsecret"), {name: "HMAC", hash: "SHA-1"}, false, ["sign"]);
+      const cred = btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.sign("HMAC", k, enc.encode(user))))), H = "staticauth.openrelay.metered.ca";
+      ICE = [STUN[0], {urls: [`turn:${H}:80`, `turn:${H}:443?transport=tcp`, `turns:${H}:443?transport=tcp`], username: user, credential: cred}]; iceAt = Date.now(); } catch(e) { ICE = STUN; }
+    return ICE;
+  }
+  const log = (n, m) => { try { if (typeof Track !== "undefined") Track.push("voice", n, m); } catch(e) {} };
   let stream = null, keep = null, keepT = 0, on = false, starting = null, mic = false, mute = false, pcs = {}, lastHi = 0, hiT = 0, lvT = 0;
   const level = {}, an = {};
   const send = (to, d) => PNet.raw({t: "rtc", to, d});
@@ -192,7 +204,8 @@ const PVoice = (() => {
     if (on || starting) return starting; if (!navigator.mediaDevices || !window.RTCPeerConnection) return false;
     /* the microphone is asked for once: the stream stays with the app (muted) between lobby and rounds, so the phone doesn't ask again every game */
     starting = (async () => { try { clearTimeout(keepT); if (keep && keep.getAudioTracks().some(t => t.readyState === "live")) stream = keep; else { stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true}, video: false}); keep = stream; } }
-      catch(e) { starting = null; PVoice.denied = true; return false; }
+      catch(e) { starting = null; PVoice.denied = true; log("deny", {e: String(e && e.name || e).slice(0, 30)}); return false; }
+      await iceServers(); log("start", {turn: ICE !== STUN ? 1 : 0});
       on = true; PVoice.denied = false; applyMic(); watch(me(), stream); send("*", {hi: 1}); lastHi = Date.now();
       hiT = setInterval(() => { if (on) send("*", {hi: 1}); }, 4000); lvT = setInterval(levels, 180); starting = null; return true; })();
     return starting;
@@ -200,36 +213,51 @@ const PVoice = (() => {
   function stop(){ if (!on && !starting) return; if (on) send("*", {bye: 1}); on = false; clearInterval(hiT); clearInterval(lvT); Object.keys(pcs).forEach(close); if (stream) stream.getTracks().forEach(t => { t.enabled = false; }); stream = null; clearTimeout(keepT); keepT = setTimeout(() => { if (!on && keep){ keep.getTracks().forEach(t => t.stop()); keep = null; } }, 10 * 60e3); }
   function close(id){ const x = pcs[id]; if (!x) return; try { x.pc.close(); } catch(e) {} if (x.au){ x.au.srcObject = null; x.au.remove(); } delete pcs[id]; delete level[id]; delete an[id]; }
   function applyMic(){ if (stream) stream.getAudioTracks().forEach(t => { t.enabled = mic && !mute; }); }
+  /* one fixed side makes the offer (the smaller id), so two phones never offer at the same time and get stuck */
+  const offerer = id => me() < id;
   function peer(id){
-    if (pcs[id]) return pcs[id];
-    const pc = new RTCPeerConnection({iceServers: ICE}), x = pcs[id] = {pc, making: false, ignore: false, polite: me() > id, au: null, t: Date.now()};
+    close(id);
+    const pc = new RTCPeerConnection({iceServers: ICE}), x = pcs[id] = {pc, au: null, t: Date.now(), sid: Math.random().toString(36).slice(2, 8), rs: null, pend: [], q: Promise.resolve()};
     if (stream) stream.getTracks().forEach(t => pc.addTrack(t, stream));
-    pc.onicecandidate = e => { if (e.candidate) send(id, {cand: e.candidate.toJSON ? e.candidate.toJSON() : e.candidate}); };
-    pc.onnegotiationneeded = async () => { try { x.making = true; await pc.setLocalDescription(); send(id, {desc: {type: pc.localDescription.type, sdp: pc.localDescription.sdp}}); } catch(e) {} finally { x.making = false; } };
+    pc.onicecandidate = e => { if (e.candidate) send(id, {s: x.sid, r: x.rs, cand: e.candidate.toJSON ? e.candidate.toJSON() : e.candidate}); };
     pc.ontrack = e => { const st = e.streams && e.streams[0] || new MediaStream([e.track]); if (!x.au){ x.au = document.createElement("audio"); x.au.autoplay = true; x.au.setAttribute("playsinline", ""); x.au.style.display = "none"; document.body.appendChild(x.au); }
       x.au.srcObject = st; x.au.play().catch(() => {}); watch(id, st); };
-    pc.onconnectionstatechange = () => { if (pc.connectionState === "failed" || pc.connectionState === "closed") close(id); };
+    pc.onconnectionstatechange = () => { const s = pc.connectionState; if (pcs[id] !== x) return; if (s === "disconnected") x.dis = Date.now();
+      if (s === "connected" && !x.up){ x.up = 1; pc.getStats().then(r => { let pair = null; const L = {}; r.forEach(v => { L[v.id] = v; if (v.type === "candidate-pair" && v.nominated && v.state === "succeeded") pair = v; });
+        log("up", {ms: Date.now() - x.t, l: pair && L[pair.localCandidateId] ? L[pair.localCandidateId].candidateType : "?", r: pair && L[pair.remoteCandidateId] ? L[pair.remoteCandidateId].candidateType : "?"}); }).catch(() => log("up", {ms: Date.now() - x.t})); }
+      if (s === "failed"){ log("fail", {ms: Date.now() - x.t, up: x.up ? 1 : 0}); close(id); if (offerer(id)) offer(id); else send(id, {hi: 1}); } };
     return x;
   }
+  /* the offerer starts a fresh connection and sends its offer */
+  function offer(id){ const x = peer(id), pc = x.pc;
+    x.q = x.q.then(async () => { try { await pc.setLocalDescription(await pc.createOffer()); if (pcs[id] === x) send(id, {s: x.sid, desc: {type: "offer", sdp: pc.localDescription.sdp}}); } catch(e) { console.warn("voice", e); } }); }
   /* who is talking right now: a little level meter per voice */
   function watch(id, st){ try { const ac = Sound.ac; if (!ac) return; const src = ac.createMediaStreamSource(st), a = ac.createAnalyser(); a.fftSize = 256; src.connect(a); an[id] = a; } catch(e) {} }
   function levels(){ const buf = new Uint8Array(128); Object.entries(an).forEach(([id, a]) => { a.getByteTimeDomainData(buf); let m = 0; for (let i = 0; i < buf.length; i++) m = Math.max(m, Math.abs(buf[i] - 128)); level[id] = m > 10; }); }
   async function onMsg(m){
     if (!on || !m || !m.id || m.id === me() || (m.to !== "*" && m.to !== me())) return; const d = m.d || {}, id = m.id;
     if (d.bye){ close(id); return; }
-    if (d.hi){ const y = pcs[id]; if (y && y.pc.connectionState !== "connected" && Date.now() - y.t > 5000 && me() < id) close(id); if (!pcs[id]){ peer(id); send(id, {hi: 1}); } return; }
-    const x = peer(id); x.q = (x.q || Promise.resolve()).then(() => handle(x, d, id)); }
-  /* one message at a time per peer, so a candidate never overtakes the offer it belongs to */
-  async function handle(x, d, id){ const pc = x.pc;
+    let x = pcs[id];
+    /* "I'm here": the offerer connects (again, if the last try is stuck); the other side just answers with its own hello */
+    if (d.hi){ if (offerer(id)){ const st = x && x.pc.connectionState, age = x ? Date.now() - x.t : 0;
+        if (!x || (st === "disconnected" ? Date.now() - x.dis > 6000 : st !== "connected" && age > (st === "connecting" ? 20000 : 9000))){ if (x) log("retry", {st}); offer(id); } }
+      else if (!x) send(id, {hi: 1}); return; }
+    if (d.desc && d.desc.type === "offer"){ if (offerer(id)) return; /* a new offer: always a fresh connection */ x = peer(id); x.rs = d.s; }
+    else { if (!x || (d.r && d.r !== x.sid)) return; if (d.desc){ if (d.r !== x.sid) return; if (!x.rs) x.rs = d.s; } else if (x.rs && d.s !== x.rs) return; }
+    const X = x; X.q = X.q.then(() => handle(X, d, id)); }
+  /* one message at a time per connection, so a candidate never overtakes the offer it belongs to; early candidates wait for it */
+  async function handle(x, d, id){ const pc = x.pc; if (pcs[id] !== x) return;
     try {
-      if (d.desc){ const offer = d.desc.type === "offer", collide = offer && (x.making || pc.signalingState !== "stable"); x.ignore = !x.polite && collide; if (x.ignore) return;
-        await pc.setRemoteDescription(d.desc); if (offer){ await pc.setLocalDescription(); send(id, {desc: {type: pc.localDescription.type, sdp: pc.localDescription.sdp}}); } }
-      else if (d.cand){ try { await pc.addIceCandidate(d.cand); } catch(e) { if (!x.ignore) throw e; } }
+      if (d.desc){ if (d.desc.type === "answer" && pc.signalingState !== "have-local-offer") return;
+        await pc.setRemoteDescription(d.desc);
+        if (d.desc.type === "offer"){ await pc.setLocalDescription(await pc.createAnswer()); if (pcs[id] === x) send(id, {s: x.sid, r: x.rs, desc: {type: "answer", sdp: pc.localDescription.sdp}}); }
+        const P = x.pend; x.pend = []; for (const c of P){ try { await pc.addIceCandidate(c); } catch(e) {} } }
+      else if (d.cand){ if (!pc.remoteDescription) x.pend.push(d.cand); else { try { await pc.addIceCandidate(d.cand); } catch(e) {} } }
     } catch(e) { console.warn("voice", e); }
   }
   return {start, stop, onMsg, get on(){ return on; }, get starting(){ return !!starting; }, denied: false,
     setMic(v){ mic = !!v; applyMic(); }, get mic(){ return mic; }, toggleMute(){ mute = !mute; applyMic(); return mute; }, get muted(){ return mute; },
-    talking: id => !!level[id], peers: () => Object.keys(pcs).filter(id => pcs[id].pc.connectionState === "connected")};
+    talking: id => !!level[id], peers: () => Object.keys(pcs).filter(id => pcs[id].pc.connectionState === "connected"), get _pcs(){ return pcs; }};
 })();
 
 /* ---------- safe rendering of a view: plain text, *bold*, line breaks; never HTML from another phone ---------- */

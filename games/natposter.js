@@ -43,7 +43,9 @@
   /* the minigame at an emergency meeting: a wheel picks it, everybody plays, the winner's vote counts twice */
   const DUELS = {react: {d: 6000, e: "⚡", en: "Reaction", de: "Reaktion"}, tap: {d: 5000, e: "👆", en: "Tap race", de: "Tipp-Rennen"}, snake: {d: 15000, e: "🐍", en: "Snake", de: "Snake"},
     mate: {d: 20000, e: "♞", en: "Mate in 1", de: "Matt in 1"}, math: {d: 12000, e: "➗", en: "Quick maths", de: "Kopfrechnen"}, stroop: {d: 12000, e: "🎨", en: "Colour trap", de: "Farben-Falle"}, balloon: {d: 10000, e: "🎈", en: "Balloon", de: "Ballon"}, song: {d: 15000, e: "🎵", en: "Name that song", de: "Songraten"}};
-  const SPIN = 2800, RES = 3200, END_MS = 15000;
+  const SPIN = 2800, RES = 3200, END_MS = 15000, COVER = 3400;
+  /* the game sound is off when a round starts (so nobody's phone gives away who is who); the speaker button turns it on */
+  let QUIET = false;
   const MATES = ["6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1", "k7/8/1K6/8/8/8/8/7Q w - - 0 1", "6rk/6pp/8/6N1/8/8/8/6K1 w - - 0 1", "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 1", "5rk1/5ppp/8/8/8/8/1Q3PPP/6K1 w - - 0 1", "7k/7p/8/8/8/8/6R1/1R4K1 w - - 0 1"];
   const rng = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
   const botScore = g => g === "math" ? 3 + Math.floor(Math.random() * 7) : g === "stroop" ? 2 + Math.floor(Math.random() * 8) : g === "balloon" ? (Math.random() < .35 ? 0 : 20 + Math.floor(Math.random() * 60)) : g === "react" ? -(260 + Math.random() * 380) : g === "tap" ? 14 + Math.floor(Math.random() * 20) : g === "snake" ? Math.floor(Math.random() * 9) : g === "mate" ? (Math.random() < .7 ? -(4000 + Math.random() * 12000) : -99999) : (Math.random() < .45 ? -(2000 + Math.random() * 7000) : -99999);
@@ -216,7 +218,7 @@
       s.spawn = Object.fromEntries(G.ids.map((id, i) => [id, spawnAt(i, n)]));
       s.role = {}; s.shot = {}; if (+(o.roles == null ? 1 : o.roles) !== 0 && n >= 5){ const pool = PG.shuffle(G.ids.filter(x => !imps.includes(x))), want = ["eng", "sci"].concat(n >= 6 ? ["sher"] : [], n >= 7 ? ["jest"] : []); want.forEach((r, i) => { if (pool[i]) s.role[pool[i]] = r; }); }
       if (G.solo && ROLES[o.role]){ Object.keys(s.role).forEach(x => { if (s.role[x] === o.role || x === host) delete s.role[x]; }); s.role[host] = o.role; }
-      s.intro = now() + 3500; s.snd = {k: "s" + (++G.sk), n: "reveal"};
+      s.intro = now() + 3500 + COVER; s.snd = {k: "s" + (++G.sk), n: "reveal"};
     },
     crewIds(G){ return G.ids.filter(id => !G.s.imps.includes(id) && (G.s.role || {})[id] !== "jest" && !(G.s.gone || {})[id]); },
     gone(G, id){ const s = G.s; if (!s || !s.alive || !G.ids.includes(id) || (s.gone || {})[id]) return; s.gone = s.gone || {}; s.gone[id] = 1; if (s.phase === "end") return; s.alive[id] = false; if (s.meet) delete s.meet.votes[id]; this.win(G); },
@@ -226,7 +228,7 @@
       let w = null; if (I === 0) w = "crew"; else if (p.tot && p.d >= p.tot) w = "tasks"; else if (I >= C) w = "imp";
       if (!w) return false; s.phase = "end"; s.win = w; s.sab = null; G.sk++; s.snd = {k: "s" + G.sk, n: w === "imp" ? "lose" : "cheer"}; return true; },
     meeting(G, by, body){ const s = G.s; s.ev = null; s.evAt = Math.max(s.evAt || 0, now() + 60000); s.phase = "meet"; s.mc++; s.meet = {by, body, until: now() + G.opts.meet * 1000, votes: {}, start: now()};
-      if (!body && +(G.opts.duel == null ? 1 : G.opts.duel) !== 0){ const g = PG.pick(Object.keys(DUELS)), mg = s.meet.mg = {g, seed: Math.floor(Math.random() * 1e9), t0: now() + 1800, sc: {}, at: {}}; mg.end = mg.t0 + SPIN + DUELS[g].d; s.meet.until += 1800 + SPIN + DUELS[g].d + RES;
+      if (+(G.opts.duel == null ? 1 : G.opts.duel) !== 0){ const g = PG.pick(Object.keys(DUELS)), mg = s.meet.mg = {g, seed: Math.floor(Math.random() * 1e9), t0: now() + 1800, sc: {}, at: {}}; mg.end = mg.t0 + SPIN + DUELS[g].d; s.meet.until += 1800 + SPIN + DUELS[g].d + RES;
         if (g === "song") songPick().then(q => { if (s.meet && s.meet.mg === mg && mg.g === "song"){ mg.song = q; PNet.refresh(); } }).catch(() => {}); } if (s.sab && s.sab.type === "lights") {} G.sk++; s.snd = {k: "s" + G.sk, n: "meet"}; },
     tally(G){ const s = G.s, c = {}; const W = s.meet.mg && s.meet.mg.win; Object.entries(s.meet.votes).forEach(([who, v]) => { c[v] = (c[v] || 0) + (who === W ? 2 : 1); });
       const top = Object.entries(c).filter(([k]) => k !== "skip").sort((a, b) => b[1] - a[1]); const skip = c.skip || 0;
@@ -328,7 +330,7 @@
   const NP = {dust: [], el: null, v: null, m: null, act: null, raf: 0, me: {x: BTN.x, y: BTN.y + 150, f: 1}, joy: null, keys: {}, sent: 0, lastSend: {}, mini: null, vent: null, spawnK: 0, shown: {}, sndK: null, lastStep: 0, zoom: 1, mapOpen: false,
     draw(body, v, m, act){
       if (v.phase === "lobby" && this.v && this.v.phase !== "lobby") this.lobbyIn = 0;
-      if (v.gid && v.gid !== this.gid){ this.gid = v.gid; this.shown = {}; this.deathT = {}; this.evShow = null; this.dblT = 0; }
+      if (v.gid && v.gid !== this.gid){ this.gid = v.gid; this.shown = {}; this.deathT = {}; this.evShow = null; this.dblT = 0; QUIET = false; }
       this.v = v; this.m = m; this.act = act; const t = now();
       if (v.phase === "lobby" && !this.lobbyIn){ this.lobbyIn = 1; this.ready = false; this.lcd = 0; this.me.x = BTN.x - 160 + Math.random() * 320; this.me.y = BTN.y + 140 + Math.random() * 40; this.vent = null; this.closeMini(); this.send(true); }
       this.ends = {kill: t + (v.kill || 0), meet: v.meet ? t + v.meet.left : 0, sab: v.sab && v.sab.left ? t + v.sab.left : 0, sabCd: t + (v.sabCd || 0), endLobby: t + (v.endLobby || 0)};
@@ -371,7 +373,7 @@
     stop(){ PVoice.stop(); this.vTried = 0; cancelAnimationFrame(this.raf); this.raf = 0; if (this.el){ this.el.remove(); this.unfull(); } this.el = null; this.fullTried = 0; if (this.pop) window.removeEventListener("popstate", this.pop, true); document.documentElement.classList.remove("np-on"); window.removeEventListener("keydown", this.kd); window.removeEventListener("keyup", this.ku); window.removeEventListener("resize", this.rs); },
     /* synth sounds, all through the app's sound engine (respects the sound switch) */
     sfx: {
-      ac(){ return Sound.fx && Sound.fx() ? Sound.ac : null; },
+      ac(){ return !QUIET && Sound.fx && Sound.fx() ? Sound.ac : null; },
       noise(t, dur, f0, f1, gain, type = "bandpass", q = 1){ const ac = this.ac(); if (!ac) return; const n = Math.floor(ac.sampleRate * dur), b = ac.createBuffer(1, n, ac.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
         const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(), t0 = ac.currentTime + t; s.buffer = b; f.type = type; f.Q.value = q; f.frequency.setValueAtTime(f0, t0); f.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t0 + dur);
         g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(gain, t0 + Math.min(.08, dur / 3)); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur); s.connect(f); f.connect(g); g.connect(ac.destination); s.start(t0); },
@@ -379,8 +381,8 @@
         g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(gain, t0 + .02); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur); o.connect(g); g.connect(ac.destination); o.start(t0); o.stop(t0 + dur + .05); },
       chord(t, notes, dur, gain, type){ notes.forEach(m => this.tone(t, 440 * Math.pow(2, (m - 69) / 12), 440 * Math.pow(2, (m - 69) / 12), dur, gain, type)); }
     },
-    roleSound(imp){ const x = this.sfx; Haptic.go(imp ? [40, 60, 160] : [30, 50, 30]);
-      x.noise(0, .7, 5200, 2800, .14, "bandpass", .7); /* psst */
+    roleSound(imp){ const x = this.sfx; Haptic.go([30, 60, 30]);
+      x.noise(0, .7, 5200, 2800, .14, "bandpass", .7); /* psst */ setTimeout(() => { QUIET = true; this.sndBtn(); }, 900); return;
       if (imp){ x.tone(.85, 70, 40, 2.4, .22, "sawtooth"); x.chord(.85, [45, 48, 51], 2.2, .06, "triangle"); x.noise(.85, 1.6, 300, 60, .08, "lowpass"); x.chord(1.6, [57, 60, 63], 1.6, .045, "sine"); }
       else { x.chord(.85, [60, 64, 67], 1.6, .06, "triangle"); x.chord(1.15, [67, 72, 76], 1.6, .05, "sine"); x.noise(.85, 1, 2000, 6000, .03, "highpass"); } },
     sound(n){ const x = this.sfx;
@@ -425,7 +427,7 @@
       else if (n === "go"){ x.tone(0, 1760, 1760, .35, .07, "square"); x.chord(.02, [76, 83, 88], .5, .03, "triangle"); } },
     mount(){
       this.stop(); const el = this.el = document.createElement("div"); el.className = "np"; el.setAttribute("data-notr", "");
-      el.innerHTML = `<canvas class="np-cv"></canvas><div class="np-top"><button class="np-menu np-quit" data-x="quit">🚪</button><button class="np-menu np-mic" data-x="mic" hidden>🎙️</button><div class="np-bar"><i></i><span>${T("TASKS", "AUFGABEN")}</span></div><button class="np-menu np-emob" data-x="emo">😀</button><div class="np-emos"></div><button class="np-mapb" data-x="map">${icon("map", 20)}<span>${T("Map", "Karte")}</span></button></div>
+      el.innerHTML = `<canvas class="np-cv"></canvas><div class="np-top"><button class="np-menu np-quit" data-x="quit">🚪</button><button class="np-menu np-mic" data-x="mic" hidden>🎙️</button><button class="np-menu np-snd" data-x="snd">🔊</button><div class="np-bar"><i></i><span>${T("TASKS", "AUFGABEN")}</span></div><button class="np-menu np-emob" data-x="emo">😀</button><div class="np-emos"></div><button class="np-mapb" data-x="map">${icon("map", 20)}<span>${T("Map", "Karte")}</span></button></div>
         <div class="np-panel"></div><div class="np-tasks"></div><div class="np-alert"></div><div class="np-ev"></div><div class="np-lob"></div><div class="np-tbar"><i></i><span></span></div><div class="np-joy"><i></i></div><div class="np-btns"></div><div class="np-ov"></div><div class="np-mini"></div>`;
       document.body.appendChild(el); document.documentElement.classList.add("np-on"); this.full();
       this.pop = e => { if (!this.el || document.querySelector(".dsheet:not(.out)")) return; e.stopImmediatePropagation(); try { history.pushState({r: App.route}, "", "#" + App.route); } catch(_) {} toast(T("To leave: ☰ → Leave", "Zum Verlassen: ☰ → Verlassen")); };
@@ -466,6 +468,8 @@
     nm(id){ const p = this.pl().find(x => x.id === id); return p ? p.name : "?"; },
     left(k){ return Math.max(0, ((this.ends || {})[k] || 0) - now()); },
     intro(){ return now() < (this.introEnd || 0); },
+    cover(){ return this.intro() && this.introEnd - now() > 3500; },
+    sndBtn(){ const b = this.el && this.el.querySelector(".np-snd"); if (b){ b.textContent = QUIET ? "🔇" : "🔊"; b.classList.toggle("off", QUIET); } },
     near(x, y, r){ return dist(this.me, {x, y}) <= r; },
     onPad(pd){ return this.pl().some(p => { const q = p.id === PNet.me ? this.me : POS[p.id]; if (!q || q.g || q.v || (this.v.deadList || []).includes(p.id)) return false; return dist({x: q.dx != null ? q.dx : q.x, y: q.dy != null ? q.dy : q.y}, pd) < 52; }); },
     step(dt){
@@ -528,6 +532,7 @@
       if (x === "em"){ this.el.querySelector(".np-emos").classList.remove("on"); this.emo = {i: +val, k: Math.floor(Math.random() * 1e6), t: now()}; const q = POS[PNet.me]; if (q){ q.em = +val; q.emT = now(); q.ek = this.emo.k; } this.send(true); Haptic.go(8); return; }
       if (x === "mic"){ if (!PVoice.on){ this.vTried = 1; PVoice.start().then(ok => { if (!ok) toast(T("Microphone not allowed. Allow it in the settings.", "Mikrofon nicht erlaubt. Erlaube es in den Einstellungen."), 3500); this.hud(); }); return; }
         const mu = PVoice.toggleMute(); toast(mu ? T("You're muted", "Du bist stumm") : T("Mic on", "Mikro an"), 1200); this.hud(); return; }
+      if (x === "snd"){ QUIET = !QUIET; this.sndBtn(); if (!QUIET){ Haptic.go(10); this.sound("click"); } return; }
       if (x === "quit" || x === "leave"){ Haptic.go(15); return this.openPanel("quit"); }
       if (x === "qyes"){ Haptic.go([20, 40, 20]); this.closePanel(); this.turnOut(() => { PNet.leave(); App.go("games"); }); return; }
       if (x === "tolobby"){ if (PNet.P && PNet.P.solo) return; return this.act({a: "tolobby"}); }
@@ -607,7 +612,7 @@
       const mb = el.querySelector(".np-mapb"), mbH = v.imp ? `<b>⚡</b><span>${this.left("sabCd") > 0 && !v.sab ? Math.ceil(this.left("sabCd") / 1000) + " s" : T("Sabotage", "Sabotage")}</span>` : `${icon("map", 20)}<span>${T("Map", "Karte")}</span>`; if (mb._h !== mbH){ mb._h = mbH; mb.innerHTML = mbH; mb.classList.toggle("imp", v.imp); }
       /* how long until something happens: a bar at the top */
       { const tb = el.querySelector(".np-tbar"); let f = -1, lab = "";
-        if (v.phase === "play" && this.intro()){ const l = this.introEnd - now(); f = l / 3500; lab = T("Get ready", "Gleich geht's los"); }
+        if (v.phase === "play" && this.intro()){ const l = this.introEnd - now(); f = l / (3500 + COVER); lab = T("Get ready", "Gleich geht's los"); }
         else if (v.phase === "meet"){ const l = this.left("meet"); f = l / (v.meetTot || 90000); lab = ""; }
         else if (v.phase === "eject" && v.eject){ const l = Math.max(0, (v.eject.tot || 7600) - (now() - (this.ejectT || now()))); f = l / (v.eject.tot || 7600); lab = T(`Back to the station in ${Math.ceil(l / 1000)} s`, `Zurück zur Station in ${Math.ceil(l / 1000)} s`); }
         if (v.phase !== "lobby") tb.classList.toggle("on", f >= 0); if (f >= 0){ tb.firstChild.style.width = Math.max(0, Math.min(100, f * 100)) + "%"; if (tb.lastChild.textContent !== lab) tb.lastChild.textContent = lab; tb.lastChild.style.display = lab ? "" : "none"; } }
@@ -649,7 +654,8 @@
     overlay(){
       const v = this.v, ov = this.el.querySelector(".np-ov"), P = this.pl(), nm = id => esc(this.nm(id)), HC = this.hc || (this.hc = {}), head = id => { const p = P.find(x => x.id === id), k = id + (p && p.av ? JSON.stringify(p.av).length : 0); if (HC[k]) return HC[k]; try { return HC[k] = avatarSVG(Object.assign({}, p && p.av || {}, {aura: "none", pet: "none"}), {head: true, size: 54}); } catch(e) { return ""; } };
       let h = "";
-      if (v.phase === "play" && this.intro()){ const line = v.imp ? v.mates : this.pl().map(p => p.id);
+      if (v.phase === "play" && this.cover()) h = `<div class="np-cover"><div class="np-cvh">🤫</div><div class="np-cvt">Psst…</div><div class="np-cvp"><span class="np-cvph">📱</span><span class="np-cvhand">✋</span></div><b>${T("Cover your phone", "Verdeck dein Handy")}</b><small>${T("Your role is coming. Sound is off for everyone.", "Gleich kommt deine Rolle. Der Ton ist bei allen aus.")}</small></div>`;
+      else if (v.phase === "play" && this.intro()){ const line = v.imp ? v.mates : this.pl().map(p => p.id);
         h = `<div class="np-role ${v.imp ? "imp" : ""}"><div class="np-k">${T("You are", "Du bist")}</div><div class="np-rbig" ${v.role && !v.imp ? 'style="font-size:min(11vw,62px)"' : ""}>${v.imp ? "Natposter" : v.role ? ROLES[v.role].e + " " + esc(T(ROLES[v.role].en, ROLES[v.role].de)) : "Crew"}</div>${v.role ? `<div class="np-rdesc">${esc(T(ROLES[v.role].den, ROLES[v.role].dde))}</div>` : ""}<div class="np-lineup">${line.map(id => `<span class="${id === PNet.me ? "me" : ""}"><span class="np-hd">${head(id)}</span><b>${nm(id)}</b></span>`).join("")}</div><p>${v.imp ? T("Kill the crew. Don't get caught.", "Töte die Crew. Lass dich nicht erwischen.") : T(`There ${v.nImp > 1 ? "are" : "is"} ${v.nImp || 1} Natposter${v.nImp > 1 ? "s" : ""} among you.`, `Unter euch ${v.nImp > 1 ? "sind" : "ist"} ${v.nImp || 1} Natposter.`)}</p></div>`; }
       if (v.dbl && v.dbl.k !== this.dblK){ this.dblK = v.dbl.k; if (now() - (this.dblT || 0) > 2000) this.dblT = now(); }
       if (v.phase === "play" && v.dbl && now() - (this.dblT || 0) < 1800) h = `<div class="np-dbl">${T("DOUBLE KILL", "DOPPELKILL")}</div>`;
@@ -1365,7 +1371,11 @@ html.np-on .xpchip{z-index:2950!important}
 .np-lb span{font:800 10.5px var(--body);text-transform:uppercase;letter-spacing:.04em}.np-lb.go{background:var(--go);box-shadow:inset 0 -3px 0 var(--go-deep)}.np-lb[disabled]{opacity:.5}
 .np-lb.np-wait{opacity:.55}
 .np-mapb{width:auto!important;padding:0 12px;gap:6px}.np-mapb span{font:900 12px var(--body);letter-spacing:.06em;text-transform:uppercase}
-.np-role{text-align:center;width:100%;animation:npRole .9s ease-out}.np-role .np-k{color:#9fb6ff}.np-role.imp .np-k{color:#F07B68}
+.np-role{text-align:center;width:100%;animation:npRole .9s ease-out}
+.np-cover{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;animation:npRole .5s ease-out}.np-cvh{font-size:54px;line-height:1}.np-cvt{font:900 44px var(--display);letter-spacing:.06em;color:#9fb6ff}
+.np-cvp{position:relative;width:110px;height:90px;margin:4px 0}.np-cvph{position:absolute;left:28px;top:4px;font-size:64px}.np-cvhand{position:absolute;left:20px;top:-60px;font-size:74px;animation:npHand 1.1s .3s cubic-bezier(.3,1.4,.5,1) forwards}
+@keyframes npHand{to{transform:translateY(64px)}}.np-cover b{font:900 22px var(--display)}.np-cover small{color:var(--muted);font:600 14px var(--body)}
+.np-snd.off{opacity:.75;background:#4a2a26!important}.np-role .np-k{color:#9fb6ff}.np-role.imp .np-k{color:#F07B68}
 .np-rbig{font:900 min(16vw,86px)/1 var(--display);color:#8ab4ff;letter-spacing:-.02em;text-shadow:0 0 30px rgba(90,140,255,.45);margin:6px 0 14px}
 .np-role.imp .np-rbig{color:#E2523E;text-shadow:0 0 34px rgba(226,82,62,.6)}
 .np-lineup{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}.np-lineup>span{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;opacity:.8}.np-lineup>span.me{opacity:1;transform:scale(1.15)}.np-lineup .np-hd{width:54px;height:54px}
