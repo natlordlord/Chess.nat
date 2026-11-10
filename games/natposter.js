@@ -496,14 +496,20 @@
         chess: `<i class="np-queen" style="background-image:url('${pieceImg("bq").src}')"></i>`, shot: `<i class="np-gun">🔫</i><i class="np-muzzle"></i><b class="np-bang">BANG!</b>`, bite: `<b class="np-chomp">CHOMP</b><i class="np-bones">🦴</i><i class="np-bones b">🦴</i>`}[v] || "";
       return `<div class="np-death v-${v}"><div class="np-dk">${this.fig(kb.by)}</div><div class="np-dv">${this.fig(PNet.me)}</div>${X}<i class="np-dfl"></i><i class="np-drips">${[8, 19, 33, 47, 58, 71, 86].map((x, i) => `<b style="left:${x}%;--d:${1 + (i % 3) * .25}s;--h:${30 + (i * 37) % 55}%;width:${6 + (i * 5) % 9}px"></b>`).join("")}</i><div class="np-dname">${esc(this.nm(kb.by))}</div></div>`;
     },
-    mapHTML(){ const v = this.v, s = 0.13, mine = (v.imp || (v.sab && v.sab.type === "comms") ? [] : v.tasks).filter(([t, d]) => !d).map(([t]) => TASKS.find(x => x.id === t));
-      return `<div class="np-map"><div class="np-k">${T("Map", "Karte")}</div><svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">${AREAS.map(a => `<rect x="${a.x}" y="${a.y}" width="${a.w}" height="${a.h}" fill="#3D3A35" stroke="#211F1C" stroke-width="10"/>`).join("")}
-        ${ROOMS.map(r => `<text x="${r.x + r.w / 2}" y="${r.y + r.h / 2}" fill="#BAB5AC" font-size="44" font-weight="800" text-anchor="middle" font-family="Figtree,sans-serif">${esc(RN(r))}</text>`).join("")}
+    /* the map: as big as the screen allows, centred; tap next to it to close. The Natposter sabotages and shuts doors right on it. */
+    mapHTML(){ const v = this.v, mine = (v.imp || (v.sab && v.sab.type === "comms") ? [] : v.tasks).filter(([t, d]) => !d).map(([t]) => TASKS.find(x => x.id === t));
+      const cw = (this.el && this.el.clientWidth) || innerWidth, chh = (this.el && this.el.clientHeight) || innerHeight, sc = Math.min((cw - 44) / W, (chh - 44) / H), mw = Math.round(W * sc), mh = Math.round(H * sc);
+      const scd = this.left("sabCd"), dcd = this.left("doorCd"), sabOk = scd <= 0 && !v.sab, doorOk = dcd <= 0;
+      const SAB = [["lights", "💡", "ele"], ["comms", "📡", "com"], ["reactor", "☢️", "rea"], ["o2", "🫁", "o2"]];
+      const imp = v.imp ? SAB.map(([k, e, rid]) => { const r = ROOMS.find(x => x.id === rid), x = r.x + r.w / 2, y = r.y + r.h / 2 + 50;
+          return `<g ${sabOk ? `data-x="sab" data-v="${k}"` : ""} class="np-msab ${sabOk ? "" : "off"}"><circle cx="${x}" cy="${y}" r="62" fill="${sabOk ? "#E2523E" : "#4a4640"}" stroke="#211F1C" stroke-width="8"/><text x="${x}" y="${y + 22}" font-size="62" text-anchor="middle">${e}</text></g>`; }).join("")
+        + ROOMS.filter(r => r.id !== "caf").map(r => { const x = r.x + r.w - 50, y = r.y + r.h - 50, shut = v.doors && v.doors[r.id];
+          return `<g ${doorOk ? `data-x="door" data-v="${r.id}"` : ""} class="np-mdoor ${doorOk ? "" : "off"}"><rect x="${x - 34}" y="${y - 34}" width="68" height="68" rx="14" fill="${shut ? "#7FB24A" : doorOk ? "#5f5a52" : "#3D3A35"}"/><text x="${x}" y="${y + 18}" font-size="46" text-anchor="middle">🚪</text></g>`; }).join("") : "";
+      const cd = v.imp && (scd > 0 || dcd > 0) ? `<div class="np-mcd">${scd > 0 ? `⚡ <span data-cd="sabCd"></span>` : ""} ${dcd > 0 ? `🚪 <span data-cd="doorCd"></span>` : ""}</div>` : "";
+      return `<div class="np-map np-mapx"><button class="np-x np-mclose" data-x="map">×</button>${cd}<svg viewBox="0 0 ${W} ${H}" style="width:${mw}px!important;height:${mh}px!important;max-height:none!important;max-width:none!important;margin:0!important">${AREAS.map(a => `<rect x="${a.x}" y="${a.y}" width="${a.w}" height="${a.h}" fill="#3D3A35" stroke="#211F1C" stroke-width="10"/>`).join("")}
+        ${ROOMS.map(r => `<text x="${r.x + r.w / 2}" y="${r.y + 70}" fill="#BAB5AC" font-size="44" font-weight="800" text-anchor="middle" font-family="Figtree,sans-serif">${esc(RN(r))}</text>`).join("")}
         ${mine.map(t => `<circle cx="${t.x}" cy="${t.y}" r="26" fill="#E9B64A"/>`).join("")}${Object.keys(FIX).filter(k => needFix(v.sab, k)).map(k => `<circle cx="${FIX[k].x}" cy="${FIX[k].y}" r="34" fill="#E2523E"/>`).join("")}${v.ev ? v.ev.pads.map(pd => `<circle cx="${pd.x}" cy="${pd.y}" r="30" fill="#5AD1E0"/>`).join("") : ""}
-        <circle cx="${this.me.x}" cy="${this.me.y}" r="34" fill="#8FC458" stroke="#fff" stroke-width="8"/></svg><div class="np-mside">
-        ${v.imp ? `<div class="np-k" style="margin-top:2px">⚡ ${T("Sabotage", "Sabotage")}${this.left("sabCd") > 0 ? ` · <span data-cd="sabCd"></span>` : ""}</div><div class="np-sab">${[["lights", "💡", T("Lights", "Licht")], ["comms", "📡", T("Comms", "Funk")], ["reactor", "☢️", T("Reactor", "Reaktor")], ["o2", "🫁", T("Oxygen", "Sauerstoff")]].map(([k, e, l]) => `<button class="btn sm ${this.left("sabCd") > 0 || v.sab ? "" : "go"}" data-x="sab" data-v="${k}" ${this.left("sabCd") > 0 || v.sab ? "disabled" : ""}>${e} ${l}</button>`).join("")}</div>` : ""}
-        ${v.imp ? `<div class="np-k" style="margin-top:4px">🚪 ${T("Close doors", "Türen schließen")}${this.left("doorCd") > 0 ? ` · <span data-cd="doorCd"></span>` : ""}</div><div class="np-doors">${ROOMS.filter(r => r.id !== "caf").map(r => `<button class="btn sm ${v.doors && v.doors[r.id] ? "go" : ""}" data-x="door" data-v="${r.id}" ${this.left("doorCd") > 0 ? "disabled" : ""}>${esc(RN(r))}</button>`).join("")}</div>` : ""}
-        <button class="btn ghost" data-x="map">${T("Close", "Schließen")}</button></div></div>`; },
+        ${imp}<circle cx="${this.me.x}" cy="${this.me.y}" r="34" fill="#8FC458" stroke="#fff" stroke-width="8"/></svg></div>`; },
     /* ---- cameras (Comms) and the admin table (Bridge) ---- */
     openCams(){
       this.closeMini(); const box = this.el.querySelector(".np-mini"), me = {stop: null, light: 1}; this.mini = me; this.joy = null; box.classList.add("on");
@@ -818,6 +824,10 @@ html.np-on .tabbar,html.np-on .pg-pill{display:none!important}
 .np-act.on{opacity:1}
 .pg-np-hero{display:block;padding:22px 18px;border-radius:14px;margin-top:8px;min-height:0!important;text-align:left}.pg-np-hero .pg-np-ship{font-size:56px}.np-act.main.on{background:var(--go);box-shadow:inset 0 -5px 0 var(--go-deep)}.np-act.kill.on{background:var(--bad);box-shadow:inset 0 -5px 0 #a8382a}.np-act.rep.on{background:#E9B64A;color:#2A1E05}
 .np-act:active{transform:scale(.94)}
+.np .np-ov .np-map.np-mapx{display:block!important;position:relative;width:fit-content;height:fit-content;max-width:none;max-height:none;padding:8px;overflow:visible;border-radius:14px}
+.np-mapx svg{display:block;border-radius:10px}.np-mapx [data-x]{cursor:pointer}.np-mapx g.off{opacity:.45}
+.np-mclose{position:absolute;right:-10px;top:-10px;z-index:2;width:36px;height:36px}
+.np-mcd{position:absolute;left:14px;top:14px;z-index:2;background:rgba(20,19,17,.85);border-radius:999px;padding:3px 10px;font:800 12px var(--mono);color:var(--fg)}
 .np-tbar{position:absolute;left:0;right:0;top:0;height:6px;background:rgba(255,255,255,.08);z-index:9;display:none;pointer-events:none}.np-tbar.on{display:block}
 .np-tbar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--go),#E9B64A);transition:width .26s linear;box-shadow:0 0 10px rgba(143,196,88,.6)}
 .np-tbar span{position:absolute;top:10px;left:50%;transform:translateX(-50%);white-space:nowrap;background:rgba(20,19,17,.85);border-radius:999px;padding:3px 12px;font:800 12px var(--body);color:var(--fg);letter-spacing:.02em}
