@@ -247,7 +247,7 @@
     tick(G, api){ const s = G.s; let ch = false; if (s.bots && s.bots.length && s.phase !== "end") BOT.run(G, api); if (s.phase === "end") BOT.stop();
       if (s.phase === "end"){ if (!s.endAt){ s.endAt = now(); ch = true; } if (!G.solo && now() >= s.endAt + END_MS){ s.toLobby = 1; ch = true; } }
       if (s.phase === "play" && s.sab && CRIT[s.sab.type] && now() >= s.sab.until){ s.phase = "end"; s.win = s.sab.type === "o2" ? "o2" : "boom"; s.sab = null; G.sk++; s.snd = {k: "s" + G.sk, n: "lose"}; ch = true; }
-      if (s.arena){ const mg = s.meet && s.meet.mg; if (mg && !mg.done){ if (PG.arena.hostTick(G)) ch = true; } else if (mg && now() >= mg.done + PG.arena.NEXT){ this.arenaRound(G); ch = true; } return true; }
+      if (s.arena){ const mg = s.meet && s.meet.mg; if (mg && !mg.done){ if (PG.arena.hostTick(G)) ch = true; } else if (mg && now() >= mg.done + PG.arena.NEXT){ this.arenaRound(G); ch = true; } return ch; }
       if (s.phase === "meet" && s.meet.mg && !s.meet.mg.done && s.meet.mg.g === "arena"){ if (PG.arena && PG.arena.hostTick(G)) ch = true; }
       else if (s.phase === "meet" && s.meet.mg && !s.meet.mg.done){ const mg = s.meet.mg;
         if (mg.g === "song" && !mg.song && now() > mg.t0 + SPIN - 300){ s.meet.until -= DUELS.song.d - DUELS.tap.d; mg.g = "tap"; mg.end = mg.t0 + SPIN + DUELS.tap.d; ch = true; }
@@ -489,7 +489,7 @@
     onPad(pd){ return this.pl().some(p => { const q = p.id === PNet.me ? this.me : POS[p.id]; if (!q || q.g || q.v || (this.v.deadList || []).includes(p.id)) return false; return dist({x: q.dx != null ? q.dx : q.x, y: q.dy != null ? q.dy : q.y}, pd) < 52; }); },
     step(dt){
       const v = this.v; if (!v) return;
-      if (PG.arena && PG.arena.client.active()){ PG.arena.client.step(dt); if (now() - (this.hudT || 0) > 900){ this.hudT = now(); this.hud(); } return; }
+      if (PG.arena && PG.arena.client.active()){ PG.arena.client.step(dt); if (now() - (this.hudT || 0) > 2000){ this.hudT = now(); this.hud(); } return; }
       if (PG.arena && v.phase === "play") PG.arena.fx.step(this, POS);
       let ix = 0, iy = 0;
       if ((v.phase === "play" || v.phase === "lobby") && (!this.mini || this.mini.walk) && !this.vent && !this.intro() && !this.panel){
@@ -618,6 +618,8 @@
       el.classList.toggle("mapon", !!this.mapOpen && v.phase === "play"); el.querySelector(".np-ov").classList.toggle("pass", !!this.mapOpen && v.phase === "play");
       { const mb2 = el.querySelector(".np-mic"); mb2.hidden = !this.vWant; const st = !PVoice.on ? "off" : PVoice.muted ? "muted" : PVoice.mic ? (PVoice.talking(PNet.me) ? "talk" : "live") : "quiet";
         const ic = st === "off" ? "🎙️" : st === "muted" || st === "quiet" ? "🔇" : "🎙️"; if (mb2.dataset.st !== st){ mb2.dataset.st = st; mb2.textContent = ic; } }
+      /* during a fight the arena draws its own buttons: nothing else to update here */
+      if (PG.arena && PG.arena.client.on){ const mg = v.meet && v.meet.mg; if (mg && mg.done && (!this.duelDone || this.duelDone.s !== mg.seed)) this.duelDone = {s: mg.seed, t: now()}; return; }
       el.classList.toggle("ghost", !v.alive); el.classList.toggle("imp", v.imp); el.classList.toggle("lob", v.phase === "lobby");
       const lb = el.querySelector(".np-lob"), lbH = v.phase === "lobby" ? `<div class="np-lobc">${v.lob.arena ? `<em class="np-lobm">⭐ Nat Stars</em>` : ""}<b>${esc(v.lob.code.toUpperCase())}</b><span>${v.lob.n}${v.lob.fill ? ` + ${v.lob.fill} 🤖` : ""} / 15</span></div>
         <button class="np-lb" data-x="invite">📨<span>${T("Invite", "Einladen")}</span></button><button class="np-lb" data-x="look">👕<span>${T("Outfit", "Outfit")}</span></button><button class="np-lb" data-x="settings">⚙️<span>${T("Options", "Optionen")}</span></button>${this.vWant ? `<button class="np-lb np-vlb ${PVoice.on ? (PVoice.muted ? "muted" : "live") : ""}" data-x="mic">${PVoice.on ? (PVoice.muted ? "🔇" : "🎙️") : "🎙️"}<span>${T("Voice", "Talk")}</span>${PVoice.on ? `<i class="np-cnt">${PVoice.peers().length + 1}</i>` : ""}</button>` : ""}<button class="np-lb" data-x="leave">🚪<span>${T("Leave", "Raus")}</span></button><button class="np-lb np-rdy" data-x="ready">✋<span>${T("Ready", "Bereit")}</span><i class="np-cnt"></i></button>
