@@ -189,7 +189,7 @@
 
   /* ---------------- the host's game ---------------- */
   PG.online.natposter = {min: 4, max: 15, note: ["Like the space classic: crew does tasks, the Natposter kills in secret. Everyone walks around on their own phone.", "Wie der Weltraum-Klassiker: Die Crew löst Aufgaben, der Natposter tötet heimlich. Jeder läuft auf seinem eigenen Handy herum."],
-    opts: [{k: "role", solo: true, l: ["Your role", "Deine Rolle"], d: "rnd", c: [["rnd", ["Random", "Zufall"]], ["crew", "Crew"], ["imp", "Natposter"], ["eng", ["🔧 Engineer", "🔧 Ingenieur"]], ["sci", ["🧪 Scientist", "🧪 Wissenschaftler"]], ["sher", "🤠 Sheriff"], ["jest", ["🃏 Jester", "🃏 Narr"]]]},
+    opts: [{k: "mode", online: true, l: ["Mode", "Modus"], d: "np", c: [["np", ["🚀 Natposter", "🚀 Natposter"]], ["arena", ["⭐ Nat Stars", "⭐ Nat Stars"]]]}, {k: "role", solo: true, l: ["Your role", "Deine Rolle"], d: "rnd", c: [["rnd", ["Random", "Zufall"]], ["crew", "Crew"], ["imp", "Natposter"], ["eng", ["🔧 Engineer", "🔧 Ingenieur"]], ["sci", ["🧪 Scientist", "🧪 Wissenschaftler"]], ["sher", "🤠 Sheriff"], ["jest", ["🃏 Jester", "🃏 Narr"]]]},
       {k: "bots", solo: true, l: ["Bots", "Bots"], d: 5, c: [[3, "3"], [5, "5"], [7, "7"]]},
       {k: "fill", online: true, l: ["Fill up with bots", "Mit Bots auffüllen"], d: 0, c: [[0, ["No", "Nein"]], [2, "+2"], [4, "+4"], [6, "+6"]]},
       {k: "imps", l: ["Natposters", "Natposter"], d: "auto", c: [["auto", "Auto"], [1, "1"], [2, "2"], [3, "3"]]},
@@ -203,6 +203,11 @@
       {k: "duel", l: ["Minigame at every meeting (the winner gets a bonus)", "Minispiel bei jedem Meeting (der Sieger bekommt einen Bonus)"], d: 1, c: [[1, ["Mix", "Mix"]], [2, ["⚔️ Arena", "⚔️ Arena"]], [0, ["Off", "Aus"]]]},
       {k: "conf", l: ["Reveal ejected role", "Rolle beim Rauswurf zeigen"], d: 1, c: [[1, ["Yes", "Ja"]], [0, ["No", "Nein"]]]}],
     extra(o, solo){ return solo ? +o.bots || 0 : +o.fill || 0; },
+    minFor(o){ return o && o.mode === "arena" ? 2 : 4; },
+    /* the arena-only mode: round after round of fights, no roles, no tasks */
+    arenaRound(G){ const s = G.s; s.phase = "meet"; s.arRound = (s.arRound || 0) + 1; G.ids.forEach(id => { if (!(s.gone || {})[id]) s.alive[id] = true; });
+      s.meet = {by: null, body: null, until: now() + 3600e3, votes: {}, start: now(), arena: 1};
+      const mg = s.meet.mg = {g: "arena", seed: Math.floor(Math.random() * 1e9), t0: now() - SPIN + 700, sc: {}, at: {}}; PG.arena.hostInit(G, mg); },
     start(G){
       BOT.stop(); G.ids = G.ids.filter(x => !/^bot-/.test(x));
       const bots = (typeof BOTS !== "undefined" ? PG.shuffle(BOTS.slice(0, 20)) : []).slice(0, G.solo ? +G.opts.bots || 0 : +G.opts.fill || 0).map((b, i) => ({id: "bot-" + i, name: b.name, av: (() => { try { return botCfg(b); } catch(e) { return null; } })()}));
@@ -219,11 +224,12 @@
       s.role = {}; s.shot = {}; if (+(o.roles == null ? 1 : o.roles) !== 0 && n >= 5){ const pool = PG.shuffle(G.ids.filter(x => !imps.includes(x))), want = ["eng", "sci"].concat(n >= 6 ? ["sher"] : [], n >= 7 ? ["jest"] : []); want.forEach((r, i) => { if (pool[i]) s.role[pool[i]] = r; }); }
       if (G.solo && ROLES[o.role]){ Object.keys(s.role).forEach(x => { if (s.role[x] === o.role || x === host) delete s.role[x]; }); s.role[host] = o.role; }
       s.intro = now() + 3500 + COVER; s.snd = {k: "s" + (++G.sk), n: "reveal"};
+      if (o.mode === "arena" && PG.arena){ s.arena = 1; s.imps = []; s.role = {}; s.intro = 0; s.dw = {}; s.arK = {}; this.arenaRound(G); }
     },
     crewIds(G){ return G.ids.filter(id => !G.s.imps.includes(id) && (G.s.role || {})[id] !== "jest" && !(G.s.gone || {})[id]); },
     gone(G, id){ const s = G.s; if (!s || !s.alive || !G.ids.includes(id) || (s.gone || {})[id]) return; s.gone = s.gone || {}; s.gone[id] = 1; if (s.phase === "end") return; s.alive[id] = false; if (s.meet) delete s.meet.votes[id]; this.win(G); },
     prog(G){ const s = G.s, c = this.crewIds(G); let tot = 0, d = 0; c.forEach(id => { tot += s.tasks[id].length; d += s.tasks[id].filter(t => s.done[id][t]).length; }); return {tot, d}; },
-    win(G){ const s = G.s; if (s.phase === "end") return true;
+    win(G){ const s = G.s; if (s.arena) return false; if (s.phase === "end") return true;
       const A = G.ids.filter(id => s.alive[id]), I = A.filter(id => s.imps.includes(id)).length, C = A.length - I, p = this.prog(G);
       let w = null; if (I === 0) w = "crew"; else if (p.tot && p.d >= p.tot) w = "tasks"; else if (I >= C) w = "imp";
       if (!w) return false; s.phase = "end"; s.win = w; s.sab = null; G.sk++; s.snd = {k: "s" + G.sk, n: w === "imp" ? "lose" : "cheer"}; return true; },
@@ -241,6 +247,7 @@
     tick(G, api){ const s = G.s; let ch = false; if (s.bots && s.bots.length && s.phase !== "end") BOT.run(G, api); if (s.phase === "end") BOT.stop();
       if (s.phase === "end"){ if (!s.endAt){ s.endAt = now(); ch = true; } if (!G.solo && now() >= s.endAt + END_MS){ s.toLobby = 1; ch = true; } }
       if (s.phase === "play" && s.sab && CRIT[s.sab.type] && now() >= s.sab.until){ s.phase = "end"; s.win = s.sab.type === "o2" ? "o2" : "boom"; s.sab = null; G.sk++; s.snd = {k: "s" + G.sk, n: "lose"}; ch = true; }
+      if (s.arena){ const mg = s.meet && s.meet.mg; if (mg && !mg.done){ if (PG.arena.hostTick(G)) ch = true; } else if (mg && now() >= mg.done + PG.arena.NEXT){ this.arenaRound(G); ch = true; } return true; }
       if (s.phase === "meet" && s.meet.mg && !s.meet.mg.done && s.meet.mg.g === "arena"){ if (PG.arena && PG.arena.hostTick(G)) ch = true; }
       else if (s.phase === "meet" && s.meet.mg && !s.meet.mg.done){ const mg = s.meet.mg;
         if (mg.g === "song" && !mg.song && now() > mg.t0 + SPIN - 300){ s.meet.until -= DUELS.song.d - DUELS.tap.d; mg.g = "tap"; mg.end = mg.t0 + SPIN + DUELS.tap.d; ch = true; }
@@ -260,7 +267,7 @@
       return ch || s.phase === "meet" || s.phase === "eject" || (s.phase === "play" && (!!s.sab || now() < s.intro || (s.doors && Object.keys(s.doors).length > 0))); },
     act(G, id, a, api){ const s = G.s, me = POS[id] || {x: 0, y: 0}, alive = s.alive[id], imp = s.imps.includes(id);
       if (a.a === "again" && id === G.host && s.phase === "end"){ this.start(G); return; }
-      if (a.a === "tolobby" && s.phase === "end"){ s.toLobby = 1; return; }
+      if (a.a === "tolobby" && (s.phase === "end" || (s.arena && id === G.host))){ s.toLobby = 1; return; }
       if (s.phase === "meet" && PG.arena && /^ar/.test(a.a || "") && PG.arena.hostAct(G, id, a)) return;
       if (s.phase === "meet" && a.a === "say" && alive && typeof a.v === "string" && a.v.length < 40){ const M = s.meet, [pk, x0] = a.v.split("|"), x = x0 || ""; if (!SAY[pk]) return;
         M.chat = M.chat || []; M.cnt = M.cnt || {}; M.last = M.last || {}; if ((M.cnt[id] || 0) >= 14 || now() - (M.last[id] || 0) < 1100) return;
@@ -310,7 +317,7 @@
         ev: s.ev ? {id: s.ev.id, room: s.ev.room, de: s.ev.de, en: s.ev.en, pads: s.ev.pads, occ: s.ev.occ, left: Math.max(0, s.ev.until - now()), hold: s.ev.hold ? now() - s.ev.hold : 0} : null, evRes: s.evRes || null, dbl: s.dbl && now() - (s.dbl.at || 0) < 2500 ? s.dbl : null,
         doors: s.doors ? Object.fromEntries(Object.entries(s.doors).filter(([k, t]) => t > now()).map(([k, t]) => [k, t - now()])) : {}, doorCd: imp ? Math.max(0, (s.doorAt || 0) - now()) : 0,
         held: s.sab && s.sab.h ? {ra: !!(s.sab.h.ra && s.sab.h.ra.until > now()), rb: !!(s.sab.h.rb && s.sab.h.rb.until > now())} : null, two: G.ids.filter(x => s.alive[x]).length >= 5,
-        bots: s.bots || [], deadList: G.ids.filter(x => !s.alive[x]), killedBy: s.killed && s.killed[id] ? s.killed[id] : null,
+        bots: s.bots || [], deadList: G.ids.filter(x => !s.alive[x]), killedBy: s.killed && s.killed[id] ? s.killed[id] : null, arena: !!s.arena, arWins: s.arena ? s.dw || {} : null, arK: s.arena ? s.arK || {} : null, arRound: s.arRound || 0,
         chain: imp ? Math.max(0, (s.chain || 0) - now()) : 0, track: s.track && s.track.id === id && s.track.until > now() ? {ids: s.imps.filter(x => s.alive[x]), left: s.track.until - now()} : null, knife: !!(s.knife || {})[id], flame: !!(s.flame || {})[id], invis: s.invis && s.invis.until > now() ? {id: s.invis.id, left: s.invis.until - now()} : null, mute: !!(s.mute || {})[id],
         win: s.phase === "end" ? s.win : null, endLobby: s.phase === "end" && s.endAt ? Math.max(0, s.endAt + END_MS - now()) : 0, imps: s.phase === "end" ? s.imps : null,
         jw: s.jw || null, stats: s.phase === "end" ? G.ids.map(x => ({id: x, gone: !!(s.gone || {})[x], role: (s.role || {})[x] || null, imp: s.imps.includes(x), alive: !!s.alive[x], k: s.log.filter(l => l[1] === x).length, by: s.killed && s.killed[x] ? s.killed[x].by : null, t: s.imps.includes(x) ? 0 : s.tasks[x].filter(t => s.done[x][t]).length, tt: s.imps.includes(x) ? 0 : s.tasks[x].length, w: (s.dw || {})[x] || 0})) : null, spawn: s.spawn && s.spawn[id] ? Object.assign({k: s.spawnK}, s.spawn[id]) : null, host: id === G.host,
@@ -482,7 +489,7 @@
     onPad(pd){ return this.pl().some(p => { const q = p.id === PNet.me ? this.me : POS[p.id]; if (!q || q.g || q.v || (this.v.deadList || []).includes(p.id)) return false; return dist({x: q.dx != null ? q.dx : q.x, y: q.dy != null ? q.dy : q.y}, pd) < 52; }); },
     step(dt){
       const v = this.v; if (!v) return;
-      if (PG.arena && PG.arena.client.active()){ PG.arena.client.step(dt); if (now() - (this.hudT || 0) > 250){ this.hudT = now(); this.hud(); } return; }
+      if (PG.arena && PG.arena.client.active()){ PG.arena.client.step(dt); if (now() - (this.hudT || 0) > 900){ this.hudT = now(); this.hud(); } return; }
       if (PG.arena && v.phase === "play") PG.arena.fx.step(this, POS);
       let ix = 0, iy = 0;
       if ((v.phase === "play" || v.phase === "lobby") && (!this.mini || this.mini.walk) && !this.vent && !this.intro() && !this.panel){
@@ -612,7 +619,7 @@
       { const mb2 = el.querySelector(".np-mic"); mb2.hidden = !this.vWant; const st = !PVoice.on ? "off" : PVoice.muted ? "muted" : PVoice.mic ? (PVoice.talking(PNet.me) ? "talk" : "live") : "quiet";
         const ic = st === "off" ? "🎙️" : st === "muted" || st === "quiet" ? "🔇" : "🎙️"; if (mb2.dataset.st !== st){ mb2.dataset.st = st; mb2.textContent = ic; } }
       el.classList.toggle("ghost", !v.alive); el.classList.toggle("imp", v.imp); el.classList.toggle("lob", v.phase === "lobby");
-      const lb = el.querySelector(".np-lob"), lbH = v.phase === "lobby" ? `<div class="np-lobc"><b>${esc(v.lob.code.toUpperCase())}</b><span>${v.lob.n}${v.lob.fill ? ` + ${v.lob.fill} 🤖` : ""} / 15</span></div>
+      const lb = el.querySelector(".np-lob"), lbH = v.phase === "lobby" ? `<div class="np-lobc">${v.lob.arena ? `<em class="np-lobm">⭐ Nat Stars</em>` : ""}<b>${esc(v.lob.code.toUpperCase())}</b><span>${v.lob.n}${v.lob.fill ? ` + ${v.lob.fill} 🤖` : ""} / 15</span></div>
         <button class="np-lb" data-x="invite">📨<span>${T("Invite", "Einladen")}</span></button><button class="np-lb" data-x="look">👕<span>${T("Outfit", "Outfit")}</span></button><button class="np-lb" data-x="settings">⚙️<span>${T("Options", "Optionen")}</span></button>${this.vWant ? `<button class="np-lb np-vlb ${PVoice.on ? (PVoice.muted ? "muted" : "live") : ""}" data-x="mic">${PVoice.on ? (PVoice.muted ? "🔇" : "🎙️") : "🎙️"}<span>${T("Voice", "Talk")}</span>${PVoice.on ? `<i class="np-cnt">${PVoice.peers().length + 1}</i>` : ""}</button>` : ""}<button class="np-lb" data-x="leave">🚪<span>${T("Leave", "Raus")}</span></button><button class="np-lb np-rdy" data-x="ready">✋<span>${T("Ready", "Bereit")}</span><i class="np-cnt"></i></button>
         ${v.host ? `<button class="np-lb go" data-x="start" ${v.lob.n + (v.lob.fill || 0) < v.lob.min ? "disabled" : ""}>▶<span>${T("Start", "Start")}</span>${v.lob.n + (v.lob.fill || 0) < v.lob.min ? `<i class="np-cnt">${v.lob.n + (v.lob.fill || 0)}/${v.lob.min}</i>` : ""}</button>` : `<button class="np-lb np-wait" disabled>⏳<span>${T("Host", "Host")}</span></button>`}` : "";
       if (lb._h !== lbH && !(this.quitN && now() - (this.quitT || 0) < 2500)){ lb._h = lbH; lb.innerHTML = lbH; }
@@ -1118,7 +1125,7 @@
     }
   };
   NP.kd = NP.ku = NP.rs = () => {};
-  PG.npx = {ROOMS, HALLS, AREAS, OBST, OBR, RAD, rdist, NP, POS, DUELS, SPIN, RES, LOC, STARS, W, H};
+  PG.npx = {ROOMS, HALLS, AREAS, OBST, OBR, RAD, rdist, NP, POS, DUELS, SPIN, RES, LOC, STARS, W, H, avImg};
   window.__npTo = p => { NP.me.x = p.x; NP.me.y = p.y; NP.send(true); }; window.__npMe = () => ({x: Math.round(NP.me.x), y: Math.round(NP.me.y)});
   window.__npToId = id => { const q = POS[id]; if (q) window.__npTo({x: q.x + 30, y: q.y}); };
   window.__npDbg = () => ({mini: !!NP.mini, vent: !!NP.vent, intro: NP.intro(), panel: NP.panel, joy: NP.joy, ph: NP.v && NP.v.phase});
@@ -1386,7 +1393,7 @@ html.np-on .xpchip{z-index:2950!important}
 .np-ov.on{display:flex}
 .np-lob{position:absolute;left:calc(50% + (var(--sl,0px) - var(--sr,0px)) / 2);transform:translateX(-50%);width:max-content;max-width:calc(100% - var(--sl,0px) - var(--sr,0px) - 20px);top:calc(var(--st,0px) + 10px);display:none;gap:6px;align-items:stretch;background:rgba(33,31,28,.88);border-radius:14px;padding:8px;box-shadow:0 8px 20px rgba(0,0,0,.45)}
 .np.lob .np-lob{display:flex}.np.lob .np-top,.np.lob .np-tasks,.np.lob .np-btns{display:none}
-.np-lobc{display:flex;flex-direction:column;align-items:center;padding:0 8px;line-height:1.1}.np-lobc b{font:900 20px var(--mono);letter-spacing:.12em}.np-lobc span{font:800 11px var(--body);color:var(--muted)}
+.np-lobc{display:flex;flex-direction:column;align-items:center;padding:0 8px;line-height:1.1}.np-lobc b{font:900 20px var(--mono);letter-spacing:.12em}.np-lobc span{font:800 11px var(--body);color:var(--muted)}.np-lobm{font:900 11px var(--body);font-style:normal;color:#2a1d05;background:#E9A92B;border-radius:6px;padding:1px 6px;margin-bottom:2px;white-space:nowrap}
 .np-lb{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;border-radius:10px;background:var(--panel-3);color:var(--fg);padding:0 4px;width:84px;flex:0 1 84px;min-width:0;height:56px;font-size:20px;line-height:1;cursor:pointer;box-shadow:inset 0 -3px 0 rgba(0,0,0,.3)}
 .np-lb span{display:block;max-width:100%;font-size:10px!important;letter-spacing:.02em!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .np-lb{container-type:inline-size}@container (max-width:62px){.np-lb span{font-size:8.5px!important;letter-spacing:0!important}}
@@ -1487,7 +1494,17 @@ html.np-on .xpchip{z-index:2950!important}
         <div class="np-rules"><div><span>🧑‍🚀</span><b>Crew</b><small>${T("Do tasks, throw out the Natposter", "Aufgaben lösen, Natposter rauswerfen")}</small></div><div><span>🔪</span><b>Natposter</b><small>${T("Kill in secret, vent, sabotage", "Heimlich töten, Schächte, Sabotage")}</small></div><div><span>🚨</span><b>Meeting</b><small>${T("Report, talk, vote", "Melden, reden, abstimmen")}</small></div></div>
         <div class="pg-who" style="text-align:left;margin:14px 0 6px">${T("Your role when practising", "Deine Rolle beim Üben")}</div><div class="pg-opt np-rolepick">${[["rnd", "🎲"], ["crew", "🧑‍🚀"], ["imp", "🔪"], ["eng", "🔧"], ["sci", "🧪"], ["sher", "🤠"], ["jest", "🃏"]].map(([k, e]) => `<button class="btn sm ${((PG.st.soloOpts || {}).natposter || {}).role === k || (!((PG.st.soloOpts || {}).natposter || {}).role && k === "rnd") ? "go" : ""}" data-role="${k}">${e} ${k === "rnd" ? T("Random", "Zufall") : k === "crew" ? "Crew" : k === "imp" ? "Natposter" : esc(T(ROLES[k].en, ROLES[k].de))}</button>`).join("")}</div>`;
       ctx.body.querySelectorAll("[data-role]").forEach(b => b.onclick = () => { PG.st.soloOpts = PG.st.soloOpts || {}; PG.st.soloOpts.natposter = Object.assign({}, PG.st.soloOpts.natposter || {}, {role: b.dataset.role}); PG.persist(); ctx.body.querySelectorAll("[data-role]").forEach(x => x.classList.toggle("go", x === b)); });
-      ctx.body.querySelector('[data-np="solo"]').onclick = () => App.go("lobby", {practice: "natposter", opts: {bots: 5}});
-      ctx.body.querySelector('[data-np="friends"]').onclick = () => App.go("lobby", PNet.P && PNet.P.isHost && !PNet.P.solo ? undefined : {host: true, game: "natposter"});
+      ctx.body.querySelector('[data-np="solo"]').onclick = () => App.go("lobby", {practice: "natposter", opts: {bots: 5, mode: "np"}});
+      ctx.body.querySelector('[data-np="friends"]').onclick = () => { if (PNet.P && PNet.P.isHost && !PNet.P.solo && PNet.P.game === "natposter"){ PNet.setOpt("mode", "np"); App.go("lobby"); } else App.go("lobby", {host: true, game: "natposter", opts: {mode: "np"}}); };
+    }});
+  /* Nat Stars: the arena on its own, a Brawl-Stars-style fight, round after round */
+  PG.add({id: "arena", icon: "swords", name: ["Nat Stars", "Nat Stars"], tag: ["New", "Neu", "bad"], sub: ["Like Brawl Stars: shoot, hide in the fog, win.", "Wie Brawl Stars: ballern, im Nebel verstecken, gewinnen."], meta: ["1–15 players · bots fill up", "1–15 Spieler · Bots füllen auf"],
+    mount(ctx){
+      ctx.body.innerHTML = `<div class="pg-np pg-np-hero ar-hero"><span class="pg-np-stars"></span><span class="pg-np-ship">⭐</span><h1 class="h-title" style="position:relative;color:#fff">Nat Stars</h1><p style="position:relative">${T("Run, hide in the fog, shoot. Charge your super. Last one standing wins.", "Laufen, im Nebel verstecken, schießen. Super aufladen. Wer übrig bleibt, gewinnt.")}</p></div>
+        <div class="tiles" style="margin-top:12px"><button class="tile" data-ar="solo" style="border:1px solid var(--go)"><span class="pg-art" style="background:#E2523E">🤖</span><h3>${T("Against bots", "Gegen Bots")}</h3><p>${T("Starts right away.", "Geht sofort los.")}</p></button>
+          <button class="tile" data-ar="friends"><span class="pg-art" style="background:var(--go)">📱</span><h3>${T("With friends", "Mit Freunden")}</h3><p>${T("Everyone on their own phone.", "Jeder am eigenen Handy.")}</p></button></div>
+        <div class="np-rules">${["shot", "rock", "melee", "fire", "snipe"].map(k => { const c = PG.arena.CLS[k]; return `<div><span>${c.e}</span><b>${esc(T(c.en, c.de))}</b><small>${esc(T(c.sen, c.sde))} · ${c.su.e} ${esc(T(c.su.en, c.su.de))}</small></div>`; }).join("")}</div>`;
+      ctx.body.querySelector('[data-ar="solo"]').onclick = () => App.go("lobby", {practice: "natposter", opts: {bots: 5, mode: "arena", role: "crew"}});
+      ctx.body.querySelector('[data-ar="friends"]').onclick = () => { if (PNet.P && PNet.P.isHost && !PNet.P.solo && PNet.P.game === "natposter"){ PNet.setOpt("mode", "arena"); App.go("lobby"); } else App.go("lobby", {host: true, game: "natposter", opts: {mode: "arena"}}); };
     }});
 })();
