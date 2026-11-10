@@ -75,7 +75,7 @@
   /* positions of everyone, fed by "mv" messages and by this phone's own movement */
   const POS = {};
   PG.onMv = m => { if (m && m.t === "mvb" && Array.isArray(m.l)){ m.l.forEach(([id, x, y, f, g, mv, sc]) => PG.onMv({id, x, y, f, g, m: mv, sc})); return; } if (!m || !m.id) return; const p = POS[m.id] || (POS[m.id] = {x: m.x, y: m.y, dx: m.x, dy: m.y}); const x = +m.x || 0, y = +m.y || 0, t = now(); p.buf = p.buf || []; const last = p.buf[p.buf.length - 1]; if (last && Math.hypot(last.x - x, last.y - y) > 320) p.buf = []; p.buf.push({t, x, y}); if (p.buf.length > 8) p.buf.shift();
-    p.x = x; p.y = y; p.g = !!m.g; p.v = !!m.v; p.f = m.f || 1; p.t = t; p.mv = !!m.m; p.sc = !!m.sc; };
+    if (!!m.v !== !!p.v) p.vt = t; p.x = x; p.y = y; p.g = !!m.g; p.v = !!m.v; p.f = m.f || 1; p.t = t; p.mv = !!m.m; p.sc = !!m.sc; };
 
   /* ---------------- practice bots: the app's chess bots, run by the host's phone ---------------- */
   const BOT = {G: null, id: 0, last: 0, mem: {},
@@ -134,9 +134,9 @@
       {k: "bots", solo: true, l: ["Bots", "Bots"], d: 5, c: [[3, "3"], [5, "5"], [7, "7"]]},
       {k: "fill", online: true, l: ["Fill up with bots", "Mit Bots auffüllen"], d: 0, c: [[0, ["No", "Nein"]], [2, "+2"], [4, "+4"], [6, "+6"]]},
       {k: "imps", l: ["Natposters", "Natposter"], d: "auto", c: [["auto", "Auto"], [1, "1"], [2, "2"], [3, "3"]]},
-      {k: "cd", l: ["Kill cooldown", "Kill-Abklingzeit"], d: 30, c: [[20, "20 s"], [30, "30 s"], [45, "45 s"]]},
+      {k: "cd", l: ["Kill cooldown", "Kill-Abklingzeit"], d: 25, c: [[15, "15 s"], [25, "25 s"], [35, "35 s"]]},
       {k: "tasks", l: ["Tasks each", "Aufgaben pro Person"], d: 5, c: [[3, "3"], [5, "5"], [7, "7"]]},
-      {k: "meet", l: ["Meeting time", "Meeting-Zeit"], d: 90, c: [[60, "60 s"], [90, "90 s"], [120, "120 s"]]},
+      {k: "meet", l: ["Meeting time", "Meeting-Zeit"], d: 60, c: [[45, "45 s"], [60, "60 s"], [90, "90 s"]]},
       {k: "spd", l: ["Speed", "Tempo"], d: 1, c: [[.8, ["Slow", "Langsam"]], [1, ["Normal", "Normal"]], [1.25, ["Fast", "Schnell"]]]},
       {k: "vis", l: ["Crew vision", "Sicht der Crew"], d: 1, c: [[.75, ["Small", "Klein"]], [1, ["Normal", "Normal"]], [1.4, ["Wide", "Weit"]]]},
       {k: "conf", l: ["Reveal ejected role", "Rolle beim Rauswurf zeigen"], d: 1, c: [[1, ["Yes", "Ja"]], [0, ["No", "Nein"]]]}],
@@ -154,7 +154,7 @@
       G.ids.forEach((id, i) => { s.alive[id] = true; s.done[id] = {}; s.emer[id] = 1; s.killAt[id] = now() + 5000 + Math.max(15000, o.cd * 700);
         s.tasks[id] = PG.shuffle(TASKS.map(t => t.id)).slice(0, o.tasks); const sp = spawnAt(i, n); POS[id] = Object.assign(POS[id] || {}, sp, {g: false, v: false}); });
       s.spawn = Object.fromEntries(G.ids.map((id, i) => [id, spawnAt(i, n)]));
-      s.intro = now() + 5000; s.snd = {k: "s" + (++G.sk), n: "reveal"};
+      s.intro = now() + 3500; s.snd = {k: "s" + (++G.sk), n: "reveal"};
     },
     crewIds(G){ return G.ids.filter(id => !G.s.imps.includes(id)); },
     prog(G){ const s = G.s, c = this.crewIds(G); let tot = 0, d = 0; c.forEach(id => { tot += s.tasks[id].length; d += s.tasks[id].filter(t => s.done[id][t]).length; }); return {tot, d}; },
@@ -166,7 +166,7 @@
     tally(G){ const s = G.s, c = {}; Object.values(s.meet.votes).forEach(v => { c[v] = (c[v] || 0) + 1; });
       const top = Object.entries(c).filter(([k]) => k !== "skip").sort((a, b) => b[1] - a[1]); const skip = c.skip || 0;
       const out = top.length && top[0][1] > skip && !(top[1] && top[1][1] === top[0][1]) ? top[0][0] : null;
-      s.lastVotes = Object.assign({}, s.meet.votes); s.eject = {id: out, imp: out ? s.imps.includes(out) : false, start: now(), until: now() + 10500, left: out ? s.imps.filter(x => s.alive[x] && x !== out).length : s.imps.filter(x => s.alive[x]).length};
+      s.lastVotes = Object.assign({}, s.meet.votes); s.eject = {id: out, imp: out ? s.imps.includes(out) : false, start: now(), until: now() + 7600, left: out ? s.imps.filter(x => s.alive[x] && x !== out).length : s.imps.filter(x => s.alive[x]).length};
       if (out) s.alive[out] = false; s.phase = "eject"; s.meet = null; G.sk++; s.snd = {k: "s" + G.sk, n: "eject"}; },
     resume(G){ const s = G.s; s.bodies = []; s.spawnK++; const A = G.ids; s.spawn = Object.fromEntries(A.map((id, i) => [id, spawnAt(i, A.length)])); A.forEach(id => { Object.assign(POS[id] || (POS[id] = {}), s.spawn[id]); s.killAt[id] = now() + G.opts.cd * 1000; });
       if (s.sab && CRIT[s.sab.type]) s.sab = null; s.doors = {}; s.sabAt = Math.max(s.sabAt, now() + 10000); s.phase = "play"; if (!this.win(G)) {} },
@@ -300,7 +300,7 @@
       else if (n === "task"){ Sound.xp ? Sound.xp() : Sound.right(); } },
     mount(){
       this.stop(); const el = this.el = document.createElement("div"); el.className = "np"; el.setAttribute("data-notr", "");
-      el.innerHTML = `<canvas class="np-cv"></canvas><div class="np-top"><button class="np-menu" data-x="menu">☰</button><button class="np-menu np-quit" data-x="quit">🚪</button><div class="np-bar"><i></i><span>${T("TASKS", "AUFGABEN")}</span></div><button class="np-mapb" data-x="map">${icon("map", 20)}<span>${T("Map", "Karte")}</span></button></div>
+      el.innerHTML = `<canvas class="np-cv"></canvas><div class="np-top"><button class="np-menu np-quit" data-x="quit">🚪</button><div class="np-bar"><i></i><span>${T("TASKS", "AUFGABEN")}</span></div><button class="np-mapb" data-x="map">${icon("map", 20)}<span>${T("Map", "Karte")}</span></button></div>
         <div class="np-tasks"></div><div class="np-alert"></div><div class="np-ev"></div><div class="np-lob"></div><div class="np-tbar"><i></i><span></span></div><div class="np-joy"><i></i></div><div class="np-btns"></div><div class="np-ov"></div><div class="np-mini"></div>`;
       document.body.appendChild(el); document.documentElement.classList.add("np-on"); this.full();
       this.pop = e => { if (!this.el || document.querySelector(".dsheet:not(.out)")) return; e.stopImmediatePropagation(); try { history.pushState({r: App.route}, "", "#" + App.route); } catch(_) {} toast(T("To leave: ☰ → Leave", "Zum Verlassen: ☰ → Verlassen")); };
@@ -361,6 +361,7 @@
         if (rt >= c.t){ /* nothing newer yet: keep going a little in the same direction, then stop */ const pr = b[b.length - 2]; const k = pr && c.t - pr.t > 0 ? Math.min(rt - c.t, 150) / (c.t - pr.t) : 0; p.dx = c.x + (pr ? (c.x - pr.x) * k : 0); p.dy = c.y + (pr ? (c.y - pr.y) * k : 0); return; }
         const f = (rt - a.t) / Math.max(1, c.t - a.t); p.dx = a.x + (c.x - a.x) * f; p.dy = a.y + (c.y - a.y) * f;
         p.mv = Math.hypot(c.x - a.x, c.y - a.y) > 2; });
+      { const q0 = POS[PNet.me]; if (q0 && !!q0.v !== !!this.vent) q0.vt = now(); }
       POS[PNet.me] = Object.assign(POS[PNet.me] || {}, {x: me.x, y: me.y, dx: me.x, dy: me.y, g: this.ghost(), v: !!this.vent, f: me.f, mv: moving, sc: !!(this.mini && this.mini.g === "scan")});
       if (now() - (this.hudT || 0) > 250){ this.hudT = now(); this.hud(); }
     },
@@ -435,6 +436,7 @@
     /* ---- HUD: task bar, task list, buttons, overlays ---- */
     hud(){
       const v = this.v, el = this.el; if (!v || !el) return;
+      el.classList.toggle("mapon", !!this.mapOpen && v.phase === "play");
       el.classList.toggle("ghost", !v.alive); el.classList.toggle("imp", v.imp); el.classList.toggle("lob", v.phase === "lobby");
       const lb = el.querySelector(".np-lob"), lbH = v.phase === "lobby" ? `<div class="np-lobc"><b>${esc(v.lob.code.toUpperCase())}</b><span>${v.lob.n}${v.lob.fill ? ` + ${v.lob.fill} 🤖` : ""} / 15</span></div>
         <button class="np-lb" data-x="invite">📨<span>${T("Invite", "Einladen")}</span></button><button class="np-lb" data-x="look">👕<span>${T("Look", "Aussehen")}</span></button><button class="np-lb" data-x="settings">⚙️<span>${T("Settings", "Einstellungen")}</span></button><button class="np-lb" data-x="leave">🚪<span>${T("Leave", "Verlassen")}</span></button>
@@ -443,9 +445,9 @@
       const mb = el.querySelector(".np-mapb"), mbH = v.imp ? `<b>⚡</b><span>${this.left("sabCd") > 0 && !v.sab ? Math.ceil(this.left("sabCd") / 1000) + " s" : T("Sabotage", "Sabotage")}</span>` : `${icon("map", 20)}<span>${T("Map", "Karte")}</span>`; if (mb._h !== mbH){ mb._h = mbH; mb.innerHTML = mbH; mb.classList.toggle("imp", v.imp); }
       /* how long until something happens: a bar at the top */
       { const tb = el.querySelector(".np-tbar"); let f = -1, lab = "";
-        if (v.phase === "play" && this.intro()){ const l = this.introEnd - now(); f = l / 5000; lab = T("Get ready", "Gleich geht's los"); }
+        if (v.phase === "play" && this.intro()){ const l = this.introEnd - now(); f = l / 3500; lab = T("Get ready", "Gleich geht's los"); }
         else if (v.phase === "meet"){ const l = this.left("meet"); f = l / (v.meetTot || 90000); lab = ""; }
-        else if (v.phase === "eject" && v.eject){ const l = Math.max(0, (v.eject.tot || 10500) - (now() - (this.ejectT || now()))); f = l / (v.eject.tot || 10500); lab = T(`Back to the station in ${Math.ceil(l / 1000)} s`, `Zurück zur Station in ${Math.ceil(l / 1000)} s`); }
+        else if (v.phase === "eject" && v.eject){ const l = Math.max(0, (v.eject.tot || 7600) - (now() - (this.ejectT || now()))); f = l / (v.eject.tot || 7600); lab = T(`Back to the station in ${Math.ceil(l / 1000)} s`, `Zurück zur Station in ${Math.ceil(l / 1000)} s`); }
         tb.classList.toggle("on", f >= 0); if (f >= 0){ tb.firstChild.style.width = Math.max(0, Math.min(100, f * 100)) + "%"; if (tb.lastChild.textContent !== lab) tb.lastChild.textContent = lab; tb.lastChild.style.display = lab ? "" : "none"; } }
       /* crew event */
       { const eb = el.querySelector(".np-ev"), E = v.phase === "play" && v.alive ? v.ev : null, R = v.evRes && !this.shown["e" + v.evRes.k] && v.evRes.ok ? v.evRes : null;
@@ -485,13 +487,13 @@
       if (v.phase === "play" && v.dbl && now() - (this.dblT || 0) < 1800) h = `<div class="np-dbl">${T("DOUBLE KILL", "DOPPELKILL")}</div>`;
       if (v.phase === "play" && v.killedBy && !this.shown["k" + v.killedBy.k] && (this.deathT = this.deathT || {}) && (this.deathT[v.killedBy.k] = this.deathT[v.killedBy.k] || now()) && now() - this.deathT[v.killedBy.k] < 3200) h = this.deathHTML(v.killedBy);
       else if (v.phase === "play" && v.killedBy && !this.shown["k" + v.killedBy.k]){ h = `<div class="np-killed"><div class="np-kface">${head(v.killedBy.by)}</div><i class="np-slash"></i><i class="np-splat"></i><i class="np-drips">${[8, 19, 33, 47, 58, 71, 86].map((x, i) => `<b style="left:${x}%;--d:${.6 + (i % 3) * .25}s;--h:${30 + (i * 37) % 55}%;width:${6 + (i * 5) % 9}px"></b>`).join("")}</i><div class="np-big">${T("You were killed", "Du wurdest getötet")}</div><p>${T(`by ${nm(v.killedBy.by)}. You're a ghost now: finish your tasks.`, `von ${nm(v.killedBy.by)}. Du bist jetzt ein Geist: Mach deine Aufgaben fertig.`)}</p><button class="btn go" data-x="seen" data-v="k${v.killedBy.k}">OK</button></div>`; }
-      if (v.phase === "meet" && this.banner && now() - this.banner.t < 2400){ h = `<div class="np-banner ${v.meet.body ? "body" : ""}"><div>${v.meet.body ? "💀" : "🚨"}</div><b>${v.meet.body ? T("Dead body reported", "Leiche gefunden") : T("Emergency meeting", "Notfall-Meeting")}</b><span>${v.meet.body ? T(`${nm(v.meet.by)} found ${nm(v.meet.body)}`, `${nm(v.meet.by)} hat ${nm(v.meet.body)} gefunden`) : T(`called by ${nm(v.meet.by)}`, `einberufen von ${nm(v.meet.by)}`)}</span></div>`; }
+      if (v.phase === "meet" && this.banner && now() - this.banner.t < 1700){ h = `<div class="np-banner ${v.meet.body ? "body" : ""}"><div>${v.meet.body ? "💀" : "🚨"}</div><b>${v.meet.body ? T("Dead body reported", "Leiche gefunden") : T("Emergency meeting", "Notfall-Meeting")}</b><span>${v.meet.body ? T(`${nm(v.meet.by)} found ${nm(v.meet.body)}`, `${nm(v.meet.by)} hat ${nm(v.meet.body)} gefunden`) : T(`called by ${nm(v.meet.by)}`, `einberufen von ${nm(v.meet.by)}`)}</span></div>`; }
       else if (v.phase === "meet"){ const m = v.meet, canVote = v.alive && !m.my;
         h = `<div class="np-meet np-mt"><div class="np-ml"><div class="np-mh"><div><div class="np-k">${m.body ? "💀 " + T("Body reported", "Leiche gemeldet") : "🚨 " + T("Emergency meeting", "Notfall-Meeting")}</div><div class="np-big" style="font-size:20px;margin:2px 0 0">${m.body ? T(`${nm(m.by)} found ${nm(m.body)}`, `${nm(m.by)} hat ${nm(m.body)} gefunden`) : T(`called by ${nm(m.by)}`, `einberufen von ${nm(m.by)}`)}</div></div><div class="np-tm" data-cd="meet"></div></div>
           <div class="np-vgrid">${P.map(p => { const dead = v.deadList.includes(p.id); return `<button class="np-vote ${m.my === p.id ? "sel" : ""} ${dead ? "dead" : ""}" data-x="vote" data-v="${esc(p.id)}" ${!canVote || dead ? "disabled" : ""}><span class="np-hd">${head(p.id)}</span><b>${esc(p.name)}</b>${m.voted.includes(p.id) ? `<i>✓</i>` : ""}${dead ? `<i>✝</i>` : ""}</button>`; }).join("")}</div>
           <div class="np-mfoot"><button class="btn ${m.my === "skip" ? "go" : ""}" data-x="vote" data-v="skip" ${canVote ? "" : "disabled"}>${T("Skip vote", "Überspringen")}</button><span class="muted">${!v.alive ? T("Ghosts don't vote.", "Geister stimmen nicht ab.") : m.my ? T("Voted. Talk it out!", "Abgestimmt. Redet drüber!") : T("Talk, then vote.", "Redet, dann stimmt ab.")}</span></div></div>
           <div class="np-chat"><div class="np-log">${(m.chat || []).map(([id, pk, x], i) => `<div class="np-cm ${id === PNet.me ? "me" : ""} ${i >= (this.chatSeen || 0) ? "new" : ""}"><span class="np-hd sm">${head(id)}</span><div><b>${nm(id)}</b><span>${this.sayText(pk, x)}</span></div></div>`).join("") || `<p class="muted np-c0">${T("Say something…", "Sag was…")}</p>`}</div>${v.alive ? this.qcHTML(m) : ""}</div></div>`; }
-      if (v.phase === "eject" && now() - (this.ejectT || 0) < 4200){ const e = v.eject, by = {}; Object.entries(e.votes || {}).forEach(([a, b]) => { (by[b] = by[b] || []).push(a); });
+      if (v.phase === "eject" && now() - (this.ejectT || 0) < 2800){ const e = v.eject, by = {}; Object.entries(e.votes || {}).forEach(([a, b]) => { (by[b] = by[b] || []).push(a); });
         const row = (id, label, dead) => `<div class="np-vr ${e.id === id ? "out" : ""} ${dead ? "dead" : ""}">${id !== "skip" ? `<span class="np-hd">${head(id)}</span>` : `<span class="np-hd np-skip">⏭</span>`}<b>${label}</b><span class="np-vh">${(by[id] || []).map(x => `<span class="np-hd sm">${head(x)}</span>`).join("")}</span></div>`;
         h = `<div class="np-meet"><div class="np-k">${T("Votes", "Abstimmung")}</div><div class="np-vgrid">${P.map(p => row(p.id, esc(p.name), v.deadList.includes(p.id) && p.id !== e.id)).join("")}</div>${row("skip", T("Skipped", "Übersprungen"))}</div>`; }
       else if (v.phase === "eject"){ const e = v.eject, n0 = e.id ? this.nm(e.id) : "";
@@ -621,10 +623,11 @@
       const R0 = cam ? 99999 : !v.alive ? 99999 : v.imp ? VIS.imp : (v.sab && v.sab.type === "lights" ? VIS.dark : VIS.crew) * (v.vis || 1);
       const list = this.pl().map(p => ({p, q: p.id === PNet.me ? Object.assign({}, POS[p.id] || {}, {dx: me.x, dy: me.y}) : POS[p.id]})).filter(o => o.q && o.q.dx != null).sort((a, b) => a.q.dy - b.q.dy);
       list.forEach(({p, q}) => { const self = p.id === PNet.me, gh = q.g || (v.deadList.includes(p.id) && !v.bodies.some(b => b.id === p.id) && false);
-        if (!self){ if (q.v) return; if (q.g && (v.alive || cam)) return; if (v.alive && dist(me, {x: q.dx, y: q.dy}) > R0 + 20) return; if (now() - (q.t || 0) > 15000) return; }
-        if (self && (this.vent || (cam && q.g))) return;
+        const vk = this.ventK(q); if (vk > 0){ const vt = VENTS.find(x => dist(x, {x: q.dx, y: q.dy}) < 60); if (vt) this.lid(c, vt, vk); }
+        if (!self){ if (q.v && vk >= 1) return; if (q.g && (v.alive || cam)) return; if (v.alive && dist(me, {x: q.dx, y: q.dy}) > R0 + 20) return; if (now() - (q.t || 0) > 15000) return; }
+        if (self && ((this.vent && vk >= 1) || (cam && q.g))) return;
         if (q.mv && !q.g && !cam && Math.random() < .25) this.dust.push({x: q.dx + (Math.random() * 20 - 10), y: q.dy + 14, t: now()});
-        this.figure(c, q.dx, q.dy, p, {sc: q.sc && !q.g, ghost: q.g, f: q.f, mv: q.mv, red: v.imp && v.mates.includes(p.id) && !self, me: self && !cam}); });
+        this.figure(c, q.dx, q.dy, p, {vk: vk < 1 ? vk : 0, sc: q.sc && !q.g, ghost: q.g, f: q.f, mv: q.mv, red: v.imp && v.mates.includes(p.id) && !self, me: self && !cam}); });
       /* little dust clouds where people walk */
       if (!cam){ this.dust = this.dust.filter(p => now() - p.t < 450); this.dust.forEach(p => { const a = 1 - (now() - p.t) / 450; c.fillStyle = `rgba(186,181,172,${a * .35})`; c.beginPath(); c.arc(p.x, p.y, 4 + (1 - a) * 8, 0, 7); c.fill(); }); }
       return R0;
@@ -667,6 +670,7 @@
         c.fillStyle = "#F4E7C8"; c.fillRect(r.x + r.w / 2 - 18, r.y + 34, 36, 5); c.fillStyle = "rgba(255,236,200,.035)"; c.beginPath(); c.moveTo(r.x + r.w / 2 - 18, r.y + 39); c.lineTo(r.x + r.w / 2 + 18, r.y + 39); c.lineTo(r.x + r.w / 2 + 70, r.y + 130); c.lineTo(r.x + r.w / 2 - 70, r.y + 130); c.closePath(); c.fill();
       });
     },
+    lid(c, vt, k){ c.save(); c.translate(vt.x, vt.y - 18); c.fillStyle = "#070810"; c.fillRect(-24, 2, 48, 32); c.rotate(-Math.min(1, k * 2) * 1.2); c.fillStyle = "#4a4640"; c.fillRect(-26, -4, 52, 8); c.restore(); },
     floor(c, r){
       if (r.floor === "board"){ const n = 40; for (let y = r.y; y < r.y + r.h; y += n) for (let x = r.x; x < r.x + r.w; x += n){ c.fillStyle = ((x - r.x) / n + (y - r.y) / n) % 2 ? "#769656" : "#EEEED2"; c.globalAlpha = .55; c.fillRect(x, y, Math.min(n, r.x + r.w - x), Math.min(n, r.y + r.h - y)); } c.globalAlpha = 1; return; }
       c.fillStyle = r.floor === "plank" ? "#3a3631" : r.floor === "tile" ? "#383530" : "#34312c"; c.fillRect(r.x, r.y, r.w, r.h);
@@ -717,6 +721,11 @@
       /* the chess lounge: a big knight */
       const kn = pieceImg("wn"); if (kn.complete && kn.naturalWidth) c.drawImage(kn, 730, 740, 120, 120); const bk = pieceImg("bk"); if (bk.complete && bk.naturalWidth) c.drawImage(bk, 860, 700, 70, 70);
     },
+    faceOf(id, f){ const F = this.faces || (this.faces = {}), t = now(); let e = F[id]; if (!e){ e = F[id] = {v: f, t}; }
+      const dt = Math.min(.1, (t - e.t) / 1000); e.t = t; if (e.v !== f){ const d = f - e.v, st = dt * 12; e.v = Math.abs(d) <= st ? f : e.v + Math.sign(d) * st; }
+      const v = e.v; return Math.abs(v) < .12 ? (v < 0 ? -.12 : .12) : v; },
+    /* how far someone is into a vent: 0 = standing, 1 = gone */
+    ventK(q){ const T0 = 380, a = now() - (q.vt || 0); if (q.v) return a >= T0 ? 1 : a / T0; return a >= T0 ? 0 : 1 - a / T0; },
     figure(c, x, y, p, o){
       const im = avImg(p.id, p.av), h = 118, w = h * 200 / 256, bob = o.mv ? Math.sin(now() / 90) * 3 : 0;
       c.save(); c.translate(x, y);
@@ -739,9 +748,11 @@
       if (o.sc){ const k = (now() / 900) % 1, yy = 10 - k * (h - 10); c.fillStyle = "rgba(127,178,74,.18)"; c.beginPath(); c.ellipse(0, 14, 44, 14, 0, 0, 7); c.fill(); c.fillStyle = "rgba(143,196,88,.55)"; c.fillRect(-40, yy, 80, 5); c.strokeStyle = "rgba(143,196,88,.7)"; c.lineWidth = 3; c.beginPath(); c.ellipse(0, 14, 44, 14, 0, 0, 7); c.stroke(); }
       c.fillStyle = "rgba(0,0,0,.3)"; c.beginPath(); c.ellipse(0, 16, 26, 8, 0, 0, 7); c.fill();
       if (o.me){ c.strokeStyle = "rgba(143,196,88,.8)"; c.lineWidth = 3; c.beginPath(); c.ellipse(0, 16, 30, 10, 0, 0, 7); c.stroke(); }
-      if ((o.f || 1) < 0) c.scale(-1, 1);
+      const fs = this.faceOf(p.id, o.f || 1), vk = o.vk || 0;
+      if (vk > 0){ c.save(); c.beginPath(); c.rect(-w, -h * 2, w * 2, h * 2 + 16); c.clip(); c.translate(0, vk * (h - 4)); }
+      c.save(); c.scale(fs, 1);
       if (im.complete && im.naturalWidth) c.drawImage(im, -w / 2, -h + 18 + bob, w, h); else { c.fillStyle = "#BAB5AC"; c.beginPath(); c.arc(0, -30, 26, 0, 7); c.fill(); }
-      if ((o.f || 1) < 0) c.scale(-1, 1);
+      c.restore(); if (vk > 0){ c.restore(); if (vk > .55){ c.restore(); return; } }
       c.font = "800 15px Figtree,system-ui,sans-serif"; c.textAlign = "center"; const tw = c.measureText(p.name).width + 12; c.fillStyle = "rgba(20,19,17,.72)"; c.beginPath(); c.roundRect ? c.roundRect(-tw / 2, -h + bob - 2, tw, 20, 10) : c.rect(-tw / 2, -h + bob - 2, tw, 20); c.fill(); c.fillStyle = o.red ? "#F07B68" : "#fff"; c.fillText(p.name, 0, -h + 13 + bob);
       c.restore();
     },
@@ -845,6 +856,8 @@
   /* ---------------- look ---------------- */
   const css = `.np{position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:2700;background:#0B0C12;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;color:var(--fg);font-family:var(--body)}
 html.np-on .tabbar,html.np-on .pg-pill{display:none!important}
+html.np-on .dsheet{z-index:2800!important}html.np-on .toast{z-index:2900!important}
+.np.mapon .np-top{z-index:8}
 .np.rot{transform-origin:top left;transform:rotate(90deg) translateY(-100%)}
 .np.rot .np-top{top:10px;left:calc(env(safe-area-inset-top,0px) + 10px);right:calc(env(safe-area-inset-bottom,0px) + 10px)}
 .np.rot .np-tasks{top:62px;left:calc(env(safe-area-inset-top,0px) + 10px)}.np.rot .np-alert{top:62px;right:calc(env(safe-area-inset-bottom,0px) + 10px)}
@@ -904,12 +917,12 @@ html.np-on .tabbar,html.np-on .pg-pill{display:none!important}
 .np-stars{position:absolute;inset:-10px;background-image:radial-gradient(2px 2px at 20px 30px,#fff,transparent),radial-gradient(1.5px 1.5px at 90px 120px,#cfd8ff,transparent),radial-gradient(1px 1px at 160px 60px,#fff,transparent),radial-gradient(2px 2px at 130px 170px,#fff,transparent),radial-gradient(1px 1px at 60px 180px,#9fb6ff,transparent);background-size:200px 200px;animation:npDrift 9s linear infinite;opacity:.9}
 .np-stars.b{background-size:340px 340px;animation-duration:4s;opacity:.5}
 @keyframes npDrift{to{background-position:-400px 0}}
-.np-ejfig{position:absolute;top:18%;left:0;width:110px;height:140px;animation:npTumble 6.2s linear forwards}.np-ejfig svg{width:100%!important;height:100%!important}
+.np-ejfig{position:absolute;top:18%;left:0;width:110px;height:140px;animation:npTumble 4.4s linear forwards}.np-ejfig svg{width:100%!important;height:100%!important}
 @keyframes npTumble{from{transform:translateX(-160px) rotate(0)}to{transform:translateX(calc(100cqw + 160px)) rotate(900deg)}}
-.np-ejship{position:absolute;top:20%;font-size:46px;animation:npShip 6s ease-in-out forwards}@keyframes npShip{from{transform:translateX(-60cqw)}to{transform:translateX(60cqw)}}
-.np-type{position:relative;margin-top:22%;font:900 min(28px,calc(150cqw / var(--n))) var(--mono);color:#fff;white-space:nowrap;overflow:hidden;width:0;border-right:3px solid #fff;animation:npType calc(var(--n) * 60ms) steps(var(--n)) 1.1s forwards,npCaret .7s step-end infinite;max-width:96cqw}
+.np-ejship{position:absolute;top:20%;font-size:46px;animation:npShip 4.4s ease-in-out forwards}@keyframes npShip{from{transform:translateX(-60cqw)}to{transform:translateX(60cqw)}}
+.np-type{position:relative;margin-top:22%;font:900 min(28px,calc(150cqw / var(--n))) var(--mono);color:#fff;white-space:nowrap;overflow:hidden;width:0;border-right:3px solid #fff;animation:npType calc(var(--n) * 38ms) steps(var(--n)) .5s forwards,npCaret .7s step-end infinite;max-width:96cqw}
 @keyframes npType{to{width:calc(var(--n) * 1ch + 4px)}}@keyframes npCaret{50%{border-color:transparent}}
-.np-left{position:relative;color:var(--muted);opacity:0;animation:pgFade .5s 3.2s forwards;font:700 15px var(--body)}
+.np-left{position:relative;color:var(--muted);opacity:0;animation:pgFade .4s 1.9s forwards;font:700 15px var(--body)}
 @keyframes pgFade{to{opacity:1}}
 /* you got killed: a short film */
 .np-death{position:relative;width:min(600px,100%);height:min(320px,calc(var(--h,100vh) - 40px));border-radius:18px;overflow:hidden;background:radial-gradient(ellipse at 50% 85%,#3a1410,#120707 70%);box-shadow:0 0 0 3px #7a1a12;animation:npShakeS .45s 1}

@@ -2786,7 +2786,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794279440";
+const CHESSNAT_BUILD = "1794279922";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11559,7 +11559,7 @@ setTimeout(updateBadge, 1500);
   let s = null;
   const overlay = () => document.querySelector(".dsheet:not(.out)") || (($("#sheet") && !$("#sheet").hidden) ? $("#sheet") : null);
   const target = () => overlay() ? (overlay().querySelector(".dcard") || overlay().firstElementChild || overlay()) : $("#main");
-  const canBack = () => overlay() || (App.route !== "home" && !App.busy());
+  const canBack = () => !document.documentElement.classList.contains("np-on") && (overlay() || (App.route !== "home" && !App.busy()));
   document.addEventListener("touchstart", e => {
     if (e.touches.length !== 1) return; const t = e.touches[0];
     if (t.clientX > EDGE || !canBack()) return;
@@ -14286,15 +14286,15 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=12"></script>
-<script src="games/imposter.js?v=12"></script>
-<script src="games/werwolf.js?v=12"></script>
-<script src="games/cards.js?v=12"></script>
-<script src="games/heads.js?v=12"></script>
-<script src="games/more.js?v=12"></script>
-<script src="games/net.js?v=12"></script>
-<script src="games/online.js?v=12"></script>
-<script src="games/natposter.js?v=12"></script>
+<script src="games/core.js?v=13"></script>
+<script src="games/imposter.js?v=13"></script>
+<script src="games/werwolf.js?v=13"></script>
+<script src="games/cards.js?v=13"></script>
+<script src="games/heads.js?v=13"></script>
+<script src="games/more.js?v=13"></script>
+<script src="games/net.js?v=13"></script>
+<script src="games/online.js?v=13"></script>
+<script src="games/natposter.js?v=13"></script>
 <script>boot();</script>
 </body>
 </html>
