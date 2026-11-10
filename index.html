@@ -662,6 +662,11 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 .th-intro{font-size:16px;line-height:1.55;margin:8px 0 4px}
 .th-h{font:900 18px var(--display);margin:18px 0 6px}
 .th-p{font-size:14.5px;line-height:1.6;margin:0 0 10px;color:var(--fg)}
+.ds{padding:10px 12px}.ds-row+.ds-row{margin-top:10px}.ds-h{font:800 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.ds-sc{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 4px;scrollbar-width:none}.ds-sc::-webkit-scrollbar{display:none}
+.ds-it{flex:0 0 auto;width:78px;display:flex;flex-direction:column;align-items:center;gap:5px;border:2px solid transparent;border-radius:12px;background:var(--panel-2);padding:7px 4px 6px;cursor:pointer;color:var(--fg)}
+.ds-it small{font:700 11px var(--body);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ds-it.on{border-color:var(--go);background:color-mix(in srgb,var(--go) 14%,var(--panel-2))}
+.ds-it.ds-more{justify-content:center;color:var(--muted)}.ds-it>span{border-radius:9px;overflow:hidden}
 .th-note{background:var(--panel-2);border:1px solid var(--line);border-left:3px solid var(--go);border-radius:10px;padding:10px 12px;margin-bottom:10px;position:sticky;top:0;z-index:2}
 @media (max-width:900px){.th-note{position:static;padding:8px 10px}.th-note b{font-size:15px!important}.th-note p{font-size:13.5px!important}}
 .th-note.trap{border-left-color:var(--bad)}
@@ -2789,7 +2794,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794314479";
+const CHESSNAT_BUILD = "1794314775";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11490,6 +11495,7 @@ Views.me = {
         <button class="mb" data-go="friends">${icon("users", 26)}<b>Friends</b><small>${on ? on + " online" : "Add and challenge"}</small></button>
         <button class="mb" data-go="${typeof Views.account === "object" ? "account" : "settings"}">${icon("gear", 26)}<b>Account</b><small>${sess ? esc((sess.user.email || "").split("@")[0]) : "Sign in to sync"}</small></button>
       </div>
+      <div id="medes"></div>
       <h2 class="h-sec" style="margin-top:18px">Ratings</h2>${typeof ratingsCards === "function" ? ratingsCards() : ""}
       <div id="mefr"></div><div id="mepush"></div><div id="memedia"></div>
       <div class="me-lang" data-notr><span>🌐</span>${[["en", "English"], ["de", "Deutsch"]].map(([k, t]) => `<button class="${I18N.lang === k ? "on" : ""}" data-lang="${k}">${t}</button>`).join("")}</div>
@@ -11512,7 +11518,24 @@ Views.me = {
     const mi = $("#meinst"); if (mi) mi.onclick = () => ChessInstall.run();
     /* sign out: tap, then tap once more to be sure */
     const mo = $("#meout"); if (mo) mo.onclick = () => { if (!mo.dataset.armed){ mo.dataset.armed = 1; mo.classList.add("armed"); mo.textContent = I18N.t("Really sign out? Tap again"); return; } mo.disabled = true; ChessSite.signOut(); };
-    this.friends(); this.push(); { const m = $("#memedia"); if (m && typeof MediaPerm !== "undefined") MediaPerm.card(m); }
+    this.friends(); this.push(); this.designs(); { const m = $("#memedia"); if (m && typeof MediaPerm !== "undefined") MediaPerm.card(m); }
+  },
+  /* your designs right on the profile: board, pieces, glow, music; tap one and it's on */
+  designs(){
+    const el = $("#medes"); if (!el || typeof NAT_BOARDS === "undefined") return; const de = I18N.lang === "de", L = (en, d) => de ? d : en, st = S.settings || {};
+    const own = (list, kind) => list.filter(x => x.id === "classic" || natHas(x.id)).map(x => Object.assign({kind}, x));
+    const row = (k, title, items, cur, def) => `<div class="ds-row"><div class="ds-h">${title}</div><div class="ds-sc">${def ? `<button class="ds-it ${!cur ? "on" : ""}" data-dk="${k}" data-di="">${def[0]}<small>${def[1]}</small></button>` : ""}${items.map(it => `<button class="ds-it ${cur === it.id ? "on" : ""}" data-dk="${k}" data-di="${esc(it.id)}">${natPreview(it, 54)}<small>${esc(it.name)}</small></button>`).join("")}<button class="ds-it ds-more" data-dshop>${icon("coin", 24)}<small>${L("More", "Mehr")}</small></button></div></div>`;
+    const music = st.music !== false && st.sound && st.song && natHas(st.song) ? st.song : "";
+    el.innerHTML = `<h2 class="h-sec" style="margin-top:18px" data-notr>${L("Designs", "Designs")}</h2><div class="unit ds" data-notr>
+      ${row("board", L("Board", "Brett"), own(NAT_BOARDS, "board"), NAT_BOARDS.some(b => b.id === st.board && (b.id === "classic" || natHas(b.id))) ? st.board : "classic", null)}
+      ${row("pieces", L("Pieces", "Figuren"), own(NAT_PSETS, "pieces"), st.pset && natHas(st.pset) ? st.pset : "", [`<span class="np-pset" style="width:54px;height:54px"><i class="pc wk"></i><i class="pc bq"></i></span>`, L("Classic", "Klassisch")])}
+      ${row("glow", L("Piece glow", "Figuren-Glanz"), own(NAT_GLOWS, "glow"), st.glow && natHas(st.glow) ? st.glow : "", [`<span class="np-glow" style="width:54px;height:54px"><i class="pc wn mine"></i></span>`, L("Gold", "Gold")])}
+      ${row("song", L("Music in games", "Musik im Spiel"), own(NAT_SONGS, "song"), music, [`<span class="np-song" style="width:54px;height:54px">${icon("music", 24)}</span>`, L("Off", "Aus")])}</div>`;
+    el.querySelectorAll("[data-dk]").forEach(b => b.onclick = () => { const k = b.dataset.dk, id = b.dataset.di; Sound.tap();
+      if (k === "board") S.settings.board = id || "classic"; else if (k === "pieces") S.settings.pset = id; else if (k === "glow") S.settings.glow = id;
+      else if (k === "song"){ if (!id) S.settings.music = false; else { S.settings.song = id; S.settings.music = true; S.settings.sound = true; } try { NatMusic.sync(); } catch(e) {} }
+      save(); natApplyBoard(); this.designs(); });
+    el.querySelectorAll("[data-dshop]").forEach(b => b.onclick = () => App.go("shop", {tab: "coll"}));
   },
   push(){ const el = $("#mepush"); if (!el || typeof Push === "undefined") return; el.innerHTML = `<h2 class="h-sec" style="margin-top:18px">Notifications</h2>${Push.card()}`; Push.wire(el, () => this.push()); },
   async friends(){
