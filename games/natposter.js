@@ -517,6 +517,7 @@
         }
       }
       const bh = B.join(""); if (bt._h !== bh){ bt._h = bh; bt.innerHTML = bh; }
+      { const kb = bt.querySelector('[data-x="kill"]'); if (kb){ const tot = ((this.m && this.m.opts && +this.m.opts.cd) || 25) * 1000; kb.style.setProperty("--p", Math.max(0, Math.min(100, this.left("kill") / tot * 100)).toFixed(1)); } }
       this.noArrow = [...el.querySelectorAll(".np-btns>*,.np-tasks,.np-top>*,.np-alert.on,.np-ev.on")].filter(x => x.offsetWidth).map(x => { let l = 0, t = 0, n = x; while (n && n !== el){ l += n.offsetLeft; t += n.offsetTop; n = n.offsetParent; } return [l, t, x.offsetWidth, x.offsetHeight]; });
       this.overlay();
     },
@@ -528,7 +529,7 @@
       if (v.phase === "play" && v.dbl && now() - (this.dblT || 0) < 1800) h = `<div class="np-dbl">${T("DOUBLE KILL", "DOPPELKILL")}</div>`;
       if (v.phase === "play" && v.killedBy && !this.shown["k" + v.killedBy.k] && (this.deathT = this.deathT || {}) && (this.deathT[v.killedBy.k] = this.deathT[v.killedBy.k] || now()) && now() - this.deathT[v.killedBy.k] < 3200) h = this.deathHTML(v.killedBy);
       else if (v.phase === "play" && v.killedBy && !this.shown["k" + v.killedBy.k]){ h = `<div class="np-killed"><div class="np-kface">${head(v.killedBy.by)}</div><i class="np-slash"></i><i class="np-splat"></i><i class="np-drips">${[8, 19, 33, 47, 58, 71, 86].map((x, i) => `<b style="left:${x}%;--d:${.6 + (i % 3) * .25}s;--h:${30 + (i * 37) % 55}%;width:${6 + (i * 5) % 9}px"></b>`).join("")}</i><div class="np-big">${T("You were killed", "Du wurdest getötet")}</div><p>${T(`by ${nm(v.killedBy.by)}. You're a ghost now: finish your tasks.`, `von ${nm(v.killedBy.by)}. Du bist jetzt ein Geist: Mach deine Aufgaben fertig.`)}</p><button class="btn go" data-x="seen" data-v="k${v.killedBy.k}">OK</button></div>`; }
-      if (v.phase === "meet" && this.banner && now() - this.banner.t < 1700){ h = `<div class="np-banner ${v.meet.body ? "body" : ""}"><div>${v.meet.body ? "💀" : "🚨"}</div><b>${v.meet.body ? T("Dead body reported", "Leiche gefunden") : T("Emergency meeting", "Notfall-Meeting")}</b><span>${v.meet.body ? T(`${nm(v.meet.by)} found ${nm(v.meet.body)}`, `${nm(v.meet.by)} hat ${nm(v.meet.body)} gefunden`) : T(`called by ${nm(v.meet.by)}`, `einberufen von ${nm(v.meet.by)}`)}</span></div>`; }
+      if (v.phase === "meet" && this.banner && now() - this.banner.t < 1700){ h = `<div class="np-banner ${v.meet.body ? "body" : ""}"><div>${v.meet.body ? "💀" : "🚨"}</div><b>${v.meet.body ? T("Dead body reported", "Leiche gefunden") : T("Emergency meeting", "Notfall-Meeting")}</b><span>${v.meet.body ? T(`${nm(v.meet.by)} found ${nm(v.meet.body)}`, `${nm(v.meet.by)} hat ${nm(v.meet.body)} gefunden`) + (() => { const bd = (v.bodies || []).find(b => b.id === v.meet.body), r = bd && roomAt(bd.x, bd.y); return r ? " · " + esc(RN(r)) : ""; })() : T(`called by ${nm(v.meet.by)}`, `einberufen von ${nm(v.meet.by)}`)}</span></div>`; }
       else if (v.phase === "meet" && v.meet.mg && (!v.meet.mg.done || !this.duelDone || this.duelDone.s !== v.meet.mg.seed || now() - this.duelDone.t < RES)){ h = `<div class="np-duel" data-k="${v.meet.mg.seed}"></div>`; }
       else if (v.phase === "meet"){ const m = v.meet, canVote = v.alive && !m.my, W = m.mg && m.mg.win;
         h = `<div class="np-meet np-mt"><div class="np-ml"><div class="np-mh"><div><div class="np-k">${m.body ? "💀 " + T("Body reported", "Leiche gemeldet") : "🚨 " + T("Emergency meeting", "Notfall-Meeting")}</div><div class="np-big" style="font-size:20px;margin:2px 0 0">${m.body ? T(`${nm(m.by)} found ${nm(m.body)}`, `${nm(m.by)} hat ${nm(m.body)} gefunden`) : T(`called by ${nm(m.by)}`, `einberufen von ${nm(m.by)}`)}</div></div><div class="np-tm" data-cd="meet"></div></div>
@@ -1014,6 +1015,8 @@ html.np-on .dsheet{z-index:2800!important}html.np-on .toast{z-index:2900!importa
 .np-act.on{opacity:1}
 .pg-np-hero{display:block;padding:22px 18px;border-radius:14px;margin-top:8px;min-height:0!important;text-align:left}.pg-np-hero .pg-np-ship{font-size:56px}.np-act.main.on{background:var(--go);box-shadow:inset 0 -5px 0 var(--go-deep)}.np-act.kill.on{background:var(--bad);box-shadow:inset 0 -5px 0 #a8382a}.np-act.rep.on{background:#E9B64A;color:#2A1E05}
 .np-act:active,.np-act.pr{transform:scale(.92)}
+.np-act.kill{position:relative;overflow:hidden}.np-act.kill::after{content:"";position:absolute;inset:0;border-radius:inherit;background:conic-gradient(rgba(0,0,0,.55) calc(var(--p,0) * 1%),transparent 0);pointer-events:none}
+.np.land .np-tasks{font-size:11.5px;line-height:1.35;max-width:220px;padding:6px 9px}
 html.np-on .xpchip{z-index:2950!important}
 .np-vlb.live{background:var(--go)!important;box-shadow:inset 0 -3px 0 var(--go-deep)!important}.np-vlb.muted{background:var(--bad)!important}
 .np-stats{display:flex;flex-direction:column;gap:4px;text-align:left;margin:8px 0 10px;max-height:calc(var(--h,100vh) - 210px);overflow:auto}.np-stats>div{display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.22);border-radius:10px;padding:4px 8px;font:700 13px var(--body)}
@@ -1225,7 +1228,7 @@ html.np-on .xpchip{z-index:2950!important}
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
   /* in the Games list: online only */
-  PG.add({id: "natposter", icon: "spy", name: ["Natposter", "Natposter"], tag: ["New", "Neu", "bad"], sub: ["Space station. Tasks. One of you is a traitor.", "Raumstation. Aufgaben. Einer von euch ist ein Verräter."], meta: ["4–15 players · own phones", "4–15 Spieler · eigene Handys"],
+  PG.add({id: "natposter", icon: "spy", name: ["Natposter", "Natposter"], tag: ["New", "Neu", "bad"], sub: ["Space station. Tasks. One of you is a traitor.", "Raumstation. Aufgaben. Einer von euch ist ein Verräter."], meta: ["1–15 players · bots fill up", "1–15 Spieler · Bots füllen auf"],
     mount(ctx){
       ctx.body.innerHTML = `<div class="pg-np pg-np-hero"><span class="pg-np-stars"></span><span class="pg-np-ship">🚀</span><h1 class="h-title" style="position:relative;color:#fff">Natposter</h1><p style="position:relative">${T("Space station. Tasks. One of you is a traitor.", "Raumstation. Aufgaben. Einer von euch ist ein Verräter.")}</p></div>
         <div class="tiles" style="margin-top:12px"><button class="tile" data-np="solo" style="border:1px solid var(--go)"><span class="pg-art" style="--ac:#7B5CD6;background:#7B5CD6">🤖</span><h3>${T("Practice", "Üben")}</h3><p>${T("Just you and bots. Starts right away.", "Nur du und Bots. Geht sofort los.")}</p></button>
