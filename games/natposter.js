@@ -99,7 +99,7 @@
 
   /* positions of everyone, fed by "mv" messages and by this phone's own movement */
   const POS = {};
-  PG.onMv = m => { if (m && m.t === "mvb" && Array.isArray(m.l)){ m.l.forEach(([id, x, y, f, g, mv, sc, v]) => PG.onMv({id, x, y, f, g, m: mv, sc, v})); return; } if (!m || !m.id) return; const p = POS[m.id] || (POS[m.id] = {x: m.x, y: m.y, dx: m.x, dy: m.y}); const x = +m.x || 0, y = +m.y || 0, t = now(); p.buf = p.buf || []; const last = p.buf[p.buf.length - 1]; if (last && Math.hypot(last.x - x, last.y - y) > 320) p.buf = []; p.buf.push({t, x, y}); if (p.buf.length > 8) p.buf.shift();
+  PG.onMv = m => { if (m && m.t === "mvb" && Array.isArray(m.l)){ m.l.forEach(([id, x, y, f, g, mv, sc, v, em, ek]) => PG.onMv({id, x, y, f, g, m: mv, sc, v, em, ek})); return; } if (!m || !m.id) return; const p = POS[m.id] || (POS[m.id] = {x: m.x, y: m.y, dx: m.x, dy: m.y}); const x = +m.x || 0, y = +m.y || 0, t = now(); p.buf = p.buf || []; const last = p.buf[p.buf.length - 1]; if (last && Math.hypot(last.x - x, last.y - y) > 320) p.buf = []; p.buf.push({t, x, y}); if (p.buf.length > 8) p.buf.shift();
     if (m.ek != null && m.ek !== p.ek && m.em >= 0 && m.em < WEMO.length){ p.ek = m.ek; p.em = m.em; p.emT = t; }
     if (!!m.v !== !!p.v) p.vt = t; p.x = x; p.y = y; p.g = !!m.g; p.v = !!m.v; p.f = m.f || 1; p.t = t; p.mv = !!m.m; p.sc = !!m.sc; };
 
@@ -161,8 +161,12 @@
         }
         const w = m.path[0]; if (w){ const dx = w.x - p.x, dy = w.y - p.y, d = Math.hypot(dx, dy), sp = SPEED * (+G.opts.spd || 1) * .72 * dt * (alive ? 1 : 1.1);
           if (d <= sp){ p.x = w.x; p.y = w.y; m.path.shift(); } else { p.x += dx / d * sp; p.y += dy / d * sp; if (Math.abs(dx) > 2) p.f = dx < 0 ? -1 : 1; } }
-        PG.onMv({id, x: p.x, y: p.y, f: p.f || 1, g: alive ? 0 : 1, m: w ? 1 : 0});
-        out.push([id, Math.round(p.x), Math.round(p.y), p.f || 1, alive ? 0 : 1, w ? 1 : 0]);
+        if (alive && now() - (m.emT || 0) > 9000){ const bd = s.bodies.find(b2 => dist(p, b2) < 260 && !(m.shock || {})[b2.id]), near = G.ids.find(x => x !== id && s.alive[x] && POS[x] && dist(POS[x], p) < 170 && now() - ((m.wav || {})[x] || 0) > 40000);
+          if (bd && !imp){ (m.shock = m.shock || {})[bd.id] = 1; m.em = {i: 2, k: Math.floor(Math.random() * 1e6)}; m.emT = now(); }
+          else if (near && Math.random() < .02){ (m.wav = m.wav || {})[near] = now(); m.em = {i: PG.pick([0, 0, 1, 4, 3]), k: Math.floor(Math.random() * 1e6)}; m.emT = now(); } }
+        const E2 = m.em && now() - m.emT < 2500 ? m.em : null;
+        PG.onMv(Object.assign({id, x: p.x, y: p.y, f: p.f || 1, g: alive ? 0 : 1, m: w ? 1 : 0}, E2 ? {em: E2.i, ek: E2.k} : {}));
+        out.push([id, Math.round(p.x), Math.round(p.y), p.f || 1, alive ? 0 : 1, w ? 1 : 0, 0, 0].concat(E2 ? [E2.i, E2.k] : []));
       });
       if (out.length && now() - (this.sent || 0) > 180){ this.sent = now(); PNet.raw({t: "mvb", l: out}); }
     }};
@@ -359,7 +363,8 @@
       else if (n === "mgwin"){ x.chord(0, [60, 64, 67], .25, .07, "square"); x.chord(.22, [64, 67, 72], .25, .07, "square"); x.chord(.44, [67, 72, 76], .9, .08, "triangle"); Haptic.go([30, 40, 30, 40, 90]); }
       else if (n === "evstart"){ x.chord(0, [67, 71, 74], .5, .06, "triangle"); x.chord(.25, [69, 73, 76], .6, .06, "triangle"); Haptic.go([30, 40, 30]); }
       else if (n === "evok"){ PG.cheer(2); x.chord(0, [64, 68, 71, 76], 1.2, .06, "triangle"); Haptic.go([20, 30, 20, 30, 60]); }
-      else if (n === "meet"){ this.banner = {t: now()}; [0, .45, .9, 1.35].forEach(t => { x.tone(t, 880, 660, .4, .12, "square"); }); Haptic.go([80, 60, 80, 60, 80]); }
+      else if (n === "meet"){ this.banner = {t: now()}; if (this.v && this.v.meet && !this.v.meet.body){ [0, .6, 1.2].forEach(t => { x.tone(t, 1318, 1310, 1.3, .1, "sine"); x.tone(t, 659, 655, 1.5, .08, "triangle"); x.tone(t, 1976, 1960, .6, .03, "sine"); }); }
+        else [0, .45, .9, 1.35].forEach(t => { x.tone(t, 880, 660, .4, .12, "square"); }); Haptic.go([80, 60, 80, 60, 80]); }
       else if (n === "eject"){ x.noise(0, 2.2, 800, 90, .14, "lowpass", .6); x.tone(.2, 300, 60, 2, .05, "sine"); }
       else if (n === "alarm"){ [0, .5, 1, 1.5].forEach(t => x.tone(t, 760, 760, .3, .1, "square")); Haptic.go([100, 100, 100, 100, 100]); }
       else if (n === "dark"){ x.tone(0, 220, 55, .7, .2, "sawtooth"); x.noise(0, .6, 1200, 80, .1, "lowpass"); Haptic.go(60); }
@@ -531,7 +536,7 @@
         else if (v.phase === "eject" && v.eject){ const l = Math.max(0, (v.eject.tot || 7600) - (now() - (this.ejectT || now()))); f = l / (v.eject.tot || 7600); lab = T(`Back to the station in ${Math.ceil(l / 1000)} s`, `Zurück zur Station in ${Math.ceil(l / 1000)} s`); }
         tb.classList.toggle("on", f >= 0); if (f >= 0){ tb.firstChild.style.width = Math.max(0, Math.min(100, f * 100)) + "%"; if (tb.lastChild.textContent !== lab) tb.lastChild.textContent = lab; tb.lastChild.style.display = lab ? "" : "none"; } }
       /* crew event */
-      { const eb = el.querySelector(".np-ev"), E = v.phase === "play" && v.alive ? v.ev : null, R = v.evRes && !this.shown["e" + v.evRes.k] && v.evRes.ok ? v.evRes : null;
+      { const eb = el.querySelector(".np-ev"), E = v.phase === "play" ? v.ev : null, R = v.evRes && !this.shown["e" + v.evRes.k] && v.evRes.ok ? v.evRes : null;
         if (R && !this.evShow){ this.evShow = {k: R.k, t: now()}; } const okNow = this.evShow && now() - this.evShow.t < 3500;
         const ebH = E ? `🤝 <b>${esc(T(E.en, E.de))}</b><small>${T(`${E.pads.length} people on the plates · ${RN(ROOMS.find(r => r.id === E.room))}`, `${E.pads.length} Leute auf die Platten · ${RN(ROOMS.find(r => r.id === E.room))}`)} · ${Math.ceil(E.left / 1000)} s ${E.pads.map((pd, i) => this.onPad(pd) ? "🟢" : "⚪").join("")}</small>`
           : okNow ? `🎉 <b>${T("Done together!", "Zusammen geschafft!")}</b><small>${T("Everyone on a plate got a task done", "Jeder auf einer Platte hat eine Aufgabe erledigt")}</small>` : "";
