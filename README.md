@@ -1,6 +1,6 @@
 # Chess.nat
 
-Persönliche Schach-Lernseite: Lernpfad bis 1600, über 200.000 bewertete Puzzles mit Rängen von Iron bis Challenger,
+Persönliche Schach-Lernseite mit Partyspielen: Lernpfad bis 1600, über 200.000 bewertete Puzzles mit Rängen von Iron bis Challenger,
 Puzzle Rush, Daily Puzzle, Themen-Training, 12 Bots, Partien gegen Freunde (live, per Link oder an einem Gerät)
 und Partie-Analyse mit Stockfish. Statische Seite ohne Build-Schritt, Konten und Live-Spiel über Supabase.
 
@@ -55,6 +55,7 @@ den App-Modus ein (kein Zoomen, kein Gummiband-Scrollen) und zeigt in Safari den
 | `engine/sf.js` | Stockfish 10 (GPL) |
 | `voice/` | Coach-Stimme (Kokoro, Apache 2.0) |
 | `sounds/` | Zug-Geräusche (Lichess, AGPL); `Mate.mp3` und alle Sprüche in `sounds/lines/` sind Nathans eigene Aufnahmen (keine Computerstimmen) |
+| `games/` | Spiele-Bereich: Partyspiele für ein Handy (Imposter, Werwolf, Wahrheit oder Pflicht, Ich hab noch nie, Wer würde eher, Stirnraten, Tabu, Tick-Tack-Bumm, Stadt-Land-Fluss, Vier gewinnt). `core.js` = Hub, gemeinsame Bausteine, Look; je Spiel eine Datei mit `PG.add({...})`. Bei Änderungen `?v=` in `index.html` hochzählen |
 | `vendor/` | chess.js (BSD), supabase-js (MIT) |
 
 Figuren „Staunty“ von sadsnake1 (CC BY-NC-SA 4.0), nur für private, nicht-kommerzielle Nutzung.

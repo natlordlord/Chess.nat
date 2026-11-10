@@ -2786,7 +2786,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794268000";
+const CHESSNAT_BUILD = "1794290000";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11211,7 +11211,7 @@ const App = {
     if (!Views[r]) r = "home";
     /* remember where you came from, so a swipe (or back) returns there */
     if (!back && this.view && this.route !== r){ this.stack.push({r: this.route, arg: this.arg}); if (this.stack.length > 30) this.stack.shift(); }
-    if (TAB_OF && ["home", "learn", "puzzles", "play"].includes(r) && !back) this.stack = this.stack.filter(x => x.r !== r);
+    if (TAB_OF && ["home", "learn", "puzzles", "play", "games"].includes(r) && !back) this.stack = this.stack.filter(x => x.r !== r);
     this.arg = arg;
     if (this.view && this.route !== r) this.snapshot();
     if (this.view && this.view.unmount) this.view.unmount();
@@ -14252,7 +14252,14 @@ const Ranks = {
   }
 };
 
-boot();
 </script>
+<!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
+<script src="games/core.js?v=1"></script>
+<script src="games/imposter.js?v=1"></script>
+<script src="games/werwolf.js?v=1"></script>
+<script src="games/cards.js?v=1"></script>
+<script src="games/heads.js?v=1"></script>
+<script src="games/more.js?v=1"></script>
+<script>boot();</script>
 </body>
 </html>
