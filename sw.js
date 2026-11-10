@@ -4,8 +4,11 @@
    - Static files (vendor, engine, sounds, icons, puzzle buckets, fonts): served from the cache and
      refreshed in the background.
    - Supabase (login, saves, live games) and the coach voice clips are never touched.
-   Bump VERSION to throw away all cached files. */
-const VERSION = "chessnat-v46";
+   Caches live across updates (PAGE for the app itself, STATIC for everything else), so an update never
+   leaves the phone without a copy to start from; a new VERSION only makes the phone pick up this file.
+   Bump STATIC only to throw away every static file. */
+const VERSION = "chessnat-v47";
+const PAGE = "chessnat-page", STATIC = "chessnat-static-1";
 const SHELL = [
   "/", "/config.js", "/platform.js", "/pwa.js", "/manifest.webmanifest", "/favicon.svg",
   "/vendor/chess.js", "/vendor/supabase.js", "/vendor/three.min.js", "/engine/sf.js",
@@ -17,9 +20,11 @@ const SHELL = [
 const FRESH = /^\/(config\.js|platform\.js|pwa\.js|manifest\.webmanifest|puzzles\/index\.json|voice\/index\.json)$/;
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(VERSION).then(c => Promise.all(SHELL.map(u =>
-    fetch(u, {cache: "reload"}).then(r => { if (r.ok) return c.put(u, r); }).catch(() => {})
-  ))).then(() => self.skipWaiting()));
+  /* only what is missing gets loaded, so an update doesn't download the engine and 3D library again */
+  e.waitUntil(Promise.all([caches.open(PAGE), caches.open(STATIC)]).then(([pc, sc]) => Promise.all(SHELL.map(async u => {
+    const c = u === "/" || FRESH.test(u) ? pc : sc; if (c === sc && await c.match(u)) return;
+    return fetch(u, {cache: "reload"}).then(r => { if (r.ok) return c.put(u, r); }).catch(() => {});
+  }))).then(() => self.skipWaiting()));
 });
 
 /* push: show it, put the flame on the icon, and open the right screen on tap */
@@ -47,13 +52,15 @@ self.addEventListener("notificationclick", e => {
 });
 
 self.addEventListener("activate", e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k))))
+  /* old caches from before (one per version) go; but only once the new ones hold the app, so the next start always has a copy */
+  e.waitUntil(caches.open(PAGE).then(c => c.match("/"))
+    .then(has => caches.keys().then(keys => Promise.all(keys.filter(k => k !== PAGE && k !== STATIC && (has || !/^chessnat-v/.test(k))).map(k => caches.delete(k)))))
     .then(() => self.clients.claim()));
 });
 
 const keep = (req, res) => {
   if (res && res.ok && (res.type === "basic" || res.type === "cors")){
-    const copy = res.clone(); caches.open(VERSION).then(c => c.put(req, copy)).catch(() => {});
+    const copy = res.clone(); caches.open(STATIC).then(c => c.put(req, copy)).catch(() => {});
   }
   return res;
 };
@@ -63,7 +70,7 @@ const keep = (req, res) => {
 async function networkFirst(req, key, waitMs){
   const k = key || req;
   const net = fetch(req).then(res => {
-    if (res.ok){ const copy = res.clone(); caches.open(VERSION).then(c => c.put(k, copy)); }
+    if (res.ok){ const copy = res.clone(); caches.open(PAGE).then(c => c.put(k, copy)); }
     return res;
   });
   const cached = () => caches.match(k);
