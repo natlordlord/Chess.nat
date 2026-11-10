@@ -137,8 +137,8 @@
         if (alive && s.ev && !(m.goal && (m.goal.ev != null || m.goal.fix || m.goal.hunt || m.goal.body)) && Math.random() < (imp ? .004 : .012)){ const taken = this.list(G).filter(b2 => b2.id !== id && this.mem[b2.id] && this.mem[b2.id].goal && this.mem[b2.id].goal.ev != null).map(b2 => this.mem[b2.id].goal.ev);
           const i = s.ev.pads.findIndex((pd, j) => !taken.includes(j)); if (i >= 0){ m.path = route(p, s.ev.pads[i]); m.goal = {ev: i}; m.wait = 0; } }
         if (alive && (s.role || {})[id] === "sher" && !(s.shot || {})[id] && m.saw && s.alive[m.saw] && POS[m.saw]){ if (dist(p, POS[m.saw]) <= KILL_R * .8){ eng.act(G, id, {a: "shoot", v: m.saw}, api); api.push(); m.saw = null; } else if (!m.goal || !m.goal.hunt){ m.path = route(p, POS[m.saw]); m.goal = {hunt: m.saw}; } }
-        if (alive && !imp){ const body = s.bodies.find(bd => dist(p, bd) < (s.sab && s.sab.type === "lights" ? VIS.dark : VIS.crew));
-          if (body && (m.bseen && m.bseen.id === body.id ? now() >= m.bseen.t : (m.bseen = {id: body.id, t: now() + 900 + Math.random() * 1600}, false))){ if (dist(p, body) <= REPORT_R * .8){ m.sus = G.ids.filter(x => x !== id && s.alive[x] && POS[x] && dist(POS[x], body) < 420).sort(() => Math.random() - .5)[0] || null; eng.act(G, id, {a: "report", v: body.id}, api); api.push(); return; } if (!m.goal || !m.goal.body){ m.path = route(p, body); m.goal = {body: body.id}; } }
+        if (alive && !imp){ const body = s.bodies.find(bd => dist(p, bd) < (s.sab && s.sab.type === "lights" ? VIS.dark : VIS.crew * 1.25));
+          if (body && (m.bseen && m.bseen.id === body.id ? now() >= m.bseen.t : (m.bseen = {id: body.id, t: now() + 500 + Math.random() * 1100}, false))){ if (dist(p, body) <= REPORT_R * .8){ m.sus = G.ids.filter(x => x !== id && s.alive[x] && POS[x] && dist(POS[x], body) < 420).sort(() => Math.random() - .5)[0] || null; eng.act(G, id, {a: "report", v: body.id}, api); api.push(); return; } if (!m.goal || !m.goal.body){ m.path = route(p, body); m.goal = {body: body.id}; } }
           if (s.sab && (!m.goal || !m.goal.fix)){ const keys = Object.keys(FIX).filter(k => needFix(s.sab, k)), taken = k => this.list(G).some(b2 => b2.id !== id && this.mem[b2.id] && this.mem[b2.id].goal && this.mem[b2.id].goal.fix === k);
             const k = keys.find(k2 => !taken(k2)) || PG.pick(keys); if (k && Math.random() < .02){ m.path = route(p, FIX[k]); m.goal = {fix: k}; } }
         }
@@ -167,7 +167,7 @@
 
   /* ---------------- the host's game ---------------- */
   PG.online.natposter = {min: 4, max: 15, note: ["Like the space classic: crew does tasks, the Natposter kills in secret. Everyone walks around on their own phone.", "Wie der Weltraum-Klassiker: Die Crew löst Aufgaben, der Natposter tötet heimlich. Jeder läuft auf seinem eigenen Handy herum."],
-    opts: [{k: "role", solo: true, l: ["Your role", "Deine Rolle"], d: "rnd", c: [["rnd", ["Random", "Zufall"]], ["crew", "Crew"], ["imp", "Natposter"]]},
+    opts: [{k: "role", solo: true, l: ["Your role", "Deine Rolle"], d: "rnd", c: [["rnd", ["Random", "Zufall"]], ["crew", "Crew"], ["imp", "Natposter"], ["eng", ["🔧 Engineer", "🔧 Ingenieur"]], ["sci", ["🧪 Scientist", "🧪 Wissenschaftler"]], ["sher", "🤠 Sheriff"], ["jest", ["🃏 Jester", "🃏 Narr"]]]},
       {k: "bots", solo: true, l: ["Bots", "Bots"], d: 5, c: [[3, "3"], [5, "5"], [7, "7"]]},
       {k: "fill", online: true, l: ["Fill up with bots", "Mit Bots auffüllen"], d: 0, c: [[0, ["No", "Nein"]], [2, "+2"], [4, "+4"], [6, "+6"]]},
       {k: "imps", l: ["Natposters", "Natposter"], d: "auto", c: [["auto", "Auto"], [1, "1"], [2, "2"], [3, "3"]]},
@@ -189,12 +189,13 @@
       const imps = PG.shuffle(G.ids).slice(0, k), host = G.host;
       /* practice: play the side you want */
       if (G.solo && o.role === "imp" && !imps.includes(host)) imps[0] = host;
-      if (G.solo && o.role === "crew" && imps.includes(host)){ const pool = G.ids.filter(x => x !== host && !imps.includes(x)); imps[imps.indexOf(host)] = PG.pick(pool); }
+      if (G.solo && (o.role === "crew" || ROLES[o.role]) && imps.includes(host)){ const pool = G.ids.filter(x => x !== host && !imps.includes(x)); imps[imps.indexOf(host)] = PG.pick(pool); }
       const s = G.s = {bots, phase: "play", round: ((G.s && G.s.round) || 0) + 1, imps, alive: {}, tasks: {}, done: {}, bodies: [], killAt: {}, emer: {}, sab: null, sabAt: now() + 15000, mc: 0, spawnK: 1, log: [], gid: Math.random().toString(36).slice(2, 8), ev: null, evAt: now() + 50000 + Math.random() * 30000};
       G.ids.forEach((id, i) => { s.alive[id] = true; s.done[id] = {}; s.emer[id] = 1; s.killAt[id] = now() + 5000 + Math.max(15000, o.cd * 700);
         s.tasks[id] = PG.shuffle(TASKS.map(t => t.id)).slice(0, o.tasks); const sp = spawnAt(i, n); POS[id] = Object.assign(POS[id] || {}, sp, {g: false, v: false}); });
       s.spawn = Object.fromEntries(G.ids.map((id, i) => [id, spawnAt(i, n)]));
       s.role = {}; s.shot = {}; if (+(o.roles == null ? 1 : o.roles) !== 0 && n >= 5){ const pool = PG.shuffle(G.ids.filter(x => !imps.includes(x))), want = ["eng", "sci"].concat(n >= 6 ? ["sher"] : [], n >= 7 ? ["jest"] : []); want.forEach((r, i) => { if (pool[i]) s.role[pool[i]] = r; }); }
+      if (G.solo && ROLES[o.role]){ Object.keys(s.role).forEach(x => { if (s.role[x] === o.role || x === host) delete s.role[x]; }); s.role[host] = o.role; }
       s.intro = now() + 3500; s.snd = {k: "s" + (++G.sk), n: "reveal"};
     },
     crewIds(G){ return G.ids.filter(id => !G.s.imps.includes(id) && (G.s.role || {})[id] !== "jest"); },
@@ -1052,6 +1053,8 @@ html.np-on .dsheet{z-index:2800!important}html.np-on .toast{z-index:2900!importa
 .np-act.on{opacity:1}
 .pg-np-hero{display:block;padding:22px 18px;border-radius:14px;margin-top:8px;min-height:0!important;text-align:left}.pg-np-hero .pg-np-ship{font-size:56px}.np-act.main.on{background:var(--go);box-shadow:inset 0 -5px 0 var(--go-deep)}.np-act.kill.on{background:var(--bad);box-shadow:inset 0 -5px 0 #a8382a}.np-act.rep.on{background:#E9B64A;color:#2A1E05}
 .np-act:active,.np-act.pr{transform:scale(.92)}
+.np-rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}.np-rules>div{background:var(--panel-2);border-radius:14px;padding:10px 8px;text-align:center;display:flex;flex-direction:column;gap:2px}.np-rules span{font-size:30px}.np-rules b{font:900 14px var(--display)}.np-rules small{font:600 11.5px/1.25 var(--body);color:var(--muted)}
+.np-rolepick{flex-wrap:wrap}
 .np-rdesc{font:700 15px var(--body);color:var(--fg);margin:-6px 0 10px;opacity:.9}.np-rl{display:block;color:#c48cff}.np-tag.r{background:#5b3d86}.np-card.jest{border-color:#c48cff}
 .np-act.kill{position:relative;overflow:hidden}.np-act.kill::after{content:"";position:absolute;inset:0;border-radius:inherit;background:conic-gradient(rgba(0,0,0,.55) calc(var(--p,0) * 1%),transparent 0);pointer-events:none}
 .np.land .np-tasks{font-size:11.5px;line-height:1.35;max-width:220px;padding:6px 9px}
@@ -1270,7 +1273,10 @@ html.np-on .xpchip{z-index:2950!important}
     mount(ctx){
       ctx.body.innerHTML = `<div class="pg-np pg-np-hero"><span class="pg-np-stars"></span><span class="pg-np-ship">🚀</span><h1 class="h-title" style="position:relative;color:#fff">Natposter</h1><p style="position:relative">${T("Space station. Tasks. One of you is a traitor.", "Raumstation. Aufgaben. Einer von euch ist ein Verräter.")}</p></div>
         <div class="tiles" style="margin-top:12px"><button class="tile" data-np="solo" style="border:1px solid var(--go)"><span class="pg-art" style="--ac:#7B5CD6;background:#7B5CD6">🤖</span><h3>${T("Practice", "Üben")}</h3><p>${T("Just you and bots. Starts right away.", "Nur du und Bots. Geht sofort los.")}</p></button>
-          <button class="tile" data-np="friends"><span class="pg-art" style="background:var(--go)">📱</span><h3>${T("With friends", "Mit Freunden")}</h3><p>${T("Everyone on their own phone.", "Jeder am eigenen Handy.")}</p></button></div>`;
+          <button class="tile" data-np="friends"><span class="pg-art" style="background:var(--go)">📱</span><h3>${T("With friends", "Mit Freunden")}</h3><p>${T("Everyone on their own phone.", "Jeder am eigenen Handy.")}</p></button></div>
+        <div class="np-rules"><div><span>🧑‍🚀</span><b>Crew</b><small>${T("Do tasks, throw out the Natposter", "Aufgaben lösen, Natposter rauswerfen")}</small></div><div><span>🔪</span><b>Natposter</b><small>${T("Kill in secret, vent, sabotage", "Heimlich töten, Schächte, Sabotage")}</small></div><div><span>🚨</span><b>Meeting</b><small>${T("Report, talk, vote", "Melden, reden, abstimmen")}</small></div></div>
+        <div class="pg-who" style="text-align:left;margin:14px 0 6px">${T("Your role when practising", "Deine Rolle beim Üben")}</div><div class="pg-opt np-rolepick">${[["rnd", "🎲"], ["crew", "🧑‍🚀"], ["imp", "🔪"], ["eng", "🔧"], ["sci", "🧪"], ["sher", "🤠"], ["jest", "🃏"]].map(([k, e]) => `<button class="btn sm ${((PG.st.soloOpts || {}).natposter || {}).role === k || (!((PG.st.soloOpts || {}).natposter || {}).role && k === "rnd") ? "go" : ""}" data-role="${k}">${e} ${k === "rnd" ? T("Random", "Zufall") : k === "crew" ? "Crew" : k === "imp" ? "Natposter" : esc(T(ROLES[k].en, ROLES[k].de))}</button>`).join("")}</div>`;
+      ctx.body.querySelectorAll("[data-role]").forEach(b => b.onclick = () => { PG.st.soloOpts = PG.st.soloOpts || {}; PG.st.soloOpts.natposter = Object.assign({}, PG.st.soloOpts.natposter || {}, {role: b.dataset.role}); PG.persist(); ctx.body.querySelectorAll("[data-role]").forEach(x => x.classList.toggle("go", x === b)); });
       ctx.body.querySelector('[data-np="solo"]').onclick = () => App.go("lobby", {practice: "natposter", opts: {bots: 5}});
       ctx.body.querySelector('[data-np="friends"]').onclick = () => App.go("lobby", PNet.P && PNet.P.isHost && !PNet.P.solo ? undefined : {host: true, game: "natposter"});
     }});
