@@ -86,6 +86,7 @@ const PNet = (() => {
   function hostMsg(m){
     if (!m || m.code !== P.code) return;
     if (m.t === "mv" || m.t === "mvb"){ PG.onMv && PG.onMv(m); return; }
+    if (/^a(m|mb|s|h|hp|fl|br)$/.test(m.t)){ PG.onArena && PG.onArena(m); return; }
     if (m.t === "rtc"){ PVoice.onMsg(m); return; }
     if (m.t === "hi"){ const n = String(m.name || "").replace(/\s+/g, " ").trim().slice(0, 16) || T("Player", "Spieler");
       const r = P.roster.find(x => x.id === m.id), uid = typeof m.uid === "string" && /^[0-9a-f-]{36}$/.test(m.uid) ? m.uid : null;
@@ -123,6 +124,7 @@ const PNet = (() => {
   function clientMsg(m){
     if (!m || m.code !== P.code) return;
     if (m.t === "mv" || m.t === "mvb"){ PG.onMv && PG.onMv(m); return; }
+    if (/^a(m|mb|s|h|hp|fl|br)$/.test(m.t)){ PG.onArena && PG.onArena(m); return; }
     if (m.t === "rtc"){ PVoice.onMsg(m); return; }
     if (m.t === "host"){ if (m.to === me && m.snap) takeOver(m.snap, m.id); return; }
     if (m.t === "v"){ if (P.isHost) return; if (P.msg && m.seq < P.msg.seq && m.host === P.msg.host && P.msg.seq - m.seq < 50) return;
