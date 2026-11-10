@@ -34,6 +34,11 @@
     oa: {x: 1680, y: 900, g: "code", s: "o2"}, ob: {x: 2120, y: 900, g: "code", s: "o2"}, comms: {x: 2150, y: 230, g: "tune", s: "comms"}};
   const SABS = ["lights", "reactor", "o2", "comms"], CRIT = {reactor: 1, o2: 1};
   const KILLS = ["stab", "head", "chess", "shot", "bite"];
+  /* special roles, like the original: the engineer vents, the scientist checks vitals anywhere, the sheriff may shoot once, the jester wants to be thrown out */
+  const ROLES = {eng: {e: "🔧", en: "Engineer", de: "Ingenieur", den: "You can use the vents.", dde: "Du darfst die Schächte benutzen."},
+    sci: {e: "🧪", en: "Scientist", de: "Wissenschaftler", den: "Check the vitals from anywhere.", dde: "Du siehst die Vitalwerte überall."},
+    sher: {e: "🤠", en: "Sheriff", de: "Sheriff", den: "You may shoot once. Hit crew and you die.", dde: "Du darfst einmal schießen. Triffst du Crew, stirbst du selbst."},
+    jest: {e: "🃏", en: "Jester", de: "Narr", den: "Get yourself thrown out and you win alone.", dde: "Lass dich rauswerfen, dann gewinnst du allein."}};
   /* the minigame at an emergency meeting: a wheel picks it, everybody plays, the winner's vote counts twice */
   const DUELS = {react: {d: 6000, e: "⚡", en: "Reaction", de: "Reaktion"}, tap: {d: 5000, e: "👆", en: "Tap race", de: "Tipp-Rennen"}, snake: {d: 15000, e: "🐍", en: "Snake", de: "Snake"},
     mate: {d: 20000, e: "♞", en: "Mate in 1", de: "Matt in 1"}, math: {d: 12000, e: "➗", en: "Quick maths", de: "Kopfrechnen"}, stroop: {d: 12000, e: "🎨", en: "Colour trap", de: "Farben-Falle"}, balloon: {d: 10000, e: "🎈", en: "Balloon", de: "Ballon"}, song: {d: 15000, e: "🎵", en: "Name that song", de: "Songraten"}};
@@ -131,6 +136,7 @@
         if (m.goal && m.goal.ev != null && !s.ev){ m.goal = null; m.path = []; m.wait = 0; }
         if (alive && s.ev && !(m.goal && (m.goal.ev != null || m.goal.fix || m.goal.hunt || m.goal.body)) && Math.random() < (imp ? .004 : .012)){ const taken = this.list(G).filter(b2 => b2.id !== id && this.mem[b2.id] && this.mem[b2.id].goal && this.mem[b2.id].goal.ev != null).map(b2 => this.mem[b2.id].goal.ev);
           const i = s.ev.pads.findIndex((pd, j) => !taken.includes(j)); if (i >= 0){ m.path = route(p, s.ev.pads[i]); m.goal = {ev: i}; m.wait = 0; } }
+        if (alive && (s.role || {})[id] === "sher" && !(s.shot || {})[id] && m.saw && s.alive[m.saw] && POS[m.saw]){ if (dist(p, POS[m.saw]) <= KILL_R * .8){ eng.act(G, id, {a: "shoot", v: m.saw}, api); api.push(); m.saw = null; } else if (!m.goal || !m.goal.hunt){ m.path = route(p, POS[m.saw]); m.goal = {hunt: m.saw}; } }
         if (alive && !imp){ const body = s.bodies.find(bd => dist(p, bd) < (s.sab && s.sab.type === "lights" ? VIS.dark : VIS.crew));
           if (body && (m.bseen && m.bseen.id === body.id ? now() >= m.bseen.t : (m.bseen = {id: body.id, t: now() + 900 + Math.random() * 1600}, false))){ if (dist(p, body) <= REPORT_R * .8){ m.sus = G.ids.filter(x => x !== id && s.alive[x] && POS[x] && dist(POS[x], body) < 420).sort(() => Math.random() - .5)[0] || null; eng.act(G, id, {a: "report", v: body.id}, api); api.push(); return; } if (!m.goal || !m.goal.body){ m.path = route(p, body); m.goal = {body: body.id}; } }
           if (s.sab && (!m.goal || !m.goal.fix)){ const keys = Object.keys(FIX).filter(k => needFix(s.sab, k)), taken = k => this.list(G).some(b2 => b2.id !== id && this.mem[b2.id] && this.mem[b2.id].goal && this.mem[b2.id].goal.fix === k);
@@ -171,6 +177,7 @@
       {k: "spd", l: ["Speed", "Tempo"], d: 1, c: [[.8, ["Slow", "Langsam"]], [1, ["Normal", "Normal"]], [1.25, ["Fast", "Schnell"]]]},
       {k: "vis", l: ["Crew vision", "Sicht der Crew"], d: 1, c: [[.75, ["Small", "Klein"]], [1, ["Normal", "Normal"]], [1.4, ["Wide", "Weit"]]]},
       {k: "voice", online: true, l: ["Voice chat (talk in meetings, the dead are silent)", "Sprachchat (reden im Meeting, Tote sind stumm)"], d: 1, c: [[1, ["On", "An"]], [0, ["Off", "Aus"]]]},
+      {k: "roles", l: ["Special roles (engineer, scientist, sheriff, jester)", "Sonderrollen (Ingenieur, Wissenschaftler, Sheriff, Narr)"], d: 1, c: [[1, ["On", "An"]], [0, ["Off", "Aus"]]]},
       {k: "duel", l: ["Minigame at emergency meetings (winner votes twice)", "Minispiel im Notfall-Meeting (Gewinner hat 2 Stimmen)"], d: 1, c: [[1, ["Yes", "Ja"]], [0, ["No", "Nein"]]]},
       {k: "conf", l: ["Reveal ejected role", "Rolle beim Rauswurf zeigen"], d: 1, c: [[1, ["Yes", "Ja"]], [0, ["No", "Nein"]]]}],
     extra(o, solo){ return solo ? +o.bots || 0 : +o.fill || 0; },
@@ -187,9 +194,10 @@
       G.ids.forEach((id, i) => { s.alive[id] = true; s.done[id] = {}; s.emer[id] = 1; s.killAt[id] = now() + 5000 + Math.max(15000, o.cd * 700);
         s.tasks[id] = PG.shuffle(TASKS.map(t => t.id)).slice(0, o.tasks); const sp = spawnAt(i, n); POS[id] = Object.assign(POS[id] || {}, sp, {g: false, v: false}); });
       s.spawn = Object.fromEntries(G.ids.map((id, i) => [id, spawnAt(i, n)]));
+      s.role = {}; s.shot = {}; if (+(o.roles == null ? 1 : o.roles) !== 0 && n >= 5){ const pool = PG.shuffle(G.ids.filter(x => !imps.includes(x))), want = ["eng", "sci"].concat(n >= 6 ? ["sher"] : [], n >= 7 ? ["jest"] : []); want.forEach((r, i) => { if (pool[i]) s.role[pool[i]] = r; }); }
       s.intro = now() + 3500; s.snd = {k: "s" + (++G.sk), n: "reveal"};
     },
-    crewIds(G){ return G.ids.filter(id => !G.s.imps.includes(id)); },
+    crewIds(G){ return G.ids.filter(id => !G.s.imps.includes(id) && (G.s.role || {})[id] !== "jest"); },
     prog(G){ const s = G.s, c = this.crewIds(G); let tot = 0, d = 0; c.forEach(id => { tot += s.tasks[id].length; d += s.tasks[id].filter(t => s.done[id][t]).length; }); return {tot, d}; },
     win(G){ const s = G.s; if (s.phase === "end") return true;
       const A = G.ids.filter(id => s.alive[id]), I = A.filter(id => s.imps.includes(id)).length, C = A.length - I, p = this.prog(G);
@@ -202,6 +210,7 @@
       const top = Object.entries(c).filter(([k]) => k !== "skip").sort((a, b) => b[1] - a[1]); const skip = c.skip || 0;
       const out = top.length && top[0][1] > skip && !(top[1] && top[1][1] === top[0][1]) ? top[0][0] : null;
       s.lastVotes = Object.assign({}, s.meet.votes); s.eject = {id: out, imp: out ? s.imps.includes(out) : false, start: now(), until: now() + 7600, left: out ? s.imps.filter(x => s.alive[x] && x !== out).length : s.imps.filter(x => s.alive[x]).length};
+      if (out && (s.role || {})[out] === "jest"){ s.alive[out] = false; s.lastVotes = Object.assign({}, s.meet.votes); s.meet = null; s.phase = "end"; s.win = "jest"; s.jw = out; s.sab = null; G.sk++; s.snd = {k: "s" + G.sk, n: "cheer"}; return; }
       if (out) s.alive[out] = false; s.phase = "eject"; s.meet = null; G.sk++; s.snd = {k: "s" + G.sk, n: "eject"}; },
     resume(G){ const s = G.s; s.bodies = []; s.spawnK++; const A = G.ids; s.spawn = Object.fromEntries(A.map((id, i) => [id, spawnAt(i, A.length)])); A.forEach(id => { Object.assign(POS[id] || (POS[id] = {}), s.spawn[id]); s.killAt[id] = now() + G.opts.cd * 1000; });
       if (s.sab && CRIT[s.sab.type]) s.sab = null; s.doors = {}; s.sabAt = Math.max(s.sabAt, now() + 10000); s.phase = "play"; if (!this.win(G)) {} },
@@ -241,6 +250,9 @@
         s.killed = s.killed || {}; s.killed[t] = {by: id, k: ++G.sk, v: kv}; s.ps = s.ps || {}; s.ps[id] = {k: "p" + (++G.sk), n: "kill"}; s.ps[t] = {k: "p" + (++G.sk), n: "died"};
         if (dbl){ s.dbl = {k: ++G.sk}; s.imps.forEach(x => { if (x !== t) s.ps[x] = {k: "p" + (++G.sk), n: "double"}; }); }
         this.win(G); return; }
+      if (a.a === "shoot" && alive && (s.role || {})[id] === "sher" && !s.shot[id]){ const t = a.v, tp = POS[t]; if (!t || t === id || !s.alive[t] || !tp || dist(me, tp) > KILL_R * 1.35) return; s.shot[id] = 1;
+        const victim = s.imps.includes(t) ? t : id, vp = victim === t ? tp : me; s.alive[victim] = false; s.bodies.push({id: victim, x: Math.round(vp.x), y: Math.round(vp.y), k: "shot"}); if (victim === t) s.log.push([now(), id, t]);
+        s.killed = s.killed || {}; s.killed[victim] = {by: id, k: ++G.sk, v: "shot"}; s.ps = s.ps || {}; s.ps[victim] = {k: "p" + (++G.sk), n: "died"}; if (victim === t) s.ps[id] = {k: "p" + (++G.sk), n: "kill"}; this.win(G); return; }
       if (a.a === "report" && alive){ const b = s.bodies.find(x => x.id === a.v); if (!b || dist(me, b) > REPORT_R * 1.35) return; this.meeting(G, id, a.v); return; }
       if (a.a === "button" && alive && s.emer[id] > 0 && dist(me, BTN) < USE_R * 1.8 && !(s.sab && CRIT[s.sab.type])){ s.emer[id]--; this.meeting(G, id, null); return; }
       if (a.a === "task" && !imp && s.tasks[id].includes(a.v) && !s.done[id][a.v]){ s.done[id][a.v] = 1; this.win(G); return; }
@@ -257,8 +269,9 @@
         if (s.sab.type === "reactor" && (a.v === "ra" || a.v === "rb")){ s.sab[a.v] = 1; if (s.sab.ra && s.sab.rb){ s.sab = null; G.sk++; s.snd = {k: "s" + G.sk, n: "fixed"}; } } return; }
     },
     view(G, id, api){ const s = G.s, imp = s.imps.includes(id), p = this.prog(G);
-      return {gid: s.gid, nImp: s.imps.length, custom: "np", k: "np" + s.round, phase: s.phase, round: s.round, alive: !!s.alive[id], imp, mates: imp ? s.imps : [], tasks: imp ? [] : s.tasks[id].map(t => [t, !!s.done[id][t]]),
-        fake: imp ? s.tasks[id] : [], prog: p.tot ? p.d / p.tot : 0, bodies: s.bodies, kill: imp ? Math.max(0, s.killAt[id] - now()) : 0, emer: s.emer[id], intro: Math.max(0, s.intro - now()),
+      const rl = (s.role || {})[id] || null;
+      return {role: rl, shot: !!(s.shot || {})[id], gid: s.gid, nImp: s.imps.length, custom: "np", k: "np" + s.round, phase: s.phase, round: s.round, alive: !!s.alive[id], imp, mates: imp ? s.imps : [], tasks: imp || rl === "jest" ? [] : s.tasks[id].map(t => [t, !!s.done[id][t]]),
+        fake: imp || rl === "jest" ? s.tasks[id] : [], prog: p.tot ? p.d / p.tot : 0, bodies: s.bodies, kill: imp ? Math.max(0, s.killAt[id] - now()) : 0, emer: s.emer[id], intro: Math.max(0, s.intro - now()),
         sab: s.sab ? {type: s.sab.type, left: s.sab.until ? Math.max(0, s.sab.until - now()) : 0, ra: s.sab.ra, rb: s.sab.rb, oa: s.sab.oa, ob: s.sab.ob} : null, spd: +G.opts.spd || 1, vis: +G.opts.vis || 1, sabCd: imp ? Math.max(0, s.sabAt - now()) : 0,
         meet: s.meet ? {mg: s.meet.mg ? {g: s.meet.mg.g, seed: s.meet.mg.seed, el: now() - s.meet.mg.t0, d: DUELS[s.meet.mg.g].d, done: !!s.meet.mg.done, win: s.meet.mg.win || null, sc: s.meet.mg.sc, song: s.meet.mg.song || null} : null, chat: s.meet.chat || [], by: s.meet.by, body: s.meet.body, left: Math.max(0, s.meet.until - now()), voted: Object.keys(s.meet.votes), my: s.meet.votes[id] || null} : null,
         eject: s.eject ? {id: s.eject.id, imp: s.eject.imp, conf: !!G.opts.conf, left: s.eject.left, votes: s.lastVotes, shown: now() - s.eject.start, tot: s.eject.until - s.eject.start} : null, meetTot: G.opts.meet * 1000,
@@ -267,7 +280,7 @@
         held: s.sab && s.sab.h ? {ra: !!(s.sab.h.ra && s.sab.h.ra.until > now()), rb: !!(s.sab.h.rb && s.sab.h.rb.until > now())} : null, two: G.ids.filter(x => s.alive[x]).length >= 5,
         bots: s.bots || [], deadList: G.ids.filter(x => !s.alive[x]), killedBy: s.killed && s.killed[id] ? s.killed[id] : null,
         win: s.phase === "end" ? s.win : null, imps: s.phase === "end" ? s.imps : null,
-        stats: s.phase === "end" ? G.ids.map(x => ({id: x, imp: s.imps.includes(x), alive: !!s.alive[x], k: s.log.filter(l => l[1] === x).length, by: s.killed && s.killed[x] ? s.killed[x].by : null, t: s.imps.includes(x) ? 0 : s.tasks[x].filter(t => s.done[x][t]).length, tt: s.imps.includes(x) ? 0 : s.tasks[x].length, w: (s.dw || {})[x] || 0})) : null, spawn: s.spawn && s.spawn[id] ? Object.assign({k: s.spawnK}, s.spawn[id]) : null, host: id === G.host,
+        jw: s.jw || null, stats: s.phase === "end" ? G.ids.map(x => ({id: x, role: (s.role || {})[x] || null, imp: s.imps.includes(x), alive: !!s.alive[x], k: s.log.filter(l => l[1] === x).length, by: s.killed && s.killed[x] ? s.killed[x].by : null, t: s.imps.includes(x) ? 0 : s.tasks[x].filter(t => s.done[x][t]).length, tt: s.imps.includes(x) ? 0 : s.tasks[x].length, w: (s.dw || {})[x] || 0})) : null, spawn: s.spawn && s.spawn[id] ? Object.assign({k: s.spawnK}, s.spawn[id]) : null, host: id === G.host,
         snd: (() => { const a = s.snd, b = s.ps && s.ps[id]; return !a ? b : !b ? a : (+String(a.k).slice(1) > +String(b.k).slice(1) ? a : b); })()};
     }};
 
@@ -423,7 +436,8 @@
       if (v.imp && v.alive && !this.vent){ let best = null; players.forEach(p => { const q = POS[p.id]; if (!q || q.g || q.v || v.mates.includes(p.id) || v.deadList.includes(p.id)) return; const d = dist(me, {x: q.dx, y: q.dy}); if (d <= KILL_R && (!best || d < best.d)) best = {id: p.id, d}; }); out.kill = best; }
       if (v.alive){ const b = v.bodies.find(b => dist(me, b) <= REPORT_R); if (b) out.report = b; }
       if (v.alive && dist(me, BTN) < USE_R * 1.5) out.button = true;
-      if (v.imp && v.alive){ const vt = VENTS.find(x => dist(me, x) <= VENT_R); if (vt || this.vent) out.vent = vt || true; }
+      if ((v.imp || v.role === "eng") && v.alive){ const vt = VENTS.find(x => dist(me, x) <= VENT_R); if (vt || this.vent) out.vent = vt || true; }
+      if (v.role === "sher" && v.alive && !v.shot && !this.vent){ let best = null; players.forEach(p => { const q = POS[p.id]; if (!q || q.g || q.v || v.deadList.includes(p.id)) return; const d = dist(me, {x: q.dx, y: q.dy}); if (d <= KILL_R && (!best || d < best.d)) best = {id: p.id, d}; }); out.shoot = best; }
       if (v.alive) Object.keys(FIX).forEach(k => { if (needFix(v.sab, k) && dist(me, FIX[k]) <= USE_R) out.fix = k; });
       const mine = (v.imp ? v.fake.map(t => [t, false]) : v.tasks).filter(([t, d]) => !d).map(([t]) => TASKS.find(x => x.id === t)).find(t => dist(me, t) <= USE_R);
       if (mine) out.task = mine;
@@ -441,6 +455,8 @@
         clearTimeout(this.quitTm); this.quitTm = setTimeout(() => { this.quitN = 0; if (b.isConnected){ b.classList.remove("arm"); b.innerHTML = b._orig; } b._orig = null; }, 2500); return; }
       if (x === "map") { this.mapOpen = !this.mapOpen; this.hud(); return; }
       if (x === "kill" && t.kill && this.left("kill") <= 0) return this.act({a: "kill", v: t.kill.id});
+      if (x === "shoot" && t.shoot) return this.act({a: "shoot", v: t.shoot.id});
+      if (x === "vitals") return this.openVitals();
       if (x === "report" && t.report) return this.act({a: "report", v: t.report.id});
       if (x === "use"){
         if (t.fix === "ra" || t.fix === "rb") return this.openMini("reactor", () => {}, {de: "Reaktor stabilisieren", en: "Stabilise reactor", key: t.fix});
@@ -511,7 +527,8 @@
         if (eb._h !== ebH){ eb._h = ebH; eb.innerHTML = ebH; eb.classList.toggle("on", !!ebH); eb.classList.toggle("ok", !E && !!ebH); } }
       el.querySelector(".np-bar i").style.width = (v.sab && v.sab.type === "comms" ? 0 : Math.round(v.prog * 100)) + "%";
       const tl = el.querySelector(".np-tasks"), tasksHtml = v.imp ? `<b class="np-red">${T("Natposter", "Natposter")}</b><small>${T("Kill, vent, sabotage. Don't get caught.", "Töten, Schächte, Sabotage. Nicht erwischen lassen.")}</small>${v.mates.length > 1 ? `<small>${T("Team: ", "Team: ")}${v.mates.filter(x => x !== PNet.me).map(x => esc(this.nm(x))).join(", ")}</small>` : ""}`
-        : v.sab && v.sab.type === "comms" ? `<b>📡 ${T("Comms sabotaged", "Funk sabotiert")}</b><small>${T("Your tasks are hidden", "Deine Aufgaben sind versteckt")}</small>` : `${!v.alive ? `<b>👻 ${T("You're a ghost: finish your tasks", "Du bist ein Geist: mach deine Aufgaben")}</b>` : ""}${v.tasks.map(([t, d]) => { const k = TASKS.find(x => x.id === t), r = ROOMS.find(x => x.id === k.room); return `<div class="${d ? "done" : ""}">${esc(RN(r))}: ${esc(T(k.en, k.de))}</div>`; }).join("")}`;
+        : v.role === "jest" ? `<b class="np-red" style="color:#c48cff">${ROLES.jest.e} ${T("Jester", "Narr")}</b><small>${T(ROLES.jest.den, ROLES.jest.dde)}</small>`
+        : v.sab && v.sab.type === "comms" ? `<b>📡 ${T("Comms sabotaged", "Funk sabotiert")}</b><small>${T("Your tasks are hidden", "Deine Aufgaben sind versteckt")}</small>` : `${v.role ? `<b class="np-rl">${ROLES[v.role].e} ${esc(T(ROLES[v.role].en, ROLES[v.role].de))}</b>` : ""}${!v.alive ? `<b>👻 ${T("You're a ghost: finish your tasks", "Du bist ein Geist: mach deine Aufgaben")}</b>` : ""}${v.tasks.map(([t, d]) => { const k = TASKS.find(x => x.id === t), r = ROOMS.find(x => x.id === k.room); return `<div class="${d ? "done" : ""}">${esc(RN(r))}: ${esc(T(k.en, k.de))}</div>`; }).join("")}`;
       if (tl._h !== tasksHtml){ tl._h = tasksHtml; tl.innerHTML = tasksHtml; }
       /* alerts: sabotage */
       const al = el.querySelector(".np-alert"), sab = v.sab, alH = sab ? (sab.type === "reactor" ? `☢️ ${T("Reactor meltdown", "Reaktor-Kernschmelze")} <b>${Math.ceil(this.left("sab") / 1000)}</b> <small>${v.two ? T("Two people: hold both panels at once", "Zwei Leute: beide Platten gleichzeitig halten") : T("Hold both panels in the reactor", "Beide Platten im Reaktor halten")} ${sab.ra || (v.held && v.held.ra) ? "✋" : "○"} ${sab.rb || (v.held && v.held.rb) ? "✋" : "○"}</small>` : sab.type === "o2" ? `🫁 ${T("Oxygen depleted", "Sauerstoff leer")} <b>${Math.ceil(this.left("sab") / 1000)}</b> <small>${T("Enter the code in Oxygen and on the Bridge", "Code in Sauerstoff und auf der Brücke eingeben")} ${sab.oa ? "✓" : "○"} ${sab.ob ? "✓" : "○"}</small>`
@@ -524,7 +541,9 @@
         if (this.vent){ const vt = VENTS.find(q => q.id === this.vent); vt.to.forEach(o => B.push(`<button class="np-act" data-x="vgo" data-v="${o}">➜<span>${esc(RN(roomAt(VENTS.find(q => q.id === o).x, VENTS.find(q => q.id === o).y)))}</span></button>`)); B.push(`<button class="np-act main on" data-x="vent">⬆<span>${T("Out", "Raus")}</span></button>`); }
         else {
           if (v.imp && v.alive) B.push(`<button class="np-act kill ${t.kill && this.left("kill") <= 0 ? "on" : ""}" data-x="kill" ${t.kill && this.left("kill") <= 0 ? "" : "disabled"}>🔪<span>${this.left("kill") > 0 ? Math.ceil(this.left("kill") / 1000) : T("Kill", "Töten")}</span></button>`);
-          if (v.imp && v.alive) B.push(`<button class="np-act ${t.vent ? "on" : ""}" data-x="vent" ${t.vent ? "" : "disabled"}>🕳️<span>${T("Vent", "Schacht")}</span></button>`);
+          if (v.role === "sher" && v.alive && !v.shot) B.push(`<button class="np-act kill ${t.shoot ? "on" : ""}" data-x="shoot" ${t.shoot ? "" : "disabled"}>🔫<span>${T("Shoot", "Schießen")}</span></button>`);
+          if (v.role === "sci" && v.alive) B.push(`<button class="np-act on" data-x="vitals">💓<span>${T("Vitals", "Vital")}</span></button>`);
+          if ((v.imp || v.role === "eng") && v.alive) B.push(`<button class="np-act ${t.vent ? "on" : ""}" data-x="vent" ${t.vent ? "" : "disabled"}>🕳️<span>${T("Vent", "Schacht")}</span></button>`);
           if (v.alive) B.push(`<button class="np-act rep ${t.report ? "on" : ""}" data-x="report" ${t.report ? "" : "disabled"}>📣<span>${T("Report", "Melden")}</span></button>`);
           if (!(v.imp && !v.alive)){ const use = t.fix || t.task || t.cams || t.admin || t.vitals || t.button, ic = t.fix || t.task ? ["✋", T("Use", "Benutzen")] : t.cams ? ["📹", T("Cameras", "Kameras")] : t.admin ? ["🗺️", T("Admin", "Lageplan")] : t.vitals ? ["💓", T("Vitals", "Vitalwerte")] : t.button ? ["🚨", T("Meeting", "Meeting")] : ["✋", T("Use", "Benutzen")]; B.push(`<button class="np-act main ${use ? "on" : ""}" data-x="use" ${use ? "" : "disabled"}>${ic[0]}<span>${ic[1]}</span></button>`); }
         }
@@ -538,7 +557,7 @@
       const v = this.v, ov = this.el.querySelector(".np-ov"), P = this.pl(), nm = id => esc(this.nm(id)), HC = this.hc || (this.hc = {}), head = id => { const p = P.find(x => x.id === id), k = id + (p && p.av ? JSON.stringify(p.av).length : 0); if (HC[k]) return HC[k]; try { return HC[k] = avatarSVG(Object.assign({}, p && p.av || {}, {aura: "none", pet: "none"}), {head: true, size: 54}); } catch(e) { return ""; } };
       let h = "";
       if (v.phase === "play" && this.intro()){ const line = v.imp ? v.mates : this.pl().map(p => p.id);
-        h = `<div class="np-role ${v.imp ? "imp" : ""}"><div class="np-k">${T("You are", "Du bist")}</div><div class="np-rbig">${v.imp ? "Natposter" : "Crew"}</div><div class="np-lineup">${line.map(id => `<span class="${id === PNet.me ? "me" : ""}"><span class="np-hd">${head(id)}</span><b>${nm(id)}</b></span>`).join("")}</div><p>${v.imp ? T("Kill the crew. Don't get caught.", "Töte die Crew. Lass dich nicht erwischen.") : T(`There ${v.nImp > 1 ? "are" : "is"} ${v.nImp || 1} Natposter${v.nImp > 1 ? "s" : ""} among you.`, `Unter euch ${v.nImp > 1 ? "sind" : "ist"} ${v.nImp || 1} Natposter.`)}</p></div>`; }
+        h = `<div class="np-role ${v.imp ? "imp" : ""}"><div class="np-k">${T("You are", "Du bist")}</div><div class="np-rbig" ${v.role && !v.imp ? 'style="font-size:min(11vw,62px)"' : ""}>${v.imp ? "Natposter" : v.role ? ROLES[v.role].e + " " + esc(T(ROLES[v.role].en, ROLES[v.role].de)) : "Crew"}</div>${v.role ? `<div class="np-rdesc">${esc(T(ROLES[v.role].den, ROLES[v.role].dde))}</div>` : ""}<div class="np-lineup">${line.map(id => `<span class="${id === PNet.me ? "me" : ""}"><span class="np-hd">${head(id)}</span><b>${nm(id)}</b></span>`).join("")}</div><p>${v.imp ? T("Kill the crew. Don't get caught.", "Töte die Crew. Lass dich nicht erwischen.") : T(`There ${v.nImp > 1 ? "are" : "is"} ${v.nImp || 1} Natposter${v.nImp > 1 ? "s" : ""} among you.`, `Unter euch ${v.nImp > 1 ? "sind" : "ist"} ${v.nImp || 1} Natposter.`)}</p></div>`; }
       if (v.phase === "play" && v.dbl && now() - (this.dblT || 0) < 1800) h = `<div class="np-dbl">${T("DOUBLE KILL", "DOPPELKILL")}</div>`;
       if (v.phase === "play" && v.killedBy && !this.shown["k" + v.killedBy.k] && (this.deathT = this.deathT || {}) && (this.deathT[v.killedBy.k] = this.deathT[v.killedBy.k] || now()) && now() - this.deathT[v.killedBy.k] < 3200) h = this.deathHTML(v.killedBy);
       else if (v.phase === "play" && v.killedBy && !this.shown["k" + v.killedBy.k]){ h = `<div class="np-killed"><div class="np-kface">${head(v.killedBy.by)}</div><i class="np-slash"></i><i class="np-splat"></i><i class="np-drips">${[8, 19, 33, 47, 58, 71, 86].map((x, i) => `<b style="left:${x}%;--d:${.6 + (i % 3) * .25}s;--h:${30 + (i * 37) % 55}%;width:${6 + (i * 5) % 9}px"></b>`).join("")}</i><div class="np-big">${T("You were killed", "Du wurdest getötet")}</div><p>${T(`by ${nm(v.killedBy.by)}. You're a ghost now: finish your tasks.`, `von ${nm(v.killedBy.by)}. Du bist jetzt ein Geist: Mach deine Aufgaben fertig.`)}</p><button class="btn go" data-x="seen" data-v="k${v.killedBy.k}">OK</button></div>`; }
@@ -556,13 +575,17 @@
         const txt = e.id ? (e.conf ? (e.imp ? T(`${n0} was a Natposter.`, `${n0} war ein Natposter.`) : T(`${n0} was not a Natposter.`, `${n0} war kein Natposter.`)) : T(`${n0} was ejected.`, `${n0} wurde rausgeworfen.`)) : T("Nobody was ejected.", "Niemand wurde rausgeworfen.");
         h = `<div class="np-eject ${e.id ? "" : "none"}"><i class="np-stars"></i><i class="np-stars b"></i>${e.id ? `<div class="np-ejfig">${this.fig(e.id)}</div>` : `<div class="np-ejship">🛸</div>`}
           <div class="np-type" style="--n:${txt.length}">${esc(txt)}</div>${e.conf ? `<p class="np-left">${T(`${e.left} Natposter${e.left === 1 ? "" : "s"} left.`, `Noch ${e.left} Natposter übrig.`)}</p>` : ""}</div>`; }
-      if (v.phase === "end"){ const crew = v.win !== "imp" && v.win !== "boom" && v.win !== "o2", mine = crew !== v.imp;
+      if (v.phase === "end" && v.win === "jest"){ const mine = v.jw === PNet.me;
+        h = `<div class="np-card jest"><div class="np-k">${mine ? T("Victory", "Sieg") : T("Defeat", "Niederlage")}</div><div class="np-big">🃏 ${T(`${nm(v.jw)} was the Jester and wins!`, `${nm(v.jw)} war der Narr und gewinnt!`)}</div>
+          ${v.stats ? `<div class="np-stats">${v.stats.slice().sort((a, b) => (b.imp - a.imp)).map(r => `<div class="${r.imp ? "imp" : ""} ${r.id === PNet.me ? "me" : ""}"><span class="np-hd sm">${head(r.id)}</span><b>${nm(r.id)}</b>${r.imp ? `<em class="np-tag">Natposter</em>` : r.role ? `<em class="np-tag r">${ROLES[r.role].e} ${esc(T(ROLES[r.role].en, ROLES[r.role].de))}</em>` : ""}</div>`).join("")}</div>` : ""}
+          ${v.host ? `<button class="btn go big" data-x="again">${T("Play again", "Nochmal")}</button><button class="btn ghost" data-x="lobby" style="margin-top:6px">${T("Lobby", "Lobby")}</button>` : `<p class="muted">${T("Waiting for the host…", "Warte auf den Gastgeber…")}</p>`}</div>`; }
+      else if (v.phase === "end"){ const crew = v.win !== "imp" && v.win !== "boom" && v.win !== "o2", mine = v.role === "jest" ? false : crew !== v.imp;
         h = `<div class="np-card ${crew ? "" : "imp"}"><div class="np-k">${mine ? T("Victory", "Sieg") : T("Defeat", "Niederlage")}</div><div class="np-big">${crew ? (v.win === "tasks" ? T("Crew wins: all tasks done", "Crew gewinnt: alle Aufgaben erledigt") : T("Crew wins", "Die Crew gewinnt")) : v.win === "boom" ? T("Reactor exploded. Natposter wins", "Reaktor explodiert. Natposter gewinnt") : v.win === "o2" ? T("Out of oxygen. Natposter wins", "Kein Sauerstoff mehr. Natposter gewinnt") : T("Natposter wins", "Natposter gewinnt")}</div>
-          ${v.stats ? `<div class="np-stats">${v.stats.slice().sort((a, b) => (b.imp - a.imp) || (b.k - a.k) || (b.t - a.t)).map(r => `<div class="${r.imp ? "imp" : ""} ${r.id === PNet.me ? "me" : ""}"><span class="np-hd sm">${head(r.id)}</span><b>${nm(r.id)}</b>${r.imp ? `<em class="np-tag">Natposter</em>` : ""}
+          ${v.stats ? `<div class="np-stats">${v.stats.slice().sort((a, b) => (b.imp - a.imp) || (b.k - a.k) || (b.t - a.t)).map(r => `<div class="${r.imp ? "imp" : ""} ${r.id === PNet.me ? "me" : ""}"><span class="np-hd sm">${head(r.id)}</span><b>${nm(r.id)}</b>${r.imp ? `<em class="np-tag">Natposter</em>` : r.role ? `<em class="np-tag r">${ROLES[r.role].e} ${esc(T(ROLES[r.role].en, ROLES[r.role].de))}</em>` : ""}
             <span class="np-st">${r.imp ? `🔪 ${r.k}` : `✅ ${r.t}/${r.tt}`}${r.w ? ` · 👑 ${r.w}` : ""}${!r.alive ? (r.by ? ` · ✝ ${nm(r.by)}` : " · 🚀") : ""}</span></div>`).join("")}</div>`
             : `<div class="np-faces">${v.imps.map(id => `<span><span class="np-hd">${head(id)}</span><b>${nm(id)}</b></span>`).join("")}</div>`}
           ${v.host ? `<button class="btn go big" data-x="again">${T("Play again", "Nochmal")}</button><button class="btn ghost" data-x="lobby" style="margin-top:6px">${T("Lobby", "Lobby")}</button>` : `<p class="muted">${T("Waiting for the host…", "Warte auf den Gastgeber…")}</p>`}</div>`; }
-      if (v.phase === "end" && v.stats && this.xpGid !== v.gid && typeof addXP === "function"){ this.xpGid = v.gid; const r = v.stats.find(x => x.id === PNet.me), crew = v.win !== "imp" && v.win !== "boom" && v.win !== "o2", won = r && crew !== r.imp;
+      if (v.phase === "end" && v.stats && this.xpGid !== v.gid && typeof addXP === "function"){ this.xpGid = v.gid; const r = v.stats.find(x => x.id === PNet.me), crew = v.win !== "imp" && v.win !== "boom" && v.win !== "o2", won = r && (v.win === "jest" ? v.jw === r.id : r.role !== "jest" && crew !== r.imp);
         if (r){ let xp = (won ? 30 : 12) + r.k * 6 + r.t * 2 + r.w * 5; if (PNet.P && PNet.P.solo) xp = Math.round(xp / 2); setTimeout(() => { try { addXP(xp, "natposter"); } catch(e) {} }, 1200); } }
       if (this.mapOpen && v.phase === "play") h = this.mapHTML();
       if (v.killedBy && v.phase !== "play" && v.phase !== "end" && !this.shown["k" + v.killedBy.k] && this.deathT && this.deathT[v.killedBy.k] && now() - this.deathT[v.killedBy.k] < 3200) h = this.deathHTML(v.killedBy);
@@ -1029,6 +1052,7 @@ html.np-on .dsheet{z-index:2800!important}html.np-on .toast{z-index:2900!importa
 .np-act.on{opacity:1}
 .pg-np-hero{display:block;padding:22px 18px;border-radius:14px;margin-top:8px;min-height:0!important;text-align:left}.pg-np-hero .pg-np-ship{font-size:56px}.np-act.main.on{background:var(--go);box-shadow:inset 0 -5px 0 var(--go-deep)}.np-act.kill.on{background:var(--bad);box-shadow:inset 0 -5px 0 #a8382a}.np-act.rep.on{background:#E9B64A;color:#2A1E05}
 .np-act:active,.np-act.pr{transform:scale(.92)}
+.np-rdesc{font:700 15px var(--body);color:var(--fg);margin:-6px 0 10px;opacity:.9}.np-rl{display:block;color:#c48cff}.np-tag.r{background:#5b3d86}.np-card.jest{border-color:#c48cff}
 .np-act.kill{position:relative;overflow:hidden}.np-act.kill::after{content:"";position:absolute;inset:0;border-radius:inherit;background:conic-gradient(rgba(0,0,0,.55) calc(var(--p,0) * 1%),transparent 0);pointer-events:none}
 .np.land .np-tasks{font-size:11.5px;line-height:1.35;max-width:220px;padding:6px 9px}
 html.np-on .xpchip{z-index:2950!important}
