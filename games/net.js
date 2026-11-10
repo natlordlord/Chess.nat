@@ -58,9 +58,9 @@ const PNet = (() => {
   function start(){
     if (P.solo) P.conn = {send(){}, live: true, close(){}};
     else P.conn = open(P.code, {
-      onMsg: m => P.isHost ? hostMsg(m) : clientMsg(m),
-      onPeers: ids => { P.on = new Set(ids.concat(me)); if (P.isHost) push(); else redraw(); },
-      onConn: live => { if (live){ if (P.isHost) push(true); else hello(); } redraw(); }});
+      onMsg: m => { if (P) P.isHost ? hostMsg(m) : clientMsg(m); },
+      onPeers: ids => { if (!P) return; P.on = new Set(ids.concat(me)); if (P.isHost) push(); else redraw(); },
+      onConn: live => { if (!P) return; if (live){ if (P.isHost) push(true); else hello(); } redraw(); }});
     if (P.isHost){
       P.beat = setInterval(() => { if (!P || !P.isHost) return; const e = eng(); let ch = false;
         if (P.G && e && e.tick){ try { ch = !!e.tick(P.G, api()); } catch(err) { console.error(err); } }
@@ -236,7 +236,7 @@ Views.lobby = {
     if (arg && arg.host){ PNet.host(arg.game); }
     else if (code && (!PNet.P || PNet.P.code !== code)) return this.ask(code);
     else if (!PNet.P && !PNet.resume()) return this.start();
-    PNet.refresh(); this.draw();
+    this.npSet = false; PNet.refresh(); this.draw();
   },
   unmount(){ if (PG.custom) Object.values(PG.custom).forEach(c => c.stop && c.stop()); document.documentElement.classList.remove("pg-night"); setTimeout(() => window.dispatchEvent(new Event("chessnat:route")), 0); },
   /* no lobby yet: make one or type a code */
@@ -272,7 +272,7 @@ Views.lobby = {
     if (!m){ body.innerHTML = `<div class="pg-stage"><div class="pg-moon">📡</div><p class="pg-say">${T("Connecting…", "Verbinde…")}<small>${T("Waiting for the host's phone. Is the code right and the host's app open?", "Warte auf das Handy des Gastgebers. Stimmt der Code und ist die App beim Gastgeber offen?")}</small></p></div>`; body._json = null; return; }
     if (!P.isHost && Date.now() - P.last > 15000) toast(T("Lost the host… reconnecting", "Verbindung zum Gastgeber weg… verbinde neu"), 1800);
     if (m.lobby && m.game === "natposter" && !P.solo && !this.npSet && PG.custom.np){ body._json = null; body._lk = null;
-      const lv = {custom: "np", k: "lobby", phase: "lobby", round: 0, alive: true, imp: false, mates: [], tasks: [], fake: [], prog: 0, bodies: [], kill: 0, emer: 0, intro: 0, sab: null, sabCd: 0, meet: null, eject: null, deadList: [], bots: [], doors: {}, host: P.isHost, lob: {code: P.code, n: m.players.filter(p => p.on).length, min: (PG.online.natposter || {}).min || 4}};
+      const lv = {custom: "np", k: "lobby", phase: "lobby", round: 0, alive: true, imp: false, mates: [], tasks: [], fake: [], prog: 0, bodies: [], kill: 0, emer: 0, intro: 0, sab: null, sabCd: 0, meet: null, eject: null, deadList: [], bots: [], doors: {}, host: P.isHost, lob: {code: P.code, fill: +(m.opts || {}).fill || 0, n: m.players.filter(p => p.on).length, min: (PG.online.natposter || {}).min || 4}};
       PG.custom.np.draw(body, lv, m, a => { if (a.a === "start") PNet.begin(); else if (a.a === "settings"){ this.npSet = true; PG.custom.np.stop(); this.draw(); } else if (a.a === "invite") this.inviteSheet(m); else if (a.a === "look") App.go("me"); });
       return; }
     if (m.lobby){ if (PG.custom) Object.values(PG.custom).forEach(c => c.stop && c.stop()); return this.lobby(body, m); }
@@ -288,7 +288,7 @@ Views.lobby = {
   practiceUI(body, m, e, g){
     const {T, h} = PG; document.documentElement.classList.remove("pg-night"); const lk = JSON.stringify(["solo", m.game, m.opts]); if (body._lk === lk && body.querySelector(".pg-solo")) return; body._lk = lk; body._json = null;
     body.innerHTML = `<div class="pg-stage pg-solo"><div class="pg-moon">🤖</div><div class="pg-name">${g ? h(T(g.name[0], g.name[1])) : ""}</div><p class="muted" style="margin:0">${T("Practice with bots", "Üben mit Bots")}</p>
-      <div class="unit" style="width:100%;text-align:left;margin:0">${(e.opts || []).slice().sort((a, b) => (b.solo ? 1 : 0) - (a.solo ? 1 : 0)).map(o => `<div style="margin-top:8px"><div class="pg-who" style="text-align:left">${h(T(o.l[0], o.l[1]))}</div><div class="pg-opt">${(typeof o.c === "function" ? o.c() : o.c).map(([v, l]) => `<button class="btn sm ${String(m.opts[o.k]) === String(v) ? "go" : ""}" data-ok="${o.k}" data-ov="${esc(String(v))}">${h(Array.isArray(l) ? T(l[0], l[1]) : l)}</button>`).join("")}</div></div>`).join("")}</div>
+      <div class="unit" style="width:100%;text-align:left;margin:0">${(e.opts || []).filter(o => !o.online).slice().sort((a, b) => (b.solo ? 1 : 0) - (a.solo ? 1 : 0)).map(o => `<div style="margin-top:8px"><div class="pg-who" style="text-align:left">${h(T(o.l[0], o.l[1]))}</div><div class="pg-opt">${(typeof o.c === "function" ? o.c() : o.c).map(([v, l]) => `<button class="btn sm ${String(m.opts[o.k]) === String(v) ? "go" : ""}" data-ok="${o.k}" data-ov="${esc(String(v))}">${h(Array.isArray(l) ? T(l[0], l[1]) : l)}</button>`).join("")}</div></div>`).join("")}</div>
       <button class="btn go big" id="lgo" style="max-width:400px">${T("Play", "Spielen")}</button></div>`;
     $$("[data-ok]", body).forEach(b => b.onclick = () => { const o = e.opts.find(x => x.k === b.dataset.ok), v = (typeof o.c === "function" ? o.c() : o.c).find(c => String(c[0]) === b.dataset.ov)[0]; PNet.setOpt(o.k, v); });
     $("#lgo", body).onclick = () => PNet.begin();
@@ -305,7 +305,7 @@ Views.lobby = {
     if (P.solo) return this.practiceUI(body, m, e, g);
     document.documentElement.classList.remove("pg-night"); body._json = null;
     const lk = JSON.stringify([m.players, m.game, m.opts, isH, P.code]); if (body._lk === lk && body.querySelector(".pg-pls")) return; body._lk = lk;
-    const online = m.players.filter(p => p.on), need = e ? e.min : 2;
+    const online = m.players.filter(p => p.on), need = e ? Math.max(1, e.min - (e.extra ? e.extra(Object.assign({}, PNet.defaults(m.game), m.opts || {}), false) : 0)) : 2;
     body.innerHTML = `<div class="pg-stage" style="padding-top:4px">
       ${isH ? `<div class="unit pg-inv" style="width:100%;margin:0"><div class="pg-qr" id="lqr"></div><div style="flex:1;min-width:0;text-align:left"><div class="pg-who">${T("Join code", "Beitritts-Code")}</div><div class="pg-name" style="letter-spacing:.14em;font-size:38px">${esc(P.code.toUpperCase())}</div>
           <p class="pg-sub">${T("Scan the QR code with the camera, or open chess-nat.vercel.app → Games → Join.", "QR-Code mit der Kamera scannen oder chess-nat.vercel.app → Spiele → Beitreten.")}</p>

@@ -34,6 +34,11 @@
     oa: {x: 1680, y: 900, g: "code", s: "o2"}, ob: {x: 2120, y: 900, g: "code", s: "o2"}, comms: {x: 2150, y: 230, g: "tune", s: "comms"}};
   const SABS = ["lights", "reactor", "o2", "comms"], CRIT = {reactor: 1, o2: 1};
   const KILLS = ["stab", "head", "chess", "shot", "bite"];
+  /* quick chat in meetings: only ready-made lines, so nothing anyone types ever shows on another phone */
+  const IN = {med: "in der Krankenstation", caf: "in der Kantine", com: "im Funkraum", rea: "im Reaktor", chess: "in der Schach-Lounge", sto: "im Lager", o2: "im Sauerstoffraum", bri: "auf der Brücke", ele: "in der Elektrik", lab: "im Labor", nav: "in der Navigation", hall: "im Gang"};
+  const EMO = ["😱", "🤔", "🙄", "😂", "🔪", "👀", "🤫", "😤"];
+  const SAY = {where: 1, body: 1, nothing: 1, self: 1, skip: 1, sus: 1, with: 1, vent: 1, emo: 1};
+  const roomIn = id => { const r = ROOMS.find(x => x.id === id); return T(r ? "in " + r.en : "in a hallway", IN[id] || IN.hall); };
   /* crew events: a few people have to stand on the plates together and hold for 3 seconds */
   const EVS = [{id: "lift", room: "sto", de: "Frachtlift hochfahren", en: "Raise the cargo lift", c: {x: 1290, y: 830}},
     {id: "dock", room: "nav", de: "Andockklammern lösen", en: "Release the docking clamps", c: {x: 1940, y: 1250}},
@@ -81,9 +86,13 @@
       const G = this.G; if (!G || !G.s || !PNet.P || !PNet.P.G || PNet.P.G !== G){ this.stop(); return; }
       const s = G.s, dt = (now() - this.last) / 1000; this.last = now(); const eng = PG.online.natposter, out = [];
       this.list(G).forEach(b => { const id = b.id, p = POS[id] || (POS[id] = Object.assign({}, s.spawn[id])), m = this.mem[id] || (this.mem[id] = {path: [], wait: 0, goal: null}), alive = s.alive[id], imp = s.imps.includes(id);
+        if (s.phase === "meet" && alive && (m.said || 0) < 2 && now() - s.meet.start > (m.st || (m.st = 1800 + Math.random() * 6500))){ m.said = (m.said || 0) + 1; m.st = now() - s.meet.start + 2500 + Math.random() * 7000; const r = roomAt(p.x, p.y), bd = s.meet.body && s.bodies.find(x => x.id === s.meet.body), others = G.ids.filter(x => x !== id && s.alive[x]);
+          const line = m.said === 2 ? (Math.random() < .55 ? "emo|" + Math.floor(Math.random() * EMO.length) : Math.random() < .5 ? "skip" : "nothing")
+            : s.meet.by === id && bd ? "body|" + ((roomAt(bd.x, bd.y) || {}).id || "hall") : m.sus && s.alive[m.sus] && Math.random() < .7 ? "sus|" + m.sus : imp && Math.random() < .35 ? (Math.random() < .5 ? "self" : "sus|" + PG.pick(others.filter(x => !s.imps.includes(x)))) : Math.random() < .2 && others.length ? "with|" + PG.pick(others) : "where|" + ((r || {}).id || "hall");
+          eng.act(G, id, {a: "say", v: line}, api); api.push(); }
         if (s.phase === "meet"){ m.path = []; m.goal = null; if (alive && !s.meet.votes[id] && now() - s.meet.start > (m.vt || (m.vt = 4000 + Math.random() * 12000))){ const sus = m.sus && s.alive[m.sus] && m.sus !== id ? m.sus : null; const opts = G.ids.filter(x => s.alive[x] && x !== id && !(imp && s.imps.includes(x)));
             eng.act(G, id, {a: "vote", v: sus && Math.random() < .7 ? sus : Math.random() < .45 ? "skip" : PG.pick(opts) || "skip"}, api); api.push(); } return; }
-        m.vt = 0; if (s.phase !== "play" || now() < s.intro){ if (s.spawn[id] && m.sk !== s.spawnK){ m.sk = s.spawnK; Object.assign(p, s.spawn[id]); m.path = []; m.goal = null; } out.push([id, p.x, p.y, p.f || 1, alive ? 0 : 1, 0]); return; }
+        m.vt = 0; m.said = 0; m.st = 0; if (s.phase !== "play" || now() < s.intro){ if (s.spawn[id] && m.sk !== s.spawnK){ m.sk = s.spawnK; Object.assign(p, s.spawn[id]); m.path = []; m.goal = null; } out.push([id, p.x, p.y, p.f || 1, alive ? 0 : 1, 0]); return; }
         if (s.spawn[id] && m.sk !== s.spawnK){ m.sk = s.spawnK; Object.assign(p, s.spawn[id]); m.path = []; m.goal = null; }
         const crewSeen = r => G.ids.filter(x => x !== id && s.alive[x] && !s.imps.includes(x) && POS[x] && dist(p, POS[x]) < r);
         /* the Natposter bot: kill someone who is alone, now and then switch the lights off */
@@ -106,6 +115,7 @@
           if (m.goal && m.goal.ev != null && s.ev){ m.wait = 1; }
           else if (m.goal && m.goal.task){ m.wait = 5 + Math.random() * 5; }
           else if (m.goal && m.goal.fix && s.sab){ m.wait = 2.5; }
+          else if (m.goal && m.goal.walk){ m.goal = null; m.wait = .4 + Math.random() * 2.2; if (Math.random() < .5) p.f = -(p.f || 1); }
           else { m.goal = null; const left = s.tasks[id].filter(t => !s.done[id][t]); const tk = TASKS.find(t => t.id === (imp ? PG.pick(s.tasks[id]) : left[0]));
             if (tk && Math.random() < (imp ? .6 : .55)){ m.goal = {task: imp ? null : tk.id}; m.path = route(p, {x: tk.x + (Math.random() * 30 - 15), y: tk.y + 40}); }
             else { const r = PG.pick(ROOMS); m.path = route(p, {x: r.x + 40 + Math.random() * (r.w - 80), y: r.y + 50 + Math.random() * (r.h - 90)}); m.goal = {walk: 1}; } }
@@ -122,6 +132,7 @@
   PG.online.natposter = {min: 4, max: 15, note: ["Like the space classic: crew does tasks, the Natposter kills in secret. Everyone walks around on their own phone.", "Wie der Weltraum-Klassiker: Die Crew löst Aufgaben, der Natposter tötet heimlich. Jeder läuft auf seinem eigenen Handy herum."],
     opts: [{k: "role", solo: true, l: ["Your role", "Deine Rolle"], d: "rnd", c: [["rnd", ["Random", "Zufall"]], ["crew", "Crew"], ["imp", "Natposter"]]},
       {k: "bots", solo: true, l: ["Bots", "Bots"], d: 5, c: [[3, "3"], [5, "5"], [7, "7"]]},
+      {k: "fill", online: true, l: ["Fill up with bots", "Mit Bots auffüllen"], d: 0, c: [[0, ["No", "Nein"]], [2, "+2"], [4, "+4"], [6, "+6"]]},
       {k: "imps", l: ["Natposters", "Natposter"], d: "auto", c: [["auto", "Auto"], [1, "1"], [2, "2"], [3, "3"]]},
       {k: "cd", l: ["Kill cooldown", "Kill-Abklingzeit"], d: 30, c: [[20, "20 s"], [30, "30 s"], [45, "45 s"]]},
       {k: "tasks", l: ["Tasks each", "Aufgaben pro Person"], d: 5, c: [[3, "3"], [5, "5"], [7, "7"]]},
@@ -129,10 +140,10 @@
       {k: "spd", l: ["Speed", "Tempo"], d: 1, c: [[.8, ["Slow", "Langsam"]], [1, ["Normal", "Normal"]], [1.25, ["Fast", "Schnell"]]]},
       {k: "vis", l: ["Crew vision", "Sicht der Crew"], d: 1, c: [[.75, ["Small", "Klein"]], [1, ["Normal", "Normal"]], [1.4, ["Wide", "Weit"]]]},
       {k: "conf", l: ["Reveal ejected role", "Rolle beim Rauswurf zeigen"], d: 1, c: [[1, ["Yes", "Ja"]], [0, ["No", "Nein"]]]}],
-    extra(o, solo){ return solo ? +o.bots || 0 : 0; },
+    extra(o, solo){ return solo ? +o.bots || 0 : +o.fill || 0; },
     start(G){
       BOT.stop(); G.ids = G.ids.filter(x => !/^bot-/.test(x));
-      const bots = (typeof BOTS !== "undefined" ? PG.shuffle(BOTS.slice(0, 20)) : []).slice(0, G.solo ? +G.opts.bots || 0 : 0).map((b, i) => ({id: "bot-" + i, name: b.name, av: (() => { try { return botCfg(b); } catch(e) { return null; } })()}));
+      const bots = (typeof BOTS !== "undefined" ? PG.shuffle(BOTS.slice(0, 20)) : []).slice(0, G.solo ? +G.opts.bots || 0 : +G.opts.fill || 0).map((b, i) => ({id: "bot-" + i, name: b.name, av: (() => { try { return botCfg(b); } catch(e) { return null; } })()}));
       bots.forEach(b => G.ids.push(b.id));
       const n = G.ids.length, o = G.opts, k = o.imps === "auto" ? (n <= 6 ? 1 : n <= 10 ? 2 : 3) : Math.min(+o.imps, Math.max(1, Math.floor((n - 1) / 2)));
       const imps = PG.shuffle(G.ids).slice(0, k), host = G.host;
@@ -175,6 +186,10 @@
       return ch || s.phase === "meet" || s.phase === "eject" || (s.phase === "play" && (!!s.sab || now() < s.intro || (s.doors && Object.keys(s.doors).length > 0))); },
     act(G, id, a, api){ const s = G.s, me = POS[id] || {x: 0, y: 0}, alive = s.alive[id], imp = s.imps.includes(id);
       if (a.a === "again" && id === G.host && s.phase === "end"){ this.start(G); return; }
+      if (s.phase === "meet" && a.a === "say" && alive && typeof a.v === "string" && a.v.length < 40){ const M = s.meet, [pk, x0] = a.v.split("|"), x = x0 || ""; if (!SAY[pk]) return;
+        M.chat = M.chat || []; M.cnt = M.cnt || {}; M.last = M.last || {}; if ((M.cnt[id] || 0) >= 14 || now() - (M.last[id] || 0) < 1100) return;
+        const ok = pk === "emo" ? /^[0-9]$/.test(x) && +x < EMO.length : (pk === "where" || pk === "body") ? (x === "hall" || ROOMS.some(r => r.id === x)) : (pk === "sus" || pk === "with" || pk === "vent") ? G.ids.includes(x) && x !== id : x === "";
+        if (!ok) return; M.chat.push([id, pk, x]); if (M.chat.length > 40) M.chat.shift(); M.cnt[id] = (M.cnt[id] || 0) + 1; M.last[id] = now(); return; }
       if (s.phase === "meet" && a.a === "vote" && alive && !s.meet.votes[id] && (a.v === "skip" || s.alive[a.v])){ s.meet.votes[id] = a.v; return; }
       if (s.phase !== "play" || now() < s.intro) return;
       if (a.a === "kill" && imp && alive && now() >= s.killAt[id] && !me.v){ const t = a.v, tp = POS[t];
@@ -203,7 +218,7 @@
       return {gid: s.gid, nImp: s.imps.length, custom: "np", k: "np" + s.round, phase: s.phase, round: s.round, alive: !!s.alive[id], imp, mates: imp ? s.imps : [], tasks: imp ? [] : s.tasks[id].map(t => [t, !!s.done[id][t]]),
         fake: imp ? s.tasks[id] : [], prog: p.tot ? p.d / p.tot : 0, bodies: s.bodies, kill: imp ? Math.max(0, s.killAt[id] - now()) : 0, emer: s.emer[id], intro: Math.max(0, s.intro - now()),
         sab: s.sab ? {type: s.sab.type, left: s.sab.until ? Math.max(0, s.sab.until - now()) : 0, ra: s.sab.ra, rb: s.sab.rb, oa: s.sab.oa, ob: s.sab.ob} : null, spd: +G.opts.spd || 1, vis: +G.opts.vis || 1, sabCd: imp ? Math.max(0, s.sabAt - now()) : 0,
-        meet: s.meet ? {by: s.meet.by, body: s.meet.body, left: Math.max(0, s.meet.until - now()), voted: Object.keys(s.meet.votes), my: s.meet.votes[id] || null} : null,
+        meet: s.meet ? {chat: s.meet.chat || [], by: s.meet.by, body: s.meet.body, left: Math.max(0, s.meet.until - now()), voted: Object.keys(s.meet.votes), my: s.meet.votes[id] || null} : null,
         eject: s.eject ? {id: s.eject.id, imp: s.eject.imp, conf: !!G.opts.conf, left: s.eject.left, votes: s.lastVotes, shown: now() - s.eject.start, tot: s.eject.until - s.eject.start} : null, meetTot: G.opts.meet * 1000,
         ev: s.ev ? {id: s.ev.id, room: s.ev.room, de: s.ev.de, en: s.ev.en, pads: s.ev.pads, occ: s.ev.occ, left: Math.max(0, s.ev.until - now()), hold: s.ev.hold ? now() - s.ev.hold : 0} : null, evRes: s.evRes || null, dbl: imp && s.dbl ? s.dbl : null,
         doors: s.doors ? Object.fromEntries(Object.entries(s.doors).filter(([k, t]) => t > now()).map(([k, t]) => [k, t - now()])) : {}, doorCd: imp ? Math.max(0, (s.doorAt || 0) - now()) : 0,
@@ -261,7 +276,7 @@
       if (imp){ x.tone(.85, 70, 40, 2.4, .22, "sawtooth"); x.chord(.85, [45, 48, 51], 2.2, .06, "triangle"); x.noise(.85, 1.6, 300, 60, .08, "lowpass"); x.chord(1.6, [57, 60, 63], 1.6, .045, "sine"); }
       else { x.chord(.85, [60, 64, 67], 1.6, .06, "triangle"); x.chord(1.15, [67, 72, 76], 1.6, .05, "sine"); x.noise(.85, 1, 2000, 6000, .03, "highpass"); } },
     sound(n){ const x = this.sfx;
-      if (n === "kill"){ x.noise(0, .12, 6000, 2000, .25, "highpass"); x.noise(.05, .35, 900, 120, .3, "lowpass"); x.tone(.05, 160, 50, .4, .3); Haptic.go([60, 40, 120]); this.flash(); }
+      if (n === "kill"){ this.killFx = now(); x.noise(0, .12, 6000, 2000, .25, "highpass"); x.noise(.05, .35, 900, 120, .3, "lowpass"); x.tone(.05, 160, 50, .4, .3); Haptic.go([60, 40, 120]); this.flash(); }
       else if (n === "died"){ const kv = (this.v && this.v.killedBy && this.v.killedBy.v) || "stab", hit = (t, f = 900) => { x.noise(t, .12, 6000, 2000, .22, "highpass"); x.noise(t + .03, .45, f, 80, .32, "lowpass"); setTimeout(() => { Haptic.go(90); this.flash(); }, t * 1000); };
         x.noise(0, .5, 300, 80, .12, "lowpass"); x.tone(0, 90, 50, .6, .12, "sine");
         if (kv === "stab") [0, 1, 2, 3, 4].forEach(i => hit(.6 + i * .28, 700));
@@ -285,11 +300,11 @@
       else if (n === "task"){ Sound.xp ? Sound.xp() : Sound.right(); } },
     mount(){
       this.stop(); const el = this.el = document.createElement("div"); el.className = "np"; el.setAttribute("data-notr", "");
-      el.innerHTML = `<canvas class="np-cv"></canvas><div class="np-top"><button class="np-menu" data-x="menu">☰</button><div class="np-bar"><i></i><span>${T("TASKS", "AUFGABEN")}</span></div><button class="np-mapb" data-x="map">${icon("map", 20)}<span>${T("Map", "Karte")}</span></button></div>
+      el.innerHTML = `<canvas class="np-cv"></canvas><div class="np-top"><button class="np-menu" data-x="menu">☰</button><button class="np-menu np-quit" data-x="quit">🚪</button><div class="np-bar"><i></i><span>${T("TASKS", "AUFGABEN")}</span></div><button class="np-mapb" data-x="map">${icon("map", 20)}<span>${T("Map", "Karte")}</span></button></div>
         <div class="np-tasks"></div><div class="np-alert"></div><div class="np-ev"></div><div class="np-lob"></div><div class="np-tbar"><i></i><span></span></div><div class="np-joy"><i></i></div><div class="np-btns"></div><div class="np-ov"></div><div class="np-mini"></div>`;
       document.body.appendChild(el); document.documentElement.classList.add("np-on"); this.full();
       this.pop = e => { if (!this.el || document.querySelector(".dsheet:not(.out)")) return; e.stopImmediatePropagation(); try { history.pushState({r: App.route}, "", "#" + App.route); } catch(_) {} toast(T("To leave: ☰ → Leave", "Zum Verlassen: ☰ → Verlassen")); };
-      window.addEventListener("popstate", this.pop, true);
+
       el.addEventListener("pointerdown", () => { if (!this.fullTried){ this.fullTried = 1; this.full(); } }, true);
       el.querySelector(".np-ov").addEventListener("click", e => { if (this.mapOpen && !e.target.closest(".np-map")){ this.mapOpen = false; this.hud(); } });
       el.querySelector(".np-mini").addEventListener("click", e => { if (e.target.classList.contains("np-mini") && this.mini && this.mini.light){ Sound.tap(); this.closeMini(); } });
@@ -307,7 +322,9 @@
       this.kd = e => { if (/^(Arrow|Key[WASD])/.test(e.code)){ this.keys[e.code] = 1; e.preventDefault(); } if (e.code === "KeyE" || e.code === "Space") { const b = this.el && this.el.querySelector(".np-act.main"); if (b) b.click(); } if (e.code === "KeyQ"){ const b = this.el && this.el.querySelector('[data-x="kill"]'); if (b) b.click(); } };
       this.ku = e => { delete this.keys[e.code]; };
       window.addEventListener("keydown", this.kd); window.addEventListener("keyup", this.ku);
-      el.addEventListener("click", e => { const b = e.target.closest("[data-x]"); if (!b || b.disabled) return; Sound.tap(); this.click(b.dataset.x, b.dataset.v); });
+      const FAST = ".np-btns,.np-top,.np-lob";
+      el.addEventListener("pointerdown", e => { const b = e.target.closest("[data-x]"); if (!b || b.disabled || !b.closest(FAST)) return; e.preventDefault(); b._pd = now(); b.classList.add("pr"); setTimeout(() => b.classList.remove("pr"), 140); Sound.tap(); this.click(b.dataset.x, b.dataset.v); });
+      el.addEventListener("click", e => { const b = e.target.closest("[data-x]"); if (!b || b.disabled) return; if (b.closest(FAST) && now() - (b._pd || 0) < 800) return; Sound.tap(); this.click(b.dataset.x, b.dataset.v); });
       let last = performance.now(); const loop = t => { const dt = Math.min(.05, (t - last) / 1000); last = t; try { this.step(dt); this.render(); } catch(err) { console.error(err); } this.raf = requestAnimationFrame(loop); };
       this.raf = requestAnimationFrame(loop);
     },
@@ -366,6 +383,10 @@
     click(x, val){
       const v = this.v, t = this.targets();
       if (x === "menu") return this.menu();
+      if (x === "quit"){ const b = this.el.querySelector(".np-quit"); this.quitN = (now() - (this.quitT || 0) < 2500 ? this.quitN || 0 : 0) + 1; this.quitT = now(); Haptic.go(20);
+        if (this.quitN >= 3){ this.quitN = 0; b.innerHTML = "👋"; setTimeout(() => { PNet.leave(); App.go("games"); }, 380); return; }
+        b.classList.add("arm"); b.innerHTML = `🚪<small>${3 - this.quitN}×</small>`; toast(T(`Tap ${3 - this.quitN} more time${3 - this.quitN > 1 ? "s" : ""} to leave`, `Noch ${3 - this.quitN}× tippen zum Verlassen`), 1600);
+        clearTimeout(this.quitTm); this.quitTm = setTimeout(() => { this.quitN = 0; if (b.isConnected){ b.classList.remove("arm"); b.innerHTML = "🚪"; } }, 2500); return; }
       if (x === "map") { this.mapOpen = !this.mapOpen; this.hud(); return; }
       if (x === "kill" && t.kill && this.left("kill") <= 0) return this.act({a: "kill", v: t.kill.id});
       if (x === "report" && t.report) return this.act({a: "report", v: t.report.id});
@@ -384,6 +405,8 @@
       if (x === "sab"){ this.mapOpen = false; return this.act({a: "sab", v: val}); }
       if (x === "door"){ this.mapOpen = false; return this.act({a: "door", v: val}); }
       if (x === "vote") return this.act({a: "vote", v: val});
+      if (x === "qc"){ this.qcMode = val || null; this.overlay(); return; }
+      if (x === "say"){ this.qcMode = null; Haptic.go(8); this.act({a: "say", v: val}); this.overlay(); return; }
       if (x === "again") return this.act({a: "again"});
       if (x === "leave") return this.sure(T("Leave the lobby?", "Lobby verlassen?"), () => { PNet.leave(); App.go("games"); });
       if (["start", "settings", "invite", "look"].includes(x)) return this.act({a: x});
@@ -414,9 +437,9 @@
     hud(){
       const v = this.v, el = this.el; if (!v || !el) return;
       el.classList.toggle("ghost", !v.alive); el.classList.toggle("imp", v.imp); el.classList.toggle("lob", v.phase === "lobby");
-      const lb = el.querySelector(".np-lob"), lbH = v.phase === "lobby" ? `<div class="np-lobc"><b>${esc(v.lob.code.toUpperCase())}</b><span>${v.lob.n} / 15</span></div>
+      const lb = el.querySelector(".np-lob"), lbH = v.phase === "lobby" ? `<div class="np-lobc"><b>${esc(v.lob.code.toUpperCase())}</b><span>${v.lob.n}${v.lob.fill ? ` + ${v.lob.fill} 🤖` : ""} / 15</span></div>
         <button class="np-lb" data-x="invite">📨<span>${T("Invite", "Einladen")}</span></button><button class="np-lb" data-x="look">👕<span>${T("Look", "Aussehen")}</span></button><button class="np-lb" data-x="settings">⚙️<span>${T("Settings", "Einstellungen")}</span></button><button class="np-lb" data-x="leave">🚪<span>${T("Leave", "Verlassen")}</span></button>
-        ${v.host ? `<button class="np-lb go" data-x="start" ${v.lob.n < v.lob.min ? "disabled" : ""}>▶<span>${v.lob.n < v.lob.min ? T(`${v.lob.min} needed`, `${v.lob.min} nötig`) : T("Start", "Start")}</span></button>` : `<span class="np-wait">${T("Waiting for the host…", "Warte auf den Gastgeber…")}</span>`}` : "";
+        ${v.host ? `<button class="np-lb go" data-x="start" ${v.lob.n + (v.lob.fill || 0) < v.lob.min ? "disabled" : ""}>▶<span>${v.lob.n + (v.lob.fill || 0) < v.lob.min ? T(`${v.lob.min} needed`, `${v.lob.min} nötig`) : T("Start", "Start")}</span></button>` : `<span class="np-wait">${T("Waiting for the host…", "Warte auf den Gastgeber…")}</span>`}` : "";
       if (lb._h !== lbH){ lb._h = lbH; lb.innerHTML = lbH; }
       const mb = el.querySelector(".np-mapb"), mbH = v.imp ? `<b>⚡</b><span>${this.left("sabCd") > 0 && !v.sab ? Math.ceil(this.left("sabCd") / 1000) + " s" : T("Sabotage", "Sabotage")}</span>` : `${icon("map", 20)}<span>${T("Map", "Karte")}</span>`; if (mb._h !== mbH){ mb._h = mbH; mb.innerHTML = mbH; mb.classList.toggle("imp", v.imp); }
       /* how long until something happens: a bar at the top */
@@ -464,12 +487,11 @@
       if (v.phase === "play" && v.killedBy && !this.shown["k" + v.killedBy.k] && (this.deathT = this.deathT || {}) && (this.deathT[v.killedBy.k] = this.deathT[v.killedBy.k] || now()) && now() - this.deathT[v.killedBy.k] < 3200) h = this.deathHTML(v.killedBy);
       else if (v.phase === "play" && v.killedBy && !this.shown["k" + v.killedBy.k]){ h = `<div class="np-killed"><div class="np-kface">${head(v.killedBy.by)}</div><i class="np-slash"></i><i class="np-splat"></i><i class="np-drips">${[8, 19, 33, 47, 58, 71, 86].map((x, i) => `<b style="left:${x}%;--d:${.6 + (i % 3) * .25}s;--h:${30 + (i * 37) % 55}%;width:${6 + (i * 5) % 9}px"></b>`).join("")}</i><div class="np-big">${T("You were killed", "Du wurdest getötet")}</div><p>${T(`by ${nm(v.killedBy.by)}. You're a ghost now: finish your tasks.`, `von ${nm(v.killedBy.by)}. Du bist jetzt ein Geist: Mach deine Aufgaben fertig.`)}</p><button class="btn go" data-x="seen" data-v="k${v.killedBy.k}">OK</button></div>`; }
       if (v.phase === "meet" && this.banner && now() - this.banner.t < 2400){ h = `<div class="np-banner ${v.meet.body ? "body" : ""}"><div>${v.meet.body ? "💀" : "🚨"}</div><b>${v.meet.body ? T("Dead body reported", "Leiche gefunden") : T("Emergency meeting", "Notfall-Meeting")}</b><span>${v.meet.body ? T(`${nm(v.meet.by)} found ${nm(v.meet.body)}`, `${nm(v.meet.by)} hat ${nm(v.meet.body)} gefunden`) : T(`called by ${nm(v.meet.by)}`, `einberufen von ${nm(v.meet.by)}`)}</span></div>`; }
-      else if (v.phase === "meet"){ const m = v.meet, alive = P.filter(p => !v.deadList.includes(p.id) && v.views !== 0), canVote = v.alive && !m.my;
-        h = `<div class="np-meet"><div class="np-k">${m.body ? "💀 " + T("Body reported", "Leiche gemeldet") : "🚨 " + T("Emergency meeting", "Notfall-Meeting")}</div><div class="np-big" style="font-size:22px">${m.body ? T(`${nm(m.by)} found ${nm(m.body)}`, `${nm(m.by)} hat ${nm(m.body)} gefunden`) : T(`called by ${nm(m.by)}`, `einberufen von ${nm(m.by)}`)}</div>
-          <div class="np-tm" data-cd="meet"></div>
-          <div class="np-vgrid">${P.map(p => { const dead = v.deadList.includes(p.id); return `<button class="np-vote ${m.my === p.id ? "sel" : ""} ${dead ? "dead" : ""}" data-x="vote" data-v="${esc(p.id)}" ${!canVote || dead || p.id === PNet.me && false ? "disabled" : ""}><span class="np-hd">${head(p.id)}</span><b>${esc(p.name)}</b>${m.voted.includes(p.id) ? `<i>✓</i>` : ""}${dead ? `<i>✝</i>` : ""}</button>`; }).join("")}</div>
-          <button class="btn ${m.my === "skip" ? "go" : ""}" data-x="vote" data-v="skip" ${canVote ? "" : "disabled"}>${T("Skip vote", "Überspringen")}</button>
-          <p class="muted" style="margin:6px 0 0">${!v.alive ? T("Ghosts don't vote.", "Geister stimmen nicht ab.") : m.my ? T("Voted. Talk it out!", "Abgestimmt. Redet drüber!") : T("Talk, then vote.", "Redet, dann stimmt ab.")}</p></div>`; }
+      else if (v.phase === "meet"){ const m = v.meet, canVote = v.alive && !m.my;
+        h = `<div class="np-meet np-mt"><div class="np-ml"><div class="np-mh"><div><div class="np-k">${m.body ? "💀 " + T("Body reported", "Leiche gemeldet") : "🚨 " + T("Emergency meeting", "Notfall-Meeting")}</div><div class="np-big" style="font-size:20px;margin:2px 0 0">${m.body ? T(`${nm(m.by)} found ${nm(m.body)}`, `${nm(m.by)} hat ${nm(m.body)} gefunden`) : T(`called by ${nm(m.by)}`, `einberufen von ${nm(m.by)}`)}</div></div><div class="np-tm" data-cd="meet"></div></div>
+          <div class="np-vgrid">${P.map(p => { const dead = v.deadList.includes(p.id); return `<button class="np-vote ${m.my === p.id ? "sel" : ""} ${dead ? "dead" : ""}" data-x="vote" data-v="${esc(p.id)}" ${!canVote || dead ? "disabled" : ""}><span class="np-hd">${head(p.id)}</span><b>${esc(p.name)}</b>${m.voted.includes(p.id) ? `<i>✓</i>` : ""}${dead ? `<i>✝</i>` : ""}</button>`; }).join("")}</div>
+          <div class="np-mfoot"><button class="btn ${m.my === "skip" ? "go" : ""}" data-x="vote" data-v="skip" ${canVote ? "" : "disabled"}>${T("Skip vote", "Überspringen")}</button><span class="muted">${!v.alive ? T("Ghosts don't vote.", "Geister stimmen nicht ab.") : m.my ? T("Voted. Talk it out!", "Abgestimmt. Redet drüber!") : T("Talk, then vote.", "Redet, dann stimmt ab.")}</span></div></div>
+          <div class="np-chat"><div class="np-log">${(m.chat || []).map(([id, pk, x], i) => `<div class="np-cm ${id === PNet.me ? "me" : ""} ${i >= (this.chatSeen || 0) ? "new" : ""}"><span class="np-hd sm">${head(id)}</span><div><b>${nm(id)}</b><span>${this.sayText(pk, x)}</span></div></div>`).join("") || `<p class="muted np-c0">${T("Say something…", "Sag was…")}</p>`}</div>${v.alive ? this.qcHTML(m) : ""}</div></div>`; }
       if (v.phase === "eject" && now() - (this.ejectT || 0) < 4200){ const e = v.eject, by = {}; Object.entries(e.votes || {}).forEach(([a, b]) => { (by[b] = by[b] || []).push(a); });
         const row = (id, label, dead) => `<div class="np-vr ${e.id === id ? "out" : ""} ${dead ? "dead" : ""}">${id !== "skip" ? `<span class="np-hd">${head(id)}</span>` : `<span class="np-hd np-skip">⏭</span>`}<b>${label}</b><span class="np-vh">${(by[id] || []).map(x => `<span class="np-hd sm">${head(x)}</span>`).join("")}</span></div>`;
         h = `<div class="np-meet"><div class="np-k">${T("Votes", "Abstimmung")}</div><div class="np-vgrid">${P.map(p => row(p.id, esc(p.name), v.deadList.includes(p.id) && p.id !== e.id)).join("")}</div>${row("skip", T("Skipped", "Übersprungen"))}</div>`; }
@@ -485,9 +507,24 @@
       if (v.killedBy && v.phase !== "play" && v.phase !== "end" && !this.shown["k" + v.killedBy.k] && this.deathT && this.deathT[v.killedBy.k] && now() - this.deathT[v.killedBy.k] < 3200) h = this.deathHTML(v.killedBy);
       const kind = h ? (h.match(/class="np-(\w+)/) || [])[1] + (v.phase || "") : "";
       if (ov._h !== h){ ov.classList.toggle("still", kind === ov._kind); ov._kind = kind; ov._h = h; ov.innerHTML = h; ov.classList.toggle("on", !!h); ov.querySelectorAll('[data-x="seen"]').forEach(b => b.onclick = e => { e.stopPropagation(); this.shown[b.dataset.v.slice(0)] = 1; this.shown[b.dataset.v] = 1; this.overlay(); });
-        if (v.phase === "meet" || v.phase === "eject" || v.phase === "end") this.closeMini(); }
+        if (v.phase === "meet" || v.phase === "eject" || v.phase === "end") this.closeMini();
+        const lg = ov.querySelector(".np-log"); if (lg) lg.scrollTop = lg.scrollHeight; if (v.phase === "meet" && v.meet) this.chatSeen = (v.meet.chat || []).length; }
+      if (v.phase === "meet" && v.meet){ const n = (v.meet.chat || []).length; if (n > (this.chatN || 0) && this.chatN != null){ const last = v.meet.chat[n - 1]; if (last && last[0] !== PNet.me){ this.sfx.tone(0, 1200, 900, .08, .05, "sine"); this.sfx.tone(.06, 1500, 1500, .06, .04, "sine"); } } this.chatN = n;
+        const sec = Math.ceil(this.left("meet") / 1000); if (sec <= 5 && sec > 0 && sec !== this.lastTick){ this.lastTick = sec; this.sfx.tone(0, sec === 1 ? 660 : 880, sec === 1 ? 660 : 880, .09, .07, "square"); Haptic.go(sec === 1 ? 40 : 12); } }
+      else { this.chatN = null; this.qcMode = null; this.chatSeen = 0; }
       ov.querySelectorAll("[data-cd]").forEach(e => { const n = Math.ceil(this.left(e.dataset.cd) / 1000); const t = e.dataset.cd === "meet" ? String(n) : n + " s"; if (e.textContent !== t) e.textContent = t; });
     },
+    sayText(pk, x){ const n = x && esc(this.nm(x));
+      return pk === "emo" ? `<span class="np-cemo">${EMO[+x] || "❓"}</span>` : pk === "where" ? T(`I was ${roomIn(x)}.`, `Ich war ${roomIn(x)}.`) : pk === "body" ? T(`The body was ${roomIn(x)}!`, `Die Leiche lag ${roomIn(x)}!`)
+        : pk === "nothing" ? T("I didn't see anything.", "Ich hab nichts gesehen.") : pk === "self" ? T("It wasn't me!", "Ich war's nicht!") : pk === "skip" ? T("Let's skip.", "Lasst uns skippen.")
+        : pk === "sus" ? T(`${n} is sus!`, `${n} ist verdächtig!`) : pk === "with" ? T(`I was with ${n}.`, `Ich war mit ${n} zusammen.`) : pk === "vent" ? T(`${n} came out of a vent!`, `${n} kam aus dem Schacht!`) : ""; },
+    qcHTML(m){ const md = this.qcMode, P = this.pl().filter(p => p.id !== PNet.me && !(this.v.deadList || []).includes(p.id));
+      if (md) return `<div class="np-qc"><button class="np-qb" data-x="qc" data-v="">←</button>${P.map(p => `<button class="np-qb" data-x="say" data-v="${md}|${esc(p.id)}">${esc(p.name)}</button>`).join("")}</div>`;
+      const r = roomAt(this.me.x, this.me.y), bd = m.body && (this.v.bodies || []).find(b => b.id === m.body), br = bd && roomAt(bd.x, bd.y);
+      return `<div class="np-qc">${EMO.map((e, i) => `<button class="np-qb e" data-x="say" data-v="emo|${i}">${e}</button>`).join("")}
+        <button class="np-qb" data-x="say" data-v="where|${r ? r.id : "hall"}">📍 ${r ? esc(RN(r)) : T("Hallway", "Gang")}</button>${bd ? `<button class="np-qb" data-x="say" data-v="body|${br ? br.id : "hall"}">💀 ${br ? esc(RN(br)) : T("Hallway", "Gang")}</button>` : ""}
+        <button class="np-qb" data-x="qc" data-v="sus">🤨 ${T("Sus…", "Verdächtig…")}</button><button class="np-qb" data-x="qc" data-v="with">🤝 ${T("With…", "War mit…")}</button><button class="np-qb" data-x="qc" data-v="vent">🕳️ ${T("Vented…", "Schacht…")}</button>
+        <button class="np-qb" data-x="say" data-v="self">🙅 ${T("Not me", "Nicht ich")}</button><button class="np-qb" data-x="say" data-v="nothing">🤷 ${T("Saw nothing", "Nichts gesehen")}</button><button class="np-qb" data-x="say" data-v="skip">⏭ ${T("Skip", "Skippen")}</button></div>`; },
     fig(id){ const p = this.pl().find(x => x.id === id), k = "f" + id + (p && p.av ? JSON.stringify(p.av).length : 0), HC = this.hc || (this.hc = {}); if (HC[k]) return HC[k];
       try { return HC[k] = avatarSVG(Object.assign({}, p && p.av || {}, {aura: "none", pet: "none"}), {fit: true}); } catch(e) { return ""; } },
     deathHTML(kb){
@@ -599,6 +636,9 @@
       c.setTransform(1, 0, 0, 1, 0, 0);
       if (v.alive){ const rad = R0 * z, g = c.createRadialGradient(cw / 2, ch / 2, rad * .55, cw / 2, ch / 2, rad); g.addColorStop(0, "rgba(6,7,12,0)"); g.addColorStop(1, "rgba(6,7,12,.93)"); c.fillStyle = g; c.fillRect(0, 0, cw, ch); }
       if (this.vent){ c.fillStyle = "rgba(6,7,12,.55)"; c.fillRect(0, 0, cw, ch); }
+      if (now() - (this.killFx || 0) < 600){ const k = (now() - this.killFx) / 600, d = this.dpr; c.save(); c.globalAlpha = 1 - k; c.strokeStyle = "#fff"; c.shadowColor = "#E2523E"; c.shadowBlur = 20 * d;
+        [[-.3, 0], [.05, .12], [.35, -.1]].forEach(([o, dl], i) => { const t2 = Math.min(1, k * 3 - i * .25); if (t2 <= 0) return; c.lineWidth = (9 - i * 2) * d; c.beginPath(); c.moveTo(cw * (.25 + o * .3), ch * (.2 + dl)); c.lineTo(cw * (.25 + o * .3) + cw * .5 * t2, ch * (.2 + dl) + ch * .6 * t2); c.stroke(); });
+        c.fillStyle = `rgba(160,20,10,${.35 * (1 - k)})`; c.fillRect(0, 0, cw, ch); c.restore(); }
       if (v.sab && CRIT[v.sab.type]){ c.fillStyle = `rgba(226,82,62,${.08 + pulse * .12})`; c.fillRect(0, 0, cw, ch); }
       if (v.sab && v.sab.type === "comms" && Math.random() < .5){ c.fillStyle = "rgba(255,255,255,.035)"; for (let i = 0; i < 6; i++) c.fillRect(0, Math.random() * ch, cw, 2 + Math.random() * 6 * this.dpr); }
       /* arrows at the edge of the screen: yellow to your tasks, red to what needs fixing */
@@ -823,7 +863,19 @@ html.np-on .tabbar,html.np-on .pg-pill{display:none!important}
 .np-act span{font:900 12.5px var(--body);letter-spacing:.04em;text-transform:uppercase}
 .np-act.on{opacity:1}
 .pg-np-hero{display:block;padding:22px 18px;border-radius:14px;margin-top:8px;min-height:0!important;text-align:left}.pg-np-hero .pg-np-ship{font-size:56px}.np-act.main.on{background:var(--go);box-shadow:inset 0 -5px 0 var(--go-deep)}.np-act.kill.on{background:var(--bad);box-shadow:inset 0 -5px 0 #a8382a}.np-act.rep.on{background:#E9B64A;color:#2A1E05}
-.np-act:active{transform:scale(.94)}
+.np-act:active,.np-act.pr{transform:scale(.92)}
+.np-quit{position:relative;font-size:19px!important}.np-quit.arm{background:var(--bad)!important;animation:npPulse .5s infinite}.np-quit small{position:absolute;right:-4px;bottom:-4px;background:#fff;color:#a8382a;border-radius:999px;font:900 10px var(--body);padding:1px 4px}
+.np-mh{display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;margin-bottom:6px}.np-mh .np-tm{margin:0;font-size:28px}
+.np-mfoot{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.np-mfoot .muted{font-size:12.5px}
+.np-chat{display:flex;flex-direction:column;gap:6px;background:#1B1A18;border-radius:12px;padding:8px;min-height:0;margin-top:8px}
+.np-log{overflow:auto;max-height:110px;display:flex;flex-direction:column;gap:5px;text-align:left;scroll-behavior:smooth}
+.np-cm{display:flex;gap:6px;align-items:flex-start;font:600 13px/1.3 var(--body)}.np-cm.new{animation:npIn .25s ease-out}@keyframes npIn{from{transform:translateY(8px);opacity:0}}.np-cm b{display:block;font:800 11.5px var(--body);color:var(--muted)}.np-cm.me b{color:var(--go-hi)}.np-cm .np-hd.sm{width:24px;height:24px;flex:0 0 auto}.np-cemo{font-size:24px;line-height:1}
+.np-c0{margin:4px 0;font-size:12.5px}
+.np-qc{display:flex;flex-wrap:wrap;gap:5px;max-height:96px;overflow:auto}.np-qb{border:0;border-radius:999px;background:var(--panel-3);color:var(--fg);font:800 12px var(--body);padding:6px 10px;cursor:pointer;white-space:nowrap}.np-qb.e{font-size:18px;padding:3px 7px}.np-qb:active{transform:scale(.94)}
+.np .np-ov .np-mt{width:min(920px,100%)}
+.np.land .np-mt{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(220px,1fr);gap:12px;align-items:stretch;height:calc(var(--h) - 24px);max-height:calc(var(--h) - 24px);overflow:hidden!important;padding:12px}.np.land .np-ml{overflow:auto;min-height:0}.np.land .np-chat{min-height:0;overflow:hidden}.np.land .np-mt .np-log{flex:1 1 0;min-height:0}
+.np.land .np-mt .np-chat{margin-top:0}.np.land .np-mt .np-log{max-height:none;flex:1}.np.land .np-mt .np-qc{max-height:118px}
+.np.land .np-mt .np-vgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.np.land .np-mt .np-vote{padding:4px 8px 4px 4px}.np.land .np-mt .np-vote .np-hd{width:34px;height:34px}
 .np .np-ov .np-map.np-mapx{display:block!important;position:relative;width:fit-content;height:fit-content;max-width:none;max-height:none;padding:8px;overflow:visible;border-radius:14px}
 .np-mapx svg{display:block;border-radius:10px}.np-mapx [data-x]{cursor:pointer}.np-mapx g.off{opacity:.45}
 .np-mclose{position:absolute;right:-10px;top:-10px;z-index:2;width:36px;height:36px}

@@ -2786,7 +2786,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794278098";
+const CHESSNAT_BUILD = "1794278913";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11411,6 +11411,8 @@ function boot(){
   else App.go(Views[h] && h !== "lesson" ? h : "home");
   /* Android back: close what's open, otherwise go back one screen */
   window.addEventListener("popstate", () => {
+    /* in a running Natposter round a swipe or the back button never leaves the game */
+    if (document.documentElement.classList.contains("np-on") && !document.querySelector(".dsheet:not(.out)")){ try { history.pushState({r: App.route}, "", "#" + App.route); } catch(e) {} try { toast(I18N.lang === "de" ? "Zum Verlassen: oben links 🚪 dreimal tippen" : "To leave: tap 🚪 top left three times"); } catch(e) {} return; }
     App._popping = true; setTimeout(() => { App._popping = false; }, 50);
     const ov = document.querySelector(".dsheet:not(.out)"), sh = $("#sheet");
     if (ov){ ov.remove(); history.pushState({r: App.route}, "", "#" + App.route); return; }
@@ -14284,15 +14286,15 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=10"></script>
-<script src="games/imposter.js?v=10"></script>
-<script src="games/werwolf.js?v=10"></script>
-<script src="games/cards.js?v=10"></script>
-<script src="games/heads.js?v=10"></script>
-<script src="games/more.js?v=10"></script>
-<script src="games/net.js?v=10"></script>
-<script src="games/online.js?v=10"></script>
-<script src="games/natposter.js?v=10"></script>
+<script src="games/core.js?v=11"></script>
+<script src="games/imposter.js?v=11"></script>
+<script src="games/werwolf.js?v=11"></script>
+<script src="games/cards.js?v=11"></script>
+<script src="games/heads.js?v=11"></script>
+<script src="games/more.js?v=11"></script>
+<script src="games/net.js?v=11"></script>
+<script src="games/online.js?v=11"></script>
+<script src="games/natposter.js?v=11"></script>
 <script>boot();</script>
 </body>
 </html>
