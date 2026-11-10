@@ -244,6 +244,7 @@ Wer würde eher zuerst heiraten?
 Wer würde eher einen Kuss in der Öffentlichkeit übertreiben?`)
   };
 
+  PG.data.cards = {TRUTH, DARE, NEVER, LIKELY};
   /* deck for the chosen levels, drawn without repeats */
   const deckDraw = (key, src, lv) => { const list = lv.flatMap(l => src[l].map(t => [l, t])); return PG.draw(key + ":" + lv.join(","), list); };
   const fill = (t, P, me) => { if (!/\{p\}/.test(t)) return h(t); const others = P.filter(n => n !== me); const o2 = others.length ? PG.pick(others) : T("someone", "jemand"); return h(t).replace(/\{p\}/g, `<b style="color:var(--go-hi)">${h(o2)}</b>`); };

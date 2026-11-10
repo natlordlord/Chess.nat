@@ -79,6 +79,7 @@ Spinne:acht,Beine,Netz,Angst,Tier
 Zahnbürste:Zähne,putzen,Zahnpasta,Bad,morgens
 Mond:Nacht,Sonne,Himmel,Vollmond,Astronaut`).map(l => { const [w, f] = l.split(":"); return {w, f: f.split(",")}; });
 
+  PG.data.tabu = TABU;
   /* ---------- Stirnraten ---------- */
   PG.add({id: "heads", icon: "head", name: ["Heads Up", "Stirnraten"], tag: ["Hit", "Hit"], sub: ["Phone on your forehead, the others explain. Tilt to answer.", "Handy an die Stirn, die anderen erklären. Zum Antworten kippen."], meta: ["2+ players · 1 min rounds", "2+ Spieler · 1-Min-Runden"],
     mount(ctx){

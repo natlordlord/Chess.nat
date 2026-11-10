@@ -24,6 +24,7 @@
   /* places for Agent */
   const PLACES = "Flughafen|Airport;Krankenhaus|Hospital;Schule|School;Strand|Beach;Kino|Cinema;Raumstation|Space station;Piratenschiff|Pirate ship;Zirkus|Circus;Restaurant|Restaurant;Bank|Bank;Polizeirevier|Police station;U-Boot|Submarine;Supermarkt|Supermarket;Hotel|Hotel;Zoo|Zoo;Freizeitpark|Theme park;Fußballstadion|Football stadium;Hochzeit|Wedding;Kreuzfahrtschiff|Cruise ship;Bauernhof|Farm;Skigebiet|Ski resort;Casino|Casino;Fitnessstudio|Gym;Friseursalon|Hair salon;Universität|University;Militärbasis|Army base;Zug|Train;Museum|Museum;Club|Nightclub;Weihnachtsmarkt|Christmas market;Festival|Music festival;Schachturnier|Chess tournament;Tankstelle|Gas station;Kirche|Church;Bäckerei|Bakery;Campingplatz|Campsite".split(";").map(x => x.split("|"));
 
+  PG.data.imp = {CATS, PAIRS, PLACES, words};
   const L = pair => PG.de() ? pair[0] : (pair[1] || pair[0]);
   const DEF = {mode: "classic", cats: ["food", "animals", "places", "things", "party"], imp: 1, hint: true, time: 3};
 

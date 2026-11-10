@@ -11,7 +11,7 @@ const PG = (() => {
   const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const pick = a => a[Math.floor(Math.random() * a.length)];
   const h = s => esc(String(s == null ? "" : s));
-  const vib = p => { try { navigator.vibrate && navigator.vibrate(p); } catch(e) {} };
+  const vib = p => { try { Haptic.go(p); } catch(e) {} };
 
   /* one list of players for all games, remembered on this device */
   const players = () => (Array.isArray(st.players) ? st.players : []).slice();
@@ -97,7 +97,7 @@ const PG = (() => {
     let end = Date.now() + secs * 1000, paused = 0, last = null, done = false;
     const fmt = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
     const tick = () => { if (done) return; const left = paused ? paused : end - Date.now(); el.textContent = fmt(left); const s = Math.ceil(left / 1000);
-      el.classList.toggle("low", s <= 10); if (!paused && s !== last && s <= 5 && s > 0) Sound.tick(); last = s;
+      el.classList.toggle("low", s <= 10); if (!paused && s !== last && s <= 5 && s > 0){ Sound.tick(); vib(s <= 3 ? 40 : 20); } last = s;
       if (!paused && left <= 0){ done = true; clearInterval(id); el.textContent = "0:00"; Sound.play("GenericNotify", .8); vib([80, 60, 160]); onEnd && onEnd(); } };
     const id = every(tick, 200); tick();
     return {stop(){ done = true; clearInterval(id); }, pause(){ if (!paused) paused = Math.max(1, end - Date.now()); tick(); }, resume(){ if (paused){ end = Date.now() + paused; paused = 0; tick(); } }, get paused(){ return !!paused; }, add(s){ end += s * 1000; tick(); }};
@@ -118,7 +118,7 @@ const PG = (() => {
   const games = [];
   const add = g => games.push(g);
   const cheer = (n = 2) => { try { Sound.cheer(n); } catch(e) {} };
-  return {de, T, h, st, persist, shuffle, pick, vib, players, setPlayers, opt, draw, every, later, onLeave, stopAll, awake, playersUI, choices, passCard, card, revealRound, timer, playerGrid, scoreList, games, add, cheer, running: false};
+  return {data: {}, de, T, h, st, persist, shuffle, pick, vib, players, setPlayers, opt, draw, every, later, onLeave, stopAll, awake, playersUI, choices, passCard, card, revealRound, timer, playerGrid, scoreList, games, add, cheer, running: false};
 })();
 
 /* ---- the look: only the app's own colours, fonts and shapes ---- */
@@ -161,13 +161,15 @@ const PG = (() => {
 .pg-pop{animation:pgPop .32s cubic-bezier(.2,.9,.3,1.3)}
 @keyframes pgPop{0%{transform:scale(.92);opacity:.2}100%{transform:none;opacity:1}}
 .pg-meta{font:700 12px var(--body);color:var(--dim);margin-top:auto;padding-top:4px}
+.pg-onl{display:flex;align-items:center;gap:12px;width:100%;border:1px solid var(--go);cursor:pointer;color:var(--fg);margin:10px 0 0;text-align:left;font:inherit}
+.pg-onl small{display:block;color:var(--muted);font-size:13px;font-weight:600}.pg-onl b{font:800 16px var(--display)}.pg-onl-i{font-size:18px;letter-spacing:-6px;margin-right:6px}
 .pg-sec{font:800 13px var(--body);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:20px 2px 8px}
 .tile .pg-emo{font-size:30px;line-height:1}
 .pg-chess{position:relative;overflow:hidden}
 .pg-chess .deco{position:absolute;right:-14px;bottom:-18px;width:150px;height:150px;opacity:.9;background:conic-gradient(var(--sq-l) 25%,var(--sq-d) 0 50%,var(--sq-l) 0 75%,var(--sq-d) 0) 0 0/50% 50%;transform:rotate(-12deg);border-radius:10px}
 .pg-chess .deco i{position:absolute;width:50%;height:50%;left:25%;top:20%;background-size:100% 100%}
 .pg-chess>*:not(.deco){position:relative;z-index:1}
-html.pg-night,html.pg-night body{background:#14161F!important}
+html.pg-night,html.pg-night body,html.pg-night .app{background:#14161F!important}
 html.pg-night .mtop{background:#14161F}
 .pg-night .unit,.pg-night .pg-big{background:#1E2230}
 .pg-moon{font-size:56px;line-height:1;filter:drop-shadow(0 0 18px rgba(255,236,170,.35))}
@@ -206,10 +208,12 @@ Views.games = {
       <div class="tiles" style="margin-top:14px">
         <button class="tile pg-chess" data-go="play" style="grid-column:span 2;border:1px solid var(--go)"><span class="deco"><i class="pc wn"></i></span>${icon("knight", 40)}<span class="pill go">${T("The original", "Das Original")}</span><h3>${T("Chess", "Schach")}</h3><p>${T("Online, bots, friends, battles.", "Online, Bots, Freunde, Battles.")}</p></button>
       </div>
+      <div class="tiles" style="margin-top:12px" data-notr><button class="tile" data-lobby style="grid-column:span 2;border:1px solid var(--go)">${icon("users", 40)}<span class="pill go">${T("New", "Neu")}</span><h3>${T("Play together: everyone on their own phone", "Zusammen spielen: jeder mit eigenem Handy")}</h3><p>${T("Open a lobby, invite friends like for a puzzle duel, or let them scan the QR code. Each phone shows only its own card, role and vote.", "Lobby öffnen, Freunde einladen wie beim Puzzle-Duell oder den QR-Code scannen lassen. Jedes Handy zeigt nur die eigene Karte, Rolle und Stimme.")}</p>${typeof PNet !== "undefined" && PNet.P ? `<span class="pg-meta" style="color:var(--go-hi)">● ${T("Your lobby is open", "Deine Lobby ist offen")} · ${esc(PNet.P.code.toUpperCase())}</span>` : ""}</button></div>
       <div class="pg-sec" data-notr>${T("Party games", "Partyspiele")}</div>
       <div class="tiles" data-notr>${PG.games.map(g => `<button class="tile" data-g="${g.id}">${icon(g.icon, 40)}${g.tag ? `<span class="pill ${g.tag[2] || "go"}">${T(g.tag[0], g.tag[1])}</span>` : ""}<h3>${h(T(g.name[0], g.name[1]))}</h3><p>${h(T(g.sub[0], g.sub[1]))}</p><span class="pg-meta">${h(T(g.meta[0], g.meta[1]))}</span></button>`).join("")}</div></div>`;
     $$("[data-go]", main).forEach(b => b.onclick = () => { Sound.tap(); App.go(b.dataset.go); });
     $$("[data-g]", main).forEach(b => b.onclick = () => { Sound.tap(); App.go("party", {g: b.dataset.g}); });
+    const lb = main.querySelector("[data-lobby]"); if (lb) lb.onclick = () => { Sound.tap(); App.go("lobby"); };
   }
 };
 
@@ -219,15 +223,16 @@ Views.party = {
     const {T} = PG; const id = (arg && arg.g) || PG.st.last; const g = PG.games.find(x => x.id === id);
     if (!g){ setTimeout(() => App.go("games"), 0); return; }
     PG.st.last = g.id; PG.persist(); PG.running = false;
-    main.innerHTML = `<div class="page pg" data-notr style="max-width:640px"><button class="btn ghost sm" id="pgback">← ${T("Games", "Spiele")}</button><div id="pgbody"></div></div>`;
-    const body = $("#pgbody", main), back = $("#pgback", main);
+    main.innerHTML = `<div class="page pg" data-notr style="max-width:640px"><button class="btn ghost sm" id="pgback">← ${T("Games", "Spiele")}</button>${PG.online && PG.online[g.id] ? `<button class="unit pg-onl" id="pgon"><span class="pg-onl-i">📱📱📱</span><span style="flex:1;text-align:left"><b>${T("Everyone on their own phone", "Jeder mit eigenem Handy")}</b><small>${T("Open a lobby and invite your friends", "Lobby öffnen und Freunde einladen")}</small></span>${icon("users", 22)}</button>` : ""}<div id="pgbody"></div></div>`;
+    const body = $("#pgbody", main), back = $("#pgback", main), onl = $("#pgon", main);
+    if (onl) onl.onclick = () => { Sound.tap(); App.go("lobby", {host: true, game: g.id}); };
     /* leaving a running game asks once more */
     back.onclick = () => { if (PG.running && !back.dataset.armed){ back.dataset.armed = 1; back.textContent = T("End the game? Tap again", "Spiel beenden? Nochmal tippen"); PG.later(() => { delete back.dataset.armed; back.textContent = "← " + T("Games", "Spiele"); }, 3000); return; } App.go("games"); };
     /* every button plops like a pawn, the way the whole app does */
     main.addEventListener("click", e => { const b = e.target.closest("button"); if (b && !b.disabled && !b.hasAttribute("data-quiet") && b.id !== "pgback") Sound.tap(); });
     const ctx = {body, main, T, title: (en, dg) => `<h1 class="h-title" style="margin-top:6px">${T(en, dg)}</h1>`,
-      start(){ PG.running = true; PG.awake(true); window.scrollTo(0, 0); main.scrollTop = 0; },
-      stop(){ PG.running = false; PG.awake(false); },
+      start(){ if (onl) onl.style.display = "none"; PG.running = true; PG.awake(true); window.scrollTo(0, 0); main.scrollTop = 0; },
+      stop(){ if (onl) onl.style.display = ""; PG.running = false; PG.awake(false); },
       top(){ window.scrollTo(0, 0); main.scrollTop = 0; }};
     g.mount(ctx);
   },

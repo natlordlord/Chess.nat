@@ -18,6 +18,7 @@
   const SPECIAL = ["seer", "witch", "hunter", "cupid", "guard"];
   const recommend = n => ({wolf: n >= 12 ? 3 : n >= 7 ? 2 : 1, seer: 1, witch: n >= 6 ? 1 : 0, hunter: n >= 7 ? 1 : 0, cupid: n >= 9 ? 1 : 0, guard: n >= 11 ? 1 : 0});
   const DEF = {roles: null, showDead: true, time: 3};
+  PG.data.ww = {ROLES, recommend, SPECIAL};
   /* sound: the village falls asleep (falling bells) and wakes up (rising marimba) */
   const nightSnd = () => { if (Sound.fx && Sound.fx()) [79, 76, 72, 67, 64].forEach((m, i) => Sound.note(m, i * .2, 1.4, .06, "bell")); };
   const daySnd = () => { if (Sound.fx && Sound.fx()) { [60, 64, 67, 72, 76].forEach((m, i) => Sound.note(m, i * .1, .7, .08, "marimba")); Sound.sparkle && Sound.sparkle(.5, 5, 0, .02); } };

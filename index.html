@@ -2786,7 +2786,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794290000";
+const CHESSNAT_BUILD = "1794310000";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -3026,7 +3026,7 @@ const DEF = () => ({
   themes:{}, failed:[], seen:[], recent:[], tperf:{}, srs:[], nick:{},
   bots:{}, games:[], journey: {level: 1, best: {}}, lessons:{}, xp:0, h2h:{}, linkGames:{},
   day:{k:"", pz:0, ls:0, gm:0, rush:0, daily:0}, plan:{streak:0, best:0, last:""},
-  settings:{sound:true, voice:true, coords:true, legal:true, autoNext:true, board:"green", anim:true, coach:false, threats:false, openings:true},
+  settings:{sound:true, haptics:true, voice:true, coords:true, legal:true, autoNext:true, board:"green", anim:true, coach:false, threats:false, openings:true},
 });
 let S = DEF();
 function mergeDefaults(x){ if (x && x.settings && !x.settings.helpersV2){ Object.assign(x.settings, {coach: false, threats: false, tips: false, hints: false, openings: true, helpersV2: 1}); } const d = DEF(); for (const k in d){ if (x[k] === undefined) x[k] = d[k]; else if (d[k] && typeof d[k] === "object" && !Array.isArray(d[k])) for (const kk in d[k]) if (x[k][kk] === undefined) x[k][kk] = d[k][kk]; } return x; }
@@ -3197,6 +3197,29 @@ function renderRailStatus(){ const el = $("#cloudStatus"); if (!el) return;
   const map = {on:["Synced to your account", "var(--go-hi)"], local:["Saved on this device", "var(--muted)"], viewonly:["Saved on this device (view-only access)", "var(--warn)"], error:["Sync problem", "var(--bad)"], connecting:["Connecting…", "var(--muted)"]};
   const [t, c] = map[Cloud.status] || map.local; el.innerHTML = `<span style="width:8px;height:8px;border-radius:50%;background:${c};display:inline-block"></span>${t}`; const d = $("#cloudDot"); if (d){ d.style.background = c; d.title = t; } }
 
+/* ---------- haptics: vibration where the phone has it (Android); on iPhone, which has no web vibration,
+   the little "tick" that a switch makes (iOS 18+). Off in Settings → Vibration. ---------- */
+const Haptic = (() => {
+  const can = typeof navigator !== "undefined" && typeof navigator.vibrate === "function";
+  let lbl = null;
+  const tick = () => { try { if (!lbl){ const i = document.createElement("input"); i.type = "checkbox"; i.setAttribute("switch", ""); i.id = "hpsw"; i.tabIndex = -1; i.setAttribute("aria-hidden", "true");
+      lbl = document.createElement("label"); lbl.htmlFor = "hpsw"; [i, lbl].forEach(e => { e.style.cssText = "position:fixed;left:-200px;top:0;width:1px;height:1px;opacity:0;pointer-events:none"; document.body.appendChild(e); }); }
+    lbl.click(); } catch(e) {} };
+  function go(p){
+    if (typeof S !== "undefined" && S.settings && S.settings.haptics === false) return;
+    if (can){ try { navigator.vibrate(p); } catch(e) {} return; }
+    const n = Array.isArray(p) ? Math.ceil(p.length / 2) : 1; for (let i = 0; i < Math.min(n, 4); i++) setTimeout(tick, i * 110);
+  }
+  /* chess clocks: a pulse every second in the last ten seconds of your own clock */
+  const seen = new WeakMap();
+  setInterval(() => { if (document.hidden) return;
+    document.querySelectorAll(".boardcol .pbar:last-of-type .clock.run, #rclock, #bclock, #egclk, #jclock").forEach(el => {
+      const t = el.textContent || "", sec = t.includes(":") ? t.split(":").reduce((a, x) => a * 60 + (+x || 0), 0) : Math.ceil(parseFloat(t) || 0);
+      if (!(sec > 0 && sec <= 10) || !el.offsetParent) return; if (seen.get(el) === sec) return; seen.set(el, sec); go(sec <= 3 ? 45 : sec <= 5 ? 30 : 15); }); }, 200);
+  return {go, can};
+})();
+window.Haptic = Haptic;
+
 /* ---------- sound ---------- */
 const Sound = {ac:null, buf:{}, loading:false,
   init(){ if (this.ac) { if (this.ac.state !== "running") this.ac.resume().catch(() => {}); return; }
@@ -3210,6 +3233,7 @@ const Sound = {ac:null, buf:{}, loading:false,
   play(n, vol = 1){ if (!S.settings.sound) return;
     if (n === "Mate") this._mateT = Date.now(); else if ((n === "Victory" || n === "Defeat" || n === "GenericNotify") && this.afterMate()){ setTimeout(() => this.play(n, vol), this.afterMate()); return; }
     this.init(); const ac = this.ac; if (!ac) return;
+    if (vol >= .3) Haptic.go(n === "Mate" ? [80, 50, 160] : n === "Check" ? [25, 45, 25] : n === "Capture" ? 18 : n === "Victory" ? [30, 40, 30, 40, 90] : n === "Defeat" ? 150 : n === "Move" ? 8 : 0);
     if (this.buf[n]){ const s = ac.createBufferSource(); s.buffer = this.buf[n]; const g = ac.createGain(); g.gain.value = vol; s.connect(g).connect(ac.destination); s.start(); return; }
     if (n === "Capture") this.knock(2300); else this.knock(1700); },
   knock(freq){ const ac = this.ac, t = ac.currentTime, n = Math.floor(ac.sampleRate * .05), b = ac.createBuffer(1, n, ac.sampleRate), d = b.getChannelData(0);
@@ -3218,7 +3242,7 @@ const Sound = {ac:null, buf:{}, loading:false,
   tone(seq, type = "sine", gain = .16){ if (!S.settings.sound) return; this.init(); const ac = this.ac; if (!ac) return; let t = ac.currentTime;
     seq.forEach(([f, d, gap]) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = f; g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d + .02); t += gap || d * .6; }); },
   /* correct: the same little run, a semitone higher for every puzzle in a row (up to seven), so a streak sounds like it climbs */
-  right(){ if (this.afterMate()) return; const k = Math.pow(2, Math.min(7, Math.max(0, ((S.puzzle && S.puzzle.streak) || 1) - 1)) / 12); this.tone([[784 * k,.14,.09],[1047 * k,.16,.09],[1319 * k,.3]]);
+  right(){ if (this.afterMate()) return; Haptic.go(18); const k = Math.pow(2, Math.min(7, Math.max(0, ((S.puzzle && S.puzzle.streak) || 1) - 1)) / 12); this.tone([[784 * k,.14,.09],[1047 * k,.16,.09],[1319 * k,.3]]);
     if (((S.puzzle && S.puzzle.streak) || 0) >= 3 && this.fx()) this.sparkle(.22, Math.min(9, 2 + S.puzzle.streak), 2200, .025); },
   /* ---- the reward kit: small synth bells, marimba, plucks, sparkles and air, all through one gentle compressor ---- */
   fx(){ if (!S.settings.sound) return null; this.init(); const ac = this.ac; if (!ac) return null;
@@ -3236,7 +3260,7 @@ const Sound = {ac:null, buf:{}, loading:false,
   /* tiny XP coin: each one within a couple of seconds climbs the scale */
   xp(){ if (!this.fx()) return; const now = Date.now(); this._xpN = now - (this._xpT || 0) < 2500 ? Math.min(9, (this._xpN || 0) + 1) : 0; this._xpT = now;
     const sc = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21]; this.note(84 + sc[this._xpN], 0, .25, .15, "marimba"); this.note(96 + sc[this._xpN], .03, .2, .05, "bell"); },
-  msgIn(){ if (!this.fx()) return; this.blub(0, .13); this.blub(.12, .11); this.note(79, .14, .3, .035, "soft"); try { navigator.vibrate && navigator.vibrate(18); } catch(e) {} },
+  msgIn(){ if (!this.fx()) return; this.blub(0, .13); this.blub(.12, .11); this.note(79, .14, .3, .035, "soft"); try { Haptic.go(18); } catch(e) {} },
   msgOut(){ if (!this.fx()) return; this.air(0, .14, 500, 2200, .07, 2); this.blub(.07, .13); },
   /* taps sound like a pawn being pushed on the board (no beeps) */
   tap(){ this.play("Move", .42); },
@@ -3248,7 +3272,7 @@ const Sound = {ac:null, buf:{}, loading:false,
   levelUp(){ if (!this.fx()) return; this.air(0, .45, 300, 3200, .05);
     [72, 76, 79, 84, 88].forEach((m, i) => this.note(m, .05 + i * .08, .5, .1, "marimba"));
     [84, 88, 91, 96].forEach(m => this.note(m, .5, 1.6, .055, "bell")); this.note(60, .5, 1.2, .08, "soft"); this.sparkle(.55, 12, 0, .03);
-    try { navigator.vibrate && navigator.vibrate([30, 50, 30, 50, 80]); } catch(e) {} },
+    try { Haptic.go([30, 50, 30, 50, 80]); } catch(e) {} },
   overtake(){ if (!this.fx()) return; this.air(0, .35, 250, 2800, .07); [79, 84, 88].forEach((m, i) => this.note(m, .3 + i * .08, .45, .1, "marimba")); this.note(91, .55, 1.3, .08, "bell"); this.note(67, .55, 1, .07, "soft"); this.sparkle(.6, 9); },
   passedBy(){ if (!this.fx()) return; this.note(76, 0, .3, .07, "marimba"); this.note(72, .14, .3, .07, "marimba"); this.note(69, .28, .6, .07, "marimba"); },
   crown(){ if (!this.fx()) return; const ac = this.ac;
@@ -3265,9 +3289,9 @@ const Sound = {ac:null, buf:{}, loading:false,
     const src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); src.buffer = b; f.type = "bandpass"; f.Q.value = 1.2;
     const t = ac.currentTime; f.frequency.setValueAtTime(back ? 1800 : 400, t); f.frequency.exponentialRampToValueAtTime(back ? 350 : 1600, t + .5); g.gain.value = .12;
     src.connect(f); f.connect(g); g.connect(ac.destination); src.start(); } catch(e) {} },
-  wrong(){ this.tone([[311,.12,.08],[233,.24]], "triangle", .09); },
+  wrong(){ Haptic.go([40, 40, 40]); this.tone([[311,.12,.08],[233,.24]], "triangle", .09); },
   /* "it's your move": a clear two-note chime, plus a short buzz where the phone supports it */
-  yourTurn(){ this.tone([[740,.1,.06],[1109,.22]], "sine", .2); try { navigator.vibrate && navigator.vibrate([30, 40, 30]); } catch(e) {} },
+  yourTurn(){ this.tone([[740,.1,.06],[1109,.22]], "sine", .2); try { Haptic.go([30, 40, 30]); } catch(e) {} },
   tick(){ this.tone([[1600,.05]], "sine", .05); },
   forMove(m, g){ if (g && g.in_checkmate && g.in_checkmate()) this.play("Mate", .95); else if (g && g.in_check && g.in_check()) this.play("Check"); else if (m && (m.flags.includes("c") || m.flags.includes("e"))) this.play("Capture"); else this.play("Move"); }
 };
@@ -8748,7 +8772,7 @@ function emoteWheel(host, play, hold){
   const pick = (x, y) => { const ring = w.querySelector(".ew-ring"); if (!ring) return; const r = ring.getBoundingClientRect(); if (!origin) origin = {x, y};
     const dx = x - origin.x, dy = y - origin.y, n = list().length;
     let i = -1; if (n && Math.hypot(dx, dy) > 26){ const a = (Math.atan2(dy, dx) + Math.PI / 2 + Math.PI * 2) % (Math.PI * 2); i = Math.round(a / (Math.PI * 2 / per)) % per; if (i >= n) i = -1; }
-    if (i !== sel){ sel = i; w.querySelectorAll(".ew-slot").forEach(b => b.classList.toggle("sel", +b.dataset.i === sel)); const m = w.querySelector(".ew-mid"); if (m) m.innerHTML = mid(); if (sel >= 0){ Sound.tap(); try { navigator.vibrate && navigator.vibrate(8); } catch(e) {} } } };
+    if (i !== sel){ sel = i; w.querySelectorAll(".ew-slot").forEach(b => b.classList.toggle("sel", +b.dataset.i === sel)); const m = w.querySelector(".ew-mid"); if (m) m.innerHTML = mid(); if (sel >= 0){ Sound.tap(); try { Haptic.go(8); } catch(e) {} } } };
   return {move: pick, up(){ const e = sel >= 0 && list()[sel]; if (e){ close(); play(e.id); } else if (hold) close(); }, close};
 }
 /* the emote picker: tap 🕺 and a little panel of your emotes pops up next to it (like the emote bar in mobile games);
@@ -8774,7 +8798,7 @@ function emotePicker(anchor, play){
 function wheelTrigger(btn, host, play, o = {}){
   if (o.delay){
     let t = null, st = null;
-    btn.addEventListener("pointerdown", e => { st = {x: e.clientX, y: e.clientY, t: Date.now()}; clearTimeout(t); t = setTimeout(() => { st = null; try { navigator.vibrate && navigator.vibrate(10); } catch(x) {} emotePicker(btn, play); }, o.delay + 40); });
+    btn.addEventListener("pointerdown", e => { st = {x: e.clientX, y: e.clientY, t: Date.now()}; clearTimeout(t); t = setTimeout(() => { st = null; try { Haptic.go(10); } catch(x) {} emotePicker(btn, play); }, o.delay + 40); });
     btn.addEventListener("pointermove", e => { if (st && Math.hypot(e.clientX - st.x, e.clientY - st.y) > 10){ clearTimeout(t); st = null; } });
     btn.addEventListener("pointerup", () => { clearTimeout(t); if (st && Date.now() - st.t < 400 && o.onTap) o.onTap(); st = null; });
     btn.addEventListener("pointercancel", () => { clearTimeout(t); st = null; });
@@ -10081,7 +10105,7 @@ Views.duel = {
   /* the other player went wrong: 10 seconds for me */
   onSteal(){
     const s = this.M.steal; if (!s || s.k !== this.cur) return; clearInterval(this.stealI); this.stealEnd = Date.now() + STEAL_MS;
-    if (s.who === this.side && this.out === "play"){ this.out = "steal"; Sound.cheer && Sound.cheer(1); try { navigator.vibrate && navigator.vibrate([20, 40, 20]); } catch(e) {} }
+    if (s.who === this.side && this.out === "play"){ this.out = "steal"; Sound.cheer && Sound.cheer(1); try { Haptic.go([20, 40, 20]); } catch(e) {} }
     this.stealI = setInterval(() => { this.stealBar(); if (Date.now() < this.stealEnd) return; clearInterval(this.stealI); this.stealEnd = 0;
       if (this.out === "steal"){ this.out = "timeout"; this.R.locked = true; this.report({k: this.cur, timeout: true, part: Math.max(0, ((this.R.idx || 1) - 1) >> 1)}); } this.panel(); }, 100);
     this.panel();
@@ -10553,7 +10577,7 @@ Views.online = {
   /* matched: both open the same live room; white hosts it */
   found(m, tc){
     this.searching = null; clearInterval(this.poll); clearInterval(this.clock); this.poll = this.clock = null;
-    const white = m.white === onlineMe(); Sound.play("GenericNotify", .8); try { navigator.vibrate && navigator.vibrate([40, 40, 80]); } catch(e) {}
+    const white = m.white === onlineMe(); Sound.play("GenericNotify", .8); try { Haptic.go([40, 40, 80]); } catch(e) {}
     const st = $("#onst"); if (st) st.textContent = "Opponent found!";
     const [mi, inc] = tc.split("+").map(Number); Views.friend.cfg = {tc: [mi, inc], color: white ? "w" : "b"};
     setTimeout(() => { if (!this.dead) App.go("friend", {join: m.room, host: white, ranked: Object.assign({}, m, {tc})}); }, 700);
@@ -11348,20 +11372,20 @@ Views.stats = {
 Views.settings = {
   mount(main){
     const st = S.settings;
-    const chk = (k, t) => `<label class="chk"><input type="checkbox" data-s="${k}" ${st[k] ? "checked" : ""}> ${t}</label>`;
+    const chk = (k, t) => `<label class="chk"><input type="checkbox" data-s="${k}" ${(k === "haptics" ? st[k] !== false : st[k]) ? "checked" : ""}> ${t}</label>`;
     main.innerHTML = `<div class="page" style="max-width:640px"><h1 class="h-title">Settings</h1>
       <div class="unit lang-unit" style="margin-top:12px" data-notr><h3>Language · Sprache</h3><div class="row" style="margin-top:8px">${[["en", "English"], ["de", "Deutsch"]].map(([k, t]) => `<button class="btn sm ${I18N.lang === k ? "go" : ""}" data-lang="${k}">${t}</button>`).join("")}</div></div>
       <div class="unit"><h3>Profile</h3><label class="muted" style="display:block;margin-top:8px">Display name <input type="text" id="nm" value="${esc(S.name)}" maxlength="24" style="margin-left:8px"></label></div>
       <div class="unit"><h3>Board</h3>${chk("coords", "Show coordinates")}${chk("legal", "Show legal moves")}${chk("openings", "Show opening names (bot games, analysis, review)")}${chk("anim", "Animate pieces")}
         <div class="row" style="margin-top:6px">${["green","brown","blue","slate"].map(b => `<button class="btn sm ${st.board === b ? "go" : ""}" data-b="${b}">${b[0].toUpperCase() + b.slice(1)}</button>`).join("")}</div></div>
-      <div class="unit"><h3>Sound and voice</h3>${chk("sound", "Move sounds")}${chk("voice", "Coach voice in lessons (English)")}<div class="row" style="margin:4px 0 8px"><span class="muted">Speed</span>${[[.9,"Slow"],[1,"Normal"],[1.15,"Fast"]].map(([v, t]) => `<button class="btn sm ${(st.voiceRate || 1) === v ? "go" : ""}" data-vr="${v}">${t}</button>`).join("")}</div><button class="btn sm" id="tv">Test voice</button></div>
+      <div class="unit"><h3>Sound and voice</h3>${chk("sound", "Move sounds")}${chk("haptics", "Vibration")}${chk("voice", "Coach voice in lessons (English)")}<div class="row" style="margin:4px 0 8px"><span class="muted">Speed</span>${[[.9,"Slow"],[1,"Normal"],[1.15,"Fast"]].map(([v, t]) => `<button class="btn sm ${(st.voiceRate || 1) === v ? "go" : ""}" data-vr="${v}">${t}</button>`).join("")}</div><button class="btn sm" id="tv">Test voice</button></div>
       <div class="unit"><h3>Puzzles</h3>${chk("autoNext", "Jump to the next puzzle after a correct solve")}</div>
       <div class="unit"><h3>Saving</h3><p class="muted" id="sv"></p><div class="row"><button class="btn sm" id="exp">Copy my data</button><button class="btn sm" id="rst">Reset everything</button></div></div>
       <div class="unit"><h3>Credits</h3><p class="muted" style="font-size:13px">Puzzles from the Lichess open database (CC0). Pieces "Staunty" by sadsnake1 (CC BY-NC-SA 4.0). Sounds made for Chess.nat. Analysis by Stockfish 10 (GPL). chess.js by Jeff Hlywa (BSD). Coach voice generated with Kokoro (Apache 2.0), voice "Bella". Accounts and live play by Supabase.</p></div></div>`;
     $$("[data-lang]", main).forEach(b => b.onclick = () => { if (b.dataset.lang !== I18N.lang) I18N.set(b.dataset.lang); });
     const sv = () => { $("#sv").textContent = Cloud.status === "on" ? "Your progress is saved to your Chess.nat account. It's private and follows you to every device where you're signed in." : Cloud.status === "viewonly" ? "Saving to your account was refused, so progress stays on this device. Try signing out and in again." : Cloud.status === "error" ? "Cloud sync has a problem (" + Cloud.lastError + "). Progress is still saved on this device." : "Progress is saved on this device only. Sign in under Account to sync it everywhere."; };
     sv();
-    $$("[data-s]", main).forEach(c => c.onchange = () => { st[c.dataset.s] = c.checked; save(); if (c.dataset.s === "sound" && c.checked) Sound.play("Move"); });
+    $$("[data-s]", main).forEach(c => c.onchange = () => { st[c.dataset.s] = c.checked; save(); if (c.dataset.s === "sound" && c.checked) Sound.play("Move"); if (c.dataset.s === "haptics" && c.checked) Haptic.go([20, 40, 20]); });
     $$("[data-b]", main).forEach(b => b.onclick = () => { st.board = b.dataset.b; document.body.dataset.board = st.board; save(); this.mount(main); });
     $("#nm").onchange = e => { S.name = e.target.value.trim().slice(0, 24) || "You"; save(); renderRail(); };
     $$("[data-vr]", main).forEach(b => b.onclick = () => { st.voiceRate = +b.dataset.vr; save(); this.mount(main); Voice.say("Hi! I'm your chess coach. Let's get you to sixteen hundred."); });
@@ -11881,7 +11905,7 @@ function chestOpen(o = {}){
     box.classList.remove("hit"); void box.offsetWidth; box.classList.add("hit");
     ChestSfx.thump(tap); ChestSfx.bell(tap, ri); shake(6 + tap * 4, 220);
     burst(10 + tap * 6, 6 + tap, [NAT_R[ri].c, "#fff"]);
-    try { navigator.vibrate && navigator.vibrate(up ? [30, 60, 90] : 18 + tap * 8); } catch(_) {}
+    try { Haptic.go(up ? [30, 60, 90] : 18 + tap * 8); } catch(_) {}
     tip.textContent = "";
     if (up){ busy = true; ChestSfx.riser(tap, .55); el.classList.add("charging");
       setTimeout(() => { el.classList.remove("charging"); setR(Math.min(NAT_R.length - 1, ri + up)); ChestSfx.stinger(ri);
@@ -11911,7 +11935,7 @@ function chestOpen(o = {}){
     if (!first){ ChestSfx.stinger(r); shake(16 + r * 4, 400); }
       const fl = $e(".chx-flash"); fl.classList.remove("go"); void fl.offsetWidth; fl.classList.add("go");
       burst(first ? 140 + r * 50 : 60 + r * 30, 18 + r * 2, [R.c, "#fff", "#ffe27a", R.c]);
-      try { navigator.vibrate && navigator.vibrate([60, 40, 120]); } catch(_) {}
+      try { Haptic.go([60, 40, 120]); } catch(_) {}
       const prize = $e(".chx-prize");
       prize.innerHTML = `<div class="chx-card r-${R.k}">${loot.length > 1 ? `<div class="pz-count">${shown} / ${loot.length}</div>` : ""}${rw.kind === "gift" ? giftCard(rw) : rw.kind === "coins" ? `<div class="pz-coin">${NAT_COIN}</div><b class="pz-n">+${fmtNat(rw.coins)}</b><small>NatCoins</small>`
         : `<div class="pz-pic">${natPreview(rw.item, 130)}</div><small class="pz-k">${natKindName(rw.item.kind)} · <span style="color:${R.c}">${R.n}</span></small><b class="pz-t">${esc(rw.item.name)}</b>${rw.msg ? `<div class="pz-msg" data-notr>${esc(rw.msg)} 🌹</div>` : ""}${rw.item.kind === "knife" ? natEurLine(rw.item) : ""}
@@ -12949,7 +12973,7 @@ const Social = (() => {
     let t = null, long = false; b.dataset.gb = 1; giftLabel(b);
     const send = async kind => { if (await heart(id, kind)){ const poop = kind === "poop", nm = esc(P(id).name); if (poop) Sound.poop(); else Sound.heart();
       giftCount("out" + id + (poop ? "p" : "h"), poop ? "💩" : "❤️", n => n === 1 ? (poop ? `Thrown at ${nm}` : `Sent to ${nm}`) : `<b>${n}</b> ${poop ? "poops thrown at" : "hearts sent to"} ${nm}`); if (sent) sent(kind); } };
-    const flip = () => { long = true; S.giftKind = giftKind() === "poop" ? "heart" : "poop"; save(); try { navigator.vibrate && navigator.vibrate(14); } catch(e) {} Sound.blub();
+    const flip = () => { long = true; S.giftKind = giftKind() === "poop" ? "heart" : "poop"; save(); try { Haptic.go(14); } catch(e) {} Sound.blub();
       document.querySelectorAll("[data-gb]").forEach(giftLabel); b.classList.remove("gflip"); void b.offsetWidth; b.classList.add("gflip");
       toast(giftKind() === "poop" ? "💩 mode: a tap now throws poop. Hold again for hearts." : "❤️ mode: a tap sends a heart again.", 2200); };
     b.addEventListener("pointerdown", () => { long = false; clearTimeout(t); t = setTimeout(flip, 450); });
@@ -13008,6 +13032,12 @@ const Social = (() => {
   async function showInvite(r){
     if (!r || shownInv.has(r.id) || r.status !== "open" || Date.now() - new Date(r.created_at).getTime() > INVITE_MS) return; shownInv.add(r.id);
     if (!D.players[r.from_id]) await load(true);
+    if (/^p:/.test(r.tc || "")){ const p = P(r.from_id), gid = r.tc.slice(2), g = typeof PG !== "undefined" && PG.games.find(x => x.id === gid), gname = g ? (I18N.lang === "de" ? g.name[1] : g.name[0]) : "Party";
+      const set = st => sb.from("chess_invites").update({status: st}).eq("id", r.id).then(() => {}, () => {});
+      try { Haptic.go([40, 60, 40]); } catch(e) {}
+      Notify.show({key: "inv:" + r.id, cls: "ntf-invite", accent: "var(--go)", icon: face(p, 44), label: gname, title: `${esc(p.name)} ${I18N.lang === "de" ? "lädt dich ein" : "invites you"}`, text: (I18N.lang === "de" ? "Komm in die Lobby: " : "Join the lobby: ") + esc(gname),
+        ms: Math.min(INVITE_MS, 20000), sound: () => Sound.play("GenericNotify", .8), actions: [{label: I18N.lang === "de" ? "Später" : "Later", fn: () => set("declined")}, {label: I18N.lang === "de" ? "Mitspielen" : "Join", primary: true, fn: () => { set("accepted"); App.go("lobby", {join: r.code}); }}]});
+      return; }
     const p = P(r.from_id), bm = r.tc === "battle" ? "sprint" : /^b:/.test(r.tc || "") ? r.tc.slice(2) : null, battle = !!bm, tc = battle ? [3, 0] : (r.tc || "10+0").split("+").map(Number);
     const set = st => sb.from("chess_invites").update({status: st}).eq("id", r.id).then(() => {}, () => {});
     const join = () => { set("accepted"); if (bm === "duel") App.go("duel", {join: r.code}); else if (bm) App.go("battle", {join: r.code, mode: bm}); else App.go("friend", {join: r.code}); };
@@ -13440,9 +13470,9 @@ const ChatMedia = (() => {
         if (!rec || rec.locked) return; if ((Date.now() - rec.t0) / 1000 < .6){ finish("cancel"); toast("Hold the mic to record, let go to send.", 2200); } else finish(ev.type === "pointercancel" ? "cancel" : "send"); };
       mic.addEventListener("pointerup", end); mic.addEventListener("pointercancel", end);
       mic.onpointermove = ev => { if (!rec || rec.locked) return; const dx = ev.clientX - x0, dy = ev.clientY - y0;
-        if (dx < -100){ finish("cancel"); toast("Deleted"); try { navigator.vibrate && navigator.vibrate(20); } catch(x) {} return; }
+        if (dx < -100){ finish("cancel"); toast("Deleted"); try { Haptic.go(20); } catch(x) {} return; }
         if (dy < -70){ rec.locked = true; form.classList.add("locked"); rec.bar.style.setProperty("--dx", "0px"); mic.innerHTML = icon("send", 22); rec.bar.querySelector(".vrec-h").innerHTML = `<button type="button" class="vrec-del" aria-label="Delete">${icon("xmark", 18)}</button>`;
-          rec.bar.querySelector(".vrec-del").onclick = () => { finish("cancel"); toast("Deleted"); }; try { navigator.vibrate && navigator.vibrate(12); } catch(x) {} return; }
+          rec.bar.querySelector(".vrec-del").onclick = () => { finish("cancel"); toast("Deleted"); }; try { Haptic.go(12); } catch(x) {} return; }
         rec.bar.style.setProperty("--dx", Math.min(0, dx) + "px"); rec.bar.style.setProperty("--dy", Math.min(0, dy) + "px"); };
       try { stream = await getMic(); } catch(err){ micErr(err); return; }
       if (up && Date.now() - t0 < 600){ release(); toast("Hold the mic to record, let go to send.", 2200); return; }
@@ -13451,7 +13481,7 @@ const ChatMedia = (() => {
       const chunks = [], bar = document.createElement("div"); bar.className = "vrec";
       bar.innerHTML = `<i class="vrec-dot"></i><b class="vrec-t">0:00</b><span class="vrec-h">‹ slide to cancel</span><span class="vrec-up">${LOCK_SVG}<i>▲</i></span>`; form.appendChild(bar); form.classList.add("recording");
       rec = {mr, bar, t0: Date.now(), locked: false, tick: setInterval(() => { if (!rec) return; const s = (Date.now() - rec.t0) / 1000; bar.querySelector(".vrec-t").textContent = fmt(s); if (s >= MAXS) finish("send"); }, 250)};
-      const r0 = rec; try { navigator.vibrate && navigator.vibrate(15); } catch(err) {}
+      const r0 = rec; try { Haptic.go(15); } catch(err) {}
       mr.ondataavailable = ev => { if (ev.data && ev.data.size) chunks.push(ev.data); };
       mr.onstop = async () => { if (r0.how !== "send") return; if (!chunks.length){ toast("Nothing was recorded. Try again."); return; }
         const secs = Math.max(1, Math.round((Date.now() - r0.t0) / 1000)), mime = (mr.mimeType || type || "audio/webm").split(";")[0];
@@ -13706,7 +13736,7 @@ const News = {
         ${o.mustListen ? `<div class="newsx-hint">Hör dir die Nachricht bis zum Ende an.</div>` : ""}` : ""}
       <button class="btn go big newsx-ok" ${o.mustListen ? "disabled" : ""}>OK</button></div>`;
     document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("in"));
-    try { Sound.cheer(4); navigator.vibrate && navigator.vibrate([40, 60, 80]); } catch(e) {}
+    try { Sound.cheer(4); Haptic.go([40, 60, 80]); } catch(e) {}
     const stopCf = newsConfetti(el.querySelector(".newsx-cf"));
     const ok = el.querySelector(".newsx-ok");
     const unlock = () => { ok.disabled = false; const h = el.querySelector(".newsx-hint"); if (h) h.textContent = "Danke fürs Zuhören!"; };
@@ -14055,7 +14085,7 @@ Views.news = {
       try { R.mr = new MediaRecorder(stream, Object.assign({videoBitsPerSecond: 1200000}, type ? {mimeType: type} : {})); } catch(err){ fin(false); toast("Video aufnehmen geht in diesem Browser nicht. Wähle ein Video.", 4000); return; }
       R.mr.ondataavailable = e => { if (e.data && e.data.size) R.chunks.push(e.data); };
       R.mr.onstop = () => { close(); if (R.keep && R.chunks.length){ this.vblob = new Blob(R.chunks, {type: (R.mr.mimeType || type || "video/mp4").split(";")[0]}); this.blob = null; this.voiceUI(); this.videoUI(); } };
-      R.mr.start(250); R.t0 = Date.now(); ov.classList.add("rec"); go.setAttribute("aria-label", "Aufnahme beenden"); try { navigator.vibrate && navigator.vibrate(30); } catch(_) {}
+      R.mr.start(250); R.t0 = Date.now(); ov.classList.add("rec"); go.setAttribute("aria-label", "Aufnahme beenden"); try { Haptic.go(30); } catch(_) {}
       R.tick = setInterval(() => { const s = (Date.now() - R.t0) / 1000; tt.textContent = Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0"); ring.style.strokeDashoffset = 302 * (1 - Math.min(1, s / 60)); if (s >= 60) fin(true); }, 200); };
     const asked = Date.now(); let stream;
     try { stream = await this.vcam(); }
@@ -14254,12 +14284,14 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=1"></script>
-<script src="games/imposter.js?v=1"></script>
-<script src="games/werwolf.js?v=1"></script>
-<script src="games/cards.js?v=1"></script>
-<script src="games/heads.js?v=1"></script>
-<script src="games/more.js?v=1"></script>
+<script src="games/core.js?v=2"></script>
+<script src="games/imposter.js?v=2"></script>
+<script src="games/werwolf.js?v=2"></script>
+<script src="games/cards.js?v=2"></script>
+<script src="games/heads.js?v=2"></script>
+<script src="games/more.js?v=2"></script>
+<script src="games/net.js?v=2"></script>
+<script src="games/online.js?v=2"></script>
 <script>boot();</script>
 </body>
 </html>
