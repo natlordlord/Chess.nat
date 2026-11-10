@@ -235,7 +235,7 @@ Views.party = {
     const {T} = PG; const id = (arg && arg.g) || PG.st.last; const g = PG.games.find(x => x.id === id);
     if (!g){ setTimeout(() => App.go("games"), 0); return; }
     PG.st.last = g.id; PG.persist(); PG.running = false;
-    main.innerHTML = `<div class="page pg" data-notr style="max-width:640px"><button class="btn ghost sm" id="pgback">← ${T("Games", "Spiele")}</button>${PG.online && PG.online[g.id] ? `<button class="unit pg-onl" id="pgon"><span class="pg-onl-i">📱📱📱</span><span style="flex:1;text-align:left"><b>${T("Everyone on their own phone", "Jeder mit eigenem Handy")}</b><small>${T("Open a lobby and invite your friends", "Lobby öffnen und Freunde einladen")}</small></span>${icon("users", 22)}</button>` : ""}<div id="pgbody"></div></div>`;
+    main.innerHTML = `<div class="page pg" data-notr style="max-width:640px"><button class="btn ghost sm" id="pgback">← ${T("Games", "Spiele")}</button>${PG.online && PG.online[g.id] && g.id !== "natposter" ? `<button class="unit pg-onl" id="pgon"><span class="pg-onl-i">📱📱📱</span><span style="flex:1;text-align:left"><b>${T("Everyone on their own phone", "Jeder mit eigenem Handy")}</b><small>${T("Open a lobby and invite your friends", "Lobby öffnen und Freunde einladen")}</small></span>${icon("users", 22)}</button>` : ""}<div id="pgbody"></div></div>`;
     const body = $("#pgbody", main), back = $("#pgback", main), onl = $("#pgon", main);
     if (onl) onl.onclick = () => { Sound.tap(); App.go("lobby", {host: true, game: g.id}); };
     /* leaving a running game asks once more */

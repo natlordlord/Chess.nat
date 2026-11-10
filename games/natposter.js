@@ -82,13 +82,13 @@
         }
         if (m.wait > 0){ m.wait -= dt; if (m.wait <= 0 && m.goal && m.goal.task && !imp){ eng.act(G, id, {a: "task", v: m.goal.task}, api); api.push(); m.goal = null; } if (m.wait <= 0 && m.goal && m.goal.fix){ eng.act(G, id, {a: "fix", v: m.goal.fix}, api); api.push(); m.goal = null; } out.push([id, p.x, p.y, p.f || 1, alive ? 0 : 1, 0]); return; }
         if (!m.path.length){
-          if (m.goal && m.goal.task){ m.wait = 2.5 + Math.random() * 3; }
+          if (m.goal && m.goal.task){ m.wait = 5 + Math.random() * 5; }
           else if (m.goal && m.goal.fix && s.sab){ m.wait = 2.5; }
           else { m.goal = null; const left = s.tasks[id].filter(t => !s.done[id][t]); const tk = TASKS.find(t => t.id === (imp ? PG.pick(s.tasks[id]) : left[0]));
-            if (tk && (!imp || Math.random() < .7)){ m.goal = {task: imp ? null : tk.id}; m.path = route(p, {x: tk.x + (Math.random() * 30 - 15), y: tk.y + 40}); }
+            if (tk && Math.random() < (imp ? .6 : .55)){ m.goal = {task: imp ? null : tk.id}; m.path = route(p, {x: tk.x + (Math.random() * 30 - 15), y: tk.y + 40}); }
             else { const r = PG.pick(ROOMS); m.path = route(p, {x: r.x + 40 + Math.random() * (r.w - 80), y: r.y + 50 + Math.random() * (r.h - 90)}); m.goal = {walk: 1}; } }
         }
-        const w = m.path[0]; if (w){ const dx = w.x - p.x, dy = w.y - p.y, d = Math.hypot(dx, dy), sp = SPEED * .82 * dt * (alive ? 1 : 1.1);
+        const w = m.path[0]; if (w){ const dx = w.x - p.x, dy = w.y - p.y, d = Math.hypot(dx, dy), sp = SPEED * .72 * dt * (alive ? 1 : 1.1);
           if (d <= sp){ p.x = w.x; p.y = w.y; m.path.shift(); } else { p.x += dx / d * sp; p.y += dy / d * sp; if (Math.abs(dx) > 2) p.f = dx < 0 ? -1 : 1; } }
         p.dx = p.x; p.dy = p.y; p.g = !alive; p.t = now(); p.mv = !!w;
         out.push([id, Math.round(p.x), Math.round(p.y), p.f || 1, alive ? 0 : 1, w ? 1 : 0]);
@@ -98,19 +98,24 @@
 
   /* ---------------- the host's game ---------------- */
   PG.online.natposter = {min: 4, max: 15, note: ["Like the space classic: crew does tasks, the Natposter kills in secret. Everyone walks around on their own phone.", "Wie der Weltraum-Klassiker: Die Crew löst Aufgaben, der Natposter tötet heimlich. Jeder läuft auf seinem eigenen Handy herum."],
-    opts: [{k: "imps", l: ["Natposters", "Natposter"], d: "auto", c: [["auto", "Auto"], [1, "1"], [2, "2"], [3, "3"]]},
+    opts: [{k: "role", solo: true, l: ["Your role", "Deine Rolle"], d: "rnd", c: [["rnd", ["Random", "Zufall"]], ["crew", "Crew"], ["imp", "Natposter"]]},
+      {k: "bots", solo: true, l: ["Bots", "Bots"], d: 5, c: [[3, "3"], [5, "5"], [7, "7"]]},
+      {k: "imps", l: ["Natposters", "Natposter"], d: "auto", c: [["auto", "Auto"], [1, "1"], [2, "2"], [3, "3"]]},
       {k: "cd", l: ["Kill cooldown", "Kill-Abklingzeit"], d: 30, c: [[20, "20 s"], [30, "30 s"], [45, "45 s"]]},
       {k: "tasks", l: ["Tasks each", "Aufgaben pro Person"], d: 5, c: [[3, "3"], [5, "5"], [7, "7"]]},
       {k: "meet", l: ["Meeting time", "Meeting-Zeit"], d: 90, c: [[60, "60 s"], [90, "90 s"], [120, "120 s"]]},
-      {k: "conf", l: ["Reveal ejected role", "Rolle beim Rauswurf zeigen"], d: 1, c: [[1, ["Yes", "Ja"]], [0, ["No", "Nein"]]]},
-      {k: "bots", l: ["Practice bots", "Übungs-Bots"], d: 0, c: [[0, ["None", "Keine"]], [2, "2"], [4, "4"], [6, "6"]]}],
-    extra(o){ return +o.bots || 0; },
+      {k: "conf", l: ["Reveal ejected role", "Rolle beim Rauswurf zeigen"], d: 1, c: [[1, ["Yes", "Ja"]], [0, ["No", "Nein"]]]}],
+    extra(o, solo){ return solo ? +o.bots || 0 : 0; },
     start(G){
       BOT.stop(); G.ids = G.ids.filter(x => !/^bot-/.test(x));
-      const bots = (typeof BOTS !== "undefined" ? PG.shuffle(BOTS.slice(0, 20)) : []).slice(0, +G.opts.bots || 0).map((b, i) => ({id: "bot-" + i, name: b.name, av: (() => { try { return botCfg(b); } catch(e) { return null; } })()}));
+      const bots = (typeof BOTS !== "undefined" ? PG.shuffle(BOTS.slice(0, 20)) : []).slice(0, G.solo ? +G.opts.bots || 0 : 0).map((b, i) => ({id: "bot-" + i, name: b.name, av: (() => { try { return botCfg(b); } catch(e) { return null; } })()}));
       bots.forEach(b => G.ids.push(b.id));
       const n = G.ids.length, o = G.opts, k = o.imps === "auto" ? (n <= 6 ? 1 : n <= 10 ? 2 : 3) : Math.min(+o.imps, Math.max(1, Math.floor((n - 1) / 2)));
-      const imps = PG.shuffle(G.ids).slice(0, k), s = G.s = {bots, phase: "play", round: ((G.s && G.s.round) || 0) + 1, imps, alive: {}, tasks: {}, done: {}, bodies: [], killAt: {}, emer: {}, sab: null, sabAt: now() + 15000, mc: 0, spawnK: 1, log: []};
+      const imps = PG.shuffle(G.ids).slice(0, k), host = G.host;
+      /* practice: play the side you want */
+      if (G.solo && o.role === "imp" && !imps.includes(host)) imps[0] = host;
+      if (G.solo && o.role === "crew" && imps.includes(host)){ const pool = G.ids.filter(x => x !== host && !imps.includes(x)); imps[imps.indexOf(host)] = PG.pick(pool); }
+      const s = G.s = {bots, phase: "play", round: ((G.s && G.s.round) || 0) + 1, imps, alive: {}, tasks: {}, done: {}, bodies: [], killAt: {}, emer: {}, sab: null, sabAt: now() + 15000, mc: 0, spawnK: 1, log: []};
       G.ids.forEach((id, i) => { s.alive[id] = true; s.done[id] = {}; s.emer[id] = 1; s.killAt[id] = now() + 5000 + Math.max(15000, o.cd * 700);
         s.tasks[id] = PG.shuffle(TASKS.map(t => t.id)).slice(0, o.tasks); const sp = spawnAt(i, n); POS[id] = Object.assign(POS[id] || {}, sp, {g: false, v: false}); });
       s.spawn = Object.fromEntries(G.ids.map((id, i) => [id, spawnAt(i, n)]));
@@ -494,7 +499,8 @@ html.np-on .tabbar,html.np-on .pg-pill{display:none!important}
 .np-btns{position:absolute;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;flex-wrap:wrap-reverse;justify-content:flex-end;gap:10px;max-width:220px}
 .np-act{width:96px;height:96px;border-radius:22px;border:0;background:rgba(61,58,53,.88);color:var(--fg);font-size:36px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:inset 0 -5px 0 rgba(0,0,0,.3);cursor:pointer;opacity:.45;transition:transform .1s}
 .np-act span{font:900 12.5px var(--body);letter-spacing:.04em;text-transform:uppercase}
-.np-act.on{opacity:1}.np-act.main.on{background:var(--go);box-shadow:inset 0 -5px 0 var(--go-deep)}.np-act.kill.on{background:var(--bad);box-shadow:inset 0 -5px 0 #a8382a}.np-act.rep.on{background:#E9B64A;color:#2A1E05}
+.np-act.on{opacity:1}
+.pg-np-hero{display:block;padding:22px 18px;border-radius:14px;margin-top:8px;min-height:0!important;text-align:left}.pg-np-hero .pg-np-ship{font-size:56px}.np-act.main.on{background:var(--go);box-shadow:inset 0 -5px 0 var(--go-deep)}.np-act.kill.on{background:var(--bad);box-shadow:inset 0 -5px 0 #a8382a}.np-act.rep.on{background:#E9B64A;color:#2A1E05}
 .np-act:active{transform:scale(.94)}
 .np-ov{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(6,7,12,.72);padding:16px;z-index:5}
 .np-ov.on{display:flex}
@@ -538,5 +544,11 @@ html.np-on .tabbar,html.np-on .pg-pill{display:none!important}
 
   /* in the Games list: online only */
   PG.add({id: "natposter", icon: "spy", name: ["Natposter", "Natposter"], tag: ["New", "Neu", "bad"], sub: ["Space station. Tasks. One of you is a traitor.", "Raumstation. Aufgaben. Einer von euch ist ein Verräter."], meta: ["4–15 players · own phones", "4–15 Spieler · eigene Handys"],
-    mount(ctx){ setTimeout(() => App.go("lobby", PNet.P && PNet.P.isHost ? undefined : {host: true, game: "natposter"}), 0); }});
+    mount(ctx){
+      ctx.body.innerHTML = `<div class="pg-np pg-np-hero"><span class="pg-np-stars"></span><span class="pg-np-ship">🚀</span><h1 class="h-title" style="position:relative;color:#fff">Natposter</h1><p style="position:relative">${T("Space station. Tasks. One of you is a traitor.", "Raumstation. Aufgaben. Einer von euch ist ein Verräter.")}</p></div>
+        <div class="tiles" style="margin-top:12px"><button class="tile" data-np="solo" style="border:1px solid var(--go)"><span class="pg-art" style="--ac:#7B5CD6;background:#7B5CD6">🤖</span><h3>${T("Practice", "Üben")}</h3><p>${T("Just you and bots. Starts right away.", "Nur du und Bots. Geht sofort los.")}</p></button>
+          <button class="tile" data-np="friends"><span class="pg-art" style="background:var(--go)">📱</span><h3>${T("With friends", "Mit Freunden")}</h3><p>${T("Everyone on their own phone.", "Jeder am eigenen Handy.")}</p></button></div>`;
+      ctx.body.querySelector('[data-np="solo"]').onclick = () => App.go("lobby", {practice: "natposter", opts: {bots: 5}});
+      ctx.body.querySelector('[data-np="friends"]').onclick = () => App.go("lobby", PNet.P && PNet.P.isHost && !PNet.P.solo ? undefined : {host: true, game: "natposter"});
+    }});
 })();
