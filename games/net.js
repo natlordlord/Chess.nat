@@ -38,7 +38,7 @@ const PNet = (() => {
   function host(game){
     leave(true);
     const code = newCode();
-    P = {code, isHost: true, game: game || "imposter", opts: Object.assign({}, defaults(game || "imposter"), (PG.st.onOpts || {})[game || "imposter"] || {}), roster: [{id: me, name: myName() || T("Host", "Gastgeber"), uid: (typeof Social !== "undefined" && Social.me) || null}], on: new Set([me]), G: null, seq: 0, view: null, last: Date.now()};
+    P = {code, isHost: true, game: game || "imposter", opts: Object.assign({}, defaults(game || "imposter"), (PG.st.onOpts || {})[game || "imposter"] || {}), roster: [{id: me, name: myName() || T("Host", "Gastgeber"), av: myAv(), uid: (typeof Social !== "undefined" && Social.me) || null}], on: new Set([me]), G: null, seq: 0, view: null, last: Date.now()};
     start(); save(); return P;
   }
   function resume(){
@@ -47,7 +47,7 @@ const PNet = (() => {
   }
   const save = () => { if (!P || !P.isHost) return; try { const {conn, on, timer, beat, ...rest} = P; sessionStorage.setItem("chessnat-party-host", JSON.stringify({t: Date.now(), P: rest})); } catch(e) {} };
   const eng = () => P && PG.online[P.game];
-  const nameOf = id => { const r = P.roster.find(x => x.id === id); return r ? r.name : "?"; };
+  const nameOf = id => { const L = P.roster || (P.msg && P.msg.players) || []; const r = L.find(x => x.id === id); return r ? r.name : "?"; };
 
   function start(){
     P.conn = open(P.code, {
@@ -64,9 +64,11 @@ const PNet = (() => {
   }
   function hostMsg(m){
     if (!m || m.code !== P.code) return;
+    if (m.t === "mv"){ PG.onMv && PG.onMv(m); return; }
     if (m.t === "hi"){ const n = String(m.name || "").replace(/\s+/g, " ").trim().slice(0, 16) || T("Player", "Spieler");
       const r = P.roster.find(x => x.id === m.id), uid = typeof m.uid === "string" && /^[0-9a-f-]{36}$/.test(m.uid) ? m.uid : null;
-      if (r){ r.name = uniq(n, m.id); r.uid = uid; } else { if (P.roster.length >= 24) return; P.roster.push({id: m.id, name: uniq(n, m.id), uid}); Sound.blub ? Sound.blub() : Sound.tap(); PG.vib(20); }
+      const av = m.av && typeof m.av === "object" && JSON.stringify(m.av).length < 1500 ? m.av : null;
+      if (r){ r.name = uniq(n, m.id); r.uid = uid; r.av = av; } else { if (P.roster.length >= 24) return; P.roster.push({id: m.id, name: uniq(n, m.id), uid, av}); Sound.blub ? Sound.blub() : Sound.tap(); PG.vib(20); }
       push(true); }
     else if (m.t === "act" && P.G){ const e = eng(); if (!e) return; try { e.act(P.G, m.id, m.a || {}, api()); } catch(err) { console.error(err); } push(); }
     else if (m.t === "bye"){ P.roster = P.roster.filter(x => x.id !== m.id || (P.G && P.G.ids.includes(m.id))); push(true); }
@@ -74,7 +76,7 @@ const PNet = (() => {
   const uniq = (n, id) => { let k = n, i = 2; while (P.roster.some(x => x.id !== id && x.name.toLowerCase() === k.toLowerCase())) k = n + " " + i++; return k; };
   /* what the engines get to work with */
   function api(){
-    return {T, me, now: () => Date.now(), name: id => nameOf(id), push: () => push(), online: id => P.on.has(id), roster: () => P.roster.slice()};
+    return {T, me, now: () => Date.now(), av: id => { const r = P.roster.find(x => x.id === id); return r && r.av; }, name: id => nameOf(id), push: () => push(), online: id => P.on.has(id), roster: () => P.roster.slice()};
   }
   let pushT = null;
   function push(now){
@@ -82,7 +84,7 @@ const PNet = (() => {
     if (!now){ if (pushT) return; pushT = setTimeout(() => { pushT = null; push(true); }, 60); return; }
     const e = eng(), views = {};
     if (P.G && e){ P.roster.forEach(r => { let v; try { v = P.G.ids.includes(r.id) ? e.view(P.G, r.id, api()) : spect(); } catch(err) { console.error(err); v = {say: "…"}; } views[r.id] = v; }); }
-    const msg = {t: "v", code: P.code, seq: ++P.seq, host: me, game: P.game, opts: P.opts, lobby: !P.G, players: P.roster.map(r => ({id: r.id, name: r.name, on: P.on.has(r.id), uid: r.uid || null})), views};
+    const msg = {t: "v", code: P.code, seq: ++P.seq, host: me, game: P.game, opts: P.opts, lobby: !P.G, players: P.roster.map(r => ({id: r.id, name: r.name, on: P.on.has(r.id), uid: r.uid || null, av: r.av || null})), views};
     P.conn && P.conn.send(msg); P.sent = Date.now(); P.msg = msg; save(); redraw();
   }
   const spect = () => ({k: "spect", emo: "👀", say: T("A round is running. You're in from the next round.", "Gerade läuft eine Runde. Ab der nächsten bist du dabei.")});
@@ -93,9 +95,11 @@ const PNet = (() => {
     P = {code: code.toLowerCase(), isHost: false, name, msg: null, last: Date.now(), gotMe: false};
     PG.st.myName = name; PG.persist(); start(); return P;
   }
-  const hello = () => { if (P && !P.isHost) P.conn.send({t: "hi", code: P.code, id: me, name: P.name, uid: (typeof Social !== "undefined" && Social.me) || null}); };
+  const myAv = () => { try { const a = typeof myAvatar === "function" ? myAvatar() : null; const j = a ? JSON.stringify(a) : ""; return j && j.length < 1500 ? JSON.parse(j) : null; } catch(e) { return null; } };
+  const hello = () => { if (P && !P.isHost) P.conn.send({t: "hi", code: P.code, id: me, name: P.name, av: myAv(), uid: (typeof Social !== "undefined" && Social.me) || null}); };
   function clientMsg(m){
     if (!m || m.code !== P.code) return;
+    if (m.t === "mv"){ PG.onMv && PG.onMv(m); return; }
     if (m.t === "v"){ if (P.msg && m.seq < P.msg.seq && m.host === P.msg.host && P.msg.seq - m.seq < 50) return;
       P.msg = m; P.last = Date.now(); P.gotMe = m.players.some(p => p.id === me); P.game = m.game; redraw(); }
     else if (m.t === "kick" && m.id === me){ leave(true); toast(T("The host removed you from the lobby.", "Der Gastgeber hat dich aus der Lobby entfernt."), 3500); if (App.route === "lobby") App.go("games"); }
@@ -108,7 +112,7 @@ const PNet = (() => {
     try { if (P.isHost) P.conn && P.conn.send({t: "end", code: P.code}); else P.conn && P.conn.send({t: "bye", code: P.code, id: me}); } catch(e) {}
     clearInterval(P.beat); const c = P.conn; P = null; setTimeout(() => c && c.close(), 300);
     try { sessionStorage.removeItem("chessnat-party-host"); } catch(e) {}
-    PG.awake(false); pill(); if (!quiet) redraw();
+    PG.awake(false); if (PG.custom) Object.values(PG.custom).forEach(c => c.stop && c.stop()); pill(); if (!quiet) redraw();
   }
 
   /* host controls */
@@ -140,7 +144,8 @@ const PNet = (() => {
 
   /* someone opened an invite link */
   const fromHash = h => { const m = /^#?p-([a-z0-9]{4,12})$/i.exec(h || ""); return m ? m[1].toLowerCase() : null; };
-  return {me, ok, link, newCode, host, resume, join, act, leave, setGame, setOpt, begin, toLobby, kick, fromHash, get P(){ return P; }, nameOf: id => P ? nameOf(id) : "", myName, defaults};
+  const raw = m => { if (P && P.conn) P.conn.send(Object.assign({code: P.code, id: me}, m)); };
+  return {raw, me, ok, link, newCode, host, resume, join, act, leave, setGame, setOpt, begin, toLobby, kick, fromHash, get P(){ return P; }, nameOf: id => P ? nameOf(id) : "", myName, defaults};
 })();
 PG.online = {};
 
@@ -219,7 +224,7 @@ Views.lobby = {
     else if (!PNet.P && !PNet.resume()) return this.start();
     this.draw();
   },
-  unmount(){ document.documentElement.classList.remove("pg-night"); setTimeout(() => window.dispatchEvent(new Event("chessnat:route")), 0); },
+  unmount(){ if (PG.custom) Object.values(PG.custom).forEach(c => c.stop && c.stop()); document.documentElement.classList.remove("pg-night"); setTimeout(() => window.dispatchEvent(new Event("chessnat:route")), 0); },
   /* no lobby yet: make one or type a code */
   start(){
     const {T} = PG;
@@ -253,9 +258,11 @@ Views.lobby = {
     const body = $("#lbody", main);
     if (!m){ body.innerHTML = `<div class="pg-stage"><div class="pg-moon">📡</div><p class="pg-say">${T("Connecting…", "Verbinde…")}<small>${T("Waiting for the host's phone. Is the code right and the host's app open?", "Warte auf das Handy des Gastgebers. Stimmt der Code und ist die App beim Gastgeber offen?")}</small></p></div>`; body._json = null; return; }
     if (!P.isHost && Date.now() - P.last > 15000) toast(T("Lost the host… reconnecting", "Verbindung zum Gastgeber weg… verbinde neu"), 1800);
-    if (m.lobby) return this.lobby(body, m);
+    if (m.lobby){ if (PG.custom) Object.values(PG.custom).forEach(c => c.stop && c.stop()); return this.lobby(body, m); }
     body._lk = null;
     const v = m.views[PNet.me];
+    if (v && v.custom && PG.custom && PG.custom[v.custom]){ body._json = null; body._lk = null; PG.custom[v.custom].draw(body, v, m, a => { if (a.a === "lobby"){ PNet.toLobby(); return; } PNet.act(a); }); return; }
+    if (PG.custom) Object.values(PG.custom).forEach(c => c.stop && c.stop());
     if (!v){ PView.draw(body, {k: "wait-join", emo: "⏳", say: T("Joining…", "Trete bei…")}, () => {}); return; }
     /* the host also gets a small bar to end the round */
     const hv = P.isHost ? Object.assign({}, v, {hostBack: true}) : v;

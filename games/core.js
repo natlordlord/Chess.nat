@@ -116,9 +116,11 @@ const PG = (() => {
 
   /* ---- games ---- */
   const games = [];
+  /* each game's own face: a big symbol on its own colour, inside the app's tile */
+  const ART = {imposter: ["🕵️", "#E2523E"], werwolf: ["🐺", "#4A5BA8"], tod: ["😈", "#C2448F"], never: ["🍻", "#E9B64A"], likely: ["👉", "#5AA3E0"], heads: ["🤔", "#26C2A3"], tabu: ["🤐", "#E2523E"], bomb: ["💣", "#F08A24"], slf: ["✍️", "#7FB24A"], four: ["🔴", "#5C8BD6"]};
   const add = g => games.push(g);
   const cheer = (n = 2) => { try { Sound.cheer(n); } catch(e) {} };
-  return {data: {}, de, T, h, st, persist, shuffle, pick, vib, players, setPlayers, opt, draw, every, later, onLeave, stopAll, awake, playersUI, choices, passCard, card, revealRound, timer, playerGrid, scoreList, games, add, cheer, running: false};
+  return {ART, data: {}, custom: {}, de, T, h, st, persist, shuffle, pick, vib, players, setPlayers, opt, draw, every, later, onLeave, stopAll, awake, playersUI, choices, passCard, card, revealRound, timer, playerGrid, scoreList, games, add, cheer, running: false};
 })();
 
 /* ---- the look: only the app's own colours, fonts and shapes ---- */
@@ -163,6 +165,15 @@ const PG = (() => {
 .pg-meta{font:700 12px var(--body);color:var(--dim);margin-top:auto;padding-top:4px}
 .pg-onl{display:flex;align-items:center;gap:12px;width:100%;border:1px solid var(--go);cursor:pointer;color:var(--fg);margin:10px 0 0;text-align:left;font:inherit}
 .pg-onl small{display:block;color:var(--muted);font-size:13px;font-weight:600}.pg-onl b{font:800 16px var(--display)}.pg-onl-i{font-size:18px;letter-spacing:-6px;margin-right:6px}
+.pg-gt{position:relative;overflow:hidden}
+.pg-gt::before{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:var(--ac);opacity:.16}
+.pg-art{width:52px;height:52px;border-radius:14px;background:var(--ac);display:flex;align-items:center;justify-content:center;font-size:30px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.22);position:relative}
+.pg-gt h3{position:relative}.pg-gt p{position:relative}
+.pg-np{position:relative;overflow:hidden;width:100%;margin-top:12px;min-height:150px;background:radial-gradient(120% 140% at 85% 20%,#2a2450 0%,#141322 55%,#0B0C12 100%)!important;border:1px solid #7B5CD6;color:#fff}
+.pg-np-stars{position:absolute;inset:0;background-image:radial-gradient(1.5px 1.5px at 20% 30%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 60% 20%,#fff 50%,transparent 51%),radial-gradient(1.5px 1.5px at 80% 70%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 40% 80%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 90% 40%,#fff 50%,transparent 51%),radial-gradient(1.2px 1.2px at 10% 70%,#fff 50%,transparent 51%);opacity:.8}
+.pg-np-ship{position:absolute;right:18px;top:16px;font-size:64px;transform:rotate(-20deg);filter:drop-shadow(0 6px 16px rgba(123,92,214,.6));animation:pgShip 4s ease-in-out infinite}
+@keyframes pgShip{50%{transform:rotate(-14deg) translateY(-6px)}}
+.pg-np p{color:#c9c4d8!important;max-width:70%}
 .pg-sec{font:800 13px var(--body);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:20px 2px 8px}
 .tile .pg-emo{font-size:30px;line-height:1}
 .pg-chess{position:relative;overflow:hidden}
@@ -204,13 +215,14 @@ Object.assign(ICONS, {
 Views.games = {
   mount(main){
     const {T, h} = PG;
-    main.innerHTML = `<div class="page"><h1 class="h-title">${T("Games", "Spiele")}</h1><p class="muted" style="margin:4px 0 0">${T("Chess, and party games for one phone: everyone plays, the phone goes round.", "Schach und Partyspiele für ein Handy: alle spielen mit, das Handy geht reihum.")}</p>
+    main.innerHTML = `<div class="page"><h1 class="h-title">${T("Games", "Spiele")}</h1>
       <div class="tiles" style="margin-top:14px">
         <button class="tile pg-chess" data-go="play" style="grid-column:span 2;border:1px solid var(--go)"><span class="deco"><i class="pc wn"></i></span>${icon("knight", 40)}<span class="pill go">${T("The original", "Das Original")}</span><h3>${T("Chess", "Schach")}</h3><p>${T("Online, bots, friends, battles.", "Online, Bots, Freunde, Battles.")}</p></button>
       </div>
-      <div class="tiles" style="margin-top:12px" data-notr><button class="tile" data-lobby style="grid-column:span 2;border:1px solid var(--go)">${icon("users", 40)}<span class="pill go">${T("New", "Neu")}</span><h3>${T("Play together: everyone on their own phone", "Zusammen spielen: jeder mit eigenem Handy")}</h3><p>${T("Open a lobby, invite friends like for a puzzle duel, or let them scan the QR code. Each phone shows only its own card, role and vote.", "Lobby öffnen, Freunde einladen wie beim Puzzle-Duell oder den QR-Code scannen lassen. Jedes Handy zeigt nur die eigene Karte, Rolle und Stimme.")}</p>${typeof PNet !== "undefined" && PNet.P ? `<span class="pg-meta" style="color:var(--go-hi)">● ${T("Your lobby is open", "Deine Lobby ist offen")} · ${esc(PNet.P.code.toUpperCase())}</span>` : ""}</button></div>
+      <div class="tiles" style="margin-top:12px" data-notr><button class="tile" data-lobby style="grid-column:span 2;border:1px solid var(--go)">${icon("users", 40)}<span class="pill go">${T("New", "Neu")}</span><h3>${T("Play together", "Zusammen spielen")}</h3><p>${T("Everyone on their own phone. Invite friends or show the QR code.", "Jeder am eigenen Handy. Freunde einladen oder QR-Code zeigen.")}</p>${typeof PNet !== "undefined" && PNet.P ? `<span class="pg-meta" style="color:var(--go-hi)">● ${T("Your lobby is open", "Deine Lobby ist offen")} · ${esc(PNet.P.code.toUpperCase())}</span>` : ""}</button></div>
       <div class="pg-sec" data-notr>${T("Party games", "Partyspiele")}</div>
-      <div class="tiles" data-notr>${PG.games.map(g => `<button class="tile" data-g="${g.id}">${icon(g.icon, 40)}${g.tag ? `<span class="pill ${g.tag[2] || "go"}">${T(g.tag[0], g.tag[1])}</span>` : ""}<h3>${h(T(g.name[0], g.name[1]))}</h3><p>${h(T(g.sub[0], g.sub[1]))}</p><span class="pg-meta">${h(T(g.meta[0], g.meta[1]))}</span></button>`).join("")}</div></div>`;
+      ${PG.games.some(g => g.id === "natposter") ? `<button class="tile pg-np" data-g="natposter" data-notr><span class="pg-np-stars"></span><span class="pg-np-ship">🚀</span><span class="pill bad" style="position:relative">${T("New", "Neu")}</span><h3 style="position:relative;font-size:24px">Natposter</h3><p style="position:relative">${T("Space station, tasks, a traitor. Everyone on their own phone.", "Raumstation, Aufgaben, ein Verräter. Jeder am eigenen Handy.")}</p><span class="pg-meta" style="position:relative">4–15 ${T("players", "Spieler")}</span></button>` : ""}
+      <div class="tiles" data-notr>${PG.games.filter(g => g.id !== "natposter").map(g => { const a = PG.ART[g.id] || ["🎲", "#7FB24A"]; return `<button class="tile pg-gt" data-g="${g.id}" style="--ac:${a[1]}"><span class="pg-art">${a[0]}</span><h3>${h(T(g.name[0], g.name[1]))}</h3><p>${h(T(g.sub[0], g.sub[1]))}</p><span class="pg-meta">${h(T(g.meta[0], g.meta[1]))}</span></button>`; }).join("")}</div></div>`;
     $$("[data-go]", main).forEach(b => b.onclick = () => { Sound.tap(); App.go(b.dataset.go); });
     $$("[data-g]", main).forEach(b => b.onclick = () => { Sound.tap(); App.go("party", {g: b.dataset.g}); });
     const lb = main.querySelector("[data-lobby]"); if (lb) lb.onclick = () => { Sound.tap(); App.go("lobby"); };

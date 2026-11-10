@@ -81,7 +81,7 @@ Mond:Nacht,Sonne,Himmel,Vollmond,Astronaut`).map(l => { const [w, f] = l.split("
 
   PG.data.tabu = TABU;
   /* ---------- Stirnraten ---------- */
-  PG.add({id: "heads", icon: "head", name: ["Heads Up", "Stirnraten"], tag: ["Hit", "Hit"], sub: ["Phone on your forehead, the others explain. Tilt to answer.", "Handy an die Stirn, die anderen erklären. Zum Antworten kippen."], meta: ["2+ players · 1 min rounds", "2+ Spieler · 1-Min-Runden"],
+  PG.add({id: "heads", icon: "head", name: ["Heads Up", "Stirnraten"], tag: ["Hit", "Hit"], sub: ["Phone on your forehead. Guess.", "Handy an die Stirn. Raten."], meta: ["2+ players · 1 min rounds", "2+ Spieler · 1-Min-Runden"],
     mount(ctx){
       const o = PG.opt("heads", {cat: "tiere", secs: 60, tilt: true}); let tilt = null;
       const setup = () => {
@@ -139,7 +139,7 @@ Mond:Nacht,Sonne,Himmel,Vollmond,Astronaut`).map(l => { const [w, f] = l.split("
     }});
 
   /* ---------- Tabu ---------- */
-  PG.add({id: "tabu", icon: "ban", name: ["Taboo", "Tabu"], sub: ["Explain the word, but never say the five forbidden ones.", "Erklär das Wort, aber sag nie die fünf verbotenen."], meta: ["4+ players · 2 teams", "4+ Spieler · 2 Teams"],
+  PG.add({id: "tabu", icon: "ban", name: ["Taboo", "Tabu"], sub: ["Explain it. Not with those words.", "Erklären, ohne die verbotenen Wörter."], meta: ["4+ players · 2 teams", "4+ Spieler · 2 Teams"],
     mount(ctx){
       const o = PG.opt("tabu", {secs: 60, goal: 20, a: "Team A", b: "Team B"}); let S2 = null;
       const setup = () => {

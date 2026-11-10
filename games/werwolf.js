@@ -24,7 +24,7 @@
   const daySnd = () => { if (Sound.fx && Sound.fx()) { [60, 64, 67, 72, 76].forEach((m, i) => Sound.note(m, i * .1, .7, .08, "marimba")); Sound.sparkle && Sound.sparkle(.5, 5, 0, .02); } };
   const deathSnd = () => { Sound.play("Capture", .8); PG.vib([60, 40, 120]); };
 
-  PG.add({id: "werwolf", icon: "moon", name: ["Werewolf", "Werwolf"], tag: ["Classic", "Klassiker"], sub: ["The village sleeps. The wolves don't. With a full game-master script.", "Das Dorf schläft ein. Die Wölfe nicht. Mit komplettem Spielleiter-Skript."], meta: ["6–24 players · 30 min", "6–24 Spieler · 30 Min"],
+  PG.add({id: "werwolf", icon: "moon", name: ["Werewolf", "Werwolf"], tag: ["Classic", "Klassiker"], sub: ["The village sleeps. The wolves don’t.", "Das Dorf schläft. Die Wölfe nicht."], meta: ["6–24 players · 30 min", "6–24 Spieler · 30 Min"],
     mount(ctx){
       const o = PG.opt("werwolf", DEF); let G = null;
       const body = () => ctx.body;

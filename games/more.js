@@ -7,7 +7,7 @@
   const SYL = sp("UNG;EIN;TER;BER;SCHL;SPR;ST;SCH;AU;EI;ENT;VER;GE;BE;ER;AN;AB;IN;OL;ACK;ECK;ICH;AST;UR;ION;HEIT;KEIT;LICH;ISCH;ANT;ELL;OTT;UCK;ALL;ING;ORK;ATZ;ITZ;UTZ;OHR;ALT;ACH;ERN;UND;IER;OS;ANZ;ELL;UMP;EST");
   const KAT = sp("Etwas aus der Küche;Automarken;Tiere mit vier Beinen;Länder in Europa;Vornamen mit A;Dinge, die rot sind;Fußballvereine;Berufe;Obstsorten;Getränke;Dinge im Badezimmer;Städte in Deutschland;Filme;Sportarten;Musikinstrumente;Gemüse;Süßigkeiten;Kleidungsstücke;Körperteile;Schachbegriffe;Superhelden;Dinge am Strand;Apps;Farben;Hunderassen;Disney-Filme;Dinge, die fliegen;Biersorten;Rapper;Gesellschaftsspiele;Hauptstädte;Werkzeuge;Dinge in der Schule;Eissorten;Märchen");
   PG.data.bomb = {SYL, KAT};
-  PG.add({id: "bomb", icon: "bomb", name: ["Tick Tock Boom", "Tick-Tack-Bumm"], sub: ["Say a word, pass the bomb. Don't hold it when it blows.", "Wort sagen, Bombe weitergeben. Wer sie hält, wenn sie explodiert, verliert."], meta: ["3+ players · 5 min", "3+ Spieler · 5 Min"],
+  PG.add({id: "bomb", icon: "bomb", name: ["Tick Tock Boom", "Tick-Tack-Bumm"], sub: ["Say a word, pass the bomb.", "Wort sagen, Bombe weitergeben."], meta: ["3+ players · 5 min", "3+ Spieler · 5 Min"],
     mount(ctx){
       const o = PG.opt("bomb", {mode: "syl"}); const boom = PG.st.boom = PG.st.boom || {};
       const setup = () => {
@@ -54,7 +54,7 @@
   const LETTERS = "ABDEFGHIKLMNOPRSTUVWZ".split("");
   PG.data.slf = {LETTERS};
   const SLF_DEF = ["Stadt", "Land", "Fluss", "Name", "Beruf", "Tier", "Marke", "Promi"];
-  PG.add({id: "slf", icon: "letters", name: ["Scattergories", "Stadt-Land-Fluss"], sub: ["One letter, many categories, the clock is ticking.", "Ein Buchstabe, viele Kategorien, die Uhr läuft."], meta: ["2+ players · paper & pen", "2+ Spieler · Zettel & Stift"],
+  PG.add({id: "slf", icon: "letters", name: ["Scattergories", "Stadt-Land-Fluss"], sub: ["One letter, every category.", "Ein Buchstabe, alle Kategorien."], meta: ["2+ players · paper & pen", "2+ Spieler · Zettel & Stift"],
     mount(ctx){
       const o = PG.opt("slf", {cats: SLF_DEF.slice(), secs: 90}); let G = null;
       const setup = () => {
@@ -132,7 +132,7 @@
     return pick; };
 
   PG.data.c4 = {winLine, botMove, drop, W7, H6};
-  PG.add({id: "four", icon: "grid4", name: ["Connect Four", "Vier gewinnt"], sub: ["Four in a row wins. Against a friend or a bot.", "Vier in einer Reihe gewinnt. Gegen Freunde oder den Bot."], meta: ["1–2 players", "1–2 Spieler"],
+  PG.add({id: "four", icon: "grid4", name: ["Connect Four", "Vier gewinnt"], sub: ["Four in a row wins.", "Vier in einer Reihe gewinnt."], meta: ["1–2 players", "1–2 Spieler"],
     mount(ctx){
       const o = PG.opt("four", {vs: "bot", lvl: 4, a: "", b: ""}); let G = null;
       const setup = () => {

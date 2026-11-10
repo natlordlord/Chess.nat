@@ -253,7 +253,7 @@ Wer würde eher einen Kuss in der Öffentlichkeit übertreiben?`)
   const lvTag = l => ({chill: "Chill", party: "Party", spicy: "18+"})[l];
 
   /* ---- Truth or Dare ---- */
-  PG.add({id: "tod", icon: "bottle", name: ["Truth or Dare", "Wahrheit oder Pflicht"], tag: ["Party", "Party"], sub: ["Tell the truth or do the dare. Spin the bottle if you like.", "Sag die Wahrheit oder zieh die Aufgabe durch. Mit Flaschendrehen."], meta: ["2–20 players", "2–20 Spieler"],
+  PG.add({id: "tod", icon: "bottle", name: ["Truth or Dare", "Wahrheit oder Pflicht"], tag: ["Party", "Party"], sub: ["Tell the truth or do the dare.", "Wahrheit sagen oder Aufgabe machen."], meta: ["2–20 players", "2–20 Spieler"],
     mount(ctx){
       const o = PG.opt("tod", {lv: ["chill", "party"], order: "turn"}); let P = [], turn = 0, pts = {};
       const setup = () => {
@@ -324,9 +324,9 @@ Wer würde eher einen Kuss in der Öffentlichkeit übertreiben?`)
       setup();
     }});
 
-  deckGame({id: "never", icon: "glass", key: "never", src: NEVER, name: ["Never have I ever", "Ich hab noch nie"], sub: ["Whoever has done it drinks. Or confesses.", "Wer's schon gemacht hat, trinkt. Oder gesteht."], meta: ["3+ players", "3+ Spieler"],
+  deckGame({id: "never", icon: "glass", key: "never", src: NEVER, name: ["Never have I ever", "Ich hab noch nie"], sub: ["Done it? Drink!", "Schon gemacht? Trinken!"], meta: ["3+ players", "3+ Spieler"],
     intro: ["Read the card out loud. Everyone who HAS done it drinks a sip (or puts a finger down). Tap the card for the next one.", "Lies die Karte laut vor. Alle, die es SCHON gemacht haben, trinken einen Schluck (oder nehmen einen Finger runter). Tipp auf die Karte für die nächste."],
     tip: ["Done it? Drink!", "Schon gemacht? Trinken!"]});
-  deckGame({id: "likely", icon: "point", key: "likely", src: LIKELY, count: true, name: ["Most likely to", "Wer würde eher"], sub: ["On three, everyone points at someone.", "Auf drei zeigen alle auf jemanden."], meta: ["3+ players", "3+ Spieler"],
+  deckGame({id: "likely", icon: "point", key: "likely", src: LIKELY, count: true, name: ["Most likely to", "Wer würde eher"], sub: ["On three, everyone points.", "Auf drei zeigen alle."], meta: ["3+ players", "3+ Spieler"],
     intro: ["Read the question out loud. On three, everyone points at the person who'd most likely do it. Whoever gets the most fingers drinks or explains themselves.", "Lies die Frage laut vor. Auf drei zeigen alle auf die Person, die es am ehesten tun würde. Wer die meisten Finger abbekommt, trinkt oder muss sich erklären."]});
 })();

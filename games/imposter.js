@@ -28,7 +28,7 @@
   const L = pair => PG.de() ? pair[0] : (pair[1] || pair[0]);
   const DEF = {mode: "classic", cats: ["food", "animals", "places", "things", "party"], imp: 1, hint: true, time: 3};
 
-  PG.add({id: "imposter", icon: "spy", name: ["Imposter", "Imposter"], tag: ["Hit", "Hit"], sub: ["Everyone knows the word. Except one.", "Alle kennen das Wort. Bis auf einen."], meta: ["3–20 players · 10 min", "3–20 Spieler · 10 Min"],
+  PG.add({id: "imposter", icon: "spy", name: ["Imposter", "Imposter"], tag: ["Hit", "Hit"], sub: ["Everyone knows the word. One doesn’t.", "Alle kennen das Wort. Einer nicht."], meta: ["3–20 players · 10 min", "3–20 Spieler · 10 Min"],
     mount(ctx){
       const o = PG.opt("imposter", DEF); const sc = PG.st.impScore = PG.st.impScore || {};
       const maxImp = n => Math.max(1, Math.floor((n - 1) / 2));
