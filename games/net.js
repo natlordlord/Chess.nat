@@ -116,6 +116,7 @@ const PNet = (() => {
 
   function leave(quiet){
     if (!P) return;
+    if (!quiet && !P.solo){ PG.st.left = {c: P.code, t: Date.now()}; PG.persist(); }
     try { if (P.isHost) P.conn && P.conn.send({t: "end", code: P.code}); else P.conn && P.conn.send({t: "bye", code: P.code, id: me}); } catch(e) {}
     clearInterval(P.beat); const c = P.conn; P = null; setTimeout(() => c && c.close(), 300);
     try { sessionStorage.removeItem("chessnat-party-host"); } catch(e) {}
@@ -228,7 +229,10 @@ Views.lobby = {
     const {T} = PG; this.main = main;
     if (arg && arg.practice){ PNet.practice(arg.practice, arg.opts); this.draw(); return; }
     if (!PNet.ok() && !(PNet.P && PNet.P.solo)){ main.innerHTML = `<div class="page"><div class="msg no"><div class="ic">!</div><div><h4>${T("Online games need the website", "Online-Spiele brauchen die Website")}</h4><p>${T("Open Chess.nat at chess-nat.vercel.app to play with several phones.", "Öffne Chess.nat unter chess-nat.vercel.app, um mit mehreren Handys zu spielen.")}</p></div></div></div>`; return; }
-    const code = arg && arg.join ? String(arg.join).toLowerCase() : PNet.fromHash(location.hash) || window.__pgJoin || null; window.__pgJoin = null;
+    let code = arg && arg.join ? String(arg.join).toLowerCase() : PNet.fromHash(location.hash) || window.__pgJoin || null; window.__pgJoin = null;
+    /* a lobby you just left doesn't pull you back in by itself, only a fresh tap on an invite does */
+    if (code && !(arg && arg.join) && PG.st.left && PG.st.left.c === code && Date.now() - PG.st.left.t < 3 * 3600e3) code = null;
+    if (arg && arg.join && PG.st.left && PG.st.left.c === code){ PG.st.left = null; PG.persist(); }
     if (arg && arg.host){ PNet.host(arg.game); }
     else if (code && (!PNet.P || PNet.P.code !== code)) return this.ask(code);
     else if (!PNet.P && !PNet.resume()) return this.start();

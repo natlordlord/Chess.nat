@@ -33,6 +33,12 @@
   const FIX = {lights: {x: 650, y: 1410, g: "switches", s: "lights"}, ra: {x: 100, y: 650, g: "hold", s: "reactor"}, rb: {x: 380, y: 650, g: "hold", s: "reactor"},
     oa: {x: 1680, y: 900, g: "code", s: "o2"}, ob: {x: 2120, y: 900, g: "code", s: "o2"}, comms: {x: 2150, y: 230, g: "tune", s: "comms"}};
   const SABS = ["lights", "reactor", "o2", "comms"], CRIT = {reactor: 1, o2: 1};
+  const KILLS = ["stab", "head", "chess", "shot", "bite"];
+  /* crew events: a few people have to stand on the plates together and hold for 3 seconds */
+  const EVS = [{id: "lift", room: "sto", de: "Frachtlift hochfahren", en: "Raise the cargo lift", c: {x: 1290, y: 830}},
+    {id: "dock", room: "nav", de: "Andockklammern lösen", en: "Release the docking clamps", c: {x: 1940, y: 1250}},
+    {id: "cool", room: "lab", de: "Probe gemeinsam kühlen", en: "Cool the sample together", c: {x: 1250, y: 1210}}];
+  const padsOf = (e, n) => [[-110, 0], [110, 0], [0, 100]].slice(0, n).map(([dx, dy]) => ({x: e.c.x + dx, y: e.c.y + dy}));
   const needFix = (sab, k) => !!sab && FIX[k] && FIX[k].s === sab.type && !sab[k];
   const BTN = {x: 1280, y: 340};
   const VIS = {crew: 340, dark: 125, imp: 470};
@@ -87,14 +93,18 @@
             if (t){ if (dist(p, POS[t]) <= KILL_R * .8){ eng.act(G, id, {a: "kill", v: t}, api); api.push(); m.path = []; m.goal = null; m.wait = 1.5; } else { m.path = [{x: POS[t].x, y: POS[t].y}]; m.goal = {hunt: t}; } } }
         }
         /* crew bots report what they see and fix sabotage */
+        if (m.goal && m.goal.ev != null && !s.ev){ m.goal = null; m.path = []; m.wait = 0; }
+        if (alive && s.ev && !(m.goal && (m.goal.ev != null || m.goal.fix || m.goal.hunt || m.goal.body)) && Math.random() < (imp ? .004 : .012)){ const taken = this.list(G).filter(b2 => b2.id !== id && this.mem[b2.id] && this.mem[b2.id].goal && this.mem[b2.id].goal.ev != null).map(b2 => this.mem[b2.id].goal.ev);
+          const i = s.ev.pads.findIndex((pd, j) => !taken.includes(j)); if (i >= 0){ m.path = route(p, s.ev.pads[i]); m.goal = {ev: i}; m.wait = 0; } }
         if (alive && !imp){ const body = s.bodies.find(bd => dist(p, bd) < (s.sab && s.sab.type === "lights" ? VIS.dark : VIS.crew));
-          if (body){ if (dist(p, body) <= REPORT_R * .8){ m.sus = G.ids.filter(x => x !== id && s.alive[x] && POS[x] && dist(POS[x], body) < 420).sort(() => Math.random() - .5)[0] || null; eng.act(G, id, {a: "report", v: body.id}, api); api.push(); return; } if (!m.goal || !m.goal.body){ m.path = route(p, body); m.goal = {body: body.id}; } }
+          if (body && (m.bseen && m.bseen.id === body.id ? now() >= m.bseen.t : (m.bseen = {id: body.id, t: now() + 900 + Math.random() * 1600}, false))){ if (dist(p, body) <= REPORT_R * .8){ m.sus = G.ids.filter(x => x !== id && s.alive[x] && POS[x] && dist(POS[x], body) < 420).sort(() => Math.random() - .5)[0] || null; eng.act(G, id, {a: "report", v: body.id}, api); api.push(); return; } if (!m.goal || !m.goal.body){ m.path = route(p, body); m.goal = {body: body.id}; } }
           if (s.sab && (!m.goal || !m.goal.fix)){ const keys = Object.keys(FIX).filter(k => needFix(s.sab, k)), taken = k => this.list(G).some(b2 => b2.id !== id && this.mem[b2.id] && this.mem[b2.id].goal && this.mem[b2.id].goal.fix === k);
             const k = keys.find(k2 => !taken(k2)) || PG.pick(keys); if (k && Math.random() < .02){ m.path = route(p, FIX[k]); m.goal = {fix: k}; } }
         }
         if (m.wait > 0){ m.wait -= dt; if (m.wait <= 0 && m.goal && m.goal.task && !imp){ eng.act(G, id, {a: "task", v: m.goal.task}, api); api.push(); m.goal = null; } if (m.wait <= 0 && m.goal && m.goal.fix){ if (m.goal.fix !== "ra" && m.goal.fix !== "rb"){ eng.act(G, id, {a: "fix", v: m.goal.fix}, api); api.push(); m.goal = null; } else if (s.sab && s.sab.type === "reactor" && (m.holdT = (m.holdT || 0) + 1) < 400){ m.wait = .5; eng.act(G, id, {a: "hold", v: m.goal.fix}, api); api.push(); } else { m.goal = null; m.holdT = 0; } } out.push([id, Math.round(p.x), Math.round(p.y), p.f || 1, alive ? 0 : 1, 0, m.goal && m.goal.task === "sc" ? 1 : 0]); PG.onMv({id, x: p.x, y: p.y, f: p.f || 1, g: alive ? 0 : 1, m: 0, sc: m.goal && m.goal.task === "sc" ? 1 : 0}); return; }
         if (!m.path.length){
-          if (m.goal && m.goal.task){ m.wait = 5 + Math.random() * 5; }
+          if (m.goal && m.goal.ev != null && s.ev){ m.wait = 1; }
+          else if (m.goal && m.goal.task){ m.wait = 5 + Math.random() * 5; }
           else if (m.goal && m.goal.fix && s.sab){ m.wait = 2.5; }
           else { m.goal = null; const left = s.tasks[id].filter(t => !s.done[id][t]); const tk = TASKS.find(t => t.id === (imp ? PG.pick(s.tasks[id]) : left[0]));
             if (tk && Math.random() < (imp ? .6 : .55)){ m.goal = {task: imp ? null : tk.id}; m.path = route(p, {x: tk.x + (Math.random() * 30 - 15), y: tk.y + 40}); }
@@ -129,7 +139,7 @@
       /* practice: play the side you want */
       if (G.solo && o.role === "imp" && !imps.includes(host)) imps[0] = host;
       if (G.solo && o.role === "crew" && imps.includes(host)){ const pool = G.ids.filter(x => x !== host && !imps.includes(x)); imps[imps.indexOf(host)] = PG.pick(pool); }
-      const s = G.s = {bots, phase: "play", round: ((G.s && G.s.round) || 0) + 1, imps, alive: {}, tasks: {}, done: {}, bodies: [], killAt: {}, emer: {}, sab: null, sabAt: now() + 15000, mc: 0, spawnK: 1, log: []};
+      const s = G.s = {bots, phase: "play", round: ((G.s && G.s.round) || 0) + 1, imps, alive: {}, tasks: {}, done: {}, bodies: [], killAt: {}, emer: {}, sab: null, sabAt: now() + 15000, mc: 0, spawnK: 1, log: [], gid: Math.random().toString(36).slice(2, 8), ev: null, evAt: now() + 50000 + Math.random() * 30000};
       G.ids.forEach((id, i) => { s.alive[id] = true; s.done[id] = {}; s.emer[id] = 1; s.killAt[id] = now() + 5000 + Math.max(15000, o.cd * 700);
         s.tasks[id] = PG.shuffle(TASKS.map(t => t.id)).slice(0, o.tasks); const sp = spawnAt(i, n); POS[id] = Object.assign(POS[id] || {}, sp, {g: false, v: false}); });
       s.spawn = Object.fromEntries(G.ids.map((id, i) => [id, spawnAt(i, n)]));
@@ -141,7 +151,7 @@
       const A = G.ids.filter(id => s.alive[id]), I = A.filter(id => s.imps.includes(id)).length, C = A.length - I, p = this.prog(G);
       let w = null; if (I === 0) w = "crew"; else if (p.tot && p.d >= p.tot) w = "tasks"; else if (I >= C) w = "imp";
       if (!w) return false; s.phase = "end"; s.win = w; s.sab = null; G.sk++; s.snd = {k: "s" + G.sk, n: w === "imp" ? "lose" : "cheer"}; return true; },
-    meeting(G, by, body){ const s = G.s; s.phase = "meet"; s.mc++; s.meet = {by, body, until: now() + G.opts.meet * 1000, votes: {}, start: now()}; if (s.sab && s.sab.type === "lights") {} G.sk++; s.snd = {k: "s" + G.sk, n: "meet"}; },
+    meeting(G, by, body){ const s = G.s; s.ev = null; s.evAt = Math.max(s.evAt || 0, now() + 60000); s.phase = "meet"; s.mc++; s.meet = {by, body, until: now() + G.opts.meet * 1000, votes: {}, start: now()}; if (s.sab && s.sab.type === "lights") {} G.sk++; s.snd = {k: "s" + G.sk, n: "meet"}; },
     tally(G){ const s = G.s, c = {}; Object.values(s.meet.votes).forEach(v => { c[v] = (c[v] || 0) + 1; });
       const top = Object.entries(c).filter(([k]) => k !== "skip").sort((a, b) => b[1] - a[1]); const skip = c.skip || 0;
       const out = top.length && top[0][1] > skip && !(top[1] && top[1][1] === top[0][1]) ? top[0][0] : null;
@@ -154,6 +164,14 @@
       if (s.phase === "meet" && (now() >= s.meet.until || G.ids.filter(id => s.alive[id]).every(id => s.meet.votes[id]))){ this.tally(G); ch = true; }
       if (s.phase === "eject" && now() >= s.eject.until){ s.eject = null; this.resume(G); this.win(G); ch = true; }
       if (s.doors) for (const k in s.doors) if (s.doors[k] <= now()){ delete s.doors[k]; ch = true; }
+      /* crew events */
+      if (s.phase === "play" && now() > s.intro){ const A = G.ids.filter(x => s.alive[x] && POS[x] && !POS[x].v && !POS[x].g);
+        if (!s.ev && !s.sab && now() >= (s.evAt || 0) && A.length >= 3){ const e = PG.pick(EVS), n = A.length >= 6 ? 3 : 2; s.ev = {id: e.id, room: e.room, de: e.de, en: e.en, pads: padsOf(e, n), until: now() + 40000, hold: 0, occ: []}; G.sk++; s.snd = {k: "s" + G.sk, n: "evstart"}; ch = true; }
+        else if (s.ev){ const E = s.ev, occ = E.pads.map(pd => A.find(x => dist(POS[x], pd) < 52) || null), full = occ.every(Boolean) && new Set(occ).size === occ.length; E.occ = occ.map(Boolean);
+          if (full){ E.hold = E.hold || now(); if (now() - E.hold >= 3000){ occ.forEach(x => { if (s.imps.includes(x)) return; const t = s.tasks[x].find(t2 => !s.done[x][t2]); if (t) s.done[x][t] = 1; });
+            s.evRes = {ok: 1, k: ++G.sk, by: occ}; s.ev = null; s.evAt = now() + 80000 + Math.random() * 40000; s.snd = {k: "s" + G.sk, n: "evok"}; this.win(G); } } else E.hold = 0;
+          if (s.ev && now() >= E.until){ s.ev = null; s.evAt = now() + 70000 + Math.random() * 40000; s.evRes = {ok: 0, k: ++G.sk}; }
+          ch = true; } }
       return ch || s.phase === "meet" || s.phase === "eject" || (s.phase === "play" && (!!s.sab || now() < s.intro || (s.doors && Object.keys(s.doors).length > 0))); },
     act(G, id, a, api){ const s = G.s, me = POS[id] || {x: 0, y: 0}, alive = s.alive[id], imp = s.imps.includes(id);
       if (a.a === "again" && id === G.host && s.phase === "end"){ this.start(G); return; }
@@ -161,8 +179,11 @@
       if (s.phase !== "play" || now() < s.intro) return;
       if (a.a === "kill" && imp && alive && now() >= s.killAt[id] && !me.v){ const t = a.v, tp = POS[t];
         if (!t || !s.alive[t] || s.imps.includes(t) || !tp || dist(me, tp) > KILL_R * 1.35) return;
-        s.alive[t] = false; s.bodies.push({id: t, x: Math.round(tp.x), y: Math.round(tp.y)}); s.killAt[id] = now() + G.opts.cd * 1000; s.log.push([now(), id, t]);
-        s.killed = s.killed || {}; s.killed[t] = {by: id, k: ++G.sk}; s.ps = s.ps || {}; s.ps[id] = {k: "p" + (++G.sk), n: "kill"}; s.ps[t] = {k: "p" + (++G.sk), n: "died"}; this.win(G); return; }
+        const kv = PG.pick(KILLS), dbl = s.log.some(l => now() - l[0] < 4000 && l[1] !== id);
+        s.alive[t] = false; s.bodies.push({id: t, x: Math.round(tp.x), y: Math.round(tp.y), k: kv}); s.killAt[id] = now() + G.opts.cd * 1000; s.log.push([now(), id, t]);
+        s.killed = s.killed || {}; s.killed[t] = {by: id, k: ++G.sk, v: kv}; s.ps = s.ps || {}; s.ps[id] = {k: "p" + (++G.sk), n: "kill"}; s.ps[t] = {k: "p" + (++G.sk), n: "died"};
+        if (dbl){ s.dbl = {k: ++G.sk}; s.imps.forEach(x => { if (x !== t) s.ps[x] = {k: "p" + (++G.sk), n: "double"}; }); }
+        this.win(G); return; }
       if (a.a === "report" && alive){ const b = s.bodies.find(x => x.id === a.v); if (!b || dist(me, b) > REPORT_R * 1.35) return; this.meeting(G, id, a.v); return; }
       if (a.a === "button" && alive && s.emer[id] > 0 && dist(me, BTN) < USE_R * 1.8 && !(s.sab && CRIT[s.sab.type])){ s.emer[id]--; this.meeting(G, id, null); return; }
       if (a.a === "task" && !imp && s.tasks[id].includes(a.v) && !s.done[id][a.v]){ s.done[id][a.v] = 1; this.win(G); return; }
@@ -179,11 +200,12 @@
         if (s.sab.type === "reactor" && (a.v === "ra" || a.v === "rb")){ s.sab[a.v] = 1; if (s.sab.ra && s.sab.rb){ s.sab = null; G.sk++; s.snd = {k: "s" + G.sk, n: "fixed"}; } } return; }
     },
     view(G, id, api){ const s = G.s, imp = s.imps.includes(id), p = this.prog(G);
-      return {nImp: s.imps.length, custom: "np", k: "np" + s.round, phase: s.phase, round: s.round, alive: !!s.alive[id], imp, mates: imp ? s.imps : [], tasks: imp ? [] : s.tasks[id].map(t => [t, !!s.done[id][t]]),
+      return {gid: s.gid, nImp: s.imps.length, custom: "np", k: "np" + s.round, phase: s.phase, round: s.round, alive: !!s.alive[id], imp, mates: imp ? s.imps : [], tasks: imp ? [] : s.tasks[id].map(t => [t, !!s.done[id][t]]),
         fake: imp ? s.tasks[id] : [], prog: p.tot ? p.d / p.tot : 0, bodies: s.bodies, kill: imp ? Math.max(0, s.killAt[id] - now()) : 0, emer: s.emer[id], intro: Math.max(0, s.intro - now()),
         sab: s.sab ? {type: s.sab.type, left: s.sab.until ? Math.max(0, s.sab.until - now()) : 0, ra: s.sab.ra, rb: s.sab.rb, oa: s.sab.oa, ob: s.sab.ob} : null, spd: +G.opts.spd || 1, vis: +G.opts.vis || 1, sabCd: imp ? Math.max(0, s.sabAt - now()) : 0,
         meet: s.meet ? {by: s.meet.by, body: s.meet.body, left: Math.max(0, s.meet.until - now()), voted: Object.keys(s.meet.votes), my: s.meet.votes[id] || null} : null,
-        eject: s.eject ? {id: s.eject.id, imp: s.eject.imp, conf: !!G.opts.conf, left: s.eject.left, votes: s.lastVotes, shown: now() - s.eject.start} : null,
+        eject: s.eject ? {id: s.eject.id, imp: s.eject.imp, conf: !!G.opts.conf, left: s.eject.left, votes: s.lastVotes, shown: now() - s.eject.start, tot: s.eject.until - s.eject.start} : null, meetTot: G.opts.meet * 1000,
+        ev: s.ev ? {id: s.ev.id, room: s.ev.room, de: s.ev.de, en: s.ev.en, pads: s.ev.pads, occ: s.ev.occ, left: Math.max(0, s.ev.until - now()), hold: s.ev.hold ? now() - s.ev.hold : 0} : null, evRes: s.evRes || null, dbl: imp && s.dbl ? s.dbl : null,
         doors: s.doors ? Object.fromEntries(Object.entries(s.doors).filter(([k, t]) => t > now()).map(([k, t]) => [k, t - now()])) : {}, doorCd: imp ? Math.max(0, (s.doorAt || 0) - now()) : 0,
         held: s.sab && s.sab.h ? {ra: !!(s.sab.h.ra && s.sab.h.ra.until > now()), rb: !!(s.sab.h.rb && s.sab.h.rb.until > now())} : null, two: G.ids.filter(x => s.alive[x]).length >= 5,
         bots: s.bots || [], deadList: G.ids.filter(x => !s.alive[x]), killedBy: s.killed && s.killed[id] ? s.killed[id] : null,
@@ -206,6 +228,7 @@
   const NP = {dust: [], el: null, v: null, m: null, act: null, raf: 0, me: {x: BTN.x, y: BTN.y + 150, f: 1}, joy: null, keys: {}, sent: 0, lastSend: {}, mini: null, vent: null, spawnK: 0, shown: {}, sndK: null, lastStep: 0, zoom: 1, mapOpen: false,
     draw(body, v, m, act){
       if (v.phase === "lobby" && this.v && this.v.phase !== "lobby") this.lobbyIn = 0;
+      if (v.gid && v.gid !== this.gid){ this.gid = v.gid; this.shown = {}; this.deathT = {}; this.evShow = null; this.dblT = 0; }
       this.v = v; this.m = m; this.act = act; const t = now();
       if (v.phase === "lobby" && !this.lobbyIn){ this.lobbyIn = 1; this.me.x = BTN.x - 160 + Math.random() * 320; this.me.y = BTN.y + 140 + Math.random() * 40; this.vent = null; this.closeMini(); this.send(true); }
       this.ends = {kill: t + (v.kill || 0), meet: v.meet ? t + v.meet.left : 0, sab: v.sab && v.sab.left ? t + v.sab.left : 0, sabCd: t + (v.sabCd || 0)};
@@ -216,7 +239,11 @@
       if (v.snd && v.snd.k !== this.sndK){ this.sndK = v.snd.k; this.sound(v.snd.n); }
       this.hud();
     },
-    stop(){ cancelAnimationFrame(this.raf); this.raf = 0; if (this.el) this.el.remove(); this.el = null; document.documentElement.classList.remove("np-on"); window.removeEventListener("keydown", this.kd); window.removeEventListener("keyup", this.ku); window.removeEventListener("resize", this.rs); },
+    full(){ if (PG.st.npNoFull) return; const d = document.documentElement; try { if (document.fullscreenElement || document.webkitFullscreenElement) return;
+        const go = d.requestFullscreen ? d.requestFullscreen({navigationUI: "hide"}) : d.webkitRequestFullscreen ? d.webkitRequestFullscreen() : null;
+        if (go && go.then) go.then(() => { try { screen.orientation && screen.orientation.lock && screen.orientation.lock("landscape").catch(() => {}); } catch(e) {} }).catch(() => {}); } catch(e) {} },
+    unfull(){ try { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); else if (document.webkitFullscreenElement && document.webkitExitFullscreen) document.webkitExitFullscreen(); } catch(e) {} },
+    stop(){ cancelAnimationFrame(this.raf); this.raf = 0; if (this.el){ this.el.remove(); this.unfull(); } this.el = null; this.fullTried = 0; if (this.pop) window.removeEventListener("popstate", this.pop, true); document.documentElement.classList.remove("np-on"); window.removeEventListener("keydown", this.kd); window.removeEventListener("keyup", this.ku); window.removeEventListener("resize", this.rs); },
     /* synth sounds, all through the app's sound engine (respects the sound switch) */
     sfx: {
       ac(){ return Sound.fx && Sound.fx() ? Sound.ac : null; },
@@ -233,7 +260,17 @@
       else { x.chord(.85, [60, 64, 67], 1.6, .06, "triangle"); x.chord(1.15, [67, 72, 76], 1.6, .05, "sine"); x.noise(.85, 1, 2000, 6000, .03, "highpass"); } },
     sound(n){ const x = this.sfx;
       if (n === "kill"){ x.noise(0, .12, 6000, 2000, .25, "highpass"); x.noise(.05, .35, 900, 120, .3, "lowpass"); x.tone(.05, 160, 50, .4, .3); Haptic.go([60, 40, 120]); this.flash(); }
-      else if (n === "died"){ this.flash(); this.slash = now(); x.noise(0, .12, 6000, 2000, .25, "highpass"); x.noise(.05, .5, 900, 80, .35, "lowpass"); x.tone(.05, 140, 40, .6, .35); x.chord(.5, [38, 41, 44], 2, .07, "sawtooth"); Haptic.go([200, 80, 300]); }
+      else if (n === "died"){ const kv = (this.v && this.v.killedBy && this.v.killedBy.v) || "stab", hit = (t, f = 900) => { x.noise(t, .12, 6000, 2000, .22, "highpass"); x.noise(t + .03, .45, f, 80, .32, "lowpass"); setTimeout(() => { Haptic.go(90); this.flash(); }, t * 1000); };
+        x.noise(0, .5, 300, 80, .12, "lowpass"); x.tone(0, 90, 50, .6, .12, "sine");
+        if (kv === "stab") [0, 1, 2, 3, 4].forEach(i => hit(.6 + i * .28, 700));
+        else if (kv === "head"){ x.noise(.55, .25, 9000, 4000, .25, "highpass"); hit(.6, 1200); x.noise(.8, 1.2, 1500, 300, .12, "bandpass", .5); }
+        else if (kv === "chess"){ x.noise(.7, .45, 2500, 400, .08, "bandpass"); x.tone(1.12, 70, 28, .9, .5, "sine"); hit(1.12, 400); }
+        else if (kv === "shot"){ x.noise(1, .08, 8000, 3000, .5, "highpass"); x.noise(1, .6, 2000, 60, .45, "lowpass"); x.tone(1, 160, 40, .4, .3, "square"); setTimeout(() => { Haptic.go([120]); this.flash(); }, 1000); }
+        else if (kv === "bite"){ x.tone(.3, 60, 120, 1.2, .1, "sawtooth"); hit(1.5, 500); x.noise(1.6, .3, 600, 100, .3, "lowpass"); }
+        x.chord(2.3, [38, 41, 44], 2, .07, "sawtooth"); this.slash = now(); }
+      else if (n === "double"){ this.dblT = now(); x.noise(0, .12, 6000, 2000, .25, "highpass"); x.noise(.05, .35, 900, 120, .3, "lowpass"); x.tone(.05, 160, 50, .4, .3); x.chord(.35, [45, 48, 52], 1.2, .06, "sawtooth"); x.chord(.55, [57, 60, 64], 1, .05, "square"); Haptic.go([60, 40, 60, 40, 160]); this.flash(); }
+      else if (n === "evstart"){ x.chord(0, [67, 71, 74], .5, .06, "triangle"); x.chord(.25, [69, 73, 76], .6, .06, "triangle"); Haptic.go([30, 40, 30]); }
+      else if (n === "evok"){ PG.cheer(2); x.chord(0, [64, 68, 71, 76], 1.2, .06, "triangle"); Haptic.go([20, 30, 20, 30, 60]); }
       else if (n === "meet"){ this.banner = {t: now()}; [0, .45, .9, 1.35].forEach(t => { x.tone(t, 880, 660, .4, .12, "square"); }); Haptic.go([80, 60, 80, 60, 80]); }
       else if (n === "eject"){ x.noise(0, 2.2, 800, 90, .14, "lowpass", .6); x.tone(.2, 300, 60, 2, .05, "sine"); }
       else if (n === "alarm"){ [0, .5, 1, 1.5].forEach(t => x.tone(t, 760, 760, .3, .1, "square")); Haptic.go([100, 100, 100, 100, 100]); }
@@ -247,10 +284,15 @@
     mount(){
       this.stop(); const el = this.el = document.createElement("div"); el.className = "np"; el.setAttribute("data-notr", "");
       el.innerHTML = `<canvas class="np-cv"></canvas><div class="np-top"><button class="np-menu" data-x="menu">☰</button><div class="np-bar"><i></i><span>${T("TASKS", "AUFGABEN")}</span></div><button class="np-mapb" data-x="map">${icon("map", 20)}<span>${T("Map", "Karte")}</span></button></div>
-        <div class="np-tasks"></div><div class="np-alert"></div><div class="np-lob"></div><div class="np-joy"><i></i></div><div class="np-btns"></div><div class="np-ov"></div><div class="np-mini"></div>`;
-      document.body.appendChild(el); document.documentElement.classList.add("np-on");
+        <div class="np-tasks"></div><div class="np-alert"></div><div class="np-ev"></div><div class="np-lob"></div><div class="np-tbar"><i></i><span></span></div><div class="np-joy"><i></i></div><div class="np-btns"></div><div class="np-ov"></div><div class="np-mini"></div>`;
+      document.body.appendChild(el); document.documentElement.classList.add("np-on"); this.full();
+      this.pop = e => { if (!this.el || document.querySelector(".dsheet:not(.out)")) return; e.stopImmediatePropagation(); try { history.pushState({r: App.route}, "", "#" + App.route); } catch(_) {} toast(T("To leave: ☰ → Leave", "Zum Verlassen: ☰ → Verlassen")); };
+      window.addEventListener("popstate", this.pop, true);
+      el.addEventListener("pointerdown", () => { if (!this.fullTried){ this.fullTried = 1; this.full(); } }, true);
+      el.querySelector(".np-ov").addEventListener("click", e => { if (this.mapOpen && !e.target.closest(".np-map")){ this.mapOpen = false; this.hud(); } });
+      el.querySelector(".np-mini").addEventListener("click", e => { if (e.target.classList.contains("np-mini") && this.mini && this.mini.light){ Sound.tap(); this.closeMini(); } });
       this.cv = el.querySelector("canvas"); this.ctx = this.cv.getContext("2d");
-      this.rs = () => { const d = Math.min(2, window.devicePixelRatio || 1), rot = PG.st.npPortrait ? false : innerHeight > innerWidth, w = rot ? innerHeight : innerWidth, h = rot ? innerWidth : innerHeight; this.rot = rot; el.classList.toggle("rot", rot); el.classList.toggle("land", w > h); el.style.setProperty("--h", h + "px"); el.style.width = w + "px"; el.style.height = h + "px"; this.cv.width = w * d; this.cv.height = h * d; this.dpr = d; this.zoom = Math.max(.5, Math.min(1.2, Math.min(w, h) / 560)); };
+      this.rs = () => { const d = Math.min(2, window.devicePixelRatio || 1), up = innerHeight > innerWidth, IH = Math.max(innerHeight, navigator.standalone && up ? screen.height : 0), IW = Math.max(innerWidth, navigator.standalone && !up ? screen.height : 0), rot = PG.st.npPortrait ? false : up, w = rot ? IH : IW, h = rot ? IW : IH; this.rot = rot; el.classList.toggle("rot", rot); el.classList.toggle("land", w > h); el.style.setProperty("--h", h + "px"); el.style.width = w + "px"; el.style.height = h + "px"; this.cv.width = w * d; this.cv.height = h * d; this.dpr = d; this.zoom = Math.max(.5, Math.min(1.2, Math.min(w, h) / 560)); };
       this.rs(); window.addEventListener("resize", this.rs);
       /* joystick: touch anywhere on the left part of the screen */
       const joy = el.querySelector(".np-joy"), knob = joy.querySelector("i");
@@ -274,6 +316,7 @@
     left(k){ return Math.max(0, ((this.ends || {})[k] || 0) - now()); },
     intro(){ return now() < (this.introEnd || 0); },
     near(x, y, r){ return dist(this.me, {x, y}) <= r; },
+    onPad(pd){ return this.pl().some(p => { const q = p.id === PNet.me ? this.me : POS[p.id]; if (!q || q.g || q.v || (this.v.deadList || []).includes(p.id)) return false; return dist({x: q.dx != null ? q.dx : q.x, y: q.dy != null ? q.dy : q.y}, pd) < 52; }); },
     step(dt){
       const v = this.v; if (!v) return;
       let ix = 0, iy = 0;
@@ -340,6 +383,7 @@
       if (x === "door"){ this.mapOpen = false; return this.act({a: "door", v: val}); }
       if (x === "vote") return this.act({a: "vote", v: val});
       if (x === "again") return this.act({a: "again"});
+      if (x === "leave") return this.sure(T("Leave the lobby?", "Lobby verlassen?"), () => { PNet.leave(); App.go("games"); });
       if (["start", "settings", "invite", "look"].includes(x)) return this.act({a: x});
       if (x === "lobby") return this.act({a: "lobby"});
     },
@@ -347,18 +391,45 @@
       const v = this.v; const sh = detailSheet(`<h3 style="margin:0 0 8px">Natposter</h3><p class="muted" style="margin:0 0 12px">${T("Move with the stick on the left (or WASD). Use = E, Kill = Q.", "Laufen mit dem Stick links (oder WASD). Benutzen = E, Töten = Q.")}</p>
         ${v.host ? `<button class="btn" data-m="lobby" style="width:100%;margin-bottom:8px">${T("End game · back to the lobby", "Spiel beenden · zurück zur Lobby")}</button>` : ""}
         <button class="btn" data-m="rot" style="width:100%;margin-bottom:8px">${PG.st.npPortrait ? T("Play sideways", "Querformat") : T("Play upright", "Hochformat")}</button>
+        <button class="btn" data-m="full" style="width:100%;margin-bottom:8px">${PG.st.npNoFull ? T("Full screen: off", "Vollbild: aus") : T("Full screen: on", "Vollbild: an")}</button>
         <button class="btn" data-m="leave" style="width:100%">${T("Leave", "Verlassen")}</button>`);
-      sh.el.querySelectorAll("[data-m]").forEach(b => b.onclick = () => { sh.close(); if (b.dataset.m === "rot"){ PG.st.npPortrait = !PG.st.npPortrait; PG.persist(); this.rs(); return; } if (b.dataset.m === "lobby") this.act({a: "lobby"}); else { PNet.leave(); App.go("games"); } });
+      sh.el.querySelectorAll("[data-m]").forEach(b => b.onclick = () => { sh.close(); if (b.dataset.m === "rot"){ PG.st.npPortrait = !PG.st.npPortrait; PG.persist(); this.rs(); return; }
+        if (b.dataset.m === "full"){ PG.st.npNoFull = !PG.st.npNoFull; PG.persist(); if (PG.st.npNoFull) this.unfull(); else this.full(); return; }
+        if (b.dataset.m === "lobby") this.sure(T("End the round for everyone?", "Runde für alle beenden?"), () => this.act({a: "lobby"}));
+        else this.sure(T("Really leave?", "Wirklich verlassen?"), () => { PNet.leave(); App.go("games"); }); });
+    },
+    /* nobody leaves by accident: hold the button for a second */
+    sure(title, fn){
+      const sh = detailSheet(`<h3 style="margin:0 0 6px">${title}</h3><p class="muted" style="margin:0 0 12px">${T("Hold the red button to confirm.", "Zum Bestätigen den roten Knopf gedrückt halten.")}</p>
+        <button class="btn big np-hold"><i></i><span>${T("Hold", "Gedrückt halten")}</span></button><button class="btn ghost" data-no style="width:100%;margin-top:8px">${T("Stay", "Bleiben")}</button>`);
+      const b = sh.el.querySelector(".np-hold"), bar = b.querySelector("i"); let t = null;
+      const go = e => { e.preventDefault(); b.classList.add("on"); Haptic.go(10); t = setTimeout(() => { Haptic.go([30, 30, 60]); sh.close(); fn(); }, 1100); };
+      const up = () => { b.classList.remove("on"); clearTimeout(t); };
+      b.addEventListener("pointerdown", go); ["pointerup", "pointerleave", "pointercancel"].forEach(k => b.addEventListener(k, up));
+      sh.el.querySelector("[data-no]").onclick = () => sh.close();
     },
     /* ---- HUD: task bar, task list, buttons, overlays ---- */
     hud(){
       const v = this.v, el = this.el; if (!v || !el) return;
       el.classList.toggle("ghost", !v.alive); el.classList.toggle("imp", v.imp); el.classList.toggle("lob", v.phase === "lobby");
       const lb = el.querySelector(".np-lob"), lbH = v.phase === "lobby" ? `<div class="np-lobc"><b>${esc(v.lob.code.toUpperCase())}</b><span>${v.lob.n} / 15</span></div>
-        <button class="np-lb" data-x="invite">📨<span>${T("Invite", "Einladen")}</span></button><button class="np-lb" data-x="look">👕<span>${T("Look", "Aussehen")}</span></button><button class="np-lb" data-x="settings">⚙️<span>${T("Settings", "Einstellungen")}</span></button>
+        <button class="np-lb" data-x="invite">📨<span>${T("Invite", "Einladen")}</span></button><button class="np-lb" data-x="look">👕<span>${T("Look", "Aussehen")}</span></button><button class="np-lb" data-x="settings">⚙️<span>${T("Settings", "Einstellungen")}</span></button><button class="np-lb" data-x="leave">🚪<span>${T("Leave", "Verlassen")}</span></button>
         ${v.host ? `<button class="np-lb go" data-x="start" ${v.lob.n < v.lob.min ? "disabled" : ""}>▶<span>${v.lob.n < v.lob.min ? T(`${v.lob.min} needed`, `${v.lob.min} nötig`) : T("Start", "Start")}</span></button>` : `<span class="np-wait">${T("Waiting for the host…", "Warte auf den Gastgeber…")}</span>`}` : "";
       if (lb._h !== lbH){ lb._h = lbH; lb.innerHTML = lbH; }
       const mb = el.querySelector(".np-mapb"), mbH = v.imp ? `<b>⚡</b><span>${this.left("sabCd") > 0 && !v.sab ? Math.ceil(this.left("sabCd") / 1000) + " s" : T("Sabotage", "Sabotage")}</span>` : `${icon("map", 20)}<span>${T("Map", "Karte")}</span>`; if (mb._h !== mbH){ mb._h = mbH; mb.innerHTML = mbH; mb.classList.toggle("imp", v.imp); }
+      /* how long until something happens: a bar at the top */
+      { const tb = el.querySelector(".np-tbar"); let f = -1, lab = "";
+        if (v.phase === "play" && this.intro()){ const l = this.introEnd - now(); f = l / 5000; lab = T("Get ready", "Gleich geht's los"); }
+        else if (v.phase === "meet"){ const l = this.left("meet"); f = l / (v.meetTot || 90000); lab = ""; }
+        else if (v.phase === "eject" && v.eject){ const l = Math.max(0, (v.eject.tot || 10500) - (now() - (this.ejectT || now()))); f = l / (v.eject.tot || 10500); lab = T(`Back to the station in ${Math.ceil(l / 1000)} s`, `Zurück zur Station in ${Math.ceil(l / 1000)} s`); }
+        tb.classList.toggle("on", f >= 0); if (f >= 0){ tb.firstChild.style.width = Math.max(0, Math.min(100, f * 100)) + "%"; if (tb.lastChild.textContent !== lab) tb.lastChild.textContent = lab; tb.lastChild.style.display = lab ? "" : "none"; } }
+      /* crew event */
+      { const eb = el.querySelector(".np-ev"), E = v.phase === "play" && v.alive ? v.ev : null, R = v.evRes && !this.shown["e" + v.evRes.k] && v.evRes.ok ? v.evRes : null;
+        if (R && !this.evShow){ this.evShow = {k: R.k, t: now()}; } const okNow = this.evShow && now() - this.evShow.t < 3500;
+        const ebH = E ? `🤝 <b>${esc(T(E.en, E.de))}</b><small>${T(`${E.pads.length} people on the plates · ${RN(ROOMS.find(r => r.id === E.room))}`, `${E.pads.length} Leute auf die Platten · ${RN(ROOMS.find(r => r.id === E.room))}`)} · ${Math.ceil(E.left / 1000)} s ${E.pads.map((pd, i) => this.onPad(pd) ? "🟢" : "⚪").join("")}</small>`
+          : okNow ? `🎉 <b>${T("Done together!", "Zusammen geschafft!")}</b><small>${T("Everyone on a plate got a task done", "Jeder auf einer Platte hat eine Aufgabe erledigt")}</small>` : "";
+        if (!okNow && this.evShow){ this.shown["e" + this.evShow.k] = 1; this.evShow = null; }
+        if (eb._h !== ebH){ eb._h = ebH; eb.innerHTML = ebH; eb.classList.toggle("on", !!ebH); eb.classList.toggle("ok", !E && !!ebH); } }
       el.querySelector(".np-bar i").style.width = (v.sab && v.sab.type === "comms" ? 0 : Math.round(v.prog * 100)) + "%";
       const tl = el.querySelector(".np-tasks"), tasksHtml = v.imp ? `<b class="np-red">${T("Natposter", "Natposter")}</b><small>${T("Kill, vent, sabotage. Don't get caught.", "Töten, Schächte, Sabotage. Nicht erwischen lassen.")}</small>${v.mates.length > 1 ? `<small>${T("Team: ", "Team: ")}${v.mates.filter(x => x !== PNet.me).map(x => esc(this.nm(x))).join(", ")}</small>` : ""}`
         : v.sab && v.sab.type === "comms" ? `<b>📡 ${T("Comms sabotaged", "Funk sabotiert")}</b><small>${T("Your tasks are hidden", "Deine Aufgaben sind versteckt")}</small>` : `${!v.alive ? `<b>👻 ${T("You're a ghost: finish your tasks", "Du bist ein Geist: mach deine Aufgaben")}</b>` : ""}${v.tasks.map(([t, d]) => { const k = TASKS.find(x => x.id === t), r = ROOMS.find(x => x.id === k.room); return `<div class="${d ? "done" : ""}">${esc(RN(r))}: ${esc(T(k.en, k.de))}</div>`; }).join("")}`;
@@ -387,7 +458,9 @@
       let h = "";
       if (v.phase === "play" && this.intro()){ const line = v.imp ? v.mates : this.pl().map(p => p.id);
         h = `<div class="np-role ${v.imp ? "imp" : ""}"><div class="np-k">${T("You are", "Du bist")}</div><div class="np-rbig">${v.imp ? "Natposter" : "Crew"}</div><div class="np-lineup">${line.map(id => `<span class="${id === PNet.me ? "me" : ""}"><span class="np-hd">${head(id)}</span><b>${nm(id)}</b></span>`).join("")}</div><p>${v.imp ? T("Kill the crew. Don't get caught.", "Töte die Crew. Lass dich nicht erwischen.") : T(`There ${v.nImp > 1 ? "are" : "is"} ${v.nImp || 1} Natposter${v.nImp > 1 ? "s" : ""} among you.`, `Unter euch ${v.nImp > 1 ? "sind" : "ist"} ${v.nImp || 1} Natposter.`)}</p></div>`; }
-      if (v.phase === "play" && v.killedBy && !this.shown["k" + v.killedBy.k]){ h = `<div class="np-killed"><div class="np-kface">${head(v.killedBy.by)}</div><i class="np-slash"></i><i class="np-splat"></i><i class="np-drips">${[8, 19, 33, 47, 58, 71, 86].map((x, i) => `<b style="left:${x}%;--d:${.6 + (i % 3) * .25}s;--h:${30 + (i * 37) % 55}%;width:${6 + (i * 5) % 9}px"></b>`).join("")}</i><div class="np-big">${T("You were killed", "Du wurdest getötet")}</div><p>${T(`by ${nm(v.killedBy.by)}. You're a ghost now: finish your tasks.`, `von ${nm(v.killedBy.by)}. Du bist jetzt ein Geist: Mach deine Aufgaben fertig.`)}</p><button class="btn go" data-x="seen" data-v="k${v.killedBy.k}">OK</button></div>`; }
+      if (v.phase === "play" && v.dbl && now() - (this.dblT || 0) < 1800) h = `<div class="np-dbl">${T("DOUBLE KILL", "DOPPELKILL")}</div>`;
+      if (v.phase === "play" && v.killedBy && !this.shown["k" + v.killedBy.k] && (this.deathT = this.deathT || {}) && (this.deathT[v.killedBy.k] = this.deathT[v.killedBy.k] || now()) && now() - this.deathT[v.killedBy.k] < 3200) h = this.deathHTML(v.killedBy);
+      else if (v.phase === "play" && v.killedBy && !this.shown["k" + v.killedBy.k]){ h = `<div class="np-killed"><div class="np-kface">${head(v.killedBy.by)}</div><i class="np-slash"></i><i class="np-splat"></i><i class="np-drips">${[8, 19, 33, 47, 58, 71, 86].map((x, i) => `<b style="left:${x}%;--d:${.6 + (i % 3) * .25}s;--h:${30 + (i * 37) % 55}%;width:${6 + (i * 5) % 9}px"></b>`).join("")}</i><div class="np-big">${T("You were killed", "Du wurdest getötet")}</div><p>${T(`by ${nm(v.killedBy.by)}. You're a ghost now: finish your tasks.`, `von ${nm(v.killedBy.by)}. Du bist jetzt ein Geist: Mach deine Aufgaben fertig.`)}</p><button class="btn go" data-x="seen" data-v="k${v.killedBy.k}">OK</button></div>`; }
       if (v.phase === "meet" && this.banner && now() - this.banner.t < 2400){ h = `<div class="np-banner ${v.meet.body ? "body" : ""}"><div>${v.meet.body ? "💀" : "🚨"}</div><b>${v.meet.body ? T("Dead body reported", "Leiche gefunden") : T("Emergency meeting", "Notfall-Meeting")}</b><span>${v.meet.body ? T(`${nm(v.meet.by)} found ${nm(v.meet.body)}`, `${nm(v.meet.by)} hat ${nm(v.meet.body)} gefunden`) : T(`called by ${nm(v.meet.by)}`, `einberufen von ${nm(v.meet.by)}`)}</span></div>`; }
       else if (v.phase === "meet"){ const m = v.meet, alive = P.filter(p => !v.deadList.includes(p.id) && v.views !== 0), canVote = v.alive && !m.my;
         h = `<div class="np-meet"><div class="np-k">${m.body ? "💀 " + T("Body reported", "Leiche gemeldet") : "🚨 " + T("Emergency meeting", "Notfall-Meeting")}</div><div class="np-big" style="font-size:22px">${m.body ? T(`${nm(m.by)} found ${nm(m.body)}`, `${nm(m.by)} hat ${nm(m.body)} gefunden`) : T(`called by ${nm(m.by)}`, `einberufen von ${nm(m.by)}`)}</div>
@@ -398,30 +471,40 @@
       if (v.phase === "eject" && now() - (this.ejectT || 0) < 4200){ const e = v.eject, by = {}; Object.entries(e.votes || {}).forEach(([a, b]) => { (by[b] = by[b] || []).push(a); });
         const row = (id, label, dead) => `<div class="np-vr ${e.id === id ? "out" : ""} ${dead ? "dead" : ""}">${id !== "skip" ? `<span class="np-hd">${head(id)}</span>` : `<span class="np-hd np-skip">⏭</span>`}<b>${label}</b><span class="np-vh">${(by[id] || []).map(x => `<span class="np-hd sm">${head(x)}</span>`).join("")}</span></div>`;
         h = `<div class="np-meet"><div class="np-k">${T("Votes", "Abstimmung")}</div><div class="np-vgrid">${P.map(p => row(p.id, esc(p.name), v.deadList.includes(p.id) && p.id !== e.id)).join("")}</div>${row("skip", T("Skipped", "Übersprungen"))}</div>`; }
-      else if (v.phase === "eject"){ const e = v.eject;
-        h = `<div class="np-eject">${e.id ? `<div class="np-float">${head(e.id)}</div>` : ""}<div class="np-big">${e.id ? (e.conf ? (e.imp ? T(`${nm(e.id)} was a Natposter.`, `${nm(e.id)} war ein Natposter.`) : T(`${nm(e.id)} was not a Natposter.`, `${nm(e.id)} war kein Natposter.`)) : T(`${nm(e.id)} was ejected.`, `${nm(e.id)} wurde rausgeworfen.`)) : T("Nobody was ejected.", "Niemand wurde rausgeworfen.")}</div>
-          ${e.conf ? `<p>${T(`${e.left} Natposter${e.left === 1 ? "" : "s"} left.`, `Noch ${e.left} Natposter übrig.`)}</p>` : ""}</div>`; }
+      else if (v.phase === "eject"){ const e = v.eject, n0 = e.id ? this.nm(e.id) : "";
+        const txt = e.id ? (e.conf ? (e.imp ? T(`${n0} was a Natposter.`, `${n0} war ein Natposter.`) : T(`${n0} was not a Natposter.`, `${n0} war kein Natposter.`)) : T(`${n0} was ejected.`, `${n0} wurde rausgeworfen.`)) : T("Nobody was ejected.", "Niemand wurde rausgeworfen.");
+        h = `<div class="np-eject ${e.id ? "" : "none"}"><i class="np-stars"></i><i class="np-stars b"></i>${e.id ? `<div class="np-ejfig">${this.fig(e.id)}</div>` : `<div class="np-ejship">🛸</div>`}
+          <div class="np-type" style="--n:${txt.length}">${esc(txt)}</div>${e.conf ? `<p class="np-left">${T(`${e.left} Natposter${e.left === 1 ? "" : "s"} left.`, `Noch ${e.left} Natposter übrig.`)}</p>` : ""}</div>`; }
       if (v.phase === "end"){ const crew = v.win !== "imp" && v.win !== "boom" && v.win !== "o2", mine = crew !== v.imp;
         h = `<div class="np-card ${crew ? "" : "imp"}"><div class="np-k">${mine ? T("Victory", "Sieg") : T("Defeat", "Niederlage")}</div><div class="np-big">${crew ? (v.win === "tasks" ? T("Crew wins: all tasks done", "Crew gewinnt: alle Aufgaben erledigt") : T("Crew wins", "Die Crew gewinnt")) : v.win === "boom" ? T("Reactor exploded. Natposter wins", "Reaktor explodiert. Natposter gewinnt") : v.win === "o2" ? T("Out of oxygen. Natposter wins", "Kein Sauerstoff mehr. Natposter gewinnt") : T("Natposter wins", "Natposter gewinnt")}</div>
           <div class="np-faces">${v.imps.map(id => `<span><span class="np-hd">${head(id)}</span><b>${nm(id)}</b></span>`).join("")}</div><p>${T(v.imps.length > 1 ? "were the Natposters" : "was the Natposter", v.imps.length > 1 ? "waren die Natposter" : "war der Natposter")}</p>
           ${v.host ? `<button class="btn go big" data-x="again">${T("Play again", "Nochmal")}</button><button class="btn ghost" data-x="lobby" style="margin-top:6px">${T("Lobby", "Lobby")}</button>` : `<p class="muted">${T("Waiting for the host…", "Warte auf den Gastgeber…")}</p>`}</div>`; }
       if (this.mapOpen && v.phase === "play") h = this.mapHTML();
+      if (v.killedBy && v.phase !== "play" && v.phase !== "end" && !this.shown["k" + v.killedBy.k] && this.deathT && this.deathT[v.killedBy.k] && now() - this.deathT[v.killedBy.k] < 3200) h = this.deathHTML(v.killedBy);
       const kind = h ? (h.match(/class="np-(\w+)/) || [])[1] + (v.phase || "") : "";
       if (ov._h !== h){ ov.classList.toggle("still", kind === ov._kind); ov._kind = kind; ov._h = h; ov.innerHTML = h; ov.classList.toggle("on", !!h); ov.querySelectorAll('[data-x="seen"]').forEach(b => b.onclick = e => { e.stopPropagation(); this.shown[b.dataset.v.slice(0)] = 1; this.shown[b.dataset.v] = 1; this.overlay(); });
         if (v.phase === "meet" || v.phase === "eject" || v.phase === "end") this.closeMini(); }
       ov.querySelectorAll("[data-cd]").forEach(e => { const n = Math.ceil(this.left(e.dataset.cd) / 1000); const t = e.dataset.cd === "meet" ? String(n) : n + " s"; if (e.textContent !== t) e.textContent = t; });
     },
+    fig(id){ const p = this.pl().find(x => x.id === id), k = "f" + id + (p && p.av ? JSON.stringify(p.av).length : 0), HC = this.hc || (this.hc = {}); if (HC[k]) return HC[k];
+      try { return HC[k] = avatarSVG(Object.assign({}, p && p.av || {}, {aura: "none", pet: "none"}), {fit: true}); } catch(e) { return ""; } },
+    deathHTML(kb){
+      const v = kb.v || "stab", p = this.pl().find(x => x.id === PNet.me); let hd = ""; try { hd = avatarSVG(Object.assign({}, p && p.av || {}, {aura: "none", pet: "none"}), {head: true, size: 80}); } catch(e) {}
+      const X = {stab: `<i class="np-knife">🔪</i>`, head: `<i class="np-cut"></i><div class="np-head">${hd}</div><i class="np-fount">${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => `<b style="--x:${(i - 4.5) * 16}px;--y:${-50 - (i % 4) * 28}px;animation-delay:${.65 + i * .07}s"></b>`).join("")}</i>`,
+        chess: `<i class="np-queen" style="background-image:url('${pieceImg("bq").src}')"></i>`, shot: `<i class="np-gun">🔫</i><i class="np-muzzle"></i><b class="np-bang">BANG!</b>`, bite: `<b class="np-chomp">CHOMP</b><i class="np-bones">🦴</i><i class="np-bones b">🦴</i>`}[v] || "";
+      return `<div class="np-death v-${v}"><div class="np-dk">${this.fig(kb.by)}</div><div class="np-dv">${this.fig(PNet.me)}</div>${X}<i class="np-dfl"></i><i class="np-drips">${[8, 19, 33, 47, 58, 71, 86].map((x, i) => `<b style="left:${x}%;--d:${1 + (i % 3) * .25}s;--h:${30 + (i * 37) % 55}%;width:${6 + (i * 5) % 9}px"></b>`).join("")}</i><div class="np-dname">${esc(this.nm(kb.by))}</div></div>`;
+    },
     mapHTML(){ const v = this.v, s = 0.13, mine = (v.imp || (v.sab && v.sab.type === "comms") ? [] : v.tasks).filter(([t, d]) => !d).map(([t]) => TASKS.find(x => x.id === t));
       return `<div class="np-map"><div class="np-k">${T("Map", "Karte")}</div><svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">${AREAS.map(a => `<rect x="${a.x}" y="${a.y}" width="${a.w}" height="${a.h}" fill="#3D3A35" stroke="#211F1C" stroke-width="10"/>`).join("")}
         ${ROOMS.map(r => `<text x="${r.x + r.w / 2}" y="${r.y + r.h / 2}" fill="#BAB5AC" font-size="44" font-weight="800" text-anchor="middle" font-family="Figtree,sans-serif">${esc(RN(r))}</text>`).join("")}
-        ${mine.map(t => `<circle cx="${t.x}" cy="${t.y}" r="26" fill="#E9B64A"/>`).join("")}${Object.keys(FIX).filter(k => needFix(v.sab, k)).map(k => `<circle cx="${FIX[k].x}" cy="${FIX[k].y}" r="34" fill="#E2523E"/>`).join("")}
+        ${mine.map(t => `<circle cx="${t.x}" cy="${t.y}" r="26" fill="#E9B64A"/>`).join("")}${Object.keys(FIX).filter(k => needFix(v.sab, k)).map(k => `<circle cx="${FIX[k].x}" cy="${FIX[k].y}" r="34" fill="#E2523E"/>`).join("")}${v.ev ? v.ev.pads.map(pd => `<circle cx="${pd.x}" cy="${pd.y}" r="30" fill="#5AD1E0"/>`).join("") : ""}
         <circle cx="${this.me.x}" cy="${this.me.y}" r="34" fill="#8FC458" stroke="#fff" stroke-width="8"/></svg><div class="np-mside">
         ${v.imp ? `<div class="np-k" style="margin-top:2px">⚡ ${T("Sabotage", "Sabotage")}${this.left("sabCd") > 0 ? ` · <span data-cd="sabCd"></span>` : ""}</div><div class="np-sab">${[["lights", "💡", T("Lights", "Licht")], ["comms", "📡", T("Comms", "Funk")], ["reactor", "☢️", T("Reactor", "Reaktor")], ["o2", "🫁", T("Oxygen", "Sauerstoff")]].map(([k, e, l]) => `<button class="btn sm ${this.left("sabCd") > 0 || v.sab ? "" : "go"}" data-x="sab" data-v="${k}" ${this.left("sabCd") > 0 || v.sab ? "disabled" : ""}>${e} ${l}</button>`).join("")}</div>` : ""}
         ${v.imp ? `<div class="np-k" style="margin-top:4px">🚪 ${T("Close doors", "Türen schließen")}${this.left("doorCd") > 0 ? ` · <span data-cd="doorCd"></span>` : ""}</div><div class="np-doors">${ROOMS.filter(r => r.id !== "caf").map(r => `<button class="btn sm ${v.doors && v.doors[r.id] ? "go" : ""}" data-x="door" data-v="${r.id}" ${this.left("doorCd") > 0 ? "disabled" : ""}>${esc(RN(r))}</button>`).join("")}</div>` : ""}
         <button class="btn ghost" data-x="map">${T("Close", "Schließen")}</button></div></div>`; },
     /* ---- cameras (Comms) and the admin table (Bridge) ---- */
     openCams(){
-      this.closeMini(); const box = this.el.querySelector(".np-mini"), me = {stop: null}; this.mini = me; this.joy = null; box.classList.add("on");
+      this.closeMini(); const box = this.el.querySelector(".np-mini"), me = {stop: null, light: 1}; this.mini = me; this.joy = null; box.classList.add("on");
       if (this.v.sab && this.v.sab.type === "comms") return this.nosig(box);
       const CAM = ["caf", "sto", "nav", "ele"].map(id => ROOMS.find(r => r.id === id));
       box.innerHTML = `<div class="np-mg np-cams"><div class="np-mgh"><b>📹 ${T("Cameras", "Kameras")}</b><button class="np-x" data-c>×</button></div><div class="np-camg">${CAM.map(r => `<div><canvas width="320" height="200"></canvas><span>● ${esc(RN(r))}</span></div>`).join("")}</div></div>`;
@@ -433,7 +516,7 @@
     },
     nosig(box){ box.innerHTML = `<div class="np-mg np-cams"><div class="np-mgh"><b>📡 ${T("No signal", "Kein Signal")}</b><button class="np-x" data-c>×</button></div><div class="np-static"></div><p class="muted">${T("Comms are sabotaged", "Der Funk ist sabotiert")}</p></div>`; box.querySelector("[data-c]").onclick = () => { Sound.tap(); this.closeMini(); }; this.sound("static"); },
     openVitals(){
-      this.closeMini(); const box = this.el.querySelector(".np-mini"), me = {stop: null}; this.mini = me; this.joy = null; box.classList.add("on");
+      this.closeMini(); const box = this.el.querySelector(".np-mini"), me = {stop: null, light: 1}; this.mini = me; this.joy = null; box.classList.add("on");
       if (this.v.sab && this.v.sab.type === "comms") return this.nosig(box);
       const P = this.pl(), draw = () => { const v = this.v; box.querySelector(".np-vit").innerHTML = P.map(p => { const dead = v.deadList.includes(p.id); return `<div class="${dead ? "dead" : ""}"><span class="np-hd">${(() => { try { return avatarSVG(Object.assign({}, p.av || {}, {aura: "none", pet: "none"}), {head: true, size: 44}); } catch(e) { return ""; } })()}</span><b>${esc(p.name)}</b><svg viewBox="0 0 120 30"><path d="${dead ? "M0 15H120" : "M0 15H40L48 4L56 26L62 15H120"}" stroke="${dead ? "#E2523E" : "#8FC458"}" stroke-width="3" fill="none"/></svg><small>${dead ? T("DEAD", "TOT") : "OK"}</small></div>`; }).join(""); };
       box.innerHTML = `<div class="np-mg np-cams"><div class="np-mgh"><b>💓 ${T("Vitals", "Vitalwerte")}</b><button class="np-x" data-c>×</button></div><div class="np-vit"></div></div>`;
@@ -441,7 +524,7 @@
       draw(); const id = setInterval(draw, 700); me.stop = () => clearInterval(id); Sound.play("Move", .5);
     },
     openAdmin(){
-      this.closeMini(); const box = this.el.querySelector(".np-mini"), me = {stop: null}; this.mini = me; this.joy = null; box.classList.add("on");
+      this.closeMini(); const box = this.el.querySelector(".np-mini"), me = {stop: null, light: 1}; this.mini = me; this.joy = null; box.classList.add("on");
       if (this.v.sab && this.v.sab.type === "comms") return this.nosig(box);
       const draw = () => { const cnt = {}; this.pl().forEach(p => { const q = p.id === PNet.me ? this.me : POS[p.id]; if (!q || q.g || q.v || (this.v.deadList.includes(p.id) && p.id !== PNet.me)) return; const r = roomAt(q.dx != null ? q.dx : q.x, q.dy != null ? q.dy : q.y); if (r) cnt[r.id] = (cnt[r.id] || 0) + 1; });
         this.v.bodies.forEach(b => { const r = roomAt(b.x, b.y); if (r) cnt[r.id] = (cnt[r.id] || 0) + 1; });
@@ -478,6 +561,9 @@
       const mine = v.imp ? v.fake : v.tasks.filter(([t, dn]) => !dn).map(([t]) => t), pulse = (Math.sin(now() / 250) + 1) / 2;
       TASKS.forEach(t => { const my = mine.includes(t.id); c.fillStyle = "#1B1A18"; c.fillRect(t.x - 22, t.y - 22, 44, 44); c.fillStyle = my && !v.imp ? `rgba(233,182,74,${.55 + pulse * .45})` : "#4a4640"; c.fillRect(t.x - 14, t.y - 14, 28, 28); });
       Object.entries(FIX).forEach(([k, f]) => { c.fillStyle = "#1B1A18"; c.fillRect(f.x - 20, f.y - 20, 40, 40); c.fillStyle = needFix(v.sab, k) ? `rgba(226,82,62,${.5 + pulse * .5})` : "#3a3631"; c.beginPath(); c.arc(f.x, f.y, needFix(v.sab, k) ? 26 : 12, 0, 7); c.fill(); });
+      /* crew event plates */
+      if (v.ev && v.phase === "play") v.ev.pads.forEach(pd => { const on = this.onPad(pd); c.fillStyle = on ? "rgba(90,209,224,.55)" : `rgba(90,209,224,${.18 + pulse * .2})`; c.beginPath(); c.ellipse(pd.x, pd.y + 6, 50, 22, 0, 0, 7); c.fill(); c.strokeStyle = "#5AD1E0"; c.lineWidth = 4; c.stroke();
+        if (v.ev.hold && on){ c.strokeStyle = "#fff"; c.lineWidth = 6; c.beginPath(); c.ellipse(pd.x, pd.y + 6, 56, 26, 0, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.min(1, v.ev.hold / 3000)); c.stroke(); } });
       /* vitals monitor in Medbay */
       { const s2 = STA.vitals; c.fillStyle = "#1B1A18"; c.fillRect(s2.x - 44, s2.y - 28, 88, 56); c.fillStyle = "#0c1a0c"; c.fillRect(s2.x - 38, s2.y - 22, 76, 44); c.strokeStyle = "#8FC458"; c.lineWidth = 3; c.beginPath(); const ph = (now() / 8) % 76; c.moveTo(s2.x - 38, s2.y); c.lineTo(s2.x - 38 + ph * .5, s2.y); c.lineTo(s2.x - 38 + ph * .5 + 6, s2.y - 14); c.lineTo(s2.x - 38 + ph * .5 + 12, s2.y + 12); c.lineTo(s2.x - 38 + ph * .5 + 16, s2.y); c.lineTo(s2.x + 38, s2.y); c.stroke(); }
       /* closed doors */
@@ -486,7 +572,7 @@
       c.fillStyle = "#1B1A18"; c.fillRect(STA.cams.x - 40, STA.cams.y - 26, 80, 52); c.fillStyle = "#5AA3E0"; [0, 1, 2, 3].forEach(i => c.fillRect(STA.cams.x - 34 + (i % 2) * 36, STA.cams.y - 20 + Math.floor(i / 2) * 22, 32, 18));
       c.fillStyle = "#1B1A18"; c.fillRect(STA.admin.x - 60, STA.admin.y - 34, 120, 68); c.fillStyle = "rgba(127,178,74,.55)"; c.fillRect(STA.admin.x - 52, STA.admin.y - 26, 104, 52);
       /* bodies */
-      v.bodies.forEach(b => { const p = this.pl().find(x => x.id === b.id) || {id: b.id, name: "?"}; this.figure(c, b.x, b.y, p, {body: true}); });
+      v.bodies.forEach(b => { const p = this.pl().find(x => x.id === b.id) || {id: b.id, name: "?"}; this.figure(c, b.x, b.y, p, {body: true, k: b.k}); });
       /* people */
       const R0 = cam ? 99999 : !v.alive ? 99999 : v.imp ? VIS.imp : (v.sab && v.sab.type === "lights" ? VIS.dark : VIS.crew) * (v.vis || 1);
       const list = this.pl().map(p => ({p, q: p.id === PNet.me ? Object.assign({}, POS[p.id] || {}, {dx: me.x, dy: me.y}) : POS[p.id]})).filter(o => o.q && o.q.dx != null).sort((a, b) => a.q.dy - b.q.dy);
@@ -511,6 +597,7 @@
       if (v.phase === "play" && !this.vent){ const me = this.me, d = this.dpr, pts = [];
         if (!v.imp && !(v.sab && v.sab.type === "comms")) v.tasks.filter(([t, dn]) => !dn).map(([t]) => TASKS.find(x => x.id === t)).sort((a, b) => dist(me, a) - dist(me, b)).slice(0, 3).forEach(t => pts.push([t, "#E9B64A"]));
         Object.keys(FIX).forEach(k => { if (needFix(v.sab, k)) pts.push([FIX[k], "#E2523E"]); });
+        if (v.ev && v.alive){ const fr = v.ev.pads.find(pd => !this.onPad(pd)) || v.ev.pads[0]; pts.push([fr, "#5AD1E0"]); }
         const m = 46 * d, cx = cw / 2, cy = ch / 2;
         pts.forEach(([p, col]) => { const sx = cx + (p.x - me.x) * z, sy = cy + (p.y - me.y) * z; if (sx > m && sx < cw - m && sy > m && sy < ch - m) return;
           const dx = sx - cx, dy = sy - cy, k = Math.min((cx - m) / Math.max(1, Math.abs(dx)), (cy - m) / Math.max(1, Math.abs(dy))), ax = cx + dx * k, ay = cy + dy * k, an = Math.atan2(dy, dx);
@@ -555,15 +642,46 @@
       c.fillStyle = "#0B0C12"; c.fillRect(2420, 660, 16, 280); c.fillStyle = "#4a4640"; c.fillRect(2240, 760, 120, 70);
       /* comms dish, nav console, electrical panels */
       c.strokeStyle = "#BAB5AC"; c.lineWidth = 6; c.beginPath(); c.arc(1980, 330, 60, Math.PI * .9, Math.PI * 2.1); c.stroke(); c.fillStyle = "#4a4640"; c.fillRect(1900, 1300, 160, 60); c.fillRect(330, 1180, 60, 120); c.fillRect(560, 1180, 60, 120);
+      /* comms: server racks with blinking lights */
+      [[1880, 200], [1930, 200]].forEach(([x, y], i) => { c.fillStyle = "#1B1A18"; c.fillRect(x, y, 40, 100); for (let j = 0; j < 6; j++){ c.fillStyle = (Math.floor(t * 3 + j * 1.7 + i) % 3) ? "#3a3631" : j % 2 ? "#8FC458" : "#E9B64A"; c.fillRect(x + 6, y + 8 + j * 15, 6, 6); c.fillStyle = "#2B2926"; c.fillRect(x + 16, y + 8 + j * 15, 18, 6); } });
+      /* reactor: warning stripes and pipes to the two panels */
+      c.save(); c.beginPath(); c.arc(240, 800, 112, 0, 7); c.arc(240, 800, 96, 0, 7, true); c.clip(); for (let a = 0; a < 40; a++){ c.fillStyle = a % 2 ? "#1B1A18" : "#E9B64A"; c.beginPath(); c.moveTo(240, 800); c.arc(240, 800, 120, a * Math.PI / 20, (a + 1) * Math.PI / 20); c.fill(); } c.restore();
+      c.strokeStyle = "#5f5a52"; c.lineWidth = 10; c.beginPath(); c.moveTo(150, 730); c.lineTo(110, 680); c.moveTo(330, 730); c.lineTo(370, 680); c.stroke();
+      /* electrical: cables along the wall */
+      ["#E2523E", "#5AA3E0", "#E9B64A"].forEach((col, i) => { c.strokeStyle = col; c.lineWidth = 4; c.beginPath(); c.moveTo(310, 1180 + i * 10); for (let x = 310; x < 690; x += 30) c.lineTo(x, 1180 + i * 10 + ((x / 30 + i) % 2 ? 8 : 0)); c.stroke(); });
+      /* medbay: a red cross on the floor */
+      c.fillStyle = "rgba(226,82,62,.35)"; c.fillRect(585, 300, 70, 22); c.fillRect(609, 276, 22, 70);
+      /* oxygen: tanks */
+      [[1904, 700], [1904, 770]].forEach(([x, y]) => { c.fillStyle = "#5AA3E0"; c.beginPath(); c.roundRect ? c.roundRect(x, y, 26, 58, 12) : c.rect(x, y, 26, 58); c.fill(); c.fillStyle = "rgba(255,255,255,.35)"; c.fillRect(x + 5, y + 8, 4, 40); });
+      /* lab: a centrifuge */
+      c.fillStyle = "#1B1A18"; c.beginPath(); c.arc(1440, 1190, 34, 0, 7); c.fill(); c.strokeStyle = "#8FC458"; c.lineWidth = 4; c.beginPath(); c.arc(1440, 1190, 22, t * 4, t * 4 + 4.5); c.stroke();
+      /* storage: barrels; bridge: chairs and consoles; navigation: chairs */
+      [[1130, 900], [1160, 940], [1450, 680]].forEach(([x, y]) => { c.fillStyle = "#6b4a2e"; c.beginPath(); c.arc(x, y, 20, 0, 7); c.fill(); c.strokeStyle = "#4e3520"; c.lineWidth = 3; c.beginPath(); c.arc(x, y, 14, 0, 7); c.stroke(); });
+      [[2200, 760], [2200, 880], [1830, 1370], [2000, 1370]].forEach(([x, y]) => { c.fillStyle = "#4a4640"; c.beginPath(); c.arc(x, y, 18, 0, 7); c.fill(); c.fillStyle = "#5f5a52"; c.fillRect(x - 18, y - 26, 36, 10); });
+      c.fillStyle = "#1B1A18"; c.fillRect(2100, 640, 30, 300); for (let j = 0; j < 8; j++){ c.fillStyle = (Math.floor(t * 2 + j) % 4) ? "#5AA3E0" : "#8FC458"; c.fillRect(2106, 652 + j * 36, 18, 10); }
+      /* cafeteria: benches */
+      [[1110, 230], [1450, 230], [1110, 470], [1450, 470]].forEach(([x, y]) => { c.fillStyle = "#3D3A35"; c.fillRect(x - 56, y + 50, 112, 12); c.fillRect(x - 56, y - 62, 112, 12); });
       /* the chess lounge: a big knight */
       const kn = pieceImg("wn"); if (kn.complete && kn.naturalWidth) c.drawImage(kn, 730, 740, 120, 120); const bk = pieceImg("bk"); if (bk.complete && bk.naturalWidth) c.drawImage(bk, 860, 700, 70, 70);
     },
     figure(c, x, y, p, o){
       const im = avImg(p.id, p.av), h = 118, w = h * 200 / 256, bob = o.mv ? Math.sin(now() / 90) * 3 : 0;
       c.save(); c.translate(x, y);
-      if (o.body){ c.fillStyle = "#7a1a12"; c.beginPath(); c.ellipse(-6, 14, 70, 24, 0, 0, 7); c.fill(); c.fillStyle = "#a82a1e"; c.beginPath(); c.ellipse(-10, 12, 52, 16, 0, 0, 7); c.fill();
+      if (o.body){ const k = o.k || "stab", ok = im.complete && im.naturalWidth;
+        c.fillStyle = "#7a1a12"; c.beginPath(); c.ellipse(-6, 14, k === "shot" ? 110 : 70, 24, 0, 0, 7); c.fill(); c.fillStyle = "#a82a1e"; c.beginPath(); c.ellipse(-10, 12, 52, 16, 0, 0, 7); c.fill();
         [[44, -6, 7], [-62, 4, 6], [30, 30, 5], [-30, 32, 4], [58, 22, 4]].forEach(([a, b, r]) => { c.beginPath(); c.arc(a, b, r, 0, 7); c.fill(); });
-        c.font = "34px system-ui"; c.textAlign = "center"; c.save(); c.translate(34, 2); c.rotate(.6); c.fillText("🦴", 0, 0); c.restore(); c.globalAlpha = .95; c.rotate(-Math.PI / 2); if (im.complete && im.naturalWidth) { c.filter = "grayscale(.6) brightness(.8)"; c.drawImage(im, -w / 2 - 20, -h + 30, w, h); c.filter = "none"; } c.restore(); return; }
+        c.font = "34px system-ui"; c.textAlign = "center"; c.save(); c.translate(34, 2); c.rotate(.6); c.fillText("🦴", 0, 0); c.restore(); c.globalAlpha = .95;
+        if (k === "chess"){ c.save(); c.scale(1.5, .3); if (ok){ c.filter = "grayscale(.6) brightness(.8)"; c.drawImage(im, -w / 2, -h + 50, w, h); c.filter = "none"; } c.restore(); const q = pieceImg("bq"); if (q.complete && q.naturalWidth) c.drawImage(q, -48, -96, 96, 96); c.restore(); return; }
+        c.rotate(-Math.PI / 2); c.filter = "grayscale(.6) brightness(.8)";
+        const X = -w / 2 - 20, Y = -h + 30, cut = h * .4;
+        if (ok){ if (k === "head"){ c.save(); c.beginPath(); c.rect(X, Y + cut, w, h - cut); c.clip(); c.drawImage(im, X, Y, w, h); c.restore(); c.save(); c.translate(-30, 70); c.rotate(2.2); c.beginPath(); c.rect(X, Y, w, cut); c.clip(); c.drawImage(im, X, Y, w, h); c.restore(); }
+          else if (k === "bite"){ c.save(); c.beginPath(); c.rect(X, Y + h * .62, w, h * .38); c.clip(); c.drawImage(im, X, Y, w, h); c.restore(); }
+          else c.drawImage(im, X, Y, w, h); }
+        c.filter = "none";
+        if (k === "stab"){ c.font = "40px system-ui"; c.save(); c.translate(-10, 6); c.rotate(.9); c.fillText("🔪", 0, 0); c.restore(); }
+        if (k === "bite"){ c.font = "30px system-ui"; c.fillText("🦴", -40, -20); c.fillText("🦴", -10, 30); }
+        if (k === "shot"){ c.fillStyle = "#1a0705"; [[-20, 4], [6, -10], [14, 12]].forEach(([a, b]) => { c.beginPath(); c.arc(a, b, 5, 0, 7); c.fill(); }); }
+        c.restore(); return; }
       if (o.ghost){ c.globalAlpha = .45; y += Math.sin(now() / 400) * 6; }
       if (o.sc){ const k = (now() / 900) % 1, yy = 10 - k * (h - 10); c.fillStyle = "rgba(127,178,74,.18)"; c.beginPath(); c.ellipse(0, 14, 44, 14, 0, 0, 7); c.fill(); c.fillStyle = "rgba(143,196,88,.55)"; c.fillRect(-40, yy, 80, 5); c.strokeStyle = "rgba(143,196,88,.7)"; c.lineWidth = 3; c.beginPath(); c.ellipse(0, 14, 44, 14, 0, 0, 7); c.stroke(); }
       c.fillStyle = "rgba(0,0,0,.3)"; c.beginPath(); c.ellipse(0, 16, 26, 8, 0, 0, 7); c.fill();
@@ -698,6 +816,64 @@ html.np-on .tabbar,html.np-on .pg-pill{display:none!important}
 .np-act.on{opacity:1}
 .pg-np-hero{display:block;padding:22px 18px;border-radius:14px;margin-top:8px;min-height:0!important;text-align:left}.pg-np-hero .pg-np-ship{font-size:56px}.np-act.main.on{background:var(--go);box-shadow:inset 0 -5px 0 var(--go-deep)}.np-act.kill.on{background:var(--bad);box-shadow:inset 0 -5px 0 #a8382a}.np-act.rep.on{background:#E9B64A;color:#2A1E05}
 .np-act:active{transform:scale(.94)}
+.np-tbar{position:absolute;left:0;right:0;top:0;height:6px;background:rgba(255,255,255,.08);z-index:9;display:none;pointer-events:none}.np-tbar.on{display:block}
+.np-tbar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--go),#E9B64A);transition:width .26s linear;box-shadow:0 0 10px rgba(143,196,88,.6)}
+.np-tbar span{position:absolute;top:10px;left:50%;transform:translateX(-50%);white-space:nowrap;background:rgba(20,19,17,.85);border-radius:999px;padding:3px 12px;font:800 12px var(--body);color:var(--fg);letter-spacing:.02em}
+.np-ev{position:absolute;top:calc(env(safe-area-inset-top,0px) + 62px);left:50%;transform:translateX(-50%);max-width:min(420px,70%);background:#1f5560;color:#fff;border-radius:10px;padding:7px 12px;font:800 13.5px var(--body);display:none;text-align:center;box-shadow:0 0 0 2px #5AD1E0,0 6px 18px rgba(0,0,0,.4);pointer-events:none}
+.np-ev.on{display:block}.np-ev.ok{background:var(--go);box-shadow:0 0 0 2px var(--go-hi)}.np-ev small{display:block;font-weight:600;opacity:.92}.np.rot .np-ev{top:62px}
+.np-hold{width:100%;position:relative;overflow:hidden;background:var(--bad)!important;color:#fff!important;box-shadow:inset 0 -4px 0 #a8382a!important;touch-action:none;user-select:none;-webkit-user-select:none}
+.np-hold i{position:absolute;inset:0 auto 0 0;width:0;background:rgba(255,255,255,.3);transition:width .1s}.np-hold.on i{width:100%;transition:width 1.1s linear}.np-hold span{position:relative}
+.np-dbl{font:900 min(13vw,64px)/1 var(--display);color:#E2523E;text-shadow:0 0 30px rgba(226,82,62,.8),0 4px 0 #5a1e17;letter-spacing:.02em;animation:npDbl 1.8s ease-out both;transform:rotate(-6deg)}
+@keyframes npDbl{0%{transform:rotate(-6deg) scale(3);opacity:0}15%{transform:rotate(-6deg) scale(.9);opacity:1}25%{transform:rotate(-6deg) scale(1.05)}80%{opacity:1}100%{opacity:0;transform:rotate(-6deg) scale(1)}}
+/* ejection: out into space */
+.np-eject{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#04050a;overflow:hidden;container-type:inline-size;width:auto!important}
+.np-stars{position:absolute;inset:-10px;background-image:radial-gradient(2px 2px at 20px 30px,#fff,transparent),radial-gradient(1.5px 1.5px at 90px 120px,#cfd8ff,transparent),radial-gradient(1px 1px at 160px 60px,#fff,transparent),radial-gradient(2px 2px at 130px 170px,#fff,transparent),radial-gradient(1px 1px at 60px 180px,#9fb6ff,transparent);background-size:200px 200px;animation:npDrift 9s linear infinite;opacity:.9}
+.np-stars.b{background-size:340px 340px;animation-duration:4s;opacity:.5}
+@keyframes npDrift{to{background-position:-400px 0}}
+.np-ejfig{position:absolute;top:18%;left:0;width:110px;height:140px;animation:npTumble 6.2s linear forwards}.np-ejfig svg{width:100%!important;height:100%!important}
+@keyframes npTumble{from{transform:translateX(-160px) rotate(0)}to{transform:translateX(calc(100cqw + 160px)) rotate(900deg)}}
+.np-ejship{position:absolute;top:20%;font-size:46px;animation:npShip 6s ease-in-out forwards}@keyframes npShip{from{transform:translateX(-60cqw)}to{transform:translateX(60cqw)}}
+.np-type{position:relative;margin-top:22%;font:900 min(28px,calc(150cqw / var(--n))) var(--mono);color:#fff;white-space:nowrap;overflow:hidden;width:0;border-right:3px solid #fff;animation:npType calc(var(--n) * 60ms) steps(var(--n)) 1.1s forwards,npCaret .7s step-end infinite;max-width:96cqw}
+@keyframes npType{to{width:calc(var(--n) * 1ch + 4px)}}@keyframes npCaret{50%{border-color:transparent}}
+.np-left{position:relative;color:var(--muted);opacity:0;animation:pgFade .5s 3.2s forwards;font:700 15px var(--body)}
+@keyframes pgFade{to{opacity:1}}
+/* you got killed: a short film */
+.np-death{position:relative;width:min(600px,100%);height:min(320px,calc(var(--h,100vh) - 40px));border-radius:18px;overflow:hidden;background:radial-gradient(ellipse at 50% 85%,#3a1410,#120707 70%);box-shadow:0 0 0 3px #7a1a12;animation:npShakeS .45s 1}
+.np-death>div svg{width:100%!important;height:100%!important;display:block}
+.np-dk,.np-dv{position:absolute;bottom:22px;width:118px;height:150px}.np-dk{left:14%;animation:npLunge2 .9s .2s ease-in-out both;z-index:2}.np-dv{left:56%;transform-origin:50% 92%}
+.np-dname{position:absolute;left:14%;bottom:4px;width:118px;text-align:center;font:900 13px var(--body);color:#F07B68}
+.np-dfl{position:absolute;inset:0;background:#c0281a;opacity:0;pointer-events:none;animation:npDfl 3s both;z-index:4}
+@keyframes npLunge2{35%{transform:translateX(70px) scale(1.08)}60%{transform:translateX(56px)}100%{transform:translateX(66px)}}
+@keyframes npDfl{0%,30%{opacity:0}34%{opacity:.6}45%{opacity:0}58%{opacity:.4}72%{opacity:0}}
+@keyframes npShakeS{20%{transform:translate(-6px,3px)}40%{transform:translate(6px,-3px)}60%{transform:translate(-4px,2px)}80%{transform:translate(3px,-2px)}}
+@keyframes npFall{to{transform:rotate(88deg) translate(-58px,-24px);filter:grayscale(.6) brightness(.7)}}
+.v-stab .np-knife{position:absolute;left:51%;bottom:84px;font-size:54px;z-index:3;animation:npStab .28s .55s 5 both}
+@keyframes npStab{0%{transform:translateX(-34px) rotate(-30deg)}55%{transform:translateX(16px) rotate(-30deg)}100%{transform:translateX(-34px) rotate(-30deg)}}
+.v-stab .np-dv{animation:npJolt .28s .6s 5,npFall .5s 2.1s forwards}@keyframes npJolt{50%{transform:translateX(9px) rotate(5deg)}}
+.v-head .np-dv{clip-path:inset(40% 0 0 0);animation:npFall .6s 1.7s forwards}
+.v-head .np-head{position:absolute;left:calc(56% + 19px);bottom:112px;width:80px;height:80px;z-index:3;animation:npHeadOff 1.7s .6s cubic-bezier(.3,.7,.6,1) both}.v-head .np-head svg{width:100%!important;height:100%!important}
+@keyframes npHeadOff{40%{transform:translate(70px,-120px) rotate(280deg)}100%{transform:translate(130px,40px) rotate(640deg)}}
+.v-head .np-cut{position:absolute;left:48%;bottom:148px;width:170px;height:6px;background:#fff;box-shadow:0 0 14px #fff;transform:scaleX(0) rotate(-12deg);animation:npCut .3s .55s forwards;z-index:4}
+@keyframes npCut{60%{transform:scaleX(1) rotate(-12deg);opacity:1}100%{transform:scaleX(1) rotate(-12deg);opacity:0}}
+.np-fount{position:absolute;left:calc(56% + 56px);bottom:150px;width:1px;height:1px;z-index:3}.np-fount b{position:absolute;width:10px;height:10px;border-radius:50%;background:#b0261a;opacity:0;animation:npFount .9s both}
+@keyframes npFount{0%{opacity:1;transform:none}70%{opacity:1}100%{opacity:0;transform:translate(var(--x),var(--y)) scale(.6)}}
+.v-chess .np-queen{position:absolute;left:calc(56% - 14px);bottom:16px;width:150px;height:150px;background-size:contain;background-repeat:no-repeat;background-position:center bottom;transform:translateY(-460px);animation:npDrop .42s .7s cubic-bezier(.6,0,1,1) forwards;z-index:3}
+@keyframes npDrop{to{transform:translateY(0)}}
+.v-chess .np-dv{animation:npSquash .18s 1.1s forwards}@keyframes npSquash{to{transform:scaleY(.16) scaleX(1.6);filter:grayscale(.6) brightness(.7)}}
+.np-death.v-chess{animation:npShakeS .45s 1.12s}
+.v-shot .np-dk{animation:none}.v-shot .np-gun{position:absolute;left:calc(14% + 96px);bottom:96px;font-size:46px;z-index:3;transform:scaleX(-1);animation:npRecoil .3s 1s}
+@keyframes npRecoil{40%{transform:scaleX(-1) translateX(14px) rotate(-18deg)}}
+.v-shot .np-muzzle{position:absolute;left:calc(14% + 146px);bottom:104px;width:44px;height:44px;border-radius:50%;background:radial-gradient(#fff,#ffd36b 40%,transparent 70%);opacity:0;animation:npMuz .3s 1s;z-index:3}
+@keyframes npMuz{0%{opacity:1;transform:scale(.4)}100%{opacity:0;transform:scale(2.6)}}
+.v-shot .np-bang{position:absolute;left:38%;top:12%;font:900 50px var(--display);color:#FFD36B;-webkit-text-stroke:2px #7a1a12;opacity:0;transform:rotate(-8deg) scale(.3);animation:npBang .5s 1s forwards;z-index:5}
+@keyframes npBang{50%{opacity:1;transform:rotate(-8deg) scale(1.25)}100%{opacity:1;transform:rotate(-8deg) scale(1)}}
+.v-shot .np-dv{animation:npBlown .7s 1.05s cubic-bezier(.2,.8,.4,1) forwards}@keyframes npBlown{to{transform:translateX(50px) rotate(95deg) translate(-58px,-10px);filter:grayscale(.6) brightness(.7)}}
+.v-bite .np-dk{animation:npGrow 1.3s .3s ease-in forwards;z-index:3}
+@keyframes npGrow{60%{transform:translateX(120px) scale(1.8)}100%{transform:translate(150px,70px) scale(4.6);filter:brightness(.25)}}
+.np-death.v-bite::after{content:"";position:absolute;inset:0;background:#000;opacity:0;animation:npBlack .35s 1.45s forwards;z-index:3}@keyframes npBlack{to{opacity:.92}}
+.v-bite .np-chomp{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:900 64px var(--display);color:#E2523E;opacity:0;animation:npBang .5s 1.5s forwards;z-index:5}
+.v-bite .np-bones{position:absolute;left:44%;top:-50px;font-size:42px;z-index:5;opacity:0;animation:npBones 1s 1.9s forwards}.v-bite .np-bones.b{left:58%;animation-delay:2.1s}
+@keyframes npBones{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:1;transform:translateY(250px) rotate(220deg)}}
 .np-mapb.imp{background:#5a1e17!important;color:#FFD9D2}.np-mapb b{font-size:18px}
 .np-code{display:flex;flex-direction:column;align-items:center;gap:10px}.np-note{background:#F3E39A;color:#3a2f10;padding:8px 14px;border-radius:4px;transform:rotate(-3deg);font:800 12px var(--body);text-align:center;box-shadow:0 4px 10px rgba(0,0,0,.4)}.np-note b{display:block;font:900 28px var(--mono);letter-spacing:.12em}
 .np-disp{font:900 32px var(--mono);letter-spacing:.3em;background:#0B0C12;color:#8FC458;border-radius:10px;padding:6px 16px}.np-disp.bad{color:var(--bad);animation:npShake .3s}

@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Chess.nat">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="format-detection" content="telephone=no">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="apple-touch-startup-image" media="(device-width:440px) and (device-height:956px) and (-webkit-device-pixel-ratio:3) and (orientation:portrait)" href="/icons/splash-1320x2868.png">
@@ -2786,7 +2786,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794276389";
+const CHESSNAT_BUILD = "1794277495";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -12776,7 +12776,7 @@ window.Onboard = Onboard;
 const Social = (() => {
   const site = window.ChessSite || {}, sb = site.sb;
   const ONLINE_MS = 150000, INVITE_MS = 10 * 60000;
-  let me = null, player = null, started = false, loaded = 0, loading = null, ch = null, shownInv = new Set();
+  let me = null, player = null, started = false, loaded = 0, loading = null, ch = null, shownInv = new Set((() => { try { return JSON.parse(localStorage.getItem("chessnat-inv-seen") || "[]"); } catch(e) { return []; } })());
   const D = {friends: [], players: {}, duels: [], gifts: []};
   const ok = () => !!(sb && me);
   const pair = (x, y) => x < y ? {a: x, b: y} : {a: y, b: x};
@@ -13030,9 +13030,9 @@ const Social = (() => {
     (data || []).forEach(showInvite);
   }
   async function showInvite(r){
-    if (!r || shownInv.has(r.id) || r.status !== "open" || Date.now() - new Date(r.created_at).getTime() > INVITE_MS) return; shownInv.add(r.id);
+    if (!r || shownInv.has(r.id) || r.status !== "open" || Date.now() - new Date(r.created_at).getTime() > INVITE_MS) return; shownInv.add(r.id); try { localStorage.setItem("chessnat-inv-seen", JSON.stringify([...shownInv].slice(-80))); } catch(e) {}
     if (!D.players[r.from_id]) await load(true);
-    if (/^p:/.test(r.tc || "")){ const p = P(r.from_id), gid = r.tc.slice(2), g = typeof PG !== "undefined" && PG.games.find(x => x.id === gid), gname = g ? (I18N.lang === "de" ? g.name[1] : g.name[0]) : "Party";
+    if (/^p:/.test(r.tc || "")){ if (typeof PG !== "undefined" && ((PG.st.left && PG.st.left.c === r.code && Date.now() - PG.st.left.t < 3 * 3600e3) || (PNet.P && PNet.P.code === r.code))) return; const p = P(r.from_id), gid = r.tc.slice(2), g = typeof PG !== "undefined" && PG.games.find(x => x.id === gid), gname = g ? (I18N.lang === "de" ? g.name[1] : g.name[0]) : "Party";
       const set = st => sb.from("chess_invites").update({status: st}).eq("id", r.id).then(() => {}, () => {});
       try { Haptic.go([40, 60, 40]); } catch(e) {}
       Notify.show({key: "inv:" + r.id, cls: "ntf-invite", accent: "var(--go)", icon: face(p, 44), label: gname, title: `${esc(p.name)} ${I18N.lang === "de" ? "lädt dich ein" : "invites you"}`, text: (I18N.lang === "de" ? "Komm in die Lobby: " : "Join the lobby: ") + esc(gname),
@@ -14284,15 +14284,15 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=7"></script>
-<script src="games/imposter.js?v=7"></script>
-<script src="games/werwolf.js?v=7"></script>
-<script src="games/cards.js?v=7"></script>
-<script src="games/heads.js?v=7"></script>
-<script src="games/more.js?v=7"></script>
-<script src="games/net.js?v=7"></script>
-<script src="games/online.js?v=7"></script>
-<script src="games/natposter.js?v=7"></script>
+<script src="games/core.js?v=8"></script>
+<script src="games/imposter.js?v=8"></script>
+<script src="games/werwolf.js?v=8"></script>
+<script src="games/cards.js?v=8"></script>
+<script src="games/heads.js?v=8"></script>
+<script src="games/more.js?v=8"></script>
+<script src="games/net.js?v=8"></script>
+<script src="games/online.js?v=8"></script>
+<script src="games/natposter.js?v=8"></script>
 <script>boot();</script>
 </body>
 </html>
