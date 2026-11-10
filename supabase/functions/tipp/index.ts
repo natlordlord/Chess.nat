@@ -154,10 +154,16 @@ async function realOdds(sport: string, slug: string, evId: string, cId: string) 
 }
 
 /* ---------- events from the scoreboards ---------- */
+/* German names for the clubs the family knows (ESPN writes them in English) */
+const DE: Record<string, string> = { "Bayern Munich": "FC Bayern", "FC Cologne": "1. FC Köln", "Cologne": "1. FC Köln", "Hamburg SV": "Hamburger SV", "Borussia Monchengladbach": "Borussia Mönchengladbach",
+  "Inter Milan": "Inter Mailand", "AC Milan": "AC Mailand", "Bayer Leverkusen": "Bayer 04 Leverkusen", "Juventus": "Juventus Turin", "Napoli": "SSC Neapel", "Atletico Madrid": "Atlético Madrid",
+  "Sporting CP": "Sporting Lissabon", "Benfica": "Benfica Lissabon", "Club Brugge": "FC Brügge", "Red Star Belgrade": "Roter Stern Belgrad", "Copenhagen": "FC Kopenhagen", "Galatasaray": "Galatasaray Istanbul",
+  "Fenerbahce": "Fenerbahçe", "PSV Eindhoven": "PSV Eindhoven", "Slavia Prague": "Slavia Prag", "Sparta Prague": "Sparta Prag", "Shakhtar Donetsk": "Schachtar Donezk", "Celtic": "Celtic Glasgow", "Rangers": "Glasgow Rangers" };
+const de = (n: string) => DE[n] || n;
 function soccerEvent(L: J, e: J): J {
   const c = e.competitions?.[0] || {}, cs = c.competitors || [], h = cs.find((x: J) => x.homeAway === "home") || cs[0] || {}, a = cs.find((x: J) => x.homeAway === "away") || cs[1] || {};
   const st = c.status?.type || {}, canc = /postpon|cancel|abandon/i.test(st.name || "") || /postpon|cancel/i.test(st.detail || "");
-  const hn = h.team?.displayName || h.team?.name || "?", an = a.team?.displayName || a.team?.name || "?";
+  const hn = de(h.team?.displayName || h.team?.name || "?"), an = de(a.team?.displayName || a.team?.name || "?");
   return { id: `espn:${L.slug}:${e.id}`, sport: "fb", comp: L.comp, name: `${hn} – ${an}`, home: hn, away: an, home_logo: h.team?.logo || null, away_logo: a.team?.logo || null,
     home_id: h.team?.id || null, away_id: a.team?.id || null, start_at: e.date, state: canc ? "canc" : (st.state || "pre"),
     clock: st.state === "in" ? (st.shortDetail || c.status?.displayClock || "") : (st.state === "post" ? (st.shortDetail || "FT") : null),
