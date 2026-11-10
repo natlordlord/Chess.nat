@@ -223,12 +223,27 @@ Views.games = {
         <button class="tile pg-chess" data-go="play" style="grid-column:span 2;border:1px solid var(--go)"><span class="deco"><i class="pc wn"></i></span>${icon("knight", 40)}<span class="pill go">${T("The original", "Das Original")}</span><h3>${T("Chess", "Schach")}</h3><p>${T("Online, bots, friends, battles.", "Online, Bots, Freunde, Battles.")}</p></button>
       </div>
       <div class="tiles" style="margin-top:12px" data-notr><button class="tile" data-lobby style="grid-column:span 2;border:1px solid var(--go)">${icon("users", 40)}<span class="pill go">${T("New", "Neu")}</span><h3>${T("Play together", "Zusammen spielen")}</h3><p>${T("Everyone on their own phone. Invite friends or show the QR code.", "Jeder am eigenen Handy. Freunde einladen oder QR-Code zeigen.")}</p>${typeof PNet !== "undefined" && PNet.P ? `<span class="pg-meta" style="color:var(--go-hi)">● ${T("Your lobby is open", "Deine Lobby ist offen")} · ${esc(PNet.P.code.toUpperCase())}</span>` : ""}</button></div>
+      <div id="pgrj" data-notr></div>
       <div class="pg-sec" data-notr>${T("Party games", "Partyspiele")}</div>
       ${PG.games.some(g => g.id === "natposter") ? `<button class="tile pg-np" data-g="natposter" data-notr><span class="pg-np-stars"></span><span class="pg-np-ship">🚀</span><span class="pill bad" style="position:relative">${T("New", "Neu")}</span><h3 style="position:relative;font-size:24px">Natposter</h3><p style="position:relative">${T("Space station, tasks, a traitor. Everyone on their own phone.", "Raumstation, Aufgaben, ein Verräter. Jeder am eigenen Handy.")}</p><span class="pg-meta" style="position:relative">${T("Solo with bots or up to 15 friends", "Allein mit Bots oder bis 15 Freunde")}</span></button>` : ""}
       <div class="tiles" data-notr>${PG.games.filter(g => g.id !== "natposter").map(g => { const a = PG.ART[g.id] || ["🎲", "#7FB24A"]; return `<button class="tile pg-gt" data-g="${g.id}" style="--ac:${a[1]}"><span class="pg-art">${a[0]}</span><h3>${h(T(g.name[0], g.name[1]))}</h3><p>${h(T(g.sub[0], g.sub[1]))}</p><span class="pg-meta">${h(T(g.meta[0], g.meta[1]))}</span></button>`; }).join("")}</div></div>`;
     $$("[data-go]", main).forEach(b => b.onclick = () => { Sound.tap(); App.go(b.dataset.go); });
     $$("[data-g]", main).forEach(b => b.onclick = () => { Sound.tap(); App.go("party", {g: b.dataset.g}); });
     const lb = main.querySelector("[data-lobby]"); if (lb) lb.onclick = () => { Sound.tap(); App.go("lobby"); };
+    this.rejoin(main);
+  },
+  /* lobbies you can go back to: the one you just left and the party invites of the last hours */
+  async rejoin(main){
+    const {T, h} = PG, box = main.querySelector("#pgrj"); if (!box) return; const cur = typeof PNet !== "undefined" && PNet.P ? PNet.P.code : null, L = [], seen = new Set([cur]);
+    const add = (c, who, g) => { if (!c || seen.has(c)) return; seen.add(c); L.push({c, who, g}); };
+    const lf = PG.st.left; if (lf && Date.now() - lf.t < 3 * 3600e3) add(lf.c, T("Your last lobby", "Deine letzte Lobby"), null);
+    const draw = () => { if (!box.isConnected) return; box.innerHTML = L.length ? `<div class="pg-sec">${T("Back into the game", "Zurück ins Spiel")}</div><div class="list">${L.map(x => { const g = x.g && PG.games.find(q => q.id === x.g);
+      return `<div class="li"><div class="grow"><div class="t">${h(x.who)}</div><div class="s">${g ? h(T(g.name[0], g.name[1])) + " · " : ""}${h(x.c.toUpperCase())}</div></div><button class="btn sm go" data-rj="${h(x.c)}">${T("Join", "Beitreten")}</button></div>`; }).join("")}</div>` : "";
+      box.querySelectorAll("[data-rj]").forEach(b => b.onclick = () => { Sound.tap(); App.go("lobby", {join: b.dataset.rj}); }); };
+    draw();
+    try { const sb = window.ChessSite && window.ChessSite.sb, me = typeof Social !== "undefined" && Social.me; if (!sb || !me) return;
+      const {data} = await sb.from("chess_invites").select("code,tc,from_id,created_at,status").eq("to_id", me).like("tc", "p:%").neq("status", "declined").gt("created_at", new Date(Date.now() - 3 * 3600e3).toISOString()).order("created_at", {ascending: false}).limit(5);
+      (data || []).forEach(r => { const p = Social.P ? Social.P(r.from_id) : null; add(r.code, p && p.name ? T(`${p.name}'s lobby`, `Lobby von ${p.name}`) : T("Invite", "Einladung"), r.tc.slice(2)); }); draw(); } catch(e) {}
   }
 };
 

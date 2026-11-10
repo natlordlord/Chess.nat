@@ -293,9 +293,10 @@ table.tb th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-sp
   .evalbar{left:0;width:8px;z-index:3;opacity:.9}.evalbar span{display:none}
   .side{flex:1 1 auto;min-height:0;width:100%;max-width:none;max-height:none;border-radius:0;flex-direction:column;background:var(--panel)}
   .side .scroll{padding:10px max(12px,env(safe-area-inset-left,0px)) 10px max(12px,env(safe-area-inset-right,0px));-webkit-overflow-scrolling:touch}
-  .side .foot{padding:8px max(10px,env(safe-area-inset-left,0px));gap:6px;flex-wrap:nowrap;overflow-x:auto;border-top:1px solid var(--line)}
-  .side .foot .btn{padding:10px 12px;font-size:14px;white-space:nowrap;flex:0 0 auto}
-  .side .foot .btn.go{flex:1 0 auto}
+  .side .foot{padding:8px max(10px,env(safe-area-inset-left,0px));gap:6px;flex-wrap:wrap;overflow:visible;border-top:1px solid var(--line)}
+  .side .foot .btn{padding:10px 12px;font-size:14px;white-space:nowrap;flex:1 0 auto}
+  .side .foot .btn.nv,.side .foot .btn.big-nav,.side .foot .nmus,.side .foot #lvoice{flex:0 0 auto}
+  .side .foot .btn.go{flex:2 0 auto}
   .btn.big{padding:12px 16px;font-size:17px}
   .msg{padding:9px 11px;gap:10px}.msg .ic{flex-basis:30px;height:30px;font-size:15px}.msg h4{font-size:15.5px}.msg p{font-size:13px}
   .h-sec{margin:12px 0 6px;font-size:11.5px}
@@ -1248,6 +1249,7 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 .ntf-trophy .ntf-ic{background:radial-gradient(circle,color-mix(in srgb,var(--na) 40%,transparent) 0,transparent 70%);width:58px;height:58px}
 .ntf-chat .ntf-ic,.ntf-invite .ntf-ic{background:none;border-radius:50%}
 /* toast: a pill that slides up and fades */
+.np-toast{position:absolute!important;top:calc(var(--st,0px) + 72px)!important;bottom:auto!important;left:50%!important;z-index:40!important;white-space:nowrap}
 .toast{animation:toastin .3s cubic-bezier(.2,1.2,.4,1);border-radius:999px!important;padding:11px 18px!important;max-width:calc(100% - 32px);text-align:center;border:1px solid var(--line)}
 .toast.out{opacity:0;transform:translate(-50%,10px);transition:opacity .25s,transform .25s}
 @keyframes toastin{from{opacity:0;transform:translate(-50%,14px) scale(.96)}}
@@ -2597,7 +2599,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 .side .foot .nmus.on svg{animation:nmBob 1.6s ease-in-out infinite}
 @keyframes nmBob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-2px) rotate(-6deg)}}
 .side .foot:has(.nmus) .btn:not(.nmus){padding-left:9px;padding-right:9px}
-.side .foot:has(.nmus) .btn.go{flex:1 1 auto;min-width:0}
+.side .foot:has(.nmus) .btn.go{flex:2 0 auto}
 .nmus-eq{display:none;gap:2.5px;align-items:flex-end;height:16px}
 .nm-play{display:flex}
 .nmus-eq b,.nm-play b{display:block;width:3.5px;border-radius:2px;background:currentColor;animation:nmEq .9s ease-in-out infinite}
@@ -2786,7 +2788,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794310337";
+const CHESSNAT_BUILD = "1794312851";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -2936,7 +2938,9 @@ const Focus = {on: false, q: new Map(),
   later(key, f){ if (!this.on) return false; this.q.set(key, f); return true; }};
 function toast(t, ms = 2200){
   document.querySelectorAll(".toast").forEach(o => { o.classList.add("out"); setTimeout(() => o.remove(), 250); });
-  const el = document.createElement("div"); el.className = "toast"; el.textContent = t; document.body.appendChild(el);
+  /* inside the Natposter game the toast lives in the (possibly turned) game, so it reads the same way as everything else */
+  const np = document.documentElement.classList.contains("np-on") && document.querySelector(".np");
+  const el = document.createElement("div"); el.className = "toast" + (np ? " np-toast" : ""); el.textContent = t; (np || document.body).appendChild(el);
   setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 300); }, ms);
 }
 /* ---------- in-app notifications: one card at a time slides down from the top.
@@ -5198,7 +5202,7 @@ Views.lesson = {
     const showThreats = () => { if (!threats || busy || g.turn() !== user){ this.board.setThreats({}); return; } const th = {}; hangingFor(g, user).forEach(q => th[q] = "thr"); hangingFor(g, user === "w" ? "b" : "w").forEach(q => th[q] = "tgt"); this.board.setThreats(th); };
     this.board.canPick = sq => { const p = g.get(sq); return !busy && !this.state.ok && p && p.color === user && g.turn() === user; };
     this.board.dests = gameDests(g);
-    const end = (ok, why) => { this.state.ok = ok; busy = true; this.board.setThreats({}); if (ok){ this.gameFails = 0; Sound.play("Victory", .7); this.feedback("ok", s.okTitle || "Goal reached!", s.okText || ""); if (s.okText) Voice.say(s.okText); this.enableNext(); } else { this.gameFails = fails + 1; Sound.play("Defeat", .6); this.stars = Math.max(1, this.stars - 1); this.feedback("no", "Not this time", why + (bot ? " Press Restart: the bot will play a bit more relaxed now." : " Press Restart and try again.")); $("#lskip") && ($("#lskip").hidden = false); } };
+    const end = (ok, why) => { this.state.ok = ok; busy = true; this.board.setThreats({}); if (ok){ this.gameFails = 0; Sound.play("Victory", .7); try { const mt = g.in_checkmate(), de = typeof I18N !== "undefined" && I18N.lang === "de", yw = de ? "Du gewinnst!" : "You win!"; celebrate(this.board, {diff: 0, streak: 0, mate: mt}, {word: mt ? "Checkmate!" : (s.goal === "win" || s.goal === "mate") ? yw : (de ? "Ziel erreicht!" : "Goal reached!"), sub: mt ? yw : esc(s.okTitle || "")}); if (typeof confettiBurst === "function") confettiBurst(); } catch(e) {} this.feedback("ok", s.okTitle || "Goal reached!", s.okText || ""); if (s.okText) Voice.say(s.okText); this.enableNext(); } else { this.gameFails = fails + 1; Sound.play("Defeat", .6); this.stars = Math.max(1, this.stars - 1); this.feedback("no", "Not this time", why + (bot ? " Press Restart: the bot will play a bit more relaxed now." : " Press Restart and try again.")); $("#lskip") && ($("#lskip").hidden = false); } };
     const reply = async () => {
       busy = true; this.board.setThreats({}); await sleep(380); if (this.dead) return;
       let mv = null;
@@ -12119,7 +12123,7 @@ const MusicBtn = (() => {
   const tr = x => typeof I18N !== "undefined" ? I18N.t(x) : x;
   function paint(){ document.querySelectorAll(".nmus").forEach(b => b.classList.toggle("on", on())); }
   /* put it into the controls row under the board (each game screen draws its own row, so look again whenever it changes) */
-  function place(){ const main = document.querySelector("#main"); if (!main || !main.querySelector("#bw .board")) return;
+  function place(){ const main = document.querySelector("#main"); if (!main || !main.querySelector("#bw .board")) return; if (typeof App !== "undefined" && ["lesson", "theory", "repertoire", "repdrill", "endgames", "jlevel", "coords", "analysis", "review"].includes(App.route)) return;
     main.querySelectorAll(".side .foot").forEach(f => { if (f.querySelector(":scope > .nmus, :scope .nmus")) return; const holder = f.querySelector(":scope > .rv-foot") || f;
       holder.insertAdjacentHTML("beforeend", html()); const b = holder.lastElementChild; b.onclick = e => { e.stopPropagation(); sheet(); }; }); }
   /* throttled, not debounced: a running clock changes the page all the time */
@@ -13036,7 +13040,7 @@ const Social = (() => {
   async function showInvite(r){
     if (!r || shownInv.has(r.id) || r.status !== "open" || Date.now() - new Date(r.created_at).getTime() > INVITE_MS) return; shownInv.add(r.id); try { localStorage.setItem("chessnat-inv-seen", JSON.stringify([...shownInv].slice(-80))); } catch(e) {}
     if (!D.players[r.from_id]) await load(true);
-    if (/^p:/.test(r.tc || "")){ if (typeof PG !== "undefined" && ((PG.st.left && PG.st.left.c === r.code && Date.now() - PG.st.left.t < 3 * 3600e3) || (PNet.P && PNet.P.code === r.code))) return; const p = P(r.from_id), gid = r.tc.slice(2), g = typeof PG !== "undefined" && PG.games.find(x => x.id === gid), gname = g ? (I18N.lang === "de" ? g.name[1] : g.name[0]) : "Party";
+    if (/^p:/.test(r.tc || "")){ if (typeof PG !== "undefined" && ((PG.st.left && PG.st.left.c === r.code && new Date(r.created_at).getTime() < PG.st.left.t) || (PNet.P && PNet.P.code === r.code))) return; const p = P(r.from_id), gid = r.tc.slice(2), g = typeof PG !== "undefined" && PG.games.find(x => x.id === gid), gname = g ? (I18N.lang === "de" ? g.name[1] : g.name[0]) : "Party";
       const set = st => sb.from("chess_invites").update({status: st}).eq("id", r.id).then(() => {}, () => {});
       try { Haptic.go([40, 60, 40]); } catch(e) {}
       Notify.show({key: "inv:" + r.id, cls: "ntf-invite", accent: "var(--go)", icon: face(p, 44), label: gname, title: `${esc(p.name)} ${I18N.lang === "de" ? "lädt dich ein" : "invites you"}`, text: (I18N.lang === "de" ? "Komm in die Lobby: " : "Join the lobby: ") + esc(gname),
@@ -14288,15 +14292,15 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=28"></script>
-<script src="games/imposter.js?v=28"></script>
-<script src="games/werwolf.js?v=28"></script>
-<script src="games/cards.js?v=28"></script>
-<script src="games/heads.js?v=28"></script>
-<script src="games/more.js?v=28"></script>
-<script src="games/net.js?v=28"></script>
-<script src="games/online.js?v=28"></script>
-<script src="games/natposter.js?v=28"></script>
+<script src="games/core.js?v=29"></script>
+<script src="games/imposter.js?v=29"></script>
+<script src="games/werwolf.js?v=29"></script>
+<script src="games/cards.js?v=29"></script>
+<script src="games/heads.js?v=29"></script>
+<script src="games/more.js?v=29"></script>
+<script src="games/net.js?v=29"></script>
+<script src="games/online.js?v=29"></script>
+<script src="games/natposter.js?v=29"></script>
 <script>boot();</script>
 </body>
 </html>

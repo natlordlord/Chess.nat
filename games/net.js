@@ -58,17 +58,31 @@ const PNet = (() => {
   function start(){
     if (P.solo) P.conn = {send(){}, live: true, close(){}};
     else P.conn = open(P.code, {
-      onMsg: m => { if (P) P.isHost ? hostMsg(m) : clientMsg(m); },
+      onMsg: m => { if (!P) return; if (m && m.t === "host") return clientMsg(m); P.isHost ? hostMsg(m) : clientMsg(m); },
       onPeers: ids => { if (!P) return; P.on = new Set(ids.concat(me)); if (P.isHost) push(); else redraw(); },
       onConn: live => { if (!P) return; if (live){ if (P.isHost) push(true); else hello(); } redraw(); }});
+    beat();
+  }
+  function beat(){
+    clearInterval(P.beat);
     if (P.isHost){
       P.beat = setInterval(() => { if (!P || !P.isHost) return; const e = eng(); let ch = false;
         if (P.G && e && e.tick){ try { ch = !!e.tick(P.G, api()); } catch(err) { console.error(err); } }
+        /* someone who has been gone for a while is out of the running round */
+        if (P.G && !P.solo && e && e.gone){ P.offT = P.offT || {}; P.roster.forEach(r => { if (r.id === me || P.on.has(r.id)){ delete P.offT[r.id]; return; } if (!P.offT[r.id]) P.offT[r.id] = Date.now(); else if (Date.now() - P.offT[r.id] > 45000 && P.G.ids.includes(r.id)){ try { e.gone(P.G, r.id, api()); } catch(err) {} ch = true; } }); }
         if (ch || Date.now() - (P.sent || 0) > 2500) push(true); }, 1000);
     } else {
-      P.beat = setInterval(() => { if (!P) return; if (!P.gotMe || Date.now() - P.last > 6000) hello(); }, 3000);
+      P.beat = setInterval(() => { if (!P || P.isHost) return; if (!P.gotMe || Date.now() - P.last > 6000) hello();
+        /* the host is gone without a word: the first one still here takes over, everyone goes back to the lobby */
+        const m = P.msg; if (m && Date.now() - P.last > 15000 && !P.on.has(m.host)){ const left = m.players.filter(x => x.id !== m.host && (P.on.has(x.id) || x.id === me)).map(x => x.id).sort(); if (left[0] === me) takeOver({roster: m.players.filter(x => x.id !== m.host).map(x => ({id: x.id, name: x.name, av: x.av, uid: x.uid})), game: m.game, opts: m.opts, G: null, seq: m.seq + 5}, m.host); } }, 3000);
     }
   }
+  /* the host hands the party to someone else when leaving */
+  function takeOver(snap, old){
+    if (!P) return; P.isHost = true; P.game = snap.game; P.opts = snap.opts || defaults(snap.game); P.roster = (snap.roster || []).map(r => r.id === old ? Object.assign({}, r, {gone: 1}) : r); if (!P.roster.some(r => r.id === me)) P.roster.unshift({id: me, name: P.name || myName() || T("Host", "Gastgeber"), av: myAv(), uid: (typeof Social !== "undefined" && Social.me) || null});
+    P.G = snap.G || null; P.seq = snap.seq || 0; P.on = P.on || new Set([me]); P.on.add(me); P.view = null;
+    if (P.G){ P.G.host = me; const e = eng(); if (e && e.gone) try { e.gone(P.G, old, api()); } catch(err) {} }
+    beat(); save(); push(true); toast(T("You're the host now.", "Du bist jetzt Gastgeber."), 2500); }
   function hostMsg(m){
     if (!m || m.code !== P.code) return;
     if (m.t === "mv" || m.t === "mvb"){ PG.onMv && PG.onMv(m); return; }
@@ -76,10 +90,10 @@ const PNet = (() => {
     if (m.t === "hi"){ const n = String(m.name || "").replace(/\s+/g, " ").trim().slice(0, 16) || T("Player", "Spieler");
       const r = P.roster.find(x => x.id === m.id), uid = typeof m.uid === "string" && /^[0-9a-f-]{36}$/.test(m.uid) ? m.uid : null;
       const av = m.av && typeof m.av === "object" && JSON.stringify(m.av).length < 1500 ? m.av : null;
-      if (r){ r.name = uniq(n, m.id); r.uid = uid; r.av = av; } else { if (P.roster.length >= 24) return; P.roster.push({id: m.id, name: uniq(n, m.id), uid, av}); Sound.blub ? Sound.blub() : Sound.tap(); PG.vib(20); }
+      if (r){ r.name = uniq(n, m.id); r.uid = uid; r.av = av; r.gone = 0; if (P.on) P.on.add(m.id); } else { if (P.roster.length >= 24) return; P.roster.push({id: m.id, name: uniq(n, m.id), uid, av}); if (P.on) P.on.add(m.id); Sound.blub ? Sound.blub() : Sound.tap(); PG.vib(20); }
       push(true); }
     else if (m.t === "act" && P.G){ const e = eng(); if (!e) return; try { e.act(P.G, m.id, m.a || {}, api()); } catch(err) { console.error(err); } push(); }
-    else if (m.t === "bye"){ P.roster = P.roster.filter(x => x.id !== m.id || (P.G && P.G.ids.includes(m.id))); push(true); }
+    else if (m.t === "bye"){ const inG = P.G && P.G.ids.includes(m.id); if (inG){ const e = eng(); if (e && e.gone) try { e.gone(P.G, m.id, api()); } catch(err) {} const r = P.roster.find(x => x.id === m.id); if (r) r.gone = 1; } P.roster = P.roster.filter(x => x.id !== m.id || inG); if (P.on) P.on.delete(m.id); push(true); }
   }
   const uniq = (n, id) => { let k = n, i = 2; while (P.roster.some(x => x.id !== id && x.name.toLowerCase() === k.toLowerCase())) k = n + " " + i++; return k; };
   /* what the engines get to work with */
@@ -90,6 +104,7 @@ const PNet = (() => {
   function push(now){
     if (!P || !P.isHost) return;
     if (!now){ if (pushT) return; pushT = setTimeout(() => { pushT = null; push(true); }, 60); return; }
+    if (P.G && P.G.s && P.G.s.toLobby){ P.G = null; P.roster = P.roster.filter(r => !r.gone && (r.id === me || P.on.has(r.id))); }
     const e = eng(), views = {};
     if (P.G && e){ P.roster.forEach(r => { let v; try { v = P.G.ids.includes(r.id) ? e.view(P.G, r.id, api()) : spect(); } catch(err) { console.error(err); v = {say: "…"}; } views[r.id] = v; }); }
     const msg = {t: "v", code: P.code, seq: ++P.seq, host: me, game: P.game, opts: P.opts, lobby: !P.G, players: P.roster.map(r => ({id: r.id, name: r.name, on: P.on.has(r.id), uid: r.uid || null, av: r.av || null})), views};
@@ -100,7 +115,7 @@ const PNet = (() => {
   /* --- client --- */
   function join(code, name){
     leave(true);
-    P = {code: code.toLowerCase(), isHost: false, name, msg: null, last: Date.now(), gotMe: false};
+    P = {code: code.toLowerCase(), isHost: false, name, msg: null, last: Date.now(), gotMe: false, on: new Set([me])};
     PG.st.myName = name; PG.persist(); start(); return P;
   }
   const myAv = () => { try { const a = typeof myAvatar === "function" ? myAvatar() : null; const j = a ? JSON.stringify(a) : ""; return j && j.length < 1500 ? JSON.parse(j) : null; } catch(e) { return null; } };
@@ -109,17 +124,21 @@ const PNet = (() => {
     if (!m || m.code !== P.code) return;
     if (m.t === "mv" || m.t === "mvb"){ PG.onMv && PG.onMv(m); return; }
     if (m.t === "rtc"){ PVoice.onMsg(m); return; }
-    if (m.t === "v"){ if (P.msg && m.seq < P.msg.seq && m.host === P.msg.host && P.msg.seq - m.seq < 50) return;
+    if (m.t === "host"){ if (m.to === me && m.snap) takeOver(m.snap, m.id); return; }
+    if (m.t === "v"){ if (P.isHost) return; if (P.msg && m.seq < P.msg.seq && m.host === P.msg.host && P.msg.seq - m.seq < 50) return;
       P.msg = m; P.last = Date.now(); P.gotMe = m.players.some(p => p.id === me); P.game = m.game; redraw(); }
     else if (m.t === "kick" && m.id === me){ leave(true); toast(T("The host removed you from the lobby.", "Der Gastgeber hat dich aus der Lobby entfernt."), 3500); if (App.route === "lobby") App.go("games"); }
-    else if (m.t === "end"){ leave(true); toast(T("The host closed the lobby.", "Der Gastgeber hat die Lobby geschlossen."), 3500); if (App.route === "lobby") App.go("games"); }
+    else if (m.t === "end" && (!P.msg || m.id === P.msg.host || !m.id)){ leave(true); toast(T("The host closed the lobby.", "Der Gastgeber hat die Lobby geschlossen."), 3500); if (App.route === "lobby") App.go("games"); }
   }
   function act(a){ if (!P) return; if (P.isHost){ const e = eng(); if (P.G && e){ try { e.act(P.G, me, a, api()); } catch(err) { console.error(err); } push(); } } else P.conn.send({t: "act", code: P.code, id: me, a}); }
 
   function leave(quiet){
     if (!P) return;
     if (!quiet && !P.solo){ PG.st.left = {c: P.code, t: Date.now()}; PG.persist(); }
-    try { if (P.isHost) P.conn && P.conn.send({t: "end", code: P.code}); else P.conn && P.conn.send({t: "bye", code: P.code, id: me}); } catch(e) {}
+    try { if (P.isHost && !P.solo){ const next = P.roster.filter(r => r.id !== me && P.on.has(r.id) && !r.gone)[0];
+        if (next){ const G = P.G ? JSON.parse(JSON.stringify(P.G)) : null; P.conn.send({t: "host", code: P.code, id: me, to: next.id, snap: {roster: P.roster.map(r => r.id === me ? Object.assign({}, r, {gone: 1}) : r), game: P.game, opts: P.opts, G, seq: P.seq + 5}}); }
+        else P.conn && P.conn.send({t: "end", code: P.code, id: me}); }
+      else if (!P.isHost) P.conn && P.conn.send({t: "bye", code: P.code, id: me}); } catch(e) {}
     clearInterval(P.beat); const c = P.conn; P = null; setTimeout(() => c && c.close(), 300);
     try { sessionStorage.removeItem("chessnat-party-host"); } catch(e) {}
     PG.awake(false); if (PG.custom) Object.values(PG.custom).forEach(c => c.stop && c.stop()); pill(); if (!quiet) redraw();
@@ -139,7 +158,7 @@ const PNet = (() => {
     try { e.start(P.G, api()); } catch(err) { console.error(err); P.G = null; return toast("Error: " + err.message); }
     PG.awake(true); push();
   }
-  function toLobby(){ if (!P || !P.isHost) return; P.G = null; push(); }
+  function toLobby(){ if (!P || !P.isHost) return; P.G = null; P.roster = P.roster.filter(r => !r.gone && (r.id === me || P.on.has(r.id))); push(); }
   function kick(id){ if (!P || !P.isHost || id === me) return; P.roster = P.roster.filter(r => r.id !== id); P.conn.send({t: "kick", code: P.code, id}); push(); }
 
   /* the one place that draws: the lobby screen, if it's open; otherwise the little "back to the game" pill */
@@ -287,7 +306,7 @@ Views.lobby = {
     if (code && !(arg && arg.join) && PG.st.left && PG.st.left.c === code && Date.now() - PG.st.left.t < 3 * 3600e3) code = null;
     if (arg && arg.join && PG.st.left && PG.st.left.c === code){ PG.st.left = null; PG.persist(); }
     if (arg && arg.host){ PNet.host(arg.game); }
-    else if (code && (!PNet.P || PNet.P.code !== code)) return this.ask(code);
+    else if (code && (!PNet.P || PNet.P.code !== code)){ if (PNet.P) PNet.leave(true); const nm = PNet.myName(); if (!(arg && arg.join) || !nm) return this.ask(code); PNet.join(code, nm); }
     else if (!PNet.P && !PNet.resume()) return this.start();
     this.npSet = false; PNet.refresh(); this.draw();
   },
@@ -322,7 +341,9 @@ Views.lobby = {
     const m = P.isHost ? P.msg : P.msg, conn = P.conn && P.conn.live;
     $("#lcode", main).innerHTML = P.solo ? `🤖 ${T("Practice", "Übungsmodus")}` : `<span style="width:8px;height:8px;border-radius:50%;background:${conn ? "var(--go-hi)" : "var(--warn)"};display:inline-block"></span> ${T("Lobby", "Lobby")} <b style="letter-spacing:.1em">${esc(P.code.toUpperCase())}</b>`;
     const body = $("#lbody", main);
-    if (!m){ body.innerHTML = `<div class="pg-stage"><div class="pg-moon">📡</div><p class="pg-say">${T("Connecting…", "Verbinde…")}<small>${T("Waiting for the host's phone. Is the code right and the host's app open?", "Warte auf das Handy des Gastgebers. Stimmt der Code und ist die App beim Gastgeber offen?")}</small></p></div>`; body._json = null; return; }
+    if (!m){ P.t0 = P.t0 || Date.now(); const gone = Date.now() - P.t0 > 12000;
+      body.innerHTML = `<div class="pg-stage"><div class="pg-moon">${gone ? "🌑" : "📡"}</div><p class="pg-say">${gone ? T("This lobby isn't there anymore", "Diese Lobby gibt es nicht mehr") : T("Connecting…", "Verbinde…")}<small>${gone ? T("The game is over or the host closed it.", "Das Spiel ist vorbei oder der Gastgeber hat sie geschlossen.") : T("Waiting for the host's phone.", "Warte auf das Handy des Gastgebers.")}</small></p>${gone ? `<button class="btn go big" id="lgone">${T("Back to games", "Zurück zu den Spielen")}</button>` : ""}</div>`; body._json = null;
+      const bg = $("#lgone", body); if (bg) bg.onclick = () => { PNet.leave(true); App.go("games"); }; if (!gone) setTimeout(() => { if (PNet.P === P && !P.msg) this.draw(); }, 12500); return; }
     if (!P.isHost && Date.now() - P.last > 15000) toast(T("Lost the host… reconnecting", "Verbindung zum Gastgeber weg… verbinde neu"), 1800);
     if (m.lobby && m.game === "natposter" && !P.solo && !this.npSet && PG.custom.np){ body._json = null; body._lk = null;
       const lv = {custom: "np", k: "lobby", phase: "lobby", round: 0, alive: true, imp: false, mates: [], tasks: [], fake: [], prog: 0, bodies: [], kill: 0, emer: 0, intro: 0, sab: null, sabCd: 0, meet: null, eject: null, deadList: [], bots: (() => { const f = +(m.opts || {}).fill || 0; try { return f && typeof BOTS !== "undefined" ? BOTS.slice(0, f).map((b, i) => ({id: "lb-" + i, name: b.name, av: botCfg(b)})) : []; } catch(e) { return []; } })(), doors: {}, host: P.isHost, lob: {code: P.code, fill: +(m.opts || {}).fill || 0, n: m.players.filter(p => p.on).length, min: (PG.online.natposter || {}).min || 4}};

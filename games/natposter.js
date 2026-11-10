@@ -43,7 +43,7 @@
   /* the minigame at an emergency meeting: a wheel picks it, everybody plays, the winner's vote counts twice */
   const DUELS = {react: {d: 6000, e: "⚡", en: "Reaction", de: "Reaktion"}, tap: {d: 5000, e: "👆", en: "Tap race", de: "Tipp-Rennen"}, snake: {d: 15000, e: "🐍", en: "Snake", de: "Snake"},
     mate: {d: 20000, e: "♞", en: "Mate in 1", de: "Matt in 1"}, math: {d: 12000, e: "➗", en: "Quick maths", de: "Kopfrechnen"}, stroop: {d: 12000, e: "🎨", en: "Colour trap", de: "Farben-Falle"}, balloon: {d: 10000, e: "🎈", en: "Balloon", de: "Ballon"}, song: {d: 15000, e: "🎵", en: "Name that song", de: "Songraten"}};
-  const SPIN = 2800, RES = 3200;
+  const SPIN = 2800, RES = 3200, END_MS = 15000;
   const MATES = ["6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1", "k7/8/1K6/8/8/8/8/7Q w - - 0 1", "6rk/6pp/8/6N1/8/8/8/6K1 w - - 0 1", "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 1", "5rk1/5ppp/8/8/8/8/1Q3PPP/6K1 w - - 0 1", "7k/7p/8/8/8/8/6R1/1R4K1 w - - 0 1"];
   const rng = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
   const botScore = g => g === "math" ? 3 + Math.floor(Math.random() * 7) : g === "stroop" ? 2 + Math.floor(Math.random() * 8) : g === "balloon" ? (Math.random() < .35 ? 0 : 20 + Math.floor(Math.random() * 60)) : g === "react" ? -(260 + Math.random() * 380) : g === "tap" ? 14 + Math.floor(Math.random() * 20) : g === "snake" ? Math.floor(Math.random() * 9) : g === "mate" ? (Math.random() < .7 ? -(4000 + Math.random() * 12000) : -99999) : (Math.random() < .45 ? -(2000 + Math.random() * 7000) : -99999);
@@ -85,9 +85,13 @@
   const areaOf = (x, y) => AREAS.findIndex(a => x >= a.x && x <= a.x + a.w && y >= a.y && y <= a.y + a.h);
   /* things you can't walk through: the reactor core and the cafeteria tables */
   const OBST = [{x: 240, y: 800, r: 86}, {x: 1280, y: 340, r: 68}, {x: 1110, y: 230, r: 38}, {x: 1450, y: 230, r: 38}, {x: 1110, y: 470, r: 38}, {x: 1450, y: 470, r: 38}, {x: 1440, y: 1190, r: 30}];
-  const free = (from, x, y) => OBST.every(o => { const d1 = Math.hypot(x - o.x, y - o.y); return d1 >= o.r || d1 > Math.hypot(from.x - o.x, from.y - o.y); });
+  /* boxes you can't walk through: storage crates, the bridge console, the navigation console */
+  const OBR = [{x: 1116, y: 656, w: 64, h: 56}, {x: 1182, y: 656, w: 64, h: 56}, {x: 1116, y: 714, w: 64, h: 56}, {x: 1330, y: 880, w: 64, h: 56}, {x: 2240, y: 760, w: 120, h: 70}, {x: 1900, y: 1300, w: 160, h: 60}];
+  const rdist = (o, x, y) => Math.hypot(x - Math.max(o.x, Math.min(x, o.x + o.w)), y - Math.max(o.y, Math.min(y, o.y + o.h)));
+  const free = (from, x, y) => OBST.every(o => { const d1 = Math.hypot(x - o.x, y - o.y); return d1 >= o.r || d1 > Math.hypot(from.x - o.x, from.y - o.y); })
+    && OBR.every(o => { const d1 = rdist(o, x, y); return d1 >= RAD * .8 || d1 > rdist(o, from.x, from.y); });
   /* bots cross a room through its hub, which isn't on top of furniture */
-  const HUB = {caf: {x: 1280, y: 500}, rea: {x: 370, y: 920}, lab: {x: 1250, y: 1380}};
+  const HUB = {caf: {x: 1280, y: 500}, rea: {x: 370, y: 920}, lab: {x: 1250, y: 1380}, bri: {x: 2180, y: 900}, nav: {x: 1960, y: 1220}, sto: {x: 1290, y: 820}};
   const mid = a => { const r = ROOMS.find(q => q === a); return r && HUB[r.id] ? HUB[r.id] : {x: a.x + a.w / 2, y: a.y + a.h / 2}; };
   const door = (a, b) => { const x1 = Math.max(a.x, b.x), x2 = Math.min(a.x + a.w, b.x + b.w), y1 = Math.max(a.y, b.y), y2 = Math.min(a.y + a.h, b.y + b.h); return {x: (x1 + x2) / 2, y: (y1 + y2) / 2}; };
   function route(from, to){
@@ -99,6 +103,8 @@
 
   /* positions of everyone, fed by "mv" messages and by this phone's own movement */
   const POS = {};
+  window.__npBots = () => { const G = PNet.P && PNet.P.G; return G && G.s && G.s.bots ? G.s.bots.map(b => { const q = POS[b.id] || {}; return [b.id, q.x, q.y, !!G.s.alive[b.id]]; }) : []; };
+  window.__npSolid = (x, y) => ({walk: walk(x, y), obst: !free({x: -9999, y: -9999}, x, y)});
   PG.onMv = m => { if (m && m.t === "mvb" && Array.isArray(m.l)){ m.l.forEach(([id, x, y, f, g, mv, sc, v, em, ek]) => PG.onMv({id, x, y, f, g, m: mv, sc, v, em, ek})); return; } if (!m || !m.id) return; const p = POS[m.id] || (POS[m.id] = {x: m.x, y: m.y, dx: m.x, dy: m.y}); const x = +m.x || 0, y = +m.y || 0, t = now(); p.buf = p.buf || []; const last = p.buf[p.buf.length - 1]; if (last && Math.hypot(last.x - x, last.y - y) > 320) p.buf = []; p.buf.push({t, x, y}); if (p.buf.length > 8) p.buf.shift();
     p.rdy = !!m.rd;
     if (m.ek != null && m.ek !== p.ek && m.em >= 0 && m.em < WEMO.length){ p.ek = m.ek; p.em = m.em; p.emT = t; }
@@ -113,11 +119,11 @@
       const G = this.G; if (!G || !G.s || !PNet.P || !PNet.P.G || PNet.P.G !== G){ this.stop(); return; }
       const s = G.s, dt = (now() - this.last) / 1000; this.last = now(); const eng = PG.online.natposter, out = [];
       this.list(G).forEach(b => { const id = b.id, p = POS[id] || (POS[id] = Object.assign({}, s.spawn[id])), m = this.mem[id] || (this.mem[id] = {path: [], wait: 0, goal: null}), alive = s.alive[id], imp = s.imps.includes(id);
-        if (s.phase === "meet" && alive && (m.said || 0) < 2 && now() - (s.meet.mg ? s.meet.mg.end + RES : s.meet.start) > (m.st || (m.st = 1800 + Math.random() * 6500))){ m.said = (m.said || 0) + 1; m.st = now() - (s.meet.mg ? s.meet.mg.end + RES : s.meet.start) + 2500 + Math.random() * 7000; const r = roomAt(p.x, p.y), bd = s.meet.body && s.bodies.find(x => x.id === s.meet.body), others = G.ids.filter(x => x !== id && s.alive[x]);
+        if (s.phase === "meet" && alive && (m.said || 0) < 2 && now() - (s.meet.mg ? s.meet.mg.end + RES : s.meet.start) > (m.st || (m.st = 200 + Math.random() * 500))){ m.said = (m.said || 0) + 1; m.st = now() - (s.meet.mg ? s.meet.mg.end + RES : s.meet.start) + 300 + Math.random() * 600; const r = roomAt(p.x, p.y), bd = s.meet.body && s.bodies.find(x => x.id === s.meet.body), others = G.ids.filter(x => x !== id && s.alive[x]);
           const line = m.said === 2 ? (Math.random() < .55 ? "emo|" + Math.floor(Math.random() * EMO.length) : Math.random() < .5 ? "skip" : "nothing")
             : m.saw && s.alive[m.saw] && !imp ? "sus|" + m.saw : s.meet.by === id && bd ? "body|" + ((roomAt(bd.x, bd.y) || {}).id || "hall") : m.sus && s.alive[m.sus] && Math.random() < .7 ? "sus|" + m.sus : imp && Math.random() < .35 ? (Math.random() < .5 ? "self" : "sus|" + PG.pick(others.filter(x => !s.imps.includes(x)))) : Math.random() < .2 && others.length ? "with|" + PG.pick(others) : "where|" + ((r || {}).id || "hall");
           eng.act(G, id, {a: "say", v: line}, api); api.push(); }
-        if (s.phase === "meet"){ m.path = []; m.goal = null; if (alive && !s.meet.votes[id] && now() - (s.meet.mg ? s.meet.mg.end + RES : s.meet.start) > (m.vt || (m.vt = 4000 + Math.random() * 12000))){ const sus = m.sus && s.alive[m.sus] && m.sus !== id ? m.sus : null; const opts = G.ids.filter(x => s.alive[x] && x !== id && !(imp && s.imps.includes(x)));
+        if (s.phase === "meet"){ m.path = []; m.goal = null; if (alive && !s.meet.votes[id] && now() - (s.meet.mg ? s.meet.mg.end + RES : s.meet.start) > (m.vt || (m.vt = 700 + Math.random() * 1600))){ const sus = m.sus && s.alive[m.sus] && m.sus !== id ? m.sus : null; const opts = G.ids.filter(x => s.alive[x] && x !== id && !(imp && s.imps.includes(x)));
             const tally = {}; Object.values(s.meet.votes).forEach(x => { if (x !== "skip") tally[x] = (tally[x] || 0) + 1; }); const top = Object.entries(tally).sort((a, b) => b[1] - a[1])[0];
             const pickV = m.saw && s.alive[m.saw] && !imp ? m.saw : sus && Math.random() < .7 ? sus : top && top[0] !== id && !(imp && s.imps.includes(top[0])) && top[1] >= 2 && Math.random() < .5 ? top[0] : Math.random() < .45 ? "skip" : PG.pick(opts) || "skip";
             eng.act(G, id, {a: "vote", v: pickV}, api); api.push(); } return; }
@@ -130,8 +136,9 @@
           if (!s.sab && now() >= s.sabAt && Math.random() < .002){ eng.act(G, id, {a: "sab", v: PG.pick(["lights", "lights", "comms", "reactor", "o2"])}, api); api.push(); }
           if (now() >= s.killAt[id]){ const t = crewSeen(500).find(x => G.ids.filter(y => y !== id && y !== x && s.alive[y] && POS[y] && dist(POS[y], POS[x]) < 380).length === 0);
             if (t){ if (dist(p, POS[t]) <= KILL_R * .8){ eng.act(G, id, {a: "kill", v: t}, api); api.push(); m.path = []; m.goal = null; m.wait = .6;
+                const t2 = G.ids.find(x => x !== id && s.alive[x] && !s.imps.includes(x) && POS[x] && dist(p, POS[x]) <= KILL_R * .8); if (t2 && Math.random() < .7) setTimeout(() => { try { if (G.s === s && s.phase === "play"){ eng.act(G, id, {a: "kill", v: t2}, api); api.push(); } } catch(e) {} }, 500);
                 const vt = VENTS.filter(x => dist(x, p) < 600).sort((a, b) => dist(a, p) - dist(b, p))[0]; if (vt && Math.random() < .65){ m.path = route(p, vt); m.goal = {vent: vt.id}; } }
-              else { m.path = [{x: POS[t].x, y: POS[t].y}]; m.goal = {hunt: t}; const tr = roomAt(POS[t].x, POS[t].y); if (tr && tr.id !== "caf" && now() >= (s.doorAt || 0) && Math.random() < .01){ eng.act(G, id, {a: "door", v: tr.id}, api); api.push(); } } } }
+              else { m.path = route(p, {x: POS[t].x, y: POS[t].y}); m.goal = {hunt: t}; const tr = roomAt(POS[t].x, POS[t].y); if (tr && tr.id !== "caf" && now() >= (s.doorAt || 0) && Math.random() < .01){ eng.act(G, id, {a: "door", v: tr.id}, api); api.push(); } } } }
           if (m.vin){ if (now() >= m.vin.out){ const to = VENTS.find(x => x.id === m.vin.to); Object.assign(p, {x: to.x, y: to.y}); POS[id].v = false; POS[id].vt = now(); m.vin = null; m.goal = null; m.path = []; m.wait = .5; }
             out.push([id, Math.round(p.x), Math.round(p.y), p.f || 1, 0, 0, 0, 1]); PG.onMv({id, x: p.x, y: p.y, f: p.f || 1, g: 0, m: 0, v: 1}); return; }
         }
@@ -161,7 +168,13 @@
             else { const r = PG.pick(ROOMS); m.path = route(p, {x: r.x + 40 + Math.random() * (r.w - 80), y: r.y + 50 + Math.random() * (r.h - 90)}); m.goal = {walk: 1}; } }
         }
         const w = m.path[0]; if (w){ const dx = w.x - p.x, dy = w.y - p.y, d = Math.hypot(dx, dy), sp = SPEED * (+G.opts.spd || 1) * .72 * dt * (alive ? 1 : 1.1);
-          if (d <= sp){ p.x = w.x; p.y = w.y; m.path.shift(); } else { p.x += dx / d * sp; p.y += dy / d * sp; if (Math.abs(dx) > 2) p.f = dx < 0 ? -1 : 1; } }
+          if (!alive){ if (d <= sp){ p.x = w.x; p.y = w.y; m.path.shift(); } else { p.x += dx / d * sp; p.y += dy / d * sp; } }
+          else if (d <= sp && walk(w.x, w.y) && free(p, w.x, w.y)){ p.x = w.x; p.y = w.y; m.path.shift(); m.stuck = 0; }
+          else if (d <= sp){ m.path.shift(); }
+          else { const a0 = Math.atan2(dy, dx); let moved = false;
+            for (const da of [0, .5, -.5, 1, -1, 1.5, -1.5]){ const nx = p.x + Math.cos(a0 + da) * sp, ny = p.y + Math.sin(a0 + da) * sp; if (walk(nx, ny) && free(p, nx, ny)){ p.x = nx; p.y = ny; moved = true; break; } }
+            if (moved){ m.stuck = 0; if (Math.abs(dx) > 2) p.f = dx < 0 ? -1 : 1; }
+            else if ((m.stuck = (m.stuck || 0) + dt) > .5){ m.stuck = 0; const goal = m.path[m.path.length - 1]; m.path = goal && Math.random() < .7 ? route(p, goal) : []; if (!m.path.length){ m.goal = null; m.wait = .3; } } } }
         if (alive && now() - (m.emT || 0) > 9000){ const bd = s.bodies.find(b2 => dist(p, b2) < 260 && !(m.shock || {})[b2.id]), near = G.ids.find(x => x !== id && s.alive[x] && POS[x] && dist(POS[x], p) < 170 && now() - ((m.wav || {})[x] || 0) > 40000);
           if (bd && !imp){ (m.shock = m.shock || {})[bd.id] = 1; m.em = {i: 2, k: Math.floor(Math.random() * 1e6)}; m.emT = now(); }
           else if (near && Math.random() < .02){ (m.wav = m.wav || {})[near] = now(); m.em = {i: PG.pick([0, 0, 1, 4, 3]), k: Math.floor(Math.random() * 1e6)}; m.emT = now(); } }
@@ -205,7 +218,8 @@
       if (G.solo && ROLES[o.role]){ Object.keys(s.role).forEach(x => { if (s.role[x] === o.role || x === host) delete s.role[x]; }); s.role[host] = o.role; }
       s.intro = now() + 3500; s.snd = {k: "s" + (++G.sk), n: "reveal"};
     },
-    crewIds(G){ return G.ids.filter(id => !G.s.imps.includes(id) && (G.s.role || {})[id] !== "jest"); },
+    crewIds(G){ return G.ids.filter(id => !G.s.imps.includes(id) && (G.s.role || {})[id] !== "jest" && !(G.s.gone || {})[id]); },
+    gone(G, id){ const s = G.s; if (!s || !s.alive || !G.ids.includes(id) || (s.gone || {})[id]) return; s.gone = s.gone || {}; s.gone[id] = 1; if (s.phase === "end") return; s.alive[id] = false; if (s.meet) delete s.meet.votes[id]; this.win(G); },
     prog(G){ const s = G.s, c = this.crewIds(G); let tot = 0, d = 0; c.forEach(id => { tot += s.tasks[id].length; d += s.tasks[id].filter(t => s.done[id][t]).length; }); return {tot, d}; },
     win(G){ const s = G.s; if (s.phase === "end") return true;
       const A = G.ids.filter(id => s.alive[id]), I = A.filter(id => s.imps.includes(id)).length, C = A.length - I, p = this.prog(G);
@@ -223,6 +237,7 @@
     resume(G){ const s = G.s; s.bodies = []; s.spawnK++; const A = G.ids; s.spawn = Object.fromEntries(A.map((id, i) => [id, spawnAt(i, A.length)])); A.forEach(id => { Object.assign(POS[id] || (POS[id] = {}), s.spawn[id]); s.killAt[id] = now() + G.opts.cd * 1000; });
       if (s.sab && CRIT[s.sab.type]) s.sab = null; s.doors = {}; s.sabAt = Math.max(s.sabAt, now() + 10000); s.phase = "play"; if (!this.win(G)) {} },
     tick(G, api){ const s = G.s; let ch = false; if (s.bots && s.bots.length && s.phase !== "end") BOT.run(G, api); if (s.phase === "end") BOT.stop();
+      if (s.phase === "end"){ if (!s.endAt){ s.endAt = now(); ch = true; } if (!G.solo && now() >= s.endAt + END_MS){ s.toLobby = 1; ch = true; } }
       if (s.phase === "play" && s.sab && CRIT[s.sab.type] && now() >= s.sab.until){ s.phase = "end"; s.win = s.sab.type === "o2" ? "o2" : "boom"; s.sab = null; G.sk++; s.snd = {k: "s" + G.sk, n: "lose"}; ch = true; }
       if (s.phase === "meet" && s.meet.mg && !s.meet.mg.done){ const mg = s.meet.mg;
         if (mg.g === "song" && !mg.song && now() > mg.t0 + SPIN - 300){ s.meet.until -= DUELS.song.d - DUELS.tap.d; mg.g = "tap"; mg.end = mg.t0 + SPIN + DUELS.tap.d; ch = true; }
@@ -242,6 +257,7 @@
       return ch || s.phase === "meet" || s.phase === "eject" || (s.phase === "play" && (!!s.sab || now() < s.intro || (s.doors && Object.keys(s.doors).length > 0))); },
     act(G, id, a, api){ const s = G.s, me = POS[id] || {x: 0, y: 0}, alive = s.alive[id], imp = s.imps.includes(id);
       if (a.a === "again" && id === G.host && s.phase === "end"){ this.start(G); return; }
+      if (a.a === "tolobby" && s.phase === "end"){ s.toLobby = 1; return; }
       if (s.phase === "meet" && a.a === "say" && alive && typeof a.v === "string" && a.v.length < 40){ const M = s.meet, [pk, x0] = a.v.split("|"), x = x0 || ""; if (!SAY[pk]) return;
         M.chat = M.chat || []; M.cnt = M.cnt || {}; M.last = M.last || {}; if ((M.cnt[id] || 0) >= 14 || now() - (M.last[id] || 0) < 1100) return;
         const ok = pk === "emo" ? /^[0-9]$/.test(x) && +x < EMO.length : (pk === "where" || pk === "body") ? (x === "hall" || ROOMS.some(r => r.id === x)) : (pk === "sus" || pk === "with" || pk === "vent") ? G.ids.includes(x) && x !== id : x === "";
@@ -250,13 +266,13 @@
       if (s.phase === "meet" && a.a === "vote" && s.meet.mg && !s.meet.mg.done) return;
       if (s.phase === "meet" && a.a === "vote" && alive && !s.meet.votes[id] && (a.v === "skip" || s.alive[a.v])){ s.meet.votes[id] = a.v; return; }
       if (s.phase !== "play" || now() < s.intro) return;
-      if (a.a === "kill" && imp && alive && now() >= s.killAt[id] && !me.v){ const t = a.v, tp = POS[t];
+      if (a.a === "kill" && imp && alive && (now() >= s.killAt[id] || ((s.combo || {})[id] || 0) > now()) && !me.v){ const t = a.v, tp = POS[t];
         if (!t || !s.alive[t] || s.imps.includes(t) || !tp || dist(me, tp) > KILL_R * 1.35) return;
         if (!(s.sab && s.sab.type === "lights")) BOT.list(G).forEach(b => { if (b.id === t || !s.alive[b.id] || s.imps.includes(b.id) || !POS[b.id] || dist(POS[b.id], me) > VIS.crew * .85) return; const mm = BOT.mem[b.id] || (BOT.mem[b.id] = {path: [], wait: 0, goal: null}); mm.saw = id; });
-        const kv = PG.pick(KILLS), dbl = s.log.some(l => now() - l[0] < 4000 && l[1] !== id);
+        const kv = PG.pick(KILLS), cmb = ((s.combo || {})[id] || 0) > now(), dbl = cmb || s.log.some(l => now() - l[0] < 4000 && l[1] !== id); s.combo = s.combo || {}; s.combo[id] = cmb ? 0 : now() + 3000;
         s.alive[t] = false; s.bodies.push({id: t, x: Math.round(tp.x), y: Math.round(tp.y), k: kv}); s.kfx = {k: ++G.sk, x: Math.round(tp.x), y: Math.round(tp.y), by: id, t}; s.killAt[id] = now() + G.opts.cd * 1000; s.log.push([now(), id, t]);
         s.killed = s.killed || {}; s.killed[t] = {by: id, k: ++G.sk, v: kv}; s.ps = s.ps || {}; s.ps[id] = {k: "p" + (++G.sk), n: "kill"}; s.ps[t] = {k: "p" + (++G.sk), n: "died"};
-        if (dbl){ s.dbl = {k: ++G.sk}; s.imps.forEach(x => { if (x !== t) s.ps[x] = {k: "p" + (++G.sk), n: "double"}; }); }
+        if (dbl){ s.dbl = {k: ++G.sk, at: now()}; s.imps.forEach(x => { if (x !== t) s.ps[x] = {k: "p" + (++G.sk), n: "double"}; }); }
         this.win(G); return; }
       if (a.a === "shoot" && alive && (s.role || {})[id] === "sher" && !s.shot[id]){ const t = a.v, tp = POS[t]; if (!t || t === id || !s.alive[t] || !tp || dist(me, tp) > KILL_R * 1.35) return; s.shot[id] = 1;
         const victim = s.imps.includes(t) ? t : id, vp = victim === t ? tp : me; s.alive[victim] = false; s.bodies.push({id: victim, x: Math.round(vp.x), y: Math.round(vp.y), k: "shot"}); if (victim === t) s.log.push([now(), id, t]);
@@ -279,16 +295,16 @@
     view(G, id, api){ const s = G.s, imp = s.imps.includes(id), p = this.prog(G);
       const rl = (s.role || {})[id] || null, kfx = s.kfx && now() - (s.kfxT || (s.kfxT = {}))[s.kfx.k] < 3000 ? s.kfx : s.kfx && !(s.kfxT || {})[s.kfx.k] ? (s.kfxT[s.kfx.k] = now(), s.kfx) : null;
       return {kfx, role: rl, shot: !!(s.shot || {})[id], gid: s.gid, nImp: s.imps.length, custom: "np", k: "np" + s.round, phase: s.phase, round: s.round, alive: !!s.alive[id], imp, mates: imp ? s.imps : [], tasks: imp || rl === "jest" ? [] : s.tasks[id].map(t => [t, !!s.done[id][t]]),
-        fake: imp || rl === "jest" ? s.tasks[id] : [], prog: p.tot ? p.d / p.tot : 0, bodies: s.bodies, kill: imp ? Math.max(0, s.killAt[id] - now()) : 0, emer: s.emer[id], intro: Math.max(0, s.intro - now()),
+        fake: imp || rl === "jest" ? s.tasks[id] : [], prog: p.tot ? p.d / p.tot : 0, bodies: s.bodies, kill: imp ? (((s.combo || {})[id] || 0) > now() ? 0 : Math.max(0, s.killAt[id] - now())) : 0, combo: imp ? Math.max(0, ((s.combo || {})[id] || 0) - now()) : 0, emer: s.emer[id], intro: Math.max(0, s.intro - now()),
         sab: s.sab ? {type: s.sab.type, left: s.sab.until ? Math.max(0, s.sab.until - now()) : 0, ra: s.sab.ra, rb: s.sab.rb, oa: s.sab.oa, ob: s.sab.ob} : null, spd: +G.opts.spd || 1, vis: +G.opts.vis || 1, sabCd: imp ? Math.max(0, s.sabAt - now()) : 0,
         meet: s.meet ? {mg: s.meet.mg ? {g: s.meet.mg.g, seed: s.meet.mg.seed, el: now() - s.meet.mg.t0, d: DUELS[s.meet.mg.g].d, done: !!s.meet.mg.done, win: s.meet.mg.win || null, sc: s.meet.mg.sc, song: s.meet.mg.song || null} : null, chat: s.meet.chat || [], by: s.meet.by, body: s.meet.body, left: Math.max(0, s.meet.until - now()), voted: Object.keys(s.meet.votes), my: s.meet.votes[id] || null} : null,
         eject: s.eject ? {id: s.eject.id, imp: s.eject.imp, conf: !!G.opts.conf, left: s.eject.left, votes: s.lastVotes, shown: now() - s.eject.start, tot: s.eject.until - s.eject.start} : null, meetTot: G.opts.meet * 1000,
-        ev: s.ev ? {id: s.ev.id, room: s.ev.room, de: s.ev.de, en: s.ev.en, pads: s.ev.pads, occ: s.ev.occ, left: Math.max(0, s.ev.until - now()), hold: s.ev.hold ? now() - s.ev.hold : 0} : null, evRes: s.evRes || null, dbl: imp && s.dbl ? s.dbl : null,
+        ev: s.ev ? {id: s.ev.id, room: s.ev.room, de: s.ev.de, en: s.ev.en, pads: s.ev.pads, occ: s.ev.occ, left: Math.max(0, s.ev.until - now()), hold: s.ev.hold ? now() - s.ev.hold : 0} : null, evRes: s.evRes || null, dbl: s.dbl && now() - (s.dbl.at || 0) < 2500 ? s.dbl : null,
         doors: s.doors ? Object.fromEntries(Object.entries(s.doors).filter(([k, t]) => t > now()).map(([k, t]) => [k, t - now()])) : {}, doorCd: imp ? Math.max(0, (s.doorAt || 0) - now()) : 0,
         held: s.sab && s.sab.h ? {ra: !!(s.sab.h.ra && s.sab.h.ra.until > now()), rb: !!(s.sab.h.rb && s.sab.h.rb.until > now())} : null, two: G.ids.filter(x => s.alive[x]).length >= 5,
         bots: s.bots || [], deadList: G.ids.filter(x => !s.alive[x]), killedBy: s.killed && s.killed[id] ? s.killed[id] : null,
-        win: s.phase === "end" ? s.win : null, imps: s.phase === "end" ? s.imps : null,
-        jw: s.jw || null, stats: s.phase === "end" ? G.ids.map(x => ({id: x, role: (s.role || {})[x] || null, imp: s.imps.includes(x), alive: !!s.alive[x], k: s.log.filter(l => l[1] === x).length, by: s.killed && s.killed[x] ? s.killed[x].by : null, t: s.imps.includes(x) ? 0 : s.tasks[x].filter(t => s.done[x][t]).length, tt: s.imps.includes(x) ? 0 : s.tasks[x].length, w: (s.dw || {})[x] || 0})) : null, spawn: s.spawn && s.spawn[id] ? Object.assign({k: s.spawnK}, s.spawn[id]) : null, host: id === G.host,
+        win: s.phase === "end" ? s.win : null, endLobby: s.phase === "end" && s.endAt ? Math.max(0, s.endAt + END_MS - now()) : 0, imps: s.phase === "end" ? s.imps : null,
+        jw: s.jw || null, stats: s.phase === "end" ? G.ids.map(x => ({id: x, gone: !!(s.gone || {})[x], role: (s.role || {})[x] || null, imp: s.imps.includes(x), alive: !!s.alive[x], k: s.log.filter(l => l[1] === x).length, by: s.killed && s.killed[x] ? s.killed[x].by : null, t: s.imps.includes(x) ? 0 : s.tasks[x].filter(t => s.done[x][t]).length, tt: s.imps.includes(x) ? 0 : s.tasks[x].length, w: (s.dw || {})[x] || 0})) : null, spawn: s.spawn && s.spawn[id] ? Object.assign({k: s.spawnK}, s.spawn[id]) : null, host: id === G.host,
         snd: (() => { const a = s.snd, b = s.ps && s.ps[id]; return !a ? b : !b ? a : (+String(a.k).slice(1) > +String(b.k).slice(1) ? a : b); })()};
     }};
 
@@ -315,7 +331,7 @@
       if (v.gid && v.gid !== this.gid){ this.gid = v.gid; this.shown = {}; this.deathT = {}; this.evShow = null; this.dblT = 0; }
       this.v = v; this.m = m; this.act = act; const t = now();
       if (v.phase === "lobby" && !this.lobbyIn){ this.lobbyIn = 1; this.ready = false; this.lcd = 0; this.me.x = BTN.x - 160 + Math.random() * 320; this.me.y = BTN.y + 140 + Math.random() * 40; this.vent = null; this.closeMini(); this.send(true); }
-      this.ends = {kill: t + (v.kill || 0), meet: v.meet ? t + v.meet.left : 0, sab: v.sab && v.sab.left ? t + v.sab.left : 0, sabCd: t + (v.sabCd || 0)};
+      this.ends = {kill: t + (v.kill || 0), meet: v.meet ? t + v.meet.left : 0, sab: v.sab && v.sab.left ? t + v.sab.left : 0, sabCd: t + (v.sabCd || 0), endLobby: t + (v.endLobby || 0)};
       CLOSED = Object.keys(v.doors || {}).flatMap(k => DOORS[k] || []); this.ends.doorCd = t + (v.doorCd || 0); if (v.eject) this.ejectT = t - (v.eject.shown || 0);
       if (v.round !== this.introRound){ this.introRound = v.round; this.introEnd = t + (v.intro || 0); }
       if (!this.el || !this.el.isConnected) this.mount();
@@ -480,10 +496,9 @@
       if (x === "em"){ this.el.querySelector(".np-emos").classList.remove("on"); this.emo = {i: +val, k: Math.floor(Math.random() * 1e6), t: now()}; const q = POS[PNet.me]; if (q){ q.em = +val; q.emT = now(); q.ek = this.emo.k; } this.send(true); Haptic.go(8); return; }
       if (x === "mic"){ if (!PVoice.on){ this.vTried = 1; PVoice.start().then(ok => { if (!ok) toast(T("Microphone not allowed. Allow it in the settings.", "Mikrofon nicht erlaubt. Erlaube es in den Einstellungen."), 3500); this.hud(); }); return; }
         const mu = PVoice.toggleMute(); toast(mu ? T("You're muted", "Du bist stumm") : T("Mic on", "Mikro an"), 1200); this.hud(); return; }
-      if (x === "quit" || x === "leave"){ const b = this.lastBtn && this.lastBtn.isConnected ? this.lastBtn : this.el.querySelector(".np-quit"); if (b._orig == null) b._orig = b.innerHTML; this.quitN = (now() - (this.quitT || 0) < 2500 ? this.quitN || 0 : 0) + 1; this.quitT = now(); Haptic.go(20);
-        if (this.quitN >= 3){ this.quitN = 0; b.innerHTML = "👋"; setTimeout(() => { PNet.leave(); App.go("games"); }, 380); return; }
-        b.classList.add("arm"); b.innerHTML = x === "leave" ? `🚪<span>${T(`${3 - this.quitN}× more`, `Noch ${3 - this.quitN}×`)}</span>` : `🚪<small>${3 - this.quitN}×</small>`; toast(T(`Tap ${3 - this.quitN} more time${3 - this.quitN > 1 ? "s" : ""} to leave`, `Noch ${3 - this.quitN}× tippen zum Verlassen`), 1600);
-        clearTimeout(this.quitTm); this.quitTm = setTimeout(() => { this.quitN = 0; if (b.isConnected){ b.classList.remove("arm"); b.innerHTML = b._orig; } b._orig = null; }, 2500); return; }
+      if (x === "quit" || x === "leave"){ Haptic.go(15); return this.openPanel("quit"); }
+      if (x === "qyes"){ Haptic.go([20, 40, 20]); this.closePanel(); setTimeout(() => { PNet.leave(); App.go("games"); }, 120); return; }
+      if (x === "tolobby"){ if (PNet.P && PNet.P.solo) return; return this.act({a: "tolobby"}); }
       if (x === "map") { this.mapOpen = !this.mapOpen; this.hud(); return; }
       if (x === "kill" && t.kill && this.left("kill") <= 0) return this.act({a: "kill", v: t.kill.id});
       if (x === "shoot" && t.shoot) return this.act({a: "shoot", v: t.shoot.id});
@@ -590,9 +605,6 @@
           if (v.role === "sher" && v.alive && !v.shot) B.push(`<button class="np-act kill ${t.shoot ? "on" : ""}" data-x="shoot" ${t.shoot ? "" : "disabled"}>🔫<span>${T("Shoot", "Schießen")}</span></button>`);
           if (v.role === "sci" && v.alive) B.push(`<button class="np-act on" data-x="vitals">💓<span>${T("Vitals", "Vital")}</span></button>`);
           if ((v.imp || v.role === "eng") && v.alive) B.push(`<button class="np-act ${t.vent ? "on" : ""}" data-x="vent" ${t.vent ? "" : "disabled"}>🕳️<span>${T("Vent", "Schacht")}</span></button>`);
-          if (v.imp && (v.phase === "play")){ const cd = this.left("sabCd"), off = cd > 0 || !!v.sab;
-            B.push(`<button class="np-act sabb ${this.sabRow ? "on" : ""}" data-x="sabrow">⚡<span>${off && cd > 0 ? Math.ceil(cd / 1000) + " s" : T("Sabotage", "Sabotage")}</span></button>`);
-            if (this.sabRow) [["lights", "💡"], ["comms", "📡"], ["reactor", "☢️"], ["o2", "🫁"]].forEach(([k, e]) => B.push(`<button class="np-act np-sabq" data-x="sab" data-v="${k}" ${off ? "disabled" : ""}>${e}</button>`)); }
           if (v.alive) B.push(`<button class="np-act rep ${t.report ? "on" : ""}" data-x="report" ${t.report ? "" : "disabled"}>📣<span>${T("Report", "Melden")}</span></button>`);
           if (!(v.imp && !v.alive)){ const use = t.fix || t.task || t.cams || t.admin || t.vitals || t.button, ic = t.fix || t.task ? ["✋", T("Use", "Benutzen")] : t.cams ? ["📹", T("Cameras", "Kameras")] : t.admin ? ["🗺️", T("Admin", "Lageplan")] : t.vitals ? ["💓", T("Vitals", "Vitalwerte")] : t.button ? ["🚨", T("Meeting", "Meeting")] : ["✋", T("Use", "Benutzen")]; B.push(`<button class="np-act main ${use ? "on" : ""}" data-x="use" ${use ? "" : "disabled"}>${ic[0]}<span>${ic[1]}</span></button>`); }
         }
@@ -607,6 +619,7 @@
       let h = "";
       if (v.phase === "play" && this.intro()){ const line = v.imp ? v.mates : this.pl().map(p => p.id);
         h = `<div class="np-role ${v.imp ? "imp" : ""}"><div class="np-k">${T("You are", "Du bist")}</div><div class="np-rbig" ${v.role && !v.imp ? 'style="font-size:min(11vw,62px)"' : ""}>${v.imp ? "Natposter" : v.role ? ROLES[v.role].e + " " + esc(T(ROLES[v.role].en, ROLES[v.role].de)) : "Crew"}</div>${v.role ? `<div class="np-rdesc">${esc(T(ROLES[v.role].den, ROLES[v.role].dde))}</div>` : ""}<div class="np-lineup">${line.map(id => `<span class="${id === PNet.me ? "me" : ""}"><span class="np-hd">${head(id)}</span><b>${nm(id)}</b></span>`).join("")}</div><p>${v.imp ? T("Kill the crew. Don't get caught.", "Töte die Crew. Lass dich nicht erwischen.") : T(`There ${v.nImp > 1 ? "are" : "is"} ${v.nImp || 1} Natposter${v.nImp > 1 ? "s" : ""} among you.`, `Unter euch ${v.nImp > 1 ? "sind" : "ist"} ${v.nImp || 1} Natposter.`)}</p></div>`; }
+      if (v.dbl && v.dbl.k !== this.dblK){ this.dblK = v.dbl.k; if (now() - (this.dblT || 0) > 2000) this.dblT = now(); }
       if (v.phase === "play" && v.dbl && now() - (this.dblT || 0) < 1800) h = `<div class="np-dbl">${T("DOUBLE KILL", "DOPPELKILL")}</div>`;
       if (v.phase === "play" && v.killedBy && !this.shown["k" + v.killedBy.k] && (this.deathT = this.deathT || {}) && (this.deathT[v.killedBy.k] = this.deathT[v.killedBy.k] || now()) && now() - this.deathT[v.killedBy.k] < 3200) h = this.deathHTML(v.killedBy);
       else if (v.phase === "play" && v.killedBy && !this.shown["k" + v.killedBy.k]){ h = `<div class="np-killed"><div class="np-kface">${head(v.killedBy.by)}</div><i class="np-slash"></i><i class="np-splat"></i><i class="np-drips">${[8, 19, 33, 47, 58, 71, 86].map((x, i) => `<b style="left:${x}%;--d:${.6 + (i % 3) * .25}s;--h:${30 + (i * 37) % 55}%;width:${6 + (i * 5) % 9}px"></b>`).join("")}</i><div class="np-big">${T("You were killed", "Du wurdest getötet")}</div><p>${T(`by ${nm(v.killedBy.by)}. You're a ghost now: finish your tasks.`, `von ${nm(v.killedBy.by)}. Du bist jetzt ein Geist: Mach deine Aufgaben fertig.`)}</p><button class="btn go" data-x="seen" data-v="k${v.killedBy.k}">OK</button></div>`; }
@@ -627,13 +640,13 @@
       if (v.phase === "end" && v.win === "jest"){ const mine = v.jw === PNet.me;
         h = `<div class="np-card jest"><div class="np-k">${mine ? T("Victory", "Sieg") : T("Defeat", "Niederlage")}</div><div class="np-big">🃏 ${T(`${nm(v.jw)} was the Jester and wins!`, `${nm(v.jw)} war der Narr und gewinnt!`)}</div>
           ${v.stats ? `<div class="np-stats">${v.stats.slice().sort((a, b) => (b.imp - a.imp)).map(r => `<div class="${r.imp ? "imp" : ""} ${r.id === PNet.me ? "me" : ""}"><span class="np-hd sm">${head(r.id)}</span><b>${nm(r.id)}</b>${r.imp ? `<em class="np-tag">Natposter</em>` : r.role ? `<em class="np-tag r">${ROLES[r.role].e} ${esc(T(ROLES[r.role].en, ROLES[r.role].de))}</em>` : ""}</div>`).join("")}</div>` : ""}
-          ${v.host ? `<button class="btn go big" data-x="again">${T("Play again", "Nochmal")}</button><button class="btn ghost" data-x="lobby" style="margin-top:6px">${T("Lobby", "Lobby")}</button>` : `<p class="muted">${T("Waiting for the host…", "Warte auf den Gastgeber…")}</p>`}</div>`; }
+          ${this.endBtns(v)}</div>`; }
       else if (v.phase === "end"){ const crew = v.win !== "imp" && v.win !== "boom" && v.win !== "o2", mine = v.role === "jest" ? false : crew !== v.imp;
         h = `<div class="np-card ${crew ? "" : "imp"}"><div class="np-k">${mine ? T("Victory", "Sieg") : T("Defeat", "Niederlage")}</div><div class="np-big">${crew ? (v.win === "tasks" ? T("Crew wins: all tasks done", "Crew gewinnt: alle Aufgaben erledigt") : T("Crew wins", "Die Crew gewinnt")) : v.win === "boom" ? T("Reactor exploded. Natposter wins", "Reaktor explodiert. Natposter gewinnt") : v.win === "o2" ? T("Out of oxygen. Natposter wins", "Kein Sauerstoff mehr. Natposter gewinnt") : T("Natposter wins", "Natposter gewinnt")}</div>
           ${v.stats ? `<div class="np-stats">${v.stats.slice().sort((a, b) => (b.imp - a.imp) || (b.k - a.k) || (b.t - a.t)).map(r => `<div class="${r.imp ? "imp" : ""} ${r.id === PNet.me ? "me" : ""}"><span class="np-hd sm">${head(r.id)}</span><b>${nm(r.id)}</b>${r.imp ? `<em class="np-tag">Natposter</em>` : r.role ? `<em class="np-tag r">${ROLES[r.role].e} ${esc(T(ROLES[r.role].en, ROLES[r.role].de))}</em>` : ""}
-            <span class="np-st">${r.imp ? `🔪 ${r.k}` : `✅ ${r.t}/${r.tt}`}${r.w ? ` · 👑 ${r.w}` : ""}${!r.alive ? (r.by ? ` · ✝ ${nm(r.by)}` : " · 🚀") : ""}</span></div>`).join("")}</div>`
+            <span class="np-st">${r.imp ? `🔪 ${r.k}` : `✅ ${r.t}/${r.tt}`}${r.w ? ` · 👑 ${r.w}` : ""}${r.gone ? " · 👋" : !r.alive ? (r.by ? ` · ✝ ${nm(r.by)}` : " · 🚀") : ""}</span></div>`).join("")}</div>`
             : `<div class="np-faces">${v.imps.map(id => `<span><span class="np-hd">${head(id)}</span><b>${nm(id)}</b></span>`).join("")}</div>`}
-          ${v.host ? `<button class="btn go big" data-x="again">${T("Play again", "Nochmal")}</button><button class="btn ghost" data-x="lobby" style="margin-top:6px">${T("Lobby", "Lobby")}</button>` : `<p class="muted">${T("Waiting for the host…", "Warte auf den Gastgeber…")}</p>`}</div>`; }
+          ${this.endBtns(v)}</div>`; }
       if (v.phase === "end" && v.stats && this.xpGid !== v.gid && typeof addXP === "function"){ this.xpGid = v.gid; const r = v.stats.find(x => x.id === PNet.me), crew = v.win !== "imp" && v.win !== "boom" && v.win !== "o2", won = r && (v.win === "jest" ? v.jw === r.id : r.role !== "jest" && crew !== r.imp);
         if (r){ let xp = (won ? 30 : 12) + r.k * 6 + r.t * 2 + r.w * 5; if (PNet.P && PNet.P.solo) xp = Math.round(xp / 2); setTimeout(() => { try { addXP(xp, "natposter"); } catch(e) {} }, 1200); } }
       if (this.mapOpen && v.phase === "play") h = this.mapHTML();
@@ -732,10 +745,16 @@
     },
     /* panels on top of the lobby: game settings and your outfit, in landscape like the rest */
     openPanel(k){ this.panel = k; this.joy = null; this.panelDraw(); },
+    endBtns(v){ if (PNet.P && PNet.P.solo) return `<div class="np-qrow" style="margin-top:6px"><button class="btn ghost big" data-x="quit">${T("Leave", "Raus")}</button><button class="btn go big" data-x="again">${T("Play again", "Nochmal")}</button></div>`;
+      return `<button class="btn go big" data-x="tolobby">${T("Back to the lobby", "Zurück in die Lobby")}</button><p class="muted" style="margin:6px 0 0;font-size:13px">${T("Everyone goes back automatically in", "Alle gehen automatisch zurück in")} <span data-cd="endLobby"></span></p>`; },
     async shareLink(){ const P = PNet.P; if (!P) return; const url = PNet.link(P.code); try { if (navigator.share){ await navigator.share({title: "Natposter", url}); return; } } catch(e) { if (e && e.name === "AbortError") return; } try { await navigator.clipboard.writeText(url); toast(T("Link copied", "Link kopiert")); } catch(e) {} },
     closePanel(){ this.panel = null; const pn = this.el && this.el.querySelector(".np-panel"); if (pn){ pn.classList.remove("on"); pn.innerHTML = ""; } },
     panelDraw(){ const pn = this.el && this.el.querySelector(".np-panel"); if (!pn || !this.panel) return; pn.classList.add("on");
       const head = t => `<div class="np-ph"><b>${t}</b><button class="np-x" data-x="pclose">×</button></div>`;
+      if (this.panel === "quit"){ const P = PNet.P, solo = P && P.solo, host = P && P.isHost && !solo, inGame = this.v && this.v.phase !== "lobby";
+        pn.innerHTML = `<div class="np-pbox np-qbox"><div class="np-qic">🚪</div><b class="np-qt">${inGame ? T("Leave the game?", "Spiel verlassen?") : T("Leave the lobby?", "Lobby verlassen?")}</b>
+          <p class="muted">${solo ? T("The practice round ends.", "Die Übungsrunde endet.") : host ? T("The others play on. Someone else becomes the host.", "Die anderen spielen weiter. Jemand anderes wird Gastgeber.") : T("You can come back with the invite.", "Mit der Einladung kommst du wieder rein.")}</p>
+          <div class="np-qrow"><button class="btn ghost big" data-x="pclose">${T("Stay", "Bleiben")}</button><button class="btn big np-qyes" data-x="qyes">${T("Leave", "Verlassen")}</button></div></div>`; return; }
       if (this.panel === "inv"){ const P = PNet.P, m = this.m || {}, code = P && P.code ? P.code : ""; if (pn._inv === code && pn.querySelector(".np-inv")) return; pn._inv = code;
         pn.innerHTML = `<div class="np-pbox inv">${head("📨 " + T("Invite", "Einladen"))}<div class="np-inv"><div class="np-invl"><div class="np-iqr"></div><b class="np-icode">${esc(code.toUpperCase())}</b><button class="np-chip on" data-x="pshare">🔗 ${T("Share link", "Link teilen")}</button></div><div class="np-invr list"></div></div></div>`;
         try { PG.qr(PNet.link(code)).then(svg => { const q = pn.querySelector(".np-iqr"); if (q) q.innerHTML = svg; }); } catch(e) {}
@@ -776,19 +795,21 @@
       const cw = (this.el && this.el.clientWidth) || innerWidth, chh = (this.el && this.el.clientHeight) || innerHeight, iv = k => (this.el && parseFloat(this.el.style.getPropertyValue("--" + k))) || 0, sc = Math.min((cw - 44 - iv("sl") - iv("sr")) / W, (chh - 100 - iv("st") - iv("sb")) / H), mw = Math.round(W * sc), mh = Math.round(H * sc);
       const scd = this.left("sabCd"), dcd = this.left("doorCd"), sabOk = scd <= 0 && !v.sab, doorOk = dcd <= 0;
       const SAB = [["lights", "💡", "ele"], ["comms", "📡", "com"], ["reactor", "☢️", "rea"], ["o2", "🫁", "o2"]];
-      const imp = v.imp ? SAB.map(([k, e, rid]) => { const r = ROOMS.find(x => x.id === rid), x = r.x + r.w / 2, y = r.y + r.h / 2 + 50;
+      const imp = v.imp ? SAB.map(([k, e, rid]) => { const r = ROOMS.find(x => x.id === rid), x = rid === "rea" ? 340 : r.x + r.w / 2, y = rid === "rea" ? 905 : r.y + r.h / 2 + 50;
           return `<g ${sabOk ? `data-x="sab" data-v="${k}"` : ""} class="np-msab ${sabOk ? "" : "off"}"><circle cx="${x}" cy="${y}" r="62" fill="${sabOk ? "#E2523E" : "#4a4640"}" stroke="#211F1C" stroke-width="8"/><text x="${x}" y="${y + 22}" font-size="62" text-anchor="middle">${e}</text></g>`; }).join("")
         + ROOMS.filter(r => r.id !== "caf").map(r => { const x = r.x + r.w - 50, y = r.y + r.h - 50, shut = v.doors && v.doors[r.id];
           return `<g ${doorOk ? `data-x="door" data-v="${r.id}"` : ""} class="np-mdoor ${doorOk ? "" : "off"}"><rect x="${x - 34}" y="${y - 34}" width="68" height="68" rx="14" fill="${shut ? "#7FB24A" : doorOk ? "#5f5a52" : "#3D3A35"}"/><text x="${x}" y="${y + 18}" font-size="46" text-anchor="middle">🚪</text></g>`; }).join("") : "";
       const cd = v.imp && (scd > 0 || dcd > 0) ? `<div class="np-mcd">${scd > 0 ? `⚡ <span data-cd="sabCd"></span>` : ""} ${dcd > 0 ? `🚪 <span data-cd="doorCd"></span>` : ""}</div>` : "";
-      return `<div class="np-map np-mapx"><button class="np-x np-mclose" data-x="map">×</button>${cd}<svg viewBox="0 0 ${W} ${H}" style="width:${mw}px!important;height:${mh}px!important;max-height:none!important;max-width:none!important;margin:0!important">${AREAS.map(a => `<rect x="${a.x}" y="${a.y}" width="${a.w}" height="${a.h}" fill="#3D3A35" stroke="#211F1C" stroke-width="10"/>`).join("")}
+      const solid = OBST.map(o => `<circle cx="${o.x}" cy="${o.y}" r="${o.r}" fill="#16151a" stroke="#8C867C" stroke-width="5"/>`).join("") + OBR.map(o => `<rect x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" rx="6" fill="#16151a" stroke="#8C867C" stroke-width="5"/>`).join("");
+      const vents = VENTS.map(vt => `<rect x="${vt.x - 20}" y="${vt.y - 13}" width="40" height="26" rx="5" fill="#26241f" stroke="#5f5a52" stroke-width="3"/>`).join("");
+      return `<div class="np-map np-mapx"><button class="np-x np-mclose" data-x="map">×</button>${cd}<svg viewBox="0 0 ${W} ${H}" style="width:${mw}px!important;height:${mh}px!important;max-height:none!important;max-width:none!important;margin:0!important">${AREAS.map(a => `<rect x="${a.x}" y="${a.y}" width="${a.w}" height="${a.h}" fill="#4a463f" stroke="#211F1C" stroke-width="10"/>`).join("")}${AREAS.map(a => `<rect x="${a.x + 5}" y="${a.y + 5}" width="${a.w - 10}" height="${a.h - 10}" fill="#4a463f"/>`).join("")}${vents}${solid}
         ${mine.map(t => `<circle cx="${t.x}" cy="${t.y}" r="26" fill="#E9B64A" stroke="#211F1C" stroke-width="6"/>`).join("")}${Object.keys(FIX).filter(k => needFix(v.sab, k)).map(k => `<circle cx="${FIX[k].x}" cy="${FIX[k].y}" r="34" fill="#E2523E" stroke="#211F1C" stroke-width="6"/>`).join("")}${v.ev ? v.ev.pads.map(pd => `<circle cx="${pd.x}" cy="${pd.y}" r="30" fill="#5AD1E0" stroke="#211F1C" stroke-width="6"/>`).join("") : ""}
         ${imp}${this.mapLabels(mine, v)}<circle cx="${this.me.x}" cy="${this.me.y}" r="34" fill="#8FC458" stroke="#fff" stroke-width="8"/></svg></div>`; },
     mapLabels(mine, v){
       const M = [], add = (x, y, r) => M.push([x - r, y - r, x + r, y + r]);
       mine.forEach(t => add(t.x, t.y, 30)); Object.keys(FIX).filter(k => needFix(v.sab, k)).forEach(k => add(FIX[k].x, FIX[k].y, 38)); if (v.ev) v.ev.pads.forEach(pd => add(pd.x, pd.y, 34));
-      if (v.imp){ [["lights", "ele"], ["comms", "com"], ["reactor", "rea"], ["o2", "o2"]].forEach(([k, rid]) => { const r = ROOMS.find(x => x.id === rid); add(r.x + r.w / 2, r.y + r.h / 2 + 50, 66); }); ROOMS.filter(r => r.id !== "caf").forEach(r => add(r.x + r.w - 50, r.y + r.h - 50, 38)); }
-      add(this.me.x, this.me.y, 42);
+      if (v.imp){ [["lights", "ele"], ["comms", "com"], ["reactor", "rea"], ["o2", "o2"]].forEach(([k, rid]) => { const r = ROOMS.find(x => x.id === rid); add(rid === "rea" ? 340 : r.x + r.w / 2, rid === "rea" ? 905 : r.y + r.h / 2 + 50, 66); }); ROOMS.filter(r => r.id !== "caf").forEach(r => add(r.x + r.w - 50, r.y + r.h - 50, 38)); }
+      add(this.me.x, this.me.y, 42); OBST.forEach(o => add(o.x, o.y, o.r + 4)); OBR.forEach(o => M.push([o.x - 4, o.y - 4, o.x + o.w + 4, o.y + o.h + 4]));
       const cx = this.mctx || (this.mctx = document.createElement("canvas").getContext("2d")); cx.font = "800 40px Figtree,system-ui,sans-serif";
       const hit = b => M.some(m => m[0] < b[2] && m[2] > b[0] && m[1] < b[3] && m[3] > b[1]), LP = this.lblPos || (this.lblPos = {});
       return ROOMS.map(r => { const n = RN(r), tw = Math.min(r.w - 24, cx.measureText(n).width + 36), hh = 58, mx = r.x + r.w / 2;
@@ -938,13 +959,14 @@
       /* reactor core */
       const t = now() / 600; c.fillStyle = "#1B1A18"; c.beginPath(); c.arc(240, 800, 92, 0, 7); c.fill(); const g = c.createRadialGradient(240, 800, 10, 240, 800, 80); g.addColorStop(0, "#d6ffb0"); g.addColorStop(.5, `rgba(127,178,74,${.7 + Math.sin(t) * .2})`); g.addColorStop(1, "rgba(127,178,74,0)"); c.fillStyle = g; c.beginPath(); c.arc(240, 800, 80, 0, 7); c.fill();
       /* medbay beds, lab benches, storage crates, oxygen plants, bridge window */
-      c.fillStyle = "#4a4640"; [[340, 250], [340, 340]].forEach(([x, y]) => c.fillRect(x, y, 150, 60)); c.fillStyle = "#F4F2EE"; [[350, 260], [350, 350]].forEach(([x, y]) => c.fillRect(x, y, 40, 40));
-      c.fillStyle = "#4a4640"; [[1060, 1250, 160, 60], [1300, 1250, 160, 60], [1060, 1360, 160, 60]].forEach(([x, y, w, h]) => c.fillRect(x, y, w, h)); c.fillStyle = "#5AA3E0"; [[1080, 1262], [1120, 1262], [1320, 1262], [1360, 1262]].forEach(([x, y]) => { c.beginPath(); c.arc(x, y + 18, 12, 0, 7); c.fill(); });
-      [[1180, 700], [1260, 700], [1180, 770], [1400, 840], [1330, 900]].forEach(([x, y]) => { c.fillStyle = "#6b5a3e"; c.fillRect(x, y, 64, 56); c.strokeStyle = "#4e4130"; c.lineWidth = 4; c.strokeRect(x + 4, y + 4, 56, 48); c.beginPath(); c.moveTo(x + 4, y + 4); c.lineTo(x + 60, y + 52); c.stroke(); });
+      c.globalAlpha = .45; c.fillStyle = "#4a4640"; [[340, 250], [340, 340]].forEach(([x, y]) => c.fillRect(x, y, 150, 60)); c.fillStyle = "#F4F2EE"; [[350, 260], [350, 350]].forEach(([x, y]) => c.fillRect(x, y, 40, 40));
+      c.fillStyle = "#4a4640"; [[1060, 1250, 160, 60], [1300, 1250, 160, 60], [1060, 1360, 160, 60]].forEach(([x, y, w, h]) => c.fillRect(x, y, w, h)); c.fillStyle = "#5AA3E0"; [[1080, 1262], [1120, 1262], [1320, 1262], [1360, 1262]].forEach(([x, y]) => { c.beginPath(); c.arc(x, y + 18, 12, 0, 7); c.fill(); }); c.globalAlpha = 1;
+      c.fillStyle = "rgba(0,0,0,.38)"; OBR.forEach(o => c.fillRect(o.x + 5, o.y + 9, o.w, o.h)); OBST.forEach(o => { c.beginPath(); c.ellipse(o.x + 4, o.y + 10, o.r + 4, o.r + 2, 0, 0, 7); c.fill(); });
+      OBR.slice(0, 4).map(o => [o.x, o.y]).forEach(([x, y]) => { c.fillStyle = "#6b5a3e"; c.fillRect(x, y, 64, 56); c.strokeStyle = "#4e4130"; c.lineWidth = 4; c.strokeRect(x + 4, y + 4, 56, 48); c.beginPath(); c.moveTo(x + 4, y + 4); c.lineTo(x + 60, y + 52); c.stroke(); });
       [[1700, 800], [1860, 760], [1800, 880]].forEach(([x, y]) => { c.fillStyle = "#4F7A2A"; c.beginPath(); c.arc(x, y, 30, 0, 7); c.fill(); c.fillStyle = "#7FB24A"; c.beginPath(); c.arc(x - 6, y - 6, 18, 0, 7); c.fill(); });
-      c.fillStyle = "#0B0C12"; c.fillRect(2420, 660, 16, 280); c.fillStyle = "#4a4640"; c.fillRect(2240, 760, 120, 70);
+      c.fillStyle = "#0B0C12"; c.fillRect(2420, 660, 16, 280); c.fillStyle = "#5a554d"; c.fillRect(2240, 760, 120, 70); c.fillStyle = "#8C867C"; c.fillRect(2240, 760, 120, 8);
       /* comms dish, nav console, electrical panels */
-      c.strokeStyle = "#BAB5AC"; c.lineWidth = 6; c.beginPath(); c.arc(1980, 330, 60, Math.PI * .9, Math.PI * 2.1); c.stroke(); c.fillStyle = "#4a4640"; c.fillRect(1900, 1300, 160, 60); c.fillRect(330, 1180, 60, 120); c.fillRect(560, 1180, 60, 120);
+      c.strokeStyle = "#BAB5AC"; c.lineWidth = 6; c.beginPath(); c.arc(1980, 330, 60, Math.PI * .9, Math.PI * 2.1); c.stroke(); c.fillStyle = "#5a554d"; c.fillRect(1900, 1300, 160, 60); c.fillStyle = "#8C867C"; c.fillRect(1900, 1300, 160, 8); c.fillStyle = "#4a4640"; c.fillRect(330, 1180, 60, 120); c.fillRect(560, 1180, 60, 120);
       /* comms: server racks with blinking lights */
       [[1880, 200], [1930, 200]].forEach(([x, y], i) => { c.fillStyle = "#1B1A18"; c.fillRect(x, y, 40, 100); for (let j = 0; j < 6; j++){ c.fillStyle = (Math.floor(t * 3 + j * 1.7 + i) % 3) ? "#3a3631" : j % 2 ? "#8FC458" : "#E9B64A"; c.fillRect(x + 6, y + 8 + j * 15, 6, 6); c.fillStyle = "#2B2926"; c.fillRect(x + 16, y + 8 + j * 15, 18, 6); } });
       /* reactor: warning stripes and pipes to the two panels */
@@ -977,7 +999,7 @@
       const dt = Math.min(.1, (t - e.t) / 1000); e.t = t; if (e.v !== f){ const d = f - e.v, st = dt * 12; e.v = Math.abs(d) <= st ? f : e.v + Math.sign(d) * st; }
       const v = e.v; return Math.abs(v) < .12 ? (v < 0 ? -.12 : .12) : v; },
     /* how far someone is into a vent: 0 = standing, 1 = gone */
-    beamSnd(me){ if (now() - (this.bsT || 0) < 400) return; this.bsT = now(); const x = this.sfx; if (!x) return; try { x.tone(0, 240, 1400, .75, .06, "sine"); x.tone(.18, 700, 2100, .5, .035, "triangle"); x.tone(.5, 1760, 1760, .25, .03, "sine"); } catch(e) {} if (!me) Haptic.go(12); },
+    beamSnd(me){ if (now() - (this.bsT || 0) < 400) return; this.bsT = now(); const x = this.sfx; if (!x) return; try { x.tone(0, 520, 1040, .9, .025, "sine"); x.chord(.25, [79, 83, 86], .7, .02, "sine"); } catch(e) {} if (!me) Haptic.go(10); },
     ventK(q){ const T0 = 380, a = now() - (q.vt || 0); if (q.v) return a >= T0 ? 1 : a / T0; return a >= T0 ? 0 : 1 - a / T0; },
     figure(c, x, y, p, o){
       const im = avImg(p.id, p.av), h = 118, w = h * 200 / 256, bob = o.mv ? Math.sin(now() / 90) * 3 : 0;
@@ -998,21 +1020,23 @@
         if (k === "shot"){ c.fillStyle = "#1a0705"; [[-20, 4], [6, -10], [14, 12]].forEach(([a, b]) => { c.beginPath(); c.arc(a, b, 5, 0, 7); c.fill(); }); }
         c.restore(); return; }
       const BM = this.beams || (this.beams = {}); if (BM[p.id] == null){ const lob = this.v && this.v.phase === "lobby"; BM[p.id] = lob ? now() : 0; if (lob) this.beamSnd(p.id === PNet.me); }
-      let fa = 1, fsy = 1; const bk = BM[p.id] ? (now() - BM[p.id]) / 1400 : 1;
-      if (bk < 1){ const a = bk < .75 ? 1 : (1 - bk) / .25, wd = 36 + 64 * Math.sin(Math.min(1, bk * 1.3) * Math.PI);
-        const g = c.createLinearGradient(0, -340, 0, 20); g.addColorStop(0, "rgba(120,210,255,0)"); g.addColorStop(.6, `rgba(160,225,255,${.42 * a})`); g.addColorStop(1, `rgba(225,247,255,${.85 * a})`); c.fillStyle = g; c.fillRect(-wd / 2, -340, wd, 356);
-        c.strokeStyle = "rgb(200,240,255)"; c.lineWidth = 3; [0, .33, .66].forEach(q => { const r = (bk * 2.2 + q) % 1; c.globalAlpha = (1 - r) * a; c.beginPath(); c.ellipse(0, 16, 22 + r * 54, 7 + r * 17, 0, 0, 7); c.stroke(); });
-        c.globalAlpha = a; c.fillStyle = "#fff"; for (let i = 0; i < 10; i++){ const sd = (i * 37 % 11) / 11, yy = 12 - ((bk * 1.7 + sd) % 1) * 280; c.fillRect(Math.sin(i * 2.3) * wd * .42 - 2, yy, 4, 4); }
-        c.globalAlpha = 1; fa = Math.max(0, Math.min(1, (bk - .18) / .45)); fsy = 1 + (1 - fa) * .9; if (fa <= 0){ c.restore(); return; } c.globalAlpha = fa; }
+      let rev = null; const bk = BM[p.id] ? (now() - BM[p.id]) / 1500 : 1;
+      if (bk < 1){ const a = bk < .7 ? Math.min(1, bk * 5) : (1 - bk) / .3;
+        const g = c.createRadialGradient(0, 14, 4, 0, 14, 74); g.addColorStop(0, `rgba(205,240,255,${.75 * a})`); g.addColorStop(.45, `rgba(120,200,255,${.32 * a})`); g.addColorStop(1, "rgba(120,200,255,0)"); c.fillStyle = g; c.beginPath(); c.ellipse(0, 14, 74, 26, 0, 0, 7); c.fill();
+        const k2 = Math.min(1, Math.max(0, (bk - .08) / .55)); rev = 18 - k2 * (h + 6);
+        if (k2 < 1){ c.save(); c.shadowColor = "rgba(160,225,255,.9)"; c.shadowBlur = 14; c.fillStyle = `rgba(235,250,255,${.9 * a})`; c.fillRect(-w * .42, rev - 2, w * .84, 3); c.restore(); }
+        for (let i = 0; i < 9; i++){ const ph = (i / 9) * Math.PI * 2 + bk * 5, rr = 64 * (1 - Math.min(1, bk * 1.4)) + 6, yy = -h * .45 + Math.sin(ph * 1.3) * h * .35; c.globalAlpha = a * .8 * (1 - Math.min(1, bk * 1.4)); c.fillStyle = "#dff6ff"; c.beginPath(); c.arc(Math.cos(ph) * rr, yy, 2.4, 0, 7); c.fill(); }
+        if (bk > .62){ const r2 = (bk - .62) / .38; c.globalAlpha = (1 - r2) * .7; c.strokeStyle = "#cdefff"; c.lineWidth = 2.5; c.beginPath(); c.ellipse(0, 14, 26 + r2 * 46, 8 + r2 * 14, 0, 0, 7); c.stroke(); }
+        c.globalAlpha = 1; }
       if (o.ghost){ c.globalAlpha = .45; y += Math.sin(now() / 400) * 6; }
       if (o.sc){ const k = (now() / 900) % 1, yy = 10 - k * (h - 10); c.fillStyle = "rgba(127,178,74,.18)"; c.beginPath(); c.ellipse(0, 14, 44, 14, 0, 0, 7); c.fill(); c.fillStyle = "rgba(143,196,88,.55)"; c.fillRect(-40, yy, 80, 5); c.strokeStyle = "rgba(143,196,88,.7)"; c.lineWidth = 3; c.beginPath(); c.ellipse(0, 14, 44, 14, 0, 0, 7); c.stroke(); }
       c.fillStyle = "rgba(0,0,0,.3)"; c.beginPath(); c.ellipse(0, 16, 26, 8, 0, 0, 7); c.fill();
       if (o.me){ c.strokeStyle = "rgba(143,196,88,.8)"; c.lineWidth = 3; c.beginPath(); c.ellipse(0, 16, 30, 10, 0, 0, 7); c.stroke(); }
       const fs = this.faceOf(p.id, o.f || 1), vk = o.vk || 0;
       if (vk > 0){ c.save(); c.beginPath(); c.rect(-w, -h * 2, w * 2, h * 2 + 16); c.clip(); c.translate(0, vk * (h - 4)); }
-      c.save(); c.scale(fs / fsy, fsy);
+      c.save(); if (rev != null){ c.beginPath(); c.rect(-w, rev, w * 2, h * 2); c.clip(); } c.scale(fs, 1);
       if (im.complete && im.naturalWidth) c.drawImage(im, -w / 2, -h + 18 + bob, w, h); else { c.fillStyle = "#BAB5AC"; c.beginPath(); c.arc(0, -30, 26, 0, 7); c.fill(); }
-      c.restore(); if (vk > 0){ c.restore(); if (vk > .55){ c.restore(); return; } }
+      c.restore(); if (rev != null && rev > -h + 10) c.globalAlpha = Math.max(0, Math.min(1, (18 - rev) / h)); if (vk > 0){ c.restore(); if (vk > .55){ c.restore(); return; } }
       /* the pet from the avatar flies along beside you */
       if (p.av && p.av.pet && p.av.pet !== "none" && !o.ghost){ const pi = petImg(p.av); if (pi && pi.complete && pi.naturalWidth){ const t2 = now() / 400 + (p.id.charCodeAt(0) || 0), px = -(o.f || 1) * 48 + Math.cos(t2) * 6, py = -70 + Math.sin(t2 * 1.7) * 7; c.drawImage(pi, px - 18, py - 23, 36, 46); } }
       if (this.v && this.v.phase === "lobby" && !o.body){ const q = POS[p.id]; if ((q && q.rdy) || (p.id === PNet.me && this.ready)){ c.fillStyle = "#7FB24A"; c.beginPath(); c.arc(30, -h + 8 + bob, 13, 0, 7); c.fill(); c.strokeStyle = "#fff"; c.lineWidth = 4; c.beginPath(); c.moveTo(24, -h + 8 + bob); c.lineTo(29, -h + 13 + bob); c.lineTo(37, -h + 2 + bob); c.stroke(); } }
@@ -1150,6 +1174,8 @@ html.np-on .dsheet{z-index:2800!important}html.np-on .toast{z-index:2900!importa
 .np-mini.walk{pointer-events:none;background:transparent;align-items:flex-start;justify-content:flex-end;padding-top:calc(var(--st,0px) + 60px);padding-right:calc(var(--sr,0px) + 12px)}.np-mini.walk>*{pointer-events:auto;max-width:min(460px,60%);max-height:calc(var(--h,100vh) - 90px);overflow:auto}
 .np-act.sabb{background:#5a1e17;color:#FFD9D2}.np-act.sabb.on{background:var(--bad);color:#fff}.np-sabq{font-size:24px}
 .np-panel{position:absolute;inset:0;z-index:9;display:none;align-items:center;justify-content:center;background:rgba(6,7,12,.6);padding:calc(var(--st,0px) + 10px) calc(var(--sr,0px) + 10px) calc(var(--sb,0px) + 10px) calc(var(--sl,0px) + 10px)}.np-panel.on{display:flex}
+.np-qbox{width:min(420px,100%);text-align:center;padding:22px 20px 18px}.np-qic{font-size:40px;line-height:1}.np-qt{display:block;font:900 22px var(--display);margin:8px 0 4px}.np-qbox p{margin:0 0 16px}
+.np-qrow{display:flex;gap:10px}.np-qrow .btn{flex:1;margin:0}.np-qyes{background:var(--bad)!important;color:#fff!important;box-shadow:inset 0 -4px 0 #8f2a1d!important}
 .np-pbox.inv{width:min(640px,100%)}.np-inv{display:flex;gap:16px;align-items:flex-start;min-height:0}.np-invl{display:flex;flex-direction:column;align-items:center;gap:8px;flex:0 0 auto}
 .np-iqr{width:150px;height:150px;background:#fff;border-radius:12px;padding:8px}.np-iqr svg{width:100%;height:100%;display:block}.np-icode{font:900 26px var(--mono);letter-spacing:.14em}
 .np-invr{flex:1;min-width:0;max-height:calc(var(--h,100vh) - var(--st,0px) - var(--sb,0px) - 110px);overflow:auto;margin:0}.np-invr .li{padding:8px 4px}
