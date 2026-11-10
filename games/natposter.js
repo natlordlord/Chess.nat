@@ -333,7 +333,7 @@
     full(){ if (PG.st.npNoFull) return; const d = document.documentElement; try { if (document.fullscreenElement || document.webkitFullscreenElement) return;
         const go = d.requestFullscreen ? d.requestFullscreen({navigationUI: "hide"}) : d.webkitRequestFullscreen ? d.webkitRequestFullscreen() : null;
         if (go && go.then) go.then(() => { try { screen.orientation && screen.orientation.lock && screen.orientation.lock("landscape").catch(() => {}); } catch(e) {} }).catch(() => {}); } catch(e) {} },
-    insets(){ try { const d = document.createElement("div"); d.style.cssText = "position:fixed;top:0;left:0;visibility:hidden;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)"; document.body.appendChild(d); const cs = getComputedStyle(d), r = {t: parseFloat(cs.paddingTop) || 0, r: parseFloat(cs.paddingRight) || 0, b: parseFloat(cs.paddingBottom) || 0, l: parseFloat(cs.paddingLeft) || 0}; d.remove(); return r; } catch(e) { return {t: 0, r: 0, b: 0, l: 0}; } },
+    insets(){ if (window.__npIns) return window.__npIns; try { const d = document.createElement("div"); d.style.cssText = "position:fixed;top:0;left:0;visibility:hidden;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)"; document.body.appendChild(d); const cs = getComputedStyle(d), r = {t: parseFloat(cs.paddingTop) || 0, r: parseFloat(cs.paddingRight) || 0, b: parseFloat(cs.paddingBottom) || 0, l: parseFloat(cs.paddingLeft) || 0}; d.remove(); return r; } catch(e) { return {t: 0, r: 0, b: 0, l: 0}; } },
     /* only when the page really reaches under the status bar may the game be as tall as the screen */
     sat(){ try { const d = document.createElement("div"); d.style.cssText = "position:fixed;top:0;left:0;width:1px;height:var(--st,0px);height:max(var(--st,0px),var(--sl,0px),var(--sr,0px));visibility:hidden"; document.body.appendChild(d); const h = d.offsetHeight; d.remove(); return h; } catch(e) { return 0; } },
     unfull(){ try { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); else if (document.webkitFullscreenElement && document.webkitExitFullscreen) document.webkitExitFullscreen(); } catch(e) {} },
@@ -764,7 +764,7 @@
     },
     /* the map: as big as the screen allows, centred; tap next to it to close. The Natposter sabotages and shuts doors right on it. */
     mapHTML(){ const v = this.v, mine = (v.imp || (v.sab && v.sab.type === "comms") ? [] : v.tasks).filter(([t, d]) => !d).map(([t]) => TASKS.find(x => x.id === t));
-      const cw = (this.el && this.el.clientWidth) || innerWidth, chh = (this.el && this.el.clientHeight) || innerHeight, sc = Math.min((cw - 44) / W, (chh - 44) / H), mw = Math.round(W * sc), mh = Math.round(H * sc);
+      const cw = (this.el && this.el.clientWidth) || innerWidth, chh = (this.el && this.el.clientHeight) || innerHeight, iv = k => (this.el && parseFloat(this.el.style.getPropertyValue("--" + k))) || 0, sc = Math.min((cw - 44 - iv("sl") - iv("sr")) / W, (chh - 100 - iv("st") - iv("sb")) / H), mw = Math.round(W * sc), mh = Math.round(H * sc);
       const scd = this.left("sabCd"), dcd = this.left("doorCd"), sabOk = scd <= 0 && !v.sab, doorOk = dcd <= 0;
       const SAB = [["lights", "💡", "ele"], ["comms", "📡", "com"], ["reactor", "☢️", "rea"], ["o2", "🫁", "o2"]];
       const imp = v.imp ? SAB.map(([k, e, rid]) => { const r = ROOMS.find(x => x.id === rid), x = r.x + r.w / 2, y = r.y + r.h / 2 + 50;
@@ -773,9 +773,19 @@
           return `<g ${doorOk ? `data-x="door" data-v="${r.id}"` : ""} class="np-mdoor ${doorOk ? "" : "off"}"><rect x="${x - 34}" y="${y - 34}" width="68" height="68" rx="14" fill="${shut ? "#7FB24A" : doorOk ? "#5f5a52" : "#3D3A35"}"/><text x="${x}" y="${y + 18}" font-size="46" text-anchor="middle">🚪</text></g>`; }).join("") : "";
       const cd = v.imp && (scd > 0 || dcd > 0) ? `<div class="np-mcd">${scd > 0 ? `⚡ <span data-cd="sabCd"></span>` : ""} ${dcd > 0 ? `🚪 <span data-cd="doorCd"></span>` : ""}</div>` : "";
       return `<div class="np-map np-mapx"><button class="np-x np-mclose" data-x="map">×</button>${cd}<svg viewBox="0 0 ${W} ${H}" style="width:${mw}px!important;height:${mh}px!important;max-height:none!important;max-width:none!important;margin:0!important">${AREAS.map(a => `<rect x="${a.x}" y="${a.y}" width="${a.w}" height="${a.h}" fill="#3D3A35" stroke="#211F1C" stroke-width="10"/>`).join("")}
-        ${ROOMS.map(r => `<text x="${r.x + r.w / 2}" y="${r.y + 70}" fill="#BAB5AC" font-size="44" font-weight="800" text-anchor="middle" font-family="Figtree,sans-serif">${esc(RN(r))}</text>`).join("")}
-        ${mine.map(t => `<circle cx="${t.x}" cy="${t.y}" r="26" fill="#E9B64A"/>`).join("")}${Object.keys(FIX).filter(k => needFix(v.sab, k)).map(k => `<circle cx="${FIX[k].x}" cy="${FIX[k].y}" r="34" fill="#E2523E"/>`).join("")}${v.ev ? v.ev.pads.map(pd => `<circle cx="${pd.x}" cy="${pd.y}" r="30" fill="#5AD1E0"/>`).join("") : ""}
-        ${imp}<circle cx="${this.me.x}" cy="${this.me.y}" r="34" fill="#8FC458" stroke="#fff" stroke-width="8"/></svg></div>`; },
+        ${mine.map(t => `<circle cx="${t.x}" cy="${t.y}" r="26" fill="#E9B64A" stroke="#211F1C" stroke-width="6"/>`).join("")}${Object.keys(FIX).filter(k => needFix(v.sab, k)).map(k => `<circle cx="${FIX[k].x}" cy="${FIX[k].y}" r="34" fill="#E2523E" stroke="#211F1C" stroke-width="6"/>`).join("")}${v.ev ? v.ev.pads.map(pd => `<circle cx="${pd.x}" cy="${pd.y}" r="30" fill="#5AD1E0" stroke="#211F1C" stroke-width="6"/>`).join("") : ""}
+        ${imp}${this.mapLabels(mine, v)}<circle cx="${this.me.x}" cy="${this.me.y}" r="34" fill="#8FC458" stroke="#fff" stroke-width="8"/></svg></div>`; },
+    mapLabels(mine, v){
+      const M = [], add = (x, y, r) => M.push([x - r, y - r, x + r, y + r]);
+      mine.forEach(t => add(t.x, t.y, 30)); Object.keys(FIX).filter(k => needFix(v.sab, k)).forEach(k => add(FIX[k].x, FIX[k].y, 38)); if (v.ev) v.ev.pads.forEach(pd => add(pd.x, pd.y, 34));
+      if (v.imp){ [["lights", "ele"], ["comms", "com"], ["reactor", "rea"], ["o2", "o2"]].forEach(([k, rid]) => { const r = ROOMS.find(x => x.id === rid); add(r.x + r.w / 2, r.y + r.h / 2 + 50, 66); }); ROOMS.filter(r => r.id !== "caf").forEach(r => add(r.x + r.w - 50, r.y + r.h - 50, 38)); }
+      add(this.me.x, this.me.y, 42);
+      const cx = this.mctx || (this.mctx = document.createElement("canvas").getContext("2d")); cx.font = "800 40px Figtree,system-ui,sans-serif";
+      const hit = b => M.some(m => m[0] < b[2] && m[2] > b[0] && m[1] < b[3] && m[3] > b[1]), LP = this.lblPos || (this.lblPos = {});
+      return ROOMS.map(r => { const n = RN(r), tw = Math.min(r.w - 24, cx.measureText(n).width + 36), hh = 58, mx = r.x + r.w / 2;
+        const ys = [r.y + 16, r.y + r.h - 16 - hh, r.y + r.h / 2 - hh / 2 - 40, r.y + r.h / 2 - hh / 2], box = y => [mx - tw / 2, y, mx + tw / 2, y + hh];
+        let i = LP[r.id] != null && !hit(box(ys[LP[r.id]])) ? LP[r.id] : ys.findIndex(y => !hit(box(y))); if (i < 0) i = LP[r.id] != null ? LP[r.id] : 0; LP[r.id] = i; const y = ys[i];
+        return `<g pointer-events="none"><rect x="${mx - tw / 2}" y="${y}" width="${tw}" height="${hh}" rx="${hh / 2}" fill="rgba(20,19,17,.82)"/><text x="${mx}" y="${y + 42}" fill="#E4E0D8" font-size="40" font-weight="800" text-anchor="middle" font-family="Figtree,system-ui,sans-serif" textLength="${tw - 36 < cx.measureText(n).width ? tw - 36 : ""}" lengthAdjust="spacingAndGlyphs">${esc(n)}</text></g>`; }).join(""); },
     /* ---- cameras (Comms) and the admin table (Bridge) ---- */
     openCams(){
       this.closeMini(); const box = this.el.querySelector(".np-mini"), me = {stop: null, light: 1}; this.mini = me; this.joy = null; box.classList.add("on");
@@ -1097,33 +1107,30 @@
   const css = `.np{position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:2700;background:#0B0C12;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;color:var(--fg);font-family:var(--body)}
 html.np-on .tabbar,html.np-on .pg-pill{display:none!important}
 html.np-on .dsheet{z-index:2800!important}html.np-on .toast{z-index:2900!important}
-.np.mapon .np-top{z-index:8}
+.np.mapon .np-top{z-index:8}.np.mapon .np-ov{padding-top:calc(var(--st,0px) + 66px)}.np.mapon .np-mclose{display:none}.np.mapon .np-bar,.np.mapon .np-emob,.np.mapon .np-emos{visibility:hidden}
 .np.rot{transform-origin:top left;transform:rotate(90deg) translateY(-100%)}
-.np.rot .np-top{top:10px;left:calc(var(--st,0px) + 10px);right:calc(var(--sb,0px) + 10px)}
-.np.rot .np-tasks{top:62px;left:calc(var(--st,0px) + 10px)}.np.rot .np-alert{top:62px;right:calc(var(--sb,0px) + 10px)}
-.np.rot .np-btns{bottom:14px;right:calc(var(--sb,0px) + 14px)}
 .np-cv{position:absolute;inset:0;width:100%;height:100%;display:block}
-.np-top{position:absolute;top:calc(var(--st,0px) + 10px);left:10px;right:10px;display:flex;gap:8px;align-items:center;pointer-events:none}
+.np-top{position:absolute;top:calc(var(--st,0px) + 10px);left:calc(var(--sl,0px) + 10px);right:calc(var(--sr,0px) + 10px);display:flex;gap:8px;align-items:center;pointer-events:none}
 .np-top>*{pointer-events:auto}
 .np-menu,.np-mapb{width:44px;height:44px;border-radius:12px;border:0;background:rgba(33,31,28,.85);color:var(--fg);font:900 20px var(--body);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 -3px 0 rgba(0,0,0,.3);cursor:pointer}
 .np-bar{flex:1;height:26px;border-radius:8px;background:rgba(33,31,28,.85);position:relative;overflow:hidden;box-shadow:inset 0 0 0 2px rgba(0,0,0,.35)}
 .np-bar i{position:absolute;inset:0 auto 0 0;background:var(--go);transition:width .4s;width:0}
 .np-bar span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:900 12px var(--body);letter-spacing:.12em;text-shadow:0 1px 2px rgba(0,0,0,.6)}
-.np-tasks{position:absolute;top:calc(var(--st,0px) + 62px);left:10px;max-width:min(260px,60vw);background:rgba(33,31,28,.78);border-radius:10px;padding:8px 10px;font:700 12.5px/1.45 var(--body);pointer-events:none}
+.np-tasks{position:absolute;top:calc(var(--st,0px) + 62px);left:calc(var(--sl,0px) + 10px);max-width:min(260px,60vw);background:rgba(33,31,28,.78);border-radius:10px;padding:8px 10px;font:700 12.5px/1.45 var(--body);pointer-events:none}
 .np-tasks .done{color:var(--go-hi);text-decoration:line-through;opacity:.8}.np-tasks small{display:block;color:var(--muted);font-weight:600}.np-red{color:#F07B68;font:900 15px var(--display)}
-.np-alert{position:absolute;top:calc(var(--st,0px) + 62px);right:10px;left:auto;max-width:min(300px,50vw);background:var(--bad);color:#fff;border-radius:10px;padding:8px 12px;font:800 13.5px var(--body);display:none;animation:npPulse 1s infinite}
+.np-alert{position:absolute;top:calc(var(--st,0px) + 62px);right:calc(var(--sr,0px) + 10px);left:auto;max-width:min(300px,50vw);background:var(--bad);color:#fff;border-radius:10px;padding:8px 12px;font:800 13.5px var(--body);display:none;animation:npPulse 1s infinite}
 .np-alert.on{display:block}.np-alert small{display:block;font-weight:600;opacity:.9}.np-alert b{font:900 18px var(--mono)}
 @keyframes npPulse{50%{filter:brightness(1.25)}}
 .np-joy{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;background:rgba(244,242,238,.08);border:2px solid rgba(244,242,238,.18);display:none;pointer-events:none}
 .np-joy.on{display:block}.np-joy i{position:absolute;left:50%;top:50%;width:54px;height:54px;border-radius:50%;background:rgba(244,242,238,.35);transform:translate(-50%,-50%)}
-.np-btns{position:absolute;right:12px;bottom:calc(var(--sb,0px) + 14px);display:flex;flex-wrap:wrap-reverse;justify-content:flex-end;gap:10px;max-width:220px}
+.np-btns{position:absolute;right:calc(var(--sr,0px) + 12px);bottom:calc(var(--sb,0px) + 14px);display:flex;flex-wrap:wrap-reverse;justify-content:flex-end;gap:10px;max-width:220px}
 .np-act{width:96px;height:96px;border-radius:22px;border:0;background:rgba(61,58,53,.88);color:var(--fg);font-size:36px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:inset 0 -5px 0 rgba(0,0,0,.3);cursor:pointer;opacity:.45;transition:transform .1s}
 .np-act span{font:900 12.5px var(--body);letter-spacing:.04em;text-transform:uppercase}
 .np-act.on{opacity:1}
 .pg-np-hero{display:block;padding:22px 18px;border-radius:14px;margin-top:8px;min-height:0!important;text-align:left}.pg-np-hero .pg-np-ship{font-size:56px}.np-act.main.on{background:var(--go);box-shadow:inset 0 -5px 0 var(--go-deep)}.np-act.kill.on{background:var(--bad);box-shadow:inset 0 -5px 0 #a8382a}.np-act.rep.on{background:#E9B64A;color:#2A1E05}
 .np-act:active,.np-act.pr{transform:scale(.92)}
 .np-ov.pass{pointer-events:none;background:transparent!important}.np-ov.pass .np-map{pointer-events:auto}
-.np-mini.walk{pointer-events:none;background:transparent;align-items:flex-start;justify-content:flex-end;padding-top:calc(var(--st,0px) + 60px)}.np-mini.walk>*{pointer-events:auto;max-width:min(460px,60%);max-height:calc(var(--h,100vh) - 90px);overflow:auto}
+.np-mini.walk{pointer-events:none;background:transparent;align-items:flex-start;justify-content:flex-end;padding-top:calc(var(--st,0px) + 60px);padding-right:calc(var(--sr,0px) + 12px)}.np-mini.walk>*{pointer-events:auto;max-width:min(460px,60%);max-height:calc(var(--h,100vh) - 90px);overflow:auto}
 .np-act.sabb{background:#5a1e17;color:#FFD9D2}.np-act.sabb.on{background:var(--bad);color:#fff}.np-sabq{font-size:24px}
 .np-panel{position:absolute;inset:0;z-index:9;display:none;align-items:center;justify-content:center;background:rgba(6,7,12,.6);padding:calc(var(--st,0px) + 10px) calc(var(--sr,0px) + 10px) calc(var(--sb,0px) + 10px) calc(var(--sl,0px) + 10px)}.np-panel.on{display:flex}
 .np-pbox{width:min(900px,100%);max-height:100%;display:flex;flex-direction:column;background:var(--panel);border-radius:18px;box-shadow:0 18px 50px rgba(0,0,0,.6);overflow:hidden}
@@ -1193,11 +1200,11 @@ html.np-on .xpchip{z-index:2950!important}
 .np-mapx svg{display:block;border-radius:10px}.np-mapx [data-x]{cursor:pointer}.np-mapx g.off{opacity:.45}
 .np-mclose{position:absolute;right:-10px;top:-10px;z-index:2;width:36px;height:36px}
 .np-mcd{position:absolute;left:14px;top:14px;z-index:2;background:rgba(20,19,17,.85);border-radius:999px;padding:3px 10px;font:800 12px var(--mono);color:var(--fg)}
-.np-tbar{position:absolute;left:0;right:0;top:0;height:6px;background:rgba(255,255,255,.08);z-index:9;display:none;pointer-events:none}.np-tbar.on{display:block}
+.np-tbar{position:absolute;left:0;right:0;top:var(--st,0px);height:6px;background:rgba(255,255,255,.08);z-index:9;display:none;pointer-events:none}.np-tbar.on{display:block}
 .np-tbar i{position:absolute;inset:0 auto 0 0;background:var(--go);transition:width .26s linear}
 .np-tbar span{position:absolute;top:10px;left:50%;transform:translateX(-50%);white-space:nowrap;background:rgba(20,19,17,.85);border-radius:999px;padding:3px 12px;font:800 12px var(--body);color:var(--fg);letter-spacing:.02em}
 .np-ev{position:absolute;top:calc(var(--st,0px) + 62px);left:50%;transform:translateX(-50%);max-width:min(420px,70%);background:#1f5560;color:#fff;border-radius:10px;padding:7px 12px;font:800 13.5px var(--body);display:none;text-align:center;box-shadow:0 0 0 2px #5AD1E0,0 6px 18px rgba(0,0,0,.4);pointer-events:none}
-.np-ev.on{display:block}.np-ev.ok{background:var(--go);box-shadow:0 0 0 2px var(--go-hi)}.np-ev small{display:block;font-weight:600;opacity:.92}.np.rot .np-ev{top:62px}
+.np-ev.on{display:block}.np-ev.ok{background:var(--go);box-shadow:0 0 0 2px var(--go-hi)}.np-ev small{display:block;font-weight:600;opacity:.92}
 .np-hold{width:100%;position:relative;overflow:hidden;background:var(--bad)!important;color:#fff!important;box-shadow:inset 0 -4px 0 #a8382a!important;touch-action:none;user-select:none;-webkit-user-select:none}
 .np-hold i{position:absolute;inset:0 auto 0 0;width:0;background:rgba(255,255,255,.3);transition:width .1s}.np-hold.on i{width:100%;transition:width 1.1s linear}.np-hold span{position:relative}
 .np-dbl{font:900 min(13vw,64px)/1 var(--display);color:#E2523E;text-shadow:0 0 30px rgba(226,82,62,.8),0 4px 0 #5a1e17;letter-spacing:.02em;animation:npDbl 1.8s ease-out both;transform:rotate(-6deg)}
@@ -1266,10 +1273,10 @@ html.np-on .xpchip{z-index:2950!important}
 @keyframes npStatic{to{background-position:0 7px}}
 .np-drips{position:absolute;left:0;right:0;top:0;height:100%;pointer-events:none}.np-drips b{position:absolute;top:-4px;height:0;background:linear-gradient(#7a1a12,#a82a1e);border-radius:0 0 8px 8px;animation:npDrip 1.6s var(--d) ease-in forwards;opacity:.9}
 @keyframes npDrip{to{height:var(--h)}}
-.np-ov{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(6,7,12,.72);padding:16px;z-index:5}
+.np-ov{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(6,7,12,.72);padding:calc(var(--st,0px) + 12px) calc(var(--sr,0px) + 12px) calc(var(--sb,0px) + 12px) calc(var(--sl,0px) + 12px);z-index:5}
 .np-ov.on{display:flex}
 .np-lob{position:absolute;left:50%;top:calc(var(--st,0px) + 10px);transform:translateX(-50%);display:none;gap:8px;align-items:center;background:rgba(33,31,28,.88);border-radius:14px;padding:8px;box-shadow:0 8px 20px rgba(0,0,0,.45)}
-.np.lob .np-lob{display:flex}.np.lob .np-top,.np.lob .np-tasks,.np.lob .np-btns{display:none}.np.rot .np-lob{top:10px}
+.np.lob .np-lob{display:flex}.np.lob .np-top,.np.lob .np-tasks,.np.lob .np-btns{display:none}
 .np-lobc{display:flex;flex-direction:column;align-items:center;padding:0 8px;line-height:1.1}.np-lobc b{font:900 20px var(--mono);letter-spacing:.12em}.np-lobc span{font:800 11px var(--body);color:var(--muted)}
 .np-lb{display:flex;flex-direction:column;align-items:center;gap:2px;border:0;border-radius:10px;background:var(--panel-3);color:var(--fg);padding:6px 10px;font-size:20px;cursor:pointer;box-shadow:inset 0 -3px 0 rgba(0,0,0,.3)}
 .np-lb span{font:800 10.5px var(--body);text-transform:uppercase;letter-spacing:.04em}.np-lb.go{background:var(--go);box-shadow:inset 0 -3px 0 var(--go-deep)}.np-lb[disabled]{opacity:.5}
@@ -1312,7 +1319,7 @@ html.np-on .xpchip{z-index:2950!important}
 .np-eject{text-align:center;width:100%}.np-float{width:110px;height:110px;margin:0 auto 14px;border-radius:50%;overflow:hidden;background:var(--panel-2);animation:npFloat 6s linear forwards}
 @keyframes npFloat{0%{transform:translateX(-60vw) rotate(0)}100%{transform:translateX(60vw) rotate(720deg)}}
 .np-map svg{display:block;margin:8px 0;border-radius:10px;background:#0B0C12}.np-sab{display:flex;gap:8px;justify-content:center;align-items:center;margin-bottom:8px}
-.np-mini{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(6,7,12,.6);padding:16px;z-index:6}.np-mini.on{display:flex}
+.np-mini{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(6,7,12,.6);padding:calc(var(--st,0px) + 12px) calc(var(--sr,0px) + 12px) calc(var(--sb,0px) + 12px) calc(var(--sl,0px) + 12px);z-index:6}.np-mini.on{display:flex}
 .np-mg{background:var(--panel);border-radius:16px;padding:14px;width:min(380px,100%);max-height:calc(100dvh - 24px);overflow:auto;box-shadow:0 14px 40px rgba(0,0,0,.6);animation:pgPop .25s;transition:transform .3s,box-shadow .3s}
 .np-mg.ok{box-shadow:0 0 0 4px var(--go-hi),0 14px 40px rgba(0,0,0,.6)}
 .np-mgh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font:900 18px var(--display)}
