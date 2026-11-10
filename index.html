@@ -2797,7 +2797,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794347138";
+const CHESSNAT_BUILD = "1794347424";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11432,6 +11432,7 @@ function boot(){
   else if (h.startsWith("g-") && Views.friend) App.go("friend", {join: h.slice(2)});
   else if (h.startsWith("battle-") && h.length > 7) App.go("battle", {join: h.slice(7)});
   else if (h.startsWith("duel-") && h.length > 5) App.go("duel", {join: h.slice(5)});
+  else if (h.startsWith("tipp-") && h.length > 5 && Views.tipp) App.go("tipp", {join: h.slice(5)});
   else App.go(Views[h] && h !== "lesson" ? h : "home");
   /* Android back: close what's open, otherwise go back one screen */
   /* no edge swipes while a Natposter round fills the screen */
@@ -11447,7 +11448,7 @@ function boot(){
     const want = location.hash.slice(1);
     if (App.stack.length){ App.back(); } else if (want && want !== App.route && Views[want]) App.go(want, undefined, true); else if (App.route !== "home") App.go("home", undefined, true);
   });
-  window.addEventListener("hashchange", () => { if (App._popping) return; if (document.documentElement.classList.contains("np-on")){ if (location.hash.slice(1) !== App.route) try { history.replaceState(history.state, "", "#" + App.route); } catch(e) {} return; } const r = location.hash.slice(1); if (r !== App.route && Views[r] && r !== "lesson") App.go(r); if (r.startsWith("g-") && Views.friend && App.route !== "friend") App.go("friend", {join: r.slice(2)}); if (r.startsWith("m-")){ const p = parseLinkHash(r); const cur = App.route === "linkgame" && Views.linkgame.gid && p && p.gid === Views.linkgame.gid && p.moves.length === (Views.linkgame.rec.moves || []).length; if (!cur) App.go("linkgame", {hash: r}); } });
+  window.addEventListener("hashchange", () => { if (App._popping) return; if (document.documentElement.classList.contains("np-on")){ if (location.hash.slice(1) !== App.route) try { history.replaceState(history.state, "", "#" + App.route); } catch(e) {} return; } const r = location.hash.slice(1); if (r !== App.route && Views[r] && r !== "lesson") App.go(r); if (r.startsWith("g-") && Views.friend && App.route !== "friend") App.go("friend", {join: r.slice(2)}); if (r.startsWith("tipp-") && r.length > 5 && Views.tipp) App.go("tipp", {join: r.slice(5)}); if (r.startsWith("m-")){ const p = parseLinkHash(r); const cur = App.route === "linkgame" && Views.linkgame.gid && p && p.gid === Views.linkgame.gid && p.moves.length === (Views.linkgame.rec.moves || []).length; if (!cur) App.go("linkgame", {hash: r}); } });
   document.addEventListener("pointerdown", () => Sound.init(), {once: true});
 }
 
@@ -13079,8 +13080,8 @@ const Social = (() => {
     if (!r || shownInv.has(r.id) || r.status !== "open" || Date.now() - new Date(r.created_at).getTime() > INVITE_MS) return; shownInv.add(r.id); try { localStorage.setItem("chessnat-inv-seen", JSON.stringify([...shownInv].slice(-80))); } catch(e) {}
     if (!D.players[r.from_id]) await load(true);
     if (r.tc === "t:tipp"){ const p = P(r.from_id), set = st => sb.from("chess_invites").update({status: st}).eq("id", r.id).then(() => {}, () => {}); try { Haptic.go([40, 60, 40]); } catch(e) {}
-      Notify.show({key: "inv:" + r.id, cls: "ntf-invite", accent: "#DC052D", icon: face(p, 44), label: I18N.lang === "de" ? "Tippspiel" : "Tipping game", title: `${esc(p.name)} ${I18N.lang === "de" ? "lädt dich zum Tippspiel ein" : "invites you to the tipping game"}`, text: I18N.lang === "de" ? "Bayern, Bundesliga, UFC – tipp mit Natcoins mit." : "Bayern, Bundesliga, UFC – tip with Natcoins.",
-        ms: Math.min(INVITE_MS, 20000), sound: () => Sound.play("GenericNotify", .8), actions: [{label: I18N.lang === "de" ? "Später" : "Later", fn: () => set("declined")}, {label: I18N.lang === "de" ? "Mitmachen" : "Join", primary: true, fn: () => { set("accepted"); App.go("tipp"); }}]});
+      Notify.show({key: "inv:" + r.id, cls: "ntf-invite", accent: "#DC052D", icon: face(p, 44), label: I18N.lang === "de" ? "Tippspiel" : "Tipping game", title: `${esc(p.name)} ${r.code && r.code !== "tipp" ? (I18N.lang === "de" ? "lädt dich in seine Tipprunde ein" : "invites you to their tipping round") : (I18N.lang === "de" ? "lädt dich zum Tippspiel ein" : "invites you to the tipping game")}`, text: I18N.lang === "de" ? "Deutschland, Bayern, Bundesliga – tipp mit Natcoins mit." : "Germany, Bayern, Bundesliga – tip with Natcoins.",
+        ms: Math.min(INVITE_MS, 20000), sound: () => Sound.play("GenericNotify", .8), actions: [{label: I18N.lang === "de" ? "Später" : "Later", fn: () => set("declined")}, {label: I18N.lang === "de" ? "Mitmachen" : "Join", primary: true, fn: () => { set("accepted"); App.go("tipp", r.code && r.code !== "tipp" ? {join: r.code} : undefined); }}]});
       return; }
     if (/^p:/.test(r.tc || "")){ if (typeof PG !== "undefined" && ((PG.st.left && PG.st.left.c === r.code && new Date(r.created_at).getTime() < PG.st.left.t) || (PNet.P && PNet.P.code === r.code))) return; const p = P(r.from_id), gid = r.tc.slice(2), g = typeof PG !== "undefined" && PG.games.find(x => x.id === gid), gname = g ? (I18N.lang === "de" ? g.name[1] : g.name[0]) : "Party";
       const set = st => sb.from("chess_invites").update({status: st}).eq("id", r.id).then(() => {}, () => {});
@@ -14334,17 +14335,17 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=39"></script>
-<script src="games/imposter.js?v=39"></script>
-<script src="games/werwolf.js?v=39"></script>
-<script src="games/cards.js?v=39"></script>
-<script src="games/heads.js?v=39"></script>
-<script src="games/more.js?v=39"></script>
-<script src="games/net.js?v=39"></script>
-<script src="games/online.js?v=39"></script>
-<script src="games/natposter.js?v=39"></script>
-<script src="games/arena.js?v=39"></script>
-<script src="games/tipp.js?v=39"></script>
+<script src="games/core.js?v=40"></script>
+<script src="games/imposter.js?v=40"></script>
+<script src="games/werwolf.js?v=40"></script>
+<script src="games/cards.js?v=40"></script>
+<script src="games/heads.js?v=40"></script>
+<script src="games/more.js?v=40"></script>
+<script src="games/net.js?v=40"></script>
+<script src="games/online.js?v=40"></script>
+<script src="games/natposter.js?v=40"></script>
+<script src="games/arena.js?v=40"></script>
+<script src="games/tipp.js?v=40"></script>
 <script>boot();</script>
 </body>
 </html>

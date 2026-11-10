@@ -23,10 +23,26 @@
   const q2 = q => (+q).toFixed(2).replace(".", de() ? "," : ".");
   /* the KI is no Dortmund fan: their wins get a third of the chance, draws a bit less */
   const bvbF = (ev, sh, sa) => { const bh = /Dortmund/.test(ev.home), ba = /Dortmund/.test(ev.away); if (!bh && !ba || sh == null) return 1; const r = sh === sa ? "d" : (sh > sa) === bh ? "w" : "l"; return r === "w" ? .3 : r === "d" ? .8 : 1; };
+  /* the same rule as the database (tipp_match): what belongs to a round */
+  const inRound = (g, e) => { const C2 = g.comps || []; if (!C2.length || C2.includes(e.comp)) return true; if (C2.includes("fight") && ["ufc", "oktagon", "box"].includes(e.comp)) return true;
+    if (C2.includes("bay") && (bay(e.home) || bay(e.away))) return true; return C2.includes("nt") && (e.home === "Deutschland" || e.away === "Deutschland") && ["nt", "hb"].includes(e.comp); };
+  const RCOMP = [["nt", "🇩🇪", ["Germany", "Deutschland"]], ["bay", "⭐", ["Bayern", "Bayern"]], ["ger.1", "⚽", ["Bundesliga", "Bundesliga"]], ["ger.dfb_pokal", "🏆", ["DFB Cup", "DFB-Pokal"]], ["uefa.champions", "✨", ["Champions League", "Champions League"]], ["fight", "🥊", ["Fights", "Kämpfe"]], ["hb", "🤾", ["Handball", "Handball"]]];
   const pickW = os => { let r = Math.random() * os.reduce((s, o) => s + (o.pr || 0), 0); for (const o of os){ r -= o.pr || 0; if (r <= 0) return o; } return os[os.length - 1]; };
 
   const Tipp = {
     ev: [], tips: [], board: [], admin: false, slip: [], tab: "games", loaded: false,
+    /* own tipping rounds: chosen competitions, invited people, their own table */
+    groups: [], gid: (() => { try { return localStorage.getItem("chessnat-tipp-group") || ""; } catch(e) { return ""; } })(),
+    setGroup(id){ this.gid = id || ""; try { localStorage.setItem("chessnat-tipp-group", this.gid); } catch(e) {} },
+    group(){ return this.groups.find(g => g.id === this.gid) || null; },
+    async loadGroups(){ const c = sb(); if (!c || !meId()){ this.groups = []; return; } const {data, error} = await c.rpc("tipp_groups_mine"); if (!error) this.groups = data || []; if (this.gid && !this.groups.some(g => g.id === this.gid)) this.setGroup(""); },
+    async saveGroup(id, name, comps){ const c = sb(); if (!c || !meId()) return null; const {data, error} = await c.rpc("tipp_group_save", {p_id: id || null, p_name: name, p_comps: comps}); if (error){ toast(error.message); return null; } await this.loadGroups(); return data; },
+    async join(code){ const c = sb(); code = String(code || "").toLowerCase().replace(/[^0-9a-f]/g, "").slice(0, 12); if (!code) return null;
+      if (!c || !meId()){ try { localStorage.setItem("chessnat-tipp-join", code); } catch(e) {} toast(T("Sign in to join the round.", "Zum Mitmachen bitte anmelden.")); return null; }
+      try { localStorage.removeItem("chessnat-tipp-join"); } catch(e) {}
+      const {data, error} = await c.rpc("tipp_join", {p_code: code}); if (error || !data){ toast(T("This round doesn't exist (anymore).", "Diese Tipprunde gibt es nicht (mehr).")); return null; }
+      await this.loadGroups(); this.setGroup(data.id); return data; },
+    async leave(id){ const c = sb(); if (!c) return; await c.rpc("tipp_leave", {p_id: id}); if (this.gid === id) this.setGroup(""); await this.loadGroups(); },
     sel: (() => { try { return new Set(JSON.parse(localStorage.getItem("chessnat-tipp-sel") || "[]")); } catch(e) { return new Set(); } })(),
     saveSel(){ try { localStorage.setItem("chessnat-tipp-sel", JSON.stringify([...this.sel])); } catch(e) {} },
     async load(){
@@ -39,9 +55,10 @@
       if (e.error) throw e.error;
       this.ev = (e.data || []).filter(x => x.state !== "canc" || x.markets.length); this.tips = t.data || [];
       if (a){ this.admin = !!(a.data && a.data.length); this.adminChecked = true; }
+      if (!this.grpT || Date.now() - this.grpT > 60000){ this.grpT = Date.now(); try { await this.loadGroups(); } catch(e) {} }
       this.loaded = true;
     },
-    async loadBoard(){ const c = sb(); if (!c) return; const {data} = await c.rpc("tipp_board"); this.board = data || []; },
+    async loadBoard(){ const c = sb(); if (!c) return; const g = this.group(); const {data} = g ? await c.rpc("tipp_board_group", {p_group: g.id}) : await c.rpc("tipp_board"); this.board = data || []; this.boardG = g ? g.id : ""; },
     async claim(){
       const c = sb(); if (!c || !meId()) return; try { const {data} = await c.rpc("tipp_claim"); if (data && data.sum > 0){ natEarn(data.sum);
         toast(data.won ? T(`🎉 ${data.won} tip${data.won > 1 ? "s" : ""} won · +${fmt(data.sum)} NAT`, `🎉 ${data.won} Tipp${data.won > 1 ? "s" : ""} gewonnen · +${fmt(data.sum)} NAT`) : T(`↩︎ +${fmt(data.sum)} NAT back`, `↩︎ +${fmt(data.sum)} NAT zurück`), 3200);
@@ -82,8 +99,9 @@
       return {h: 1, a: 1}; },
     friends(){ try { if (typeof Social === "undefined" || !Social.data) return []; const me = Social.me; return (Social.data.friends || []).filter(r => r.status === "accepted").map(r => r.a === me ? r.b : r.a); } catch(e) { return []; } },
     invited: {},
-    async invite(id){ const c = sb(); if (!c || !meId() || this.invited[id]) return false;
-      const {error} = await c.from("chess_invites").insert({from_id: meId(), to_id: id, code: "tipp", tc: "t:tipp"}); if (error){ toast(error.message); return false; } this.invited[id] = 1; return true; }
+    async invite(id, g){ const c = sb(); g = g === undefined ? this.group() : g; const key = id + "|" + (g ? g.code : "tipp"); if (!c || !meId() || this.invited[key]) return false;
+      const {error} = await c.from("chess_invites").insert({from_id: meId(), to_id: id, code: g ? g.code : "tipp", tc: "t:tipp"}); if (error){ toast(error.message); return false; } this.invited[key] = 1; return true; },
+    wasInv(id){ const g = this.group(); return !!this.invited[id + "|" + (g ? g.code : "tipp")]; }
   };
 
   Views.tipp = {
@@ -91,6 +109,7 @@
       this.main = main; if (arg && arg.tab) Tipp.tab = arg.tab;
       main.innerHTML = `<div class="page tp"><div class="tp-head"><h1 class="h-title" style="margin:0">${T("Tipping", "Tippspiel")}</h1><div class="tp-bal" id="tpbal"></div></div>
         <div class="seg tp-tabs" id="tptabs">${[["games", T("Matches", "Spiele")], ["mine", T("My tips", "Meine Tipps")], ["board", T("Leaderboard", "Rangliste")]].map(([k, l]) => `<button data-tab="${k}" class="${Tipp.tab === k ? "on" : ""}">${l}</button>`).join("")}</div>
+        <div class="chips tp-grp" id="tpgrp"></div>
         <div class="chips tp-chips" id="tpchips">${FILTERS.map(([k, l]) => `<button class="chip ${(k === "all" ? !Tipp.sel.size : Tipp.sel.has(k)) ? "on" : ""}" data-f="${k}">${h(l)}</button>`).join("")}</div>
         <div id="tpbody"><div class="tp-empty">${T("Loading…", "Lädt…")}</div></div><div id="tpslip"></div></div>`;
       main.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { const from = ["games", "mine", "board"].indexOf(Tipp.tab); Tipp.tab = b.dataset.tab; Sound.tap(); main.querySelectorAll("[data-tab]").forEach(x => x.classList.toggle("on", x === b)); this.draw(["games", "mine", "board"].indexOf(Tipp.tab) > from ? 1 : -1); if (Tipp.tab === "board") this.board(); });
@@ -99,10 +118,45 @@
         if (k === "all") Tipp.sel.clear(); else if (Tipp.sel.has(k)) Tipp.sel.delete(k); else Tipp.sel.add(k); Tipp.saveSel();
         Sound.tap(); if (navigator.vibrate) try { navigator.vibrate(6); } catch(_) {} chips.querySelectorAll("[data-f]").forEach(z => z.classList.toggle("on", z.dataset.f === "all" ? !Tipp.sel.size : Tipp.sel.has(z.dataset.f))); this.center(x, true); this.draw(i1 >= i0 ? 1 : -1); });
       requestAnimationFrame(() => { const on = chips.querySelector(".on"); if (on) this.center(on, false); });
-      this.balance(); this.refresh(true); Tipp.claim().then(() => this.balance());
+      this.grpBar(); this.balance();
+      /* a link or an invite into a round: join it, then show its table */
+      let jc = arg && arg.join; if (!jc) try { jc = localStorage.getItem("chessnat-tipp-join"); } catch(e) {}
+      if (jc && meId()) Tipp.join(jc).then(g => { if (!g) return; toast(`🏆 ${T("You're in", "Du bist dabei:")} „${g.name}“`, 3000); if (navigator.vibrate) try { navigator.vibrate([20, 40, 20]); } catch(e) {} Tipp.tab = "board"; main.querySelectorAll("[data-tab]").forEach(x => x.classList.toggle("on", x.dataset.tab === "board")); this.grpBar(); this.board(); });
+      else if (jc) Tipp.join(jc);
+      this.refresh(true); Tipp.claim().then(() => this.balance());
       clearInterval(this.iv); this.iv = setInterval(() => { if (App.route !== "tipp") return clearInterval(this.iv); this.refresh(); }, 20000);
     },
     unmount(){ clearInterval(this.iv); },
+    /* the round bar: everything, or one of my own rounds, or a new one */
+    grpBar(){ const el = this.main && this.main.querySelector("#tpgrp"); if (!el) return; if (!meId()){ el.hidden = true; return; } el.hidden = false;
+      const G = Tipp.groups, html = `<button class="chip ${!Tipp.gid ? "on" : ""}" data-g="">🌍 ${T("Everyone", "Alle")}</button>${G.map(g => `<button class="chip ${Tipp.gid === g.id ? "on" : ""}" data-g="${h(g.id)}">🏆 ${h(g.name)}<small>${(g.members || []).length}</small></button>`).join("")}<button class="chip tp-gnew" data-gnew>＋ ${T("Tipping round", "Tipprunde")}</button>`;
+      if (el._h === html) return; el._h = html; el.innerHTML = html;
+      el.querySelectorAll("[data-g]").forEach(b => b.onclick = () => { if (Tipp.gid === b.dataset.g) return; Tipp.setGroup(b.dataset.g); Sound.tap(); if (navigator.vibrate) try { navigator.vibrate(6); } catch(_) {} this.center(b, true); this.grpBar(); if (Tipp.tab === "board"){ Tipp.board = []; this.draw(); this.board(); } else this.draw(1); });
+      el.querySelector("[data-gnew]").onclick = async () => { Sound.tap(); await this.soc(); this.grpSheet(null); };
+      const on = el.querySelector(".on"); if (on) requestAnimationFrame(() => this.center(on, false)); },
+    async soc(){ try { if (typeof Social !== "undefined" && Social.start && meId() && !(Social.data && Social.data.friends)){ await Social.start(); await Social.load(); } } catch(e) {} },
+    /* make or change a round: name, what is tipped, who is in */
+    grpSheet(g){ const F = Tipp.friends(), P = id => { try { return Social.P(id); } catch(e) { return {id, name: "?"}; } }, mem = new Set((g && g.members) || []);
+      const sel = new Set(g ? g.comps || [] : ["nt", "bay", "ger.1", "ger.dfb_pokal", "uefa.champions"]), inv = new Set();
+      const d = detailSheet(`<div class="tp-gs"><h3>🏆 ${g ? T("Your tipping round", "Deine Tipprunde") : T("New tipping round", "Neue Tipprunde")}</h3>
+        <input class="tp-gname" maxlength="40" placeholder="${T("Name, e.g. Family", "Name, z. B. Familie")}" value="${h(g ? g.name : "")}">
+        <div class="tp-gl">${T("What gets tipped", "Was getippt wird")}</div><div class="tp-gc">${RCOMP.map(([k, e, l]) => `<button class="chip ${sel.has(k) ? "on" : ""}" data-gc="${k}">${e} ${h(T(l[0], l[1]))}</button>`).join("")}</div>
+        <div class="tp-gl">${T("Who plays", "Wer mitspielt")}</div><div class="tp-gf">${F.length ? F.map(id => `<button class="tp-gfr ${mem.has(id) ? "in" : ""}" data-gf="${h(id)}" ${mem.has(id) ? "disabled" : ""}><span class="tp-av">${(() => { try { return Social.face(P(id), 36); } catch(e) { return ""; } })()}</span><b>${h(P(id).name)}</b><i>${mem.has(id) ? "✓ " + T("in", "dabei") : "＋"}</i></button>`).join("") : `<p class="tp-note">${T("No friends yet – share the link.", "Noch keine Freunde – teil einfach den Link.")}</p>`}</div>
+        <button class="btn go big" data-gsave>${g ? T("✓ Save", "✓ Speichern") : T("✓ Start the round", "✓ Tipprunde starten")}</button>
+        ${g ? `<div class="tp-gx"><button class="btn ghost sm" data-gshare>🔗 ${T("Share link", "Link teilen")}</button>${g.owner !== meId() ? `<button class="btn ghost sm" data-gleave>🚪 ${T("Leave", "Verlassen")}</button>` : ""}</div>` : ""}</div>`);
+      const box = d.el, upd = () => { const b = box.querySelector("[data-gsave]"); if (!g) b.textContent = inv.size ? T(`✓ Start and invite ${inv.size}`, `✓ Starten und ${inv.size} einladen`) : T("✓ Start the round", "✓ Tipprunde starten"); else b.textContent = inv.size ? T(`✓ Save and invite ${inv.size}`, `✓ Speichern und ${inv.size} einladen`) : T("✓ Save", "✓ Speichern"); };
+      box.querySelectorAll("[data-gc]").forEach(b => b.onclick = () => { const k = b.dataset.gc; sel.has(k) ? sel.delete(k) : sel.add(k); b.classList.toggle("on", sel.has(k)); Sound.tap(); });
+      box.querySelectorAll("[data-gf]").forEach(b => b.onclick = () => { const k = b.dataset.gf; inv.has(k) ? inv.delete(k) : inv.add(k); b.classList.toggle("on", inv.has(k)); b.querySelector("i").textContent = inv.has(k) ? "📨" : "＋"; Sound.tap(); upd(); });
+      if (!g) setTimeout(() => { const i = box.querySelector(".tp-gname"); if (i && !F.length) i.focus(); }, 300);
+      box.querySelector("[data-gsave]").onclick = async () => { if (!sel.size) return toast(T("Pick at least one.", "Wähl mindestens eins aus.")); const b = box.querySelector("[data-gsave]"); b.disabled = true;
+        const name = box.querySelector(".tp-gname").value.trim() || (g ? g.name : T("Tipping round", "Tipprunde")), r = await Tipp.saveGroup(g ? g.id : null, name, [...sel]); if (!r){ b.disabled = false; return; }
+        const ng = Tipp.groups.find(x => x.id === r.id) || {id: r.id, code: r.code, name: r.name, comps: r.comps}; let n = 0; for (const id of inv) if (await Tipp.invite(id, ng)) n++;
+        Tipp.setGroup(r.id); d.close(); Sound.play && Sound.play("GenericNotify", .5); if (navigator.vibrate) try { navigator.vibrate([20, 40, 20]); } catch(e) {}
+        toast(n ? T(`🏆 Round ready · ${n} invited`, `🏆 Tipprunde steht · ${n} eingeladen`) : T("🏆 Round ready – share the link", "🏆 Tipprunde steht – teil den Link"), 2800);
+        Tipp.tab = "board"; this.main.querySelectorAll("[data-tab]").forEach(x => x.classList.toggle("on", x.dataset.tab === "board")); Tipp.board = []; this.grpBar(); this.draw(1); this.board(); };
+      const sh = box.querySelector("[data-gshare]"); if (sh) sh.onclick = () => this.share(g);
+      const lv = box.querySelector("[data-gleave]"); if (lv) lv.onclick = async () => { await Tipp.leave(g.id); d.close(); toast(T("You left the round.", "Du hast die Tipprunde verlassen.")); this.grpBar(); this.draw(); if (Tipp.tab === "board") this.board(); };
+    },
     /* the chosen filter glides into the middle */
     center(x, smooth){ const w = x.parentNode; if (!w) return; const left = x.offsetLeft - (w.clientWidth - x.offsetWidth) / 2; try { w.scrollTo({left: Math.max(0, left), behavior: smooth ? "smooth" : "auto"}); } catch(e) { w.scrollLeft = left; } },
     balance(){ const el = this.main && this.main.querySelector("#tpbal"); if (el) el.innerHTML = `${coin()}<b>${fmt(bal())}</b>`; },
@@ -113,7 +167,7 @@
     },
     draw(dir){
       const b = this.main && this.main.querySelector("#tpbody"); if (!b) return; const y = this.main.scrollTop;
-      const ch = this.main.querySelector("#tpchips"); if (ch) ch.hidden = Tipp.tab !== "games";
+      const ch = this.main.querySelector("#tpchips"); if (ch) ch.hidden = Tipp.tab !== "games" || !!Tipp.group(); this.grpBar();
       if (Tipp.tab === "games") b.innerHTML = this.gamesHTML(); else if (Tipp.tab === "mine") b.innerHTML = this.mineHTML(); else b.innerHTML = this.boardHTML();
       this.wire(b); this.slipBar(); this.balance(); if (!dir) this.main.scrollTop = y;
       if (dir){ b.classList.remove("tp-in-l", "tp-in-r"); void b.offsetWidth; b.classList.add(dir > 0 ? "tp-in-r" : "tp-in-l"); }
@@ -122,7 +176,7 @@
     shown(){
       const S1 = Tipp.sel, now = Date.now(), hit = (f, e) => f === "nt" ? e.home === "Deutschland" || e.away === "Deutschland" : f === "bay" ? bay(e.home) || bay(e.away) : f === "fight" ? ["ufc", "oktagon", "box"].includes(e.comp) : e.comp === f;
       return Tipp.ev.filter(e => (e.state !== "post" || now - Date.parse(e.start_at) < 30 * 3600e3) && (e.markets.length || e.state !== "pre"))
-        .filter(e => !S1.size || [...S1].some(f => hit(f, e)));
+        .filter(e => { const g = Tipp.group(); if (g) return inRound(g, e); return !S1.size || [...S1].some(f => hit(f, e)); });
     },
     gamesHTML(){
       const L = this.shown(), live = L.filter(e => e.state === "in"), groups = {};
@@ -265,22 +319,26 @@
     /* ---------- leaderboard ---------- */
     async board(){ try { if (typeof Social !== "undefined" && Social.start && meId()){ await Social.start(); await Social.load(); } } catch(e) {} await Tipp.loadBoard(); if (Tipp.tab === "board") this.draw(); },
     boardHTML(){
-      const F = Tipp.friends(), have = new Set(Tipp.board.map(r => r.uid)), P = id => { try { return Social.P(id); } catch(e) { return {id, name: "?"}; } };
-      /* friends who haven't tipped yet stand at the bottom, with an invite */
-      const B = Tipp.board.concat(F.filter(id => !have.has(id)).map(id => ({uid: id, name: P(id).name, profit: 0, won: 0, lost: 0, open: 0, none: 1})));
+      const F = Tipp.friends(), have = new Set(Tipp.board.map(r => r.uid)), P = id => { try { return Social.P(id); } catch(e) { return {id, name: "?"}; } }, g = Tipp.group();
+      if (g && Tipp.boardG !== g.id) return `<div class="tp-empty">${T("Loading…", "Lädt…")}</div>`;
+      /* friends who haven't tipped yet (or aren't in the round yet) stand at the bottom, with an invite */
+      const mem = new Set((g && g.members) || []), rows = Tipp.board.map(r => g && r.uid && !r.n ? Object.assign({}, r, {none: 1, member: 1}) : r);
+      const B = rows.concat(F.filter(id => !have.has(id) && !mem.has(id)).map(id => ({uid: id, name: P(id).name, profit: 0, won: 0, lost: 0, open: 0, none: 1})));
       if (meId() && !B.some(r => r.uid === meId())) B.push({uid: meId(), name: T("You", "Du"), profit: 0, won: 0, lost: 0, open: 0, none: 1});
       const myI = B.findIndex(r => r.uid === meId()), head = r => { if (r.bot === "ki") return `<span class="tp-av ki">🤖</span>`; try { if (r.uid && typeof Social !== "undefined" && Social.data && Social.data.players[r.uid]) return `<span class="tp-av">${Social.face(Social.P(r.uid), 40)}</span>`; return `<span class="tp-av">${avatarSVG(Object.assign({}, r.avatar || {}, {aura: "none", pet: "none"}), {head: true, size: 40})}</span>`; } catch(e) { return `<span class="tp-av"></span>`; } };
-      const row = (r, i) => `<div class="tp-br ${r.uid === meId() ? "me" : ""} ${r.bot ? "bot" : ""} ${r.none ? "none" : ""}"><span class="tp-rk">${r.none ? "·" : i < 3 ? ["🥇", "🥈", "🥉"][i] : i + 1}</span>${head(r)}<div class="grow"><b>${h(r.bot === "ki" ? "Nat-KI" : r.name)}${r.uid === meId() ? ` <span class="pill go">${T("You", "Du")}</span>` : ""}</b><small>${r.none ? T("no tips yet", "noch kein Tipp") : `${r.won}/${r.won + r.lost} ${T("won", "gewonnen")}${r.open ? ` · ${r.open} ${T("open", "offen")}` : ""}`}</small></div>${r.none && r.uid !== meId() ? `<button class="btn sm ${Tipp.invited[r.uid] ? "" : "go"}" data-tinv="${h(r.uid)}" ${Tipp.invited[r.uid] ? "disabled" : ""}>${Tipp.invited[r.uid] ? "✓" : "📨 " + T("Invite", "Einladen")}</button>` : `<b class="tp-pf ${r.profit >= 0 ? "pos" : "neg"}">${r.profit >= 0 ? "+" : "−"}${fmt(Math.abs(r.profit))}</b>`}</div>`;
-      return `<div class="tp-tools" style="margin-top:12px"><button class="btn ghost sm" data-invall>📨 ${T("Invite friends", "Freunde einladen")}</button></div>` + (myI >= 0 && !B[myI].none ? `<div class="tp-pin">${row(B[myI], myI)}</div>` : "") + `<div class="tp-board">${B.map(row).join("")}</div><p class="tp-note c">${T("Ranked by Natcoins won minus staked on settled tips.", "Gezählt wird, was du mit abgerechneten Tipps gewonnen minus eingesetzt hast.")}</p>`;
+      const row = (r, i) => `<div class="tp-br ${r.uid === meId() ? "me" : ""} ${r.bot ? "bot" : ""} ${r.none ? "none" : ""}"><span class="tp-rk">${r.none ? "·" : i < 3 ? ["🥇", "🥈", "🥉"][i] : i + 1}</span>${head(r)}<div class="grow"><b>${h(r.bot === "ki" ? "Nat-KI" : r.name)}${r.uid === meId() ? ` <span class="pill go">${T("You", "Du")}</span>` : ""}</b><small>${r.none ? (r.member ? T("in · no tips yet", "dabei · noch kein Tipp") : T("no tips yet", "noch kein Tipp")) : `${r.won}/${r.won + r.lost} ${T("won", "gewonnen")}${r.open ? ` · ${r.open} ${T("open", "offen")}` : ""}`}</small></div>${r.none && r.uid !== meId() && !r.member ? `<button class="btn sm ${Tipp.wasInv(r.uid) ? "" : "go"}" data-tinv="${h(r.uid)}" ${Tipp.wasInv(r.uid) ? "disabled" : ""}>${Tipp.wasInv(r.uid) ? "✓" : "📨 " + T("Invite", "Einladen")}</button>` : `<b class="tp-pf ${r.profit >= 0 ? "pos" : "neg"}">${r.profit >= 0 ? "+" : "−"}${fmt(Math.abs(r.profit))}</b>`}</div>`;
+      const top = g ? `<div class="tp-ghead"><div class="grow"><b>🏆 ${h(g.name)}</b><small>${(g.comps || []).map(k => (RCOMP.find(r => r[0] === k) || [k, "•"])[1]).join(" ")} · ${(g.members || []).length} ${T("in", "dabei")}</small></div><button class="btn sm go" data-gshare2>📨 ${T("Invite", "Einladen")}</button><button class="btn sm ghost" data-gedit>✏️</button></div>` : `<div class="tp-tools" style="margin-top:12px"><button class="btn ghost sm" data-invall>📨 ${T("Invite friends", "Freunde einladen")}</button></div>`;
+      return top + (myI > 4 && B.length > 8 && !B[myI].none ? `<div class="tp-pin">${row(B[myI], myI)}</div>` : "") + `<div class="tp-board">${B.map(row).join("")}</div><p class="tp-note c">${T("Ranked by Natcoins won minus staked on settled tips.", "Gezählt wird, was du mit abgerechneten Tipps gewonnen minus eingesetzt hast.")}</p>`;
     },
     inviteSheet(){
       const F = Tipp.friends(), P = id => { try { return Social.P(id); } catch(e) { return {id, name: "?"}; } };
-      const d = detailSheet(`<div class="tp-invs"><h3 style="margin:0 0 4px">📨 ${T("Invite to the tipping game", "Zum Tippspiel einladen")}</h3><p class="tp-note">${T("They get a push and land right here.", "Sie bekommen einen Push und landen direkt hier.")}</p>
-        ${F.length ? F.map(id => `<div class="tp-br"><span class="tp-av">${(() => { try { return Social.face(P(id), 40); } catch(e) { return ""; } })()}</span><div class="grow"><b>${h(P(id).name)}</b></div><button class="btn sm ${Tipp.invited[id] ? "" : "go"}" data-tinv="${h(id)}" ${Tipp.invited[id] ? "disabled" : ""}>${Tipp.invited[id] ? "✓" : "📨 " + T("Invite", "Einladen")}</button></div>`).join("") : `<p class="tp-note">${T("No friends yet.", "Noch keine Freunde.")}</p>`}
+      const g = Tipp.group(), mem = new Set((g && g.members) || []);
+      const d = detailSheet(`<div class="tp-invs"><h3 style="margin:0 0 4px">📨 ${g ? `${T("Invite to", "Einladen in")} „${h(g.name)}“` : T("Invite to the tipping game", "Zum Tippspiel einladen")}</h3><p class="tp-note">${T("They get a push and land right here.", "Sie bekommen einen Push und landen direkt hier.")}</p>
+        ${F.filter(id => !mem.has(id)).length ? F.filter(id => !mem.has(id)).map(id => `<div class="tp-br"><span class="tp-av">${(() => { try { return Social.face(P(id), 40); } catch(e) { return ""; } })()}</span><div class="grow"><b>${h(P(id).name)}</b></div><button class="btn sm ${Tipp.wasInv(id) ? "" : "go"}" data-tinv="${h(id)}" ${Tipp.wasInv(id) ? "disabled" : ""}>${Tipp.wasInv(id) ? "✓" : "📨 " + T("Invite", "Einladen")}</button></div>`).join("") : `<p class="tp-note">${T("No friends yet.", "Noch keine Freunde.")}</p>`}
         <button class="btn ghost" data-tshare style="margin-top:8px">🔗 ${T("Share a link", "Link teilen")}</button></div>`);
-      this.wireInv(d.el); const sh = d.el.querySelector("[data-tshare]"); if (sh) sh.onclick = () => this.share();
+      this.wireInv(d.el); const sh = d.el.querySelector("[data-tshare]"); if (sh) sh.onclick = () => this.share(g);
     },
-    async share(){ const url = location.origin + "/#tipp", text = T("Tip with me in the Chess.nat tipping game – Bayern, Bundesliga, UFC, with Natcoins!", "Tipp mit mir im Chess.nat-Tippspiel – Bayern, Bundesliga, UFC, mit Natcoins!");
+    async share(g){ const url = location.origin + (g ? "/#tipp-" + g.code : "/#tipp"), text = g ? T(`Join my tipping round „${g.name}“ on Chess.nat – with Natcoins!`, `Tipp mit in meiner Tipprunde „${g.name}“ auf Chess.nat – mit Natcoins!`) : T("Tip with me in the Chess.nat tipping game – Bayern, Bundesliga, UFC, with Natcoins!", "Tipp mit mir im Chess.nat-Tippspiel – Bayern, Bundesliga, UFC, mit Natcoins!");
       try { if (navigator.share){ await navigator.share({title: "Chess.nat Tippspiel", text, url}); return; } } catch(e) { if (e && e.name === "AbortError") return; }
       try { await navigator.clipboard.writeText(text + " " + url); toast(T("Link copied.", "Link kopiert."), 2500); } catch(e) {} },
     wireInv(root){ root.querySelectorAll("[data-tinv]").forEach(b => b.onclick = async () => { b.disabled = true; Sound.tap(); if (await Tipp.invite(b.dataset.tinv)){ b.textContent = "✓"; b.classList.remove("go"); toast(T("Invite sent", "Einladung geschickt"), 1800); if (navigator.vibrate) try { navigator.vibrate(12); } catch(_) {} } else b.disabled = false; }); },
@@ -355,6 +413,8 @@
       b.querySelectorAll("[data-quick]").forEach(x => x.onclick = ev => { ev.stopPropagation(); Sound.tap(); this.quick(x.dataset.quick); });
       const s2 = b.querySelector("[data-slip2]"); if (s2) s2.onclick = () => { Sound.tap(); this.openSlip(); };
       const ia = b.querySelector("[data-invall]"); if (ia) ia.onclick = () => { Sound.tap(); this.inviteSheet(); };
+      const gs = b.querySelector("[data-gshare2]"); if (gs) gs.onclick = () => { Sound.tap(); this.inviteSheet(); };
+      const ge = b.querySelector("[data-gedit]"); if (ge) ge.onclick = async () => { Sound.tap(); await this.soc(); this.grpSheet(Tipp.group()); };
       this.wireInv(b);
     }
   };
@@ -413,6 +473,14 @@
 .tp-kr .nm{flex:1;font:800 14px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-kr .nm.r{text-align:right}.tp-kr .d{width:34px;height:38px;display:grid;place-items:center;background:var(--panel);border-radius:9px;font:900 22px var(--display)}.tp-kr i{font-style:normal;font-weight:900;color:var(--muted)}
 .tp-kr.f .nm{flex:none}.tp-kr .w{flex:1;font:900 15px var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-kr small{color:var(--muted);font-weight:700}
 .tp-kr.done{background:color-mix(in srgb,var(--go) 16%,var(--panel-2))}.tp-kr.done .d,.tp-kr.done .w{animation:tpBump .3s cubic-bezier(.3,1.6,.5,1)}
+.tp-grp{flex-wrap:nowrap;overflow-x:auto;margin:12px 0 0;padding:2px 0 4px;scrollbar-width:none;overscroll-behavior-x:contain;touch-action:pan-x}.tp-grp::-webkit-scrollbar{display:none}.tp-grp[hidden]{display:none}
+.tp-grp .chip{flex:none;display:inline-flex;align-items:center;gap:5px}.tp-grp .chip small{font:800 11px var(--body);background:rgba(0,0,0,.18);border-radius:999px;padding:1px 6px}.tp-grp .chip.on{background:#E9A92B;border-color:#E9A92B;color:#2a1d05}.tp-gnew{border-style:dashed!important}
+.tp-gs{display:flex;flex-direction:column;gap:10px}.tp-gs h3{margin:0}.tp-gname{width:100%;font:800 18px var(--body);padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:var(--panel-2);color:var(--fg)}
+.tp-gl{font:900 12px var(--body);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:4px}.tp-gc{display:flex;flex-wrap:wrap;gap:6px}.tp-gc .chip.on{background:var(--go);border-color:var(--go);color:#fff}
+.tp-gf{display:flex;flex-direction:column;gap:6px;max-height:36vh;overflow:auto}.tp-gfr{display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:14px;border:2px solid var(--line);background:var(--panel-2);color:var(--fg);text-align:left;cursor:pointer}
+.tp-gfr b{flex:1;font:800 15px var(--body)}.tp-gfr i{font-style:normal;font:900 15px var(--body);color:var(--muted)}.tp-gfr.on{border-color:var(--go);background:color-mix(in srgb,var(--go) 14%,var(--panel-2))}.tp-gfr.on i{color:var(--go)}.tp-gfr.in{opacity:.6}.tp-gfr .tp-av svg{width:36px;height:36px;display:block}
+.tp-gx{display:flex;gap:8px;justify-content:center}
+.tp-ghead{display:flex;align-items:center;gap:8px;margin:12px 0 8px;padding:10px 12px;border-radius:16px;background:color-mix(in srgb,#E9A92B 14%,var(--panel));border:1px solid color-mix(in srgb,#E9A92B 40%,var(--line))}.tp-ghead b{display:block;font:900 17px var(--body)}.tp-ghead small{color:var(--muted);font-weight:700}
 .tp-kst{display:flex;align-items:center;gap:6px;margin:10px 0;color:var(--muted);font:700 13px var(--body)}.tp-kst .chip{padding:5px 12px}
 .tp-pend{margin:12px 0 4px}.tp-pend .btn{width:100%;margin-top:4px}.tp-tip.pend{border-style:dashed}
 .tp-br.none{opacity:.85}.tp-br.none .tp-rk{color:var(--muted)}.tp-br .btn.sm{flex:none}
