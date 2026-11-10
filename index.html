@@ -2794,7 +2794,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794314775";
+const CHESSNAT_BUILD = "1794315016";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11524,14 +11524,14 @@ Views.me = {
   designs(){
     const el = $("#medes"); if (!el || typeof NAT_BOARDS === "undefined") return; const de = I18N.lang === "de", L = (en, d) => de ? d : en, st = S.settings || {};
     const own = (list, kind) => list.filter(x => x.id === "classic" || natHas(x.id)).map(x => Object.assign({kind}, x));
-    const row = (k, title, items, cur, def) => `<div class="ds-row"><div class="ds-h">${title}</div><div class="ds-sc">${def ? `<button class="ds-it ${!cur ? "on" : ""}" data-dk="${k}" data-di="">${def[0]}<small>${def[1]}</small></button>` : ""}${items.map(it => `<button class="ds-it ${cur === it.id ? "on" : ""}" data-dk="${k}" data-di="${esc(it.id)}">${natPreview(it, 54)}<small>${esc(it.name)}</small></button>`).join("")}<button class="ds-it ds-more" data-dshop>${icon("coin", 24)}<small>${L("More", "Mehr")}</small></button></div></div>`;
+    const row = (k, title, items, cur, def) => `<div class="ds-row"><div class="ds-h">${title}</div><div class="ds-sc">${def ? `<button class="ds-it ${!cur ? "on" : ""}" data-dk="${k}" data-di="">${def[0]}<small>${k === "song" ? L("Off", "Aus") : L("Standard", "Standard")}</small></button>` : ""}${items.map(it => `<button class="ds-it ${cur === it.id ? "on" : ""}" data-dk="${k}" data-di="${esc(it.id === "classic" ? "" : it.id)}">${natPreview(it, 54)}<small>${it.id === "classic" ? L("Standard", "Standard") : esc(it.name)}</small></button>`).join("")}<button class="ds-it ds-more" data-dshop>${icon("coin", 24)}<small>${L("More", "Mehr")}</small></button></div></div>`;
     const music = st.music !== false && st.sound && st.song && natHas(st.song) ? st.song : "";
     el.innerHTML = `<h2 class="h-sec" style="margin-top:18px" data-notr>${L("Designs", "Designs")}</h2><div class="unit ds" data-notr>
-      ${row("board", L("Board", "Brett"), own(NAT_BOARDS, "board"), NAT_BOARDS.some(b => b.id === st.board && (b.id === "classic" || natHas(b.id))) ? st.board : "classic", null)}
+      ${row("board", L("Board", "Brett"), own(NAT_BOARDS, "board").sort((a, b) => (b.id === "classic") - (a.id === "classic")), NAT_BOARDS.some(b => b.id === st.board && (b.id === "classic" || natHas(b.id))) ? st.board : "classic", null)}
       ${row("pieces", L("Pieces", "Figuren"), own(NAT_PSETS, "pieces"), st.pset && natHas(st.pset) ? st.pset : "", [`<span class="np-pset" style="width:54px;height:54px"><i class="pc wk"></i><i class="pc bq"></i></span>`, L("Classic", "Klassisch")])}
       ${row("glow", L("Piece glow", "Figuren-Glanz"), own(NAT_GLOWS, "glow"), st.glow && natHas(st.glow) ? st.glow : "", [`<span class="np-glow" style="width:54px;height:54px"><i class="pc wn mine"></i></span>`, L("Gold", "Gold")])}
       ${row("song", L("Music in games", "Musik im Spiel"), own(NAT_SONGS, "song"), music, [`<span class="np-song" style="width:54px;height:54px">${icon("music", 24)}</span>`, L("Off", "Aus")])}</div>`;
-    el.querySelectorAll("[data-dk]").forEach(b => b.onclick = () => { const k = b.dataset.dk, id = b.dataset.di; Sound.tap();
+    el.querySelectorAll("[data-dk]").forEach(b => b.onclick = () => { const k = b.dataset.dk, id = b.classList.contains("on") ? "" : b.dataset.di; Sound.tap();
       if (k === "board") S.settings.board = id || "classic"; else if (k === "pieces") S.settings.pset = id; else if (k === "glow") S.settings.glow = id;
       else if (k === "song"){ if (!id) S.settings.music = false; else { S.settings.song = id; S.settings.music = true; S.settings.sound = true; } try { NatMusic.sync(); } catch(e) {} }
       save(); natApplyBoard(); this.designs(); });
