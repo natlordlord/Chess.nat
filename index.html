@@ -2797,7 +2797,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794342929";
+const CHESSNAT_BUILD = "1794344556";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11136,6 +11136,7 @@ Views.local = {
 
 /* ===== Icons (own line set) ===== */
 const ICONS = {
+  ball: `<circle cx="12" cy="12" r="9"/><path d="M12 7.2l3.6 2.6-1.4 4.2H9.8L8.4 9.8z"/><path d="M12 7.2V3M15.6 9.8l4-1.3M14.2 14l2.5 3.4M9.8 14l-2.5 3.4M8.4 9.8l-4-1.3"/>`,
   lock: `<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>`,
   coin: `<circle cx="12" cy="12" r="9"/><path d="M9.5 15.5v-7l5 7v-7"/>`,
   music: `<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>`,
@@ -11187,7 +11188,7 @@ const LOGO = `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="8"
 
 const NAV = [
   ["home", "Home", "home"], ["journey", "Journey", "map"], ["learn", "Learn", "book"], ["theory", "Theory", "scroll"], ["puzzles", "Puzzles", "puzzle"], ["rush", "Puzzle Rush", "bolt"], ["battle", "Puzzle Battle", "swords"], ["daily", "Daily Puzzle", "calendar"],
-  ["train", "Train", "target"], ["endgames", "Endgames", "crown"], ["online", "Play Online", "globe"], ["bots", "Play Bots", "bot"], ["blitz", "Blitz", "flame"], ["friends", "Friends", "heart"], ["chat", "Chat", "chat"], ["awards", "Trophies", "trophy"], ["shop", "Shop", "coin"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["me", "Profile", "user"], ["stats", "Stats", "chart"],
+  ["train", "Train", "target"], ["endgames", "Endgames", "crown"], ["tipp", "Tipping", "ball"], ["online", "Play Online", "globe"], ["bots", "Play Bots", "bot"], ["blitz", "Blitz", "flame"], ["friends", "Friends", "heart"], ["chat", "Chat", "chat"], ["awards", "Trophies", "trophy"], ["shop", "Shop", "coin"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["me", "Profile", "user"], ["stats", "Stats", "chart"],
 ];
 /* bottom of the rail, like chess.com: who you are, then a row of small icon buttons */
 function railAccount(){
@@ -11216,8 +11217,8 @@ function renderRail(){
   renderRailStatus(); if (typeof renderTop === "function") renderTop();
 }
 
-const TABS = [["home", "Home", "home"], ["learn", "Learn", "book"], ["puzzles", "Puzzles", "puzzle"], ["play", "Play", "bot"], ["more", "More", "menu"]];
-const TAB_OF = {online: "play", repertoire: "learn", repdrill: "learn", blitz: "play", battle: "play", theory: "learn", awards: "more", journey: "home", jlevel: "home", home: "home", learn: "learn", lesson: "learn", puzzles: "puzzles", rush: "puzzles", daily: "puzzles", train: "puzzles", coords: "puzzles", play: "play", bots: "play", friend: "play", local: "play", linkgame: "play", endgames: "play", trophies: "play", friends: "friends", chat: "friends", profile: "more", me: "more", review: "more", analysis: "more", stats: "more", settings: "more", account: "more"};
+const TABS = [["home", "Home", "home"], ["tipp", "Tipping", "ball"], ["puzzles", "Puzzles", "puzzle"], ["play", "Play", "bot"], ["more", "More", "menu"]];
+const TAB_OF = {tipp: "tipp", online: "play", repertoire: "more", repdrill: "more", blitz: "play", battle: "play", theory: "more", awards: "more", journey: "home", jlevel: "home", home: "home", learn: "more", lesson: "more", puzzles: "puzzles", rush: "puzzles", daily: "puzzles", train: "puzzles", coords: "puzzles", play: "play", bots: "play", friend: "play", local: "play", linkgame: "play", endgames: "play", trophies: "play", friends: "friends", chat: "friends", profile: "more", me: "more", review: "more", analysis: "more", stats: "more", settings: "more", account: "more"};
 Object.assign(TAB_OF, {friends: "friends", fprofile: "friends", chat: "friends", duel: "play"});
 function renderTabs(){
   let t = $("#tabbar"); if (!t) return; const cur = TAB_OF[App.route] || "home"; const dailyOpen = !S.daily.done[todayKey()];
@@ -11229,7 +11230,7 @@ function renderTabs(){
 }
 function openSheet(){
   const sh = $("#sheet"); const rk = rankOf(S.puzzle.r);
-  const items = [...(window.ChessInstall && ChessInstall.can() ? [["__install", "Get the app", "download"]] : []), ...(typeof News !== "undefined" && News.admin ? [["news", "News senden", "bell"]] : []), ["journey", "Journey", "map"], ["theory", "Theory", "scroll"], ["blitz", "Blitz & Battle", "flame"], ["shop", "Shop & Battle Pass", "coin"], ["awards", "Trophies", "trophy"], ["me", "Profile", "user"], ["endgames", "Endgames", "crown"], ["rush", "Puzzle Rush", "bolt"], ["battle", "Puzzle Battle", "swords"], ["daily", "Daily Puzzle", "calendar"], ["train", "Train", "target"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"], ["coords", "Coordinates", "board"], ["settings", "Settings", "gear"], ["account", "Account", "users"]];
+  const items = [...(window.ChessInstall && ChessInstall.can() ? [["__install", "Get the app", "download"]] : []), ...(typeof News !== "undefined" && News.admin ? [["news", "News senden", "bell"]] : []), ["learn", "Learn", "book"], ["journey", "Journey", "map"], ["theory", "Theory", "scroll"], ["blitz", "Blitz & Battle", "flame"], ["shop", "Shop & Battle Pass", "coin"], ["awards", "Trophies", "trophy"], ["me", "Profile", "user"], ["endgames", "Endgames", "crown"], ["rush", "Puzzle Rush", "bolt"], ["battle", "Puzzle Battle", "swords"], ["daily", "Daily Puzzle", "calendar"], ["train", "Train", "target"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"], ["coords", "Coordinates", "board"], ["settings", "Settings", "gear"], ["account", "Account", "users"]];
   sh.innerHTML = `<div class="panelx" role="dialog" aria-label="More"><div class="grab"></div><button class="rk" data-s="me">${emblem(rk, 36)}<span style="text-align:left"><div style="font-weight:900">${esc(rk.label)}</div><div class="muted" style="font-size:12px">${S.puzzle.r} puzzle rating · ${Cloud.status === "on" ? "synced to your account" : "saved on this device"}</div></span></button>${items.map(([k, n, ic]) => `<button data-s="${k}">${icon(ic, 26)}<span>${n}</span></button>`).join("")}</div>`;
   sh.hidden = false; sh.classList.remove("closing"); const px = $(".panelx", sh); px.style.transform = ""; px.classList.add("opening"); setTimeout(() => px.classList.remove("opening"), 300);
   const close = () => { if (sh.hidden || sh.classList.contains("closing")) return; sh.classList.add("closing"); px.style.transform = ""; setTimeout(() => { sh.hidden = true; sh.classList.remove("closing"); }, 220); };
@@ -13077,6 +13078,10 @@ const Social = (() => {
   async function showInvite(r){
     if (!r || shownInv.has(r.id) || r.status !== "open" || Date.now() - new Date(r.created_at).getTime() > INVITE_MS) return; shownInv.add(r.id); try { localStorage.setItem("chessnat-inv-seen", JSON.stringify([...shownInv].slice(-80))); } catch(e) {}
     if (!D.players[r.from_id]) await load(true);
+    if (r.tc === "t:tipp"){ const p = P(r.from_id), set = st => sb.from("chess_invites").update({status: st}).eq("id", r.id).then(() => {}, () => {}); try { Haptic.go([40, 60, 40]); } catch(e) {}
+      Notify.show({key: "inv:" + r.id, cls: "ntf-invite", accent: "#DC052D", icon: face(p, 44), label: I18N.lang === "de" ? "Tippspiel" : "Tipping game", title: `${esc(p.name)} ${I18N.lang === "de" ? "lädt dich zum Tippspiel ein" : "invites you to the tipping game"}`, text: I18N.lang === "de" ? "Bayern, Bundesliga, UFC – tipp mit Natcoins mit." : "Bayern, Bundesliga, UFC – tip with Natcoins.",
+        ms: Math.min(INVITE_MS, 20000), sound: () => Sound.play("GenericNotify", .8), actions: [{label: I18N.lang === "de" ? "Später" : "Later", fn: () => set("declined")}, {label: I18N.lang === "de" ? "Mitmachen" : "Join", primary: true, fn: () => { set("accepted"); App.go("tipp"); }}]});
+      return; }
     if (/^p:/.test(r.tc || "")){ if (typeof PG !== "undefined" && ((PG.st.left && PG.st.left.c === r.code && new Date(r.created_at).getTime() < PG.st.left.t) || (PNet.P && PNet.P.code === r.code))) return; const p = P(r.from_id), gid = r.tc.slice(2), g = typeof PG !== "undefined" && PG.games.find(x => x.id === gid), gname = g ? (I18N.lang === "de" ? g.name[1] : g.name[0]) : "Party";
       const set = st => sb.from("chess_invites").update({status: st}).eq("id", r.id).then(() => {}, () => {});
       try { Haptic.go([40, 60, 40]); } catch(e) {}
@@ -14329,17 +14334,17 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=34"></script>
-<script src="games/imposter.js?v=34"></script>
-<script src="games/werwolf.js?v=34"></script>
-<script src="games/cards.js?v=34"></script>
-<script src="games/heads.js?v=34"></script>
-<script src="games/more.js?v=34"></script>
-<script src="games/net.js?v=34"></script>
-<script src="games/online.js?v=34"></script>
-<script src="games/natposter.js?v=34"></script>
-<script src="games/arena.js?v=34"></script>
-<script src="games/tipp.js?v=34"></script>
+<script src="games/core.js?v=35"></script>
+<script src="games/imposter.js?v=35"></script>
+<script src="games/werwolf.js?v=35"></script>
+<script src="games/cards.js?v=35"></script>
+<script src="games/heads.js?v=35"></script>
+<script src="games/more.js?v=35"></script>
+<script src="games/net.js?v=35"></script>
+<script src="games/online.js?v=35"></script>
+<script src="games/natposter.js?v=35"></script>
+<script src="games/arena.js?v=35"></script>
+<script src="games/tipp.js?v=35"></script>
 <script>boot();</script>
 </body>
 </html>

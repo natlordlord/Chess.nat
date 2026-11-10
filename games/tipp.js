@@ -9,7 +9,7 @@
   const meId = () => typeof Social !== "undefined" ? Social.me : null;
   const h = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
   const COMP = {"ger.1": ["Bundesliga", "⚽"], "uefa.champions": ["Champions League", "⭐"], "ger.dfb_pokal": ["DFB-Pokal", "🏆"], "ufc": ["UFC", "🥊"], "oktagon": ["Oktagon", "🥊"], "box": [T("Boxing", "Boxen"), "🥊"], "hb": ["Handball", "🤾"], "misc": [T("Other", "Sonstiges"), "🎯"]};
-  const FILTERS = [["all", T("All", "Alle")], ["fav", "⭐ Bayern"], ["ger.1", "Bundesliga"], ["uefa.champions", "Champions League"], ["ger.dfb_pokal", "DFB-Pokal"], ["fight", "UFC · Oktagon · " + T("Boxing", "Boxen")], ["hb", "Handball"]];
+  const FILTERS = [["all", T("All", "Alle")], ["bay", "⭐ Bayern"], ["ger.1", "Bundesliga"], ["uefa.champions", "Champions League"], ["ger.dfb_pokal", "DFB-Pokal"], ["fight", "UFC · Oktagon · " + T("Boxing", "Boxen")], ["hb", "Handball"]];
   const STAKES = [50, 100, 250, 500, 1000];
   const bay = n => /bayern/i.test(n || ""), bvb = n => /dortmund/i.test(n || "");
   const coin = () => typeof NAT_COIN !== "undefined" ? NAT_COIN : "🪙";
@@ -45,12 +45,29 @@
     },
     myOn(id){ return this.tips.filter(t => t.event_id === id); },
     inSlip(id, k, p){ return this.slip.some(s => s.ev === id && s.k === k && s.p === p); },
-    toggle(ev, m, o){ const i = this.slip.findIndex(s => s.ev === ev.id && s.k === m.k && s.p === o.p);
+    toggle(ev, m, o){ const i = this.slip.findIndex(s => s.ev === ev.id && s.k === m.k && s.p === o.p); if (m.k === "cs" || m.k === "1x2" || m.k === "ou25") delete this.scores[ev.id];
       if (i >= 0) this.slip.splice(i, 1); else { this.slip = this.slip.filter(s => !(s.ev === ev.id && s.k === m.k)); this.slip.push({ev: ev.id, k: m.k, p: o.p, l: o.l, t: m.t, q: o.q, name: ev.sport === "fb" ? `${ev.home} – ${ev.away}` : `${ev.home} vs. ${ev.away}`, stake: this.lastStake || 100}); }
       Sound.tap(); if (navigator.vibrate) try { navigator.vibrate(8); } catch(e) {} },
     /* Nat-KI picks for you: the likely result more often, the surprise sometimes */
     kiPick(ev, all){ const ms = (ev.markets || []).filter(m => m.o && m.o.length); if (!ms.length) return null;
-      const m = all ? ms[Math.floor(Math.random() * ms.length)] : ms[0], o = pickW(m.o); return {m, o}; }
+      const m = all ? ms[Math.floor(Math.random() * ms.length)] : ms[0], o = pickW(m.o); return {m, o}; },
+    /* a pick that is on the slip for sure (the score sets several at once) */
+    put(ev, m, o, stake){ this.slip = this.slip.filter(s => !(s.ev === ev.id && s.k === m.k)); this.slip.push({ev: ev.id, k: m.k, p: o.p, l: o.l, t: m.t, q: o.q, name: ev.sport === "fb" ? `${ev.home} – ${ev.away}` : `${ev.home} vs. ${ev.away}`, stake: stake || this.lastStake || 100}); },
+    scores: {},
+    /* the exact score chooses the winner, the goals line and the exact result */
+    score(ev, sh, sa, stake){ const D = {"1x2": sh > sa ? "h" : sh === sa ? "d" : "a", ou25: sh + sa > 2.5 ? "o" : "u", cs: `${sh}-${sa}`};
+      Object.entries(D).forEach(([k, p]) => { const m = (ev.markets || []).find(x => x.k === k); if (!m) return; const o = m.o.find(x => x.p === p) || (k === "cs" ? m.o.find(x => x.p === "x") : null); if (o) this.put(ev, m, o, stake); });
+      this.scores[ev.id] = {h: sh, a: sa}; },
+    /* a likely score, now and then a surprise: from the exact-score odds, else from the expected goals */
+    kiScore(ev){ const cs = (ev.markets || []).find(m => m.k === "cs"), md = ev.model || {};
+      const pois = l => { let k = 0, p = Math.exp(-l), s = p, u = Math.random(); while (u > s && k < 9){ k++; p *= l / k; s += p; } return k; };
+      if (cs){ const o = pickW(cs.o); if (o.p !== "x"){ const [a, b] = o.p.split("-").map(Number); return {h: a, a: b}; } }
+      for (let i = 0; i < 30; i++){ const h0 = pois(md.lh || 1.5), a0 = pois(md.la || 1.1); if (!cs || !cs.o.some(o => o.p === `${h0}-${a0}`) || i > 25) return {h: h0, a: a0}; }
+      return {h: 1, a: 1}; },
+    friends(){ try { if (typeof Social === "undefined" || !Social.data) return []; const me = Social.me; return (Social.data.friends || []).filter(r => r.status === "accepted").map(r => r.a === me ? r.b : r.a); } catch(e) { return []; } },
+    invited: {},
+    async invite(id){ const c = sb(); if (!c || !meId() || this.invited[id]) return false;
+      const {error} = await c.from("chess_invites").insert({from_id: meId(), to_id: id, code: "tipp", tc: "t:tipp"}); if (error){ toast(error.message); return false; } this.invited[id] = 1; return true; }
   };
 
   Views.tipp = {
@@ -58,33 +75,41 @@
       this.main = main; if (arg && arg.tab) Tipp.tab = arg.tab;
       main.innerHTML = `<div class="page tp"><div class="tp-head"><h1 class="h-title" style="margin:0">${T("Tipping", "Tippspiel")}</h1><div class="tp-bal" id="tpbal"></div></div>
         <div class="seg tp-tabs" id="tptabs">${[["games", T("Matches", "Spiele")], ["mine", T("My tips", "Meine Tipps")], ["board", T("Leaderboard", "Rangliste")]].map(([k, l]) => `<button data-tab="${k}" class="${Tipp.tab === k ? "on" : ""}">${l}</button>`).join("")}</div>
+        <div class="chips tp-chips" id="tpchips">${FILTERS.map(([k, l]) => `<button class="chip ${Tipp.filter === k ? "on" : ""}" data-f="${k}">${h(l)}</button>`).join("")}</div>
         <div id="tpbody"><div class="tp-empty">${T("Loading…", "Lädt…")}</div></div><div id="tpslip"></div></div>`;
-      main.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { Tipp.tab = b.dataset.tab; Sound.tap(); main.querySelectorAll("[data-tab]").forEach(x => x.classList.toggle("on", x === b)); this.draw(); if (Tipp.tab === "board") this.board(); });
+      main.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { const from = ["games", "mine", "board"].indexOf(Tipp.tab); Tipp.tab = b.dataset.tab; Sound.tap(); main.querySelectorAll("[data-tab]").forEach(x => x.classList.toggle("on", x === b)); this.draw(["games", "mine", "board"].indexOf(Tipp.tab) > from ? 1 : -1); if (Tipp.tab === "board") this.board(); });
+      const chips = main.querySelector("#tpchips"); chips.querySelectorAll("[data-f]").forEach(x => x.onclick = () => { if (Tipp.filter === x.dataset.f) return; const i0 = FILTERS.findIndex(f => f[0] === Tipp.filter), i1 = FILTERS.findIndex(f => f[0] === x.dataset.f);
+        Tipp.filter = x.dataset.f; Sound.tap(); chips.querySelectorAll("[data-f]").forEach(z => z.classList.toggle("on", z === x)); this.center(x, true); this.draw(i1 > i0 ? 1 : -1); });
+      requestAnimationFrame(() => { const on = chips.querySelector(".on"); if (on) this.center(on, false); });
       this.balance(); this.refresh(true); Tipp.claim().then(() => this.balance());
       clearInterval(this.iv); this.iv = setInterval(() => { if (App.route !== "tipp") return clearInterval(this.iv); this.refresh(); }, 20000);
     },
     unmount(){ clearInterval(this.iv); },
+    /* the chosen filter glides into the middle */
+    center(x, smooth){ const w = x.parentNode; if (!w) return; const left = x.offsetLeft - (w.clientWidth - x.offsetWidth) / 2; try { w.scrollTo({left: Math.max(0, left), behavior: smooth ? "smooth" : "auto"}); } catch(e) { w.scrollLeft = left; } },
     balance(){ const el = this.main && this.main.querySelector("#tpbal"); if (el) el.innerHTML = `${coin()}<b>${fmt(bal())}</b>`; },
     async refresh(first){
       try { await Tipp.load(); } catch(e) { const b = this.main && this.main.querySelector("#tpbody"); if (b && first) { const setup = /does not exist|could not find|PGRST20/i.test((e.message || "") + (e.code || "")); b.innerHTML = setup ? `<div class="tp-empty">⚽🛠️<br>${T("Setting up the tipping game – almost there.", "Das Tippspiel wird gerade eingerichtet – gleich geht's los.")}</div>` : `<div class="tp-empty">${T("The tipping game isn't reachable right now.", "Das Tippspiel ist gerade nicht erreichbar.")}<br><small>${h(e.message || "")}</small></div>`; } return; }
       if (App.route !== "tipp") return; if (!first) Tipp.claim().then(() => this.balance());
       if (Tipp.tab === "board") this.board(); else this.draw();
     },
-    draw(){
+    draw(dir){
       const b = this.main && this.main.querySelector("#tpbody"); if (!b) return; const y = this.main.scrollTop;
+      const ch = this.main.querySelector("#tpchips"); if (ch) ch.hidden = Tipp.tab !== "games";
       if (Tipp.tab === "games") b.innerHTML = this.gamesHTML(); else if (Tipp.tab === "mine") b.innerHTML = this.mineHTML(); else b.innerHTML = this.boardHTML();
-      this.wire(b); this.slipBar(); this.balance(); this.main.scrollTop = y;
+      this.wire(b); this.slipBar(); this.balance(); if (!dir) this.main.scrollTop = y;
+      if (dir){ b.classList.remove("tp-in-l", "tp-in-r"); void b.offsetWidth; b.classList.add(dir > 0 ? "tp-in-r" : "tp-in-l"); }
     },
     /* ---------- matches ---------- */
     shown(){
       const f = Tipp.filter, now = Date.now();
       return Tipp.ev.filter(e => (e.state !== "post" || now - Date.parse(e.start_at) < 30 * 3600e3) && (e.markets.length || e.state !== "pre"))
-        .filter(e => f === "all" || (f === "fav" ? e.fav || bay(e.home) || bay(e.away) : f === "fight" ? ["ufc", "oktagon", "box"].includes(e.comp) : e.comp === f));
+        .filter(e => f === "all" || (f === "bay" ? bay(e.home) || bay(e.away) : f === "fight" ? ["ufc", "oktagon", "box"].includes(e.comp) : e.comp === f));
     },
     gamesHTML(){
       const L = this.shown(), live = L.filter(e => e.state === "in"), groups = {};
       L.filter(e => e.state !== "in").forEach(e => { const k = dayName(e.start_at); (groups[k] = groups[k] || []).push(e); });
-      const chips = `<div class="chips tp-chips">${FILTERS.map(([k, l]) => `<button class="chip ${Tipp.filter === k ? "on" : ""}" data-f="${k}">${h(l)}</button>`).join("")}</div>`;
+      const chips = "";
       const tools = `<div class="tp-tools"><button class="btn ghost sm" data-ki="all">🤖 ${T("Let Nat-KI tip", "KI tippt für mich")}</button>${Tipp.admin ? `<button class="btn ghost sm" data-admin="new">＋ ${T("Event", "Event")}</button>` : ""}</div>`;
       if (!L.length) return chips + tools + `<div class="tp-empty">${Tipp.loaded ? T("Nothing to tip here right now.", "Hier gibt es gerade nichts zu tippen.") : T("Loading…", "Lädt…")}</div>`;
       return chips + tools + (live.length ? `<div class="tp-day live">● LIVE</div>${live.map(e => this.card(e)).join("")}` : "") + Object.entries(groups).map(([d, es]) => `<div class="tp-day">${h(d)}</div>${this.cards(es)}`).join("");
@@ -104,7 +129,7 @@
       return `<div class="tp-ev ${e.fav || bay(e.home) || bay(e.away) ? "fav" : ""} ${live ? "is-live" : ""}" data-open="${h(e.id)}">
         <div class="tp-top"><span class="tp-comp">${c[1]} ${h(c[0])}${e.meta && e.meta.main && e.sport === "mma" ? ` · ${T("Main card", "Hauptkarte")}` : ""}</span>${time}</div>
         <div class="tp-row">${logo(e.home_logo)}${name(e.home)}${sc(e.score_h, hw)}</div><div class="tp-row">${logo(e.away_logo)}${name(e.away)}${sc(e.score_a, aw)}</div>
-        ${extra}${odds}<div class="tp-foot">${mine.length ? `<span class="pill go">${mine.length} ${T(mine.length > 1 ? "tips" : "tip", mine.length > 1 ? "Tipps" : "Tipp")}</span>` : ""}${e.model && e.model.lh != null ? `<span class="tp-xg" title="xG">xG ${String(e.model.lh).replace(".", ",")} : ${String(e.model.la).replace(".", ",")}</span>` : ""}${more}</div></div>`;
+        ${extra}${odds}<div class="tp-foot">${Tipp.scores[e.id] ? `<span class="pill tp-myscore">🎯 ${Tipp.scores[e.id].h}:${Tipp.scores[e.id].a}</span>` : ""}${mine.length ? `<span class="pill go">${mine.length} ${T(mine.length > 1 ? "tips" : "tip", mine.length > 1 ? "Tipps" : "Tipp")}</span>` : ""}${e.model && e.model.lh != null ? `<span class="tp-xg" title="xG">xG ${String(e.model.lh).replace(".", ",")} : ${String(e.model.la).replace(".", ",")}</span>` : ""}${more}</div></div>`;
     },
     /* ---------- one event: every market ---------- */
     openEvent(id){
@@ -119,18 +144,49 @@
         <div class="tp-vs"><div>${e.home_logo ? `<img src="${h(e.home_logo)}" alt="">` : ""}<b>${h(e.home)}</b></div><div class="tp-vsc">${e.state === "pre" ? "vs." : e.sport === "fb" ? `${e.score_h ?? 0}:${e.score_a ?? 0}` : "✓"}</div><div>${e.away_logo ? `<img src="${h(e.away_logo)}" alt="">` : ""}<b>${h(e.away)}</b></div></div>
         ${e.sport === "fb" && st.yc != null ? `<div class="tp-stats c">🟨 ${st.yc} · 🟥 ${st.rc || 0} · ${T("Penalties", "Elfmeter")} ${st.pens || 0} · ⛳ ${st.cor || 0}</div>` : ""}
         ${e.model && e.model.lh != null ? `<p class="tp-note">${T("Expected goals (model)", "Erwartete Tore (Modell)")}: <b>${e.model.lh} : ${e.model.la}</b>${e.odds_src && e.odds_src !== "model" && e.odds_src !== "manual" ? ` · ${T("odds based on", "Quoten nach")} ${h(e.odds_src)}` : ""}</p>` : ""}
-        ${open ? `<button class="btn ghost sm" data-kiev="${h(e.id)}" style="margin:2px 0 8px">🤖 ${T("Nat-KI picks a tip", "KI-Tipp für dieses Spiel")}</button>` : ""}
+        ${open && e.sport === "fb" && (e.markets || []).some(m => m.k === "cs") ? (() => { const sc = Tipp.scores[e.id]; return `<div class="tp-pick"><div class="tp-dg" data-side="h"><button data-d="1" aria-label="+">▲</button><b>${sc ? sc.h : "–"}</b><button data-d="-1" aria-label="−">▼</button></div><span class="tp-colon">:</span><div class="tp-dg" data-side="a"><button data-d="1" aria-label="+">▲</button><b>${sc ? sc.a : "–"}</b><button data-d="-1" aria-label="−">▼</button></div><button class="tp-kib" data-kiscore>🤖<small>${T("AI", "KI")}</small></button></div><p class="tp-pk-sum">${sc ? T("✓ Winner · goals · exact score are picked", "✓ Sieger · Tore · genaues Ergebnis sind gewählt") : T("Set the score: winner, goals and exact result pick themselves", "Ergebnis einstellen: Sieger, Tore und genaues Ergebnis wählen sich selbst")}</p>`; })()
+          : open ? `<button class="btn ghost sm" data-kiev="${h(e.id)}" style="margin:2px 0 8px">🤖 ${T("Nat-KI picks a tip", "KI-Tipp für dieses Spiel")}</button>` : ""}
         ${mine.length ? `<div class="tp-mine">${mine.map(t => this.tipRow(t, e)).join("")}</div>` : ""}
         ${Object.entries(groups).map(([g, ms]) => `<div class="tp-g">${h(g)}</div>${ms.map(mk).join("")}`).join("")}
         ${Tipp.admin && e.id.startsWith("man:") ? `<button class="btn ghost sm" data-admin="${h(e.id)}" style="margin-top:10px">✎ ${T("Edit event", "Event bearbeiten")}</button>` : ""}</div>`;
       const d = detailSheet(html); this.sheet = d;
       d.el.querySelectorAll(".tp-o[data-k]").forEach(b => b.onclick = () => { const m = e.markets.find(x => x.k === b.dataset.k), o = m && m.o.find(x => x.p === b.dataset.p); if (!o) return; Tipp.toggle(e, m, o);
         d.el.querySelectorAll(`.tp-o[data-ev]`).forEach(x => x.classList.toggle("on", Tipp.inSlip(e.id, x.dataset.k, x.dataset.p))); this.slipBar(); this.syncCards(); });
+      /* the score: arrows, or the AI spins the numbers like a slot machine */
+      const pick = d.el.querySelector(".tp-pick");
+      if (pick){ const dg = side => pick.querySelector(`[data-side="${side}"] b`), sum = d.el.querySelector(".tp-pk-sum"), sync = () => { d.el.querySelectorAll(`.tp-o[data-ev]`).forEach(x => x.classList.toggle("on", Tipp.inSlip(e.id, x.dataset.k, x.dataset.p))); this.slipBar(); this.syncCards(); if (sum) sum.textContent = T("✓ Winner · goals · exact score are picked", "✓ Sieger · Tore · genaues Ergebnis sind gewählt"); };
+        const set = (sh, sa) => { Tipp.score(e, sh, sa); dg("h").textContent = sh; dg("a").textContent = sa; sync(); };
+        pick.querySelectorAll("[data-d]").forEach(b => b.onclick = () => { if (this.spinning) return; const cur = Tipp.scores[e.id] || {h: 0, a: 0}, side = b.closest("[data-side]").dataset.side, v = Math.max(0, Math.min(9, cur[side] + (Tipp.scores[e.id] ? +b.dataset.d : Math.max(0, +b.dataset.d))));
+          Sound.tap(); if (navigator.vibrate) try { navigator.vibrate(6); } catch(_) {} const n = Object.assign({}, cur, {[side]: v}); set(n.h, n.a); const el = dg(side); el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); });
+        pick.querySelector("[data-kiscore]").onclick = () => { if (this.spinning) return; const r = Tipp.kiScore(e); this.spinning = 1; Sound.tap(); pick.classList.add("spin");
+          this.roll(dg("h"), r.h, 900); this.roll(dg("a"), r.a, 1350, () => { this.spinning = 0; pick.classList.remove("spin"); set(r.h, r.a); if (Sound.play) Sound.play("Move", .7); if (navigator.vibrate) try { navigator.vibrate([15, 30, 15]); } catch(_) {} }); }; }
       const kb = d.el.querySelector("[data-kiev]"); if (kb) kb.onclick = () => { const r = Tipp.kiPick(e, Math.random() < .5); if (!r) return; if (!Tipp.inSlip(e.id, r.m.k, r.o.p)) Tipp.toggle(e, r.m, r.o);
         d.el.querySelectorAll(`.tp-o[data-ev]`).forEach(x => x.classList.toggle("on", Tipp.inSlip(e.id, x.dataset.k, x.dataset.p))); toast(`🤖 ${r.m.t}: ${r.o.l} (${q2(r.o.q)})`); this.slipBar(); this.syncCards(); };
       d.el.querySelectorAll("[data-settle]").forEach(b => b.onclick = async () => { if (!b.dataset.arm){ b.dataset.arm = 1; b.textContent = T("Sure? Tap again", "Sicher? Nochmal tippen"); return; }
         const {error} = await sb().rpc("tipp_settle", {p_event: e.id, p_res: {[b.dataset.settle]: b.dataset.v}}); if (error) return toast(error.message); toast(T("Settled", "Abgerechnet")); d.close(); this.refresh(); });
       const ab = d.el.querySelector("[data-admin]"); if (ab) ab.onclick = () => { d.close(); this.adminForm(e); };
+    },
+    /* numbers spin and slow down, then stop on the result */
+    roll(el, final, ms, done, pool){ const t0 = performance.now(); let last = 0, k = 0; const step = now2 => { const p = Math.min(1, (now2 - t0) / ms), gap = 40 + 260 * p * p;
+        if (p >= 1){ el.textContent = final; el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); if (done) done(); return; }
+        if (now2 - last > gap){ last = now2; k++; el.textContent = pool ? pool[k % pool.length] : String(Math.floor(Math.random() * 6)); if (navigator.vibrate && k % 2) try { navigator.vibrate(3); } catch(_) {} if (Sound.tick && k % 2) try { Sound.tick(); } catch(_) {} }
+        requestAnimationFrame(step); };
+      requestAnimationFrame(step); },
+    /* "AI tips for me": the next matches roll like a slot machine, then go on the slip together */
+    kiAll(){
+      const L = this.shown().filter(e => e.state === "pre" && Date.parse(e.start_at) > Date.now() + 60e3 && (e.markets || []).length && !Tipp.myOn(e.id).length && !Tipp.slip.some(s => s.ev === e.id)).slice(0, 8);
+      if (!L.length) return toast(T("Everything here is tipped already.", "Hier ist schon alles getippt."));
+      const fb = e => e.sport === "fb" && (e.markets || []).some(m => m.k === "cs");
+      const res = L.map(e => fb(e) ? {e, s: Tipp.kiScore(e)} : (() => { const m = e.markets[0], o = pickW(m.o); return {e, m, o}; })());
+      const row = r => fb(r.e) ? `<div class="tp-kr"><span class="nm r">${h(r.e.home)}</span><b class="d">0</b><i>:</i><b class="d">0</b><span class="nm">${h(r.e.away)}</span></div>`
+        : `<div class="tp-kr f"><span class="nm r">${h((COMP[r.e.comp] || COMP.misc)[1])}</span><b class="w">…</b><small>${T("wins", "gewinnt")}</small></div>`;
+      const d = detailSheet(`<div class="tp-kis"><h3>🤖 ${T("Nat-KI is tipping…", "Die KI tippt…")}</h3>${res.map(row).join("")}<div class="tp-kst">${T("Stake per tip", "Einsatz pro Tipp")} ${[10, 50, 100].map(v => `<button class="chip ${v === 50 ? "on" : ""}" data-kst="${v}">${v}</button>`).join("")}</div><button class="btn go big" data-take disabled>${T("Rolling…", "Läuft…")}</button></div>`);
+      let stake = 50; d.el.querySelectorAll("[data-kst]").forEach(x => x.onclick = () => { stake = +x.dataset.kst; d.el.querySelectorAll("[data-kst]").forEach(z => z.classList.toggle("on", z === x)); Sound.tap(); });
+      const rows = d.el.querySelectorAll(".tp-kr"); let left = res.length;
+      res.forEach((r, i) => { const el = rows[i], fin = () => { el.classList.add("done"); if (Sound.play) Sound.play("Move", .45); if (--left === 0){ const tk = d.el.querySelector("[data-take]"); tk.disabled = false; tk.textContent = T(`✓ Put ${res.length} on my slip`, `✓ ${res.length} auf meinen Schein`); } };
+        if (r.s){ const ds = el.querySelectorAll(".d"); this.roll(ds[0], r.s.h, 700 + i * 260); this.roll(ds[1], r.s.a, 950 + i * 260, fin); }
+        else this.roll(el.querySelector(".w"), r.o.l, 950 + i * 260, () => { const o2 = r.e.markets[0].o.find(o => o.p !== r.o.p); el.querySelector("small").textContent = o2 ? T("beats ", "schlägt ") + o2.l : T("wins", "gewinnt"); fin(); }, r.e.markets[0].o.map(o => o.l)); });
+      d.el.querySelector("[data-take]").onclick = () => { res.forEach(r => { if (r.s) Tipp.score(r.e, r.s.h, r.s.a, stake); else Tipp.put(r.e, r.m, r.o, stake); }); d.close(); Sound.tap(); toast(`🤖 ${T("On your slip", "Auf deinem Schein")} ✓`, 1800); this.draw(); };
     },
     syncCards(){ const b = this.main && this.main.querySelector("#tpbody"); if (b) b.querySelectorAll(".tp-o[data-ev]").forEach(x => x.classList.toggle("on", Tipp.inSlip(x.dataset.ev, x.dataset.k, x.dataset.p))); },
     tipRow(t, e){ e = e || Tipp.ev.find(x => x.id === t.event_id); const win = Math.round(t.stake * t.odds);
@@ -138,19 +194,36 @@
       return `<div class="tp-tip ${t.status}" data-open="${h(t.event_id)}"><div class="grow"><div class="tp-tl">${h(t.label || t.market + ": " + t.pick)}</div><div class="tp-ts">${e ? h(e.sport === "fb" ? `${e.home} – ${e.away}` : `${e.home} vs. ${e.away}`) + (e.state !== "pre" && e.sport === "fb" ? ` · ${e.score_h ?? 0}:${e.score_a ?? 0}${e.state === "in" ? " ●" : ""}` : "") : ""} · ${fmt(t.stake)} × ${q2(t.odds)}</div></div>${st}</div>`; },
     /* ---------- my tips ---------- */
     mineHTML(){
-      const L = Tipp.tips; if (!L.length) return `<div class="tp-empty">${T("No tips yet. Pick a match and tap an odd.", "Noch keine Tipps. Such dir ein Spiel aus und tipp auf eine Quote.")}</div>`;
+      const by = {}; Tipp.slip.forEach(x => (by[x.ev] = by[x.ev] || []).push(x));
+      const pend = Tipp.slip.length ? `<div class="tp-pend"><div class="tp-day">📝 ${T("Not placed yet", "Noch nicht abgegeben")}</div>${Object.entries(by).map(([ev, xs]) => { const sc = Tipp.scores[ev], st = xs.reduce((a, x) => a + x.stake, 0), w = xs.reduce((a, x) => a + Math.round(x.stake * x.q), 0);
+          return `<div class="tp-tip pend tp-pg" data-open="${h(ev)}"><div class="grow"><div class="tp-tl">${h(xs[0].name)}${sc ? ` <span class="pill tp-myscore">🎯 ${sc.h}:${sc.a}</span>` : ""}</div><div class="tp-pgl">${xs.map(x => `<span>${h(x.l)} <i>${q2(x.q)}</i></span>`).join("")}</div><div class="tp-ts">${T("Stake", "Einsatz")} ${fmt(st)} · ${T("win up to", "Gewinn bis")} ${fmt(w)}</div></div></div>`; }).join("")}<button class="btn go big" data-slip2>${T("Place now", "Jetzt abgeben")} ›</button></div>` : "";
+      const L = Tipp.tips; if (!L.length) return pend + (pend ? "" : `<div class="tp-empty">${T("No tips yet. Pick a match and tap an odd.", "Noch keine Tipps. Such dir ein Spiel aus und tipp auf eine Quote.")}</div>`);
       const open = L.filter(t => t.status === "open"), done = L.filter(t => t.status !== "open"), net = done.reduce((s, t) => s + t.payout - t.stake, 0), won = done.filter(t => t.status === "won").length;
-      return `<div class="tp-sum"><div><b class="${net >= 0 ? "pos" : "neg"}">${net >= 0 ? "+" : "−"}${fmt(Math.abs(net))}</b><small>NAT ${T("net", "Bilanz")}</small></div><div><b>${won}/${done.length}</b><small>${T("won", "gewonnen")}</small></div><div><b>${open.length}</b><small>${T("open", "offen")}</small></div></div>
+      return pend + `<div class="tp-sum"><div><b class="${net >= 0 ? "pos" : "neg"}">${net >= 0 ? "+" : "−"}${fmt(Math.abs(net))}</b><small>NAT ${T("net", "Bilanz")}</small></div><div><b>${won}/${done.length}</b><small>${T("won", "gewonnen")}</small></div><div><b>${open.length}</b><small>${T("open", "offen")}</small></div></div>
         ${open.length ? `<div class="tp-day">${T("Open", "Offen")}</div>${open.map(t => this.tipRow(t)).join("")}` : ""}${done.length ? `<div class="tp-day">${T("Settled", "Abgerechnet")}</div>${done.slice(0, 80).map(t => this.tipRow(t)).join("")}` : ""}`;
     },
     /* ---------- leaderboard ---------- */
-    async board(){ await Tipp.loadBoard(); if (Tipp.tab === "board") this.draw(); },
+    async board(){ try { if (typeof Social !== "undefined" && Social.start && meId()){ await Social.start(); await Social.load(); } } catch(e) {} await Tipp.loadBoard(); if (Tipp.tab === "board") this.draw(); },
     boardHTML(){
-      const B = Tipp.board; if (!B.length) return `<div class="tp-empty">${T("The leaderboard fills up with the first settled tips.", "Die Rangliste füllt sich mit den ersten abgerechneten Tipps.")}</div>`;
-      const myI = B.findIndex(r => r.uid === meId()), head = r => { if (r.bot === "ki") return `<span class="tp-av ki">🤖</span>`; try { return `<span class="tp-av">${avatarSVG(Object.assign({}, r.avatar || {}, {aura: "none", pet: "none"}), {head: true, size: 40})}</span>`; } catch(e) { return `<span class="tp-av"></span>`; } };
-      const row = (r, i) => `<div class="tp-br ${r.uid === meId() ? "me" : ""} ${r.bot ? "bot" : ""}"><span class="tp-rk">${i < 3 ? ["🥇", "🥈", "🥉"][i] : i + 1}</span>${head(r)}<div class="grow"><b>${h(r.bot === "ki" ? "Nat-KI" : r.name)}${r.uid === meId() ? ` <span class="pill go">${T("You", "Du")}</span>` : ""}</b><small>${r.won}/${r.won + r.lost} ${T("won", "gewonnen")}${r.open ? ` · ${r.open} ${T("open", "offen")}` : ""}</small></div><b class="tp-pf ${r.profit >= 0 ? "pos" : "neg"}">${r.profit >= 0 ? "+" : "−"}${fmt(Math.abs(r.profit))}</b></div>`;
-      return (myI >= 0 ? `<div class="tp-pin">${row(B[myI], myI)}</div>` : "") + `<div class="tp-board">${B.map(row).join("")}</div><p class="tp-note c">${T("Ranked by Natcoins won minus staked on settled tips.", "Gezählt wird, was du mit abgerechneten Tipps gewonnen minus eingesetzt hast.")}</p>`;
+      const F = Tipp.friends(), have = new Set(Tipp.board.map(r => r.uid)), P = id => { try { return Social.P(id); } catch(e) { return {id, name: "?"}; } };
+      /* friends who haven't tipped yet stand at the bottom, with an invite */
+      const B = Tipp.board.concat(F.filter(id => !have.has(id)).map(id => ({uid: id, name: P(id).name, profit: 0, won: 0, lost: 0, open: 0, none: 1})));
+      if (meId() && !B.some(r => r.uid === meId())) B.push({uid: meId(), name: T("You", "Du"), profit: 0, won: 0, lost: 0, open: 0, none: 1});
+      const myI = B.findIndex(r => r.uid === meId()), head = r => { if (r.bot === "ki") return `<span class="tp-av ki">🤖</span>`; try { if (r.uid && typeof Social !== "undefined" && Social.data && Social.data.players[r.uid]) return `<span class="tp-av">${Social.face(Social.P(r.uid), 40)}</span>`; return `<span class="tp-av">${avatarSVG(Object.assign({}, r.avatar || {}, {aura: "none", pet: "none"}), {head: true, size: 40})}</span>`; } catch(e) { return `<span class="tp-av"></span>`; } };
+      const row = (r, i) => `<div class="tp-br ${r.uid === meId() ? "me" : ""} ${r.bot ? "bot" : ""} ${r.none ? "none" : ""}"><span class="tp-rk">${r.none ? "·" : i < 3 ? ["🥇", "🥈", "🥉"][i] : i + 1}</span>${head(r)}<div class="grow"><b>${h(r.bot === "ki" ? "Nat-KI" : r.name)}${r.uid === meId() ? ` <span class="pill go">${T("You", "Du")}</span>` : ""}</b><small>${r.none ? T("no tips yet", "noch kein Tipp") : `${r.won}/${r.won + r.lost} ${T("won", "gewonnen")}${r.open ? ` · ${r.open} ${T("open", "offen")}` : ""}`}</small></div>${r.none && r.uid !== meId() ? `<button class="btn sm ${Tipp.invited[r.uid] ? "" : "go"}" data-tinv="${h(r.uid)}" ${Tipp.invited[r.uid] ? "disabled" : ""}>${Tipp.invited[r.uid] ? "✓" : "📨 " + T("Invite", "Einladen")}</button>` : `<b class="tp-pf ${r.profit >= 0 ? "pos" : "neg"}">${r.profit >= 0 ? "+" : "−"}${fmt(Math.abs(r.profit))}</b>`}</div>`;
+      return `<div class="tp-tools" style="margin-top:12px"><button class="btn ghost sm" data-invall>📨 ${T("Invite friends", "Freunde einladen")}</button></div>` + (myI >= 0 && !B[myI].none ? `<div class="tp-pin">${row(B[myI], myI)}</div>` : "") + `<div class="tp-board">${B.map(row).join("")}</div><p class="tp-note c">${T("Ranked by Natcoins won minus staked on settled tips.", "Gezählt wird, was du mit abgerechneten Tipps gewonnen minus eingesetzt hast.")}</p>`;
     },
+    inviteSheet(){
+      const F = Tipp.friends(), P = id => { try { return Social.P(id); } catch(e) { return {id, name: "?"}; } };
+      const d = detailSheet(`<div class="tp-invs"><h3 style="margin:0 0 4px">📨 ${T("Invite to the tipping game", "Zum Tippspiel einladen")}</h3><p class="tp-note">${T("They get a push and land right here.", "Sie bekommen einen Push und landen direkt hier.")}</p>
+        ${F.length ? F.map(id => `<div class="tp-br"><span class="tp-av">${(() => { try { return Social.face(P(id), 40); } catch(e) { return ""; } })()}</span><div class="grow"><b>${h(P(id).name)}</b></div><button class="btn sm ${Tipp.invited[id] ? "" : "go"}" data-tinv="${h(id)}" ${Tipp.invited[id] ? "disabled" : ""}>${Tipp.invited[id] ? "✓" : "📨 " + T("Invite", "Einladen")}</button></div>`).join("") : `<p class="tp-note">${T("No friends yet.", "Noch keine Freunde.")}</p>`}
+        <button class="btn ghost" data-tshare style="margin-top:8px">🔗 ${T("Share a link", "Link teilen")}</button></div>`);
+      this.wireInv(d.el); const sh = d.el.querySelector("[data-tshare]"); if (sh) sh.onclick = () => this.share();
+    },
+    async share(){ const url = location.origin + "/#tipp", text = T("Tip with me in the Chess.nat tipping game – Bayern, Bundesliga, UFC, with Natcoins!", "Tipp mit mir im Chess.nat-Tippspiel – Bayern, Bundesliga, UFC, mit Natcoins!");
+      try { if (navigator.share){ await navigator.share({title: "Chess.nat Tippspiel", text, url}); return; } } catch(e) { if (e && e.name === "AbortError") return; }
+      try { await navigator.clipboard.writeText(text + " " + url); toast(T("Link copied.", "Link kopiert."), 2500); } catch(e) {} },
+    wireInv(root){ root.querySelectorAll("[data-tinv]").forEach(b => b.onclick = async () => { b.disabled = true; Sound.tap(); if (await Tipp.invite(b.dataset.tinv)){ b.textContent = "✓"; b.classList.remove("go"); toast(T("Invite sent", "Einladung geschickt"), 1800); if (navigator.vibrate) try { navigator.vibrate(12); } catch(_) {} } else b.disabled = false; }); },
     /* ---------- the bet slip ---------- */
     slipBar(){
       const el = this.main && this.main.querySelector("#tpslip"); if (!el) return; const S1 = Tipp.slip;
@@ -161,7 +234,7 @@
     },
     openSlip(){
       const draw = () => { const S1 = Tipp.slip, stake = S1.reduce((s, x) => s + x.stake, 0), win = S1.reduce((s, x) => s + Math.round(x.stake * x.q), 0);
-        return `<div class="tp-slip"><h3 style="margin:0 0 8px">${T("Tip slip", "Tippschein")}</h3>${S1.map((x, i) => `<div class="tp-si"><div class="grow"><b>${h(x.t)}: ${h(x.l)}</b><small>${h(x.name)}</small></div><b class="tp-q">${q2(x.q)}</b><button class="tp-x" data-rm="${i}">✕</button>
+        return `<div class="tp-slip"><h3 style="margin:0 0 8px">${T("Tip slip", "Tippschein")}</h3>${S1.length > 1 ? `<div class="tp-st tp-all"><span>${T("Stake for all", "Einsatz für alle")}</span>${[10, 50, 100, 250].map(v => `<button class="chip ${S1.every(x => x.stake === v) ? "on" : ""}" data-sta="${v}">${v}</button>`).join("")}</div>` : ""}${S1.map((x, i) => `<div class="tp-si"><div class="grow"><b>${h(x.t)}: ${h(x.l)}</b><small>${h(x.name)}</small></div><b class="tp-q">${q2(x.q)}</b><button class="tp-x" data-rm="${i}">✕</button>
           <div class="tp-st">${STAKES.map(v => `<button class="chip ${x.stake === v ? "on" : ""}" data-st="${i}" data-v="${v}">${fmt(v)}</button>`).join("")}<button class="chip ${x.stake === Math.max(1, bal()) ? "on" : ""}" data-st="${i}" data-v="max">${T("All in", "Alles")}</button></div><small class="tp-pw">${T("Possible win", "Möglicher Gewinn")}: <b>${fmt(Math.round(x.stake * x.q))} NAT</b></small></div>`).join("")}
           <div class="tp-tot"><span>${T("Stake", "Einsatz")} <b>${fmt(stake)}</b></span><span>${T("Balance", "Guthaben")} <b>${fmt(bal())}</b></span><span>${T("Win up to", "Gewinn bis")} <b>${fmt(win)}</b></span></div>
           <button class="btn go big" data-place ${stake > bal() || !S1.length ? "disabled" : ""}>${stake > bal() ? T("Not enough NAT", "Zu wenig NAT") : T("Place tips", "Tipps abgeben")}</button>
@@ -169,6 +242,7 @@
       const d = detailSheet(`<div id="tpsl">${draw()}</div>`); const box = d.el.querySelector("#tpsl");
       const wire = () => {
         box.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { Tipp.slip.splice(+b.dataset.rm, 1); Sound.tap(); if (!Tipp.slip.length) d.close(); else { box.innerHTML = draw(); wire(); } this.slipBar(); this.syncCards(); });
+        box.querySelectorAll("[data-sta]").forEach(b => b.onclick = () => { Tipp.slip.forEach(x => x.stake = +b.dataset.sta); Tipp.lastStake = +b.dataset.sta; Sound.tap(); box.innerHTML = draw(); wire(); this.slipBar(); });
         box.querySelectorAll("[data-st]").forEach(b => b.onclick = () => { const x = Tipp.slip[+b.dataset.st]; x.stake = b.dataset.v === "max" ? Math.max(1, Math.floor(bal())) : +b.dataset.v; Tipp.lastStake = x.stake; Sound.tap(); box.innerHTML = draw(); wire(); this.slipBar(); });
         const cl = box.querySelector("[data-clear]"); if (cl) cl.onclick = () => { Tipp.slip = []; d.close(); this.slipBar(); this.syncCards(); };
         const pl = box.querySelector("[data-place]"); if (pl) pl.onclick = async () => { pl.disabled = true; pl.textContent = T("Placing…", "Wird getippt…"); const n = await this.place(); d.close(); if (n) { toast(T(`✅ ${n} tip${n > 1 ? "s" : ""} placed. Good luck!`, `✅ ${n} Tipp${n > 1 ? "s" : ""} abgegeben. Viel Glück!`)); this.refresh(); } };
@@ -182,7 +256,7 @@
         const {error} = await c.rpc("tipp_place", {p_event: x.ev, p_market: x.k, p_pick: x.p, p_stake: x.stake});
         if (error){ natEarn(x.stake, true); left.push(x); toast(/closed/.test(error.message) ? T("That match has started.", "Das Spiel hat schon begonnen.") : error.message); } else ok++;
       }
-      Tipp.slip = left; this.slipBar(); this.balance(); if (ok){ Sound.play && Sound.play("GenericNotify", .5); if (navigator.vibrate) try { navigator.vibrate([20, 40, 20]); } catch(e) {} }
+      Tipp.slip = left; this.slipBar(); this.balance(); if (this.main && Tipp.tab === "mine") this.draw(); if (ok){ Sound.play && Sound.play("GenericNotify", .5); if (navigator.vibrate) try { navigator.vibrate([20, 40, 20]); } catch(e) {} }
       return ok;
     },
     /* ---------- an admin makes boxing, Oktagon and handball events by hand ---------- */
@@ -216,13 +290,14 @@
       b.querySelectorAll("[data-f]").forEach(x => x.onclick = () => { Tipp.filter = x.dataset.f; Sound.tap(); this.draw(); });
       b.querySelectorAll(".tp-o[data-ev]").forEach(x => x.onclick = ev => { ev.stopPropagation(); const e = Tipp.ev.find(z => z.id === x.dataset.ev), m = e && e.markets.find(z => z.k === x.dataset.k), o = m && m.o.find(z => z.p === x.dataset.p); if (!o) return; Tipp.toggle(e, m, o); x.parentNode.querySelectorAll(".tp-o").forEach(z => z.classList.toggle("on", Tipp.inSlip(e.id, z.dataset.k, z.dataset.p))); this.slipBar(); });
       b.querySelectorAll("[data-open]").forEach(x => x.onclick = ev => { if (ev.target.closest(".tp-o")) return; ev.stopPropagation(); Sound.tap(); this.openEvent(x.dataset.open); });
-      const ki = b.querySelector("[data-ki]"); if (ki) ki.onclick = () => { const L = this.shown().filter(e => e.state === "pre" && Date.parse(e.start_at) > Date.now() && Date.parse(e.start_at) < Date.now() + 8 * 864e5 && !Tipp.myOn(e.id).length && !Tipp.slip.some(s => s.ev === e.id));
-        if (!L.length) return toast(T("Nothing left for Nat-KI to tip.", "Nichts mehr da, was die KI tippen könnte."));
-        L.slice(0, 12).forEach(e => { const r = Tipp.kiPick(e, false); if (r) Tipp.toggle(e, r.m, r.o); }); toast(`🤖 ${T(`${Math.min(12, L.length)} tips on your slip`, `${Math.min(12, L.length)} KI-Tipps auf deinem Schein`)}`); this.draw(); };
+      const ki = b.querySelector("[data-ki]"); if (ki) ki.onclick = () => this.kiAll();
       b.querySelectorAll("[data-admin]").forEach(x => x.onclick = () => this.adminForm(x.dataset.admin === "new" ? null : Tipp.ev.find(e => e.id === x.dataset.admin)));
+      const s2 = b.querySelector("[data-slip2]"); if (s2) s2.onclick = () => { Sound.tap(); this.openSlip(); };
+      const ia = b.querySelector("[data-invall]"); if (ia) ia.onclick = () => { Sound.tap(); this.inviteSheet(); };
+      this.wireInv(b);
     }
   };
-  if (typeof TAB_OF !== "undefined") TAB_OF.tipp = "games";
+  if (typeof TAB_OF !== "undefined") TAB_OF.tipp = "tipp";
   window.Tipp = Tipp;
 
   const css = document.createElement("style"); css.textContent = `
@@ -256,6 +331,30 @@
 .tp-st{display:flex;gap:5px;flex-wrap:wrap;width:100%}.tp-st .chip{padding:5px 10px;font-size:12.5px}.tp-pw{width:100%;color:var(--muted)}.tp-tot{display:flex;justify-content:space-between;gap:8px;margin:6px 2px 12px;font-size:13px;color:var(--muted);flex-wrap:wrap}.tp-tot b{color:var(--fg)}
 .tp-form label{display:flex;flex-direction:column;gap:4px;font:700 12.5px var(--body);color:var(--muted);margin-bottom:9px}.tp-form input,.tp-form select{background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:9px 10px;color:var(--fg);font:600 15px var(--body);min-width:0}
 .tp-form label{min-width:0}.tp-form input,.tp-form select{width:100%;box-sizing:border-box}.tp-2,.tp-3{display:grid;gap:8px}.tp-2{grid-template-columns:1fr 1fr}.tp-3{grid-template-columns:2fr 1fr 1fr}.tp-chk{flex-direction:row!important;align-items:center;gap:8px!important}
-.pg-gt.tp-tile .pg-art{font-size:34px}`;
+.pg-gt.tp-tile .pg-art{font-size:34px}
+.tp-chips{scroll-behavior:smooth;margin:12px -16px 4px;padding:2px 16px 4px}.tp-chips .chip{transition:background .25s,color .25s,transform .2s}.tp-chips .chip.on{transform:scale(1.04)}
+#tpbody.tp-in-r{animation:tpInR .28s cubic-bezier(.2,.8,.25,1)}#tpbody.tp-in-l{animation:tpInL .28s cubic-bezier(.2,.8,.25,1)}
+@keyframes tpInR{from{opacity:0;transform:translateX(26px)}}@keyframes tpInL{from{opacity:0;transform:translateX(-26px)}}
+.tp-pick{display:flex;align-items:center;justify-content:center;gap:10px;margin:2px 0 4px}.tp-dg{display:flex;flex-direction:column;align-items:center;gap:2px}
+.tp-dg button{width:58px;height:34px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);border-radius:10px;font-size:15px;cursor:pointer}.tp-dg button:active{transform:scale(.94)}
+.tp-dg b{width:64px;height:64px;display:grid;place-items:center;background:var(--panel-2);border:2px solid var(--line);border-radius:16px;font:900 38px var(--display);font-variant-numeric:tabular-nums}
+.tp-dg b.bump{animation:tpBump .28s cubic-bezier(.3,1.6,.5,1)}@keyframes tpBump{from{transform:scale(1.25)}}
+.tp-pick.spin .tp-dg b{border-color:var(--go);box-shadow:0 0 0 3px color-mix(in srgb,var(--go) 30%,transparent)}
+.tp-colon{font:900 34px var(--display);color:var(--muted)}
+.tp-kib{width:58px;height:64px;margin-left:6px;border:0;border-radius:16px;background:linear-gradient(180deg,#5AA3E0,#3B7FC0);color:#fff;font-size:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:inset 0 -4px 0 rgba(0,0,0,.2);cursor:pointer}.tp-kib small{font:900 11px var(--body)}.tp-kib:active{transform:translateY(2px)}
+.tp-pk-sum{text-align:center;color:var(--muted);font:700 12.5px var(--body);margin:2px 0 10px}
+.tp-myscore{background:color-mix(in srgb,var(--go) 22%,var(--panel-2))}
+.tp-kis h3{margin:0 0 10px}.tp-kr{display:flex;align-items:center;gap:8px;background:var(--panel-2);border-radius:12px;padding:8px 10px;margin-bottom:6px;transition:background .3s}
+.tp-kr .nm{flex:1;font:800 14px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-kr .nm.r{text-align:right}.tp-kr .d{width:34px;height:38px;display:grid;place-items:center;background:var(--panel);border-radius:9px;font:900 22px var(--display)}.tp-kr i{font-style:normal;font-weight:900;color:var(--muted)}
+.tp-kr.f .nm{flex:none}.tp-kr .w{flex:1;font:900 15px var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-kr small{color:var(--muted);font-weight:700}
+.tp-kr.done{background:color-mix(in srgb,var(--go) 16%,var(--panel-2))}.tp-kr.done .d,.tp-kr.done .w{animation:tpBump .3s cubic-bezier(.3,1.6,.5,1)}
+.tp-kst{display:flex;align-items:center;gap:6px;margin:10px 0;color:var(--muted);font:700 13px var(--body)}.tp-kst .chip{padding:5px 12px}
+.tp-pend{margin:12px 0 4px}.tp-pend .btn{width:100%;margin-top:4px}.tp-tip.pend{border-style:dashed}
+.tp-br.none{opacity:.85}.tp-br.none .tp-rk{color:var(--muted)}.tp-br .btn.sm{flex:none}
+.tp-all{align-items:center;margin:0 0 10px}.tp-all span{color:var(--muted);font:700 12.5px var(--body);margin-right:4px}
+.tp-invs .tp-br{margin-bottom:6px}
+.tp-br .grow{flex:1}.tp{padding-bottom:96px}.tp-tabs button{white-space:nowrap}
+.tp-pgl{display:flex;flex-wrap:wrap;gap:4px;margin:5px 0 3px}.tp-pgl span{background:var(--panel-2);border-radius:8px;padding:3px 8px;font:700 12.5px var(--body)}.tp-pgl i{font-style:normal;color:var(--muted);margin-left:2px}
+.tp-kr.f small{max-width:45%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}`;
   document.head.appendChild(css);
 })();
