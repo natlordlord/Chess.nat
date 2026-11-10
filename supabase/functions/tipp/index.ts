@@ -21,7 +21,12 @@ const LEAGUES = [
   { sport: "soccer", slug: "uefa.champions", comp: "uefa.champions", kind: "fb" },
   { sport: "soccer", slug: "ger.dfb_pokal", comp: "ger.dfb_pokal", kind: "fb" },
   { sport: "mma", slug: "ufc", comp: "ufc", kind: "mma" },
-];
+  /* Germany's national team: only its games */
+  { sport: "soccer", slug: "uefa.nations", comp: "nt", kind: "fb", only: true },
+  { sport: "soccer", slug: "fifa.friendly", comp: "nt", kind: "fb", only: true },
+  { sport: "soccer", slug: "uefa.euroq", comp: "nt", kind: "fb", only: true },
+  { sport: "soccer", slug: "fifa.worldq.uefa", comp: "nt", kind: "fb", only: true },
+] as J[];
 
 async function get(url: string, ms = 9000): Promise<J | null> {
   const c = new AbortController(); const t = setTimeout(() => c.abort(), ms);
@@ -158,7 +163,12 @@ async function realOdds(sport: string, slug: string, evId: string, cId: string) 
 const DE: Record<string, string> = { "Bayern Munich": "FC Bayern", "FC Cologne": "1. FC Köln", "Cologne": "1. FC Köln", "Hamburg SV": "Hamburger SV", "Borussia Monchengladbach": "Borussia Mönchengladbach",
   "Inter Milan": "Inter Mailand", "AC Milan": "AC Mailand", "Bayer Leverkusen": "Bayer 04 Leverkusen", "Juventus": "Juventus Turin", "Napoli": "SSC Neapel", "Atletico Madrid": "Atlético Madrid",
   "Sporting CP": "Sporting Lissabon", "Benfica": "Benfica Lissabon", "Club Brugge": "FC Brügge", "Red Star Belgrade": "Roter Stern Belgrad", "Copenhagen": "FC Kopenhagen", "Galatasaray": "Galatasaray Istanbul",
-  "Fenerbahce": "Fenerbahçe", "PSV Eindhoven": "PSV Eindhoven", "Slavia Prague": "Slavia Prag", "Sparta Prague": "Sparta Prag", "Shakhtar Donetsk": "Schachtar Donezk", "Celtic": "Celtic Glasgow", "Rangers": "Glasgow Rangers" };
+  "Fenerbahce": "Fenerbahçe", "PSV Eindhoven": "PSV Eindhoven", "Slavia Prague": "Slavia Prag", "Sparta Prague": "Sparta Prag", "Shakhtar Donetsk": "Schachtar Donezk", "Celtic": "Celtic Glasgow", "Rangers": "Glasgow Rangers",
+  "Germany": "Deutschland", "Netherlands": "Niederlande", "Serbia": "Serbien", "Hungary": "Ungarn", "Bosnia-Herzegovina": "Bosnien-Herzegowina", "Italy": "Italien", "France": "Frankreich", "Spain": "Spanien", "Switzerland": "Schweiz", "Austria": "Österreich",
+  "Belgium": "Belgien", "Croatia": "Kroatien", "Turkey": "Türkei", "Türkiye": "Türkei", "Poland": "Polen", "Denmark": "Dänemark", "Sweden": "Schweden", "Norway": "Norwegen", "Greece": "Griechenland", "Scotland": "Schottland", "Slovakia": "Slowakei",
+  "Czechia": "Tschechien", "Czech Republic": "Tschechien", "Slovenia": "Slowenien", "Romania": "Rumänien", "Ukraine": "Ukraine", "Portugal": "Portugal", "Republic of Ireland": "Irland", "Northern Ireland": "Nordirland", "Wales": "Wales", "Iceland": "Island",
+  "Luxembourg": "Luxemburg", "Georgia": "Georgien", "Albania": "Albanien", "Finland": "Finnland", "Israel": "Israel", "Kosovo": "Kosovo", "North Macedonia": "Nordmazedonien", "Montenegro": "Montenegro", "Bulgaria": "Bulgarien", "USA": "USA", "United States": "USA",
+  "Mexico": "Mexiko", "Brazil": "Brasilien", "Argentina": "Argentinien", "Japan": "Japan" };
 const de = (n: string) => DE[n] || n;
 function soccerEvent(L: J, e: J): J {
   const c = e.competitions?.[0] || {}, cs = c.competitors || [], h = cs.find((x: J) => x.homeAway === "home") || cs[0] || {}, a = cs.find((x: J) => x.homeAway === "away") || cs[1] || {};
@@ -167,7 +177,7 @@ function soccerEvent(L: J, e: J): J {
   return { id: `espn:${L.slug}:${e.id}`, sport: "fb", comp: L.comp, name: `${hn} – ${an}`, home: hn, away: an, home_logo: h.team?.logo || null, away_logo: a.team?.logo || null,
     home_id: h.team?.id || null, away_id: a.team?.id || null, start_at: e.date, state: canc ? "canc" : (st.state || "pre"),
     clock: st.state === "in" ? (st.shortDetail || c.status?.displayClock || "") : (st.state === "post" ? (st.shortDetail || "FT") : null),
-    score_h: st.state === "pre" ? null : +h.score || 0, score_a: st.state === "pre" ? null : +a.score || 0, fav: isBay(hn) || isBay(an),
+    score_h: st.state === "pre" ? null : +h.score || 0, score_a: st.state === "pre" ? null : +a.score || 0, fav: isBay(hn) || isBay(an) || hn === "Deutschland" || an === "Deutschland",
     meta: { espn: e.id, cid: c.id, slug: L.slug, sport: L.sport, round: e.season?.slug || null, bvb: isBvb(hn) || isBvb(an), ab: [h.team?.abbreviation, a.team?.abbreviation],
       lines: [h.linescores?.map((x: J) => +x.value), a.linescores?.map((x: J) => +x.value)], detail: st.detail || null } };
 }
@@ -213,27 +223,38 @@ async function soccerResult(ev: J) {
 
 /* ---------- the run ---------- */
 async function notify(id: string, title: string, body: string) { try { await sb.rpc("tipp_notify", { p_event: id, p_title: title, p_body: body }); } catch (_) { /* ignore */ } }
+async function live(id: string, title: string) { try { await sb.rpc("tipp_live", { p_event: id, p_title: title }); } catch (_) { /* ignore */ } }
 const pickBy = (os: J[]) => { let r = Math.random() * os.reduce((s, o) => s + (o.pr || 0), 0); for (const o of os){ r -= o.pr || 0; if (r <= 0) return o; } return os[os.length - 1]; };
 
 /* the AI tipster: once per event, a few days before, picked at random by the model's probabilities */
-async function kiTip(id: string, markets: J[]){
+/* the KI is no Dortmund fan: a Dortmund win gets a third of its chance, a draw a bit less */
+const BVB = /Dortmund/;
+const bvbF = (m: J, o: J, home = "", away = "") => {
+  const bh = BVB.test(home), ba = BVB.test(away); if (!bh && !ba) return 1;
+  let r = ""; if (m.k === "1x2") r = o.p === "d" ? "d" : (o.p === "h") === bh ? "w" : "l";
+  else if (m.k === "cs" && o.p !== "x"){ const [a, b] = o.p.split("-").map(Number); r = a === b ? "d" : (a > b) === bh ? "w" : "l"; }
+  return r === "w" ? 0.3 : r === "d" ? 0.8 : 1;
+};
+async function kiTip(id: string, markets: J[], home = "", away = ""){
   if (!markets.length) return;
   const { count } = await sb.from("tipp_tips").select("id", { count: "exact", head: true }).eq("event_id", id).eq("bot", "ki");
   if (count) return;
   const main = markets[0], side = markets.filter(m => m !== main && ["btts", "ou25", "pen", "yc35", "how", "dist", "x0", "x1", "x2"].includes(m.k));
   const picks = [main].concat(side.length ? [side[Math.floor(Math.random() * side.length)]] : []);
-  await sb.from("tipp_tips").insert(picks.map(m => { const o = pickBy(m.o); return { user_id: null, bot: "ki", event_id: id, market: m.k, pick: o.p, label: `${m.t}: ${o.l}`, stake: 100, odds: o.q }; }));
+  await sb.from("tipp_tips").insert(picks.map(m => { const o = pickBy(m.o.map((o: J) => Object.assign({}, o, { pr: (o.pr || 0) * bvbF(m, o, home, away) }))); return { user_id: null, bot: "ki", event_id: id, market: m.k, pick: o.p, label: `${m.t}: ${o.l}`, stake: 100, odds: o.q }; }));
 }
 
 async function sync() {
   const now = new Date(), log: string[] = [], minute = now.getUTCMinutes();
   const months = [month(now)]; if (minute % 10 === 0 || now.getUTCDate() >= 20) months.push(month(new Date(now.getTime() + 20 * 864e5)));
   if (now.getUTCDate() <= 2) months.push(month(new Date(now.getTime() - 3 * 864e5)));
-  const fresh: J[] = [];
-  for (const L of LEAGUES) for (const m of months){
+  const fresh: J[] = [], seen = new Set<string>();
+  for (const L of LEAGUES) for (const m of [...new Set(months)]){
     const j = await get(`${SITE}/${L.sport}/${L.slug}/scoreboard?dates=${m}`); if (!j) continue;
-    for (const e of (j.events || []) as J[]) L.sport === "mma" ? fresh.push(...mmaEvents(L, e)) : fresh.push(soccerEvent(L, e));
+    for (const e of (j.events || []) as J[]){ if (L.sport === "mma"){ fresh.push(...mmaEvents(L, e)); continue; } const ev = soccerEvent(L, e); if (L.only && ev.home !== "Deutschland" && ev.away !== "Deutschland") continue; fresh.push(ev); }
   }
+  /* the same game can come twice (two months, two lists): once is enough for the upsert */
+  for (let i = fresh.length - 1; i >= 0; i--){ if (seen.has(fresh[i].id)) fresh.splice(i, 1); else seen.add(fresh[i].id); }
   /* keep what matters: from 3 days ago until 40 days ahead */
   const keep = fresh.filter(e => { const t = Date.parse(e.start_at); return t > now.getTime() - 3 * 864e5 && t < now.getTime() + 40 * 864e5; });
   const ids = keep.map(e => e.id), old: Record<string, J> = {};
@@ -244,7 +265,9 @@ async function sync() {
   /* goals and fight ends -> pushes for the people with a tip on it */
   for (const e of keep){ const o = old[e.id]; if (!o) continue;
     if (e.sport === "fb" && e.state === "in" && o.score_h != null && (e.score_h !== o.score_h || e.score_a !== o.score_a) && (e.score_h + e.score_a) > (o.score_h + o.score_a)){
-      const who = e.score_h > o.score_h ? e.home : e.away; await notify(e.id, `⚽ Tor für ${who}!`, `${e.home} ${e.score_h}:${e.score_a} ${e.away} · ${e.clock || ""}`); }
+      const who = e.score_h > o.score_h ? e.home : e.away; await live(e.id, `⚽ Tor für ${who}! ${e.score_h}:${e.score_a}${e.clock ? " · " + e.clock : ""}`); }
+    if (e.sport === "fb" && e.state === "in" && /^(HT|Halftime|Half Time)/i.test(String(e.meta?.detail || e.clock || "")) && !/^(HT|Halftime|Half Time)/i.test(String(o.meta?.detail || o.clock || "")))
+      await live(e.id, `⏸️ Halbzeit · ${e.home} ${e.score_h}:${e.score_a} ${e.away}`);
     if (e.sport === "fb" && e.state === "in" && o.state === "pre") await notify(e.id, "🟢 Anpfiff", `${e.home} – ${e.away} läuft. Viel Glück mit deinen Tipps!`);
   }
   /* markets: before kick-off, refreshed every 3 hours, frozen after */
@@ -268,7 +291,7 @@ async function sync() {
     }
     const { error } = await sb.from("tipp_events").update({ markets, model, odds_src: src, odds_at: now.toISOString() }).eq("id", e.id).eq("state", "pre");
     if (error) log.push("markets " + error.message);
-    if (Date.parse(e.start_at) < now.getTime() + 4 * 864e5) await kiTip(e.id, markets);
+    if (Date.parse(e.start_at) < now.getTime() + 4 * 864e5) await kiTip(e.id, markets, e.home, e.away);
   }
   /* manual events (boxing, Oktagon, handball): live at the start, AI tip, reminder, and a nudge to the admins for the result */
   const { data: man } = await sb.from("tipp_events").select("*").not("id", "like", "espn:%").in("state", ["pre", "in"]).lt("start_at", new Date(now.getTime() + 4 * 864e5).toISOString()).limit(40);
@@ -276,7 +299,7 @@ async function sync() {
     const t = Date.parse(e.start_at) - now.getTime(), m = e.meta || {};
     if (e.state === "pre" && t <= 0){ await sb.from("tipp_events").update({ state: "in" }).eq("id", e.id); await notify(e.id, e.sport === "hb" ? "🤾 Anwurf" : "🥊 Es geht los", `${e.home} – ${e.away}. Viel Glück mit deinen Tipps!`); continue; }
     if (e.state === "in"){ if (t < -4 * 3600e3 && !m.nudged){ await sb.rpc("tipp_admin_nudge", { p_event: e.id, p_title: "📝 Ergebnis fehlt", p_body: `${e.home} – ${e.away}: trag das Ergebnis ein, dann wird abgerechnet.` }); await sb.from("tipp_events").update({ meta: Object.assign({}, m, { nudged: true }) }).eq("id", e.id); } continue; }
-    if ((e.markets || []).length) await kiTip(e.id, e.markets);
+    if ((e.markets || []).length) await kiTip(e.id, e.markets, e.home, e.away);
     if (e.fav && t > 40 * 60e3 && t < 75 * 60e3 && !m.rem){ await sb.rpc("tipp_remind", { p_event: e.id, p_title: `${e.sport === "hb" ? "🤾" : "🥊"} Gleich: ${e.home} – ${e.away}`, p_body: "In einer Stunde geht's los. Noch kein Tipp abgegeben?" });
       await sb.from("tipp_events").update({ meta: Object.assign({}, m, { rem: true }) }).eq("id", e.id); }
   }
@@ -284,7 +307,10 @@ async function sync() {
   for (const e of keep.filter(e => e.sport === "fb" && e.state === "in").slice(0, 6)){
     const j = await get(`${SITE}/soccer/${e.meta.slug}/summary?event=${e.meta.espn}`); if (!j) continue;
     const T = (j.boxscore?.teams || []) as J[], st = (n: string) => T.reduce((s, t) => s + (+((t.statistics || []).find((x: J) => x.name === n)?.displayValue) || 0), 0);
-    await sb.from("tipp_events").update({ stats: { yc: st("yellowCards"), rc: st("redCards"), cor: st("wonCorners"), pens: st("penaltyKickShots") } }).eq("id", e.id);
+    const S = { yc: st("yellowCards"), rc: st("redCards"), cor: st("wonCorners"), pens: st("penaltyKickShots") }, os = (old[e.id] || {}).stats || {};
+    await sb.from("tipp_events").update({ stats: S }).eq("id", e.id);
+    if (os.rc != null && S.rc > os.rc) await notify(e.id, "🟥 Rote Karte!", `${e.home} ${e.score_h}:${e.score_a} ${e.away}${e.clock ? " · " + e.clock : ""}`);
+    if (os.pens != null && S.pens > os.pens) await notify(e.id, "⚽ Elfmeter!", `${e.home} ${e.score_h}:${e.score_a} ${e.away}${e.clock ? " · " + e.clock : ""}`);
   }
   /* settle what has finished */
   const { data: due } = await sb.from("tipp_events").select("*").in("state", ["post", "canc"]).eq("settled", false).like("id", "espn:%").limit(8);

@@ -8,8 +8,8 @@
   const sb = () => window.ChessSite && window.ChessSite.sb;
   const meId = () => typeof Social !== "undefined" ? Social.me : null;
   const h = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
-  const COMP = {"ger.1": ["Bundesliga", "⚽"], "uefa.champions": ["Champions League", "⭐"], "ger.dfb_pokal": ["DFB-Pokal", "🏆"], "ufc": ["UFC", "🥊"], "oktagon": ["Oktagon", "🥊"], "box": [T("Boxing", "Boxen"), "🥊"], "hb": ["Handball", "🤾"], "misc": [T("Other", "Sonstiges"), "🎯"]};
-  const FILTERS = [["all", T("All", "Alle")], ["bay", "⭐ Bayern"], ["ger.1", "Bundesliga"], ["uefa.champions", "Champions League"], ["ger.dfb_pokal", "DFB-Pokal"], ["fight", "UFC · Oktagon · " + T("Boxing", "Boxen")], ["hb", "Handball"]];
+  const COMP = {"nt": [T("Germany", "Deutschland"), "🇩🇪"], "ger.1": ["Bundesliga", "⚽"], "uefa.champions": ["Champions League", "⭐"], "ger.dfb_pokal": ["DFB-Pokal", "🏆"], "ufc": ["UFC", "🥊"], "oktagon": ["Oktagon", "🥊"], "box": [T("Boxing", "Boxen"), "🥊"], "hb": ["Handball", "🤾"], "misc": [T("Other", "Sonstiges"), "🎯"]};
+  const FILTERS = [["all", T("All", "Alle")], ["nt", "🇩🇪 " + T("Germany", "Deutschland")], ["bay", "⭐ Bayern"], ["ger.1", "Bundesliga"], ["uefa.champions", "Champions League"], ["ger.dfb_pokal", "DFB-Pokal"], ["fight", "UFC · Oktagon · " + T("Boxing", "Boxen")], ["hb", "Handball"]];
   const STAKES = [50, 100, 250, 500, 1000];
   const bay = n => /bayern/i.test(n || ""), bvb = n => /dortmund/i.test(n || "");
   const coin = () => typeof NAT_COIN !== "undefined" ? NAT_COIN : "🪙";
@@ -21,6 +21,8 @@
     return d.toLocaleDateString(de() ? "de-DE" : "en-GB", {weekday: "long", day: "numeric", month: "long"}); };
   const hm = t => new Date(t).toLocaleTimeString(de() ? "de-DE" : "en-GB", {hour: "2-digit", minute: "2-digit"});
   const q2 = q => (+q).toFixed(2).replace(".", de() ? "," : ".");
+  /* the KI is no Dortmund fan: their wins get a third of the chance, draws a bit less */
+  const bvbF = (ev, sh, sa) => { const bh = /Dortmund/.test(ev.home), ba = /Dortmund/.test(ev.away); if (!bh && !ba || sh == null) return 1; const r = sh === sa ? "d" : (sh > sa) === bh ? "w" : "l"; return r === "w" ? .3 : r === "d" ? .8 : 1; };
   const pickW = os => { let r = Math.random() * os.reduce((s, o) => s + (o.pr || 0), 0); for (const o of os){ r -= o.pr || 0; if (r <= 0) return o; } return os[os.length - 1]; };
 
   const Tipp = {
@@ -52,22 +54,28 @@
       Sound.tap(); if (navigator.vibrate) try { navigator.vibrate(8); } catch(e) {} },
     /* Nat-KI picks for you: the likely result more often, the surprise sometimes */
     kiPick(ev, all){ const ms = (ev.markets || []).filter(m => m.o && m.o.length); if (!ms.length) return null;
-      const m = all ? ms[Math.floor(Math.random() * ms.length)] : ms[0], o = pickW(m.o); return {m, o}; },
+      const m = all ? ms[Math.floor(Math.random() * ms.length)] : ms[0], o = pickW(m.k === "1x2" ? m.o.map(o => Object.assign({}, o, {pr: (o.pr || 0) * bvbF(ev, o.p === "h" ? 1 : 0, o.p === "a" ? 1 : 0)})) : m.o); return {m, o: m.o.find(x => x.p === o.p) || o}; },
     /* a pick that is on the slip for sure (the score sets several at once) */
     put(ev, m, o, stake){ this.slip = this.slip.filter(s => !(s.ev === ev.id && s.k === m.k)); this.slip.push({ev: ev.id, k: m.k, p: o.p, l: o.l, t: m.t, q: o.q, name: ev.sport === "fb" ? `${ev.home} – ${ev.away}` : `${ev.home} vs. ${ev.away}`, stake: stake || this.lastStake || 100}); },
     scores: {},
     saved: (() => { try { return JSON.parse(localStorage.getItem("chessnat-tipp-scores") || "{}"); } catch(e) { return {}; } })(),
     keep(id, sc){ this.saved[id] = sc; try { localStorage.setItem("chessnat-tipp-scores", JSON.stringify(this.saved)); } catch(e) {} },
     /* what I tipped on an event, short: "2:1" or a name */
-    myTip(ev){ const ts = this.myOn(ev.id); if (!ts.length) return null; const cs = ts.find(t => t.market === "cs");
-      if (cs && cs.pick !== "x") return {score: cs.pick.replace("-", ":"), t: cs}; if (this.saved[ev.id]) return {score: this.saved[ev.id], t: cs || ts[0]};
-      const m0 = (ev.markets || [])[0], t0 = ts.find(t => m0 && t.market === m0.k) || ts[0], o = m0 && m0.o.find(o => o.p === t0.pick); return {name: o ? o.l : (t0.label || "").split(": ").pop(), t: t0}; },
+    myTip(ev){ const ts = this.myOn(ev.id); if (!ts.length) return null; const css = ts.filter(t => t.market === "cs"), cs = css.find(t => t.pick !== "x") || css[0];
+      if (cs && cs.pick !== "x") return {score: cs.pick.replace("-", ":"), t: cs};
+      const lab = css.map(t => /(\d{1,2}:\d{1,2})\s*$/.exec(t.label || "")).find(Boolean); if (lab) return {score: lab[1], t: cs};
+      if (this.saved[ev.id]) return {score: this.saved[ev.id], t: cs || ts[0]};
+      const m0 = (ev.markets || [])[0], t0 = ts.find(t => m0 && t.market === m0.k) || ts[0], o = m0 && m0.o.find(o => o.p === t0.pick);
+      /* only the winner was tipped: 1 · X · 2 like on a pools coupon; for fights the surname */
+      if (ev.sport === "fb" && t0.market === "1x2") return {score: {h: "1", d: "X", a: "2"}[t0.pick] || "?", t: t0};
+      const nm = o ? o.l : (t0.label || "").split(": ").pop(); return {name: ev.sport === "fb" ? nm : String(nm).split(" ").pop(), t: t0}; },
     /* the exact score chooses the winner, the goals line and the exact result */
     score(ev, sh, sa, stake){ const D = {"1x2": sh > sa ? "h" : sh === sa ? "d" : "a", ou25: sh + sa > 2.5 ? "o" : "u", cs: `${sh}-${sa}`};
-      Object.entries(D).forEach(([k, p]) => { const m = (ev.markets || []).find(x => x.k === k); if (!m) return; const o = m.o.find(x => x.p === p) || (k === "cs" ? m.o.find(x => x.p === "x") : null); if (o) this.put(ev, m, o, stake); });
+      Object.entries(D).forEach(([k, p]) => { const m = (ev.markets || []).find(x => x.k === k); if (!m) return; const o = m.o.find(x => x.p === p) || (k === "cs" ? m.o.find(x => x.p === "x") : null); if (!o) return; this.put(ev, m, o, stake); if (k === "cs"){ const it = this.slip.find(x => x.ev === ev.id && x.k === "cs"); if (it) it.sc = `${sh}-${sa}`; } });
       this.scores[ev.id] = {h: sh, a: sa}; },
     /* a likely score, now and then a surprise: from the exact-score odds, else from the expected goals */
-    kiScore(ev){ const cs = (ev.markets || []).find(m => m.k === "cs"), md = ev.model || {};
+    kiScore(ev){ for (let i = 0; i < 12; i++){ const r = this.kiScore1(ev), f = bvbF(ev, r.h, r.a); if (f >= 1 || Math.random() < f) return r; } return this.kiScore1(ev); },
+    kiScore1(ev){ const cs = (ev.markets || []).find(m => m.k === "cs"), md = ev.model || {};
       const pois = l => { let k = 0, p = Math.exp(-l), s = p, u = Math.random(); while (u > s && k < 9){ k++; p *= l / k; s += p; } return k; };
       if (cs){ const o = pickW(cs.o); if (o.p !== "x"){ const [a, b] = o.p.split("-").map(Number); return {h: a, a: b}; } }
       for (let i = 0; i < 30; i++){ const h0 = pois(md.lh || 1.5), a0 = pois(md.la || 1.1); if (!cs || !cs.o.some(o => o.p === `${h0}-${a0}`) || i > 25) return {h: h0, a: a0}; }
@@ -112,7 +120,7 @@
     },
     /* ---------- matches ---------- */
     shown(){
-      const S1 = Tipp.sel, now = Date.now(), hit = (f, e) => f === "bay" ? bay(e.home) || bay(e.away) : f === "fight" ? ["ufc", "oktagon", "box"].includes(e.comp) : e.comp === f;
+      const S1 = Tipp.sel, now = Date.now(), hit = (f, e) => f === "nt" ? e.home === "Deutschland" || e.away === "Deutschland" : f === "bay" ? bay(e.home) || bay(e.away) : f === "fight" ? ["ufc", "oktagon", "box"].includes(e.comp) : e.comp === f;
       return Tipp.ev.filter(e => (e.state !== "post" || now - Date.parse(e.start_at) < 30 * 3600e3) && (e.markets.length || e.state !== "pre"))
         .filter(e => !S1.size || [...S1].some(f => hit(f, e)));
     },
@@ -136,7 +144,7 @@
       const st = e.stats || {}, extra = e.sport === "fb" && (live || done) && (st.yc != null) ? `<div class="tp-stats">🟨 ${st.yc || 0}${st.rc ? ` · 🟥 ${st.rc}` : ""}${st.pens ? ` · ⚽ ${T("pen", "Elfer")} ${st.pens}` : ""}${st.cor != null ? ` · ⛳ ${st.cor}` : ""}</div>` : "";
       const odds = m0 && e.state === "pre" ? `<div class="tp-odds sm">${m0.o.map(o => `<span>${h(m0.k === "1x2" ? (o.p === "h" ? "1" : o.p === "d" ? "X" : "2") : o.l.split(" ").pop())} <b>${q2(o.q)}</b></span>`).join("")}</div>` : "";
       const my = Tipp.myTip(e), open = e.state === "pre" && Date.parse(e.start_at) > Date.now(), fbq = e.sport === "fb" && (e.markets || []).some(m => m.k === "cs");
-      const big = my ? `<button class="tp-big mine ${done ? (my.t && my.t.status === "won" ? "won" : my.t && my.t.status === "lost" ? "lost" : "") : ""}" data-open="${h(e.id)}"><small>${T("My tip", "Mein Tipp")}</small><b>${h(my.score || my.name)}</b></button>`
+      const big = my ? `<button class="tp-big mine ${done ? (my.t && my.t.status === "won" ? "won" : my.t && my.t.status === "lost" ? "lost" : "") : ""}" data-open="${h(e.id)}"><small>${T("My tip", "Mein Tipp")}</small><b class="${String(my.score || my.name).length > 7 ? "lg" : ""}">${h(my.score || my.name)}</b></button>`
         : open && (e.markets || []).length ? `<button class="tp-big" data-quick="${h(e.id)}"><small>${T("Tip", "Tippen")}</small><b>${fbq ? "–:–" : "?"}</b></button>` : "";
       const more = e.state === "pre" && e.markets.length > 1 ? `<button class="tp-more" data-open="${h(e.id)}">+${e.markets.length - 1} ${T("bets", "Wetten")}</button>` : (e.state !== "pre" || mine.length) ? `<button class="tp-more" data-open="${h(e.id)}">${T("Details", "Details")}</button>` : "";
       return `<div class="tp-ev ${e.fav || bay(e.home) || bay(e.away) ? "fav" : ""} ${live ? "is-live" : ""}" data-open="${h(e.id)}">
@@ -303,9 +311,10 @@
     async place(){
       const c = sb(); if (!c || !meId()){ toast(T("Sign in to tip.", "Zum Tippen bitte anmelden.")); return 0; }
       let ok = 0; const left = [];
-      for (const x of Tipp.slip){
+      Tipp.slip.forEach(x => { if (x.k === "cs" && x.sc) Tipp.keep(x.ev, x.sc.replace("-", ":")); });
+      for (const x of Tipp.slip.slice().sort((a, b) => (b.k === "cs") - (a.k === "cs"))){
         if (!natSpend(x.stake)){ left.push(x); continue; }
-        const {error} = await c.rpc("tipp_place", {p_event: x.ev, p_market: x.k, p_pick: x.p, p_stake: x.stake});
+        const {error} = await c.rpc("tipp_place", {p_event: x.ev, p_market: x.k, p_pick: x.p, p_stake: x.stake, p_score: x.k === "cs" && x.sc ? x.sc : null});
         if (error){ natEarn(x.stake, true); left.push(x); toast(/closed/.test(error.message) ? T("That match has started.", "Das Spiel hat schon begonnen.") : error.message); } else ok++;
       }
       Tipp.slip = left; this.slipBar(); this.balance(); if (this.main && Tipp.tab === "mine") this.draw(); if (ok){ Sound.play && Sound.play("GenericNotify", .5); if (navigator.vibrate) try { navigator.vibrate([20, 40, 20]); } catch(e) {} }
@@ -412,7 +421,7 @@
 .tp-mid{display:flex;align-items:center;gap:10px}.tp-teams{flex:1;min-width:0}
 .tp-big{flex:none;min-width:86px;height:70px;border-radius:16px;border:2px dashed color-mix(in srgb,var(--go) 70%,var(--line));background:color-mix(in srgb,var(--go) 10%,var(--panel-2));color:var(--fg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;cursor:pointer;padding:4px 10px}
 .tp-big small{font:800 11px var(--body);color:var(--go-hi,var(--go));text-transform:uppercase;letter-spacing:.05em}.tp-big b{font:900 28px var(--display);line-height:1.05;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tp-big.mine{border:0;background:var(--go);color:#fff;box-shadow:inset 0 -4px 0 rgba(0,0,0,.2)}.tp-big.mine small{color:#eaffd6}.tp-big.mine b{font-size:30px}
+.tp-big.mine{border:0;background:var(--go);color:#fff;box-shadow:inset 0 -4px 0 rgba(0,0,0,.2)}.tp-big.mine small{color:#eaffd6}.tp-big.mine b{font-size:30px}.tp-big b.lg{font-size:17px!important;white-space:normal;line-height:1.1;max-height:2.3em;text-align:center}
 .tp-big.won{background:linear-gradient(180deg,#E9B64A,#c9921f)}.tp-big.lost{background:var(--panel-3);color:var(--muted)}.tp-big.lost small{color:var(--muted)}
 .tp-big:active{transform:scale(.96)}
 .tp-odds.sm{display:flex;gap:10px;margin-top:6px;font:700 11.5px var(--body);color:var(--muted)}.tp-odds.sm b{color:var(--fg);font-weight:800}
