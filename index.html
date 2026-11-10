@@ -1411,7 +1411,8 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 #nb,#nt{font:inherit;font-size:16px}
 .newsx.needtap .newsx-play{animation:nxpulse 1s ease-in-out infinite}
 /* puzzles: your pieces glow until your first move */
-.pc.mine{filter:drop-shadow(0 0 3px rgba(255,236,140,.95)) drop-shadow(0 0 9px rgba(255,214,90,.6));animation:pcmine 1.4s ease-in-out 2}
+/* your own pieces only glow when you have picked a glow; standard is plain */
+.pc.mine{filter:none;animation:none}
 @keyframes pcmine{50%{filter:drop-shadow(0 0 5px rgba(255,244,170,1)) drop-shadow(0 0 16px rgba(255,214,90,.85))}}
 /* solved after a miss: calm, no confetti, no green */
 .cheer.plain .word{font-size:10cqw;color:#e6ebf2;-webkit-text-stroke-color:#3c4a5c;text-shadow:0 .7cqw 0 #2b3644,0 1.4cqw 2.4cqw rgba(0,0,0,.35);animation:cheerIn .45s cubic-bezier(.2,1.3,.4,1) both, cheerOut .35s ease-in 1.35s forwards}
@@ -2794,7 +2795,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794315016";
+const CHESSNAT_BUILD = "1794315069";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -12094,7 +12095,7 @@ function natEquip(it){ if (!it) return;
   else if (it.kind === "line"){ const l = LINE_BY[it.id]; if (l && l.own && !S.ownSnd){ ownSoundSheet(); return; } LineVoice.say(l); toast("In games: tap 💬 under the board"); }
   else if (it.kind === "flower"){ natRoseOwned(); const a = myAvatar(); a.right = it.id; save(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); renderRail(); if (typeof renderTop === "function") renderTop(); toast("Your figure holds the rose now"); }
   else if (it.kind === "knife"){ S.knife = it.id; const a = myAvatar(); a.right = it.id; save(); if (typeof Social !== "undefined" && Social.syncCard) Social.syncCard(); renderRail(); if (typeof renderTop === "function") renderTop(); toast("Your figure holds it now, and it's on your profile"); }
-  else if (it.kind === "glow"){ S.settings.glow = S.settings.glow === it.id ? "" : it.id; save(); natApplyBoard(); toast(S.settings.glow ? `Glow: ${it.name}` : "Classic gold glow"); }
+  else if (it.kind === "glow"){ S.settings.glow = S.settings.glow === it.id ? "" : it.id; save(); natApplyBoard(); toast(S.settings.glow ? `Glow: ${it.name}` : "No glow"); }
   else if (it.kind === "pieces"){ S.settings.pset = S.settings.pset === it.id ? "" : it.id; save(); natApplyBoard(); toast(S.settings.pset ? `Pieces: ${it.name}` : "Classic pieces"); }
 }
 function natApplyBoard(){
