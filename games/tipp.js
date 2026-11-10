@@ -24,7 +24,9 @@
   const pickW = os => { let r = Math.random() * os.reduce((s, o) => s + (o.pr || 0), 0); for (const o of os){ r -= o.pr || 0; if (r <= 0) return o; } return os[os.length - 1]; };
 
   const Tipp = {
-    ev: [], tips: [], board: [], admin: false, slip: [], tab: "games", filter: "all", loaded: false,
+    ev: [], tips: [], board: [], admin: false, slip: [], tab: "games", loaded: false,
+    sel: (() => { try { return new Set(JSON.parse(localStorage.getItem("chessnat-tipp-sel") || "[]")); } catch(e) { return new Set(); } })(),
+    saveSel(){ try { localStorage.setItem("chessnat-tipp-sel", JSON.stringify([...this.sel])); } catch(e) {} },
     async load(){
       const c = sb(); if (!c) return;
       const from = new Date(Date.now() - 3 * 864e5).toISOString(), to = new Date(Date.now() + 40 * 864e5).toISOString();
@@ -54,6 +56,12 @@
     /* a pick that is on the slip for sure (the score sets several at once) */
     put(ev, m, o, stake){ this.slip = this.slip.filter(s => !(s.ev === ev.id && s.k === m.k)); this.slip.push({ev: ev.id, k: m.k, p: o.p, l: o.l, t: m.t, q: o.q, name: ev.sport === "fb" ? `${ev.home} – ${ev.away}` : `${ev.home} vs. ${ev.away}`, stake: stake || this.lastStake || 100}); },
     scores: {},
+    saved: (() => { try { return JSON.parse(localStorage.getItem("chessnat-tipp-scores") || "{}"); } catch(e) { return {}; } })(),
+    keep(id, sc){ this.saved[id] = sc; try { localStorage.setItem("chessnat-tipp-scores", JSON.stringify(this.saved)); } catch(e) {} },
+    /* what I tipped on an event, short: "2:1" or a name */
+    myTip(ev){ const ts = this.myOn(ev.id); if (!ts.length) return null; const cs = ts.find(t => t.market === "cs");
+      if (cs && cs.pick !== "x") return {score: cs.pick.replace("-", ":"), t: cs}; if (this.saved[ev.id]) return {score: this.saved[ev.id], t: cs || ts[0]};
+      const m0 = (ev.markets || [])[0], t0 = ts.find(t => m0 && t.market === m0.k) || ts[0], o = m0 && m0.o.find(o => o.p === t0.pick); return {name: o ? o.l : (t0.label || "").split(": ").pop(), t: t0}; },
     /* the exact score chooses the winner, the goals line and the exact result */
     score(ev, sh, sa, stake){ const D = {"1x2": sh > sa ? "h" : sh === sa ? "d" : "a", ou25: sh + sa > 2.5 ? "o" : "u", cs: `${sh}-${sa}`};
       Object.entries(D).forEach(([k, p]) => { const m = (ev.markets || []).find(x => x.k === k); if (!m) return; const o = m.o.find(x => x.p === p) || (k === "cs" ? m.o.find(x => x.p === "x") : null); if (o) this.put(ev, m, o, stake); });
@@ -75,11 +83,13 @@
       this.main = main; if (arg && arg.tab) Tipp.tab = arg.tab;
       main.innerHTML = `<div class="page tp"><div class="tp-head"><h1 class="h-title" style="margin:0">${T("Tipping", "Tippspiel")}</h1><div class="tp-bal" id="tpbal"></div></div>
         <div class="seg tp-tabs" id="tptabs">${[["games", T("Matches", "Spiele")], ["mine", T("My tips", "Meine Tipps")], ["board", T("Leaderboard", "Rangliste")]].map(([k, l]) => `<button data-tab="${k}" class="${Tipp.tab === k ? "on" : ""}">${l}</button>`).join("")}</div>
-        <div class="chips tp-chips" id="tpchips">${FILTERS.map(([k, l]) => `<button class="chip ${Tipp.filter === k ? "on" : ""}" data-f="${k}">${h(l)}</button>`).join("")}</div>
+        <div class="chips tp-chips" id="tpchips">${FILTERS.map(([k, l]) => `<button class="chip ${(k === "all" ? !Tipp.sel.size : Tipp.sel.has(k)) ? "on" : ""}" data-f="${k}">${h(l)}</button>`).join("")}</div>
         <div id="tpbody"><div class="tp-empty">${T("Loading…", "Lädt…")}</div></div><div id="tpslip"></div></div>`;
       main.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { const from = ["games", "mine", "board"].indexOf(Tipp.tab); Tipp.tab = b.dataset.tab; Sound.tap(); main.querySelectorAll("[data-tab]").forEach(x => x.classList.toggle("on", x === b)); this.draw(["games", "mine", "board"].indexOf(Tipp.tab) > from ? 1 : -1); if (Tipp.tab === "board") this.board(); });
-      const chips = main.querySelector("#tpchips"); chips.querySelectorAll("[data-f]").forEach(x => x.onclick = () => { if (Tipp.filter === x.dataset.f) return; const i0 = FILTERS.findIndex(f => f[0] === Tipp.filter), i1 = FILTERS.findIndex(f => f[0] === x.dataset.f);
-        Tipp.filter = x.dataset.f; Sound.tap(); chips.querySelectorAll("[data-f]").forEach(z => z.classList.toggle("on", z === x)); this.center(x, true); this.draw(i1 > i0 ? 1 : -1); });
+      /* tap what interests you (several at once, it's remembered); "All" shows everything */
+      const chips = main.querySelector("#tpchips"); chips.querySelectorAll("[data-f]").forEach(x => x.onclick = () => { const k = x.dataset.f, i1 = FILTERS.findIndex(f => f[0] === k), i0 = this.lastF == null ? 0 : this.lastF; this.lastF = i1;
+        if (k === "all") Tipp.sel.clear(); else if (Tipp.sel.has(k)) Tipp.sel.delete(k); else Tipp.sel.add(k); Tipp.saveSel();
+        Sound.tap(); if (navigator.vibrate) try { navigator.vibrate(6); } catch(_) {} chips.querySelectorAll("[data-f]").forEach(z => z.classList.toggle("on", z.dataset.f === "all" ? !Tipp.sel.size : Tipp.sel.has(z.dataset.f))); this.center(x, true); this.draw(i1 >= i0 ? 1 : -1); });
       requestAnimationFrame(() => { const on = chips.querySelector(".on"); if (on) this.center(on, false); });
       this.balance(); this.refresh(true); Tipp.claim().then(() => this.balance());
       clearInterval(this.iv); this.iv = setInterval(() => { if (App.route !== "tipp") return clearInterval(this.iv); this.refresh(); }, 20000);
@@ -102,9 +112,9 @@
     },
     /* ---------- matches ---------- */
     shown(){
-      const f = Tipp.filter, now = Date.now();
+      const S1 = Tipp.sel, now = Date.now(), hit = (f, e) => f === "bay" ? bay(e.home) || bay(e.away) : f === "fight" ? ["ufc", "oktagon", "box"].includes(e.comp) : e.comp === f;
       return Tipp.ev.filter(e => (e.state !== "post" || now - Date.parse(e.start_at) < 30 * 3600e3) && (e.markets.length || e.state !== "pre"))
-        .filter(e => f === "all" || (f === "bay" ? bay(e.home) || bay(e.away) : f === "fight" ? ["ufc", "oktagon", "box"].includes(e.comp) : e.comp === f));
+        .filter(e => !S1.size || [...S1].some(f => hit(f, e)));
     },
     gamesHTML(){
       const L = this.shown(), live = L.filter(e => e.state === "in"), groups = {};
@@ -124,12 +134,15 @@
       const hw = e.score_h != null && e.score_h > e.score_a, aw = e.score_a != null && e.score_a > e.score_h;
       const time = live ? `<span class="tp-live">● ${h(e.clock || "LIVE")}</span>` : done ? `<span class="tp-ft">${h(e.clock || T("Final", "Ende"))}</span>` : `<span class="tp-time">${hm(e.start_at)}</span>`;
       const st = e.stats || {}, extra = e.sport === "fb" && (live || done) && (st.yc != null) ? `<div class="tp-stats">🟨 ${st.yc || 0}${st.rc ? ` · 🟥 ${st.rc}` : ""}${st.pens ? ` · ⚽ ${T("pen", "Elfer")} ${st.pens}` : ""}${st.cor != null ? ` · ⛳ ${st.cor}` : ""}</div>` : "";
-      const odds = m0 && e.state === "pre" ? `<div class="tp-odds">${m0.o.map(o => `<button class="tp-o ${Tipp.inSlip(e.id, m0.k, o.p) ? "on" : ""}" data-ev="${h(e.id)}" data-k="${h(m0.k)}" data-p="${h(o.p)}"><small>${h(m0.k === "1x2" ? (o.p === "h" ? "1" : o.p === "d" ? "X" : "2") : o.l)}</small><b>${q2(o.q)}</b></button>`).join("")}</div>` : "";
+      const odds = m0 && e.state === "pre" ? `<div class="tp-odds sm">${m0.o.map(o => `<span>${h(m0.k === "1x2" ? (o.p === "h" ? "1" : o.p === "d" ? "X" : "2") : o.l.split(" ").pop())} <b>${q2(o.q)}</b></span>`).join("")}</div>` : "";
+      const my = Tipp.myTip(e), open = e.state === "pre" && Date.parse(e.start_at) > Date.now(), fbq = e.sport === "fb" && (e.markets || []).some(m => m.k === "cs");
+      const big = my ? `<button class="tp-big mine ${done ? (my.t && my.t.status === "won" ? "won" : my.t && my.t.status === "lost" ? "lost" : "") : ""}" data-open="${h(e.id)}"><small>${T("My tip", "Mein Tipp")}</small><b>${h(my.score || my.name)}</b></button>`
+        : open && (e.markets || []).length ? `<button class="tp-big" data-quick="${h(e.id)}"><small>${T("Tip", "Tippen")}</small><b>${fbq ? "–:–" : "?"}</b></button>` : "";
       const more = e.state === "pre" && e.markets.length > 1 ? `<button class="tp-more" data-open="${h(e.id)}">+${e.markets.length - 1} ${T("bets", "Wetten")}</button>` : (e.state !== "pre" || mine.length) ? `<button class="tp-more" data-open="${h(e.id)}">${T("Details", "Details")}</button>` : "";
       return `<div class="tp-ev ${e.fav || bay(e.home) || bay(e.away) ? "fav" : ""} ${live ? "is-live" : ""}" data-open="${h(e.id)}">
         <div class="tp-top"><span class="tp-comp">${c[1]} ${h(c[0])}${e.meta && e.meta.main && e.sport === "mma" ? ` · ${T("Main card", "Hauptkarte")}` : ""}</span>${time}</div>
-        <div class="tp-row">${logo(e.home_logo)}${name(e.home)}${sc(e.score_h, hw)}</div><div class="tp-row">${logo(e.away_logo)}${name(e.away)}${sc(e.score_a, aw)}</div>
-        ${extra}${odds}<div class="tp-foot">${Tipp.scores[e.id] ? `<span class="pill tp-myscore">🎯 ${Tipp.scores[e.id].h}:${Tipp.scores[e.id].a}</span>` : ""}${mine.length ? `<span class="pill go">${mine.length} ${T(mine.length > 1 ? "tips" : "tip", mine.length > 1 ? "Tipps" : "Tipp")}</span>` : ""}${e.model && e.model.lh != null ? `<span class="tp-xg" title="xG">xG ${String(e.model.lh).replace(".", ",")} : ${String(e.model.la).replace(".", ",")}</span>` : ""}${more}</div></div>`;
+        <div class="tp-mid"><div class="tp-teams"><div class="tp-row">${logo(e.home_logo)}${name(e.home)}${sc(e.score_h, hw)}</div><div class="tp-row">${logo(e.away_logo)}${name(e.away)}${sc(e.score_a, aw)}</div></div>${big}</div>
+        ${extra}${odds}<div class="tp-foot">${!my && Tipp.scores[e.id] ? `<span class="pill tp-myscore">📝 ${Tipp.scores[e.id].h}:${Tipp.scores[e.id].a}</span>` : ""}${e.model && e.model.lh != null ? `<span class="tp-xg" title="xG">xG ${String(e.model.lh).replace(".", ",")} : ${String(e.model.la).replace(".", ",")}</span>` : ""}${more}</div></div>`;
     },
     /* ---------- one event: every market ---------- */
     openEvent(id){
@@ -173,6 +186,37 @@
       d.el.querySelectorAll("[data-settle]").forEach(b => b.onclick = async () => { if (!b.dataset.arm){ b.dataset.arm = 1; b.textContent = T("Sure? Tap again", "Sicher? Nochmal tippen"); return; }
         const {error} = await sb().rpc("tipp_settle", {p_event: e.id, p_res: {[b.dataset.settle]: b.dataset.v}}); if (error) return toast(error.message); toast(T("Settled", "Abgerechnet")); d.close(); this.refresh(); });
       const ab = d.el.querySelector("[data-admin]"); if (ab) ab.onclick = () => { d.close(); this.adminForm(e); };
+    },
+    /* the simple way: my score (or my winner), how much, done — placed at once */
+    quick(id){
+      const e = Tipp.ev.find(x => x.id === id); if (!e) return; const fbq = e.sport === "fb" && (e.markets || []).some(m => m.k === "cs"), m0 = e.markets[0];
+      let stake = Tipp.lastStake && [50, 100, 250, 500].includes(Tipp.lastStake) ? Tipp.lastStake : 100, choice = null; const cur = {};
+      const d = detailSheet(`<div class="tp-q"><div class="tp-top"><span class="tp-comp">${(COMP[e.comp] || COMP.misc)[1]} ${h((COMP[e.comp] || COMP.misc)[0])}</span><span>${dayName(e.start_at)} · ${hm(e.start_at)}</span></div>
+        ${fbq ? `<div class="tp-pick big"><div class="tp-dg" data-side="h"><small>${h(e.home)}</small><b></b></div><span class="tp-colon">:</span><div class="tp-dg" data-side="a"><small>${h(e.away)}</small><b></b></div><button class="tp-kib" data-kiscore>🤖<small>${T("AI", "KI")}</small></button></div>
+          <div class="tp-pad">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map(n => `<button data-n="${n}" ${n === 0 ? 'class="z"' : ""}>${n}</button>`).join("")}</div>`
+          : `<div class="tp-who">${m0.o.map(o => `<button data-pick="${h(o.p)}"><b>${h(o.l)}</b></button>`).join("")}</div>`}
+        <div class="tp-qst">${T("Stake", "Einsatz")} ${[50, 100, 250, 500].map(v => `<button class="chip ${v === stake ? "on" : ""}" data-qs="${v}">${v}</button>`).join("")}</div>
+        <p class="tp-qwin"></p><button class="btn go big" data-go disabled>${T("✓ Tip", "✓ Tippen")}</button></div>`);
+      const el = d.el, go = el.querySelector("[data-go]"), win = el.querySelector(".tp-qwin");
+      const info = () => { if (fbq){ if (cur.h == null || cur.a == null){ go.disabled = true; win.textContent = ""; return; } const cs = e.markets.find(m => m.k === "cs"), x = e.markets.find(m => m.k === "1x2"), oc = cs.o.find(o => o.p === `${cur.h}-${cur.a}`) || cs.o.find(o => o.p === "x"), ox = x && x.o.find(o => o.p === (cur.h > cur.a ? "h" : cur.h === cur.a ? "d" : "a"));
+          const half = Math.round(stake / 2); win.innerHTML = `🎯 ${T("Exact", "Genau")}: <b>${fmt(Math.round((stake - half) * oc.q + (ox ? half * ox.q : 0)))} NAT</b> · ✓ ${T("Only the winner", "Nur Sieger")}: <b>${ox ? fmt(Math.round(half * ox.q)) : 0} NAT</b>`; }
+        else { const o = choice && m0.o.find(o => o.p === choice); win.innerHTML = o ? `${T("If right you get", "Wenn's stimmt, bekommst du")} <b>${fmt(Math.round(stake * o.q))} NAT</b>` : ""; }
+        go.disabled = fbq ? cur.h == null || cur.a == null : !choice; go.textContent = stake > bal() ? T("Not enough NAT", "Zu wenig NAT") : T("✓ Tip", "✓ Tippen"); if (stake > bal()) go.disabled = true; };
+      el.querySelectorAll("[data-qs]").forEach(b => b.onclick = () => { stake = +b.dataset.qs; Tipp.lastStake = stake; el.querySelectorAll("[data-qs]").forEach(x => x.classList.toggle("on", x === b)); Sound.tap(); info(); });
+      if (fbq){ const pick = el.querySelector(".tp-pick"), pad = el.querySelector(".tp-pad"), dg = side => pick.querySelector(`[data-side="${side}"] b`); let focus = "h";
+        const foc = side => { focus = side; pick.querySelectorAll(".tp-dg").forEach(x => x.classList.toggle("on", x.dataset.side === side)); };
+        foc("h"); pick.querySelectorAll(".tp-dg").forEach(x => x.onclick = () => { Sound.tap(); foc(x.dataset.side); });
+        pad.querySelectorAll("[data-n]").forEach(b => b.onclick = () => { if (!focus || this.spinning) return; const n = +b.dataset.n, side = focus; cur[side] = n; const g = dg(side); g.textContent = n; g.classList.remove("bump"); void g.offsetWidth; g.classList.add("bump"); Sound.tap(); if (navigator.vibrate) try { navigator.vibrate(8); } catch(_) {}
+          const other = side === "h" ? "a" : "h"; foc(cur[other] == null ? other : null); info(); });
+        el.querySelector("[data-kiscore]").onclick = () => { if (this.spinning) return; const r = Tipp.kiScore(e); this.spinning = 1; foc(null); Sound.tap(); pick.classList.add("spin");
+          this.roll(dg("h"), r.h, 900); this.roll(dg("a"), r.a, 1350, () => { this.spinning = 0; pick.classList.remove("spin"); cur.h = r.h; cur.a = r.a; info(); if (Sound.play) Sound.play("Move", .6); }); }; }
+      else el.querySelectorAll("[data-pick]").forEach(b => b.onclick = () => { choice = b.dataset.pick; el.querySelectorAll("[data-pick]").forEach(x => x.classList.toggle("on", x === b)); Sound.tap(); info(); });
+      go.onclick = async () => { if (go.disabled) return; go.disabled = true; go.textContent = T("Tipping…", "Wird getippt…"); const keep = Tipp.slip; Tipp.slip = [];
+        if (fbq){ const half = Math.round(stake / 2); Tipp.score(e, cur.h, cur.a, half); Tipp.slip = Tipp.slip.filter(x => x.k !== "ou25"); const csp = Tipp.slip.find(x => x.k === "cs"); if (csp) csp.stake = stake - half; Tipp.keep(e.id, `${cur.h}:${cur.a}`); }
+        else { const o = m0.o.find(o => o.p === choice); Tipp.put(e, m0, o, stake); }
+        const n = await this.place(); Tipp.slip = keep.filter(x => x.ev !== e.id); this.slipBar(); d.close();
+        if (n){ toast(`✅ ${T("Tipped", "Getippt")}: ${fbq ? `${cur.h}:${cur.a}` : h((m0.o.find(o => o.p === choice) || {}).l || "")}`, 2200); if (navigator.vibrate) try { navigator.vibrate([20, 40, 20]); } catch(_) {} this.refresh(); } };
+      info();
     },
     /* numbers spin and slow down, then stop on the result */
     roll(el, final, ms, done, pool){ const t0 = performance.now(); let last = 0, k = 0; const step = now2 => { const p = Math.min(1, (now2 - t0) / ms), gap = 40 + 260 * p * p;
@@ -295,11 +339,11 @@
       };
     },
     wire(b){
-      b.querySelectorAll("[data-f]").forEach(x => x.onclick = () => { Tipp.filter = x.dataset.f; Sound.tap(); this.draw(); });
       b.querySelectorAll(".tp-o[data-ev]").forEach(x => x.onclick = ev => { ev.stopPropagation(); const e = Tipp.ev.find(z => z.id === x.dataset.ev), m = e && e.markets.find(z => z.k === x.dataset.k), o = m && m.o.find(z => z.p === x.dataset.p); if (!o) return; Tipp.toggle(e, m, o); x.parentNode.querySelectorAll(".tp-o").forEach(z => z.classList.toggle("on", Tipp.inSlip(e.id, z.dataset.k, z.dataset.p))); this.slipBar(); });
       b.querySelectorAll("[data-open]").forEach(x => x.onclick = ev => { if (ev.target.closest(".tp-o")) return; ev.stopPropagation(); Sound.tap(); this.openEvent(x.dataset.open); });
       const ki = b.querySelector("[data-ki]"); if (ki) ki.onclick = () => this.kiAll();
       b.querySelectorAll("[data-admin]").forEach(x => x.onclick = () => this.adminForm(x.dataset.admin === "new" ? null : Tipp.ev.find(e => e.id === x.dataset.admin)));
+      b.querySelectorAll("[data-quick]").forEach(x => x.onclick = ev => { ev.stopPropagation(); Sound.tap(); this.quick(x.dataset.quick); });
       const s2 = b.querySelector("[data-slip2]"); if (s2) s2.onclick = () => { Sound.tap(); this.openSlip(); };
       const ia = b.querySelector("[data-invall]"); if (ia) ia.onclick = () => { Sound.tap(); this.inviteSheet(); };
       this.wireInv(b);
@@ -340,7 +384,8 @@
 .tp-form label{display:flex;flex-direction:column;gap:4px;font:700 12.5px var(--body);color:var(--muted);margin-bottom:9px}.tp-form input,.tp-form select{background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:9px 10px;color:var(--fg);font:600 15px var(--body);min-width:0}
 .tp-form label{min-width:0}.tp-form input,.tp-form select{width:100%;box-sizing:border-box}.tp-2,.tp-3{display:grid;gap:8px}.tp-2{grid-template-columns:1fr 1fr}.tp-3{grid-template-columns:2fr 1fr 1fr}.tp-chk{flex-direction:row!important;align-items:center;gap:8px!important}
 .pg-gt.tp-tile .pg-art{font-size:34px}
-.tp-chips{scroll-behavior:smooth;margin:12px -16px 4px;padding:2px 16px 4px}.tp-chips .chip{transition:background .25s,color .25s,transform .2s}.tp-chips .chip.on{transform:scale(1.04)}
+.tp-chips{scroll-behavior:smooth;margin:12px 0 4px;padding:2px 0 4px;overscroll-behavior-x:contain;touch-action:pan-x}
+.tp{overflow-x:clip;max-width:100%}#tpbody{overflow-x:clip}.tp-chips .chip{transition:background .25s,color .25s,transform .2s}.tp-chips .chip.on{transform:scale(1.04)}
 #tpbody.tp-in-r{animation:tpInR .28s cubic-bezier(.2,.8,.25,1)}#tpbody.tp-in-l{animation:tpInL .28s cubic-bezier(.2,.8,.25,1)}
 @keyframes tpInR{from{opacity:0;transform:translateX(26px)}}@keyframes tpInL{from{opacity:0;transform:translateX(-26px)}}
 .tp-pick{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:2px 0 4px}.tp-dg{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;max-width:110px}
@@ -364,6 +409,17 @@
 .tp-br.none{opacity:.85}.tp-br.none .tp-rk{color:var(--muted)}.tp-br .btn.sm{flex:none}
 .tp-all{align-items:center;margin:0 0 10px}.tp-all span{color:var(--muted);font:700 12.5px var(--body);margin-right:4px}
 .tp-invs .tp-br{margin-bottom:6px}
+.tp-mid{display:flex;align-items:center;gap:10px}.tp-teams{flex:1;min-width:0}
+.tp-big{flex:none;min-width:86px;height:70px;border-radius:16px;border:2px dashed color-mix(in srgb,var(--go) 70%,var(--line));background:color-mix(in srgb,var(--go) 10%,var(--panel-2));color:var(--fg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;cursor:pointer;padding:4px 10px}
+.tp-big small{font:800 11px var(--body);color:var(--go-hi,var(--go));text-transform:uppercase;letter-spacing:.05em}.tp-big b{font:900 28px var(--display);line-height:1.05;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp-big.mine{border:0;background:var(--go);color:#fff;box-shadow:inset 0 -4px 0 rgba(0,0,0,.2)}.tp-big.mine small{color:#eaffd6}.tp-big.mine b{font-size:30px}
+.tp-big.won{background:linear-gradient(180deg,#E9B64A,#c9921f)}.tp-big.lost{background:var(--panel-3);color:var(--muted)}.tp-big.lost small{color:var(--muted)}
+.tp-big:active{transform:scale(.96)}
+.tp-odds.sm{display:flex;gap:10px;margin-top:6px;font:700 11.5px var(--body);color:var(--muted)}.tp-odds.sm b{color:var(--fg);font-weight:800}
+.tp-pick.big .tp-dg b{width:88px;height:88px;font-size:50px}.tp-q .tp-pad{display:grid}
+.tp-who{display:flex;flex-direction:column;gap:8px;margin:8px 0}.tp-who button{border:2px solid var(--line);background:var(--panel-2);color:var(--fg);border-radius:16px;padding:16px;font:900 20px var(--display);cursor:pointer}.tp-who button.on{border-color:var(--go);background:var(--go);color:#fff}
+.tp-qst{display:flex;align-items:center;gap:6px;margin:12px 0 4px;color:var(--muted);font:700 13px var(--body);flex-wrap:wrap}.tp-qst .chip{padding:6px 13px}
+.tp-qwin{min-height:18px;color:var(--muted);font:700 12.5px var(--body);margin:6px 0 10px;text-align:center}.tp-qwin b{color:var(--go-hi,var(--go))}
 .tp-br .grow{flex:1}.tp{padding-bottom:96px}.tp-tabs button{white-space:nowrap}
 .tp-pgl{display:flex;flex-wrap:wrap;gap:4px;margin:5px 0 3px}.tp-pgl span{background:var(--panel-2);border-radius:8px;padding:3px 8px;font:700 12.5px var(--body)}.tp-pgl i{font-style:normal;color:var(--muted);margin-left:2px}
 .tp-kr.f small{max-width:45%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}`;
