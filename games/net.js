@@ -64,7 +64,7 @@ const PNet = (() => {
   }
   function hostMsg(m){
     if (!m || m.code !== P.code) return;
-    if (m.t === "mv"){ PG.onMv && PG.onMv(m); return; }
+    if (m.t === "mv" || m.t === "mvb"){ PG.onMv && PG.onMv(m); return; }
     if (m.t === "hi"){ const n = String(m.name || "").replace(/\s+/g, " ").trim().slice(0, 16) || T("Player", "Spieler");
       const r = P.roster.find(x => x.id === m.id), uid = typeof m.uid === "string" && /^[0-9a-f-]{36}$/.test(m.uid) ? m.uid : null;
       const av = m.av && typeof m.av === "object" && JSON.stringify(m.av).length < 1500 ? m.av : null;
@@ -99,7 +99,7 @@ const PNet = (() => {
   const hello = () => { if (P && !P.isHost) P.conn.send({t: "hi", code: P.code, id: me, name: P.name, av: myAv(), uid: (typeof Social !== "undefined" && Social.me) || null}); };
   function clientMsg(m){
     if (!m || m.code !== P.code) return;
-    if (m.t === "mv"){ PG.onMv && PG.onMv(m); return; }
+    if (m.t === "mv" || m.t === "mvb"){ PG.onMv && PG.onMv(m); return; }
     if (m.t === "v"){ if (P.msg && m.seq < P.msg.seq && m.host === P.msg.host && P.msg.seq - m.seq < 50) return;
       P.msg = m; P.last = Date.now(); P.gotMe = m.players.some(p => p.id === me); P.game = m.game; redraw(); }
     else if (m.t === "kick" && m.id === me){ leave(true); toast(T("The host removed you from the lobby.", "Der Gastgeber hat dich aus der Lobby entfernt."), 3500); if (App.route === "lobby") App.go("games"); }
@@ -122,7 +122,8 @@ const PNet = (() => {
   function begin(){
     const e = eng(); if (!e) return;
     const ids = P.roster.filter(r => P.on.has(r.id)).map(r => r.id);
-    if (ids.length < e.min) return toast(T(`${e.min} players needed.`, `Mindestens ${e.min} Spieler nötig.`));
+    const extra = e.extra ? e.extra(Object.assign({}, defaults(P.game), P.opts)) : 0;
+    if (ids.length + extra < e.min) return toast(T(`${e.min} players needed (bots count).`, `Mindestens ${e.min} Spieler nötig (Bots zählen mit).`));
     if (e.max && ids.length > e.max) return toast(T(`At most ${e.max} players.`, `Höchstens ${e.max} Spieler.`));
     P.G = {ids, host: me, opts: Object.assign({}, defaults(P.game), P.opts), s: {}, sk: 0};
     try { e.start(P.G, api()); } catch(err) { console.error(err); P.G = null; return toast("Error: " + err.message); }
@@ -272,7 +273,7 @@ Views.lobby = {
     const {T, h} = PG, P = PNet.P, isH = P.isHost, e = PG.online[m.game], g = PG.games.find(x => x.id === m.game);
     document.documentElement.classList.remove("pg-night"); body._json = null;
     const lk = JSON.stringify([m.players, m.game, m.opts, isH, P.code]); if (body._lk === lk && body.querySelector(".pg-pls")) return; body._lk = lk;
-    const online = m.players.filter(p => p.on), need = e ? e.min : 2;
+    const online = m.players.filter(p => p.on), need = e ? Math.max(1, e.min - (e.extra ? e.extra(m.opts || {}) : 0)) : 2;
     body.innerHTML = `<div class="pg-stage" style="padding-top:4px">
       ${isH ? `<div class="unit pg-inv" style="width:100%;margin:0"><div class="pg-qr" id="lqr"></div><div style="flex:1;min-width:0;text-align:left"><div class="pg-who">${T("Join code", "Beitritts-Code")}</div><div class="pg-name" style="letter-spacing:.14em;font-size:38px">${esc(P.code.toUpperCase())}</div>
           <p class="pg-sub">${T("Scan the QR code with the camera, or open chess-nat.vercel.app → Games → Join.", "QR-Code mit der Kamera scannen oder chess-nat.vercel.app → Spiele → Beitreten.")}</p>
@@ -280,7 +281,7 @@ Views.lobby = {
         : `<div class="pg-who">${T("You're in", "Du bist drin")}</div><div class="pg-name">${h(m.players.find(p => p.id === PNet.me) ? m.players.find(p => p.id === PNet.me).name : P.name)}</div>`}
       <div class="unit" style="width:100%;text-align:left;margin:0"><h3>${T("Players", "Spieler")} <span class="muted" style="font:700 14px var(--body)">${online.length}</span></h3>
         <div class="pg-pls">${m.players.map(p => `<span class="pg-chip" style="${p.on ? "" : "opacity:.45"}"><i style="width:8px;height:8px;border-radius:50%;background:${p.on ? "var(--go-hi)" : "var(--dim)"};display:inline-block"></i><span>${h(p.name)}${p.id === m.host ? " 👑" : ""}</span>${p.uid && typeof Social !== "undefined" && Social.me && p.uid !== Social.me && Social.rel(p.uid) === "none" ? `<button data-fr="${esc(p.uid)}" title="${T("Add friend", "Als Freund hinzufügen")}" style="width:auto;padding:0 8px;border-radius:999px;color:var(--go-hi)">+ ${T("Friend", "Freund")}</button>` : ""}${isH && p.id !== PNet.me ? `<button data-kick="${esc(p.id)}" aria-label="${T("Remove", "Entfernen")}">×</button>` : ""}</span>`).join("")}</div>
-        ${online.length < 2 ? `<p class="pg-sub">${T("Waiting for the others to join…", "Warte, bis die anderen beitreten…")}</p>` : ""}</div>
+        ${online.length < need ? `<p class="pg-sub">${T("Waiting for the others to join…", "Warte, bis die anderen beitreten…")}</p>` : ""}</div>
       ${typeof Social !== "undefined" && Social.me ? `<div class="unit" style="width:100%;text-align:left;margin:0"><h3>${T("Invite friends", "Freunde einladen")}</h3><p class="pg-sub">${T("Like a puzzle duel: they get a notification and land right here.", "Wie beim Puzzle-Duell: Sie bekommen eine Benachrichtigung und landen direkt hier.")}</p><div id="lfl" class="list" style="margin-top:6px"></div></div>` : ""}
       ${isH ? `<div class="unit" style="width:100%;text-align:left;margin:0"><h3>${T("Game", "Spiel")}</h3><div class="grid2" style="margin-top:8px">${Object.keys(PG.online).map(id => { const gg = PG.games.find(x => x.id === id); return gg ? `<button class="btn ${id === m.game ? "go" : ""}" data-g="${id}" style="justify-content:flex-start;gap:8px">${icon(gg.icon, 20)}<span style="text-align:left">${h(T(gg.name[0], gg.name[1]))}</span></button>` : ""; }).join("")}</div>
           ${e && e.opts && e.opts.length ? e.opts.map(o => `<div style="margin-top:12px"><div class="pg-who" style="text-align:left">${h(T(o.l[0], o.l[1]))}</div><div class="pg-opt">${(typeof o.c === "function" ? o.c() : o.c).map(([v, l]) => `<button class="btn sm ${String(m.opts[o.k]) === String(v) ? "go" : ""}" data-ok="${o.k}" data-ov="${esc(String(v))}">${h(Array.isArray(l) ? T(l[0], l[1]) : l)}</button>`).join("")}</div></div>`).join("") : ""}

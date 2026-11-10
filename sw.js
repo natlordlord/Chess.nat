@@ -5,7 +5,7 @@
      refreshed in the background.
    - Supabase (login, saves, live games) and the coach voice clips are never touched.
    Bump VERSION to throw away all cached files. */
-const VERSION = "chessnat-v12";
+const VERSION = "chessnat-v13";
 const SHELL = [
   "/", "/config.js", "/platform.js", "/pwa.js", "/manifest.webmanifest", "/favicon.svg",
   "/vendor/chess.js", "/vendor/supabase.js", "/vendor/three.min.js", "/engine/sf.js",

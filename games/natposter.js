@@ -39,9 +39,62 @@
   const RN = r => T(r.en, r.de);
   const spawnAt = (i, n) => { const a = i / Math.max(1, n) * Math.PI * 2 - Math.PI / 2; return {x: Math.round(BTN.x + Math.cos(a) * 150), y: Math.round(BTN.y + 20 + Math.sin(a) * 120)}; };
 
+  /* the station as a graph: rooms and halls that touch, the doorway between them */
+  const ADJ = AREAS.map((a, i) => AREAS.map((b, j) => j).filter(j => { if (j === i) return false; const b = AREAS[j], x1 = Math.max(a.x, b.x), x2 = Math.min(a.x + a.w, b.x + b.w), y1 = Math.max(a.y, b.y), y2 = Math.min(a.y + a.h, b.y + b.h); return x1 <= x2 + 1 && y1 <= y2 + 1 && (x2 - x1 > 30 || y2 - y1 > 30); }));
+  const areaOf = (x, y) => AREAS.findIndex(a => x >= a.x && x <= a.x + a.w && y >= a.y && y <= a.y + a.h);
+  const mid = a => ({x: a.x + a.w / 2, y: a.y + a.h / 2});
+  const door = (a, b) => { const x1 = Math.max(a.x, b.x), x2 = Math.min(a.x + a.w, b.x + b.w), y1 = Math.max(a.y, b.y), y2 = Math.min(a.y + a.h, b.y + b.h); return {x: (x1 + x2) / 2, y: (y1 + y2) / 2}; };
+  function route(from, to){
+    const s0 = areaOf(from.x, from.y), t0 = areaOf(to.x, to.y); if (s0 < 0 || t0 < 0 || s0 === t0) return [to];
+    const prev = {[s0]: -1}, q = [s0]; while (q.length){ const i = q.shift(); if (i === t0) break; ADJ[i].forEach(j => { if (prev[j] === undefined){ prev[j] = i; q.push(j); } }); }
+    if (prev[t0] === undefined) return [to]; const chain = []; for (let i = t0; i !== -1; i = prev[i]) chain.unshift(i);
+    const w = []; for (let k = 0; k + 1 < chain.length; k++){ const a = AREAS[chain[k]], b = AREAS[chain[k + 1]]; w.push(door(a, b)); if (k + 1 < chain.length - 1) w.push(mid(b)); } w.push(to); return w;
+  }
+
   /* positions of everyone, fed by "mv" messages and by this phone's own movement */
   const POS = {};
-  PG.onMv = m => { if (!m || !m.id) return; const p = POS[m.id] || (POS[m.id] = {x: m.x, y: m.y, dx: m.x, dy: m.y}); p.x = +m.x || 0; p.y = +m.y || 0; p.g = !!m.g; p.v = !!m.v; p.f = m.f || 1; p.t = now(); p.mv = !!m.m; };
+  PG.onMv = m => { if (m && m.t === "mvb" && Array.isArray(m.l)){ m.l.forEach(([id, x, y, f, g, mv]) => PG.onMv({id, x, y, f, g, m: mv})); return; } if (!m || !m.id) return; const p = POS[m.id] || (POS[m.id] = {x: m.x, y: m.y, dx: m.x, dy: m.y}); p.x = +m.x || 0; p.y = +m.y || 0; p.g = !!m.g; p.v = !!m.v; p.f = m.f || 1; p.t = now(); p.mv = !!m.m; };
+
+  /* ---------------- practice bots: the app's chess bots, run by the host's phone ---------------- */
+  const BOT = {G: null, id: 0, last: 0, mem: {},
+    list(G){ return (G.s.bots || []); },
+    run(G, api){ this.G = G; if (this.id) return; this.last = now(); this.id = setInterval(() => { try { this.step(api); } catch(e) { console.error(e); } }, 100); },
+    stop(){ clearInterval(this.id); this.id = 0; this.mem = {}; },
+    step(api){
+      const G = this.G; if (!G || !G.s || !PNet.P || !PNet.P.G || PNet.P.G !== G){ this.stop(); return; }
+      const s = G.s, dt = (now() - this.last) / 1000; this.last = now(); const eng = PG.online.natposter, out = [];
+      this.list(G).forEach(b => { const id = b.id, p = POS[id] || (POS[id] = Object.assign({}, s.spawn[id])), m = this.mem[id] || (this.mem[id] = {path: [], wait: 0, goal: null}), alive = s.alive[id], imp = s.imps.includes(id);
+        if (s.phase === "meet"){ m.path = []; m.goal = null; if (alive && !s.meet.votes[id] && now() - s.meet.start > (m.vt || (m.vt = 4000 + Math.random() * 12000))){ const sus = m.sus && s.alive[m.sus] && m.sus !== id ? m.sus : null; const opts = G.ids.filter(x => s.alive[x] && x !== id && !(imp && s.imps.includes(x)));
+            eng.act(G, id, {a: "vote", v: sus && Math.random() < .7 ? sus : Math.random() < .45 ? "skip" : PG.pick(opts) || "skip"}, api); api.push(); } return; }
+        m.vt = 0; if (s.phase !== "play" || now() < s.intro){ if (s.spawn[id] && m.sk !== s.spawnK){ m.sk = s.spawnK; Object.assign(p, s.spawn[id]); m.path = []; m.goal = null; } out.push([id, p.x, p.y, p.f || 1, alive ? 0 : 1, 0]); return; }
+        if (s.spawn[id] && m.sk !== s.spawnK){ m.sk = s.spawnK; Object.assign(p, s.spawn[id]); m.path = []; m.goal = null; }
+        const crewSeen = r => G.ids.filter(x => x !== id && s.alive[x] && !s.imps.includes(x) && POS[x] && dist(p, POS[x]) < r);
+        /* the Natposter bot: kill someone who is alone, now and then switch the lights off */
+        if (imp && alive){
+          if (!s.sab && now() >= s.sabAt && Math.random() < .002){ eng.act(G, id, {a: "sab", v: Math.random() < .75 ? "lights" : "reactor"}, api); api.push(); }
+          if (now() >= s.killAt[id]){ const t = crewSeen(500).find(x => G.ids.filter(y => y !== id && y !== x && s.alive[y] && POS[y] && dist(POS[y], POS[x]) < 380).length === 0);
+            if (t){ if (dist(p, POS[t]) <= KILL_R * .8){ eng.act(G, id, {a: "kill", v: t}, api); api.push(); m.path = []; m.goal = null; m.wait = 1.5; } else { m.path = [{x: POS[t].x, y: POS[t].y}]; m.goal = {hunt: t}; } } }
+        }
+        /* crew bots report what they see and fix sabotage */
+        if (alive && !imp){ const body = s.bodies.find(bd => dist(p, bd) < (s.sab && s.sab.type === "lights" ? VIS.dark : VIS.crew));
+          if (body){ if (dist(p, body) <= REPORT_R * .8){ m.sus = G.ids.filter(x => x !== id && s.alive[x] && POS[x] && dist(POS[x], body) < 420).sort(() => Math.random() - .5)[0] || null; eng.act(G, id, {a: "report", v: body.id}, api); api.push(); return; } if (!m.goal || !m.goal.body){ m.path = route(p, body); m.goal = {body: body.id}; } }
+          if (s.sab && (!m.goal || !m.goal.fix)){ const k = s.sab.type === "lights" ? "lights" : !s.sab.ra ? "ra" : !s.sab.rb ? "rb" : null; if (k && Math.random() < .02){ m.path = route(p, FIX[k]); m.goal = {fix: k}; } }
+        }
+        if (m.wait > 0){ m.wait -= dt; if (m.wait <= 0 && m.goal && m.goal.task && !imp){ eng.act(G, id, {a: "task", v: m.goal.task}, api); api.push(); m.goal = null; } if (m.wait <= 0 && m.goal && m.goal.fix){ eng.act(G, id, {a: "fix", v: m.goal.fix}, api); api.push(); m.goal = null; } out.push([id, p.x, p.y, p.f || 1, alive ? 0 : 1, 0]); return; }
+        if (!m.path.length){
+          if (m.goal && m.goal.task){ m.wait = 2.5 + Math.random() * 3; }
+          else if (m.goal && m.goal.fix && s.sab){ m.wait = 2.5; }
+          else { m.goal = null; const left = s.tasks[id].filter(t => !s.done[id][t]); const tk = TASKS.find(t => t.id === (imp ? PG.pick(s.tasks[id]) : left[0]));
+            if (tk && (!imp || Math.random() < .7)){ m.goal = {task: imp ? null : tk.id}; m.path = route(p, {x: tk.x + (Math.random() * 30 - 15), y: tk.y + 40}); }
+            else { const r = PG.pick(ROOMS); m.path = route(p, {x: r.x + 40 + Math.random() * (r.w - 80), y: r.y + 50 + Math.random() * (r.h - 90)}); m.goal = {walk: 1}; } }
+        }
+        const w = m.path[0]; if (w){ const dx = w.x - p.x, dy = w.y - p.y, d = Math.hypot(dx, dy), sp = SPEED * .82 * dt * (alive ? 1 : 1.1);
+          if (d <= sp){ p.x = w.x; p.y = w.y; m.path.shift(); } else { p.x += dx / d * sp; p.y += dy / d * sp; if (Math.abs(dx) > 2) p.f = dx < 0 ? -1 : 1; } }
+        p.dx = p.x; p.dy = p.y; p.g = !alive; p.t = now(); p.mv = !!w;
+        out.push([id, Math.round(p.x), Math.round(p.y), p.f || 1, alive ? 0 : 1, w ? 1 : 0]);
+      });
+      if (out.length && now() - (this.sent || 0) > 180){ this.sent = now(); PNet.raw({t: "mvb", l: out}); }
+    }};
 
   /* ---------------- the host's game ---------------- */
   PG.online.natposter = {min: 4, max: 15, note: ["Like the space classic: crew does tasks, the Natposter kills in secret. Everyone walks around on their own phone.", "Wie der Weltraum-Klassiker: Die Crew löst Aufgaben, der Natposter tötet heimlich. Jeder läuft auf seinem eigenen Handy herum."],
@@ -49,11 +102,16 @@
       {k: "cd", l: ["Kill cooldown", "Kill-Abklingzeit"], d: 30, c: [[20, "20 s"], [30, "30 s"], [45, "45 s"]]},
       {k: "tasks", l: ["Tasks each", "Aufgaben pro Person"], d: 5, c: [[3, "3"], [5, "5"], [7, "7"]]},
       {k: "meet", l: ["Meeting time", "Meeting-Zeit"], d: 90, c: [[60, "60 s"], [90, "90 s"], [120, "120 s"]]},
-      {k: "conf", l: ["Reveal ejected role", "Rolle beim Rauswurf zeigen"], d: 1, c: [[1, ["Yes", "Ja"]], [0, ["No", "Nein"]]]}],
+      {k: "conf", l: ["Reveal ejected role", "Rolle beim Rauswurf zeigen"], d: 1, c: [[1, ["Yes", "Ja"]], [0, ["No", "Nein"]]]},
+      {k: "bots", l: ["Practice bots", "Übungs-Bots"], d: 0, c: [[0, ["None", "Keine"]], [2, "2"], [4, "4"], [6, "6"]]}],
+    extra(o){ return +o.bots || 0; },
     start(G){
+      BOT.stop(); G.ids = G.ids.filter(x => !/^bot-/.test(x));
+      const bots = (typeof BOTS !== "undefined" ? PG.shuffle(BOTS.slice(0, 20)) : []).slice(0, +G.opts.bots || 0).map((b, i) => ({id: "bot-" + i, name: b.name, av: (() => { try { return botCfg(b); } catch(e) { return null; } })()}));
+      bots.forEach(b => G.ids.push(b.id));
       const n = G.ids.length, o = G.opts, k = o.imps === "auto" ? (n <= 6 ? 1 : n <= 10 ? 2 : 3) : Math.min(+o.imps, Math.max(1, Math.floor((n - 1) / 2)));
-      const imps = PG.shuffle(G.ids).slice(0, k), s = G.s = {phase: "play", round: ((G.s && G.s.round) || 0) + 1, imps, alive: {}, tasks: {}, done: {}, bodies: [], killAt: {}, emer: {}, sab: null, sabAt: now() + 15000, mc: 0, spawnK: 1, log: []};
-      G.ids.forEach((id, i) => { s.alive[id] = true; s.done[id] = {}; s.emer[id] = 1; s.killAt[id] = now() + 12000;
+      const imps = PG.shuffle(G.ids).slice(0, k), s = G.s = {bots, phase: "play", round: ((G.s && G.s.round) || 0) + 1, imps, alive: {}, tasks: {}, done: {}, bodies: [], killAt: {}, emer: {}, sab: null, sabAt: now() + 15000, mc: 0, spawnK: 1, log: []};
+      G.ids.forEach((id, i) => { s.alive[id] = true; s.done[id] = {}; s.emer[id] = 1; s.killAt[id] = now() + 5000 + Math.max(15000, o.cd * 700);
         s.tasks[id] = PG.shuffle(TASKS.map(t => t.id)).slice(0, o.tasks); const sp = spawnAt(i, n); POS[id] = Object.assign(POS[id] || {}, sp, {g: false, v: false}); });
       s.spawn = Object.fromEntries(G.ids.map((id, i) => [id, spawnAt(i, n)]));
       s.intro = now() + 5000; s.snd = {k: "s" + (++G.sk), n: "reveal"};
@@ -72,7 +130,7 @@
       if (out) s.alive[out] = false; s.phase = "eject"; s.meet = null; G.sk++; s.snd = {k: "s" + G.sk, n: "eject"}; },
     resume(G){ const s = G.s; s.bodies = []; s.spawnK++; const A = G.ids; s.spawn = Object.fromEntries(A.map((id, i) => [id, spawnAt(i, A.length)])); A.forEach(id => { Object.assign(POS[id] || (POS[id] = {}), s.spawn[id]); s.killAt[id] = now() + G.opts.cd * 1000; });
       if (s.sab && s.sab.type === "reactor") s.sab = null; s.sabAt = Math.max(s.sabAt, now() + 10000); s.phase = "play"; if (!this.win(G)) {} },
-    tick(G){ const s = G.s; let ch = false;
+    tick(G, api){ const s = G.s; let ch = false; if (s.bots && s.bots.length && s.phase !== "end") BOT.run(G, api); if (s.phase === "end") BOT.stop();
       if (s.phase === "play" && s.sab && s.sab.type === "reactor" && now() >= s.sab.until){ s.phase = "end"; s.win = "boom"; s.sab = null; G.sk++; s.snd = {k: "s" + G.sk, n: "lose"}; ch = true; }
       if (s.phase === "meet" && (now() >= s.meet.until || G.ids.filter(id => s.alive[id]).every(id => s.meet.votes[id]))){ this.tally(G); ch = true; }
       if (s.phase === "eject" && now() >= s.eject.until){ s.eject = null; this.resume(G); this.win(G); ch = true; }
@@ -98,7 +156,7 @@
         sab: s.sab ? {type: s.sab.type, left: s.sab.until ? Math.max(0, s.sab.until - now()) : 0, ra: s.sab.ra, rb: s.sab.rb} : null, sabCd: imp ? Math.max(0, s.sabAt - now()) : 0,
         meet: s.meet ? {by: s.meet.by, body: s.meet.body, left: Math.max(0, s.meet.until - now()), voted: Object.keys(s.meet.votes), my: s.meet.votes[id] || null} : null,
         eject: s.eject ? {id: s.eject.id, imp: s.eject.imp, conf: !!G.opts.conf, left: s.eject.left, votes: s.lastVotes} : null,
-        deadList: G.ids.filter(x => !s.alive[x]), killedBy: s.killed && s.killed[id] ? s.killed[id] : null,
+        bots: s.bots || [], deadList: G.ids.filter(x => !s.alive[x]), killedBy: s.killed && s.killed[id] ? s.killed[id] : null,
         win: s.phase === "end" ? s.win : null, imps: s.phase === "end" ? s.imps : null, spawn: s.spawn && s.spawn[id] ? Object.assign({k: s.spawnK}, s.spawn[id]) : null, host: id === G.host,
         snd: (() => { const a = s.snd, b = s.ps && s.ps[id]; return !a ? b : !b ? a : (+String(a.k).slice(1) > +String(b.k).slice(1) ? a : b); })()};
     }};
@@ -157,6 +215,8 @@
       this.raf = requestAnimationFrame(loop);
     },
     ghost(){ return this.v && !this.v.alive; },
+    pl(){ return ((this.m && this.m.players) || []).concat((this.v && this.v.bots) || []); },
+    nm(id){ const p = this.pl().find(x => x.id === id); return p ? p.name : "?"; },
     left(k){ return Math.max(0, ((this.ends || {})[k] || 0) - now()); },
     intro(){ return now() < (this.introEnd || 0); },
     near(x, y, r){ return dist(this.me, {x, y}) <= r; },
@@ -176,16 +236,16 @@
         if (!this.ghost() && now() - this.lastStep > 330){ this.lastStep = now(); Sound.play("Move", .12); } }
       me.mv = moving; this.send();
       /* smooth everyone else towards where they said they are */
-      Object.entries(POS).forEach(([id, p]) => { if (id === PNet.me) return; if (p.dx == null || Math.hypot(p.dx - p.x, p.dy - p.y) > 400){ p.dx = p.x; p.dy = p.y; } p.dx += (p.x - p.dx) * Math.min(1, dt * 12); p.dy += (p.y - p.dy) * Math.min(1, dt * 12); });
+      Object.entries(POS).forEach(([id, p]) => { if (id === PNet.me) return; if (p.dx == null || Math.hypot(p.dx - p.x, p.dy - p.y) > 400){ p.dx = p.x; p.dy = p.y; } p.dx += (p.x - p.dx) * Math.min(1, dt * 8); p.dy += (p.y - p.dy) * Math.min(1, dt * 8); });
       POS[PNet.me] = Object.assign(POS[PNet.me] || {}, {x: me.x, y: me.y, dx: me.x, dy: me.y, g: this.ghost(), v: !!this.vent, f: me.f, mv: moving});
       if (now() - (this.hudT || 0) > 250){ this.hudT = now(); this.hud(); }
     },
     send(force){ const me = this.me, t = now(), l = this.lastSend, ch = Math.abs(me.x - (l.x || 0)) + Math.abs(me.y - (l.y || 0)) > 2 || !!this.vent !== !!l.v || this.ghost() !== !!l.g;
-      if (force || (ch && t - this.sent > 120) || t - this.sent > 1200){ this.sent = t; this.lastSend = {x: me.x, y: me.y, v: !!this.vent, g: this.ghost()}; PNet.raw({t: "mv", x: Math.round(me.x), y: Math.round(me.y), f: me.f, g: this.ghost() ? 1 : 0, v: this.vent ? 1 : 0, m: me.mv ? 1 : 0}); } },
+      if (force || (ch && t - this.sent > 190) || t - this.sent > 1500){ this.sent = t; this.lastSend = {x: me.x, y: me.y, v: !!this.vent, g: this.ghost()}; PNet.raw({t: "mv", x: Math.round(me.x), y: Math.round(me.y), f: me.f, g: this.ghost() ? 1 : 0, v: this.vent ? 1 : 0, m: me.mv ? 1 : 0}); } },
     /* who/what is close enough for the buttons */
     targets(){
       const v = this.v, me = this.me, out = {}; if (!v || v.phase !== "play") return out;
-      const players = (this.m && this.m.players || []).filter(p => p.id !== PNet.me);
+      const players = this.pl().filter(p => p.id !== PNet.me);
       if (v.imp && v.alive && !this.vent){ let best = null; players.forEach(p => { const q = POS[p.id]; if (!q || q.g || q.v || v.mates.includes(p.id) || v.deadList.includes(p.id)) return; const d = dist(me, {x: q.dx, y: q.dy}); if (d <= KILL_R && (!best || d < best.d)) best = {id: p.id, d}; }); out.kill = best; }
       if (v.alive){ const b = v.bodies.find(b => dist(me, b) <= REPORT_R); if (b) out.report = b; }
       if (v.alive && dist(me, BTN) < USE_R * 1.5) out.button = true;
@@ -225,7 +285,7 @@
       const v = this.v, el = this.el; if (!v || !el) return;
       el.classList.toggle("ghost", !v.alive); el.classList.toggle("imp", v.imp);
       el.querySelector(".np-bar i").style.width = Math.round(v.prog * 100) + "%";
-      const tl = el.querySelector(".np-tasks"), tasksHtml = v.imp ? `<b class="np-red">${T("Natposter", "Natposter")}</b><small>${T("Kill, vent, sabotage. Don't get caught.", "Töten, Schächte, Sabotage. Nicht erwischen lassen.")}</small>${v.mates.length > 1 ? `<small>${T("Team: ", "Team: ")}${v.mates.filter(x => x !== PNet.me).map(x => esc(PNet.nameOf(x))).join(", ")}</small>` : ""}`
+      const tl = el.querySelector(".np-tasks"), tasksHtml = v.imp ? `<b class="np-red">${T("Natposter", "Natposter")}</b><small>${T("Kill, vent, sabotage. Don't get caught.", "Töten, Schächte, Sabotage. Nicht erwischen lassen.")}</small>${v.mates.length > 1 ? `<small>${T("Team: ", "Team: ")}${v.mates.filter(x => x !== PNet.me).map(x => esc(this.nm(x))).join(", ")}</small>` : ""}`
         : `${!v.alive ? `<b>👻 ${T("You're a ghost: finish your tasks", "Du bist ein Geist: mach deine Aufgaben")}</b>` : ""}${v.tasks.map(([t, d]) => { const k = TASKS.find(x => x.id === t), r = ROOMS.find(x => x.id === k.room); return `<div class="${d ? "done" : ""}">${esc(RN(r))}: ${esc(T(k.en, k.de))}</div>`; }).join("")}`;
       if (tl._h !== tasksHtml){ tl._h = tasksHtml; tl.innerHTML = tasksHtml; }
       /* alerts: sabotage */
@@ -247,7 +307,7 @@
       this.overlay();
     },
     overlay(){
-      const v = this.v, ov = this.el.querySelector(".np-ov"), P = this.m.players, nm = id => esc(PNet.nameOf(id)), HC = this.hc || (this.hc = {}), head = id => { const p = P.find(x => x.id === id), k = id + (p && p.av ? JSON.stringify(p.av).length : 0); if (HC[k]) return HC[k]; try { return HC[k] = avatarSVG(Object.assign({}, p && p.av || {}, {aura: "none", pet: "none"}), {head: true, size: 54}); } catch(e) { return ""; } };
+      const v = this.v, ov = this.el.querySelector(".np-ov"), P = this.pl(), nm = id => esc(this.nm(id)), HC = this.hc || (this.hc = {}), head = id => { const p = P.find(x => x.id === id), k = id + (p && p.av ? JSON.stringify(p.av).length : 0); if (HC[k]) return HC[k]; try { return HC[k] = avatarSVG(Object.assign({}, p && p.av || {}, {aura: "none", pet: "none"}), {head: true, size: 54}); } catch(e) { return ""; } };
       let h = "";
       if (v.phase === "play" && this.intro()) h = `<div class="np-card ${v.imp ? "imp" : ""}"><div class="np-k">${T("You are", "Du bist")}</div><div class="np-big">${v.imp ? "Natposter" : T("Crew", "Crew")}</div><div class="np-face">${head(PNet.me)}</div><p>${v.imp ? T("Kill the crew without getting caught.", "Töte die Crew, ohne erwischt zu werden.") + (v.mates.length > 1 ? "<br>" + T("Team: ", "Team: ") + v.mates.filter(x => x !== PNet.me).map(nm).join(", ") : "") : T("Do your tasks. Find the Natposter.", "Erledige deine Aufgaben. Finde den Natposter.")}</p></div>`;
       if (v.phase === "play" && v.killedBy && !this.shown["k" + v.killedBy.k]){ h = `<div class="np-card imp"><div class="np-face">${head(v.killedBy.by)}</div><div class="np-big">${T("You were killed", "Du wurdest getötet")}</div><p>${T("You're a ghost now. Finish your tasks!", "Du bist jetzt ein Geist. Mach deine Aufgaben fertig!")}</p><button class="btn go" data-x="seen" data-v="k${v.killedBy.k}">OK</button></div>`; }
@@ -299,10 +359,10 @@
       TASKS.forEach(t => { const my = mine.includes(t.id); c.fillStyle = "#1B1A18"; c.fillRect(t.x - 22, t.y - 22, 44, 44); c.fillStyle = my && !v.imp ? `rgba(233,182,74,${.55 + pulse * .45})` : "#4a4640"; c.fillRect(t.x - 14, t.y - 14, 28, 28); });
       if (v.sab) Object.entries(FIX).forEach(([k, f]) => { if (v.sab.type === "lights" ? k !== "lights" : k === "lights" || v.sab[k]) return; c.fillStyle = `rgba(226,82,62,${.5 + pulse * .5})`; c.beginPath(); c.arc(f.x, f.y, 26, 0, 7); c.fill(); });
       /* bodies */
-      v.bodies.forEach(b => { const p = this.m.players.find(x => x.id === b.id); this.figure(c, b.x, b.y, p, {body: true}); });
+      v.bodies.forEach(b => { const p = this.pl().find(x => x.id === b.id) || {id: b.id, name: "?"}; this.figure(c, b.x, b.y, p, {body: true}); });
       /* people */
       const R0 = !v.alive ? 99999 : v.imp ? VIS.imp : v.sab && v.sab.type === "lights" ? VIS.dark : VIS.crew;
-      const list = this.m.players.map(p => ({p, q: p.id === PNet.me ? Object.assign({}, POS[p.id] || {}, {dx: me.x, dy: me.y}) : POS[p.id]})).filter(o => o.q && o.q.dx != null).sort((a, b) => a.q.dy - b.q.dy);
+      const list = this.pl().map(p => ({p, q: p.id === PNet.me ? Object.assign({}, POS[p.id] || {}, {dx: me.x, dy: me.y}) : POS[p.id]})).filter(o => o.q && o.q.dx != null).sort((a, b) => a.q.dy - b.q.dy);
       list.forEach(({p, q}) => { const self = p.id === PNet.me, gh = q.g || (v.deadList.includes(p.id) && !v.bodies.some(b => b.id === p.id) && false);
         if (!self){ if (q.v) return; if (q.g && v.alive) return; if (v.alive && dist(me, {x: q.dx, y: q.dy}) > R0 + 20) return; if (now() - (q.t || 0) > 15000) return; }
         if (self && this.vent) return;
