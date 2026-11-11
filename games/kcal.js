@@ -18,6 +18,8 @@
   const addDays = (k, n) => { const [y, m, d] = k.split("-").map(Number); return dayOf(new Date(y, m - 1, d + n, 12)); };
   const dayLabel = k => { const t = today(); if (k === t) return "Heute"; if (k === addDays(t, -1)) return "Gestern";
     const [y, m, d] = k.split("-").map(Number); return new Date(y, m - 1, d, 12).toLocaleDateString("de-DE", {weekday: "long", day: "numeric", month: "long"}); };
+  const nice = t => { t = String(t || "").trim(); return /\p{Ll}/u.test(t) || t.length < 5 ? t : t.toLowerCase().replace(/(^|[\s\-(\/])(\p{L})/gu, (m, a, b) => a + b.toUpperCase()); };
+  const g0 = n => fmt(Math.round(Number(n) || 0)) + " g";
   const hhmm = t => new Date(t).toLocaleTimeString("de-DE", {hour: "2-digit", minute: "2-digit"});
   const haptic = p => { try { if (typeof Haptic !== "undefined") Haptic.go(p || 10); } catch(e) {} };
   const say = (t, ms) => { try { toast(t, ms); } catch(e) {} };
@@ -283,16 +285,16 @@
     return sh; }
   /* ---------- the day at a glance: kcal, then carbs, protein and fat against their targets ---------- */
   function sumHTML(t, go){ const T = K.targets(), eaten = K.dayKcal(t), carbs = K.daySum(t, "carbs"), lit = eaten >= T.kcal, pk = Math.round(Math.min(1, eaten / T.kcal) * 100), pc = Math.round(Math.min(1, carbs / T.carbs) * 100);
-    const small = (k, l) => { const v = K.daySum(t, k), g = T[k]; return `<div class="kc-mc ${v >= g ? "ok" : ""}"><span>${l}</span><b>${fmt(v)}<small> / ${fmt(g)} g</small></b><i><u style="width:${Math.round(Math.min(1, v / g) * 100)}%"></u></i></div>`; };
-    return `<div class="kc-two" ${go ? "data-kc-go" : ""}><div class="kc-b2 ${lit ? "ok" : ""}"><small>Kalorien</small><b>${fmt(eaten)}</b><span>von ${fmt(T.kcal)} kcal · ${lit ? "🔥 geschafft" : pk + " %"}</span><i><u style="width:${pk}%"></u></i></div>
-        <div class="kc-b2 kh ${carbs >= T.carbs ? "ok" : ""}"><small>Kohlenhydrate</small><b>${fmt(carbs)}<em> g</em></b><span>von ${fmt(T.carbs)} g · ${pc} %</span><i><u style="width:${pc}%"></u></i></div></div>
-      <div class="kc-mac two">${small("protein", "Protein")}${small("fat", "Fett")}</div>`; }
+    const small = (k, l) => { const v = K.daySum(t, k), g = T[k]; return `<span class="${v >= g ? "ok" : ""}">${l} <b>${fmt(v)}</b> / ${fmt(g)} g<i><u style="width:${Math.round(Math.min(1, v / g) * 100)}%"></u></i></span>`; };
+    return `<div class="kc-two" ${go ? "data-kc-go" : ""}><div class="kc-b2 ${lit ? "ok" : ""}"><small>Kalorien${lit ? " 🔥" : ""}</small><b>${fmt(eaten)}<em> / ${fmt(T.kcal)}</em></b><i><u style="width:${pk}%"></u></i></div>
+        <div class="kc-b2 kh ${carbs >= T.carbs ? "ok" : ""}"><small>Kohlenhydrate</small><b>${fmt(carbs)}<em> / ${fmt(T.carbs)} g</em></b><i><u style="width:${pc}%"></u></i></div></div>
+      <div class="kc-pf">${small("protein", "Protein")}${small("fat", "Fett")}</div>`; }
   /* what is eaten again and again: one tap adds it once more */
   function frequent(){ const since = addDays(today(), -60), G = new Map(), hr = new Date().getHours() + new Date().getMinutes() / 60;
     K.meals.forEach(m => { if (m.day < since) return; const it = Array.isArray(m.items) && m.items.length === 1 ? m.items[0] : null, key = m.code || (it && it.code) || String(m.title || "").toLowerCase().trim(); if (!key) return;
       const g = G.get(key) || {n: 0, m, ts: 0, near: 0}; g.n++; const ts = Date.parse(m.ts) || 0, d = new Date(ts), mh = d.getHours() + d.getMinutes() / 60; if (Math.abs(mh - hr) <= 2) g.near++; if (ts > g.ts){ g.ts = ts; g.m = m; } G.set(key, g); });
     return [...G.values()].map(g => Object.assign(g, {sc: g.n * 3 + g.near * 2 + (Date.now() - g.ts < 3 * 864e5 ? 2 : 0)})).sort((a, b) => b.sc - a.sc || b.ts - a.ts).slice(0, 5).map(g => g.m); }
-  function quickHTML(){ const l = frequent(); if (!l.length) return ""; return `<div class="kc-quick"><div class="kc-qh">Vorschläge</div>${l.map(m => `<button class="kc-q" data-quick="${h(m.id)}"><span class="kc-qe">${h(m.emoji || "🍽️")}</span><span class="kc-qn">${h(m.title)}<small>${fmt(m.kcal)} kcal · ${f1(m.carbs)} g KH${m.grams ? " · " + m.grams + " g" : ""}</small></span><em>${svg(IC.plus, 20)}</em></button>`).join("")}</div>`; }
+  function quickHTML(){ const l = frequent().slice(0, 4); if (!l.length) return ""; return `<div class="kc-quick"><div class="kc-lh q"><span>Vorschläge</span><span class="kc-n">kcal</span><span class="kc-n kh">KH</span><i></i></div><div class="kc-qc">${l.map(m => `<button class="kc-q" data-quick="${h(m.id)}"><span class="kc-qn">${h(nice(m.title))}</span><span class="kc-n">${fmt(m.kcal)}</span><span class="kc-n kh">${g0(m.carbs)}</span><em>${svg(IC.plus, 18)}</em></button>`).join("")}</div></div>`; }
   async function quickAdd(id, btn){ const m = K.meals.find(x => x.id === id); if (!m || (btn && btn.disabled)) return; if (btn){ btn.disabled = true; btn.classList.add("ok"); } haptic(12);
     try { await K.add({source: "quick", title: m.title, emoji: m.emoji, kcal: m.kcal, carbs: m.carbs, protein: m.protein, fat: m.fat, grams: m.grams, code: m.code, items: m.items, note: m.note}); say(`${m.emoji || "🍽️"} ${m.title} · ${fmt(m.kcal)} kcal · ${f1(m.carbs)} g KH`); }
     catch(e) { if (btn){ btn.disabled = false; btn.classList.remove("ok"); } say("Ging nicht: " + (e.message || e)); } }
@@ -384,7 +386,8 @@
       /* the keyboard opens in the same tap (iPhone only allows that), then the field glides from where the bar was to the top */
       if (!opt.q){ try { q.focus({preventScroll: true}); } catch(e) {} }
       if (from && from.getBoundingClientRect && ov.animate){ const r = from.getBoundingClientRect(), sq = ov.querySelector(".kc-sq"), r2 = sq.getBoundingClientRect();
-        try { sq.animate([{transform: `translate(${r.left - r2.left}px,${r.top - r2.top}px)`, width: r.width + "px"}, {transform: "none", width: r2.width + "px"}], {duration: 280, easing: "cubic-bezier(.2,.85,.25,1)"});
+        try { sq.animate([{transform: `translate(${r.left - r2.left}px,${r.top - r2.top}px)`, width: r.width + "px"}, {transform: "none", width: r.width + "px", offset: .7}, {transform: "none", width: r2.width + "px"}], {duration: 380, easing: "cubic-bezier(.2,.85,.25,1)"});
+          ov.querySelector(".kc-sx").animate([{opacity: 0}, {opacity: 0, offset: .6}, {opacity: 1}], {duration: 380});
           ov.animate([{backgroundColor: "rgba(20,19,17,0)"}, {backgroundColor: "rgba(20,19,17,1)"}], {duration: 220, easing: "ease-out"}); body.animate([{opacity: 0, transform: "translateY(16px)"}, {opacity: 1, transform: "none"}], {duration: 300, delay: 60, easing: "ease-out", fill: "backwards"}); } catch(e) {} }
       /* always exactly the visible part of the screen, the keyboard never covers a result */
       /* the search covers the whole screen (also behind the keyboard, which is see-through on the iPhone); the list ends above the keyboard */
@@ -909,9 +912,12 @@
       const ms = own ? K.dayMeals(k) : [];
       if (!ms.length) return `<p class="muted kc-empty">${k === today() ? "Heute noch nichts eingetragen." : "Nichts eingetragen."}</p>`;
       const G = []; ms.forEach(m => { const g = G[G.length - 1], ts = Date.parse(m.ts) || 0; if (g && g.last - ts <= 15 * 60000){ g.ms.push(m); g.last = ts; } else G.push({ms: [m], last: ts}); });
-      const row = m => `<button class="kc-meal" data-meal="${h(m.id)}"><span class="kc-tm">${hhmm(m.ts)}</span><span class="kc-em">${h(m.emoji || "🍽️")}</span><span class="kc-mn">${h(m.title)}<small>${f1(m.protein)} g Protein${m.source === "barcode" ? " · Barcode" : ""}</small></span><span class="kc-mk2"><b>${fmt(m.kcal)}<small> kcal</small></b><em>${f1(m.carbs)} g KH</em></span></button>`;
-      const name = ts => { const d = new Date(ts), hr = d.getHours() + d.getMinutes() / 60; return hr >= 5 && hr < 10.75 ? "Frühstück" : hr >= 11 && hr < 14.75 ? "Mittagessen" : hr >= 17 && hr < 21.75 ? "Abendessen" : "Mahlzeit"; };
-      return `<div class="kc-list">${G.map(g => g.ms.length < 2 ? row(g.ms[0]) : `<div class="kc-grp"><div class="kc-gh"><span>${name(g.last)} · ${hhmm(g.last)}</span><b>${fmt(g.ms.reduce((a2, m) => a2 + (m.kcal || 0), 0))} kcal · ${f1(g.ms.reduce((a2, m) => a2 + (Number(m.carbs) || 0), 0))} g KH</b></div>${g.ms.slice().reverse().map(row).join("")}</div>`).join("")}</div>`;
+      const name = ts => { const d = new Date(ts), hr = d.getHours() + d.getMinutes() / 60; return hr >= 5 && hr < 10.75 ? "Frühstück" : hr >= 11 && hr < 14.75 ? "Mittagessen" : hr >= 17 && hr < 21.75 ? "Abendessen" : "Snack"; };
+      const nums = (kc, kh) => `<span class="kc-n">${fmt(kc)}</span><span class="kc-n kh">${g0(kh)}</span>`;
+      const card = g => { const one = g.ms.length < 2, m0 = g.ms[0], kc = g.ms.reduce((a2, m) => a2 + (m.kcal || 0), 0), kh = g.ms.reduce((a2, m) => a2 + (Number(m.carbs) || 0), 0);
+        return `<div class="kc-mcard">${one ? `<button class="kc-mrow head" data-meal="${h(m0.id)}"><span class="kc-mt2">${h(nice(m0.title))}<small>${hhmm(m0.ts)}</small></span>${nums(kc, kh)}</button>`
+          : `<div class="kc-mrow head"><span class="kc-mt2">${name(g.last)}<small>${hhmm(g.last)}</small></span>${nums(kc, kh)}</div>${g.ms.slice().reverse().map(m => `<button class="kc-mrow" data-meal="${h(m.id)}"><span class="kc-mt2">${h(nice(m.title))}</span>${nums(m.kcal || 0, m.carbs)}</button>`).join("")}`}</div>`; };
+      return `<div class="kc-list2">${G.map(card).join("")}</div>`;
     },
     wireMeals(el){ el.querySelectorAll("[data-meal]").forEach(b => b.onclick = () => { const m = K.meals.find(x => x.id === b.dataset.meal); if (m) mealSheet(m); }); },
     today(el){
@@ -920,9 +926,8 @@
         <div class="kc-btns two"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 32)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 32)}<span>Barcode</span></button></div>
         <button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Lebensmittel suchen …</span></button>
         ${setupCard()}${quickHTML()}</div>
-        <div class="kc-day"><span>Heute</span><b>${fmt(eaten)} kcal · ${fmt(K.daySum(t, "carbs"))} g KH</b></div>${this.dayBlock(t)}
-        ${lit ? `<div class="kc-tip ok kc-tipb">🔥 Ziel geschafft!</div>` : `<div class="kc-tip kc-tipb">Noch <b>${fmt(miss)} kcal</b>. Zum Beispiel ${h(i.text)} (≈ ${fmt(i.kcal)} kcal)</div>`}
-        <button class="btn ghost kc-man-b" id="kcmanual">${svg(IC.plus, 16)} Selbst eintragen</button>`;
+        <div class="kc-lh"><span>Heute</span><span class="kc-n">kcal</span><span class="kc-n kh">KH</span></div>${this.dayBlock(t)}
+        <button class="kc-link" id="kcmanual">${svg(IC.plus, 15)} Selbst eintragen</button>`;
       wireDay(el); el.querySelector("#kcmanual").onclick = () => manual();
       this.wireMeals(el);
     },
@@ -1010,8 +1015,8 @@
 .kc-wai{max-width:480px;width:100%;margin:0 auto;background:#211F1C;border-radius:18px;padding:14px 16px;border:2px solid rgba(255,255,255,.08)}.kc-wai.great{border-color:#8FC458}.kc-wai.bad{border-color:#E9573F}.kc-wai h3{margin:0 0 6px;font:900 20px var(--display)}.kc-wai p{margin:0 0 8px;font:600 15px/1.45 var(--body)}
 .kc-wai ul{margin:0 0 8px;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font:700 14px/1.4 var(--body)}.kc-wai ul.g li::before{content:"✓ ";color:#9BE25A;font-weight:900}.kc-wai ul.b li::before{content:"→ ";color:#FFD15C;font-weight:900}.kc-focus{font-weight:800!important}
 .kc-wok{max-width:480px;width:100%;margin:6px auto 0}
-.kc-two{display:grid;grid-template-columns:1fr 1fr;gap:8px;cursor:pointer}.kc-b2{background:var(--panel-2);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:3px;min-width:0}
-.kc-b2 small{font:900 11.5px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.kc-b2 b{font:900 36px/1.05 var(--display)}.kc-b2 b em{font:900 20px var(--display);font-style:normal;color:var(--muted)}.kc-b2 span{font:800 12.5px var(--body);color:var(--muted)}
+.kc-two{display:grid;grid-template-columns:1fr 1fr;gap:8px;cursor:pointer}.kc-b2{background:var(--panel-2);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:3px;min-width:0;container-type:inline-size}
+.kc-b2 small{font:900 11.5px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.kc-b2 b{font:900 30px/1.1 var(--display);font-size:clamp(19px,21cqi,36px);white-space:nowrap;font-variant-numeric:tabular-nums}.kc-b2 b em{font:800 .48em var(--display);font-style:normal;color:var(--muted)}.kc-b2 span{font:800 12.5px var(--body);color:var(--muted)}
 .kc-b2 i{display:block;height:8px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:4px}.kc-b2 u{display:block;height:100%;border-radius:4px;background:var(--go);transition:width .4s}.kc-b2.kh u{background:#E9A92B}.kc-b2.ok u{background:linear-gradient(90deg,#FFD15C,#ff9a3c)}
 .kc-mac.two{grid-template-columns:1fr 1fr}
 .kc-mk2{display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap}.kc-mk2 b{font:900 16px var(--display)}.kc-mk2 b small{font:800 11px var(--body);color:var(--muted)}.kc-mk2 em{font:800 12.5px var(--body);font-style:normal;color:#E9A92B}
@@ -1024,6 +1029,20 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-sres b .kh{color:#E9A92B;font-weight:800}.kc-sres.open{background:#33302C;border-radius:14px 14px 4px 4px}.kc-sh span{float:right}
 .kc-sadd{background:#33302C;border-radius:4px 4px 14px 14px;margin-top:-6px;padding:10px;display:flex;flex-direction:column;gap:10px;animation:kcIn .2s ease-out}@keyframes kcIn{from{opacity:0;transform:translateY(-6px)}}
 .kc-sk{font:800 15px var(--body);text-align:center}.kc-sk b{font:900 22px var(--display)}.kc-sk small{display:block;color:var(--muted);font-weight:700;font-size:12px;margin-top:2px}
+.kc-pf{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:2px 4px;font:700 13px var(--body);color:var(--muted)}.kc-pf b{color:var(--fg);font:900 14px var(--display)}
+.kc-pf i{display:block;height:4px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:5px}.kc-pf u{display:block;height:100%;background:rgba(255,255,255,.45);border-radius:2px}.kc-pf .ok u{background:#9BE25A}
+.kc-quick{gap:6px}.kc-qc{background:var(--panel-2);border-radius:16px;overflow:hidden}.kc-qc .kc-q{background:none;border-radius:0;padding:10px 10px 10px 14px;gap:10px}.kc-qc .kc-q+.kc-q{border-top:1px solid rgba(255,255,255,.06)}
+.kc-qc .kc-qn{flex:1;min-width:0;display:block;font:800 15px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kc-qv{font:700 13px var(--body);color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.kc-qc .kc-q em{width:32px;height:32px;border-radius:50%;background:none;border:2px solid var(--go);color:var(--go-hi,#8FC458);box-shadow:none}.kc-qc .kc-q:active em,.kc-qc .kc-q.ok em{background:var(--go);color:#fff}
+.kc-lh.q{margin:4px 10px 4px 14px}.kc-lh.q i{width:32px;flex:none}.kc-qc .kc-q .kc-n{font:800 14.5px var(--body)}.kc-qc .kc-q .kc-n:not(.kh){color:var(--fg)}
+.kc-lh{display:flex;align-items:center;gap:10px;margin:20px 14px 8px;font:800 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.kc-lh>span:first-child{flex:1}
+.kc-n{width:62px;text-align:right;flex:none;font-variant-numeric:tabular-nums}.kc-n.kh{width:58px;color:#E9A92B}
+.kc-list2{display:flex;flex-direction:column;gap:10px}.kc-mcard{background:var(--panel);border-radius:16px;overflow:hidden}
+.kc-mrow{display:flex;align-items:center;gap:10px;width:100%;padding:9px 14px;border:0;background:none;color:var(--muted);text-align:left;font:700 14.5px var(--body);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.kc-mrow+.kc-mrow{border-top:1px solid rgba(255,255,255,.05)}.kc-mrow:active{background:rgba(255,255,255,.04)}
+.kc-mrow.head{padding:12px 14px;color:var(--fg);font:900 16px var(--body);cursor:default}button.kc-mrow.head{cursor:pointer}.kc-mrow.head .kc-n{font:900 16px var(--display)}.kc-mrow .kc-n{font:800 14.5px var(--body)}
+.kc-mt2{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kc-mt2 small{font:700 12.5px var(--body);color:var(--muted);margin-left:8px}
+.kc-link{display:flex;align-items:center;justify-content:center;gap:6px;margin:14px auto 4px;border:0;background:none;color:var(--muted);font:800 14px var(--body);cursor:pointer}
 .kc-btns.two{grid-template-columns:1fr 1fr;gap:10px}.kc-btns.two .kc-big{height:112px;font-size:19px;border-radius:22px}
 .kc-num em{margin-left:auto;align-self:center;font:900 13px var(--body);color:var(--muted);background:var(--panel-2);border-radius:999px;padding:4px 10px;font-style:normal}.kc-num em.ok{color:#fff;background:linear-gradient(180deg,#ff9a3c,#e9573f)}.kc-num{width:100%}
 .kc-mac{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.kc-mc{background:var(--panel-2);border-radius:14px;padding:8px 10px;display:flex;flex-direction:column;gap:3px;min-width:0}
