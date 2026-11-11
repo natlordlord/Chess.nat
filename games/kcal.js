@@ -1016,18 +1016,18 @@
     async loadLists(){ const r = await sb().from("shop_lists").select("*").order("created_at"); if (r.error) throw r.error; this.lists = r.data || []; },
     async pick(id){ this.cur = this.lists.find(l => l.id === id) || null; if (!this.cur) return; this.addTo = null; try { localStorage.setItem("chessnat-shop", id); } catch(e) {}
       try { if (this.ch) sb().removeChannel(this.ch); } catch(e) {}
-      this.ch = sb().channel("shop-" + id).on("postgres_changes", {event: "*", schema: "public", table: "shop_items", filter: "list_id=eq." + id}, () => this.load()).subscribe();
-      clearInterval(this.tick); this.tick = setInterval(() => { if (this.sh && !this.box.querySelector(".kc-shx.arm")) this.draw(); }, 60000);
+      this.ch = sb().channel("shop-" + id).on("postgres_changes", {event: "*", schema: "public", table: "shop_items", filter: "list_id=eq." + id}, () => { clearTimeout(this.rt); this.rt = setTimeout(() => this.load(), 300); }).subscribe();
+      this.pend = 0; clearInterval(this.tick); this.tick = setInterval(() => { if (this.sh && !this.pend) this.draw(); }, 60000);
       await this.load(); },
-    async load(){ if (!this.cur || !this.sh) return; const id = this.cur.id, [a, b] = await Promise.all([/* things added together share one timestamp, and the database then hands them back in whatever order it likes, a different one after
+    async load(){ if (!this.cur || !this.sh) return; const my = this.lseq = (this.lseq || 0) + 1, id = this.cur.id, [a, b] = await Promise.all([/* things added together share one timestamp, and the database then hands them back in whatever order it likes, a different one after
          each tick. The id as a second key makes the order the same every time */
         sb().from("shop_items").select("*").eq("list_id", id).order("created_at").order("id"), sb().from("shop_members").select("user_id").eq("list_id", id)]);
-      if (!this.cur || this.cur.id !== id || !this.sh) return; if (a.error){ say("Ging nicht: " + a.error.message); return; } this.items = a.data || []; this.mem = (b.data || []).map(x => x.user_id); this.draw(); },
+      if (!this.cur || this.cur.id !== id || !this.sh || this.pend || my !== this.lseq) return; if (a.error){ say("Ging nicht: " + a.error.message); return; } this.items = a.data || []; this.mem = (b.data || []).map(x => x.user_id); this.draw(); },
     who(id){ return id === meId() ? "du" : pname(id); },
     snd(k){ try { if (k === "tap") Sound.tap(); else Sound.play(k, .5); } catch(e) {} },
     /* the bar at the top is built once and stays (so typing is never interrupted); only the list below it is redrawn.
        One field for everything: type a product and pick a suggestion, type "Milch, Zucker und Mehl" and press OK, or speak */
-    shell(){ this.box.innerHTML = `<div id="kcsto"></div><div class="kc-shbar"><input id="kcsha" maxlength="300" enterkeyhint="done" autocomplete="off" autocorrect="off"><button class="kc-shmic" data-mic aria-label="Sprechen">${svg(IC.mic, 24)}</button><button class="kc-shok" data-add>OK</button></div><div id="kcssug"></div><div id="kcslst"></div><div id="kcsftr"></div>`;
+    shell(){ this._lst = this._ftr = null; this.box.innerHTML = `<div id="kcsto"></div><div class="kc-shbar"><input id="kcsha" maxlength="300" enterkeyhint="done" autocomplete="off" autocorrect="off"><button class="kc-shmic" data-mic aria-label="Sprechen">${svg(IC.mic, 24)}</button><button class="kc-shok" data-add>OK</button></div><div id="kcssug"></div><div id="kcslst"></div><div id="kcsftr"></div>`;
       const B = this.box, inp = B.querySelector("#kcsha"), sug = B.querySelector("#kcssug"); let tm = 0, seq = 0;
       const clear = () => { inp.value = ""; sug.innerHTML = ""; seq++; };
       const send = () => { if (this.micLive && this.micLive()){ const t = this.micStop(); if (t){ clear(); this.sort(t); } return; } const v = inp.value.trim(); if (!v) return; clear();
@@ -1086,13 +1086,16 @@
       const live = prods.filter(i => !old(i)), log = prods.filter(old).sort((a, b) => Date.parse(b.done_at) - Date.parse(a.done_at));
       const prodHTML = `${dishes.length || live.length ? `<div class="kc-day"><span>Gesamte Einkaufsliste · ${open.length} offen</span></div>` : ""}${live.length ? this.openHTML(live, row) : `<p class="muted kc-empty">${log.length ? "Alles gekauft 🎉" : "Noch nichts auf der Liste."}</p>`}`;
       const logHTML = log.length ? `<div class="kc-day"><span>Gekauft · ${log.length}</span><button class="kc-link" data-clear>Verlauf leeren</button></div><div class="kc-shs">${log.slice(0, 60).map(logRow).join("")}</div>` : ""; this.logIds = log.map(i => i.id);
-      B.querySelector("#kcslst").innerHTML = dishHTML + prodHTML + logHTML;
-      B.querySelector("#kcsftr").innerHTML = `<div class="kc-day"><span>Listen</span></div><div class="kc-shl">${this.lists.map(l => `<button class="chip ${l.id === L.id ? "on" : ""}" data-list="${l.id}">${h(l.name)}</button>`).join("")}<button class="chip" data-new>+ Liste</button></div>
+/* the page is only touched when something really changed, so a re-read with the same content moves nothing */
+      { const html = dishHTML + prodHTML + logHTML, le = B.querySelector("#kcslst"); if (this._lst !== html || !le.firstChild){ this._lst = html; le.innerHTML = html; } }
+      const ftrHTML = `<div class="kc-day"><span>Listen</span></div><div class="kc-shl">${this.lists.map(l => `<button class="chip ${l.id === L.id ? "on" : ""}" data-list="${l.id}">${h(l.name)}</button>`).join("")}<button class="chip" data-new>+ Liste</button></div>
         <div class="kc-shm">${[L.owner].concat(this.mem.filter(x => x !== L.owner)).map(id => `<span class="kc-av" title="${h(this.who(id))}">${avatar(id)}</span>`).join("")}<small class="muted">${this.mem.filter(x => x !== L.owner).length ? "teilen diese Liste" : own ? "Nur du" : ""}</small>${own ? `<button class="btn sm" data-share>Teilen</button>` : ""}</div>
-        ${own && this.lists.length > 1 ? `<button class="kc-link" data-dellist>Diese Liste löschen</button>` : !own ? `<button class="kc-link" data-leave>Liste verlassen</button>` : ""}`;
+        ${own && this.lists.length > 1 ? `<button class="kc-link" data-dellist>Diese Liste löschen</button>` : !own ? `<button class="kc-link" data-leave>Liste verlassen</button>` : ""}`; { const fe = B.querySelector("#kcsftr"); if (this._ftr !== ftrHTML || !fe.firstChild){ this._ftr = ftrHTML; fe.innerHTML = ftrHTML; } }
       this.wire(); },
     /* what you do shows at once; the server follows, and the list is read again afterwards */
-    async mut(fn, q){ fn(); this.draw(); const r = await q; if (r && r.error) say("Ging nicht: " + r.error.message); await this.load(); },
+    /* While a change of yours is still on its way to the server, nothing read from the server is shown: such an answer can be
+       older than your tap and would flip the row back for a moment. The list is read again once all your changes have arrived */
+    async mut(fn, q){ this.pend = (this.pend || 0) + 1; fn(); this.draw(); let r = null; try { r = await q; } catch(e) { r = {error: e}; } this.pend--; if (r && r.error) say("Ging nicht: " + (r.error.message || r.error)); if (!this.pend) await this.load(); },
     addMany(names, code){ const me = meId(), id = this.cur.id, par = this.addTo || null, rows = names.map(n => String(n).trim()).filter(Boolean).map(n => ({list_id: id, name: n.slice(0, 120), code: code || null, added_by: me, parent: par})); if (!rows.length) return;
       haptic(10); this.snd("Move"); return this.mut(() => rows.forEach((r, i) => this.items.push(Object.assign({id: "tmp" + Date.now() + i, kind: "product", tmp: 1}, r))), sb().from("shop_items").insert(rows)); },
     /* a whole sentence, typed or spoken: the AI sorts it into products and dishes with their ingredients */
