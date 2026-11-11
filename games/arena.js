@@ -21,6 +21,7 @@
     snipe: {e: "🎯", en: "Sniper", de: "Scharfschütze", sen: "Far · harder far away", sde: "Weit · trifft weit stärker", hp: 105, sp: .95, rl: 2000, cd: 450, rg: 780, n: 1, v: 1600, dmg: 15, far: 30, r: 6, sc: 100,
       su: {e: "⚡", en: "Piercer", de: "Durchschuss", sen: "Goes through everyone", sde: "Geht durch alle durch", v: 2300, rg: 980, dmg: 52, r: 9}}};
   const KEYS = Object.keys(CLS);
+  const EMO = ["😂", "😎", "😡", "😭", "👍", "🔥", "💀", "GG"];
   const PERKS = {
     vote2: {e: "🗳️", en: "Double vote", de: "Doppelte Stimme", sen: "Your vote counts twice now.", sde: "Deine Stimme zählt jetzt doppelt."},
     revive: {e: "💉", en: "Revive", de: "Wiederbeleben", sen: "Bring someone back. They stay silent.", sde: "Hol jemanden zurück. Er bleibt stumm."},
@@ -133,6 +134,7 @@
     d = Math.min(90, d); A.hp[vic] = Math.max(0, A.hp[vic] - d); A.lh[vic] = now(); if (by && by !== vic && A.dmg[by] != null) A.dmg[by] += d; HB.dirty = true;
     if (by && by !== vic && HB.bots[by]) HB.bots[by].sup = Math.min(1, HB.bots[by].sup + d / CLS[A.cls[by]].sc);
     if (A.hp[vic] <= 0){ A.out.push(vic); if (A.cubes){ const q = posOf(vic); if (q) cubeAdd(A, q.x, q.y, (A.pw[vic] || 0) + 1); } if (by && by !== vic && A.kills[by] != null) A.kills[by]++; const kb = by && by !== vic && A.ids.includes(by) ? by : ""; A.feed.push([kb, vic, kb ? A.cls[kb] : "gas"]); if (A.feed.length > 8) A.feed.shift();
+      if (kb && HB.bots[kb] && Math.random() < .35) setTimeout(() => send({t: "aem", w: kb, e: ["😎", "GG", "😂", "🔥"][Math.floor(Math.random() * 4)]}), 500);
       HB.hpT = now(); HB.dirty = false; send({t: "ahp", hp: rnd(A.hp), mx: A.mx, out: A.out, f: A.feed.slice(-4), ko: vic}); hostTick(G); PNet.refresh(); }
   }
   function regen(A, dt){ A.ids.forEach(id => { if (A.out.includes(id) || A.hp[id] >= A.mx[id]) return; if (now() - (A.lh[id] || 0) > 3000 && now() - (A.ls[id] || 0) > 3000){ A.hp[id] = Math.min(A.mx[id], A.hp[id] + A.mx[id] * .14 * dt); HB.dirty = true; } }); }
@@ -223,7 +225,7 @@
   }
 
   /* ---------------- this phone: move, aim, shoot, draw ---------------- */
-  const C = {cubes: [], pw: {}, cgT: {}, on: false, seed: null, A: null, me: null, am: AMMO, rl: 0, cd: 0, sup: 0, seq: 0, AP: {}, proj: [], fx: [], fields: [], trail: [], pops: [], sent: 0, sentP: null, moveP: null, aimP: null, supP: null, keys: {}, dot: 0, dotT: 0, dotBy: "", burn: 0, burnBy: "", hurtT: 0, shake: 0, hitAt: {}, shotAt: {}, kb: null, L: null, t0: 0, pickEnd: 0, pickDur: PICK, fightT0: 0, endAt: 0, doneAt: 0, started: false, hpT: 0, outShown: false, lastTr: {}, sndT: {}, kbDone: {}, v: null};
+  const C = {emo: {}, cubes: [], pw: {}, cgT: {}, on: false, seed: null, A: null, me: null, am: AMMO, rl: 0, cd: 0, sup: 0, seq: 0, AP: {}, proj: [], fx: [], fields: [], trail: [], pops: [], sent: 0, sentP: null, moveP: null, aimP: null, supP: null, keys: {}, dot: 0, dotT: 0, dotBy: "", burn: 0, burnBy: "", hurtT: 0, shake: 0, hitAt: {}, shotAt: {}, kb: null, L: null, t0: 0, pickEnd: 0, pickDur: PICK, fightT0: 0, endAt: 0, doneAt: 0, started: false, hpT: 0, outShown: false, lastTr: {}, sndT: {}, kbDone: {}, v: null};
   const me = () => PNet.me;
   const NPo = () => N().NP;
   function reset(keep){ Object.assign(C, {cubes: [], pw: {}, cgT: {}, seed: null, A: null, me: null, proj: [], fx: [], fields: [], trail: [], pops: [], AP: {}, moveP: null, aimP: null, supP: null, started: false, doneAt: 0, outShown: false, lastTr: {}, burn: 0, dot: 0, sup: 0, kb: null, hitAt: {}, shotAt: {}, kbDone: {}, picked: 0, win: null});
@@ -287,7 +289,7 @@
     C.on = true; const NP = NPo(); if (!NP.el) return; NP.el.classList.add("arena"); NP.joy = null; try { Focus.set(true); } catch(e) {}
     let L = C.L; if (!L || !L.isConnected){ L = C.L = document.createElement("div"); L.className = "ar-l";
       L.innerHTML = `<div class="ar-hud"><span class="ar-rd"></span><span class="ar-t"></span><span class="ar-n"></span><span class="ar-gas">☠️ ${T("Gas", "Gas")}</span></div><div class="ar-feed"></div><div class="ar-ban"></div><div class="ar-pick"></div><div class="ar-joy"><i></i></div>
-        <div class="ar-sup"><b></b><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46"/></svg></div><div class="ar-fire"><b></b><span class="ar-am"><i><u></u></i><i><u></u></i><i><u></u></i></span></div><div class="ar-res"></div><div class="ar-tip"></div>`;
+        <div class="ar-sup"><b></b><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46"/></svg></div><div class="ar-fire"><b></b><span class="ar-am"><i><u></u></i><i><u></u></i><i><u></u></i></span></div><div class="ar-res"></div><div class="ar-tip"></div><button class="ar-emb" aria-label="Emote">😀</button><div class="ar-emp">${EMO.map(e => `<button data-em="${e}">${e}</button>`).join("")}</div>`;
       NP.el.appendChild(L); wire(L); }
     pickDraw(true);
   }
@@ -295,7 +297,10 @@
   function banner(txt, cls){ C.ban = {txt, cls, t: now()}; const b = C.L && C.L.querySelector(".ar-ban"); if (b){ b.className = "ar-ban on " + (cls || ""); b.innerHTML = txt; b.style.animation = "none"; void b.offsetWidth; b.style.animation = ""; } }
   function wire(L){
     const gw = () => NPo().el.offsetWidth, LOC = N().LOC, joy = L.querySelector(".ar-joy"), knob = joy.firstChild, fb = L.querySelector(".ar-fire"), fk = fb.firstChild, sb = L.querySelector(".ar-sup"), sk = sb.firstChild;
-    L.addEventListener("pointerdown", e => { if (e.target.closest("button")) return; e.preventDefault(); const p = LOC(e);
+    const emb = L.querySelector(".ar-emb"), emp = L.querySelector(".ar-emp");
+    emb.onclick = () => { Sound.tap(); emp.classList.toggle("on"); };
+    emp.onclick = e => { const b = e.target.closest("[data-em]"); if (!b) return; emp.classList.remove("on"); if (now() - (C.emT || 0) < 1500) return; C.emT = now(); send({t: "aem", e: b.dataset.em}); Haptic.go(8); };
+    L.addEventListener("pointerdown", e => { if (e.target.closest("button")) return; emp.classList.remove("on"); e.preventDefault(); const p = LOC(e);
       if (e.target.closest(".ar-sup")){ if (C.supP || C.sup < 1 || !fighting()) return; C.supP = {x0: p.x, y0: p.y, dx: 0, dy: 0, id: e.pointerId, man: false}; sb.classList.add("on"); }
       else if (p.x < gw() * .45){ if (C.moveP) return; C.moveP = {x0: p.x, y0: p.y, dx: 0, dy: 0, id: e.pointerId}; joy.style.left = p.x + "px"; joy.style.top = p.y + "px"; joy.classList.add("on"); knob.style.transform = "translate(-50%,-50%)"; }
       else { if (C.aimP) return; C.aimP = {x0: p.x, y0: p.y, dx: 0, dy: 0, id: e.pointerId, man: false}; fb.classList.add("on"); fb.style.left = (p.x - 55) + "px"; fb.style.top = (p.y - 55) + "px"; fk.style.transform = ""; }
@@ -425,6 +430,7 @@
       if (v === me()) hurtFx(d, m);
       else { const q = pos(v); if (q) C.pops.push({x: q.x, y: q.y - 120, txt: "-" + d, t: now(), mine: m.by === me()}); if (m.by === me()) snd("hit", q);
         if (host && HB.bots[v]){ const b = HB.bots[v]; if (m.b){ const o = HB.dot[v] || (HB.dot[v] = {d: 0, t: now(), by: m.by}); o.burn = now() + CLS.fire.burn; o.burnBy = m.by; } if (m.kx != null) b.kb = {vx: m.kx / .16, vy: m.ky / .16, until: now() + 160}; } } }
+    else if (m.t === "aem"){ const who = m.w && isBot(m.w) ? m.w : m.id; if (EMO.includes(m.e)){ C.emo[who] = {e: m.e, t: now()}; if (who !== me()) snd("hit"); } }
     else if (m.t === "acu"){ const had = C.pw[me()] || 0; C.cubes = m.c || []; C.pw = m.pw || {}; if ((C.pw[me()] || 0) > had){ snd("cube"); Haptic.go(12); C.fx.push({k: "cube", x: C.me ? C.me.x : 0, y: C.me ? C.me.y : 0, t: now()}); } }
     else if (m.t === "acg"){ if (host){ const mg = hostMg(); if (mg && mg.ar.cubes && mg.ar.ph === "fight") cubeGrab(mg.ar, m.id, +m.k); } }
     else if (m.t === "ahp"){ if (m.mx) C.A.mx = m.mx; C.A.hp = Object.assign({}, m.hp); C.A.out = (m.out || []).slice(); C.A.feed = m.f || []; C.hpT = now();
@@ -565,6 +571,8 @@
       fig(c, q.x, q.y, p, {f: q.f, mv: q.mv, me: self, flash: C.hitAt[id] && t - C.hitAt[id] < 110});
       c.globalAlpha = 1;
       if ((self && C.burn > t) || (HB.dot[id] && HB.dot[id].burn > t)) emoAt(c, "🔥", q.x + Math.sin(t / 90) * 6, q.y - 74, 30);
+      const em = C.emo[id]; if (em && t - em.t < 2200){ const k = Math.min(1, (t - em.t) / 160), yy = q.y - 172 - (1 - k) * 12; c.globalAlpha = t - em.t > 1900 ? (2200 - (t - em.t)) / 300 : 1; c.fillStyle = "#fff"; rr(c, q.x - 26, yy - 26, 52, 46, 14); c.fill(); c.beginPath(); c.moveTo(q.x - 7, yy + 19); c.lineTo(q.x, yy + 28); c.lineTo(q.x + 7, yy + 19); c.fill();
+        if (em.e === "GG"){ c.fillStyle = "#1b1a18"; c.font = "900 22px Figtree,system-ui,sans-serif"; c.textAlign = "center"; c.fillText("GG", q.x, yy + 6); c.font = NUMF; } else emoAt(c, em.e, q.x, yy - 3, 32); c.globalAlpha = 1; }
       if (A.ph === "fight" && !out){ const hp = A.hp[id] || 0, mx = A.mx[id] || 1, w = 74, y = q.y - 124, f = Math.max(0, Math.min(1, hp / mx)); c.fillStyle = "rgba(10,10,14,.85)"; rr(c, q.x - w / 2 - 3, y - 3, w + 6, self ? 26 : 16, 6); c.fill();
         c.fillStyle = self ? "#7FD04A" : "#E9573F"; rr(c, q.x - w / 2, y, w * f, 10, 5); c.fill(); if (c.font !== NUMF) c.font = NUMF; c.textAlign = "center"; c.fillStyle = "#fff"; c.fillText(Math.ceil(hp), q.x, y - 6);
         const ce = CLS[A.cls[id]]; if (ce) emoAt(c, ce.e, q.x - w / 2 - 15, y + 5, 20);
@@ -687,6 +695,10 @@
 .ar-tip .t-sup{right:calc(var(--sr,0px) + 120px);bottom:calc(var(--sb,0px) + 112px);background:#FFD15C}
 .ar-tip .t-fog{left:50%;top:calc(var(--st,0px) + 70px);transform:translateX(-50%);white-space:nowrap}
 .ar-tip.on span{animation:arTip 1.4s ease-in-out infinite alternate}@keyframes arTip{to{translate:0 -5px}}
+.ar-emb{position:absolute;top:calc(var(--st,0px) + 12px);right:calc(var(--sr,0px) + 12px);width:44px;height:44px;border-radius:14px;border:0;background:rgba(20,19,17,.8);font-size:24px;z-index:2}
+.ar-emp{position:absolute;top:calc(var(--st,0px) + 62px);right:calc(var(--sr,0px) + 12px);display:none;grid-template-columns:repeat(4,46px);gap:6px;padding:8px;border-radius:16px;background:rgba(20,19,17,.92);z-index:3}.ar-emp.on{display:grid}
+.ar-emp button{width:46px;height:46px;border-radius:12px;border:0;background:rgba(255,255,255,.08);font:900 22px var(--display);color:#fff}.ar-emp button:active{transform:scale(.92)}
+.ar-feed{top:calc(var(--st,0px) + 64px)!important}
 .ar-res{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(6,7,12,.72);padding:calc(var(--st,0px) + 12px) calc(var(--sr,0px) + 12px) calc(var(--sb,0px) + 12px) calc(var(--sl,0px) + 12px);z-index:3}
 .ar-res.on{display:flex;animation:arIn .3s ease-out}@keyframes arIn{from{opacity:0;transform:scale(.96)}}
 .ar-rbox{background:var(--panel,#1e1d1b);border-radius:20px;padding:14px 16px;width:min(440px,100%);max-height:100%;overflow:auto;color:#fff;display:flex;flex-direction:column;gap:10px;box-shadow:0 18px 50px rgba(0,0,0,.5)}
