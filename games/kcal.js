@@ -413,12 +413,14 @@
       <div class="kc-mk"><b>${fmt(m.kcal)}</b> kcal</div>
       <div class="kc-macros"><span><b>${f1(m.carbs)} g</b>KH</span><span><b>${f1(m.protein)} g</b>Protein</span><span><b>${f1(m.fat)} g</b>Fett</span></div>
       ${items.length ? `${own ? `<div class="kc-ih muted">Antippen zum Ändern</div>` : ""}<div class="kc-items">${items.map((i, ix) => own ? `<button data-it="${ix}"><span>${h(i.name)}<small>${h(i.amount || "")}</small></span><b>${fmt(i.kcal)} kcal</b><em>${svg(IC.pen, 15)}</em></button>` : `<div><span>${h(i.name)}<small>${h(i.amount || "")}</small></span><b>${fmt(i.kcal)} kcal</b></div>`).join("")}</div>` : ""}
+      ${own && items.length ? `<button class="kc-roundb" data-round>${svg(IC.code, 22)}<b>Packungen scannen<small>Für genaue Werte: alles scannen, was du gegessen hast, in beliebiger Reihenfolge</small></b></button>` : ""}
       ${own ? `<button class="btn ghost kc-man-b" data-it="-1">${svg(IC.plus, 16)} Etwas dazu</button>` : ""}
       ${m.said ? `<p class="muted kc-said">„${h(m.said)}“</p>` : ""}${m.note ? `<p class="muted kc-said">${h(m.note)}</p>` : ""}
       ${own ? `<div class="kc-portion"><span class="muted">Alles mal</span><div>${[[.5, "½"], [.75, "¾"], [1.25, "1¼"], [1.5, "1½"], [2, "2×"], [3, "3×"]].map(([f, l]) => `<button class="chip" data-f="${f}">${l}</button>`).join("")}</div></div>
       <div class="kc-row2"><button class="btn go" data-dclose>Passt</button><button class="btn" data-kc-del>Löschen</button></div>` : ""}</div>`);
     if (!own) return sh;
     sh.el.querySelectorAll("[data-it]").forEach(b => b.onclick = () => { haptic(8); sh.close(); partSheet(m, +b.dataset.it); });
+    const rb = sh.el.querySelector("[data-round]"); if (rb) rb.onclick = () => { haptic(10); sh.close(); KCScan.open({round: m}); };
     sh.el.querySelectorAll("[data-f]").forEach(b => b.onclick = async () => { try { const nm = await saveParts(m, partsOf(m).map(i => scalePart(i, +b.dataset.f))); sh.close(); mealSheet(nm); } catch(e) { say("Ging nicht: " + (e.message || e)); } });
     const del = sh.el.querySelector("[data-kc-del]"); del.onclick = async () => { if (!del.dataset.armed){ del.dataset.armed = 1; del.textContent = "Wirklich löschen?"; return; }
       try { await K.del(m.id); sh.close(); say("Gelöscht"); } catch(e) { say("Ging nicht: " + (e.message || e)); } };
@@ -608,17 +610,17 @@
       ov = document.createElement("div"); ov.className = "kc-ov-full kc-scanov"; ov.setAttribute("data-notr", "");
       ov.innerHTML = `<video id="kcv" playsinline muted autoplay></video><div class="kc-frame"><i></i><i></i><i></i><i></i><b class="kc-laser"></b></div>
         <div class="kc-vtop"><button class="kc-x" data-x aria-label="Schließen">${svg(IC.x, 22)}</button><button class="kc-x" id="kctorch" hidden aria-label="Licht">${svg(IC.torch, 20)}</button></div>
-        <div class="kc-sbot"><div class="kc-hint" id="kchint">Barcode in den Rahmen halten, egal wie gedreht</div>
-          <form id="kcman" class="kc-man"><input id="kccode" inputmode="numeric" placeholder="oder Nummer eintippen" autocomplete="off"><button class="btn go">OK</button></form></div>`;
-      document.body.appendChild(ov);
+        <div class="kc-sbot"><div class="kc-hint" id="kchint">${round ? "Scann alles, was du gegessen hast. Egal in welcher Reihenfolge." : "Barcode in den Rahmen halten, egal wie gedreht"}</div>
+          ${round ? `<div class="kc-rp" id="kcrp"></div>` : `<form id="kcman" class="kc-man"><input id="kccode" inputmode="numeric" placeholder="oder Nummer eintippen" autocomplete="off"><button class="btn go">OK</button></form>`}</div>`;
+      document.body.appendChild(ov); if (round) roundDraw();
       ov.querySelector("[data-x]").onclick = close;
-      ov.querySelector("#kcman").onsubmit = e => { e.preventDefault(); const c = ov.querySelector("#kccode").value.replace(/\D/g, ""); if (c.length < 6) return say("Die Nummer ist zu kurz"); ov.querySelector("#kccode").blur(); got(c); };
+      if (!round) ov.querySelector("#kcman").onsubmit = e => { e.preventDefault(); const c = ov.querySelector("#kccode").value.replace(/\D/g, ""); if (c.length < 6) return say("Die Nummer ist zu kurz"); ov.querySelector("#kccode").blur(); got(c); };
     }
     /* pick: what to do with the product (swap a part of a meal); without it the product becomes a new meal */
     let pickCb = null;
     async function open(opt){
       if (!meId()) return say("Bitte erst anmelden");
-      if (ov) close(); pickCb = opt && opt.pick || null; ui(); scanning = true; frame = 0; torchOn = false;
+      if (ov) close(); pickCb = opt && opt.pick || null; round = opt && opt.round ? {m: opt.round, parts: partsOf(opt.round), got: {}, codes: new Set(), busy: 0, msg: ""} : null; ui(); scanning = true; frame = 0; torchOn = false;
       const hint = t => { if (ov) ov.querySelector("#kchint").textContent = t; };
       try {
         const [s] = await Promise.all([getCam(), engine()]);
@@ -651,13 +653,38 @@
       /* a code counts once two frames agree: one stray misread can never open the wrong product */
       const seen = {};
       const step = async () => { if (!scanning) return; let code = null; try { code = await readFrame(v); } catch(e) {}
-        if (code && scanning){ const now = Date.now(), s0 = seen[code]; if (s0 && now - s0 < 2000) return got(code); seen[code] = now; }
+        if (code && scanning){ const now = Date.now(), s0 = seen[code]; if (s0 && now - s0 < 2000){ if (!round) return got(code); delete seen[code]; roundGot(code); } else seen[code] = now; }
         next(); };
       next();
     }
     function stopScan(){ scanning = false; if (ov){ const v = ov.querySelector("#kcv"); try { v.pause(); } catch(e) {} v.srcObject = null; } releaseCam(false); }
-    function close(){ stopScan(); if (ov){ ov.remove(); ov = null; } }
+    function close(){ stopScan(); if (ov){ ov.remove(); ov = null; } round = null; }
     const cacheKey = c => "chessnat-off-" + c;
+    /* ---- the round: after speaking, scan every pack you ate from, in any order; each one goes to the part it fits ---- */
+    let round = null;
+    const words = t => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ß/g, "ss").split(/[^a-z0-9]+/).filter(w => w.length >= 3);
+    const fit = (part, P) => { const a = words(part.name), b = words(P.name + " " + (P.brand || "")); let n = 0; a.forEach(w => { if (b.some(x => x === w || (w.length >= 4 && (x.startsWith(w) || w.startsWith(x) || x.includes(w))))) n++; }); return n; };
+    /* how much: grams named in the part ("80 g"), else a count × the pack's portion ("2 Scheiben"), else the same kcal as guessed */
+    const howMuch = (part, P) => { const g = gramsIn(part.amount); if (g > 0) return g; const m = /(\d+(?:[.,]\d+)?|½|¼|¾)/.exec(String(part.amount || "")); if (m && P.serving) return num(m[1]) * P.serving;
+      return P.k > 0 && part.kcal > 0 ? Math.round(part.kcal / P.k * 1000) / 10 : P.serving || 100; };
+    function roundDraw(){ const el = ov && ov.querySelector("#kcrp"); if (!el || !round) return; const R = round;
+      el.innerHTML = `${R.msg ? `<div class="kc-rmsg ${R.msgOk ? "ok" : ""}">${R.msg}</div>` : ""}${R.ask ? `<div class="kc-rask"><span>Wozu gehört <b>${h(R.ask.P.name)}</b>?</span><div>${R.parts.map((p2, i) => R.got[i] ? "" : `<button class="chip" data-to="${i}">${h(p2.name)}</button>`).join("")}<button class="chip" data-to="new">+ Dazu</button><button class="chip" data-to="skip">Nichts</button></div></div>` : ""}
+        <div class="kc-rl">${R.parts.map((p2, i) => `<div class="${R.got[i] ? "ok" : ""}"><i>${R.got[i] ? "✓" : ""}</i><span>${h(R.got[i] ? R.got[i] : p2.name)}<small>${h(p2.amount || "")} · ${fmt(p2.kcal)} kcal</small></span></div>`).join("")}</div>
+        <button class="btn go big" id="kcrdone">${Object.keys(R.got).length ? "Fertig, übernehmen" : "Fertig"}</button>`;
+      el.querySelectorAll("[data-to]").forEach(b => b.onclick = () => { const to = b.dataset.to, P = R.ask.P; R.ask = null; if (to === "skip"){ R.msg = ""; roundDraw(); return; } assign(to === "new" ? -1 : +to, P); });
+      el.querySelector("#kcrdone").onclick = roundSave; }
+    function assign(i, P){ const R = round; if (!R) return; if (i < 0){ const g = P.serving || 100; R.parts.push(itemOf(P, g)); i = R.parts.length - 1; } else R.parts[i] = itemOf(P, howMuch(R.parts[i], P));
+      R.got[i] = P.name + (P.brand ? " (" + P.brand + ")" : ""); R.msg = `✓ ${h(P.name)}`; R.msgOk = 1; haptic([12, 25, 12]); roundDraw(); }
+    async function roundGot(code){ const R = round; if (!R) return;
+      if (R.codes.has(code)){ if (Date.now() - (R.dupT || 0) > 2500){ R.dupT = Date.now(); R.msg = "Schon gescannt"; R.msgOk = 0; roundDraw(); } return; }
+      R.codes.add(code); R.busy++; R.msg = "Gefunden, suche Produkt …"; R.msgOk = 0; roundDraw(); haptic(10);
+      const p = await offGet(code, 8000); R.busy--; if (round !== R) return;
+      if (!p){ R.msg = "Nicht in der Datenbank"; R.msgOk = 0; roundDraw(); return; }
+      const P = prodOf(code, p); let best = -1, bs = 0; R.parts.forEach((p2, i) => { const f2 = fit(p2, P) * (R.got[i] ? .5 : 1); if (f2 > bs){ bs = f2; best = i; } });
+      if (best >= 0 && bs >= 1) assign(best, P); else { R.ask = {P}; R.msg = ""; roundDraw(); } }
+    async function roundSave(){ const R = round; if (!R) return; const b = ov.querySelector("#kcrdone"); if (b) b.disabled = true;
+      try { const nm = Object.keys(R.got).length ? await saveParts(R.m, R.parts) : R.m; close(); if (Object.keys(R.got).length){ haptic(15); say(`📦 ${Object.keys(R.got).length} Produkt${Object.keys(R.got).length > 1 ? "e" : ""} übernommen`); } mealSheet(nm); }
+      catch(e) { if (b) b.disabled = false; say("Ging nicht: " + (e.message || e)); } }
     async function got(code){
       if (!ov) return; stopScan(); haptic([15, 30, 15]);
       ov.classList.add("found"); ov.querySelector("#kchint").textContent = "Gefunden: " + code + " … suche Produkt";
@@ -668,7 +695,7 @@
     }
     /* test hook: decode one picture (a canvas) the same way as a camera frame */
     const decode = async (c, ml) => { await engine(); if (ml) MINLINES = ml; return readFrame(c); };
-    return {open, close, preload, decode, get engine(){ return native ? "native" : zx ? "zxing" : "none"; }};
+    return {open, close, preload, decode, _round: c => roundGot(c), get engine(){ return native ? "native" : zx ? "zxing" : "none"; }};
   })();
   window.KCScan = KCScan;
 
@@ -892,6 +919,12 @@
 @keyframes kcSpin{50%{transform:scale(.92)}}
 .kc-type{width:100%;display:flex;flex-direction:column;gap:10px}.kc-type textarea{width:100%;box-sizing:border-box;border-radius:14px;border:2px solid #3F3B36;background:#211F1C;color:#fff;font:600 18px var(--body);padding:12px}
 .kc-vbot{display:flex;justify-content:center}.kc-vbot .btn{color:rgba(255,255,255,.7)}
+.kc-scanov:has(.kc-rp) .kc-frame{top:30%;width:min(62vw,280px)}.kc-rp{width:100%;max-width:460px;display:flex;flex-direction:column;gap:8px;background:rgba(20,19,17,.88);border-radius:20px;padding:12px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.kc-rl{display:flex;flex-direction:column;gap:4px;max-height:30vh;overflow:auto}.kc-rl>div{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:12px;background:rgba(255,255,255,.06)}.kc-rl>div.ok{background:rgba(127,178,74,.22)}
+.kc-rl i{width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.35);display:grid;place-items:center;font:900 13px var(--body);font-style:normal;flex:none}.kc-rl .ok i{background:var(--go);border-color:var(--go)}
+.kc-rl span{display:flex;flex-direction:column;font:800 14px var(--body);min-width:0}.kc-rl small{color:rgba(255,255,255,.55);font-weight:700;font-size:12px}
+.kc-rmsg{font:900 15px var(--body);text-align:center;color:#fff}.kc-rmsg.ok{color:#9BE25A}.kc-rask{display:flex;flex-direction:column;gap:6px;font:800 14px var(--body)}.kc-rask>div{display:flex;flex-wrap:wrap;gap:6px}
+.kc-roundb{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border-radius:16px;border:0;background:#5AA3E0;color:#fff;text-align:left;cursor:pointer;box-shadow:inset 0 -4px 0 #3B7FC0}.kc-roundb b{display:flex;flex-direction:column;font:900 16px var(--body)}.kc-roundb small{font:700 12px var(--body);opacity:.85}.kc-roundb:active{transform:translateY(2px)}
 .kc-scanov{padding:0;background:#000}.kc-scanov video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .kc-scanov .kc-vtop{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);left:16px;right:16px}
 .kc-frame{position:absolute;left:50%;top:44%;width:min(74vw,340px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:24px;box-shadow:0 0 0 100vmax rgba(0,0,0,.45)}
