@@ -39,7 +39,7 @@
     setGroup(id){ this.gid = id || ""; try { localStorage.setItem("chessnat-tipp-group", this.gid); } catch(e) {} },
     group(){ return this.groups.find(g => g.id === this.gid) || null; },
     async loadGroups(){ const c = sb(); if (!c || !meId()){ this.groups = []; return; } const {data, error} = await c.rpc("tipp_groups_mine"); if (!error) this.groups = data || []; if (this.gid && !this.groups.some(g => g.id === this.gid)) this.setGroup(""); },
-    async saveGroup(id, name, comps){ const c = sb(); if (!c || !meId()) return null; const {data, error} = await c.rpc("tipp_group_save", {p_id: id || null, p_name: name, p_comps: comps}); if (error){ toast(error.message); return null; } await this.loadGroups(); return data; },
+    async saveGroup(id, name, comps){ const c = sb(); if (!c || !meId()) return null; const {data, error} = await c.rpc("tipp_group_save", {p_id: id || null, p_name: name, p_comps: comps}); if (error){ toast(T("Didn't work. Try again.", "Hat nicht geklappt. Nochmal versuchen.")); return null; } await this.loadGroups(); return data; },
     async join(code){ const c = sb(); code = String(code || "").toLowerCase().replace(/[^0-9a-f]/g, "").slice(0, 12); if (!code) return null;
       if (!c || !meId()){ try { localStorage.setItem("chessnat-tipp-join", code); } catch(e) {} toast(T("Sign in to join the round.", "Zum Mitmachen bitte anmelden.")); setTimeout(() => { if (!meId()) App.go("account"); }, 900); return null; }
       try { localStorage.removeItem("chessnat-tipp-join"); } catch(e) {}
@@ -103,7 +103,7 @@
     friends(){ try { if (typeof Social === "undefined" || !Social.data) return []; const me = Social.me; return (Social.data.friends || []).filter(r => r.status === "accepted").map(r => r.a === me ? r.b : r.a); } catch(e) { return []; } },
     invited: {},
     async invite(id, g){ const c = sb(); g = g === undefined ? this.group() : g; const key = id + "|" + (g ? g.code : "tipp"); if (!c || !meId() || this.invited[key]) return false;
-      const {error} = await c.from("chess_invites").insert({from_id: meId(), to_id: id, code: g ? g.code : "tipp", tc: "t:tipp"}); if (error){ toast(error.message); return false; } this.invited[key] = 1; return true; },
+      const {error} = await c.from("chess_invites").insert({from_id: meId(), to_id: id, code: g ? g.code : "tipp", tc: "t:tipp"}); if (error){ toast(T("Didn't work. Try again.", "Hat nicht geklappt. Nochmal versuchen.")); return false; } this.invited[key] = 1; return true; },
     wasInv(id){ const g = this.group(); return !!this.invited[id + "|" + (g ? g.code : "tipp")]; }
   };
 
@@ -396,7 +396,7 @@
       for (const x of Tipp.slip.slice().sort((a, b) => (b.k === "cs") - (a.k === "cs"))){
         if (!natSpend(x.stake)){ left.push(x); continue; }
         const {error} = await c.rpc("tipp_place", {p_event: x.ev, p_market: x.k, p_pick: x.p, p_stake: x.stake, p_score: x.k === "cs" && x.sc ? x.sc : null});
-        if (error){ natEarn(x.stake, true); left.push(x); toast(/closed/.test(error.message) ? T("That match has started.", "Das Spiel hat schon begonnen.") : error.message); } else ok++;
+        if (error){ natEarn(x.stake, true); left.push(x); toast(/closed/.test(error.message) ? T("That match has started.", "Das Spiel hat schon begonnen.") : /balance|funds|nats/i.test(error.message) ? T("Not enough Nats.", "Nicht genug Nats.") : T("Didn't work. Try again.", "Hat nicht geklappt. Nochmal versuchen.")); } else ok++;
       }
       Tipp.slip = left; this.slipBar(); this.balance(); if (this.main && Tipp.tab === "mine") this.draw(); if (ok){ Sound.play && Sound.play("GenericNotify", .5); if (navigator.vibrate) try { navigator.vibrate([20, 40, 20]); } catch(e) {} }
       return ok;
