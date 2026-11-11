@@ -696,7 +696,7 @@
       let r; try { r = new SR(); } catch(e) { return first ? typeMode() : pause(); }
       rec = r; r.lang = "de-DE"; r.interimResults = true; r.continuous = true; r.maxAlternatives = 1; const at = Date.now();
       r.onstart = r.onaudiostart = () => { if (rec === r) lastStart = lastStart || Date.now(); };
-      r.onresult = e => { if (rec !== r) return; const sess = Array.from(e.results).map(x => x[0].transcript).join(" "); heard = (base + " " + sess).replace(/\s+/g, " ").trim(); pulse = 1; show(); };
+      r.onresult = e => { if (rec !== r) return; const sess = /Android/i.test(navigator.userAgent) ? (e.results.length ? e.results[e.results.length - 1][0].transcript : "") : Array.from(e.results).map(x => x[0].transcript).join(" "); heard = (base + " " + sess).replace(/\s+/g, " ").trim(); pulse = 1; show(); };
       r.onerror = e => { if (rec !== r) return;
         if (e.error === "not-allowed" || e.error === "service-not-allowed"){ if (first && !heard){ stop(); typeMode("Kein Mikrofon-Zugriff. Tipp stattdessen."); } else { rec = null; pause(); } }
         else if (e.error === "audio-capture" && meter){ stopMeter(true); } };
@@ -714,7 +714,9 @@
     function done(){ clearTimeout(finT); if (mode !== "finishing") return; const r = rec; rec = null; if (r) try { r.abort(); } catch(e) {}
       if (heard) analyze(heard); else set("idle", "Nichts gehört. Tipp auf den Knopf und sprich."); }
     /* the voice band: the real microphone level where the phone allows a second listener, else it moves with what is recognised */
-    let meterBad = false; try { meterBad = localStorage.getItem(MB) === "1"; } catch(e) {}
+    /* Android: the level meter opens the microphone a second time, and then the speech recognition gets no sound at all
+       (the bars move, but it ends with "Nichts gehört"). So there is no meter on Android; the bars follow what is recognised */
+    let meterBad = /Android/i.test(navigator.userAgent); try { meterBad = meterBad || localStorage.getItem(MB) === "1"; } catch(e) {}
     async function startMeter(){ if (meterBad || meter || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
       try { const st = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true}}); if (!want){ st.getTracks().forEach(t => t.stop()); return; }
         const AC = window.AudioContext || window.webkitAudioContext, ac = new AC(), an = ac.createAnalyser(); an.fftSize = 512; ac.createMediaStreamSource(st).connect(an); meter = {st, ac, an, buf: new Uint8Array(an.fftSize)}; } catch(e) {} }
