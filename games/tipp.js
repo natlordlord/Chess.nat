@@ -27,6 +27,9 @@
   const inRound = (g, e) => { const C2 = g.comps || []; if (!C2.length || C2.includes(e.comp)) return true; if (C2.includes("fight") && ["ufc", "oktagon", "box"].includes(e.comp)) return true;
     if (C2.includes("bay") && (bay(e.home) || bay(e.away))) return true; return C2.includes("nt") && (e.home === "Deutschland" || e.away === "Deutschland") && ["nt", "hb"].includes(e.comp); };
   const RCOMP = [["nt", "🇩🇪", ["Germany", "Deutschland"]], ["bay", "⭐", ["Bayern", "Bayern"]], ["ger.1", "⚽", ["Bundesliga", "Bundesliga"]], ["ger.dfb_pokal", "🏆", ["DFB Cup", "DFB-Pokal"]], ["uefa.champions", "✨", ["Champions League", "Champions League"]], ["fight", "🥊", ["Fights", "Kämpfe"]], ["hb", "🤾", ["Handball", "Handball"]]];
+  const liveSt = (tip, ch, ca) => { const m = /^(\d+):(\d+)$/.exec(tip);
+    if (m){ const th = +m[1], ta = +m[2]; if (th === ch && ta === ca) return {c: "ok", l: "🎯 " + T("Spot on", "Genau")}; if (th >= ch && ta >= ca) return {c: "in", l: "⏳ " + T("Still on", "Noch drin")}; return {c: "out", l: "💀 " + T("Out", "Raus")}; }
+    const cur = ch > ca ? "1" : ch === ca ? "X" : "2"; return tip === cur ? {c: "ok", l: "✅ " + T("Right now", "Liegt richtig")} : {c: "out", l: "❌ " + T("Not now", "Liegt falsch")}; };
   const pickW = os => { let r = Math.random() * os.reduce((s, o) => s + (o.pr || 0), 0); for (const o of os){ r -= o.pr || 0; if (r <= 0) return o; } return os[os.length - 1]; };
 
   const Tipp = {
@@ -129,7 +132,7 @@
     unmount(){ clearInterval(this.iv); },
     /* the round bar: everything, or one of my own rounds, or a new one */
     grpBar(){ const el = this.main && this.main.querySelector("#tpgrp"); if (!el) return; if (!meId()){ el.hidden = true; return; } el.hidden = false;
-      const G = Tipp.groups, html = `<button class="chip ${!Tipp.gid ? "on" : ""}" data-g="">🌍 ${T("Everyone", "Alle")}</button>${G.map(g => `<button class="chip ${Tipp.gid === g.id ? "on" : ""}" data-g="${h(g.id)}">🏆 ${h(g.name)}<small>${(g.members || []).length}</small></button>`).join("")}<button class="chip tp-gnew" data-gnew>＋ ${T("Tipping round", "Tipprunde")}</button>`;
+      const G = Tipp.groups, html = (G.length ? `<button class="chip ${!Tipp.gid ? "on" : ""}" data-g="">🌍 ${T("Global", "Global")}</button>` : "") + `${G.map(g => `<button class="chip ${Tipp.gid === g.id ? "on" : ""}" data-g="${h(g.id)}">🏆 ${h(g.name)}<small>${(g.members || []).length}</small></button>`).join("")}<button class="chip tp-gnew" data-gnew>＋ ${G.length ? T("Round", "Runde") : T("Your own tipping round", "Eigene Tipprunde")}</button>`;
       if (el._h === html) return; el._h = html; el.innerHTML = html;
       el.querySelectorAll("[data-g]").forEach(b => b.onclick = () => { if (Tipp.gid === b.dataset.g) return; Tipp.setGroup(b.dataset.g); Sound.tap(); if (navigator.vibrate) try { navigator.vibrate(6); } catch(_) {} this.center(b, true); this.grpBar(); if (Tipp.tab === "board"){ Tipp.board = []; this.draw(); this.board(); } else this.draw(1); });
       el.querySelector("[data-gnew]").onclick = async () => { Sound.tap(); await this.soc(); this.grpSheet(null); };
@@ -198,7 +201,9 @@
       const st = e.stats || {}, extra = e.sport === "fb" && (live || done) && (st.yc != null) ? `<div class="tp-stats">🟨 ${st.yc || 0}${st.rc ? ` · 🟥 ${st.rc}` : ""}${st.pens ? ` · ⚽ ${T("pen", "Elfer")} ${st.pens}` : ""}${st.cor != null ? ` · ⛳ ${st.cor}` : ""}</div>` : "";
       const odds = m0 && e.state === "pre" ? `<div class="tp-odds sm">${m0.o.map(o => `<span>${h(m0.k === "1x2" ? (o.p === "h" ? "1" : o.p === "d" ? "X" : "2") : o.l.split(" ").pop())} <b>${q2(o.q)}</b></span>`).join("")}</div>` : "";
       const my = Tipp.myTip(e), open = e.state === "pre" && Date.parse(e.start_at) > Date.now(), fbq = e.sport === "fb" && (e.markets || []).some(m => m.k === "cs");
-      const big = my ? `<button class="tp-big mine ${done ? (my.t && my.t.status === "won" ? "won" : my.t && my.t.status === "lost" ? "lost" : "") : ""}" data-open="${h(e.id)}"><small>${T("My tip", "Mein Tipp")}</small><b class="${String(my.score || my.name).length > 7 ? "lg" : ""}">${h(my.score || my.name)}</b></button>`
+      /* while it runs: is my tip still alive? the same words as in the pushes */
+      const ls = my && my.score && e.sport === "fb" && (live || done) && e.score_h != null && !(my.t && (my.t.status === "won" || my.t.status === "lost")) ? liveSt(my.score, +e.score_h, +e.score_a) : null;
+      const big = my ? `<button class="tp-big mine ${done ? (my.t && my.t.status === "won" ? "won" : my.t && my.t.status === "lost" ? "lost" : "") : ""} ${ls ? ls.c : ""}" data-open="${h(e.id)}"><small>${ls ? ls.l : T("My tip", "Mein Tipp")}</small><b class="${String(my.score || my.name).length > 7 ? "lg" : ""}">${h(my.score || my.name)}</b></button>`
         : open && (e.markets || []).length ? `<button class="tp-big" data-quick="${h(e.id)}"><small>${T("Tip", "Tippen")}</small><b>${fbq ? "–:–" : "?"}</b></button>` : "";
       const more = e.state === "pre" && e.markets.length > 1 ? `<button class="tp-more" data-open="${h(e.id)}">+${e.markets.length - 1} ${T("bets", "Wetten")}</button>` : (e.state !== "pre" || mine.length) ? `<button class="tp-more" data-open="${h(e.id)}">${T("Details", "Details")}</button>` : "";
       return `<div class="tp-ev ${e.fav || bay(e.home) || bay(e.away) ? "fav" : ""} ${live ? "is-live" : ""}" data-open="${h(e.id)}">
@@ -490,7 +495,7 @@
 .tp-big{flex:none;min-width:86px;height:70px;border-radius:16px;border:2px dashed color-mix(in srgb,var(--go) 70%,var(--line));background:color-mix(in srgb,var(--go) 10%,var(--panel-2));color:var(--fg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;cursor:pointer;padding:4px 10px}
 .tp-big small{font:800 11px var(--body);color:var(--go-hi,var(--go));text-transform:uppercase;letter-spacing:.05em}.tp-big b{font:900 28px var(--display);line-height:1.05;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tp-big.mine{border:0;background:var(--go);color:#fff;box-shadow:inset 0 -4px 0 rgba(0,0,0,.2)}.tp-big.mine small{color:#eaffd6}.tp-big.mine b{font-size:30px}.tp-big b.lg{font-size:17px!important;white-space:normal;line-height:1.1;max-height:2.3em;text-align:center}
-.tp-big.won{background:linear-gradient(180deg,#E9B64A,#c9921f)}.tp-big.lost{background:var(--panel-3);color:var(--muted)}.tp-big.lost small{color:var(--muted)}
+.tp-big.won,.tp-big.mine.ok{background:linear-gradient(180deg,#E9B64A,#c9921f)}.tp-big.mine.out{background:var(--panel-3);color:var(--muted)}.tp-big.mine.out small{color:var(--muted)}.tp-big.mine.ok small{color:#fff6dc}.tp-big.lost{background:var(--panel-3);color:var(--muted)}.tp-big.lost small{color:var(--muted)}
 .tp-big:active{transform:scale(.96)}
 .tp-odds.sm{display:flex;gap:10px;margin-top:6px;font:700 11.5px var(--body);color:var(--muted)}.tp-odds.sm b{color:var(--fg);font-weight:800}
 .tp-pick.big .tp-dg b{width:88px;height:88px;font-size:50px}.tp-q .tp-pad{display:grid}
