@@ -190,6 +190,7 @@
     if (!meId() && typeof Social !== "undefined"){ el.hidden = true; let n = 0; const wait = () => { if (meId()) return window.homeKcal(el); if (++n < 20 && el.isConnected) setTimeout(wait, 500); }; setTimeout(wait, 500); return; }
     K.fromCache(); fillHome(el);
     try { await K.load(); } catch(e) { return; }
+    if (K.on() && !window.__kcHomeSwap && typeof App !== "undefined" && App.route === "home" && typeof kcalHome === "function" && kcalHome() && !(App.busy && App.busy())){ window.__kcHomeSwap = 1; App.go("home", undefined, true); return; }
     if (el.isConnected) fillHome(el);
     if (K.on()) KCScan.preload();
   };
@@ -314,7 +315,7 @@
 
   /* ---------- the day at a glance: the two that matter most, big, against their targets ---------- */
   function sumHTML(t, go){ const T = K.targets(), S = shows(), top = S.slice(0, 2), rest = S.slice(2), v = k => k === "kcal" ? K.dayKcal(t) : K.daySum(t, k), pc = k => Math.round(Math.min(1, v(k) / (T[k] || 1)) * 100);
-    const box = k => { const ok = v(k) >= T[k]; return `<div class="kc-b2 ${NUT[k].c} ${ok ? "ok" : ""}"><small>${NUT[k].l}${k === "kcal" && ok ? " 🔥" : ""}</small><b><span data-cnt="${k}" data-v="${Math.round(v(k))}">${fmt(v(k))}</span><em> / ${fmt(T[k])}${k === "kcal" ? "" : " g"}</em></b><i><u data-bar="${k}" style="width:${pc(k)}%"></u></i></div>`; };
+    const box = k => { const ok = v(k) >= T[k]; return `<div class="kc-b2 ${NUT[k].c} ${ok ? "ok" : ""}"><small>${NUT[k].l}${k === "kcal" && ok ? " 🔥" : ""}</small><b><var data-cnt="${k}" data-v="${Math.round(v(k))}">${fmt(v(k))}</var><em> / ${fmt(T[k])}${k === "kcal" ? "" : " g"}</em></b><i><u data-bar="${k}" style="width:${pc(k)}%"></u></i></div>`; };
     const small = k => `<span class="${v(k) >= T[k] ? "ok" : ""}">${NUT[k].l} <b data-cnt="${k}" data-v="${Math.round(v(k))}">${fmt(v(k))}</b> / ${fmt(T[k])}${k === "kcal" ? " kcal" : " g"}<i><u data-bar="${k}" style="width:${pc(k)}%"></u></i></span>`;
     return `<div class="kc-two ${top.length < 2 ? "one" : ""}" ${go ? "data-kc-go" : ""}>${top.map(box).join("")}</div>${rest.length ? `<div class="kc-pf">${rest.map(small).join("")}</div>` : ""}`; }
   /* ---------- suggestions: what's pinned first, then what is eaten again and again; + adds it once more, a tap on the row shows it ---------- */
@@ -1500,7 +1501,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-ph img{width:64px;height:64px;object-fit:contain;border-radius:10px;background:#fff}.kc-ph>span{font-size:44px}
 .kc-mk{font:800 15px var(--body);color:var(--muted)}.kc-mk small{display:block;font:700 13px var(--body);margin-top:2px}.kc-mk b{font:900 32px var(--display);color:var(--fg)}
 .kc-macros{display:flex;gap:8px}.kc-macros span{flex:1;background:var(--panel-2);border-radius:12px;padding:8px;text-align:center;color:var(--muted);font:700 12px var(--body);display:flex;flex-direction:column}.kc-macros b{color:var(--fg);font:900 16px var(--display)}
-.kc-up{animation:kcUp .5s cubic-bezier(.22,1,.36,1)}.kc-dn{animation:kcDn .5s cubic-bezier(.22,1,.36,1)}[data-t],[data-rk],[data-cnt]{display:inline-block;font-variant-numeric:tabular-nums}
+.kc-up{animation:kcUp .5s cubic-bezier(.22,1,.36,1)}.kc-dn{animation:kcDn .5s cubic-bezier(.22,1,.36,1)}[data-t],[data-rk],[data-cnt]{display:inline-block;font-variant-numeric:tabular-nums}var[data-cnt]{font:inherit;font-style:normal;color:inherit;letter-spacing:inherit}
 @keyframes kcUp{0%{transform:translateY(7px);color:#FFB45A}60%{color:#FFB45A}100%{transform:none}}@keyframes kcDn{0%{transform:translateY(-7px);color:#8FD4FF}60%{color:#8FD4FF}100%{transform:none}}
 .kc-items{display:flex;flex-direction:column;gap:4px}
 .kc-items>.kc-irow{display:flex;align-items:stretch;gap:4px;padding:0;background:none}.kc-irow>button{flex:1;min-width:0}
