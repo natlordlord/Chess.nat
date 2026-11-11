@@ -637,19 +637,20 @@
      Amount (35): calories close to the goal; too little counts against you just like too much. Protein (15): reaching the target.
      Fibre (15): 14 g per 1000 kcal. Sugar and saturated fat (15): each under a tenth of the calories. Quality (20): how good the
      foods themselves are (Nutri-Score of products, the estimate for spoken meals). The last three need entries that carry these
-     values; when less than half of a day's calories do, the day is judged on amount and protein, the rest counts as average (part: true) */
+     values; when less than half of a day's calories do, the day is judged on amount and protein, the rest counts as average (part: true).
+     G is the amount for the "Einhaltung" ranking: the goal reached or passed is 100 %, only too little counts against you */
   const clamp01 = x => Math.max(0, Math.min(1, x));
   function dayHealth(ms, goal, protT){ const kcal = ms.reduce((s, m) => s + (Number(m.kcal) || 0), 0); if (!(kcal > 0) || !(goal > 0)) return null;
-    const r = kcal / goal, A = r >= .9 && r <= 1.1 ? 1 : r < .9 ? clamp01((r - .5) / .4) : clamp01((1.5 - r) / .4), pg = ms.reduce((s, m) => s + (Number(m.protein) || 0), 0), P = clamp01(pg / (protT || goal * .16 / 4));
+    const r = kcal / goal, A = r >= .9 && r <= 1.1 ? 1 : r < .9 ? clamp01((r - .5) / .4) : clamp01((1.5 - r) / .4), G = r >= .9 ? 1 : A, pg = ms.reduce((s, m) => s + (Number(m.protein) || 0), 0), P = clamp01(pg / (protT || goal * .16 / 4));
     let hk = 0, fi = 0, su = 0, sf = 0, qk = 0, qs = 0, nk = 0; ms.forEach(m => (Array.isArray(m.items) ? m.items : []).forEach(i => { const k = Number(i.kcal) || 0, hh = i.h; if (!hh) return; if (!hh.nq){ nk += k; fi += Number(hh.fi) || 0; su += Number(hh.su) || 0; sf += Number(hh.sf) || 0; } if (hh.q){ qk += k; qs += k * hh.q; } hk += k; }));
-    if (hk / kcal < .5 || !(nk > 0)) return {s: Math.round(A * 35 + P * 15 + 25), A, P, part: true, kc: kcal, pg}; /* what can't be judged counts as average: half of the other 50 points */
+    if (hk / kcal < .5 || !(nk > 0)) return {s: Math.round(A * 35 + P * 15 + 25), A, G, P, part: true, kc: kcal, pg}; /* what can't be judged counts as average: half of the other 50 points */
     const up = kcal / nk, F = clamp01(fi * up / (14 * goal / 1000)), L = (clamp01((.25 - su * up * 4 / goal) / .15) + clamp01((.2 - sf * up * 9 / goal) / .1)) / 2, Q = qk > 0 ? clamp01((qs / qk - 1) / 4) : L;
-    return {s: Math.round(A * 35 + P * 15 + F * 15 + L * 15 + Q * 20), A, P, F, L, Q, kc: kcal, pg}; }
+    return {s: Math.round(A * 35 + P * 15 + F * 15 + L * 15 + Q * 20), A, G, P, F, L, Q, kc: kcal, pg}; }
   /* the last seven finished days that have entries (today only when there is nothing else) */
   function weekHealth(ms, goal, protT){ const t = today(), by = {}; ms.forEach(m => { (by[m.day] = by[m.day] || []).push(m); });
     let days = Object.keys(by).filter(d => d < t && d >= addDays(t, -7)); if (!days.length) days = by[t] ? [t] : []; const L = days.map(d => dayHealth(by[d], goal, protT)).filter(Boolean); if (!L.length) return null;
     const avg = k => { const v = L.filter(x => x[k] != null); return v.length ? v.reduce((s, x) => s + x[k], 0) / v.length : null; };
-    return {s: Math.round(avg("s")), A: avg("A"), P: avg("P"), F: avg("F"), L: avg("L"), Q: avg("Q"), kc: avg("kc"), pg: avg("pg"), n: L.length, part: L.every(x => x.part)}; }
+    return {s: Math.round(avg("s")), A: avg("A"), G: avg("G"), P: avg("P"), F: avg("F"), L: avg("L"), Q: avg("Q"), kc: avg("kc"), pg: avg("pg"), n: L.length, part: L.every(x => x.part)}; }
   /* the weight or volume in a part: from its text ("2 Scheiben (80 g)", "0,5 l") or, without one, its stored grams */
   const amtOf = i => { const m = /(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l)\b/i.exec(String(i.amount || "")); if (m) return {v: num(m[1]), u: m[2].toLowerCase(), m: m[0]}; return Number(i.g) > 0 ? {v: Number(i.g), u: "g", m: ""} : null; };
   /* the same part with another weight: calories, carbs, protein and fat follow, the text shows the new number */
@@ -1186,8 +1187,13 @@
     /* ask everyone on the list: "I'm at the shop, anything else?" or, about one product, "is this still at home?" */
     async ask(kind, item){ if (!this.cur) return; if (kind === "shop" && Date.now() - (this.askT || 0) < 60000) return say("Gerade erst gefragt"); const r = await sb().from("shop_asks").insert({list_id: this.cur.id, item_id: item || null, kind}); if (r.error) return say("Ging nicht: " + r.error.message);
       if (kind === "shop"){ this.askT = this.shopT = Date.now(); this.shopL = this.cur.id; } haptic([10, 30, 10]); this.snd("Move"); if (kind === "shop") say("Alle auf der Liste werden gefragt 🛒"); this.load(); },
+    /* a second tap on the question mark takes the question back: it is gone for everyone, and the next tap asks again right away */
+    async unask(item, b){ const me = meId(), all = (this.asks || []).filter(x => x.kind === "home" && x.item_id === item), mine = all.filter(x => x.from_id === me);
+      if (!mine.length) return say(all.length ? pname(all[0].from_id) + " hat gefragt" : "Schon gefragt");
+      this.asks = this.asks.filter(x => !mine.includes(x)); if (b && !this.asks.some(x => x.kind === "home" && x.item_id === item)) b.classList.remove("on"); haptic(10);
+      const r = await sb().from("shop_asks").delete().in("id", mine.map(x => x.id)); if (r.error) say("Ging nicht: " + r.error.message); else say("Frage zurückgenommen"); this.load(); },
     /* the other side: whoever has the app open gets the question as a card (also the ones of the last half hour when the app starts) */
-    watch(){ if (this.watching) return; this.watching = 1; const me = meId(), seen = {};
+    watch(){ if (this.watching) return; this.watching = 1; const me = meId(), seen = {}, open = {};
       const answer = async (a, v, amount) => { /* a plain insert, and only when you had answered this one before, a change of that answer (the combined call failed for some answers) */
         let r = await sb().from("shop_answers").insert({ask_id: a.id, answer: v, amount: amount || null}); if (r.error && /23505|duplicate/i.test((r.error.code || "") + " " + (r.error.message || ""))) r = await sb().from("shop_answers").update({answer: v, amount: amount || null}).eq("ask_id", a.id).eq("user_id", me);
         if (r.error) say("Ging nicht: " + r.error.message); else { haptic(10); say("Antwort geschickt ✓"); } };
@@ -1199,7 +1205,7 @@
             const r = await sb().from("shop_items").insert(parts.map(n => ({list_id: a.list_id, name: n.slice(0, 120), added_by: me}))); if (r.error) return say("Ging nicht: " + r.error.message); sh.close(); say("Steht auf der Liste ✓"); if (this.sh) this.load(); };
           sh.el.querySelector("[data-send]").onclick = go; inp.onkeydown = e => { if (e.key === "Enter"){ e.preventDefault(); go(); } }; return; }
         const it = await sb().from("shop_items").select("name").eq("id", a.item_id).maybeSingle(), name = it.data && it.data.name; if (!name) return;
-        const sh = card(`<div class="kc-aske">❓</div><h3>${h(nm)} fragt:</h3><p class="kc-askq">Ist noch <b>${h(name)}</b> zu Hause?</p><input class="kc-aski" maxlength="40" placeholder="Wie viel? Oder kurz was dazu (kann leer bleiben)" autocomplete="off"><div class="kc-askb"><button class="btn go big" data-a="yes">Ja, ist da</button><button class="btn big" data-a="no">Nein</button><button class="btn big" data-a="maybe">Weiß nicht · nicht zu Hause</button></div>`);
+        const sh = card(`<div class="kc-aske">❓</div><h3>${h(nm)} fragt:</h3><p class="kc-askq">Ist noch <b>${h(name)}</b> zu Hause?</p><input class="kc-aski" maxlength="40" placeholder="Wie viel? Oder kurz was dazu (kann leer bleiben)" autocomplete="off"><div class="kc-askb"><button class="btn go big" data-a="yes">Ja, ist da</button><button class="btn big" data-a="no">Nein</button><button class="btn big" data-a="maybe">Weiß nicht · nicht zu Hause</button></div>`); open[a.id] = sh;
         sh.el.querySelectorAll("[data-a]").forEach(b => b.onclick = () => { const am = sh.el.querySelector(".kc-aski").value.trim().slice(0, 40); sh.close(); answer(a, b.dataset.a, am); }); };
       /* an answer to a question of mine: a card, and the product is marked on the list */
       const onAns = async x => { const k = x && "a" + x.ask_id + x.user_id + x.answer; if (!x || x.user_id === me || seen[k]) return; seen[k] = 1; const q = await sb().from("shop_asks").select("from_id,kind,shop_items(name)").eq("id", x.ask_id).maybeSingle(), a = q.data; if (!a || a.from_id !== me || a.kind !== "home") return;
@@ -1208,6 +1214,7 @@
       /* while I'm shopping: what the others add comes in as a note */
       const onItem = x => { if (!x || x.added_by === me || !this.shopT || Date.now() - this.shopT > 45 * 60000 || x.list_id !== this.shopL || x.parent) return; say("🛒 " + pname(x.added_by) + " möchte: " + x.name); try { Sound.play("GenericNotify", .7); } catch(e) {} haptic([10, 30, 10]); };
       sb().channel("shop-asks-" + me).on("postgres_changes", {event: "INSERT", schema: "public", table: "shop_asks"}, p => show(p.new))
+        .on("postgres_changes", {event: "DELETE", schema: "public", table: "shop_asks"}, p => { const id = p.old && p.old.id, sh = id && open[id]; if (sh){ delete open[id]; try { sh.close(); } catch(e) {} } if (id && this.sh) this.load(); }) /* taken back: the card goes away */
         .on("postgres_changes", {event: "INSERT", schema: "public", table: "shop_answers"}, p => onAns(p.new)).on("postgres_changes", {event: "UPDATE", schema: "public", table: "shop_answers"}, p => onAns(p.new))
         .on("postgres_changes", {event: "INSERT", schema: "public", table: "shop_items"}, p => onItem(p.new)).subscribe();
       sb().from("shop_asks").select("*, shop_answers(user_id)").gte("created_at", new Date(Date.now() - 30 * 60000).toISOString()).order("created_at").then(r => { (r.data || []).filter(a => !(a.shop_answers || []).some(x => x.user_id === me) && !(a.kind === "shop" && Date.now() - Date.parse(a.created_at) > 20 * 60000)).forEach(show); }, () => {}); },
@@ -1308,7 +1315,7 @@
     wire(){ const B = this.box, me = meId(), q = x => B.querySelector(x), all = (x, f) => B.querySelectorAll(x).forEach(b => b.onclick = () => f(b)), stamp = () => ({updated_by: me, updated_at: new Date().toISOString()}), real = i => i && !i.tmp;
       const gs = q("[data-gostore]"); if (gs) gs.onclick = () => { this.storePick = 1; this.snd("tap"); this.draw(); };
       all("[data-store]", b => { this.store = b.dataset.store || null; this.storePick = 0; try { this.store ? localStorage.setItem("chessnat-shop-store", this.store) : localStorage.removeItem("chessnat-shop-store"); } catch(e) {} haptic(10); this.snd("Move"); this.draw(); });
-      all("[data-ask]", b => { if (b.classList.contains("on")) return say("Schon gefragt. Die Antwort kommt als Nachricht."); b.classList.add("on"); this.ask("home", b.dataset.ask); });
+      all("[data-ask]", b => { if (b.classList.contains("on")) return this.unask(b.dataset.ask, b); b.classList.add("on"); this.ask("home", b.dataset.ask); });
       const nt = q("[data-noto]"); if (nt) nt.onclick = () => { this.addTo = null; this.draw(); };
       all("[data-to]", b => { this.addTo = b.dataset.to; this.snd("tap"); this.draw(); q("#kcsha").focus(); });
       all("[data-done]", b => { const i = this.items.find(x => x.id === b.dataset.done); if (!real(i)) return; const on = !i.done_by; haptic(12); this.snd(on ? "Capture" : "tap");
@@ -1457,7 +1464,7 @@
       /* the health ranking among friends: who ate best over the last days, not who ate most */
       /* the rankings among friends over the last days, one tab each: sticking to the goals, health, calories, protein */
       const HR = rows.map(({p}) => ({p, w: weekHealth(p.me ? K.meals : K.fmeals.filter(m => m.user_id === p.user_id), p.goal, p.me ? K.targets().protein : 0)})).filter(x => x.w);
-      const HT = {adh: ["Einhaltung", w => Math.round((w.A * .7 + w.P * .3) * 100), "%", "Wie nah an Kalorien- und Protein-Ziel, im Schnitt pro Tag."], health: ["Gesundheit", w => w.s, "", "0 bis 100: passende Menge, Protein, Ballaststoffe, wenig Zucker und gesättigtes Fett, Qualität der Lebensmittel."],
+      const HT = {adh: ["Einhaltung", w => Math.round((w.G * .7 + w.P * .3) * 100), "%", "Kalorien- und Protein-Ziel erreicht, im Schnitt pro Tag. Mehr als das Ziel zählt voll."], health: ["Gesundheit", w => w.s, "", "0 bis 100: passende Menge, Protein, Ballaststoffe, wenig Zucker und gesättigtes Fett, Qualität der Lebensmittel."],
         kcal: ["Kalorien", w => Math.round(w.kc || 0), "kcal", "Kalorien pro Tag im Schnitt."], prot: ["Protein", w => Math.round(w.pg || 0), "g", "Protein pro Tag im Schnitt."]};
       const hbar = (l, v) => v == null ? "" : `<span class="kc-hb"><i><u style="width:${Math.round(v * 100)}%"></u></i>${l}</span>`;
       const hrRows = () => { const T = HT[this.hrTab] || HT.adh, L = HR.slice().sort((a, b) => T[1](b.w) - T[1](a.w)), hl = this.hrTab === "health";
@@ -1537,7 +1544,7 @@
 .kc-wok{max-width:480px;width:100%;margin:6px auto 0}
 .kc-two{display:grid;grid-template-columns:1fr 1fr;gap:8px;cursor:pointer}.kc-two.one{grid-template-columns:1fr}.kc-b2{background:var(--panel-2);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:3px;min-width:0;container-type:inline-size}
 .kc-b2 small{font:900 11.5px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.kc-b2 b{font:900 30px/1.1 var(--display);font-size:clamp(19px,21cqi,36px);white-space:nowrap;font-variant-numeric:tabular-nums}.kc-b2 b em{font:800 .48em var(--display);font-style:normal;color:var(--muted)}.kc-b2 span{font:800 12.5px var(--body);color:var(--muted)}
-.kc-b2 i{display:block;height:8px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:4px}.kc-b2 u{display:block;height:100%;border-radius:4px;background:var(--go);transition:width .4s}.kc-b2.c u{background:#E9A92B}.kc-b2.p u{background:#4FA3FF}.kc-b2.f u{background:#EF7A5F}.kc-b2.ok u{background:linear-gradient(90deg,#FFD15C,#ff9a3c)}
+.kc-b2 i{display:block;height:8px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:4px}.kc-b2 u{display:block;height:100%;border-radius:4px;background:var(--go);transition:width .4s}.kc-b2.c u{background:#E9A92B}.kc-b2.p u{background:#4FA3FF}.kc-b2.f u{background:#EF7A5F}.kc-b2{transition:background .5s,box-shadow .5s}.kc-b2.ok{background:rgba(127,178,74,.2);box-shadow:inset 0 0 0 1.5px rgba(155,226,90,.6)}.kc-b2.ok u{background:linear-gradient(90deg,#7FB24A,#9BE25A)}.kc-b2.ok small,.kc-b2.ok var{color:#9BE25A}
 .kc-mac.two{grid-template-columns:1fr 1fr}
 .kc-mk2{display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap}.kc-mk2 b{font:900 16px var(--display)}.kc-mk2 b small{font:800 11px var(--body);color:var(--muted)}.kc-mk2 em{font:800 12.5px var(--body);font-style:normal;color:#E9A92B}
 .kc-grp{display:flex;flex-direction:column;gap:2px;background:var(--panel);border-radius:14px;padding:4px}.kc-grp .kc-meal{background:var(--panel-2);border-radius:10px}.kc-gh{display:flex;justify-content:space-between;gap:8px;padding:6px 8px 4px;font:900 13px var(--body)}.kc-gh b{font:900 13px var(--body);color:#E9A92B}
@@ -1550,7 +1557,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-sadd{background:#33302C;border-radius:4px 4px 14px 14px;margin-top:-6px;padding:10px;display:flex;flex-direction:column;gap:10px;animation:kcIn .2s ease-out}@keyframes kcIn{from{opacity:0;transform:translateY(-6px)}}
 .kc-sk{font:800 15px var(--body);text-align:center}.kc-sk b{font:900 22px var(--display)}.kc-sk small{display:block;color:var(--muted);font-weight:700;font-size:12px;margin-top:2px}
 .kc-pf{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:2px 4px;font:700 13px var(--body);color:var(--muted)}.kc-pf b{color:var(--fg);font:900 14px var(--display)}
-.kc-pf i{display:block;height:4px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:5px}.kc-pf u{display:block;height:100%;background:rgba(255,255,255,.45);border-radius:2px}.kc-pf .ok u{background:#9BE25A}
+.kc-pf i{display:block;height:4px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:5px}.kc-pf u{display:block;height:100%;background:rgba(255,255,255,.45);border-radius:2px}.kc-pf .ok u{background:#9BE25A}.kc-pf .ok,.kc-pf .ok b{color:#9BE25A}
 .kc-quick{gap:6px}.kc-qc{background:var(--panel-2);border-radius:16px;overflow:hidden}.kc-qc .kc-q{background:none;border-radius:0;padding:10px 10px 10px 14px;gap:10px}.kc-qc .kc-q+.kc-q{border-top:1px solid rgba(255,255,255,.06)}
 .kc-qc .kc-qn{flex:1;min-width:0;display:block;font:800 15px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kc-qv{font:700 13px var(--body);color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
 .kc-qa{position:relative;width:32px;height:32px;border-radius:50%;background:none;border:2px solid var(--go);color:var(--go-hi,#8FC458);display:grid;place-items:center;flex:none;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}.kc-qa::after{content:"";position:absolute;inset:-9px}.kc-qa:active,.kc-qa.ok{background:var(--go);color:#fff}.kc-qc .kc-q:has(.kc-qa:active){transform:none}
@@ -1567,7 +1574,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-num em{margin-left:auto;align-self:center;font:900 13px var(--body);color:var(--muted);background:var(--panel-2);border-radius:999px;padding:4px 10px;font-style:normal}.kc-num em.ok{color:#fff;background:linear-gradient(180deg,#ff9a3c,#e9573f)}.kc-num{width:100%}
 .kc-mac{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.kc-mc{background:var(--panel-2);border-radius:14px;padding:8px 10px;display:flex;flex-direction:column;gap:3px;min-width:0}
 .kc-mc span{font:800 11.5px var(--body);color:var(--muted);letter-spacing:.02em}.kc-mc b{font:900 17px var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kc-mc b small{font:800 11.5px var(--body);color:var(--muted)}
-.kc-mc i{display:block;height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}.kc-mc u{display:block;height:100%;border-radius:3px;background:var(--go);transition:width .4s}.kc-mc.ok u{background:linear-gradient(90deg,#FFD15C,#ff9a3c)}
+.kc-mc i{display:block;height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}.kc-mc u{display:block;height:100%;border-radius:3px;background:var(--go);transition:width .4s}.kc-mc.ok{background:rgba(127,178,74,.2)}.kc-mc.ok u{background:linear-gradient(90deg,#7FB24A,#9BE25A)}.kc-mc.ok b{color:#9BE25A}
 .kc-sbar{display:flex;align-items:center;gap:10px;width:100%;padding:13px 14px;border-radius:16px;border:2px solid var(--line);background:var(--panel-2);color:var(--muted);font:800 16px var(--body);cursor:text;text-align:left;-webkit-tap-highlight-color:transparent}.kc-sbar:active{border-color:var(--go)}
 .kc-hr{display:flex;flex-direction:column;gap:8px}.kc-hrh{display:flex;justify-content:space-between;align-items:baseline}.kc-hrh b{font:900 18px var(--display)}.kc-hrh small{color:var(--muted);font:700 12px var(--body)}
 .kc-clap{align-self:flex-end;margin:-2px 0 4px;border:0;border-radius:12px;padding:9px 14px;background:linear-gradient(180deg,var(--go-hi),var(--go));color:#fff;font:800 14px var(--body);box-shadow:inset 0 -3px 0 var(--go-deep);cursor:pointer}.kc-clap:active{transform:translateY(2px)}.kc-clap.on{background:var(--panel-3);box-shadow:none;color:var(--muted)}.kc-clapd{margin:-2px 4px 4px;font:700 13px var(--body);color:var(--go-hi)}.kc-hrt{display:flex;gap:6px;overflow-x:auto;scroll-snap-type:x proximity;margin:0 -4px;padding:0 4px}.kc-hrt .chip{flex:none;scroll-snap-align:center;font-size:14px;padding:8px 14px}.kc-hrl{display:flex;flex-direction:column;gap:8px}.kc-hs em{font:700 12px var(--body);font-style:normal;color:var(--muted);margin-left:3px}.kc-hrr{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;background:var(--panel-2)}.kc-hrr.me{box-shadow:inset 0 0 0 1.5px rgba(143,196,88,.5)}.kc-hrr .r{width:16px;text-align:center;font:900 14px var(--display);color:var(--muted)}.kc-hrr:first-of-type .r{color:#FFD15C}

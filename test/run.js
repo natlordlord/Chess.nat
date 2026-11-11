@@ -297,6 +297,13 @@ const PARTS = {
       ok(/Mila/.test(await txt(a, ".kc-askc")) && /Toilettenpapier ist noch da/.test(await txt(a, ".kc-askc")) && /halbe Packung/.test(await txt(a, ".kc-askc")), "die Antwort kommt bei dir als Karte an", await txt(a, ".kc-askc")); await a.shot("shop-antwort"); await closeSheets(a); await sleep(500);
       ok(/Noch da · halbe Packung/.test(await txt(a, '#kcslst .kc-shr:has-text("Toilettenpapier")')), "und steht als Marke „✓ Noch da“ am Produkt", await txt(a, '#kcslst .kc-shr:has-text("Toilettenpapier")'));
       ok(await has(a, '#kcslst .kc-shr:has-text("Toilettenpapier") .kc-shq.on'), "das Fragezeichen leuchtet nach der Frage"); }
+    /* the question mark can be taken back, and asked again right away */
+    { const q = '#kcslst .kc-shr:has-text("Milch") [data-ask]', n0 = (await L.table("shop_asks", "kind=eq.home")).length;
+      await a.locator(q).first().tap(); await sleep(1300); ok((await L.table("shop_asks", "kind=eq.home")).length === n0 + 1 && /Milch/.test(await txt(b, ".kc-askc")), "Fragezeichen bei Milch: Frage ist raus, Karte bei Mila", await txt(b, ".kc-askc"));
+      await a.locator(q).first().tap(); await sleep(1500); ok((await L.table("shop_asks", "kind=eq.home")).length === n0, "zweiter Tipp nimmt die Frage zurück");
+      ok(!(await has(a, '#kcslst .kc-shr:has-text("Milch") .kc-shq.on')), "das Fragezeichen leuchtet nicht mehr"); ok(!(await has(b, ".kc-askc")), "bei Mila geht die Karte wieder zu"); await a.shot("shop-frage-zurueck");
+      await a.locator(q).first().tap(); await sleep(1300); ok((await L.table("shop_asks", "kind=eq.home")).length === n0 + 1 && /Milch/.test(await txt(b, ".kc-askc")), "dritter Tipp fragt sofort wieder", await txt(b, ".kc-askc"));
+      await a.locator(q).first().tap(); await sleep(1500); ok((await L.table("shop_asks", "kind=eq.home")).length === n0 && !(await has(b, ".kc-askc")), "und lässt sich wieder zurücknehmen"); }
     await a.tap("#kcshb [data-imshop]"); await sleep(1300);
     ok(/ist gerade einkaufen/.test(await txt(b, ".kc-askc")), "„Ich bin einkaufen“ kommt bei Mila als Karte an", (await txt(b, ".kc-askc")).slice(0, 150));
     ok(/Alle gefragt/.test(await txt(a, "#kcshb [data-imshop]")), "bei dir bleibt der Knopf markiert („Alle gefragt“)", await txt(a, "#kcshb [data-imshop]"));
