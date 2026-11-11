@@ -945,7 +945,9 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 .mt-rank{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-width:0}
 .mt-t{display:flex;flex-direction:column;align-items:flex-start;min-width:0;line-height:1.1}
 .mt-t b{font:900 15px var(--display);white-space:nowrap}
-.mt-t small{font-size:11px;color:var(--muted);font-weight:700}
+.mt-t small{font-size:11px;color:var(--muted);font-weight:700;white-space:nowrap}
+.mt-t{overflow:hidden}.mt-t b{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:374px){.mt-t{display:none}}
 .mt-lp{display:block;width:92px;height:4px;border-radius:2px;background:var(--panel-3);overflow:hidden;margin:3px 0 2px}
 .mt-lp i{display:block;height:100%;background:linear-gradient(90deg,var(--go),#b6e07a)}
 .mt-fr{position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;width:52px;flex:none;color:var(--muted)!important}
@@ -2797,7 +2799,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794359294";
+const CHESSNAT_BUILD = "1794359427";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -14338,17 +14340,17 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=61"></script>
-<script src="games/imposter.js?v=61"></script>
-<script src="games/werwolf.js?v=61"></script>
-<script src="games/cards.js?v=61"></script>
-<script src="games/heads.js?v=61"></script>
-<script src="games/more.js?v=61"></script>
-<script src="games/net.js?v=61"></script>
-<script src="games/online.js?v=61"></script>
-<script src="games/natposter.js?v=61"></script>
-<script src="games/arena.js?v=61"></script>
-<script src="games/tipp.js?v=61"></script>
+<script src="games/core.js?v=62"></script>
+<script src="games/imposter.js?v=62"></script>
+<script src="games/werwolf.js?v=62"></script>
+<script src="games/cards.js?v=62"></script>
+<script src="games/heads.js?v=62"></script>
+<script src="games/more.js?v=62"></script>
+<script src="games/net.js?v=62"></script>
+<script src="games/online.js?v=62"></script>
+<script src="games/natposter.js?v=62"></script>
+<script src="games/arena.js?v=62"></script>
+<script src="games/tipp.js?v=62"></script>
 <script>boot();</script>
 </body>
 </html>

@@ -579,7 +579,7 @@
   function render(){
     const NP = NPo(), c = NP.ctx, cv = NP.cv; if (!c || !C.A) return; const d = NP.dpr, A = C.A, cw = cv.width, ch = cv.height, t = now();
     let cam = C.me && alive(me()) ? C.me : null;
-    if (!cam){ const k = (A.feed || []).slice().reverse().find(f => f[1] === me()), fol = k && k[0] && alive(k[0]) ? k[0] : A.ids.filter(alive).sort((a, b) => (A.hp[b] || 0) - (A.hp[a] || 0))[0]; cam = (fol && pos(fol)) || C.me || GC; }
+    if (!cam){ const k = (A.feed || []).slice().reverse().find(f => f[1] === me()), fol = A.team ? A.ids.find(id => alive(id) && mate(id, me())) || (k && k[0] && alive(k[0]) ? k[0] : null) : k && k[0] && alive(k[0]) ? k[0] : A.ids.filter(alive).sort((a, b) => (A.hp[b] || 0) - (A.hp[a] || 0))[0]; cam = (fol && pos(fol)) || C.me || GC; }
     const spec = !(C.me && alive(me())), z = NP.zoom * d * (spec ? .64 : .76), sh = C.shake > .5 ? C.shake * d : 0;
     const ox = cw / 2 - cam.x * z + (Math.random() - .5) * sh, oy = ch / 2 - (cam.y - 40) * z + (Math.random() - .5) * sh;
     c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = "#0B0C12"; c.fillRect(0, 0, cw, ch);
