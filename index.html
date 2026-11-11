@@ -1033,7 +1033,7 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 .flame.sm{margin-left:auto}.flame.sm svg{width:15px;height:15px}.flame.sm b{font-size:12px}
 .mt-fl{flex:none;padding:0 4px!important}
 .hr-flame{display:flex;align-items:center;gap:10px;margin-top:12px;width:min(360px,100%);background:color-mix(in srgb,var(--panel-2) 80%,transparent);border:0;border-radius:12px;padding:8px 12px;color:var(--fg);cursor:pointer;text-align:left;font:inherit}
-.hr-flame>span{flex:1;display:flex;flex-direction:column}.hr-flame b{font:900 15px var(--display)}.hr-flame small{font-size:12px;color:var(--muted)}
+.hr-flame>span{flex:1;display:flex;flex-direction:column}.hr-flame>.flame{flex:none;display:inline-flex}.hr-flame b{font:900 15px var(--display)}.hr-flame small{font-size:12px;color:var(--muted)}
 .hr-fdots{display:flex;gap:4px}.hr-fdots i{width:10px;height:10px;border-radius:50%;background:var(--panel-3)}.hr-fdots i.on{background:#ff7a1f;box-shadow:0 0 6px rgba(255,122,31,.7)}
 .flamecel{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:radial-gradient(circle,rgba(255,122,31,.25),rgba(0,0,0,.55) 70%);animation:dsin .25s}
 .flamecel.out{animation:dsout .4s forwards}
@@ -2799,7 +2799,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794362281";
+const CHESSNAT_BUILD = "1794363123";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -14346,17 +14346,17 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=80"></script>
-<script src="games/imposter.js?v=80"></script>
-<script src="games/werwolf.js?v=80"></script>
-<script src="games/cards.js?v=80"></script>
-<script src="games/heads.js?v=80"></script>
-<script src="games/more.js?v=80"></script>
-<script src="games/net.js?v=80"></script>
-<script src="games/online.js?v=80"></script>
-<script src="games/natposter.js?v=80"></script>
-<script src="games/arena.js?v=80"></script>
-<script src="games/tipp.js?v=80"></script>
+<script src="games/core.js?v=81"></script>
+<script src="games/imposter.js?v=81"></script>
+<script src="games/werwolf.js?v=81"></script>
+<script src="games/cards.js?v=81"></script>
+<script src="games/heads.js?v=81"></script>
+<script src="games/more.js?v=81"></script>
+<script src="games/net.js?v=81"></script>
+<script src="games/online.js?v=81"></script>
+<script src="games/natposter.js?v=81"></script>
+<script src="games/arena.js?v=81"></script>
+<script src="games/tipp.js?v=81"></script>
 <script>boot();</script>
 </body>
 </html>
