@@ -14,7 +14,7 @@
       su: {e: "💣", en: "Big bang", de: "Großer Knall", sen: "9 pellets, knocks back", sde: "9 Kugeln, stößt weg", n: 9, spr: .085, v: 1150, dmg: 13, rg: 380, kb: 90}},
     rock: {e: "🚀", en: "Rockets", de: "Raketen", sen: "Explodes · burns", sde: "Explodiert · Brandfeld", hp: 95, sp: .95, rl: 1900, cd: 480, rg: 560, n: 1, v: 690, dmg: 24, r: 11, splash: 72, sdmg: 16, field: 2600, sc: 110,
       su: {e: "🎆", en: "Rocket rain", de: "Raketenhagel", sen: "5 rockets at once", sde: "5 Raketen auf einmal", n: 5, spr: .15, rg: 600}},
-    melee: {e: "🥊", en: "Brawler", de: "Faust", sen: "Lots of health", sde: "Viel Leben · Faust", hp: 175, sp: 1.12, rl: 900, cd: 320, rg: 112, cone: .95, dmg: 34, sc: 115,
+    melee: {e: "🥊", en: "Brawler", de: "Faust", sen: "Lots of health · close", sde: "Viel Leben · Nahkampf", hp: 175, sp: 1.12, rl: 900, cd: 320, rg: 112, cone: .95, dmg: 34, sc: 115,
       su: {e: "🦘", en: "Leap", de: "Sprungschlag", sen: "Jump in, hits everyone", sde: "Sprung, trifft alle", rg: 300, dmg: 42, dur: 260}},
     fire: {e: "🔥", en: "Fire trail", de: "Flammenspur", sen: "Flames · fire trail", sde: "Flammen · Feuerspur", hp: 130, sp: 1.15, rl: 1250, cd: 380, rg: 205, cone: .42, dmg: 17, burn: 3000, sc: 105,
       su: {e: "⭕", en: "Ring of fire", de: "Feuerring", sen: "Burns everyone around you", sde: "Verbrennt alle um dich", rg: 190, dmg: 30}},
@@ -265,6 +265,7 @@
   }
   /* Nat Stars on its own counts like the other games: XP, and a win is a daily win */
   function reward(won){ const k = (C.A.kills || {})[me()] || 0, solo = PNet.P && PNet.P.solo; let xp = (won ? 20 : 6) + k * 4; if (solo) xp = Math.round(xp / 2);
+    PG.st.nsWins = (PG.st.nsWins || 0) + (won ? 1 : 0); PG.st.nsKills = (PG.st.nsKills || 0) + k; try { PG.persist(); } catch(e) {}
     setTimeout(() => { try { if (typeof addXP === "function") addXP(xp, "natstars"); if (won && typeof natWin === "function") natWin("natstars"); } catch(e) {} }, 1800); }
   /* the first few fights: where to touch, what the yellow button and the fog do */
   function hint(){ const n = PG.st.nsHint || 0, box = C.L && C.L.querySelector(".ar-tip"); if (n >= 3 || !box) return; PG.st.nsHint = n + 1; try { PG.persist(); } catch(e) {}
