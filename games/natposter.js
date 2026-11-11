@@ -345,8 +345,8 @@
   const REL = (e, el) => { const p = LOC(e); let x = 0, y = 0, n = el; while (n && n !== NP.el){ x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; } return {x: p.x - x, y: p.y - y}; };
   const NP = {dust: [], el: null, v: null, m: null, act: null, raf: 0, me: {x: BTN.x, y: BTN.y + 150, f: 1}, joy: null, keys: {}, sent: 0, lastSend: {}, mini: null, vent: null, spawnK: 0, shown: {}, sndK: null, lastStep: 0, zoom: 1, mapOpen: false,
     /* a phone that can't keep up while running around draws with fewer pixels instead of stuttering */
-    qual(dt){ if (!this.v || this.v.phase !== "play" || !this.cv || (PG.arena && PG.arena.client.on)){ this.qn = this.qs = 0; return; } this.qs = (this.qs || 0) + Math.min(.2, dt); this.qn = (this.qn || 0) + 1; if (this.qn < 120) return;
-      const avg = this.qs / this.qn; this.qn = this.qs = 0; if (avg > 1 / 45 && this.dpr > 1.05){ const w = this.cv.width / this.dpr, h = this.cv.height / this.dpr, d = Math.max(1, Math.round((this.dpr - .34) * 100) / 100); this.cv.width = Math.round(w * d); this.cv.height = Math.round(h * d); this.dpr = d; } },
+    qual(dt){ if (!this.v || this.v.phase !== "play" || !this.cv || (PG.arena && PG.arena.client.on)){ this.qn = this.qs = 0; return; } this.qs = (this.qs || 0) + Math.min(.2, dt); this.qn = (this.qn || 0) + 1; if (this.qn < 80) return;
+      const avg = this.qs / this.qn, w = this.cv.width / this.dpr, h = this.cv.height / this.dpr, floor = w * h > 5e5 ? .75 : 1; this.qn = this.qs = 0; if (avg > 1 / 45 && this.dpr > floor + .05){ const d = Math.max(floor, Math.round((this.dpr - (avg > 1 / 28 ? .5 : .34)) * 100) / 100); this.cv.width = Math.round(w * d); this.cv.height = Math.round(h * d); this.dpr = d; } },
     draw(body, v, m, act){
       if (v.phase === "lobby" && this.v && this.v.phase !== "lobby") this.lobbyIn = 0;
       if (v.gid && v.gid !== this.gid){ this.gid = v.gid; this.shown = {}; this.deathT = {}; this.evShow = null; this.dblT = 0; QUIET = false; if (PG.arena) PG.arena.fx.reset(); }
