@@ -535,6 +535,11 @@
     return K.update(m.id, {items: parts, kcal: Math.round(sum("kcal")), carbs: r1(sum("carbs")), protein: r1(sum("protein")), fat: r1(sum("fat")), title: String(title || m.title || "Mahlzeit").slice(0, 120), grams: one && one.g ? Math.round(one.g) : null, code: (one && one.code) || null}); }
   const scalePart = (i, f) => { const o = Object.assign({}, i, {kcal: Math.round((Number(i.kcal) || 0) * f), carbs: r1(i.carbs * f), protein: r1(i.protein * f), fat: r1(i.fat * f)});
     if (i.per && i.g){ o.g = Math.round(i.g * f * 10) / 10; o.amount = amtText(perP(i), o.g); } else o.amount = (i.amount || "") + ` ×${nf(f, 2)}`; return o; };
+  /* the weight or volume in a part: from its text ("2 Scheiben (80 g)", "0,5 l") or, without one, its stored grams */
+  const amtOf = i => { const m = /(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l)\b/i.exec(String(i.amount || "")); if (m) return {v: num(m[1]), u: m[2].toLowerCase(), m: m[0]}; return Number(i.g) > 0 ? {v: Number(i.g), u: "g", m: ""} : null; };
+  /* the same part with another weight: calories, carbs, protein and fat follow, the text shows the new number */
+  const regram = (i, v2) => { const a = amtOf(i); if (!a || !(a.v > 0) || !(v2 > 0)) return i; const f = v2 / a.v, o = scalePart(i, f);
+    if (!(i.per && i.g)){ const t = nf(v2, v2 < 10 ? 2 : 0) + " " + a.u; o.amount = a.m ? String(i.amount).replace(a.m, t) : t; if (Number(i.g) > 0) o.g = Math.round(i.g * f * 10) / 10; } return o; };
   /* grams in a text like "2 Scheiben (80 g)" */
   const gramsIn = t => { const m = /(\d+(?:[.,]\d+)?)\s*(g|ml)\b/i.exec(String(t || "")); return m ? num(m[1]) : 0; };
   function mealSheet(m, own = true){
@@ -542,7 +547,7 @@
     const sh = detailSheet(`<div class="kc-ms" data-notr><div class="kc-mh"><span class="kc-me">${h(m.emoji || "🍽️")}</span><div><div class="kc-mt">${h(m.title)}</div><div class="muted">${dayLabel(m.day)}, ${hhmm(m.ts)}${m.source === "barcode" ? " · Barcode" : m.source === "search" ? " · Suche" : m.source === "voice" ? " · gesprochen" : ""}</div></div>${own ? pinHTML(m) : ""}</div>
       <div class="kc-mk"><b>${fmt(m.kcal)}</b> kcal</div>
       <div class="kc-macros"><span><b>${f1(m.carbs)} g</b>KH</span><span><b>${f1(m.protein)} g</b>Protein</span><span><b>${f1(m.fat)} g</b>Fett</span></div>
-      ${items.length ? `${own ? `<div class="kc-ih muted">Antippen zum Ändern</div>` : ""}<div class="kc-items">${items.map((i, ix) => own ? `<button data-it="${ix}"><span>${h(i.name)}<small>${h(i.amount || "")}</small></span><b>${fmt(i.kcal)} kcal</b><em>${svg(IC.pen, 15)}</em></button>` : `<div><span>${h(i.name)}<small>${h(i.amount || "")}</small></span><b>${fmt(i.kcal)} kcal</b></div>`).join("")}</div>` : ""}
+      ${items.length ? `${own ? `<div class="kc-ih muted">Menge antippen und neu eintippen, alles rechnet mit</div>` : ""}<div class="kc-items">${items.map((i, ix) => { const a = own && amtOf(i); return own ? `<div class="kc-irow"><button data-it="${ix}"><span>${h(i.name)}<small>${h(i.amount || "")}</small></span><b>${fmt(i.kcal)} kcal</b>${a ? "" : `<em>${svg(IC.pen, 15)}</em>`}</button>${a ? `<label class="kc-gi"><input data-g="${ix}" inputmode="decimal" enterkeyhint="done" value="${nf(a.v, a.v < 10 ? 2 : 0)}" aria-label="Menge"><i>${a.u}</i></label>` : ""}</div>` : `<div><span>${h(i.name)}<small>${h(i.amount || "")}</small></span><b>${fmt(i.kcal)} kcal</b></div>`; }).join("")}</div>` : ""}
       ${own && items.length ? `<button class="kc-roundb" data-round>${svg(IC.code, 22)}<b>Packungen scannen<small>Für genaue Werte: alles scannen, was du gegessen hast, in beliebiger Reihenfolge</small></b></button>` : ""}
       ${own ? `<button class="btn ghost kc-man-b" data-it="-1">${svg(IC.plus, 16)} Etwas dazu</button>` : ""}
       ${m.said ? `<p class="muted kc-said">„${h(m.said)}“</p>` : ""}${m.note ? `<p class="muted kc-said">${h(m.note)}</p>` : ""}
@@ -551,6 +556,11 @@
     if (!own) return sh;
     wirePin(sh.el, m);
     sh.el.querySelectorAll("[data-it]").forEach(b => b.onclick = () => { haptic(8); sh.close(); partSheet(m, +b.dataset.it); });
+    /* a new weight typed into the row: everything is recalculated and saved at once */
+    sh.el.querySelectorAll("[data-g]").forEach(inp => { field(inp); let busy = false; const go = async () => { if (busy) return; const ps = partsOf(m), ix = +inp.dataset.g, a = amtOf(ps[ix]), v = num(inp.value);
+        if (!a || !isFinite(v) || v <= 0){ if (a) inp.value = nf(a.v, a.v < 10 ? 2 : 0); return; } if (Math.abs(v - a.v) < 1e-6) return; busy = true;
+        try { ps[ix] = regram(ps[ix], v); const nm = await saveParts(m, ps); haptic(12); sh.close(); mealSheet(nm); } catch(e) { busy = false; inp.value = nf(a.v, a.v < 10 ? 2 : 0); say("Ging nicht: " + (e.message || e)); } };
+      inp.addEventListener("change", go); inp.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); inp.blur(); } }); });
     const rb = sh.el.querySelector("[data-round]"); if (rb) rb.onclick = () => { haptic(10); sh.close(); KCScan.open({round: m}); };
     sh.el.querySelectorAll("[data-f]").forEach(b => b.onclick = async () => { try { const nm = await saveParts(m, partsOf(m).map(i => scalePart(i, +b.dataset.f))); sh.close(); mealSheet(nm); } catch(e) { say("Ging nicht: " + (e.message || e)); } });
     const del = sh.el.querySelector("[data-kc-del]"); del.onclick = async () => { if (!del.dataset.armed){ del.dataset.armed = 1; del.textContent = "Wirklich löschen?"; return; }
@@ -576,6 +586,12 @@
     ins.forEach(i => field(i)); field(el.querySelector("#kpa"));
     const read = () => { w.name = el.querySelector("#kpn").value.trim(); w.amount = el.querySelector("#kpa").value.trim(); ins.forEach(i => { const v = num(i.value); w[i.dataset.k] = isFinite(v) && v >= 0 ? (i.dataset.k === "kcal" ? Math.round(v) : r1(v)) : 0; }); };
     const fill = () => { el.querySelector("#kpa").value = w.amount || ""; ins.forEach(i => { i.value = nf(w[i.dataset.k] || 0, i.dataset.k === "kcal" ? 0 : 1); }); };
+    /* a new weight typed into "Menge" (60, 60 g, 0,5 l): the numbers below follow */
+    { const pa = el.querySelector("#kpa"); let before = Object.assign({}, w); pa.addEventListener("change", () => { const a = amtOf(before), t = pa.value.trim(), bare = /^\d+(?:[.,]\d+)?$/.test(t), b2 = bare ? {v: num(t), u: a ? a.u : "g"} : amtOf({amount: t});
+        ins.forEach(i => { const v = num(i.value); before[i.dataset.k] = isFinite(v) && v >= 0 ? v : 0; });
+        if (a && b2 && b2.v > 0 && b2.u === a.u && Math.abs(b2.v - a.v) > 1e-6){ const o = regram(before, b2.v); if (!bare && !(before.per && before.g)) o.amount = t; Object.assign(w, o); fill(); haptic(8); }
+        else if (bare && !a){ w.amount = t + " g"; pa.value = w.amount; read(); } else read();
+        before = Object.assign({}, w); }); }
     el.querySelectorAll("[data-f]").forEach(b => b.onclick = () => { read(); Object.assign(w, scalePart(w, +b.dataset.f)); fill(); haptic(8); el.querySelectorAll("[data-f]").forEach(x => x.classList.toggle("on", x === b)); });
     const done = async ps => { const nm = await saveParts(m, ps); haptic(15); mealSheet(nm); };
     /* the real product instead: scanned or searched, then how much */
@@ -1174,8 +1190,8 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-amtb{display:flex;justify-content:space-between;align-items:center;gap:8px}.kc-amtb small{color:var(--muted);font-weight:800}
 .kc-nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.kc-nums input{text-align:center;padding:10px 2px;min-width:0;width:100%;box-sizing:border-box}
 .kc-pt{margin:2px 0 -2px;font:800 12px var(--body)}.kc-ih{font:800 12px var(--body);margin-bottom:-4px}
-.kc-items>button{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;background:var(--panel-2);border-radius:10px;border:0;width:100%;text-align:left;color:var(--fg);cursor:pointer;-webkit-tap-highlight-color:transparent}
-.kc-items>button span{flex:1;min-width:0}.kc-items>button em{color:var(--muted);display:flex;flex:none}.kc-items>button:active{transform:scale(.98)}
+.kc-items button[data-it]{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;background:var(--panel-2);border-radius:10px;border:0;width:100%;text-align:left;color:var(--fg);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.kc-items button[data-it] span{flex:1;min-width:0}.kc-items button[data-it] em{color:var(--muted);display:flex;flex:none}.kc-items button[data-it]:active{transform:scale(.98)}
 @media (max-width:380px){.kc-big{height:84px;font-size:15px}}.kc-scan{background:#5AA3E0;box-shadow:inset 0 -5px 0 #3B7FC0}.kc-scan:active{box-shadow:inset 0 -2px 0 #3B7FC0}
 .kc-tip{background:var(--panel-2);border-radius:12px;padding:9px 12px;font:700 13.5px/1.35 var(--body);color:var(--fg)}.kc-tip.ok{background:linear-gradient(90deg,rgba(255,150,60,.22),rgba(255,90,40,.12))}
 .kc-inv .kc-invt{font:800 16px var(--body)}.kc-inv p{margin:0}.kc-row2{display:flex;gap:8px;margin-top:6px}.kc-row2 .btn{flex:1}
@@ -1219,7 +1235,10 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-ph img{width:64px;height:64px;object-fit:contain;border-radius:10px;background:#fff}.kc-ph>span{font-size:44px}
 .kc-mk{font:800 15px var(--body);color:var(--muted)}.kc-mk small{display:block;font:700 13px var(--body);margin-top:2px}.kc-mk b{font:900 32px var(--display);color:var(--fg)}
 .kc-macros{display:flex;gap:8px}.kc-macros span{flex:1;background:var(--panel-2);border-radius:12px;padding:8px;text-align:center;color:var(--muted);font:700 12px var(--body);display:flex;flex-direction:column}.kc-macros b{color:var(--fg);font:900 16px var(--display)}
-.kc-items{display:flex;flex-direction:column;gap:4px}.kc-items>div{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;background:var(--panel-2);border-radius:10px}.kc-items span{display:flex;flex-direction:column;font:800 14px var(--body)}.kc-items small{color:var(--muted);font-weight:700}.kc-items b{white-space:nowrap;font:900 14px var(--body)}
+.kc-items{display:flex;flex-direction:column;gap:4px}
+.kc-items>.kc-irow{display:flex;align-items:stretch;gap:4px;padding:0;background:none}.kc-irow>button{flex:1;min-width:0}
+.kc-gi{flex:none;display:flex;align-items:center;gap:4px;padding:0 10px;border-radius:10px;background:var(--panel-2);border:2px solid var(--line);color:var(--muted);font:800 14px var(--body);cursor:text}
+.kc-gi:focus-within{border-color:var(--go)}.kc-gi input{width:52px;border:0!important;background:none!important;color:var(--fg);font:900 17px var(--display);text-align:right;padding:8px 0;outline:none}.kc-gi i{font-style:normal}.kc-items>div{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;background:var(--panel-2);border-radius:10px}.kc-items span{display:flex;flex-direction:column;font:800 14px var(--body)}.kc-items small{color:var(--muted);font-weight:700}.kc-items b{white-space:nowrap;font:900 14px var(--body)}
 .kc-said{margin:0;font-size:13px}.kc-portion{display:flex;flex-direction:column;gap:6px}.kc-portion>div,.kc-chips{display:flex;flex-wrap:wrap;gap:6px}.kc-chips .chip.on{background:var(--go);border-color:var(--go);color:#fff}
 .kc-per{margin:0}.kc-gram{display:flex;align-items:center;gap:8px}.kc-gram .btn{width:52px;flex:none;font-size:22px}.kc-gram label{flex:1;min-width:0;display:flex;align-items:center;gap:6px;font:800 18px var(--body)}.kc-gram input{flex:1;min-width:0;width:100%;box-sizing:border-box;text-align:center;font:900 24px var(--display);padding:8px;border-radius:12px;border:2px solid var(--line);background:var(--panel-2);color:var(--fg)}
 .kc-form label{display:flex;flex-direction:column;gap:4px;font:700 13px var(--body);color:var(--muted)}.kc-form input{font:700 17px var(--body);padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg)}
