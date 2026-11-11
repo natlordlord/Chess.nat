@@ -49,7 +49,10 @@
       for (let k = 0; k < 3650; k++){ if (hit(d)) n++; else if (!ice.has(d)) break; d = addDays(d, -1); } return n; },
     daySum(k, f){ return this.meals.filter(m => m.day === k).reduce((s, m) => s + (Number(m[f]) || 0), 0); },
     /* the day's targets: from the goals set up (or, before that, a sensible split of the kcal goal) */
-    targets(){ const p = this.prof || {}, g = this.goal(); return {kcal: g, protein: p.protein || Math.round(g * .25 / 4), carbs: p.carbs || Math.round(g * .47 / 4), fat: p.fat || Math.round(g * .28 / 9)}; },
+    targets(){ const p = this.prof || {}, g = this.goal(), b = this.body;
+      /* building muscle used to be set up with 2 g protein per kg; it is 1.6 g now, and goals saved the old way follow (what is freed goes to carbs) */
+      if (b && b.aim === "muscle" && Number(b.weight) > 0 && p.protein === Math.round(b.weight * 2)){ const pr = Math.round(b.weight * 1.6), fat = p.fat || Math.round(g * .27 / 9); return {kcal: g, protein: pr, fat, carbs: Math.max(0, Math.round((g - pr * 4 - fat * 9) / 4))}; }
+      return {kcal: g, protein: p.protein || Math.round(g * .25 / 4), carbs: p.carbs || Math.round(g * .47 / 4), fat: p.fat || Math.round(g * .28 / 9)}; },
     litToday(){ return this.dayKcal(today()) >= this.goal(); },
     cache(){ const id = meId(); if (!id) return; try { localStorage.setItem(LS(id), JSON.stringify({prof: this.prof, body: this.body, weights: (this.weights || []).slice(0, 30), ice: this.ice, meals: this.meals.filter(m => m.day >= addDays(today(), -40))})); } catch(e) {} },
     fromCache(){ const id = meId(); if (!id || this.loaded) return; try { const c = JSON.parse(localStorage.getItem(LS(id)) || "null"); if (c){ this.prof = c.prof; this.meals = c.meals || []; this.body = c.body || null; this.weights = c.weights || []; this.ice = c.ice || []; } } catch(e) {} },
@@ -216,7 +219,7 @@
     setTimeout(() => { if (big){ celebrate(); confetti(true); } else { confetti(false); say(small); haptic([10, 30, 10]); } }, 450); }
 
   /* ---------- the day's needs, like a calorie calculator: Mifflin-St Jeor × activity, then the goal on top ---------- */
-  const AIMS = [["lose", "🔥", "Abnehmen", "Fett verlieren, Muskeln halten", .8, 2], ["keep", "⚖️", "Gewicht halten", "Fit bleiben, so wie jetzt", 1, 1.6], ["muscle", "💪", "Muskeln aufbauen", "Sauber zunehmen, viel Protein", 1.1, 2], ["gain", "📈", "Zunehmen", "Mehr auf die Waage", 1.15, 1.7], ["bulk", "🦍", "Bulken", "So viel Masse wie geht", 1.2, 1.8]];
+  const AIMS = [["lose", "🔥", "Abnehmen", "Fett verlieren, Muskeln halten", .8, 2], ["keep", "⚖️", "Gewicht halten", "Fit bleiben, so wie jetzt", 1, 1.6], ["muscle", "💪", "Muskeln aufbauen", "Sauber zunehmen, viel Protein", 1.1, 1.6], ["gain", "📈", "Zunehmen", "Mehr auf die Waage", 1.15, 1.7], ["bulk", "🦍", "Bulken", "So viel Masse wie geht", 1.2, 1.8]];
   const ACTS = [[1.2, "Kaum Bewegung", "Viel sitzen, kein Sport"], [1.375, "Etwas aktiv", "1–2× Sport pro Woche"], [1.55, "Aktiv", "3–5× Sport pro Woche"], [1.725, "Sehr aktiv", "6–7× Sport oder körperliche Arbeit"], [1.9, "Extrem aktiv", "Leistungssport und harte Arbeit"]];
   function needs(b){ const age = Math.max(14, new Date().getFullYear() - (b.born || 1995)), w = Number(b.weight) || 75, hg = Number(b.height) || 178, bmr = 10 * w + 6.25 * hg - 5 * age + (b.sex === "f" ? -161 : 5), tdee = bmr * (Number(b.activity) || 1.375), A = AIMS.find(a => a[0] === b.aim) || AIMS[1];
     const kcal = Math.round(tdee * A[4] / 10) * 10, protein = Math.round(w * A[5]), fat = Math.round(kcal * .27 / 9), carbs = Math.max(0, Math.round((kcal - protein * 4 - fat * 9) / 4));
@@ -232,8 +235,8 @@
         if (k === "aim") body = `<h2>Was ist dein Ziel?</h2><div class="kc-opts">${AIMS.map(a => `<button class="kc-opt ${b.aim === a[0] ? "on" : ""}" data-v="${a[0]}"><span>${a[1]}</span><b>${a[2]}<small>${a[3]}</small></b></button>`).join("")}</div>`;
         else if (k === "sex") body = `<h2>Du bist …</h2><div class="kc-opts two">${[["m", "👨", "Mann"], ["f", "👩", "Frau"]].map(a => `<button class="kc-opt ${b.sex === a[0] ? "on" : ""}" data-v="${a[0]}"><span>${a[1]}</span><b>${a[2]}</b></button>`).join("")}</div>`;
         else if (k === "body") body = `<h2>Ein paar Zahlen</h2><div class="kc-bform"><label><span>Alter</span><input id="sAge" inputmode="numeric" value="${b.born ? new Date().getFullYear() - b.born : ""}" placeholder="25"><em>Jahre</em></label><label><span>Größe</span><input id="sH" inputmode="numeric" value="${b.height || ""}" placeholder="180"><em>cm</em></label><label><span>Gewicht</span><input id="sW" inputmode="decimal" value="${b.weight ? nf(b.weight, 1) : ""}" placeholder="75"><em>kg</em></label></div><button class="btn go big" id="sNext">Weiter</button>`;
-        else if (k === "show"){ pick = pick || (Array.isArray((K.prof || {}).show) && K.prof.show.length ? K.prof.show.slice() : aimShow(b.aim));
-          body = `<h2>Was ist dir wichtig?</h2><p class="muted kc-ssub">Das siehst du überall groß. Bis zu drei.</p><div class="kc-opts">${NORD.map(x => `<button class="kc-opt ${pick.includes(x) ? "on" : ""}" data-sh="${x}"><span>${NUT[x].e}</span><b>${NUT[x].l}</b></button>`).join("")}</div><button class="btn go big" id="sNext2">Weiter</button>`; }
+        else if (k === "show"){ pick = pick || shows().slice();
+          body = `<h2>Was ist dir wichtig?</h2><p class="muted kc-ssub">Kalorien und Protein stehen oben groß, der Rest klein darunter.</p><div class="kc-opts">${NORD.map(x => `<button class="kc-opt ${pick.includes(x) ? "on" : ""}" data-sh="${x}"><span>${NUT[x].e}</span><b>${NUT[x].l}</b></button>`).join("")}</div><button class="btn go big" id="sNext2">Weiter</button>`; }
         else if (k === "act") body = `<h2>Wie viel bewegst du dich?</h2><div class="kc-opts">${ACTS.map(a => `<button class="kc-opt ${Number(b.activity) === a[0] ? "on" : ""}" data-v="${a[0]}"><b>${a[1]}<small>${a[2]}</small></b></button>`).join("")}</div>`;
         else { const n = needs(b); body = `<h2>Dein Tagesbedarf</h2><div class="kc-res"><div class="kc-resk"><b>${fmt(n.kcal)}</b><span>kcal am Tag</span></div>
             <div class="kc-macros"><span><b>${n.protein} g</b>Protein</span><span><b>${n.carbs} g</b>KH</span><span><b>${n.fat} g</b>Fett</span></div>
@@ -242,7 +245,7 @@
         ov.innerHTML = `<div class="kc-vtop"><button class="kc-x" data-back aria-label="Zurück">${step ? svg('<path d="M15 5l-7 7 7 7"/>', 22) : svg(IC.x, 22)}</button><div class="kc-dots">${steps.map((x, i) => `<i class="${i <= step ? "on" : ""}"></i>`).join("")}</div><span style="width:44px"></span></div><div class="kc-smid">${body}</div>`;
         ov.querySelector("[data-back]").onclick = () => { if (step){ step--; draw(); } else close(); };
         ov.querySelectorAll("[data-v]").forEach(x => x.onclick = () => { haptic(10); const v = x.dataset.v; if (k === "aim") b.aim = v; if (k === "sex") b.sex = v; if (k === "act") b.activity = +v; x.classList.add("on"); setTimeout(() => { step++; draw(); }, 120); });
-        ov.querySelectorAll("[data-sh]").forEach(x => x.onclick = () => { const v = x.dataset.sh; if (pick.includes(v)){ if (pick.length < 2) return say("Mindestens eins"); pick = pick.filter(y => y !== v); } else { if (pick.length >= 3) return say("Höchstens drei"); pick.push(v); } haptic(8); x.classList.toggle("on", pick.includes(v)); });
+        ov.querySelectorAll("[data-sh]").forEach(x => x.onclick = () => { const v = x.dataset.sh; if (pick.includes(v)){ if (pick.length < 2) return say("Mindestens eins"); pick = pick.filter(y => y !== v); } else { pick.push(v); } haptic(8); x.classList.toggle("on", pick.includes(v)); });
         const n2 = ov.querySelector("#sNext2"); if (n2) n2.onclick = () => { step++; draw(); };
         const nx = ov.querySelector("#sNext"); if (nx){ const ins = ov.querySelectorAll("input"); ins.forEach(i => field(i)); try { ins[0].focus({preventScroll: true}); } catch(e) {}
           nx.onclick = () => { const age = num(ov.querySelector("#sAge").value), hh = num(ov.querySelector("#sH").value), w = num(ov.querySelector("#sW").value);
@@ -251,7 +254,7 @@
         const sv = ov.querySelector("#sSave"); if (sv) sv.onclick = async () => { sv.disabled = true; const n = needs(b);
           try { const lastKg = K.weights[0] && Number(K.weights[0].kg);
             await K.saveBody({aim: b.aim, sex: b.sex, born: b.born, height: b.height, weight: b.weight, activity: b.activity, custom: false, setup_at: new Date().toISOString()});
-            await K.saveProf(Object.assign({enabled: true, goal: n.kcal, protein: n.protein, carbs: n.carbs, fat: n.fat}, pick ? {show: NORD.filter(x => pick.includes(x))} : {}));
+            await K.saveProf(Object.assign({enabled: true, goal: n.kcal, protein: n.protein, carbs: n.carbs, fat: n.fat}, pick ? {show: NORD.filter(x => pick.includes(x))} : {})); if (pick && pick.length < NORD.length) setPicked();
             if (!(Math.abs(lastKg - b.weight) < .05)) await K.addWeight(b.weight, null).catch(() => {});
             close(); haptic([15, 30, 15]); confetti(false); say(`🎯 ${fmt(n.kcal)} kcal am Tag, ${n.protein} g Protein`); refreshHome(); if (done) done(); } catch(e) { sv.disabled = false; say("Ging nicht: " + (e.message || e)); } };
       };
@@ -289,15 +292,17 @@
       try { await K.buyIce(); sh.close(); haptic([15, 30, 15]); confetti(false); say("🧊 Streak on Ice gekauft"); } catch(e) { if (typeof natEarn === "function") natEarn(ICE_PRICE, true); bb.disabled = false; say("Ging nicht: " + (e.message || e)); } };
     return sh; }
   /* ---------- what each person cares about (Settings): the first two big at the top, up to three as columns in the lists ---------- */
-  const NUT = {kcal: {l: "Kalorien", s: "kcal", c: "k", e: "🔥"}, carbs: {l: "Kohlenhydrate", s: "KH", c: "c", e: "🍞"}, protein: {l: "Protein", s: "Protein", c: "p", e: "💪"}, fat: {l: "Fett", s: "Fett", c: "f", e: "🥑"}}, NORD = ["kcal", "carbs", "protein", "fat"];
+  const NUT = {kcal: {l: "Kalorien", s: "kcal", c: "k", e: "🔥"}, carbs: {l: "Kohlenhydrate", s: "KH", c: "c", e: "🍞"}, protein: {l: "Protein", s: "Protein", c: "p", e: "💪"}, fat: {l: "Fett", s: "Fett", c: "f", e: "🥑"}}, NORD = ["kcal", "protein", "carbs", "fat"];
   const aimShow = aim => ["kcal", ["muscle", "gain", "bulk"].includes(aim) ? "protein" : "carbs"];
+  /* everyone sees all four: calories and protein big at the top, carbs and fat small below, all four as columns in the lists.
+     Only who changes the chips in the settings on this phone (SHOWK) gets their own pick */
+  const SHOWK = "chessnat-kc-show4", picked = () => { try { return localStorage.getItem(SHOWK) === "1"; } catch(e) { return false; } }, setPicked = () => { try { localStorage.setItem(SHOWK, "1"); } catch(e) {} };
   function shows(){ const p = K.prof || {};
-    if (Array.isArray(p.show)){ const s2 = NORD.filter(k => p.show.includes(k)); if (s2.length) return s2.slice(0, 3); }
-    /* nothing picked yet: building muscle or gaining → protein, else carbs (a copy saved before this setting existed: carbs, as it was) */
-    return "show" in p ? aimShow((K.body || {}).aim) : ["kcal", "carbs"]; }
+    if (picked() && Array.isArray(p.show)){ const s2 = NORD.filter(k => p.show.includes(k)); if (s2.length) return s2; }
+    return NORD.slice(); }
   const vOf = (o, k) => Number(o[k]) || 0;
-  const cells = o => { const S = shows(), n3 = S.length > 2 ? " n3" : ""; return S.map(k => `<span class="kc-n ${NUT[k].c}${n3}">${k === "kcal" ? fmt(vOf(o, k)) : g0(vOf(o, k))}</span>`).join(""); };
-  const heads = () => { const S = shows(), n3 = S.length > 2 ? " n3" : ""; return S.map(k => `<span class="kc-n ${NUT[k].c}${n3}">${NUT[k].s}</span>`).join(""); };
+  const cells = o => { const S = shows(), n3 = S.length > 3 ? " n3 n4" : S.length > 2 ? " n3" : ""; return S.map(k => `<span class="kc-n ${NUT[k].c}${n3}">${k === "kcal" || S.length > 3 ? fmt(Math.round(vOf(o, k))) : g0(vOf(o, k))}</span>`).join(""); };
+  const heads = () => { const S = shows(), n3 = S.length > 3 ? " n3 n4" : S.length > 2 ? " n3" : ""; return S.map(k => `<span class="kc-n ${NUT[k].c}${n3}">${S.length > 3 ? ({kcal: "kcal", protein: "Prot.", carbs: "KH", fat: "Fett"})[k] : NUT[k].s}</span>`).join(""); };
   const one1 = (o, k) => k === "kcal" ? fmt(vOf(o, k)) + " kcal" : f1(vOf(o, k)) + " g " + NUT[k].s;
   /* a line of values: the chosen ones bold, the rest small */
   const vline = o => { const S = shows(), rest = NORD.filter(k => !S.includes(k));
@@ -893,7 +898,7 @@
     const on = K.on(), p = K.prof || {};
     return `<h3>Kalorien-Tracker</h3>
       <label class="chk"><input type="checkbox" data-kcs="enabled" ${on ? "checked" : ""}> Auf der Startseite zeigen (Sprechen + Barcode)</label>
-      ${on || full ? `<div class="kc-showp"><b>Was dich interessiert</b><div class="kc-chips">${NORD.map(k => `<button class="chip ${shows().includes(k) ? "on" : ""}" data-show="${k}">${NUT[k].e} ${NUT[k].l}</button>`).join("")}</div><small class="muted">Die ersten zwei stehen oben groß, in den Listen alle (höchstens drei).</small></div>
+      ${on || full ? `<div class="kc-showp"><b>Was dich interessiert</b><div class="kc-chips">${NORD.map(k => `<button class="chip ${shows().includes(k) ? "on" : ""}" data-show="${k}">${NUT[k].e} ${NUT[k].l}</button>`).join("")}</div><small class="muted">Die ersten zwei stehen oben groß, die anderen klein darunter. In den Listen stehen alle.</small></div>
       <div class="kc-goal"><span>Tagesziel</span><input id="kcgoal" inputmode="numeric" value="${K.goal()}"><span>kcal</span></div>
       <div class="kc-chips">${[2000, 2500, 2800, 3000, 3500].map(v => `<button class="chip ${K.goal() === v ? "on" : ""}" data-goal="${v}">${fmt(v)}</button>`).join("")}</div>
       ${(() => { const T = K.targets(), b = K.body || {}, A = AIMS.find(a => a[0] === b.aim), lw = K.weights[0];
@@ -914,7 +919,7 @@
     const wb = el.querySelector("[data-kcs-weigh]"); if (wb) wb.onclick = () => { const sh0 = el.closest(".dsheet"); if (sh0) sh0.querySelector("[data-dclose]").click(); Weigh.open(); };
     el.querySelectorAll("[data-goal]").forEach(b => b.onclick = () => set(b.dataset.goal));
     el.querySelectorAll("[data-show]").forEach(b => b.onclick = async () => { const k = b.dataset.show, cur = shows(), nx = cur.includes(k) ? cur.filter(x => x !== k) : cur.concat(k);
-      if (!nx.length) return say("Mindestens eins"); if (nx.length > 3) return say("Höchstens drei"); haptic(8);
+      if (!nx.length) return say("Mindestens eins"); setPicked(); haptic(8);
       b.classList.toggle("on"); try { await K.saveProf({show: NORD.filter(x => nx.includes(x))}); redraw(); } catch(e) { b.classList.toggle("on"); say("Ging nicht: " + (e.message || e)); } });
   }
   window.kcalSettings = async el => {
@@ -1119,7 +1124,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-qa{position:relative;width:32px;height:32px;border-radius:50%;background:none;border:2px solid var(--go);color:var(--go-hi,#8FC458);display:grid;place-items:center;flex:none;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}.kc-qa::after{content:"";position:absolute;inset:-9px}.kc-qa:active,.kc-qa.ok{background:var(--go);color:#fff}.kc-qc .kc-q:has(.kc-qa:active){transform:none}
 .kc-lh.q{margin:4px 10px 4px 14px}.kc-lh.q i{width:32px;flex:none}.kc-qc .kc-q .kc-n{font:800 14.5px var(--body)}.kc-qc .kc-q .kc-n.k{color:var(--fg)}
 .kc-lh{display:flex;align-items:center;gap:10px;margin:20px 14px 8px;font:800 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.kc-lh>span:first-child{flex:1}
-.kc-n{width:58px;text-align:right;flex:none;font-variant-numeric:tabular-nums;white-space:nowrap}.kc-n.c{color:#E9A92B}.kc-n.p{color:#5AAEFF}.kc-n.f{color:#EF7A5F}.kc-lh .kc-n{letter-spacing:.02em}.kc-n.n3{width:50px}.kc-lh .kc-n.n3{letter-spacing:0}
+.kc-n{width:58px;text-align:right;flex:none;font-variant-numeric:tabular-nums;white-space:nowrap}.kc-n.c{color:#E9A92B}.kc-n.p{color:#5AAEFF}.kc-n.f{color:#EF7A5F}.kc-lh .kc-n{letter-spacing:.02em}.kc-n.n3{width:50px}.kc-n.n4{width:41px;font-size:13px}.kc-n.n4.k{width:46px}.kc-lh .kc-n.n3{letter-spacing:0}
 .kc-list2{display:flex;flex-direction:column;gap:10px}.kc-mcard{background:var(--panel);border-radius:16px;overflow:hidden}
 .kc-mrow{display:flex;align-items:center;gap:10px;width:100%;padding:9px 14px;border:0;background:none;color:var(--muted);text-align:left;font:700 14.5px var(--body);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .kc-mrow+.kc-mrow{border-top:1px solid rgba(255,255,255,.05)}.kc-mrow:active{background:rgba(255,255,255,.04)}
