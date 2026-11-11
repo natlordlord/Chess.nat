@@ -255,7 +255,10 @@
       const ab = d.el.querySelector("[data-admin]"); if (ab) ab.onclick = () => { d.close(); this.adminForm(e); };
     },
     /* the simple way: my score (or my winner), how much, done — placed at once */
-    quick(id){
+    /* the next game of the list that I haven't tipped yet: a whole matchday in one go */
+    nextOpen(after){ const t0 = Date.parse(after.start_at); return (this.shown ? this.shown() : Tipp.ev).filter(e => e.id !== after.id && e.state === "pre" && Date.parse(e.start_at) > Date.now() + 60e3 && (e.markets || []).length && !Tipp.myOn(e.id).length && !Tipp.slip.some(x => x.ev === e.id))
+        .sort((a, b) => Math.abs(Date.parse(a.start_at) - t0) - Math.abs(Date.parse(b.start_at) - t0))[0] || null; },
+    quick(id, n2){
       const e = Tipp.ev.find(x => x.id === id); if (!e) return; const fbq = e.sport === "fb" && (e.markets || []).some(m => m.k === "cs"), m0 = e.markets[0];
       let stake = Tipp.lastStake && [50, 100, 250, 500].includes(Tipp.lastStake) ? Tipp.lastStake : 100, choice = null; const cur = {};
       const d = detailSheet(`<div class="tp-q"><div class="tp-top"><span class="tp-comp">${(COMP[e.comp] || COMP.misc)[1]} ${h((COMP[e.comp] || COMP.misc)[0])}</span><span>${dayName(e.start_at)} · ${hm(e.start_at)}</span></div>
@@ -263,7 +266,7 @@
           <div class="tp-pad">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map(n => `<button data-n="${n}" ${n === 0 ? 'class="z"' : ""}>${n}</button>`).join("")}</div>`
           : `<div class="tp-who">${m0.o.map(o => `<button data-pick="${h(o.p)}"><b>${h(o.l)}</b></button>`).join("")}</div>`}
         <div class="tp-qst">${T("Stake", "Einsatz")} ${[50, 100, 250, 500].map(v => `<button class="chip ${v === stake ? "on" : ""}" data-qs="${v}">${v}</button>`).join("")}</div>
-        <p class="tp-qwin"></p><button class="btn go big" data-go disabled>${T("✓ Tip", "✓ Tippen")}</button></div>`);
+        <p class="tp-qwin"></p><button class="btn go big" data-go disabled>${T("✓ Tip", "✓ Tippen")}</button>${n2 ? `<p class="tp-qn">${T("Next game", "Nächstes Spiel")} · ${n2} ${T("tipped", "getippt")}</p>` : ""}</div>`);
       const el = d.el, go = el.querySelector("[data-go]"), win = el.querySelector(".tp-qwin");
       const info = () => { if (fbq){ if (cur.h == null || cur.a == null){ go.disabled = true; win.textContent = ""; return; } const cs = e.markets.find(m => m.k === "cs"), x = e.markets.find(m => m.k === "1x2"), oc = cs.o.find(o => o.p === `${cur.h}-${cur.a}`) || cs.o.find(o => o.p === "x"), ox = x && x.o.find(o => o.p === (cur.h > cur.a ? "h" : cur.h === cur.a ? "d" : "a"));
           const half = Math.round(stake / 2); win.innerHTML = `🎯 ${T("Exact", "Genau")}: <b>${fmt(Math.round((stake - half) * oc.q + (ox ? half * ox.q : 0)))} NAT</b> · ✓ ${T("Only the winner", "Nur Sieger")}: <b>${ox ? fmt(Math.round(half * ox.q)) : 0} NAT</b>`; }
@@ -282,7 +285,9 @@
         if (fbq){ const half = Math.round(stake / 2); Tipp.score(e, cur.h, cur.a, half); Tipp.slip = Tipp.slip.filter(x => x.k !== "ou25"); const csp = Tipp.slip.find(x => x.k === "cs"); if (csp) csp.stake = stake - half; Tipp.keep(e.id, `${cur.h}:${cur.a}`); }
         else { const o = m0.o.find(o => o.p === choice); Tipp.put(e, m0, o, stake); }
         const n = await this.place(); Tipp.slip = keep.filter(x => x.ev !== e.id); this.slipBar(); d.close();
-        if (n){ toast(`✅ ${T("Tipped", "Getippt")}: ${fbq ? `${cur.h}:${cur.a}` : h((m0.o.find(o => o.p === choice) || {}).l || "")}`, 2200); if (navigator.vibrate) try { navigator.vibrate([20, 40, 20]); } catch(_) {} this.refresh(); } };
+        if (n){ toast(`✅ ${T("Tipped", "Getippt")}: ${fbq ? `${cur.h}:${cur.a}` : h((m0.o.find(o => o.p === choice) || {}).l || "")}`, 2200); if (navigator.vibrate) try { navigator.vibrate([20, 40, 20]); } catch(_) {} this.refresh();
+          /* on to the next open game of the same day or matchday, until the sheet is closed */
+          const nx = this.nextOpen(e); if (nx && Math.abs(Date.parse(nx.start_at) - Date.parse(e.start_at)) < 4 * 864e5) setTimeout(() => { if (App.route === "tipp" && !document.querySelector(".dsheet")) this.quick(nx.id, (n2 || 0) + 1); }, 450); } };
       info();
     },
     /* numbers spin and slow down, then stop on the result */
@@ -500,6 +505,7 @@
 .tp-kr.f .nm{flex:none}.tp-kr .w{flex:1;font:900 15px var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-kr small{color:var(--muted);font-weight:700}
 .tp-kr.done{background:color-mix(in srgb,var(--go) 16%,var(--panel-2))}.tp-kr.done .d,.tp-kr.done .w{animation:tpBump .3s cubic-bezier(.3,1.6,.5,1)}
 .tp-ls{display:inline-block;font:900 11px var(--body);padding:2px 7px;border-radius:7px;vertical-align:2px;background:var(--go);color:#fff;margin-right:2px}.tp-ls.ok{background:#d9a53a}.tp-ls.out{background:var(--panel-3);color:var(--muted)}
+.tp-qn{margin:8px 0 0;text-align:center;font:800 12px var(--body);color:var(--muted)}
 .th-home{padding:12px 14px!important;display:flex;flex-direction:column;gap:6px}.th-home[hidden]{display:none}.th-h{font:900 13px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .th-row{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:14px;border:0;background:var(--panel-2);color:var(--fg);text-align:left;cursor:pointer;font:inherit}.th-row:active{transform:scale(.98)}
 .th-t{flex:none;font:800 12px var(--body);color:var(--muted);min-width:64px}.th-row.live .th-t{color:#e5484d}
