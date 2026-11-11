@@ -144,6 +144,12 @@ const PARTS = {
     ok(/gekocht/.test(n1.amount) && n1.ref === "pasta" && n1.st === "cooked", "die Position merkt sich „250 g gekocht“", JSON.stringify(n1));
     await closeSheets(a); await closeSheets(b);
     const m3 = await say(a, "tester", "100 g Nudeln trocken"); ok(m3.items[0].kcal === 359 && /trocken/.test(m3.items[0].amount), "„100 g Nudeln trocken“ = 359 kcal (Trockengewicht)", JSON.stringify(m3.items[0])); await closeSheets(a);
+    /* a named product: exactly that product from Open Food Facts, not the value of the category */
+    const m5 = await say(a, "tester", "250 g Barilla Spaghetti gekocht"), bs = m5.items[0];
+    ok(/Spaghetti No\. 5 \(Barilla\)/.test(bs.name) && bs.code === "4000000000093", "Marke genannt („Barilla Spaghetti“): genau dieses Produkt aus Open Food Facts wird genommen", JSON.stringify([bs.name, bs.code]));
+    ok(bs.kcal === 390 && bs.carbs === 77.4 && bs.per.ck === "cooked" && /250 g gekocht/.test(bs.amount), "mit den Werten der Packung (71,2 g KH trocken), umgerechnet auf 250 g gekocht", JSON.stringify([bs.kcal, bs.carbs, bs.amount, bs.per.k])); await closeSheets(a);
+    const m6 = await say(a, "tester", "250 g Dingsbums Spaghetti gekocht");
+    ok(m6.items[0].kcal === 390 && !m6.items[0].code && /Dingsbums Spaghetti.*nicht in Open Food Facts gefunden/.test(m6.note || ""), "unbekanntes Produkt: der allgemeine Wert wird genommen und das steht im Eintrag", JSON.stringify([m6.items[0].name, m6.items[0].kcal, m6.note])); await closeSheets(a);
     await clean([a, b], "Sprechen mit Tabelle");
 
     /* scan the pack over what was said: 250 g cooked stay 250 g cooked, with the pack's values */

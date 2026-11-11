@@ -17,8 +17,9 @@ const SCHEMA = {
   properties: {
     title: {type: "string", description: "Kurzer Name der Mahlzeit, max. 4 Wörter"},
     emoji: {type: "string", description: "Ein passendes Essens-Emoji"},
-    items: {type: "array", items: {type: "object", additionalProperties: false, required: ["name", "food", "amount", "grams", "ref", "state", "kcal", "carbs", "protein", "fat", "fiber", "sugar", "satfat", "quality"],
+    items: {type: "array", items: {type: "object", additionalProperties: false, required: ["name", "food", "product", "amount", "grams", "ref", "state", "kcal", "carbs", "protein", "fat", "fiber", "sugar", "satfat", "quality"],
       properties: {name: {type: "string"}, food: {type: "string", description: "Name aus der Liste BEKANNT, wenn die Zutat genau dieses Lebensmittel ist, exakt so geschrieben; sonst leer"},
+        product: {type: "string", description: "Nur wenn der Nutzer ein bestimmtes Produkt oder eine Marke nennt: Marke und Produktname, so wie man es im Supermarkt sucht (z. B. 'Barilla Pesto Genovese', 'Nutella', 'Ja Vollmilch 3,5'). Nennt er nur das Lebensmittel (Nudeln, Pesto, Milch): 'none'"},
         amount: {type: "string", description: "Menge, z. B. '2 Scheiben (80 g)'"},
         grams: {type: "number", description: "Gewicht dieser Zutat in Gramm (bei Getränken ml), so wie gegessen. Immer angeben, auch geschätzt."},
         /* no empty string in an enum: Gemini refuses the whole request then ("enum[0]: cannot be empty"), so "none" stands for "not from the table" */
@@ -40,6 +41,7 @@ Die Kalorien sind das Wichtigste: realistisch, nicht zu niedrig. Getränke mit K
 Die Summenfelder müssen der Summe der Zutaten entsprechen. Wenn nichts Essbares erkennbar ist, gib leere items und 0 zurück und erkläre es in note.
 TABELLE: Für diese Lebensmittel rechnet die App die Nährwerte selbst aus einer festen Tabelle, damit dasselbe Essen bei jedem dieselben Werte hat. Ist eine Zutat genau eines davon (auch als Teil eines Gerichts, z. B. die Nudeln in „Nudeln mit Pesto“), setze ref auf die Kennung und grams auf das Gewicht; zerlege Gerichte dafür in ihre Zutaten. Nimm ref nur, wenn es wirklich dieses Lebensmittel ist (Nudelsalat, Reiswaffeln, Milchreis, Käsekuchen sind es nicht): dann ref = "none".
 ${FOODS.list.map(f => f.id + " = " + f.n + (f.cf ? " (zwei Zustände: " + f.st[0] + " / " + f.st[1] + ")" : "")).join("; ")}
+PRODUKT: Nennt der Nutzer eine Marke oder ein bestimmtes Produkt („Barilla Spaghetti“, „Pesto von Barilla“, „Nutella“, „Skyr von Arla“), schreib Marke und Produktname in product. Die App sucht dann genau dieses Produkt in Open Food Facts und nimmt dessen Werte statt der Tabelle. ref und state trotzdem setzen, wenn es zur TABELLE gehört. Erfinde keine Marke, die nicht gesagt wurde: dann product = "none".
 Zustand: Nudeln, Reis, Couscous, Bulgur, Quinoa, Linsen, Kichererbsen und Bohnen werden gekocht schwerer, Fleisch wird gebraten leichter. Sagt der Nutzer „gekocht“, „gebraten“, „auf dem Teller“ oder nichts dazu, ist grams das fertige Gewicht: state = "cooked". Sagt er „trocken“, „roh“, „ungekocht“ oder nennt er das Gewicht aus der Packung, ist state = "dry". Rechne das Gewicht nie selbst um.
 DATENBANK: Zusätzlich gibt es eine geprüfte Datenbank mit festen Werten pro 100 g. Ihre Namen stehen unter BEKANNT. Ist eine Zutat, die nicht in der TABELLE steht, genau eines dieser Lebensmittel (auch anders geschrieben, in der Mehrzahl oder mit Marke), setze food exakt auf diesen Namen und grams auf das echte Gewicht: die App nimmt dann die geprüften Werte. Passt keiner wirklich, bleibt food leer; erfinde keine Namen und nimm nichts nur Ähnliches.
 Antworte nur mit JSON nach diesem Schema: ${JSON.stringify(SCHEMA)}`;
@@ -160,9 +162,39 @@ async function knownFoods(req){
     if (r.ok){ const j = await r.json(); if (Array.isArray(j)) KNOWN = {at: Date.now(), names: j.map(x => String(x.name || "")).filter(Boolean)}; } } catch(e) {}
   return KNOWN.names;
 }
+/* A product that was named ("Barilla Spaghetti", "Nutella"): exactly that product is looked up in Open Food Facts and its own values
+   per 100 g are taken, not the median of the category. All words that were said have to be in the product's name or brand; of those
+   the ones sold in Germany come first, then Open Food Facts' own order. A dry pack of a food that is weighed cooked (noodles, rice …)
+   is converted with the table's cooking factor. Not found: the table's value stays and the note says so. */
+const pnorm = t => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ß/g, "ss");
+async function offProduct(name){
+  const words = pnorm(name).split(/[^a-z0-9]+/).filter(w => w.length >= 3); if (!words.length) return null;
+  const url = "https://search.openfoodfacts.org/search?" + new URLSearchParams({q: name, page_size: "30", langs: "de,en", fields: "code,product_name,product_name_de,generic_name,brands,nutriments,countries_tags"});
+  const r = await fetch(url, Object.assign({headers: {"User-Agent": "ChessNat/1.0 (chess-nat.vercel.app)"}}, soon(5000))); if (!r.ok) return null; const j = await r.json();
+  const L = (j.hits || []).map((p, ix) => { const n = p.nutriments || {}, brand = (Array.isArray(p.brands) ? p.brands[0] : String(p.brands || "").split(",")[0]) || "";
+    return {ix, code: String(p.code || ""), name: String(p.product_name_de || p.product_name || p.generic_name || "").trim().slice(0, 80), brand: String(brand).trim().slice(0, 40),
+      k: Number(n["energy-kcal_100g"]) || (Number(n["energy_100g"]) ? Number(n["energy_100g"]) / 4.184 : 0), c: Number(n.carbohydrates_100g), p: Number(n.proteins_100g), f: Number(n.fat_100g),
+      fi: Number(n.fiber_100g) || 0, su: Number(n.sugars_100g) || 0, sf: Number(n["saturated-fat_100g"]) || 0, sa: Number(n.salt_100g) || 0,
+      de: Array.isArray(p.countries_tags) && (p.countries_tags.includes("en:germany") || p.countries_tags.includes("en:austria")) ? 1 : 0}; })
+    .filter(x => x.name && x.k > 0 && x.k <= 950 && [x.c, x.p, x.f].every(v => isFinite(v) && v >= 0 && v <= 100)).filter(x => { const t = pnorm(x.name + " " + x.brand); return words.every(w => t.includes(w)); });
+  L.sort((a, b) => b.de - a.de || a.ix - b.ix); return L[0] || null;
+}
+async function fromProducts(items, raw){
+  const miss = [];
+  await Promise.all(items.map(async (it, ix) => { const i = raw[ix] || {}, pn = String(i.product || "").trim(), g = Number(i.grams); if (!pn || /^(none|null|-)$/i.test(pn) || pn.length > 80 || !(g > 0 && g <= 5000)) return;
+    const P = await offProduct(pn).catch(() => null); if (!P){ miss.push(pn); return; }
+    /* a pack of something that is cooked states the dry weight: its kcal sit in the dry range of that food */
+    const F = FOODS.byId && FOODS.byId[it.ref], lo = F && (F.kr ? F.kr[0] : F.k * .75), hi = F && (F.kr ? F.kr[1] : F.k * 1.25), dryPack = !!(F && F.cf && P.k >= lo && P.k <= hi), cooked = dryPack && i.state !== "dry", d = cooked ? F.cf : 1, f = g / 100 / d;
+    const st = dryPack ? F.st[cooked ? 1 : 0] : "";
+    Object.assign(it, {name: (P.name + (P.brand ? " (" + P.brand + ")" : "")).slice(0, 80), amount: Math.round(g) + " g" + (st ? " " + st : ""), kcal: Math.round(P.k * f), carbs: r1(P.c * f), protein: r1(P.p * f), fat: r1(P.f * f),
+      h: {fi: r1(P.fi * f), su: r1(P.su * f), sf: r1(P.sf * f), sa: Math.round(P.sa * f * 100) / 100, q: it.h.q}, code: P.code || null, g: Math.round(g * 10) / 10, st: dryPack ? (cooked ? "cooked" : "dry") : undefined,
+      /* the same shape the phone gives a scanned product, so the amount can be changed later with these values per 100 g */
+      per: Object.assign({n: P.name, b: P.brand, k: P.k / d, c: P.c / d, pr: P.p / d, f: P.f / d, s: 0, pk: 0, img: null, ss: "", fi: P.fi / d, su: P.su / d, sf: P.sf / d, sa: P.sa / d, ns: "", hd: 1}, dryPack ? {ck: cooked ? "cooked" : "dry", cf: F.cf} : {})}); }));
+  return miss;
+}
 async function fromChecked(req, items, raw){
   const todo = [];
-  items.forEach((it, ix) => { const i = raw[ix] || {}, g = Number(i.grams), name = String(i.food || "").trim(); if (it.ref || !(g > 0 && g <= 5000) || name.length < 2 || name.length > 60) return; todo.push({ix, g, name}); });
+  items.forEach((it, ix) => { const i = raw[ix] || {}, g = Number(i.grams), name = String(i.food || "").trim(); if (it.ref || it.code || !(g > 0 && g <= 5000) || name.length < 2 || name.length > 60) return; todo.push({ix, g, name}); });
   if (!todo.length) return;
   try { const r = await fetch(SUPABASE_URL + "/rest/v1/rpc/kcal_foods_lookup", Object.assign({method: "POST", headers: sbHead(req), body: JSON.stringify({names: todo.map(t => t.name)})}, soon(4000)));
     if (!r.ok){ console.log("kcal foods: lookup failed", r.status, (await r.text().catch(() => "")).slice(0, 200)); return; }
@@ -232,13 +264,14 @@ module.exports = async (req, res) => {
     const it = {name: String(i.name || "").slice(0, 80), amount: String(i.amount || "").slice(0, 60), kcal: Math.round(Number(i.kcal) || 0), carbs: r1(i.carbs), protein: r1(i.protein), fat: r1(i.fat),
       h: {fi: r1(i.fiber), su: r1(i.sugar), sf: r1(i.satfat), q: Math.max(1, Math.min(5, Math.round(Number(i.quality) || 3)))}};
     return fromTable(it, i); });
+  const pmiss = await fromProducts(items, (Array.isArray(est.items) ? est.items : []).slice(0, 30)).catch(() => []);
   await fromChecked(req, items, (Array.isArray(est.items) ? est.items : []).slice(0, 30));
   const sum = k => items.reduce((s, i) => s + (Number(i[k]) || 0), 0);
   const meal = {
     title: String(est.title || "Mahlzeit").slice(0, 60), emoji: String(est.emoji || "🍽️").slice(0, 8), items,
     kcal: Math.round(items.length ? sum("kcal") : Number(est.kcal) || 0), carbs: r1(items.length ? sum("carbs") : est.carbs),
     protein: r1(items.length ? sum("protein") : est.protein), fat: r1(items.length ? sum("fat") : est.fat),
-    minutesAgo: ago, note: String(est.note || "").slice(0, 300), model: est.model
+    minutesAgo: ago, note: ((pmiss.length ? "„" + pmiss.join("“, „") + "“ nicht in Open Food Facts gefunden, dafür der allgemeine Wert. " : "") + String(est.note || "")).slice(0, 300), model: est.model
   };
   return res.status(200).json({meal});
 };
