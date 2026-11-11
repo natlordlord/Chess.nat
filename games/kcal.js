@@ -147,7 +147,8 @@
 
   /* ---------- home card ---------- */
   let homeEl = null;
-  function refreshHome(){ if (homeEl && homeEl.isConnected) fillHome(homeEl); if (typeof App !== "undefined" && App.route === "kcal" && App.view && App.view.draw) App.view.draw(); }
+  const onPage = () => typeof App !== "undefined" && (App.route === "kcal" || (App.route === "home" && Views.home && Views.home.k));
+  function refreshHome(){ if (homeEl && homeEl.isConnected) fillHome(homeEl); if (onPage()) Views.kcal.draw(); }
   function flameChip(n, lit, ice){ return ice == null ? `<span class="kc-fl ${lit ? "lit" : n ? "" : "off"}" title="${n} Tage Kalorienziel in Folge">🔥<b>${n}</b></span>`
     : `<button class="kc-fl big ${lit ? "lit" : n ? "" : "off"}" data-kc-fl aria-label="${n} Tage in Folge">🔥<b>${n}</b>${ice ? `<i class="kc-ice">${"🧊".repeat(Math.min(2, ice))}</i>` : ""}</button>`; }
   const myIce = () => (K.prof && K.prof.ice) || 0;
@@ -281,26 +282,26 @@
       try { await K.buyIce(); sh.close(); haptic([15, 30, 15]); confetti(false); say("🧊 Streak on Ice gekauft"); } catch(e) { if (typeof natEarn === "function") natEarn(ICE_PRICE, true); bb.disabled = false; say("Ging nicht: " + (e.message || e)); } };
     return sh; }
   /* ---------- the day at a glance: kcal, then carbs, protein and fat against their targets ---------- */
-  function sumHTML(t, go){ const T = K.targets(), eaten = K.dayKcal(t), lit = eaten >= T.kcal, pc = Math.round(Math.min(1, eaten / T.kcal) * 100);
-    const row = (k, l) => { const v = K.daySum(t, k), g = T[k]; return `<div class="kc-mc ${v >= g ? "ok" : ""}"><span>${l}</span><b>${fmt(v)}<small> / ${fmt(g)} g</small></b><i><u style="width:${Math.round(Math.min(1, v / g) * 100)}%"></u></i></div>`; };
-    return `<button class="kc-num" ${go ? "data-kc-go" : ""}><b>${fmt(eaten)}</b><span>/ ${fmt(T.kcal)} kcal</span><em class="${lit ? "ok" : ""}">${lit ? "🔥 geschafft" : pc + " %"}</em></button>
-      <div class="kc-bar ${lit ? "done" : ""}"><i style="width:${pc}%"></i></div>
-      <div class="kc-mac">${row("carbs", "KH")}${row("protein", "Protein")}${row("fat", "Fett")}</div>`; }
+  function sumHTML(t, go){ const T = K.targets(), eaten = K.dayKcal(t), carbs = K.daySum(t, "carbs"), lit = eaten >= T.kcal, pk = Math.round(Math.min(1, eaten / T.kcal) * 100), pc = Math.round(Math.min(1, carbs / T.carbs) * 100);
+    const small = (k, l) => { const v = K.daySum(t, k), g = T[k]; return `<div class="kc-mc ${v >= g ? "ok" : ""}"><span>${l}</span><b>${fmt(v)}<small> / ${fmt(g)} g</small></b><i><u style="width:${Math.round(Math.min(1, v / g) * 100)}%"></u></i></div>`; };
+    return `<div class="kc-two" ${go ? "data-kc-go" : ""}><div class="kc-b2 ${lit ? "ok" : ""}"><small>Kalorien</small><b>${fmt(eaten)}</b><span>von ${fmt(T.kcal)} kcal · ${lit ? "🔥 geschafft" : pk + " %"}</span><i><u style="width:${pk}%"></u></i></div>
+        <div class="kc-b2 kh ${carbs >= T.carbs ? "ok" : ""}"><small>Kohlenhydrate</small><b>${fmt(carbs)}<em> g</em></b><span>von ${fmt(T.carbs)} g · ${pc} %</span><i><u style="width:${pc}%"></u></i></div></div>
+      <div class="kc-mac two">${small("protein", "Protein")}${small("fat", "Fett")}</div>`; }
   /* what is eaten again and again: one tap adds it once more */
-  function frequent(){ const since = addDays(today(), -45), G = new Map();
+  function frequent(){ const since = addDays(today(), -60), G = new Map(), hr = new Date().getHours() + new Date().getMinutes() / 60;
     K.meals.forEach(m => { if (m.day < since) return; const it = Array.isArray(m.items) && m.items.length === 1 ? m.items[0] : null, key = m.code || (it && it.code) || String(m.title || "").toLowerCase().trim(); if (!key) return;
-      const g = G.get(key) || {n: 0, m, ts: 0}; g.n++; const ts = Date.parse(m.ts) || 0; if (ts > g.ts){ g.ts = ts; g.m = m; } G.set(key, g); });
-    return [...G.values()].filter(g => g.n >= 2).sort((a, b) => b.n - a.n || b.ts - a.ts).slice(0, 4).map(g => g.m); }
-  function quickHTML(){ const l = frequent(); if (!l.length) return ""; return `<div class="kc-quick"><div class="kc-qh">Oft gegessen</div>${l.map(m => `<button class="kc-q" data-quick="${h(m.id)}"><span class="kc-qe">${h(m.emoji || "🍽️")}</span><span class="kc-qn">${h(m.title)}<small>${fmt(m.kcal)} kcal${m.grams ? " · " + m.grams + " g" : ""}</small></span><em>${svg(IC.plus, 20)}</em></button>`).join("")}</div>`; }
+      const g = G.get(key) || {n: 0, m, ts: 0, near: 0}; g.n++; const ts = Date.parse(m.ts) || 0, d = new Date(ts), mh = d.getHours() + d.getMinutes() / 60; if (Math.abs(mh - hr) <= 2) g.near++; if (ts > g.ts){ g.ts = ts; g.m = m; } G.set(key, g); });
+    return [...G.values()].map(g => Object.assign(g, {sc: g.n * 3 + g.near * 2 + (Date.now() - g.ts < 3 * 864e5 ? 2 : 0)})).sort((a, b) => b.sc - a.sc || b.ts - a.ts).slice(0, 5).map(g => g.m); }
+  function quickHTML(){ const l = frequent(); if (!l.length) return ""; return `<div class="kc-quick"><div class="kc-qh">Vorschläge</div>${l.map(m => `<button class="kc-q" data-quick="${h(m.id)}"><span class="kc-qe">${h(m.emoji || "🍽️")}</span><span class="kc-qn">${h(m.title)}<small>${fmt(m.kcal)} kcal · ${f1(m.carbs)} g KH${m.grams ? " · " + m.grams + " g" : ""}</small></span><em>${svg(IC.plus, 20)}</em></button>`).join("")}</div>`; }
   async function quickAdd(id, btn){ const m = K.meals.find(x => x.id === id); if (!m || (btn && btn.disabled)) return; if (btn){ btn.disabled = true; btn.classList.add("ok"); } haptic(12);
-    try { await K.add({source: "quick", title: m.title, emoji: m.emoji, kcal: m.kcal, carbs: m.carbs, protein: m.protein, fat: m.fat, grams: m.grams, code: m.code, items: m.items, note: m.note}); say(`${m.emoji || "🍽️"} ${m.title} eingetragen`); }
+    try { await K.add({source: "quick", title: m.title, emoji: m.emoji, kcal: m.kcal, carbs: m.carbs, protein: m.protein, fat: m.fat, grams: m.grams, code: m.code, items: m.items, note: m.note}); say(`${m.emoji || "🍽️"} ${m.title} · ${fmt(m.kcal)} kcal · ${f1(m.carbs)} g KH`); }
     catch(e) { if (btn){ btn.disabled = false; btn.classList.remove("ok"); } say("Ging nicht: " + (e.message || e)); } }
   const setupCard = () => K.on() && !(K.body && K.body.setup_at) ? `<button class="kc-setup-b" data-kc-setup><span>🎯</span><b>Ziele einrichten<small>Gewicht, Größe, Ziel: dein Tagesbedarf und deine Makros</small></b></button>` : "";
   /* the buttons of a summary block (home card and the page) */
   function wireDay(el){
     el.querySelectorAll("[data-kc-go]").forEach(b => b.onclick = () => App.go("kcal"));
     const w = (s2, f) => el.querySelectorAll(s2).forEach(b => b.onclick = f);
-    w("[data-kc-say]", () => Voice2.open()); w("[data-kc-scan]", () => KCScan.open()); w("[data-kc-find]", () => Search.open()); w("[data-kc-fl]", () => iceSheet()); w("[data-kc-setup]", () => Setup.open());
+    w("[data-kc-say]", () => Voice2.open()); w("[data-kc-scan]", () => KCScan.open()); w("[data-kc-find]", e => Search.open({}, e.currentTarget)); w("[data-kc-fl]", () => iceSheet()); w("[data-kc-setup]", () => Setup.open());
     el.querySelectorAll("[data-quick]").forEach(b => b.onclick = () => quickAdd(b.dataset.quick, b));
   }
 
@@ -370,30 +371,67 @@
   const RK = "chessnat-kcal-recent";
   const recents = () => { try { return JSON.parse(localStorage.getItem(RK) || "[]"); } catch(e) { return []; } };
   function recent(P){ try { const key = P.code || P.name, l = recents().filter(x => (x.code || x.name) !== key); l.unshift({code: P.code || null, name: P.name, brand: P.brand || "", img: P.img || null, k: P.k, c: P.c, pr: P.pr, f: P.f, serving: P.serving || 0, pack: P.pack || 0}); localStorage.setItem(RK, JSON.stringify(l.slice(0, 12))); } catch(e) {} }
+  /* the search fills the screen: the field glides up from where it was tapped, the keyboard is already open,
+     results come while typing (kcal and carbs per 100 g); tapping one opens how much right there, one more tap adds it */
   const Search = {
-    open(opt = {}){
+    open(opt = {}, from){
       if (!meId()) return say("Bitte erst anmelden");
-      const sh = detailSheet(`<div class="kc-srch" data-notr><h3>${h(opt.title || "Lebensmittel suchen")}</h3><div class="kc-sq">${svg(IC.search, 18)}<input id="kcq" type="search" enterkeyhint="search" placeholder="z. B. Nutella, Toast, Honey Nut Flakes" autocomplete="off" value="${h(opt.q || "")}"></div>
-        <div class="kc-sr" id="kcsr"></div><button class="btn ghost kc-man-b" id="kcsm">${svg(IC.plus, 16)} Selbst eintragen</button></div>`);
-      const el = sh.el, q = el.querySelector("#kcq"), out = el.querySelector("#kcsr"); let seq = 0, tmr = 0, list = [], busy = 0;
-      /* the search doesn't know the portion size: the full product (by its barcode) does */
-      const pick = async (P, b) => { if (busy) return; busy = 1; haptic(10); if (b) b.classList.add("load");
-        if (P.code && !P.serving){ const full = await Promise.race([offGet(P.code, 4000), new Promise(r => setTimeout(r, 4200))]); if (full){ const F = prodOf(P.code, full); P = Object.assign({}, P, {serving: F.serving || P.serving, pack: F.pack || P.pack, img: P.img || F.img}); } }
-        sh.close(); if (opt.pick) opt.pick(P); else addProduct(P, "search"); };
-      const row = (P, i) => `<button class="kc-sres" data-i="${i}">${P.img ? `<img src="${h(P.img)}" alt="" loading="lazy">` : `<span class="kc-sph">📦</span>`}<span class="kc-sn">${h(P.name)}<small>${h(P.brand || "")}${P.serving ? `${P.brand ? " · " : ""}Portion ${P.serving} g` : ""}</small></span><b>${fmt(P.k)}<small>kcal/100 g</small></b></button>`;
-      const draw = (l, head) => { list = l; out.innerHTML = (head ? `<div class="kc-sh muted">${head}</div>` : "") + l.map(row).join(""); out.querySelectorAll("[data-i]").forEach(b => b.onclick = () => pick(list[+b.dataset.i], b)); };
-      const empty = () => { const r = recents(); if (r.length) draw(r, "Zuletzt"); else out.innerHTML = `<p class="muted kc-sh">Tipp den Namen ein. Die Werte kommen von Open Food Facts.</p>`; };
+      const ov = document.createElement("div"); ov.className = "kc-sov"; ov.setAttribute("data-notr", "");
+      ov.innerHTML = `<div class="kc-sovt"><div class="kc-sq">${svg(IC.search, 18)}<input id="kcq" type="search" enterkeyhint="search" placeholder="${h(opt.title || "Lebensmittel suchen …")}" autocomplete="off" autocorrect="off" value="${h(opt.q || "")}"></div><button class="kc-sx" id="kcsx">Abbrechen</button></div>
+        <div class="kc-sovb" id="kcsovb"><div class="kc-sr" id="kcsr"></div><button class="btn ghost kc-man-b" id="kcsm">${svg(IC.plus, 16)} Selbst eintragen</button></div>`;
+      document.body.appendChild(ov); document.documentElement.classList.add("kc-sopen");
+      const q = ov.querySelector("#kcq"), out = ov.querySelector("#kcsr"), body = ov.querySelector("#kcsovb"); let seq = 0, tmr = 0, list = [], busy = 0, closed = false;
+      /* the keyboard opens in the same tap (iPhone only allows that), then the field glides from where the bar was to the top */
+      if (!opt.q){ try { q.focus({preventScroll: true}); } catch(e) {} }
+      if (from && from.getBoundingClientRect && ov.animate){ const r = from.getBoundingClientRect(), sq = ov.querySelector(".kc-sq"), r2 = sq.getBoundingClientRect();
+        try { sq.animate([{transform: `translate(${r.left - r2.left}px,${r.top - r2.top}px)`, width: r.width + "px"}, {transform: "none", width: r2.width + "px"}], {duration: 280, easing: "cubic-bezier(.2,.85,.25,1)"});
+          ov.animate([{backgroundColor: "rgba(20,19,17,0)"}, {backgroundColor: "rgba(20,19,17,1)"}], {duration: 220, easing: "ease-out"}); body.animate([{opacity: 0, transform: "translateY(16px)"}, {opacity: 1, transform: "none"}], {duration: 300, delay: 60, easing: "ease-out", fill: "backwards"}); } catch(e) {} }
+      /* always exactly the visible part of the screen, the keyboard never covers a result */
+      const vv = window.visualViewport, fit = () => { if (!vv || closed) return; ov.style.height = vv.height + "px"; ov.style.transform = `translateY(${vv.offsetTop}px)`; };
+      if (vv){ vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); } fit();
+      const close = () => { if (closed) return; closed = true; if (vv){ vv.removeEventListener("resize", fit); vv.removeEventListener("scroll", fit); } try { q.blur(); } catch(e) {} document.documentElement.classList.remove("kc-sopen");
+        if (ov.animate){ const an = ov.animate([{opacity: 1}, {opacity: 0}], {duration: 160, easing: "ease-in"}); an.onfinish = () => ov.remove(); } else ov.remove(); };
+      ov.querySelector("#kcsx").onclick = () => { haptic(6); close(); };
+      ov.querySelector("#kcsm").onclick = () => { close(); (opt.manual || manual)(q.value.trim()); };
+      const per = P => `${fmt(P.k)} kcal · ${f1(P.c)} g KH`;
+      const row = (P, i) => `<button class="kc-sres" data-i="${i}">${P.img ? `<img src="${h(P.img)}" alt="" loading="lazy">` : `<span class="kc-sph">📦</span>`}<span class="kc-sn">${h(P.name)}<small>${h(P.brand || "")}${P.serving ? `${P.brand ? " · " : ""}Portion ${P.serving} g` : ""}</small></span><b>${fmt(P.k)}<small>kcal</small><small class="kh">${f1(P.c)} g KH</small></b></button>`;
+      const draw = (l, head) => { list = l; out.innerHTML = (head ? `<div class="kc-sh muted">${head} <span>pro 100 g</span></div>` : `<div class="kc-sh muted">pro 100 g</div>`) + l.map(row).join(""); out.querySelectorAll("[data-i]").forEach(b => b.onclick = () => pick(list[+b.dataset.i], b)); };
+      const empty = () => { const r = recents(); if (r.length) draw(r, "Zuletzt"); else out.innerHTML = `<p class="muted kc-sh">Tipp den Namen ein, z. B. Eier, Toast, Nutella.</p>`; };
       const go = async () => { const v = q.value.trim(), my = ++seq; if (v.length < 2) return empty(); out.classList.add("busy");
         try { const r = await fetch("/api/food?q=" + encodeURIComponent(v)), j = await r.json().catch(() => ({})); if (my !== seq) return; if (!r.ok || !Array.isArray(j.items)) throw new Error(j.error || "Suche gerade nicht erreichbar");
           if (!j.items.length) out.innerHTML = `<p class="muted kc-sh">Nichts gefunden. Anders schreiben oder selbst eintragen.</p>`; else draw(j.items); }
         catch(e) { if (my === seq) out.innerHTML = `<p class="muted kc-sh">⚠️ ${h(e.message || "Keine Verbindung")}</p>`; }
         finally { if (my === seq) out.classList.remove("busy"); } };
-      q.oninput = () => { clearTimeout(tmr); tmr = setTimeout(go, 380); };
+      q.oninput = () => { clearTimeout(tmr); tmr = setTimeout(go, 320); };
       q.onkeydown = e => { if (e.key === "Enter"){ e.preventDefault(); clearTimeout(tmr); go(); q.blur(); } };
-      el.querySelector("#kcsm").onclick = () => { sh.close(); (opt.manual || manual)(); };
-      /* the keyboard opens at once: focus while the tap is still going on (iPhone only opens it then) */
-      if (q.value.trim().length >= 2) go(); else empty(); if (!opt.q){ try { q.focus({preventScroll: true}); } catch(e) {} setTimeout(() => { if (document.activeElement !== q) q.focus(); }, 260); }
-      return sh;
+      /* tapped a product: how much, right under it (the portion size comes from the product itself) */
+      const pick = async (P, b) => { if (busy) return; haptic(10);
+        if (b.classList.contains("open")){ b.classList.remove("open"); const nx = b.nextElementSibling; if (nx && nx.classList.contains("kc-sadd")) nx.remove(); return; }
+        busy = 1; b.classList.add("load");
+        if (P.code && !P.serving){ const full = await Promise.race([offGet(P.code, 3000), new Promise(r => setTimeout(r, 3200))]); if (full){ const F = prodOf(P.code, full); P = Object.assign({}, P, {serving: F.serving || P.serving, pack: F.pack || P.pack, img: P.img || F.img}); } }
+        busy = 0; b.classList.remove("load"); if (closed) return;
+        if (opt.pick){ close(); opt.pick(P); return; }
+        out.querySelectorAll(".kc-sres.open").forEach(x => { x.classList.remove("open"); const nx = x.nextElementSibling; if (nx && nx.classList.contains("kc-sadd")) nx.remove(); });
+        try { q.blur(); } catch(e) {} b.classList.add("open");
+        const s2 = P.serving; let g = s2 || 100;
+        const chips = s2 ? [[s2 / 2, "½ Portion"], [s2, `1 Portion · ${s2} g`], [s2 * 2, "2 Portionen"], [s2 * 3, "3"]] : [[50, "50 g"], [100, "100 g"], [150, "150 g"], [200, "200 g"], [250, "250 g"]];
+        const pn = document.createElement("div"); pn.className = "kc-sadd";
+        pn.innerHTML = `<div class="kc-chips">${chips.map(([v, l]) => `<button class="chip" data-g="${v}">${l}</button>`).join("")}</div>
+          <div class="kc-srow"><div class="kc-gram"><button class="btn" data-d="-1">−</button><label><input inputmode="decimal" autocomplete="off" enterkeyhint="done"> g</label><button class="btn" data-d="1">+</button></div></div>
+          <div class="kc-sk" id="kcsk"></div><button class="btn go big" data-add>Hinzufügen</button>`;
+        b.after(pn); const gi = pn.querySelector("input");
+        const show = from2 => { const f = g / 100; if (from2 !== "g") gi.value = nf(g, g < 10 ? 1 : 0); pn.querySelector("#kcsk").innerHTML = `<b>${fmt(P.k * f)}</b> kcal · <b>${f1(P.c * f)}</b> g KH <small>· ${f1(P.pr * f)} g Protein · ${f1(P.f * f)} g Fett</small>`;
+          pn.querySelectorAll("[data-g]").forEach(c => c.classList.toggle("on", Math.abs(+c.dataset.g - g) < .05)); };
+        const setG = (v, from2) => { g = Math.max(.5, Math.min(5000, Math.round(v * 10) / 10)); show(from2); };
+        show(); field(gi, v => { if (v > 0) setG(v, "g"); }); gi.addEventListener("blur", () => show());
+        pn.querySelectorAll("[data-g]").forEach(c => c.onclick = () => { haptic(6); setG(+c.dataset.g); });
+        pn.querySelectorAll("[data-d]").forEach(x => x.onclick = () => { const st = g >= 50 ? 10 : 5; setG(+x.dataset.d > 0 ? Math.floor(g / st + 1e-6) * st + st : g <= st ? Math.max(1, g - 1) : Math.ceil(g / st - 1e-6) * st - st); });
+        pn.querySelector("[data-add]").onclick = async e2 => { const ab = e2.currentTarget; if (ab.disabled) return; ab.disabled = true; recent(P); const it = itemOf(P, g);
+          try { const m = await K.add({source: "search", code: it.code, grams: Math.round(g), title: P.name.slice(0, 80), emoji: "📦", kcal: it.kcal, carbs: it.carbs, protein: it.protein, fat: it.fat, items: [it], note: "Nährwerte von Open Food Facts"});
+            haptic(15); close(); say(`✓ ${P.name.slice(0, 30)} · ${fmt(m.kcal)} kcal · ${f1(m.carbs)} g KH`); } catch(err) { ab.disabled = false; say("Ging nicht: " + (err.message || err)); } };
+        requestAnimationFrame(() => { try { pn.scrollIntoView({block: "nearest", behavior: "smooth"}); } catch(e) {} }); };
+      if (q.value.trim().length >= 2) go(); else empty();
+      return {close};
     }
   };
 
@@ -755,12 +793,15 @@
   };
 
   /* ---------- manual entry ---------- */
-  function manual(){
-    const sh = detailSheet(`<div class="kc-form" data-notr><h3>Selbst eintragen</h3><label>Was<input id="kcmt" maxlength="80" placeholder="z. B. Proteinshake"></label><label>Kalorien<input id="kcmk" inputmode="numeric" placeholder="kcal"></label><button class="btn go big" id="kcms">Eintragen</button></div>`);
-    try { sh.el.querySelector("#kcmt").focus({preventScroll: true}); } catch(e) {}
-    sh.el.querySelector("#kcms").onclick = async () => { const t = sh.el.querySelector("#kcmt").value.trim(), k = parseInt(sh.el.querySelector("#kcmk").value.replace(/\D/g, ""), 10);
-      if (!t || !(k >= 0)) return say("Name und Kalorien eintragen");
-      try { await K.add({source: "manual", title: t, emoji: "✍️", kcal: k}); sh.close(); say("Eingetragen"); } catch(e) { say("Ging nicht: " + (e.message || e)); } };
+  function manual(name){
+    const sh = detailSheet(`<div class="kc-form" data-notr><h3>Selbst eintragen</h3><label>Was<input id="kcmt" maxlength="80" placeholder="z. B. Proteinshake" value="${h(name || "")}"></label>
+      <div class="kc-nums">${[["kcal", "kcal"], ["carbs", "KH g"], ["protein", "Protein g"], ["fat", "Fett g"]].map(([k, l]) => `<label>${l}<input data-k="${k}" inputmode="decimal" placeholder="${k === "kcal" ? "0" : "–"}"></label>`).join("")}</div>
+      <button class="btn go big" id="kcms">Eintragen</button></div>`);
+    const el = sh.el, ins = el.querySelectorAll("[data-k]"); ins.forEach(i => field(i));
+    try { (name ? ins[0] : el.querySelector("#kcmt")).focus({preventScroll: true}); } catch(e) {}
+    el.querySelector("#kcms").onclick = async () => { const t = el.querySelector("#kcmt").value.trim(), v = {}; ins.forEach(i => { const n = num(i.value); v[i.dataset.k] = isFinite(n) && n >= 0 ? n : 0; });
+      if (!t || !(v.kcal > 0)) return say("Name und Kalorien eintragen");
+      try { await K.add({source: "manual", title: t, emoji: "✍️", kcal: Math.round(v.kcal), carbs: r1(v.carbs), protein: r1(v.protein), fat: r1(v.fat)}); sh.close(); say(`✍️ ${fmt(v.kcal)} kcal · ${f1(v.carbs)} g KH eingetragen`); } catch(e) { say("Ging nicht: " + (e.message || e)); } };
   }
 
   /* ---------- settings (Settings page and the page's gear) ---------- */
@@ -809,7 +850,7 @@
       K.loadFriends().then(() => { if (this.tab === "friends") this.draw(); }).catch(() => {});
     },
     draw(){
-      const main = this.main; if (!main || !main.isConnected || App.route !== "kcal") return;
+      const main = this.main; if (!main || !main.isConnected || !onPage()) return;
       if (!K.on()){
         main.innerHTML = `<div class="page kc-page" data-notr><h1 class="h-title">Kalorien</h1><div class="unit kc-intro"><div class="kc-celf">🔥</div><h2>Kalorien-Tracker</h2>
           <p class="muted">Sag einfach, was du gegessen hast, oder scann den Barcode. Die Kalorien landen automatisch beim richtigen Tag. Mit Freunden, die auch tracken, seht ihr euch gegenseitig und sammelt Flammen, wenn ihr euer Ziel schafft.</p>
@@ -827,7 +868,7 @@
       const fl = main.querySelector(".kc-top [data-kc-fl]"); if (fl) fl.onclick = () => iceSheet();
       main.querySelector("#kccook").onclick = () => Cook.open();
       /* the first visit with the tracker on: the goal questions, once */
-      if (K.loaded && !(K.body && K.body.setup_at) && !this.setupAsked && !document.querySelector(".kc-setup")){ this.setupAsked = 1; setTimeout(() => { if (App.route === "kcal" && !(K.body && K.body.setup_at)) Setup.open(() => this.draw()); }, 300); }
+      if (K.loaded && !(K.body && K.body.setup_at) && !this.setupAsked && !document.querySelector(".kc-setup")){ this.setupAsked = 1; setTimeout(() => { if (onPage() && !(K.body && K.body.setup_at)) Setup.open(() => this.draw()); }, 300); }
       else if (K.loaded) Weigh.check();
       const body = main.querySelector("#kcbody");
       if (this.tab === "today") this.today(body); else if (this.tab === "history") this.history(body); else if (this.tab === "stats") this.stats(body); else this.friendsTab(body);
@@ -854,6 +895,7 @@
       el.innerHTML = `<div class="row kc-rng">${[[7, "7 Tage"], [30, "30 Tage"]].map(([v, l]) => `<button class="chip ${n === v ? "on" : ""}" data-rng="${v}">${l}</button>`).join("")}<button class="chip" id="kcwrap">📋 Wochen-Rückblick</button></div>
         ${logged.length ? `<div class="kc-sts">${tile("kcal", "Kalorien", "kcal")}${tile("protein", "Protein", "g")}${tile("carbs", "KH", "g")}${tile("fat", "Fett", "g")}</div>
         <div class="unit kc-an"><h3>Kalorien <small>${hit} von ${logged.length} Tagen geschafft</small></h3>${bars("kcal", T.kcal, "#7FB24A")}</div>
+        <div class="unit kc-an"><h3>Kohlenhydrate <small>Ziel ${T.carbs} g</small></h3>${bars("carbs", T.carbs, "#E9A92B")}</div>
         <div class="unit kc-an"><h3>Protein <small>Ziel ${T.protein} g</small></h3>${bars("protein", T.protein, "#4FA3FF")}</div>
         <div class="unit kc-an"><h3>Aufteilung der Kalorien</h3><div class="kc-spl"><span>Du</span>${split(e, et)}</div><div class="kc-spl"><span>Ziel</span>${split({carbs: T.carbs * 4, protein: T.protein * 4, fat: T.fat * 9}, tt)}</div>
           <div class="kc-leg"><span class="c">KH ${Math.round(e.carbs / et * 100)} %</span><span class="p">Protein ${Math.round(e.protein / et * 100)} %</span><span class="f">Fett ${Math.round(e.fat / et * 100)} %</span></div></div>` : `<p class="muted kc-empty">In diesem Zeitraum ist noch nichts eingetragen.</p>`}
@@ -865,7 +907,10 @@
     dayBlock(k, own = true){
       const ms = own ? K.dayMeals(k) : [];
       if (!ms.length) return `<p class="muted kc-empty">${k === today() ? "Heute noch nichts eingetragen." : "Nichts eingetragen."}</p>`;
-      return `<div class="kc-list">${ms.map(m => `<button class="kc-meal" data-meal="${h(m.id)}"><span class="kc-tm">${hhmm(m.ts)}</span><span class="kc-em">${h(m.emoji || "🍽️")}</span><span class="kc-mn">${h(m.title)}<small>${f1(m.carbs)} g KH · ${f1(m.protein)} g Protein${m.source === "barcode" ? " · Barcode" : ""}</small></span><b>${fmt(m.kcal)}</b></button>`).join("")}</div>`;
+      const G = []; ms.forEach(m => { const g = G[G.length - 1], ts = Date.parse(m.ts) || 0; if (g && g.last - ts <= 15 * 60000){ g.ms.push(m); g.last = ts; } else G.push({ms: [m], last: ts}); });
+      const row = m => `<button class="kc-meal" data-meal="${h(m.id)}"><span class="kc-tm">${hhmm(m.ts)}</span><span class="kc-em">${h(m.emoji || "🍽️")}</span><span class="kc-mn">${h(m.title)}<small>${f1(m.protein)} g Protein${m.source === "barcode" ? " · Barcode" : ""}</small></span><span class="kc-mk2"><b>${fmt(m.kcal)}<small> kcal</small></b><em>${f1(m.carbs)} g KH</em></span></button>`;
+      const name = ts => { const d = new Date(ts), hr = d.getHours() + d.getMinutes() / 60; return hr >= 5 && hr < 10.75 ? "Frühstück" : hr >= 11 && hr < 14.75 ? "Mittagessen" : hr >= 17 && hr < 21.75 ? "Abendessen" : "Mahlzeit"; };
+      return `<div class="kc-list">${G.map(g => g.ms.length < 2 ? row(g.ms[0]) : `<div class="kc-grp"><div class="kc-gh"><span>${name(g.last)} · ${hhmm(g.last)}</span><b>${fmt(g.ms.reduce((a2, m) => a2 + (m.kcal || 0), 0))} kcal · ${f1(g.ms.reduce((a2, m) => a2 + (Number(m.carbs) || 0), 0))} g KH</b></div>${g.ms.slice().reverse().map(row).join("")}</div>`).join("")}</div>`;
     },
     wireMeals(el){ el.querySelectorAll("[data-meal]").forEach(b => b.onclick = () => { const m = K.meals.find(x => x.id === b.dataset.meal); if (m) mealSheet(m); }); },
     today(el){
@@ -873,11 +918,11 @@
       el.innerHTML = `<div class="unit kc-sum">${sumHTML(t, false)}
         <div class="kc-btns two"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 32)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 32)}<span>Barcode</span></button></div>
         <button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Lebensmittel suchen …</span></button>
-        ${setupCard()}${quickHTML()}
-        ${lit ? `<div class="kc-tip ok">🔥 Ziel geschafft!</div>` : `<div class="kc-tip">Noch <b>${fmt(miss)} kcal</b>. Zum Beispiel ${h(i.text)} (≈ ${fmt(i.kcal)} kcal)</div>`}
-        <button class="btn ghost kc-man-b" id="kcmanual">${svg(IC.plus, 16)} Selbst eintragen</button></div>
-        <div class="kc-day">Heute</div>${this.dayBlock(t)}`;
-      wireDay(el); el.querySelector("#kcmanual").onclick = manual;
+        ${setupCard()}${quickHTML()}</div>
+        <div class="kc-day"><span>Heute</span><b>${fmt(eaten)} kcal · ${fmt(K.daySum(t, "carbs"))} g KH</b></div>${this.dayBlock(t)}
+        ${lit ? `<div class="kc-tip ok kc-tipb">🔥 Ziel geschafft!</div>` : `<div class="kc-tip kc-tipb">Noch <b>${fmt(miss)} kcal</b>. Zum Beispiel ${h(i.text)} (≈ ${fmt(i.kcal)} kcal)</div>`}
+        <button class="btn ghost kc-man-b" id="kcmanual">${svg(IC.plus, 16)} Selbst eintragen</button>`;
+      wireDay(el); el.querySelector("#kcmanual").onclick = () => manual();
       this.wireMeals(el);
     },
     history(el){
@@ -929,7 +974,7 @@
   function realtime(){ const c = sb(); if (!c || !meId() || rt) return;
     rt = c.channel("kcal-" + meId()).on("postgres_changes", {event: "*", schema: "public", table: "kcal_meals"}, p => {
       const row = p.new && p.new.user_id ? p.new : p.old; if (!row || row.user_id === meId()) return;
-      if (typeof App !== "undefined" && App.route === "kcal" && Views.kcal.tab === "friends") K.loadFriends().then(() => Views.kcal.draw()).catch(() => {});
+      if (onPage() && Views.kcal.tab === "friends") K.loadFriends().then(() => Views.kcal.draw()).catch(() => {});
     }).subscribe(); }
   setTimeout(function wait(){ if (meId()){ K.fromCache(); K.load().then(() => { if (K.on()) realtime(); }).catch(() => {}); } else setTimeout(wait, 1500); }, 1500);
 
@@ -964,6 +1009,20 @@
 .kc-wai{max-width:480px;width:100%;margin:0 auto;background:#211F1C;border-radius:18px;padding:14px 16px;border:2px solid rgba(255,255,255,.08)}.kc-wai.great{border-color:#8FC458}.kc-wai.bad{border-color:#E9573F}.kc-wai h3{margin:0 0 6px;font:900 20px var(--display)}.kc-wai p{margin:0 0 8px;font:600 15px/1.45 var(--body)}
 .kc-wai ul{margin:0 0 8px;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font:700 14px/1.4 var(--body)}.kc-wai ul.g li::before{content:"✓ ";color:#9BE25A;font-weight:900}.kc-wai ul.b li::before{content:"→ ";color:#FFD15C;font-weight:900}.kc-focus{font-weight:800!important}
 .kc-wok{max-width:480px;width:100%;margin:6px auto 0}
+.kc-two{display:grid;grid-template-columns:1fr 1fr;gap:8px;cursor:pointer}.kc-b2{background:var(--panel-2);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.kc-b2 small{font:900 11.5px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.kc-b2 b{font:900 36px/1.05 var(--display)}.kc-b2 b em{font:900 20px var(--display);font-style:normal;color:var(--muted)}.kc-b2 span{font:800 12.5px var(--body);color:var(--muted)}
+.kc-b2 i{display:block;height:8px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:4px}.kc-b2 u{display:block;height:100%;border-radius:4px;background:var(--go);transition:width .4s}.kc-b2.kh u{background:#E9A92B}.kc-b2.ok u{background:linear-gradient(90deg,#FFD15C,#ff9a3c)}
+.kc-mac.two{grid-template-columns:1fr 1fr}
+.kc-mk2{display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap}.kc-mk2 b{font:900 16px var(--display)}.kc-mk2 b small{font:800 11px var(--body);color:var(--muted)}.kc-mk2 em{font:800 12.5px var(--body);font-style:normal;color:#E9A92B}
+.kc-grp{display:flex;flex-direction:column;gap:2px;background:var(--panel);border-radius:14px;padding:4px}.kc-grp .kc-meal{background:var(--panel-2);border-radius:10px}.kc-gh{display:flex;justify-content:space-between;gap:8px;padding:6px 8px 4px;font:900 13px var(--body)}.kc-gh b{font:900 13px var(--body);color:#E9A92B}
+.kc-tipb{margin-top:12px}
+html.kc-sopen,html.kc-sopen body{overflow:hidden}
+.kc-sov{position:fixed;left:0;right:0;top:0;height:100%;z-index:300;background:#141312;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 0;will-change:transform}
+.kc-sovt{display:flex;align-items:center;gap:10px}.kc-sovt .kc-sq{flex:1;min-width:0;background:#2A2825;border-color:var(--go)}.kc-sx{flex:none;white-space:nowrap;border:0;background:none;color:var(--go-hi,#8FC458);font:800 16px var(--body);padding:8px 2px;cursor:pointer}
+.kc-sovb{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:10px 0 calc(env(safe-area-inset-bottom,0px) + 16px);display:flex;flex-direction:column;gap:8px;overscroll-behavior:contain}
+.kc-sres b .kh{color:#E9A92B;font-weight:800}.kc-sres.open{background:#33302C;border-radius:14px 14px 4px 4px}.kc-sh span{float:right}
+.kc-sadd{background:#33302C;border-radius:4px 4px 14px 14px;margin-top:-6px;padding:10px;display:flex;flex-direction:column;gap:10px;animation:kcIn .2s ease-out}@keyframes kcIn{from{opacity:0;transform:translateY(-6px)}}
+.kc-sk{font:800 15px var(--body);text-align:center}.kc-sk b{font:900 22px var(--display)}.kc-sk small{display:block;color:var(--muted);font-weight:700;font-size:12px;margin-top:2px}
 .kc-btns.two{grid-template-columns:1fr 1fr;gap:10px}.kc-btns.two .kc-big{height:112px;font-size:19px;border-radius:22px}
 .kc-num em{margin-left:auto;align-self:center;font:900 13px var(--body);color:var(--muted);background:var(--panel-2);border-radius:999px;padding:4px 10px;font-style:normal}.kc-num em.ok{color:#fff;background:linear-gradient(180deg,#ff9a3c,#e9573f)}.kc-num{width:100%}
 .kc-mac{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.kc-mc{background:var(--panel-2);border-radius:14px;padding:8px 10px;display:flex;flex-direction:column;gap:3px;min-width:0}

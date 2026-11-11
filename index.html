@@ -2801,7 +2801,7 @@ html.booting .app{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794412953";
+const CHESSNAT_BUILD = "1794413736";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11205,7 +11205,7 @@ function icon(n, size = 22){ return `<svg viewBox="0 0 24 24" width="${size}" he
 const LOGO = `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="8" r="5" fill="#7FB24A"/><path d="M10.5 15h11l-1.6 6.5h-7.8z" fill="#7FB24A"/><path d="M8 27c0-2.8 2.2-4.5 4.4-4.5h7.2c2.2 0 4.4 1.7 4.4 4.5v1H8z" fill="#7FB24A"/></svg>`;
 
 const NAV = [
-  ["home", "Home", "home"], ["journey", "Journey", "map"], ["learn", "Learn", "book"], ["theory", "Theory", "scroll"], ["puzzles", "Puzzles", "puzzle"], ["rush", "Puzzle Rush", "bolt"], ["battle", "Puzzle Battle", "swords"], ["daily", "Daily Puzzle", "calendar"],
+  ["home", "Home", "home"], ["chess", "Chess", "knight"], ["journey", "Journey", "map"], ["learn", "Learn", "book"], ["theory", "Theory", "scroll"], ["puzzles", "Puzzles", "puzzle"], ["rush", "Puzzle Rush", "bolt"], ["battle", "Puzzle Battle", "swords"], ["daily", "Daily Puzzle", "calendar"],
   ["train", "Train", "target"], ["endgames", "Endgames", "crown"], ["tipp", "Tipping", "ball"], ["online", "Play Online", "globe"], ["bots", "Vs Bots", "bot"], ["blitz", "Blitz", "flame"], ["friends", "Friends", "heart"], ["chat", "Chat", "chat"], ["awards", "Trophies", "trophy"], ["shop", "Shop", "coin"], ["friend", "Vs a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["me", "Profile", "user"], ["stats", "Stats", "chart"],
 ];
 /* bottom of the rail, like chess.com: who you are, then a row of small icon buttons */
@@ -11239,11 +11239,12 @@ const TABS = [["home", "Home", "home"], ["tipp", "Tipping", "ball"], ["puzzles",
 const TAB_OF = {tipp: "tipp", online: "play", repertoire: "more", repdrill: "more", blitz: "play", battle: "play", theory: "more", awards: "more", journey: "home", jlevel: "home", home: "home", learn: "more", lesson: "more", puzzles: "puzzles", rush: "puzzles", daily: "puzzles", train: "puzzles", coords: "puzzles", play: "play", bots: "play", friend: "play", local: "play", linkgame: "play", endgames: "play", trophies: "play", friends: "friends", chat: "friends", profile: "more", me: "more", review: "more", analysis: "more", stats: "more", settings: "more", account: "more"};
 Object.assign(TAB_OF, {friends: "friends", fprofile: "friends", chat: "friends", duel: "play"});
 function renderTabs(){
-  let t = $("#tabbar"); if (!t) return; const cur = TAB_OF[App.route] || "home"; const dailyOpen = !S.daily.done[todayKey()];
+  let t = $("#tabbar"); if (!t) return; let cur = TAB_OF[App.route] || "home"; const dailyOpen = !S.daily.done[todayKey()], kh = kcalHome();
   /* with accounts (website), Friends sits bottom right and "More" moves to the top bar */
-  const tabs = Views.friends ? TABS.map(x => x[0] === "more" ? ["friends", "Friends", "users"] : x) : TABS;
+  let tabs = Views.friends ? TABS.map(x => x[0] === "more" ? ["friends", "Friends", "users"] : x) : TABS;
+  if (kh){ tabs = tabs.map(x => x[0] === "puzzles" ? ["chess", I18N.lang === "de" ? "Schach" : "Chess", "knight"] : x); if (cur === "puzzles" || ["chess", "journey", "jlevel"].includes(App.route)) cur = "chess"; if (App.route === "kcal") cur = "home"; }
   const fb = Views.friends && typeof friendsPending === "function" ? friendsPending() + (typeof Chat !== "undefined" ? Chat.total() : 0) : 0, fo = Views.friends && typeof friendsOnline === "function" ? friendsOnline() : 0;
-  t.innerHTML = tabs.map(([k, n, ic]) => `<button class="${cur === k ? "on" : ""}" data-t="${k}">${icon(ic, 24)}<span>${n}</span>${k === "puzzles" && dailyOpen ? `<i class="dot"></i>` : ""}${k === "friends" ? (fb ? `<i class="tbadge">${fb}</i>` : fo ? `<i class="dot on"></i>` : "") : ""}</button>`).join("");
+  t.innerHTML = tabs.map(([k, n, ic]) => `<button class="${cur === k ? "on" : ""}" data-t="${k}">${icon(ic, 24)}<span>${n}</span>${(k === "puzzles" || k === "chess") && dailyOpen ? `<i class="dot"></i>` : ""}${k === "friends" ? (fb ? `<i class="tbadge">${fb}</i>` : fo ? `<i class="dot on"></i>` : "") : ""}</button>`).join("");
   $$("[data-t]", t).forEach(b => b.onclick = () => (Sound.tap(), 0) || b.dataset.t === "more" ? openSheet() : App.go(b.dataset.t, b.dataset.t === "friends" ? {tab: "friends"} : undefined));
 }
 function openSheet(){
@@ -11275,9 +11276,10 @@ const App = {
   stack: [],
   go(r, arg, back){
     if (!Views[r]) r = "home";
+    if (r === "kcal" && kcalHome()) r = "home";
     /* remember where you came from, so a swipe (or back) returns there */
     if (!back && this.view && this.route !== r){ this.stack.push({r: this.route, arg: this.arg}); if (this.stack.length > 30) this.stack.shift(); }
-    if (TAB_OF && ["home", "learn", "puzzles", "play", "games"].includes(r) && !back) this.stack = this.stack.filter(x => x.r !== r);
+    if (TAB_OF && ["home", "chess", "learn", "puzzles", "play", "games"].includes(r) && !back) this.stack = this.stack.filter(x => x.r !== r);
     this.arg = arg;
     if (this.view && this.route !== r) this.snapshot();
     if (this.view && this.view.unmount) this.view.unmount();
@@ -11359,7 +11361,7 @@ Views.home = {
         <button class="tile" id="hmns">${icon("star", 40)}<h3>Nat Stars</h3><p>Like Brawl Stars: shoot, hide in the fog, win.</p></button>
       </div></div>`;
     if (typeof goalWire === "function") goalWire(main);
-    if (typeof window.homeKcal === "function") window.homeKcal(main.querySelector("#homeKcal"));
+    if (typeof window.homeKcal === "function" && !kcalHome()) window.homeKcal(main.querySelector("#homeKcal"));
     if (typeof window.homeTipp === "function") window.homeTipp(main.querySelector("#homeTipp"));
     $$("[data-go]", main).forEach(b => b.onclick = () => b.dataset.go === "lesson" ? App.go("lesson", {id: b.dataset.l}) : App.go(b.dataset.go));
     { const ns = $("#hmns", main); if (ns) ns.onclick = () => App.go("party", {g: "arena"}); }
@@ -11367,6 +11369,16 @@ Views.home = {
     const pops = $$(".lsn.pop", main); if (pops.length) setTimeout(() => { pops.forEach((b, j) => setTimeout(() => { if (!b.isConnected) return; b.classList.add("popping"); Sound.play(j ? "Move" : "Capture", .7); setTimeout(() => { b.remove(); if (planDone() && j === pops.length - 1) Sound.cheer(2); }, 520); }, j * 260)); }, 700);
     $$("[data-plan]", main).forEach(b => b.onclick = () => { const k = b.dataset.plan; if (k === "ls"){ const n = nextLesson(); n ? App.go("lesson", {id: n.id}) : App.go("learn"); } else App.go({pz: "puzzles", gm: "bots", rd: S.daily.done[todayKey()] ? "rush" : "daily"}[k]); });
   }
+};
+
+/* with the calorie tracker on, Home is the tracker and everything chess (plan, daily wins, rank, journey) is the "Schach" tab.
+   Decided from the phone's saved state, so the very first frame is already the right one */
+function kcalHome(){ try { if (typeof Kcal === "undefined") return false; Kcal.fromCache(); return Kcal.on(); } catch(e) { return false; } }
+Views.chess = Views.home;
+Views.home = {
+  mount(main, arg){ this.k = kcalHome() && !!Views.kcal; if (this.k) return Views.kcal.mount(main, arg); return Views.chess.mount(main, arg); },
+  draw(){ if (this.k && Views.kcal) Views.kcal.draw(); },
+  unmount(){ if (this.k && Views.kcal && Views.kcal.unmount) Views.kcal.unmount(); }
 };
 
 /* ===== Play hub (phone tab) ===== */
@@ -14380,18 +14392,18 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=120"></script>
-<script src="games/imposter.js?v=120"></script>
-<script src="games/werwolf.js?v=120"></script>
-<script src="games/cards.js?v=120"></script>
-<script src="games/heads.js?v=120"></script>
-<script src="games/more.js?v=120"></script>
-<script src="games/net.js?v=120"></script>
-<script src="games/online.js?v=120"></script>
-<script src="games/natposter.js?v=120"></script>
-<script src="games/arena.js?v=120"></script>
-<script src="games/tipp.js?v=120"></script>
-<script src="games/kcal.js?v=120"></script>
+<script src="games/core.js?v=121"></script>
+<script src="games/imposter.js?v=121"></script>
+<script src="games/werwolf.js?v=121"></script>
+<script src="games/cards.js?v=121"></script>
+<script src="games/heads.js?v=121"></script>
+<script src="games/more.js?v=121"></script>
+<script src="games/net.js?v=121"></script>
+<script src="games/online.js?v=121"></script>
+<script src="games/natposter.js?v=121"></script>
+<script src="games/arena.js?v=121"></script>
+<script src="games/tipp.js?v=121"></script>
+<script src="games/kcal.js?v=121"></script>
 <script>boot();</script>
 </body>
 </html>
