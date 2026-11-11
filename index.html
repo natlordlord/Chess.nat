@@ -346,9 +346,11 @@ table.tb th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-sp
      that is short by the status bar, leaving a strip under the tab bar. The page is only fixed layers,
      so give it the screen's height. The min() cap keeps it from ever scrolling (WebKit 316008). */
   html.app-mode{min-height:min(100lvh,calc(100% + env(safe-area-inset-top,0px)))}
-  /* iOS 26 blurs the top of whatever the page itself could scroll (its scroll-edge effect), which smeared the top bar.
-     The page never scrolls here (only .main does), so say so: with the search open (page locked) the blur was already gone */
-  html.app-mode,html.app-mode body{overflow:hidden}
+  /* iOS 26 lays a soft blur over the top edge of a home-screen app (its scroll-edge effect) unless a bar is pinned there:
+     a fixed, full-width, opaque element touching the top. So the top bar is pinned to the very top, status-bar strip included,
+     and the page starts below it */
+  html.app-mode body:not(.busy):not(.chatting) .mtop{position:fixed;top:0;left:0;right:0;height:calc(56px + var(--sat));padding-top:var(--sat);box-sizing:border-box;z-index:96}
+  html.app-mode body:not(.busy):not(.chatting) .app{padding-top:calc(var(--sat) + 56px)}
   .app{position:fixed;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;padding-top:var(--sat);background:var(--bg)}
   .main{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
   .page{padding:12px max(14px,var(--sal)) 20px max(14px,var(--sar))}
@@ -2842,7 +2844,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794417533";
+const CHESSNAT_BUILD = "1794417745";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
