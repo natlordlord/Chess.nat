@@ -859,7 +859,7 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 .dsheet{position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;animation:dsin .18s;transition:padding-bottom .18s ease-out}
 .dsheet.out{animation:dsout .2s forwards}
 /* while typing the close button at the bottom steps aside (the × at the top stays) */
-.dsheet.kb .dfoot{display:none}
+.dsheet.kb .dfoot,.dsheet.kbf .dfoot{display:none}
 .dcard{width:min(440px,100%);background:var(--panel);border:1px solid var(--line);border-radius:16px 16px 0 0;padding:10px 16px calc(16px + env(safe-area-inset-bottom,0px));animation:dcin .22s cubic-bezier(.2,.9,.3,1)}
 .dcard .grab{width:38px;height:4px;border-radius:2px;background:var(--panel-3);margin:0 auto 12px}
 .dreward{margin-top:10px;background:var(--panel-2);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}
@@ -8793,9 +8793,21 @@ function detailSheet(html, onClose){
   /* the field is brought into sight only when the keyboard opens or a field gets focus, never while you scroll (that made the card jump back) */
   let kb0 = 0;
   const vv = window.visualViewport, kbFit = toField => { if (done || !vv) return; const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)), card2 = el.querySelector(".dcard");
+    if (kb > 60) unlift();
     el.style.paddingBottom = kb > 60 ? kb + "px" : ""; el.classList.toggle("kb", kb > 60); el.style.transform = vv.offsetTop ? `translateY(${vv.offsetTop}px)` : ""; if (card2) card2.style.maxHeight = kb > 60 ? (vv.height - 12) + "px" : "";
     const grew = kb > 60 && Math.abs(kb - kb0) > 40; kb0 = kb;
     const a = document.activeElement; if ((toField === true || grew) && kb > 60 && a && el.contains(a) && /INPUT|TEXTAREA/.test(a.tagName)) requestAnimationFrame(() => { try { a.scrollIntoView({block: "nearest"}); } catch(e) {} }); };
+  /* the iPhone (home-screen app) often reports no keyboard height at all: the card then stays where it is and the field you type in
+     lies behind the keyboard. So, whatever the keyboard says: a field in the lower part of the screen is brought into the upper part
+     (the card gets room underneath and scrolls); when typing ends, the card is as it was */
+  const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1), typing = () => { const a = document.activeElement; return a && el.contains(a) && /INPUT|TEXTAREA/.test(a.tagName) && !/^(checkbox|radio|range|button|file)$/.test(a.type) ? a : null; };
+  let liftT = 0;
+  function unlift(){ if (!el.classList.contains("kbf")) return; el.classList.remove("kbf"); const c = el.querySelector(".dcard"); if (c) c.style.paddingBottom = ""; }
+  const lift = () => { const a = typing(), c = el.querySelector(".dcard"); if (done || !a || !c || el.classList.contains("kb")) return; const H = window.innerHeight;
+    if (!el.classList.contains("kbf")){ if (a.getBoundingClientRect().bottom < H * .5) return; el.classList.add("kbf"); c.style.paddingBottom = Math.round(H * .6) + "px"; }
+    requestAnimationFrame(() => { const r = a.getBoundingClientRect(); if (r.bottom > H * .5 || r.top < 70) c.scrollTop += r.top - H * .36; }); };
+  if (IOS){ el.addEventListener("focusin", () => { clearTimeout(liftT); liftT = setTimeout(lift, 360); });
+    el.addEventListener("focusout", () => { clearTimeout(liftT); liftT = setTimeout(() => { if (!done && !typing()) unlift(); }, 140); }); }
   const onVV = () => kbFit(false);
   if (vv){ vv.addEventListener("resize", onVV); vv.addEventListener("scroll", onVV); el.addEventListener("focusin", () => setTimeout(() => kbFit(true), 60)); setTimeout(onVV, 0); }
   const close = () => { if (done) return; done = true; if (vv){ vv.removeEventListener("resize", onVV); vv.removeEventListener("scroll", onVV); } el.classList.add("out"); setTimeout(() => el.remove(), 200); if (onClose) onClose(); };
