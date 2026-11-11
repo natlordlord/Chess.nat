@@ -33,6 +33,15 @@ Teile (`quelle` läuft zuletzt, es stellt die Nährwert-Tabelle auf die Open-Foo
 `kcal2` (Reiter, Einstellungen, Wiegen, Kochen, Wochen-Rückblick) · `shop` (Einkaufsliste mit zwei Handys) ·
 `chat` (Chat mit zwei Handys, Nat Stars, Freunde) · `tipp` · `feedback` · `seiten` (jede Seite, Handy und PC) · `start` (kein Flackern) · `quelle` (Tabellenwerte aus Open Food Facts)
 
+## Tippen mit Tastatur (iPhone nachgestellt)
+
+    node test/keyboard.js
+
+Tippt in jedes Textfeld der App und filmt eine Sekunde lang, wo das Feld Bild für Bild steht, einmal mit einer Tastatur,
+die ihre Höhe meldet, und einmal mit einer, die nichts meldet (das gibt es bei der Home-Bildschirm-App wirklich).
+Geprüft wird: Das Feld endet über der Tastatur, und es gleitet dorthin (kein Sprung, kein Hin und Her).
+Eine echte iPhone-Tastatur ist das nicht: Was iOS selbst mit der Seite macht, sieht dieser Test nicht.
+
 ## Warum die Attrappe echte Fehler findet
 
 - `fake-supabase/schema.js` ist ein Abbild der echten Datenbank (Tabellen, Spalten, Typen, Pflichtfelder).

@@ -29,7 +29,7 @@ async function open(browser, who, {route = "", desktop = false, app = true, seas
   /* count what makes a screen flicker: the fade-in starting again, and the page being rebuilt */
   await ctx.addInitScript(() => { window.__fx = {fades: 0, rebuilds: 0}; document.addEventListener("animationstart", e => { if (e.animationName === "pageIn") window.__fx.fades++; }, true);
     addEventListener("DOMContentLoaded", () => { const m = document.querySelector("#main"); if (m) new MutationObserver(ms => { if (ms.some(x => x.target === m && x.addedNodes.length)) window.__fx.rebuilds++; }).observe(m, {childList: true}); }); });
-  if (before) await ctx.addInitScript(before);
+  if (before) Array.isArray(before) ? await ctx.addInitScript(before[0], before[1]) : await ctx.addInitScript(before);
   await page.goto(BASE + "/" + route); await page.waitForFunction(() => typeof App !== "undefined" && App.view && document.querySelector("#main") && document.querySelector("#main").children.length > 0, null, {timeout: 20000});
   await page.waitForTimeout(900);
   page.shot = async name => { const f = path.join(OUT, name + ".png"); await page.screenshot({path: f}); return f; };

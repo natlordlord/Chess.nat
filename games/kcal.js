@@ -317,8 +317,9 @@
     if (f && Array.isArray(p.show)){ const s2 = p.show.filter((k, i) => NORD.includes(k) && p.show.indexOf(k) === i); if (s2.length) return f === "4" ? s2.concat(NORD.filter(k => !s2.includes(k))) : s2; }
     return NORD.slice(); }
   const vOf = (o, k) => Number(o[k]) || 0;
-  const cells = o => { const S = shows(), n3 = S.length > 3 ? " n3 n4" : S.length > 2 ? " n3" : ""; return S.map(k => `<span class="kc-n ${NUT[k].c}${n3}">${k === "kcal" || S.length > 3 ? fmt(Math.round(vOf(o, k))) : g0(vOf(o, k))}</span>`).join(""); };
-  const heads = () => { const S = shows(), n3 = S.length > 3 ? " n3 n4" : S.length > 2 ? " n3" : ""; return S.map(k => `<span class="kc-n ${NUT[k].c}${n3}">${S.length > 3 ? ({kcal: "kcal", protein: "Prot.", carbs: "KH", fat: "Fett"})[k] : NUT[k].s}</span>`).join(""); };
+  /* in the lists only the two values that matter most to you (the ones shown big at the top): the name of what you ate gets the room */
+  const cells = o => { const S = shows().slice(0, 2), n3 = S.length > 3 ? " n3 n4" : S.length > 2 ? " n3" : ""; return S.map(k => `<span class="kc-n ${NUT[k].c}${n3}">${k === "kcal" || S.length > 3 ? fmt(Math.round(vOf(o, k))) : g0(vOf(o, k))}</span>`).join(""); };
+  const heads = () => { const S = shows().slice(0, 2), n3 = S.length > 3 ? " n3 n4" : S.length > 2 ? " n3" : ""; return S.map(k => `<span class="kc-n ${NUT[k].c}${n3}">${S.length > 3 ? ({kcal: "kcal", protein: "Prot.", carbs: "KH", fat: "Fett"})[k] : NUT[k].s}</span>`).join(""); };
   const one1 = (o, k) => k === "kcal" ? fmt(vOf(o, k)) + " kcal" : f1(vOf(o, k)) + " g " + NUT[k].s;
   /* a line of values: the chosen ones bold, the rest small */
   const vline = o => { const S = shows(), rest = NORD.filter(k => !S.includes(k));
@@ -408,6 +409,25 @@
       /* for the health score: fibre, sugar, saturated fat and salt per 100 g, and the Nutri-Score letter, when the product has them */
       fi: per("fiber"), su: per("sugars"), sf: per("saturated-fat"), sa: per("salt"), ns: /^[a-e]$/.test(String(p.nutriscore_grade || "").toLowerCase()) ? String(p.nutriscore_grade).toLowerCase() : "", hd: "sugars_100g" in n || "fiber_100g" in n || "saturated-fat_100g" in n ? 1 : 0}; };
   const nsQ = ns => ({a: 5, b: 4, c: 3, d: 2, e: 1})[ns] || 0;
+  /* ---------- typing in a full-screen layer (iPhone): the field you tap must not end up behind the keyboard ----------
+     The sheets from the bottom look after themselves (detailSheet). The full-screen layers didn't: the number field under the barcode
+     camera, the fields of the goal questions, the amount under a search result. The iPhone often doesn't say how high the keyboard is,
+     so, like the sheets do: a field in the lower half glides into the upper half the moment it is tapped (the layer moves up, or the
+     list scrolls), and glides back when typing ends. One movement each way, eased, nothing jumps. */
+  (() => { const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); if (!IOS) return;
+    const isText = a => !!a && /^(INPUT|TEXTAREA)$/.test(a.tagName) && !/^(checkbox|radio|range|button|file|submit)$/.test(a.type); let t = 0;
+    const calm = matchMedia("(prefers-reduced-motion:reduce)").matches;
+    const lift = a => { if (!a.isConnected || document.activeElement !== a) return; const H = window.innerHeight, sb = a.closest(".kc-sovb"), ov = a.closest(".kc-ov-full");
+      if (sb){ const r = a.getBoundingClientRect(); if (r.bottom <= H * .5) return; /* room to scroll into: an own spacer at the end, so nothing else that sets the list's padding can take it away again */
+        if (!sb._kbs){ sb._kbs = document.createElement("div"); sb._kbs.style.cssText = "flex:none;height:" + Math.round(H * .52) + "px"; sb.appendChild(sb._kbs); }
+        try { sb.scrollBy({top: r.bottom - H * .44, behavior: calm ? "auto" : "smooth"}); } catch(e) { sb.scrollTop += r.bottom - H * .44; } return; }
+      if (!ov) return; const cur = ov._up || 0, nat = a.getBoundingClientRect().bottom + cur, up = Math.max(0, Math.round(nat - H * .46)); if (up === cur) return;
+      ov._up = up; ov.style.transition = calm ? "" : "transform .42s cubic-bezier(.22,1,.36,1)"; ov.style.transform = up ? `translateY(${-up}px)` : ""; };
+    const drop = () => { document.querySelectorAll(".kc-ov-full").forEach(ov => { if (ov._up){ ov._up = 0; ov.style.transform = ""; } });
+      document.querySelectorAll(".kc-sovb").forEach(sb => { if (sb._kbs){ sb._kbs.remove(); sb._kbs = null; } }); };
+    document.addEventListener("focusin", e => { const a = e.target; if (!isText(a) || a.closest(".dsheet") || !a.closest(".kc-sovb, .kc-ov-full")) return; clearTimeout(t); t = setTimeout(() => lift(a), 30); });
+    document.addEventListener("focusout", () => { clearTimeout(t); t = setTimeout(() => { if (!isText(document.activeElement)) drop(); }, 140); });
+  })();
   /* ---------- dry or cooked: noodles, rice, lentils … weigh more once cooked, meat weighs less ----------
      A pack always states the dry (or raw) weight. The food table (data/foods.js) knows the cooking factor of each such food,
      so you can scan the pack and enter what you weighed on the plate: 250 g cooked noodles are 250 ÷ 2.3 = 109 g dry.
@@ -1391,8 +1411,8 @@
       const G = []; ms.forEach(m => { const g = G[G.length - 1], ts = Date.parse(m.ts) || 0; if (g && g.last - ts <= 15 * 60000){ g.ms.push(m); g.last = ts; } else G.push({ms: [m], last: ts}); });
       const name = ts => { const d = new Date(ts), hr = d.getHours() + d.getMinutes() / 60; return hr >= 5 && hr < 10.75 ? "Frühstück" : hr >= 11 && hr < 14.75 ? "Mittagessen" : hr >= 17 && hr < 21.75 ? "Abendessen" : "Snack"; };
       const card = g => { const one = g.ms.length < 2, m0 = g.ms[0], tot = sumOf(g.ms);
-        return `<div class="kc-mcard">${one ? `<button class="kc-mrow head" data-meal="${h(m0.id)}"><span class="kc-mt2">${h(nice(m0.title))}<small>${hhmm(m0.ts)}</small></span>${cells(tot)}</button>`
-          : `<div class="kc-mrow head"><span class="kc-mt2">${name(g.last)}<small>${hhmm(g.last)}</small></span>${cells(tot)}</div>${g.ms.slice().reverse().map(m => `<button class="kc-mrow" data-meal="${h(m.id)}"><span class="kc-mt2">${h(nice(m.title))}</span>${cells(m)}</button>`).join("")}`}</div>`; };
+        return `<div class="kc-mcard">${one ? `<button class="kc-mrow head" data-meal="${h(m0.id)}"><span class="kc-mt2"><span class="kc-mtn">${h(nice(m0.title))}</span><small>${hhmm(m0.ts)}</small></span>${cells(tot)}</button>`
+          : `<div class="kc-mrow head"><span class="kc-mt2"><span class="kc-mtn">${name(g.last)}</span><small>${hhmm(g.last)}</small></span>${cells(tot)}</div>${g.ms.slice().reverse().map(m => `<button class="kc-mrow" data-meal="${h(m.id)}"><span class="kc-mt2"><span class="kc-mtn">${h(nice(m.title))}</span><small>${hhmm(m.ts)}</small></span>${cells(m)}</button>`).join("")}`}</div>`; };
       return `<div class="kc-list2">${G.map(card).join("")}</div>`;
     },
     wireMeals(el){ el.querySelectorAll("[data-meal]").forEach(b => b.onclick = () => { const m = K.meals.find(x => x.id === b.dataset.meal); if (m) mealSheet(m); }); },
@@ -1538,7 +1558,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-mrow{display:flex;align-items:center;gap:10px;width:100%;padding:9px 14px;border:0;background:none;color:var(--muted);text-align:left;font:700 14.5px var(--body);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .kc-mrow+.kc-mrow{border-top:1px solid rgba(255,255,255,.05)}.kc-mrow:active{background:rgba(255,255,255,.04)}
 .kc-mrow.head{padding:12px 14px;color:var(--fg);font:900 16px var(--body);cursor:default}button.kc-mrow.head{cursor:pointer}.kc-mrow.head .kc-n{font:900 16px var(--display)}.kc-mrow .kc-n{font:800 14.5px var(--body)}
-.kc-mt2{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kc-mt2 small{font:700 12.5px var(--body);color:var(--muted);margin-left:8px}
+.kc-mt2{flex:1;min-width:0;white-space:nowrap;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;gap:1px}.kc-mtn{max-width:100%;overflow:hidden;text-overflow:ellipsis}.kc-mt2 small{order:-1;font-variant-numeric:tabular-nums}.kc-mt2 small{font:600 11px var(--body);color:var(--muted);opacity:.75;margin:0;letter-spacing:.02em}
 .kc-link{display:flex;align-items:center;justify-content:center;gap:6px;margin:14px auto 4px;border:0;background:none;color:var(--muted);font:800 14px var(--body);cursor:pointer}
 .kc-btns.two{grid-template-columns:1fr 1fr;gap:10px}.kc-btns.two .kc-big{height:112px;font-size:19px;border-radius:22px}
 .kc-num em{margin-left:auto;align-self:center;font:900 13px var(--body);color:var(--muted);background:var(--panel-2);border-radius:999px;padding:4px 10px;font-style:normal}.kc-num em.ok{color:#fff;background:linear-gradient(180deg,#ff9a3c,#e9573f)}.kc-num{width:100%}
