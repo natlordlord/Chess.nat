@@ -10,15 +10,15 @@
   const PICK = 4500, PICK2 = 3200, FIGHT = 60000, PERK = 7000, BAN = 2600, NEXT = BAN + 6500, GAS0 = 20000, GAS1 = 52000, R0 = 820, R1 = 150, GC = {x: 1290, y: 640}, BODY = 26, SPD = 255;
   const LAG = 110, SEE = 150, REVEAL = 1000, VIS = 230, AMMO = 3;
   const CLS = {
-    shot: {e: "💥", en: "Shotgun", de: "Schrotflinte", sen: "Close · 5 pellets", sde: "Nah · 5 Kugeln", hp: 125, sp: 1, rl: 1450, cd: 380, rg: 330, n: 5, spr: .12, v: 1050, dmg: 11, r: 7, sc: 130,
+    shot: {e: "💥", en: "Shotgun", de: "Schrotflinte", sen: "Close · 5 pellets", sde: "Nah · 5 Kugeln", hp: 160, sp: 1, rl: 1450, cd: 380, rg: 330, n: 5, spr: .12, v: 1050, dmg: 11, r: 7, sc: 130,
       su: {e: "💣", en: "Big bang", de: "Großer Knall", sen: "9 pellets, knocks back", sde: "9 Kugeln, stößt weg", n: 9, spr: .085, v: 1150, dmg: 13, rg: 380, kb: 90}},
-    rock: {e: "🚀", en: "Rockets", de: "Raketen", sen: "Explodes · burns", sde: "Explodiert · Brandfeld", hp: 95, sp: .95, rl: 1900, cd: 480, rg: 560, n: 1, v: 690, dmg: 24, r: 11, splash: 72, sdmg: 16, field: 2600, sc: 110,
+    rock: {e: "🚀", en: "Rockets", de: "Raketen", sen: "Explodes · burns", sde: "Explodiert · Brandfeld", hp: 125, sp: .95, rl: 1900, cd: 480, rg: 560, n: 1, v: 690, dmg: 24, r: 11, splash: 72, sdmg: 16, field: 2600, sc: 110,
       su: {e: "🎆", en: "Rocket rain", de: "Raketenhagel", sen: "5 rockets at once", sde: "5 Raketen auf einmal", n: 5, spr: .15, rg: 600}},
-    melee: {e: "🥊", en: "Brawler", de: "Faust", sen: "Lots of health · close", sde: "Viel Leben · Nahkampf", hp: 175, sp: 1.12, rl: 900, cd: 320, rg: 112, cone: .95, dmg: 34, sc: 115,
+    melee: {e: "🥊", en: "Brawler", de: "Faust", sen: "Lots of health · close", sde: "Viel Leben · Nahkampf", hp: 225, sp: 1.12, rl: 900, cd: 320, rg: 112, cone: .95, dmg: 34, sc: 115,
       su: {e: "🦘", en: "Leap", de: "Sprungschlag", sen: "Jump in, hits everyone", sde: "Sprung, trifft alle", rg: 300, dmg: 42, dur: 260}},
-    fire: {e: "🔥", en: "Fire trail", de: "Flammenspur", sen: "Flames · fire trail", sde: "Flammen · Feuerspur", hp: 130, sp: 1.15, rl: 1250, cd: 380, rg: 205, cone: .42, dmg: 17, burn: 3000, sc: 105,
+    fire: {e: "🔥", en: "Fire trail", de: "Flammenspur", sen: "Flames · fire trail", sde: "Flammen · Feuerspur", hp: 170, sp: 1.15, rl: 1250, cd: 380, rg: 205, cone: .42, dmg: 17, burn: 3000, sc: 105,
       su: {e: "⭕", en: "Ring of fire", de: "Feuerring", sen: "Burns everyone around you", sde: "Verbrennt alle um dich", rg: 190, dmg: 30}},
-    snipe: {e: "🎯", en: "Sniper", de: "Scharfschütze", sen: "Far · harder far away", sde: "Weit · trifft weit stärker", hp: 80, sp: .95, rl: 2000, cd: 450, rg: 780, n: 1, v: 1600, dmg: 15, far: 30, r: 6, sc: 100,
+    snipe: {e: "🎯", en: "Sniper", de: "Scharfschütze", sen: "Far · harder far away", sde: "Weit · trifft weit stärker", hp: 105, sp: .95, rl: 2000, cd: 450, rg: 780, n: 1, v: 1600, dmg: 15, far: 30, r: 6, sc: 100,
       su: {e: "⚡", en: "Piercer", de: "Durchschuss", sen: "Goes through everyone", sde: "Geht durch alle durch", v: 2300, rg: 980, dmg: 52, r: 9}}};
   const KEYS = Object.keys(CLS);
   const PERKS = {
@@ -165,11 +165,13 @@
       const m = Math.hypot(gx, gy); b.mv = m > .1 ? 1 : 0;
       if (b.mv){ const sp = SPD * cl.sp * .92 * dt, nx = b.x + gx / m * sp, ny = b.y + gy / m * sp; let moved = false; if (walkA(nx, b.y)){ b.x = nx; moved = true; } if (walkA(b.x, ny)){ b.y = ny; moved = true; } if (!moved){ b.str *= -1; b.strT = now() + 700; } if (Math.abs(gx) > .1) b.f = gx < 0 ? -1 : 1; }
       if (best && best.los){ if (!b.seen) b.seen = now(); b.a = Math.atan2(best.q.y - b.y, best.q.x - b.x); } else b.seen = 0;
-      if (best && best.los && b.seen && now() - b.seen > 380){
-        const v = velOf(best.id), aim = sp2 => { const tt = sp2 ? best.d / sp2 : 0, ax = best.q.x + v.x * tt * b.skill, ay = best.q.y + v.y * tt * b.skill; return Math.atan2(ay - b.y, ax - b.x) + (Math.random() - .5) * .34 * (1.35 - b.skill); };
+      /* against bots alone they react a bit slower and miss a bit more, so a round isn't over in ten seconds */
+      const easy = PNet.P && PNet.P.solo && best && best.id === PNet.me;
+      if (best && best.los && b.seen && now() - b.seen > (easy ? 600 : 380)){
+        const v = velOf(best.id), aim = sp2 => { const tt = sp2 ? best.d / sp2 : 0, ax = best.q.x + v.x * tt * b.skill, ay = best.q.y + v.y * tt * b.skill; return Math.atan2(ay - b.y, ax - b.x) + (Math.random() - .5) * .34 * (1.35 - b.skill) * (easy ? 1.5 : 1); };
         const su = cl.su, inSup = A.cls[id] === "fire" ? best.d < su.rg * .85 : A.cls[id] === "melee" ? best.d < su.rg * .9 : best.d < (su.rg || cl.rg) * .9;
         if (b.sup >= 1 && inSup && Math.random() < .08){ const a = aim(su.v || cl.v); b.sup = 0; b.a = a; b.f = Math.cos(a) < 0 ? -1 : 1; A.ls[id] = now(); send({t: "as", by: id, k: id.slice(-3) + (++C.seq), c: A.cls[id], s: 1, x: Math.round(b.x), y: Math.round(b.y), a: Math.round(a * 1000) / 1000}); }
-        else if (best.d < cl.rg * (cl.cone ? .95 : .92) && b.am >= 1 && b.cd <= 0){ const a = aim(cl.v); b.am--; b.cd = cl.cd + 200 + Math.random() * 600; b.a = a; b.f = Math.cos(a) < 0 ? -1 : 1;
+        else if (best.d < cl.rg * (cl.cone ? .95 : .92) && b.am >= 1 && b.cd <= 0){ const a = aim(cl.v); b.am--; b.cd = cl.cd + 200 + Math.random() * 600 + (easy ? 350 : 0); b.a = a; b.f = Math.cos(a) < 0 ? -1 : 1;
           A.ls[id] = now(); send({t: "as", by: id, k: id.slice(-3) + (++C.seq), c: A.cls[id], x: Math.round(b.x), y: Math.round(b.y), a: Math.round(a * 1000) / 1000}); } }
       const p = C.AP[id] || (C.AP[id] = {buf: []}); p.dx = b.x; p.dy = b.y; p.a = b.a; p.f = b.f; p.mv = b.mv; p.t = now(); }
   }
