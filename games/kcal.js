@@ -258,7 +258,8 @@
       q.oninput = () => { clearTimeout(tmr); tmr = setTimeout(go, 380); };
       q.onkeydown = e => { if (e.key === "Enter"){ e.preventDefault(); clearTimeout(tmr); go(); q.blur(); } };
       el.querySelector("#kcsm").onclick = () => { sh.close(); (opt.manual || manual)(); };
-      if (q.value.trim().length >= 2) go(); else empty(); setTimeout(() => { if (!opt.q) q.focus(); }, 250);
+      /* the keyboard opens at once: focus while the tap is still going on (iPhone only opens it then) */
+      if (q.value.trim().length >= 2) go(); else empty(); if (!opt.q){ try { q.focus({preventScroll: true}); } catch(e) {} setTimeout(() => { if (document.activeElement !== q) q.focus(); }, 260); }
       return sh;
     }
   };
@@ -306,7 +307,7 @@
       ${add ? "" : `<div class="kc-portion"><span class="muted">Mal nehmen</span><div>${[[.25, "¼"], [.5, "½"], [2, "2×"], [3, "3×"], [4, "4×"], [5, "5×"]].map(([f, l]) => `<button class="chip" data-f="${f}">${l}</button>`).join("")}</div></div>`}
       <div class="kc-row2"><button class="btn go" id="kps">${add ? "Dazu" : "Speichern"}</button>${add ? "" : `<button class="btn" id="kpd">${parts.length > 1 ? "Entfernen" : "Löschen"}</button>`}</div></div>`);
     const el = sh.el, ins = el.querySelectorAll("[data-k]");
-    ins.forEach(i => field(i)); field(el.querySelector("#kpa")); setTimeout(() => { if (add) el.querySelector("#kpn").focus(); }, 250);
+    ins.forEach(i => field(i)); field(el.querySelector("#kpa"));
     const read = () => { w.name = el.querySelector("#kpn").value.trim(); w.amount = el.querySelector("#kpa").value.trim(); ins.forEach(i => { const v = num(i.value); w[i.dataset.k] = isFinite(v) && v >= 0 ? (i.dataset.k === "kcal" ? Math.round(v) : r1(v)) : 0; }); };
     const fill = () => { el.querySelector("#kpa").value = w.amount || ""; ins.forEach(i => { i.value = nf(w[i.dataset.k] || 0, i.dataset.k === "kcal" ? 0 : 1); }); };
     el.querySelectorAll("[data-f]").forEach(b => b.onclick = () => { read(); Object.assign(w, scalePart(w, +b.dataset.f)); fill(); haptic(8); el.querySelectorAll("[data-f]").forEach(x => x.classList.toggle("on", x === b)); });
@@ -541,7 +542,7 @@
   /* ---------- manual entry ---------- */
   function manual(){
     const sh = detailSheet(`<div class="kc-form" data-notr><h3>Selbst eintragen</h3><label>Was<input id="kcmt" maxlength="80" placeholder="z. B. Proteinshake"></label><label>Kalorien<input id="kcmk" inputmode="numeric" placeholder="kcal"></label><button class="btn go big" id="kcms">Eintragen</button></div>`);
-    setTimeout(() => sh.el.querySelector("#kcmt").focus(), 250);
+    try { sh.el.querySelector("#kcmt").focus({preventScroll: true}); } catch(e) {}
     sh.el.querySelector("#kcms").onclick = async () => { const t = sh.el.querySelector("#kcmt").value.trim(), k = parseInt(sh.el.querySelector("#kcmk").value.replace(/\D/g, ""), 10);
       if (!t || !(k >= 0)) return say("Name und Kalorien eintragen");
       try { await K.add({source: "manual", title: t, emoji: "✍️", kcal: k}); sh.close(); say("Eingetragen"); } catch(e) { say("Ging nicht: " + (e.message || e)); } };
