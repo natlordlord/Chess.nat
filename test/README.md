@@ -29,9 +29,9 @@ Braucht Playwright (`npm i -g playwright`) und Chrome. Jeder Teil öffnet die Ap
 tut, was ein Spieler tun würde, und prüft das Ergebnis auf der Seite **und** in der Datenbank. Am Ende steht, was nicht
 geklappt hat, samt jedem Fehler, den Seite oder Datenbank unterwegs gemeldet haben. Bilder landen in `test/out/`.
 
-Teile: `login` · `kcal` (Suche, Mengen, Sprechen, Barcode) · `nudeln` (feste Nährwerte, trocken/gekocht) ·
+Teile (`quelle` läuft zuletzt, es stellt die Nährwert-Tabelle auf die Open-Food-Facts-Werte der Attrappe um): `login` · `kcal` (Suche, Mengen, Sprechen, Barcode) · `nudeln` (feste Nährwerte, trocken/gekocht) ·
 `kcal2` (Reiter, Einstellungen, Wiegen, Kochen, Wochen-Rückblick) · `shop` (Einkaufsliste mit zwei Handys) ·
-`chat` (Chat mit zwei Handys, Nat Stars, Freunde) · `tipp` · `feedback` · `seiten` (jede Seite, Handy und PC) · `start` (kein Flackern)
+`chat` (Chat mit zwei Handys, Nat Stars, Freunde) · `tipp` · `feedback` · `seiten` (jede Seite, Handy und PC) · `start` (kein Flackern) · `quelle` (Tabellenwerte aus Open Food Facts)
 
 ## Warum die Attrappe echte Fehler findet
 

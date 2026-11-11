@@ -38,7 +38,7 @@
     F("kartoffeln", "Kartoffeln, gekocht", "kartoffeln?|pellkartoffeln?|salzkartoffeln?", 73, 15.5, 1.9, .1, 1.6, .8, 0, 5),
     F("suesskartoffel", "Süßkartoffel, gegart", "süßkartoffeln?", 86, 20, 1.6, .1, 3, 4.2, 0, 5),
     F("haferflocken", "Haferflocken", "haferflocken|hafer", 372, 58.7, 13.5, 7, 10, 1, 1.3, 5),
-    F("brot", "Brot (Mischbrot)", "brot|mischbrot|graubrot|bauernbrot|roggenbrot", 240, 46, 7.5, 1.5, 5, 3, .3, 3),
+    F("brot", "Brot (Roggen- / Mischbrot)", "brot|mischbrot|graubrot|bauernbrot|roggenbrot", 240, 46, 7.5, 1.5, 5, 3, .3, 3),
     F("vollkornbrot", "Vollkornbrot", "vollkornbrot|körnerbrot|schwarzbrot|eiweißbrot", 215, 38, 7.5, 1.5, 8, 3, .3, 4),
     F("toast", "Toastbrot", "toast(brot)?", 265, 48, 8, 3.8, 3, 4, .5, 2),
     F("broetchen", "Brötchen", "brötchen|semmel|schrippe|weck", 277, 55, 9, 1.8, 3, 2, .4, 3),
@@ -87,7 +87,7 @@
     ei: ["en:chicken-eggs", "en:eggs"], milch: "en:whole-milks", milch15: "en:semi-skimmed-milks", butter: "en:butters", oel: ["en:olive-oils", "en:extra-virgin-olive-oils"], pesto: ["en:green-pestos", "en:pestos"], tomatensauce: ["en:tomato-sauces", "en:passata"],
     gouda: ["en:goudas", "en:gouda"], mozzarella: ["en:mozzarella", "en:mozzarellas"], parmesan: ["en:parmigiano-reggiano", "en:grana-padano"], feta: ["en:feta", "en:fetas"], quark: ["en:quarks", "en:low-fat-quark"], skyr: ["en:skyrs", "en:skyr"], joghurt: ["en:plain-yogurts", "en:natural-yogurts"],
     lachs: ["en:salmons", "en:salmon-fillets"], thunfisch: ["en:tunas-in-brine", "en:canned-tunas"], nutella: ["en:cocoa-and-hazelnuts-spreads", "en:hazelnut-spreads"], erdnussbutter: "en:peanut-butters", honig: "en:honeys", zucker: ["en:white-sugars", "en:sugars"], marmelade: ["en:jams", "en:strawberry-jams"],
-    mandeln: "en:almonds", pommes: ["en:frozen-fries", "en:fries"], whey: ["en:whey-proteins", "en:protein-powders"], cola: "en:colas", osaft: "en:orange-juices", bier: "en:beers"};
+    mandeln: "en:almonds", whey: ["en:whey-proteins", "en:protein-powders"], cola: "en:colas", osaft: "en:orange-juices", bier: "en:beers"};
   FOODS.forEach(f => { if (OFF[f.id]) f.off = OFF[f.id]; });
   const apply = data => { let n = 0; if (!data || !data.foods) return n;
     for (const f of FOODS){ const v = data.foods[f.id]; if (!v || !(Number(v.k) > 0)) continue; for (const key of ["k", "c", "p", "f", "fi", "su", "sf"]) if (v[key] != null && isFinite(Number(v[key]))) f[key] = Number(v[key]); f.src = {n: v.n, cat: v.cat, at: data.at}; n++; }

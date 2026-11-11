@@ -23,7 +23,8 @@ async function products(cat, country){
 /* one food: the median over the products that can be this food */
 async function one(F){
   const lo = F.kr ? F.kr[0] : F.k * .75, hi = F.kr ? F.kr[1] : F.k * 1.25, cats = [].concat(F.off), why = [];
-  for (const country of ["en:germany", ""]) for (const cat of cats){
+  /* only products sold in Germany: elsewhere the same word means something else (minced beef there is far leaner) */
+  for (const country of ["en:germany"]) for (const cat of cats){
     let hits; try { hits = await products(cat, country); } catch(e) { why.push(cat + (country ? " (DE)" : "") + ": " + String(e.message || e)); continue; }
     const rows = hits.map(h => h.nutriments || {}).map(n => ({k: Number(n["energy-kcal_100g"]) || (Number(n["energy_100g"]) ? Number(n["energy_100g"]) / 4.184 : 0), c: n.carbohydrates_100g, p: n.proteins_100g, f: n.fat_100g, fi: n.fiber_100g, su: n.sugars_100g, sf: n["saturated-fat_100g"]}))
       .filter(x => x.k >= lo && x.k <= hi && [x.c, x.p, x.f].every(v => v != null && isFinite(Number(v)) && Number(v) >= 0 && Number(v) <= 100));
