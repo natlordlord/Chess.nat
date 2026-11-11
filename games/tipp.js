@@ -465,7 +465,7 @@
 
   const css = document.createElement("style"); css.textContent = `
 .tp-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.tp-bal{display:flex;align-items:center;gap:6px;background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:5px 12px 5px 7px;font:900 16px var(--display)}.tp-bal .natc{width:20px;height:20px}
-@media (max-width:900px){body:not(.busy) .tp-bal{display:none}}
+@media (max-width:900px){body:not(.busy) .tp-bal{display:none}}.page.tp{max-width:860px}
 .tp-tabs{display:flex;width:100%}.tp-tabs button{flex:1}.tp-chips{flex-wrap:nowrap;overflow-x:auto;margin:12px -2px 8px;padding:0 2px 2px;scrollbar-width:none}.tp-chips::-webkit-scrollbar{display:none}.tp-chips .chip{flex:none}
 .tp-tools{display:flex;gap:8px;margin:0 0 6px;flex-wrap:wrap}.tp-empty{color:var(--muted);text-align:center;padding:40px 10px;line-height:1.5}
 .tp-day{font:800 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:16px 2px 7px}.tp-day.live{color:var(--bad)}
