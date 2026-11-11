@@ -2269,7 +2269,7 @@ html.i18n-wait body{visibility:hidden}
 .natchip.bump{animation:natBump .45s ease-out}
 @keyframes natBump{30%{transform:scale(1.18)}}
 .rail-nat{padding:4px 12px 8px}
-#mtop .natchip{margin-left:auto}
+#mtop .natchip{margin-left:auto;padding:4px 10px 4px 5px;background:var(--panel-3,#3a3835);border-radius:99px;font:900 14px var(--body)}#mtop .natchip i{top:-7px;right:-7px}
 #mtop .natchip ~ .mt-fl{margin-left:6px}
 /* chest */
 .chest-svg{width:100%;height:100%;overflow:visible}
@@ -2797,11 +2797,12 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794350980";
+const CHESSNAT_BUILD = "1794355904";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
    Chat messages, names typed by people and chess moves are left alone. ===== */
+const DLOC = () => (typeof I18N !== "undefined" && I18N.lang === "de") ? "de-DE" : "en-GB";
 const I18N = (() => {
   const KEY = "chessnat-i18n-de", SKIP = "script,style,textarea,input,select,option,.bub,.chat-msgs,[data-notr],.moves,.pgn,code,.toast-raw";
   let lang = "en", exact = null, buckets = null, obs = null, busy = false;
@@ -2876,7 +2877,7 @@ const I18N = (() => {
     const ver = typeof CHESSNAT_BUILD !== "undefined" ? CHESSNAT_BUILD : "1";
     if (cached && cached.d){ build(cached.d); watch(); }
     else { document.documentElement.classList.add("i18n-wait"); setTimeout(() => document.documentElement.classList.remove("i18n-wait"), 2500); }
-    if (!cached || cached.v !== ver) fetch("data/i18n_de.json?v=" + ver).then(r => r.json()).then(d => { try { localStorage.setItem(KEY, JSON.stringify({v: ver, d})); } catch(e) {}
+    if (!cached || cached.v !== ver) fetch("data/i18n_de.json?v=1" + ver).then(r => r.json()).then(d => { try { localStorage.setItem(KEY, JSON.stringify({v: ver, d})); } catch(e) {}
       const fresh = !exact; build(d); if (fresh) watch(); else walk(document.body); document.documentElement.classList.remove("i18n-wait"); }).catch(() => document.documentElement.classList.remove("i18n-wait"));
   }
   function set(l){ try { localStorage.setItem("chessnat-lang", l); } catch(e) {} if (typeof S !== "undefined"){ S.settings.lang = l; if (typeof save === "function") save(); } setTimeout(() => location.reload(), 150); }
@@ -3239,7 +3240,7 @@ const Sound = {ac:null, buf:{}, loading:false,
     try { this.ac = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return; }
     if (this.loading) return; this.loading = true;
     ["Move","Capture","Check","Mate","Victory","Defeat","GenericNotify","cheer1","cheer2","cheer3","cheer4"].forEach(n => {
-      fetch("sounds/" + n + ".mp3?v=4").then(r => r.arrayBuffer()).then(b => new Promise((res, rej) => this.ac.decodeAudioData(b, res, rej))).then(d => { this.buf[n] = d; }).catch(() => {});
+      fetch("sounds/" + n + ".mp3?v=14").then(r => r.arrayBuffer()).then(b => new Promise((res, rej) => this.ac.decodeAudioData(b, res, rej))).then(d => { this.buf[n] = d; }).catch(() => {});
     }); },
   /* "Schachmatt!" (Nathan's voice) must be heard clearly: game-end sounds that come right after it wait until it is over */
   afterMate(){ const left = (this._mateT || 0) + 1050 - Date.now(); return left > 30 ? left : 0; },
@@ -3320,7 +3321,7 @@ const Voice = {
     if (!S.settings.voice || !text){ onend && onend(); return; }
     this.stop(); const key = speechKey(text); const go = () => {
       if (!this.have || !this.have.has(key)){ onend && onend(); return; }
-      const a = this.el = new Audio("voice/" + key + ".mp3?v=2"); a.volume = 1; a.playbackRate = S.settings.voiceRate || 1;
+      const a = this.el = new Audio("voice/" + key + ".mp3?v=12"); a.volume = 1; a.playbackRate = S.settings.voiceRate || 1;
       if (onend) a.onended = onend; a.play().catch(() => { onend && onend(); });
     };
     if (this.have) go(); else this.load().then(go);
@@ -4045,7 +4046,7 @@ Views.rush = {
       <div class="tiles" style="margin-top:16px">
         ${[["3","3 Minutes","Fast and furious.","best3"],["5","5 Minutes","More time to think.","best5"],["s","Survival","No clock. Three strikes.","bestS"]].map(([k, t, d, b]) => `<button class="tile" data-mode="${k}">${icon("bolt", 40)}<h3>${t}</h3><p>${d}</p><span class="pill go">Best: ${S.rush[b] || 0}</span></button>`).join("")}
       </div>
-      <div class="h-sec">Recent runs</div><div class="list">${(S.rush.runs || []).slice(-8).reverse().map(r => `<div class="li"><span class="pill">${r.mode === "s" ? "Survival" : r.mode + " min"}</span><div class="grow"><div class="t">${r.score} solved</div><div class="s">${new Date(r.ts).toLocaleString("en-GB")}</div></div></div>`).join("") || `<p class="dim">No runs yet.</p>`}</div></div>`;
+      <div class="h-sec">Recent runs</div><div class="list">${(S.rush.runs || []).slice(-8).reverse().map(r => `<div class="li"><span class="pill">${r.mode === "s" ? "Survival" : r.mode + " min"}</span><div class="grow"><div class="t">${r.score} solved</div><div class="s">${new Date(r.ts).toLocaleString(DLOC())}</div></div></div>`).join("") || `<p class="dim">No runs yet.</p>`}</div></div>`;
     $$(".tile[data-mode]", this.main).forEach(b => b.onclick = () => this.go(b.dataset.mode));
   },
   go(mode){
@@ -4092,7 +4093,7 @@ function fmtClock(ms){ const s = Math.ceil(ms / 1000); if (ms < 10000 && ms > 0)
 Views.daily = {
   mount(main){
     main.innerHTML = stageHTML(); const board = makeBoard($("#bw")); this.board = board;
-    $("#botbar").innerHTML = youBar(); $("#topbar").innerHTML = `<span class="pill">Daily Puzzle · ${new Date().toLocaleDateString("en-GB", {weekday: "long", day: "numeric", month: "long"})}</span>`;
+    $("#botbar").innerHTML = youBar(); $("#topbar").innerHTML = `<span class="pill">Daily Puzzle · ${new Date().toLocaleDateString(DLOC(), {weekday: "long", day: "numeric", month: "long"})}</span>`;
     this.R = PuzzleRunner(board, {
       onReady: () => this.panel("play"),
       onWrong: () => this.panel("wrong"),
@@ -6485,7 +6486,7 @@ Views.review = {
     const games = S.games.slice().reverse();
     this.main.innerHTML = `<div class="page"><h1 class="h-title">Game Review</h1><p class="muted">Every move gets graded, from Brilliant to Blunder. Pick a game or paste a PGN.</p>
       <div class="unit" style="margin-top:12px"><h3>Paste a PGN</h3><textarea id="pgnin" rows="4" style="width:100%;margin-top:8px;background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:10px;font:500 13px var(--mono)" placeholder="1. e4 e5 2. Nf3 Nc6 3. Bc4 ..."></textarea><button class="btn go" id="pgngo" style="margin-top:8px">Review</button></div>
-      <div class="h-sec">Your games</div><div class="list">${games.map((g, i) => `<div class="li"><span class="pill ${g.result === "1/2-1/2" || g.result === "*" ? "" : ((g.result === "1-0") === (g.color === "w") ? "go" : "bad")}">${g.result === "*" ? "Unfinished" : g.result === "1/2-1/2" ? "Draw" : ((g.result === "1-0") === (g.color === "w") ? "Win" : "Loss")}</span><div class="grow"><div class="t">vs ${esc(g.opp)}${g.oppR ? ` (${g.oppR})` : ""} · ${Math.ceil(g.moves / 2)} moves${g.mode === "journey" ? " · Journey" : g.mode === "friend" || g.mode === "link" ? " · Friend" : ""}</div><div class="s">${(o => o ? `📖 ${esc(o.name)} · ` : "")(S.settings.openings !== false && Openings.map ? Openings.ofPgn(g.pgn) : null)}${new Date(g.ts).toLocaleString("en-GB")} ${g.review ? `· Accuracy ${g.review.acc}` : ""}</div></div><button class="btn sm" data-i="${S.games.length - 1 - i}">Review</button></div>`).join("") || `<p class="dim">No games yet. Play a bot first.</p>`}</div></div>`;
+      <div class="h-sec">Your games</div><div class="list">${games.map((g, i) => `<div class="li"><span class="pill ${g.result === "1/2-1/2" || g.result === "*" ? "" : ((g.result === "1-0") === (g.color === "w") ? "go" : "bad")}">${g.result === "*" ? "Unfinished" : g.result === "1/2-1/2" ? "Draw" : ((g.result === "1-0") === (g.color === "w") ? "Win" : "Loss")}</span><div class="grow"><div class="t">vs ${esc(g.opp)}${g.oppR ? ` (${g.oppR})` : ""} · ${Math.ceil(g.moves / 2)} moves${g.mode === "journey" ? " · Journey" : g.mode === "friend" || g.mode === "link" ? " · Friend" : ""}</div><div class="s">${(o => o ? `📖 ${esc(o.name)} · ` : "")(S.settings.openings !== false && Openings.map ? Openings.ofPgn(g.pgn) : null)}${new Date(g.ts).toLocaleString(DLOC())} ${g.review ? `· Accuracy ${g.review.acc}` : ""}</div></div><button class="btn sm" data-i="${S.games.length - 1 - i}">Review</button></div>`).join("") || `<p class="dim">No games yet. Play a bot first.</p>`}</div></div>`;
     if (!Openings.map && S.settings.openings !== false) Openings.load().then(() => { if (App.route === "review" && !this.A) this.list(); });
     $("#pgngo").onclick = () => { const t = $("#pgnin").value.trim(); if (!t) return; const g = new Chess(); if (!g.load_pgn(t, {sloppy: true})){ toast("That PGN could not be read"); return; } this.open(t, null); };
     $$("[data-i]", this.main).forEach(b => b.onclick = () => { const g = S.games[+b.dataset.i]; this.open(g.pgn, g); });
@@ -8475,7 +8476,7 @@ Views.awards = {
     if (f === "got") shown = shown.filter(a => achHas(a.id)); else if (f === "close") shown = shown.filter(a => !achHas(a.id) && pct(a) >= .5).sort((a, b) => pct(b) - pct(a)); else if (f !== "all") shown = shown.filter(a => a.cat === f);
     if (f === "all") shown.sort((a, b) => (achHas(b.id) - achHas(a.id)) || (S.ach.got[b.id] || 0) - (S.ach.got[a.id] || 0));
     const card = a => { const g = achHas(a.id), p = pct(a), pr = a.prog && !g ? (() => { try { const [c, gg] = a.prog(); return `${Math.min(c, gg).toLocaleString("en")} / ${gg.toLocaleString("en")}`; } catch(e) { return ""; } })() : "";
-      return `<div class="ach ${g ? "got" : ""}">${achMedal(a, 46, g)}<div class="grow"><div class="t">${esc(a.name)}</div><div class="s">${esc(a.desc)}</div>${g ? `<div class="s" style="color:var(--go-hi)">${ACH_TIER[a.tier].name} · ${new Date(S.ach.got[a.id]).toLocaleDateString("en-GB")}</div>` : pr ? `<div class="bar sm"><i style="width:${Math.round(p * 100)}%"></i></div><div class="s">${pr}</div>` : `<div class="s">${ACH_TIER[a.tier].name}</div>`}</div></div>`; };
+      return `<div class="ach ${g ? "got" : ""}">${achMedal(a, 46, g)}<div class="grow"><div class="t">${esc(a.name)}</div><div class="s">${esc(a.desc)}</div>${g ? `<div class="s" style="color:var(--go-hi)">${ACH_TIER[a.tier].name} · ${new Date(S.ach.got[a.id]).toLocaleDateString(DLOC())}</div>` : pr ? `<div class="bar sm"><i style="width:${Math.round(p * 100)}%"></i></div><div class="s">${pr}</div>` : `<div class="s">${ACH_TIER[a.tier].name}</div>`}</div></div>`; };
     body.innerHTML = `<div class="chips"><button class="chip ${f === "all" ? "on" : ""}" data-f="all">All</button><button class="chip ${f === "got" ? "on" : ""}" data-f="got">Unlocked ${achCount()}</button><button class="chip ${f === "close" ? "on" : ""}" data-f="close">Almost there</button>${cats.map(c => `<button class="chip ${f === c.k ? "on" : ""}" data-f="${c.k}">${esc(c.t)} ${c.got}/${c.all.length}</button>`).join("")}</div>
       <div class="ach-grid">${shown.slice(0, this.more ? 9999 : 120).map(card).join("") || `<p class="muted">Nothing here yet.</p>`}</div>
       ${shown.length > 120 && !this.more ? `<button class="btn" id="awmore" style="margin-top:12px">Show all ${shown.length}</button>` : ""}`;
@@ -8737,7 +8738,7 @@ function achDetail(a){
   const got = achHas(a.id), pr = achProg(a), items = AV_ITEMS.filter(i => i.req === "t:" + a.id).map(i => i.name).concat(Object.entries(CHROMA_DEF).flatMap(([k, [f, l]]) => l.filter(c => c[1] === "t:" + a.id).map(c => { const it = AV_ITEMS.find(i => i.slot + ":" + i.id === k); return ((AV_COLORS.cloth.concat(AV_COLORS.hairC, AV_COLORS.skin, AV_COLORS.fur).find(x => x[0] === c[0]) || [])[1] || c[0]) + " " + (it ? it.name.toLowerCase() : "colour"); })));
   detailSheet(`<div style="display:flex;gap:12px;align-items:center">${achMedal(a, 52, got)}<div><div class="muted" style="font:800 11px var(--body);letter-spacing:.06em">${ACH_TIER[a.tier].name.toUpperCase()}</div><div style="font:900 20px var(--display)">${esc(a.name)}</div></div></div>
     ${got ? `<div class="muted" style="font:800 11px var(--body);letter-spacing:.06em;margin-top:12px">WHY YOU GOT IT</div>` : ""}<p style="margin:${got ? 4 : 10}px 0 6px;font-size:15px">${esc(a.desc)}</p>
-    ${got ? `<p class="muted" style="margin:0">Unlocked on ${new Date(S.ach.got[a.id]).toLocaleDateString("en-GB")}</p>` : pr ? `<div class="bar" style="margin-top:6px"><i style="width:${Math.round(pr.p * 100)}%"></i></div><p class="muted" style="margin:4px 0 0">${pr.c.toLocaleString("en")} / ${pr.g.toLocaleString("en")}</p>` : `<p class="muted" style="margin:0">Not unlocked yet.</p>`}
+    ${got ? `<p class="muted" style="margin:0">Unlocked on ${new Date(S.ach.got[a.id]).toLocaleDateString(DLOC())}</p>` : pr ? `<div class="bar" style="margin-top:6px"><i style="width:${Math.round(pr.p * 100)}%"></i></div><p class="muted" style="margin:4px 0 0">${pr.c.toLocaleString("en")} / ${pr.g.toLocaleString("en")}</p>` : `<p class="muted" style="margin:0">Not unlocked yet.</p>`}
     ${items.length ? `<div class="dreward"><span class="muted" style="font:800 11px var(--body);letter-spacing:.06em">REWARD</span>${items.map(n => `<b>${esc(n)}</b>`).join(" · ")}</div>` : ""}`);
 }
 /* what a figure needs, as three simple checks */
@@ -10360,7 +10361,7 @@ Views.blitz = {
         <button class="tile" data-go2="endgames">${icon("crown", 40)}<h3>Endgame blitz</h3><p>Mate with queen or rook in seconds.</p></button>
       </div>
       ${recent.length ? `<h2 class="h-sec" style="margin-top:16px">Recent rated games</h2><div class="list">${recent.map(g => { const won = g.result !== "1/2-1/2" && ((g.result === "1-0") === (g.color === "w")), dr = g.result === "1/2-1/2";
-        return `<div class="li" data-rg="${g.id}" style="cursor:pointer"><span class="pill ${won ? "go" : dr ? "" : "bad"}">${won ? "Win" : dr ? "Draw" : "Loss"}</span><div class="grow"><div class="t">vs ${esc(g.opp)} ${g.oppR ? `<span class="muted">(${g.oppR})</span>` : ""}</div><div class="s">${g.tc ? esc(tcLabel(g.tc)) + " · " + RATED_NAME[tcCat(g.tc)] : ""} · ${new Date(g.ts).toLocaleString("en-GB")}</div></div><span class="rdel-d ${g.rdelta >= 0 ? "up" : "down"}">${g.rdelta >= 0 ? "+" : ""}${g.rdelta}</span></div>`; }).join("")}</div>` : ""}</div>`;
+        return `<div class="li" data-rg="${g.id}" style="cursor:pointer"><span class="pill ${won ? "go" : dr ? "" : "bad"}">${won ? "Win" : dr ? "Draw" : "Loss"}</span><div class="grow"><div class="t">vs ${esc(g.opp)} ${g.oppR ? `<span class="muted">(${g.oppR})</span>` : ""}</div><div class="s">${g.tc ? esc(tcLabel(g.tc)) + " · " + RATED_NAME[tcCat(g.tc)] : ""} · ${new Date(g.ts).toLocaleString(DLOC())}</div></div><span class="rdel-d ${g.rdelta >= 0 ? "up" : "down"}">${g.rdelta >= 0 ? "+" : ""}${g.rdelta}</span></div>`; }).join("")}</div>` : ""}</div>`;
     $$("[data-qtc]", main).forEach(b => b.onclick = () => { const tc = b.dataset.qtc.split(",").map(Number); S.settings.botTc = tc; save(); App.go("bots"); Views.bots.start(rec, Math.random() < .5 ? "w" : "b", {coach: false, hints: false, threats: false, tips: false, level: "normal", tc, rated: true, openSan: ""}); });
     $("#gobots").onclick = e => { e.preventDefault(); App.go("bots"); };
     $$("[data-go2]", main).forEach(b => b.onclick = () => { const g = b.dataset.go2; if (g.startsWith("theory-")) App.go("theory", {id: g.slice(7)}); else App.go(g); });
@@ -10662,7 +10663,7 @@ function liveLoad(code){ try { const v = JSON.parse(sessionStorage.getItem(LIVE_
 
 function linkList(){
   const gs = Object.entries(S.linkGames || {}).sort((a, b) => b[1].ts - a[1].ts).slice(0, 6); if (!gs.length) return "";
-  return `<div class="list" style="margin-top:10px">${gs.map(([id, r]) => { const g = new Chess(); (r.moves || []).forEach(u => g.move({from: u.slice(0,2), to: u.slice(2,4), promotion: u[4] || undefined})); const my = g.turn() === r.color; return `<div class="li" data-lgid="${id}" style="cursor:pointer"><span class="pill ${r.result ? "" : my ? "go" : ""}">${r.result ? r.result : my ? "Your move" : "Waiting"}</span><div class="grow"><div class="t">vs ${esc(r.opp || "Friend")}</div><div class="s">${(r.moves || []).length} moves · ${new Date(r.ts).toLocaleDateString("en-GB")}</div></div><span class="muted">›</span></div>`; }).join("")}</div>`;
+  return `<div class="list" style="margin-top:10px">${gs.map(([id, r]) => { const g = new Chess(); (r.moves || []).forEach(u => g.move({from: u.slice(0,2), to: u.slice(2,4), promotion: u[4] || undefined})); const my = g.turn() === r.color; return `<div class="li" data-lgid="${id}" style="cursor:pointer"><span class="pill ${r.result ? "" : my ? "go" : ""}">${r.result ? r.result : my ? "Your move" : "Waiting"}</span><div class="grow"><div class="t">vs ${esc(r.opp || "Friend")}</div><div class="s">${(r.moves || []).length} moves · ${new Date(r.ts).toLocaleDateString(DLOC())}</div></div><span class="muted">›</span></div>`; }).join("")}</div>`;
 }
 Views.friend = {
   mount(main, arg){ this.main = main; this.cfg = this.cfg || {tc: [10, 0], color: "r"}; this.ranked = arg && arg.ranked || null; if (arg && arg.join) this.join(arg.join, !!arg.host); else this.menu(); },
@@ -10693,7 +10694,7 @@ Views.friend = {
       <div class="unit"><h3>Join a game</h3><div class="row" style="margin-top:8px"><input type="text" id="code" placeholder="abc123" maxlength="12" style="width:150px;text-transform:lowercase"><button class="btn go" id="joinb">Join</button></div></div>
       <div class="unit"><h3>How live games work</h3><ol class="muted" style="margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6"><li>Both of you open Chess.nat. No account is needed for live games.</li><li>Create a game and send the 6-letter code.</li><li>Your friend enters it under Join a game.</li></ol>
         <button class="btn sm" id="diag" style="margin-top:10px">Check my connection</button><div id="diagout" style="margin-top:8px"></div></div>
-      ${h2h.length ? `<div class="unit"><h3>Head to head</h3><div class="list">${h2h.map(([n, r]) => `<div class="li"><div class="grow"><div class="t">${esc(n)}</div><div class="s">Last game ${new Date(r.ts).toLocaleDateString("en-GB")}</div></div><span class="pill go">${r.w}W</span><span class="pill">${r.d}D</span><span class="pill bad">${r.l}L</span></div>`).join("")}</div></div>` : ""}</div>`;
+      ${h2h.length ? `<div class="unit"><h3>Head to head</h3><div class="list">${h2h.map(([n, r]) => `<div class="li"><div class="grow"><div class="t">${esc(n)}</div><div class="s">Last game ${new Date(r.ts).toLocaleDateString(DLOC())}</div></div><span class="pill go">${r.w}W</span><span class="pill">${r.d}D</span><span class="pill bad">${r.l}L</span></div>`).join("")}</div></div>` : ""}</div>`;
     const nameOk = () => { const v = $("#fname").value.trim().slice(0, 24); if (v){ S.name = v; save(); renderRail(); return true; } if (S.name && S.name !== "You") return true; $("#fname").focus(); toast("Enter your name first"); return false; };
     $$("[data-tc]", this.main).forEach(b => b.onclick = () => { c.tc = b.dataset.tc.split(",").map(Number); this.menu(); });
     $$("[data-col]", this.main).forEach(b => b.onclick = () => { c.color = b.dataset.col; this.menu(); });
@@ -11386,7 +11387,7 @@ Views.stats = {
         <div class="unit pat"><h3>Pattern strength</h3><p class="muted" style="margin:2px 0 8px">Weakest first. Tap one to train it.</p><div class="list">${themes.map(t => `<div class="li" data-k="${t.k}" style="cursor:pointer"><div class="grow"><div class="t">${esc(themeKeyLabel(t.k))}</div><div class="bar pat-bar"><i class="${t.acc < .5 ? "low" : t.acc < .7 ? "mid" : ""}" style="width:${Math.round(t.acc * 100)}%"></i></div></div><span class="pat-n"><b>${Math.round(t.acc * 100)}%</b><small>${t.ok}/${t.n}</small></span></div>`).join("") || `<p class="dim">No data yet.</p>`}</div></div>
         <div class="unit"><h3>Rank ladder</h3><p class="muted" style="margin:2px 0 8px">Tiers follow League of Legends ranked shares, mapped onto a FIDE-like rating curve.</p><div class="list">${ladder}</div></div>
       </div>
-      <div class="unit"><h3>Recently missed</h3><div class="list">${recentFails.map(r => `<div class="li"><span class="pill bad">${r.r}</span><div class="grow"><div class="t">${esc((r.th || []).map(themeLabel).filter(x => !["Middlegame Tactics","Opening Tactics","Endgame Tactics"].includes(x)).slice(0, 3).join(" · ") || "Puzzle")}</div><div class="s">${esc(r.mode)} · ${new Date(r.ts).toLocaleString("en-GB")}</div></div></div>`).join("") || `<p class="dim">Nothing missed yet.</p>`}</div></div>
+      <div class="unit"><h3>Recently missed</h3><div class="list">${recentFails.map(r => `<div class="li"><span class="pill bad">${r.r}</span><div class="grow"><div class="t">${esc((r.th || []).map(themeLabel).filter(x => !["Middlegame Tactics","Opening Tactics","Endgame Tactics"].includes(x)).slice(0, 3).join(" · ") || "Puzzle")}</div><div class="s">${esc(r.mode)} · ${new Date(r.ts).toLocaleString(DLOC())}</div></div></div>`).join("") || `<p class="dim">Nothing missed yet.</p>`}</div></div>
       <div class="unit"><h3>Bots</h3><div class="tablewrap"><table class="tb"><tr><th>Bot</th><th>W</th><th>D</th><th>L</th></tr>${BOTS.filter(b => S.bots[b.id]).map(b => `<tr><td>${esc(b.name)} (${b.r})</td><td>${S.bots[b.id].w}</td><td>${S.bots[b.id].d}</td><td>${S.bots[b.id].l}</td></tr>`).join("") || `<tr><td colspan="4" class="dim">No games yet.</td></tr>`}</table></div></div></div>`;
     $$("[data-k]", main).forEach(el => el.onclick = () => { App.go("train"); setTimeout(() => { const tr = Views.train; tr.lo = Math.max(400, S.puzzle.r - 250); tr.hi = S.puzzle.r + 250; tr.run(el.dataset.k); }, 50); });
   }
@@ -12348,7 +12349,7 @@ const LineVoice = (() => {
     if (S.settings.sound === false) return;
     if (line.own){ const src = own !== undefined ? own : (S.ownSnd && S.ownSnd.d);   /* someone else's line never plays my own sound */ if (ownOk(src)){ try { audio = new Audio(src); audio.play().catch(() => {}); } catch(e) {} } return; }
     /* a newer recording uploaded in the app (if there is one), else Nathan's recording shipped with the app. If neither plays: silence. */
-    const bundled = () => { try { const au = new Audio("/sounds/lines/" + line.id + ".mp3?v=3"); au.setAttribute("playsinline", ""); audio = au; au.play().catch(() => {}); } catch(e) {} };
+    const bundled = () => { try { const au = new Audio("/sounds/lines/" + line.id + ".mp3?v=13"); au.setAttribute("playsinline", ""); audio = au; au.play().catch(() => {}); } catch(e) {} };
     const site = window.ChessSite, sb = site && site.sb;
     if (sb && REAL[line.id] !== false){ try { const au = new Audio(sb.storage.from("news").getPublicUrl("lines/" + line.id).data.publicUrl); au.setAttribute("playsinline", ""); audio = au;
       au.onerror = () => { REAL[line.id] = false; if (audio === au) bundled(); }; au.oncanplay = () => { REAL[line.id] = true; };
@@ -13290,7 +13291,7 @@ Views.fprofile = {
       <h2 class="h-sec">You vs ${esc(p.name)}</h2>
       <div class="fp-h2h"><div class="w"><b>${o.w}</b><span>You won</span></div><div class="d"><b>${o.d}</b><span>Draws</span></div><div class="l"><b>${o.l}</b><span>${esc(p.name)} won</span></div></div>
       ${o.cage ? `<p class="muted" style="margin:8px 0 0">${o.cage === "mine" ? `🔒 ${esc(p.name)} is in your cage. <button class="btn sm go" data-heart="${id}" style="margin-left:6px">Send ❤️</button> <span class="dim" style="font-size:12px">hold to switch ❤️/💩</span>` : `😱 You're in ${esc(p.name)}'s cage. Win the next game to break out.`}</p>` : ""}
-      <div class="list fp-games">${games.length ? games.map(r => { const [t, k] = res(r); return `<div class="li"><span class="fp-r ${k}">${t}</span><div class="grow"><div class="t">${r.white === Social.me ? "You had white" : "You had black"}${r.moves ? ` · ${r.moves} moves` : ""}</div><div class="s">${esc(String(r.reason || "").replace(/^\w/, c => c.toUpperCase()))}</div></div><span class="muted" style="font-size:12.5px">${new Date(r.created_at).toLocaleDateString("en-GB", {day: "numeric", month: "short"})}</span></div>`; }).join("") : `<div class="li"><div class="grow muted">No games yet. Challenge ${esc(p.name)}!</div></div>`}</div></div>`;
+      <div class="list fp-games">${games.length ? games.map(r => { const [t, k] = res(r); return `<div class="li"><span class="fp-r ${k}">${t}</span><div class="grow"><div class="t">${r.white === Social.me ? "You had white" : "You had black"}${r.moves ? ` · ${r.moves} moves` : ""}</div><div class="s">${esc(String(r.reason || "").replace(/^\w/, c => c.toUpperCase()))}</div></div><span class="muted" style="font-size:12.5px">${new Date(r.created_at).toLocaleDateString(DLOC(), {day: "numeric", month: "short"})}</span></div>`; }).join("") : `<div class="li"><div class="grow muted">No games yet. Challenge ${esc(p.name)}!</div></div>`}</div></div>`;
     const m = this.main;
     m.querySelector("[data-back]").onclick = () => App.go("friends");
     /* tap their figure: it dances their signature emote */
@@ -13612,7 +13613,7 @@ Views.chat.seen = function(m){ const el = document.querySelector(`.bub.me[data-m
 Views.chat.readLine = function(){ const box = $("#cmsgs"); if (!box) return; const old = box.querySelector(".seen"); if (old) old.remove();
   const bubs = [...box.querySelectorAll(".bub")], lastMine = bubs.filter(b => b.classList.contains("me")).pop(); if (!lastMine || lastMine.dataset.read !== "1") return;
   const tag = document.createElement("div"); tag.className = "seen"; tag.textContent = "Read"; lastMine.after(tag); };
-function chatTime(t){ const d = new Date(t), now = new Date(); return d.toDateString() === now.toDateString() ? d.toLocaleTimeString("en-GB", {hour: "2-digit", minute: "2-digit"}) : d.toLocaleDateString("en-GB", {day: "numeric", month: "short"}); }
+function chatTime(t){ const d = new Date(t), now = new Date(); return d.toDateString() === now.toDateString() ? d.toLocaleTimeString(DLOC(), {hour: "2-digit", minute: "2-digit"}) : d.toLocaleDateString(DLOC(), {day: "numeric", month: "short"}); }
 
 /* ---------- push notifications ---------- */
 const Push = {
@@ -14025,7 +14026,7 @@ Views.news = {
       const msg = $("#lrmsg", box);
       $$("[data-lplay]", box).forEach(b => b.onclick = () => { const r = this.lrec[b.dataset.lplay]; new Audio(r.url).play().catch(() => {}); });
       $$("[data-lhear]", box).forEach(b => b.onclick = () => new Audio(url(b.dataset.lhear) + "?t=" + Date.now()).play().catch(() => {}));
-      $$("[data-ldef]", box).forEach(b => b.onclick = () => new Audio("/sounds/lines/" + b.dataset.ldef + ".mp3?v=3").play().catch(() => {}));
+      $$("[data-ldef]", box).forEach(b => b.onclick = () => new Audio("/sounds/lines/" + b.dataset.ldef + ".mp3?v=13").play().catch(() => {}));
       $$("[data-lup]", box).forEach(b => b.onclick = async () => { const id = b.dataset.lup, r = this.lrec[id]; b.disabled = true; msg.textContent = "Lade hoch…";
         let {error} = await sb.storage.from("news").upload("lines/" + id, r.blob, {contentType: r.type, upsert: false});
         /* already recorded once: replace it (works once the replace permission is in) */
@@ -14335,17 +14336,17 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=41"></script>
-<script src="games/imposter.js?v=41"></script>
-<script src="games/werwolf.js?v=41"></script>
-<script src="games/cards.js?v=41"></script>
-<script src="games/heads.js?v=41"></script>
-<script src="games/more.js?v=41"></script>
-<script src="games/net.js?v=41"></script>
-<script src="games/online.js?v=41"></script>
-<script src="games/natposter.js?v=41"></script>
-<script src="games/arena.js?v=41"></script>
-<script src="games/tipp.js?v=41"></script>
+<script src="games/core.js?v=141"></script>
+<script src="games/imposter.js?v=141"></script>
+<script src="games/werwolf.js?v=141"></script>
+<script src="games/cards.js?v=141"></script>
+<script src="games/heads.js?v=141"></script>
+<script src="games/more.js?v=141"></script>
+<script src="games/net.js?v=141"></script>
+<script src="games/online.js?v=141"></script>
+<script src="games/natposter.js?v=141"></script>
+<script src="games/arena.js?v=141"></script>
+<script src="games/tipp.js?v=141"></script>
 <script>boot();</script>
 </body>
 </html>

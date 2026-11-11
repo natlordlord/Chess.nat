@@ -711,7 +711,7 @@
             : `<div class="np-faces">${v.imps.map(id => `<span><span class="np-hd">${head(id)}</span><b>${nm(id)}</b></span>`).join("")}</div>`}
           ${this.endBtns(v)}</div>`; }
       if (v.phase === "end" && v.stats && this.xpGid !== v.gid && typeof addXP === "function"){ this.xpGid = v.gid; const r = v.stats.find(x => x.id === PNet.me), crew = v.win !== "imp" && v.win !== "boom" && v.win !== "o2", won = r && (v.win === "jest" ? v.jw === r.id : r.role !== "jest" && crew !== r.imp);
-        if (r){ let xp = (won ? 30 : 12) + r.k * 6 + r.t * 2 + r.w * 5; if (PNet.P && PNet.P.solo) xp = Math.round(xp / 2); setTimeout(() => { try { addXP(xp, "natposter"); } catch(e) {} }, 1200); } }
+        if (r){ let xp = (won ? 30 : 12) + r.k * 6 + r.t * 2 + r.w * 5; if (PNet.P && PNet.P.solo) xp = Math.round(xp / 2); setTimeout(() => { try { addXP(xp, "natposter"); if (won && typeof natWin === "function") natWin("natposter"); } catch(e) {} }, 1200); } }
       if (this.mapOpen && v.phase === "play") h = this.mapHTML();
       if (v.killedBy && v.phase !== "play" && v.phase !== "end" && !this.shown["k" + v.killedBy.k] && this.deathT && this.deathT[v.killedBy.k] && now() - this.deathT[v.killedBy.k] < 3200) h = this.deathHTML(v.killedBy);
       const kind = h ? (h.match(/class="np-(\w+)/) || [])[1] + (v.phase || "") : "";

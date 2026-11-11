@@ -249,11 +249,18 @@
     if (now() - C.hpT > 500){ A.hp = Object.assign({}, a.hp); A.out = a.out.slice(); A.feed = a.feed || []; } A.mx = a.mx;
     const pe = now() + a.pickLeft; if (Math.abs(pe - C.pickEnd) > 250) C.pickEnd = pe; C.pickDur = a.pk || PICK;
     if (a.ph === "fight"){ const f0 = now() - a.fightEl; if (!C.fightT0 || Math.abs(f0 - C.fightT0) > 250) C.fightT0 = f0; C.endAt = now() + a.left; if (!C.started) start(); }
-    if (mg.done && !C.doneAt){ C.doneAt = now(); C.win = mg.win; banner(mg.win ? `👑 ${esc(NPo().nm(mg.win))}` : T("Draw", "Unentschieden"), mg.win === me() ? "win" : ""); snd(mg.win === me() ? "win" : "ko"); if (mg.win === me()) Haptic.go([30, 50, 30, 50, 80]); }
+    if (mg.done && !C.doneAt){ C.doneAt = now(); C.win = mg.win; if (v.arena && amIn()) reward(mg.win === me()); banner(mg.win ? `👑 ${esc(NPo().nm(mg.win))}` : T("Draw", "Unentschieden"), mg.win === me() ? "win" : ""); snd(mg.win === me() ? "win" : "ko"); if (mg.win === me()) Haptic.go([30, 50, 30, 50, 80]); }
   }
+  /* Nat Stars on its own counts like the other games: XP, and a win is a daily win */
+  function reward(won){ const k = (C.A.kills || {})[me()] || 0, solo = PNet.P && PNet.P.solo; let xp = (won ? 20 : 6) + k * 4; if (solo) xp = Math.round(xp / 2);
+    setTimeout(() => { try { if (typeof addXP === "function") addXP(xp, "natstars"); if (won && typeof natWin === "function") natWin("natstars"); } catch(e) {} }, 1800); }
+  /* the first few fights: where to touch, what the yellow button and the fog do */
+  function hint(){ const n = PG.st.nsHint || 0, box = C.L && C.L.querySelector(".ar-tip"); if (n >= 3 || !box) return; PG.st.nsHint = n + 1; try { PG.persist(); } catch(e) {}
+    box.innerHTML = `<span class="t-mv">👆 ${T("Drag = run", "Ziehen = laufen")}</span><span class="t-fire">🎯 ${T("Drag = aim · tap = auto", "Ziehen = zielen · Tippen = Auto")}</span><span class="t-sup">⭐ ${T("Super charges when you hit", "Super lädt durch Treffer")}</span><span class="t-fog">🌫️ ${T("Invisible in the fog", "Im Nebel unsichtbar")}</span>`;
+    box.classList.add("on"); clearTimeout(C.tipT); C.tipT = setTimeout(() => box.classList.remove("on"), 6500); }
   function start(){
     C.started = true; const sp = C.A.sp[me()]; C.me = sp ? {x: sp.x, y: sp.y, a: 0, f: 1, mv: false} : null; C.am = AMMO; C.rl = 0; C.cd = 0; C.sup = 0; C.cls = C.A.cls[me()] || "shot";
-    if (amIn()){ banner(T("GO!", "LOS!"), "go"); snd("go"); Haptic.go([20, 40, 20]); }
+    if (amIn()){ banner(T("GO!", "LOS!"), "go"); snd("go"); Haptic.go([20, 40, 20]); hint(); }
   }
   /* the arena takes the screen once the wheel has stopped, until the winner has been shown (on its own: for good) */
   function active(){ const v = NPo().v, mg = v && v.phase === "meet" && v.meet && v.meet.mg; if (!mg || mg.g !== "arena" || !C.A || C.seed !== mg.seed){ if (C.on && !(v && v.arena && v.phase === "meet")) leaveLayer(); return C.on; }
@@ -262,14 +269,14 @@
 
   /* ---- the layer above the station: class pick, sticks, health, kills ---- */
   function enter(){
-    C.on = true; const NP = NPo(); if (!NP.el) return; NP.el.classList.add("arena"); NP.joy = null;
+    C.on = true; const NP = NPo(); if (!NP.el) return; NP.el.classList.add("arena"); NP.joy = null; try { Focus.set(true); } catch(e) {}
     let L = C.L; if (!L || !L.isConnected){ L = C.L = document.createElement("div"); L.className = "ar-l";
       L.innerHTML = `<div class="ar-hud"><span class="ar-rd"></span><span class="ar-t"></span><span class="ar-n"></span><span class="ar-gas">☠️ ${T("Gas", "Gas")}</span></div><div class="ar-feed"></div><div class="ar-ban"></div><div class="ar-pick"></div><div class="ar-joy"><i></i></div>
-        <div class="ar-sup"><b></b><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46"/></svg></div><div class="ar-fire"><b></b><span class="ar-am"><i><u></u></i><i><u></u></i><i><u></u></i></span></div><div class="ar-res"></div>`;
+        <div class="ar-sup"><b></b><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46"/></svg></div><div class="ar-fire"><b></b><span class="ar-am"><i><u></u></i><i><u></u></i><i><u></u></i></span></div><div class="ar-res"></div><div class="ar-tip"></div>`;
       NP.el.appendChild(L); wire(L); }
     pickDraw(true);
   }
-  function leaveLayer(){ C.on = false; const NP = NPo(); if (NP && NP.el) NP.el.classList.remove("arena"); if (Q.d0 && NP && NP.rs){ Q.d0 = 0; try { NP.rs(); } catch(e) {} } if (C.L){ C.L.remove(); C.L = null; } C.moveP = C.aimP = C.supP = null; }
+  function leaveLayer(){ if (C.on) try { Focus.set(false); } catch(e) {} C.on = false; const NP = NPo(); if (NP && NP.el) NP.el.classList.remove("arena"); if (Q.d0 && NP && NP.rs){ Q.d0 = 0; try { NP.rs(); } catch(e) {} } if (C.L){ C.L.remove(); C.L = null; } C.moveP = C.aimP = C.supP = null; }
   function banner(txt, cls){ C.ban = {txt, cls, t: now()}; const b = C.L && C.L.querySelector(".ar-ban"); if (b){ b.className = "ar-ban on " + (cls || ""); b.innerHTML = txt; b.style.animation = "none"; void b.offsetWidth; b.style.animation = ""; } }
   function wire(L){
     const gw = () => NPo().el.offsetWidth, LOC = N().LOC, joy = L.querySelector(".ar-joy"), knob = joy.firstChild, fb = L.querySelector(".ar-fire"), fk = fb.firstChild, sb = L.querySelector(".ar-sup"), sk = sb.firstChild;
@@ -325,7 +332,7 @@
     const box = C.L && C.L.querySelector(".ar-res"), v = C.v; if (!box) return; const on = !!(v && v.arena && C.doneAt && now() - C.doneAt > 1700); box.classList.toggle("on", on); if (!on) return;
     const P = NPo().pl(), W = v.arWins || {}, K = v.arK || {}, ids = (C.A.ids || []).slice().sort((a, b) => (W[b] || 0) - (W[a] || 0) || (K[b] || 0) - (K[a] || 0)), left = Math.max(0, Math.ceil((C.doneAt + NEXT - now()) / 1000));
     const h = `<div class="ar-rbox"><div class="ar-rt">${C.win ? `👑 <b>${esc(NPo().nm(C.win))}</b> ${T("wins round", "gewinnt Runde")} ${v.arRound || 1}` : T("Draw", "Unentschieden")}</div>
-      <div class="ar-rl">${ids.map((id, i) => `<div class="${id === me() ? "me" : ""}"><span class="r">${i + 1}</span><span class="np-hd">${headOf(id, P)}</span><b>${esc(NPo().nm(id))}</b><span class="w">🏆 ${W[id] || 0}</span><span class="k">💀 ${K[id] || 0}</span></div>`).join("")}</div>
+      <div class="ar-rl ${ids.length > 4 ? "two" : ""}">${ids.map((id, i) => `<div class="${id === me() ? "me" : ""}"><span class="r">${i + 1}</span><span class="np-hd">${headOf(id, P)}</span><b>${esc(NPo().nm(id))}</b><span class="w">🏆 ${W[id] || 0}</span><span class="k">💀 ${K[id] || 0}</span></div>`).join("")}</div>
       <div class="ar-rn">${T("Next round in", "Nächste Runde in")} <b>${left}</b></div><div class="ar-rb">${v.host && !(PNet.P && PNet.P.solo) ? `<button class="btn ghost" data-arx="lobby">↩︎ ${T("To the lobby", "Zur Lobby")}</button>` : ""}<button class="btn ghost" data-arx="quit">🚪 ${T("Leave", "Raus")}</button></div></div>`;
     if (box._h !== h){ box._h = h; box.innerHTML = h; }
   }
@@ -648,6 +655,13 @@
 .ar-sup svg{position:absolute;inset:-3px;width:calc(100% + 6px);height:calc(100% + 6px);transform:rotate(-90deg);pointer-events:none}.ar-sup circle{fill:none;stroke:#FFD15C;stroke-width:7;stroke-dasharray:289;stroke-dashoffset:289;stroke-linecap:round;transition:stroke-dashoffset .2s}
 .ar-sup.ready{border-color:#FFD15C;animation:arSup 1s ease-in-out infinite}.ar-sup.ready b{background:#E9A92B;filter:none;box-shadow:0 4px 0 rgba(0,0,0,.3)}.ar-sup.on b{transform:scale(1.12)}
 @keyframes arSup{50%{box-shadow:0 0 22px 4px rgba(255,209,92,.55)}}
+.ar-tip{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .4s}.ar-tip.on{opacity:1}
+.ar-tip span{position:absolute;background:rgba(255,255,255,.94);color:#1b1a18;font:800 13px var(--body);padding:6px 10px;border-radius:11px;white-space:nowrap;line-height:1.2;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.ar-tip .t-mv{left:calc(var(--sl,0px) + 24px);bottom:calc(var(--sb,0px) + 120px)}
+.ar-tip .t-fire{right:calc(var(--sr,0px) + 18px);bottom:calc(var(--sb,0px) + 156px)}
+.ar-tip .t-sup{right:calc(var(--sr,0px) + 120px);bottom:calc(var(--sb,0px) + 112px);background:#FFD15C}
+.ar-tip .t-fog{left:50%;top:calc(var(--st,0px) + 70px);transform:translateX(-50%);white-space:nowrap}
+.ar-tip.on span{animation:arTip 1.4s ease-in-out infinite alternate}@keyframes arTip{to{translate:0 -5px}}
 .ar-res{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(6,7,12,.72);padding:calc(var(--st,0px) + 12px) calc(var(--sr,0px) + 12px) calc(var(--sb,0px) + 12px) calc(var(--sl,0px) + 12px);z-index:3}
 .ar-res.on{display:flex;animation:arIn .3s ease-out}@keyframes arIn{from{opacity:0;transform:scale(.96)}}
 .ar-rbox{background:var(--panel,#1e1d1b);border-radius:20px;padding:14px 16px;width:min(440px,100%);max-height:100%;overflow:auto;color:#fff;display:flex;flex-direction:column;gap:10px;box-shadow:0 18px 50px rgba(0,0,0,.5)}
@@ -663,7 +677,8 @@
 .ar-pk span{font-size:28px}.ar-pk b{display:block;font:900 14px var(--body)}.ar-pk small{display:block;color:var(--muted,#aaa);font-size:11px;line-height:1.25}
 .ar-pk:active{transform:scale(.97)}.ar-pk.done{border-color:var(--go-hi,#8FC458);justify-content:center;max-width:360px;margin:0 auto}
 .ar-rv{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.ar-rv button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px;border-radius:12px;background:rgba(255,255,255,.06);color:#fff;border:2px solid rgba(255,255,255,.08)}
-@media (max-height:500px){.ar-rbox{width:min(640px,100%)}.ar-rl{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px}.ar-rt{font-size:18px}}
+.ar-rbox:has(.two){width:min(660px,100%)}.ar-rl.two{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px}
+.np.arena .ar-l:has(.ar-res.on) .ar-feed{display:none}
 @media (max-height:420px){.ar-card{padding:6px 4px}.ar-card .e{font-size:30px}.ar-card small{display:none}.ar-pt{font-size:20px}.ar-pk{padding:7px 8px}.ar-pk span{font-size:24px}.ar-pq{margin:2px 0 6px}.ar-rbox{padding:10px 12px;gap:6px}.ar-rl>div{padding:3px 8px}}
 .np-duel:has(.ar-pks) .du-rank>div:nth-child(n+4),.np-duel:has(.ar-rv) .du-rank>div:nth-child(n+4){display:none}
 `; document.head.appendChild(css);
