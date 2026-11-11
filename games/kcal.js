@@ -308,57 +308,93 @@
     return sh;
   }
 
-  /* ---------- voice: big red button while recording, no sounds ---------- */
+  /* ---------- voice: tap = record, tap again = done. It never stops by itself: when the phone's speech
+     recognition ends after a pause, it starts again at once and keeps what was said. While recording nothing
+     pops up (Focus.hush), a live voice band and a timer show that it really records. No sounds. ---------- */
   const Voice2 = (() => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let ov = null, rec = null, heard = "", silenceT = null, startT = null, mode = "idle";
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition, MB = "chessnat-kc-meterbad";
+    let ov = null, rec = null, heard = "", base = "", startT = null, finT = null, mode = "idle", want = false, t0 = 0, raf = 0, meter = null, pulse = 0, lastStart = 0, quick = 0;
+    const bars = [];
     function ui(){
       ov = document.createElement("div"); ov.className = "kc-ov-full kc-voice"; ov.setAttribute("data-notr", "");
-      ov.innerHTML = `<div class="kc-vtop"><button class="kc-x" data-x aria-label="Schließen">${svg(IC.x, 22)}</button></div>
+      ov.innerHTML = `<div class="kc-vtop"><button class="kc-x" data-x aria-label="Schließen">${svg(IC.x, 22)}</button><span class="kc-vtime" id="kcvtime"></span><span style="width:44px"></span></div>
         <div class="kc-vmid"><div class="kc-vt" id="kcvt">Ich höre zu</div><div class="kc-heard dim" id="kcheard">„Zwei Brötchen mit Nutella und ein Kakao …“</div>
-          <button class="kc-mic" id="kcmic" aria-label="Aufnahme">${svg(IC.mic, 54)}</button><div class="kc-vh muted" id="kcvh"></div>
+          <canvas class="kc-wave" id="kcwave"></canvas>
+          <button class="kc-mic" id="kcmic" aria-label="Aufnahme"><i class="kc-ring"></i><span class="kc-mi">${svg(IC.mic, 54)}</span><span class="kc-ms2"></span></button><div class="kc-vh muted" id="kcvh"></div>
+          <button class="btn go big kc-vdone" id="kcvdone" hidden>Fertig, rechnen</button>
           <form class="kc-type" id="kctype" hidden><textarea id="kctext" rows="3" placeholder="Was hast du gegessen?"></textarea><button class="btn go big">Rechnen</button></form></div>
         <div class="kc-vbot"><button class="btn ghost" id="kckb">${svg(IC.kb, 18)} Tippen</button></div>`;
       document.body.appendChild(ov);
       ov.querySelector("[data-x]").onclick = close;
-      ov.querySelector("#kcmic").onclick = () => { if (mode === "listening") finish(); else if (mode !== "thinking") listen(); };
+      ov.querySelector("#kcmic").onclick = () => { if (mode === "listening") finish(); else if (mode === "idle" || mode === "paused") listen(mode === "paused"); };
+      ov.querySelector("#kcvdone").onclick = () => { if (heard) analyze(heard); };
       ov.querySelector("#kckb").onclick = () => typeMode();
       ov.querySelector("#kctype").onsubmit = e => { e.preventDefault(); const v = ov.querySelector("#kctext").value.trim(); if (!v) return say("Schreib kurz, was du gegessen hast"); ov.querySelector("#kctext").blur(); analyze(v); };
+      draw();
     }
     function set(state, hint){
       mode = state; if (!ov) return;
-      ov.classList.toggle("rec", state === "listening"); ov.classList.toggle("think", state === "thinking"); ov.classList.toggle("typing", state === "typing");
-      ov.querySelector("#kcvt").textContent = state === "thinking" ? "Ich rechne …" : state === "typing" ? "Was hast du gegessen?" : state === "listening" ? "Ich höre zu" : "Tippen zum Sprechen";
+      ov.classList.toggle("rec", state === "listening"); ov.classList.toggle("think", state === "thinking" || state === "finishing"); ov.classList.toggle("typing", state === "typing");
+      ov.querySelector("#kcvt").textContent = state === "thinking" || state === "finishing" ? "Ich rechne …" : state === "typing" ? "Was hast du gegessen?" : state === "listening" ? "Ich höre zu" : state === "paused" ? "Pause" : "Tippen zum Sprechen";
       ov.querySelector("#kcvh").textContent = hint || "";
-      ov.querySelector("#kctype").hidden = state !== "typing"; ov.querySelector("#kcmic").hidden = state === "typing";
-      ov.querySelector("#kckb").hidden = state === "typing" || state === "thinking";
+      ov.querySelector("#kctype").hidden = state !== "typing"; ov.querySelector("#kcmic").hidden = state === "typing"; ov.querySelector("#kcwave").hidden = state === "typing";
+      ov.querySelector("#kckb").hidden = state === "typing" || state === "thinking" || state === "finishing" || state === "listening";
+      ov.querySelector("#kcvdone").hidden = !(state === "paused" && heard);
     }
     function open(){
       if (!meId()) return say("Bitte erst anmelden");
-      if (ov) close(); heard = ""; ui(); listen();
+      if (ov) close(); heard = base = ""; bars.length = 0; ui(); listen();
     }
-    function listen(){
-      heard = ""; const hd = ov.querySelector("#kcheard"); hd.textContent = "„Zwei Brötchen mit Nutella und ein Kakao …“"; hd.classList.add("dim");
+    const show = () => { const hd = ov && ov.querySelector("#kcheard"); if (!hd) return; if (heard){ hd.textContent = heard; hd.classList.remove("dim"); hd.scrollTop = hd.scrollHeight; } };
+    function listen(more){
+      if (!more){ heard = base = ""; const hd = ov.querySelector("#kcheard"); hd.textContent = "„Zwei Brötchen mit Nutella und ein Kakao …“"; hd.classList.add("dim"); t0 = Date.now(); } else base = heard;
       if (!SR) return typeMode("Spracherkennung gibt’s hier nicht. Tipp oder diktier über das 🎤 der Tastatur.");
-      let r; try { r = new SR(); } catch(e) { return typeMode(); }
-      rec = r; r.lang = "de-DE"; r.interimResults = true; r.continuous = true; r.maxAlternatives = 1;
-      set("listening", "Sprich ganz normal. Zum Beenden auf den roten Knopf tippen.");
-      let started = false;
-      r.onstart = r.onaudiostart = () => { if (!started){ started = true; haptic(12); } };
-      r.onresult = e => { heard = Array.from(e.results).map(x => x[0].transcript).join(" ").replace(/\s+/g, " ").trim();
-        hd.textContent = heard; hd.classList.remove("dim"); clearTimeout(silenceT); silenceT = setTimeout(finish, 2200); };
-      r.onerror = e => { if (rec !== r) return;
-        if (e.error === "not-allowed" || e.error === "service-not-allowed"){ stop(); typeMode("Kein Mikrofon-Zugriff. Tipp stattdessen."); }
-        else if (e.error === "no-speech") ov && (ov.querySelector("#kcvh").textContent = "Ich hab nichts gehört. Sag’s nochmal."); };
-      r.onend = () => { if (rec !== r) return; rec = null; if (mode === "listening"){ if (heard) analyze(heard); else set("idle", "Nichts gehört. Tipp auf den Knopf und sprich."); } };
-      try { r.start(); } catch(e) { rec = null; return typeMode(); }
-      clearTimeout(startT); startT = setTimeout(() => { if (rec === r && !started && !heard){ stop(); typeMode("Die Spracherkennung startet nicht. Tipp oder diktier über die Tastatur."); } }, 4000);
+      want = true; quick = 0; set("listening", "Tippen, wenn du fertig bist"); try { Focus.hush(true); } catch(e) {} haptic(12);
+      startSR(true); startMeter();
+      clearTimeout(startT); startT = setTimeout(() => { if (want && mode === "listening" && !heard && !lastStart){ stop(); typeMode("Die Spracherkennung startet nicht. Tipp oder diktier über die Tastatur."); } }, 4500);
     }
-    function stop(){ clearTimeout(silenceT); clearTimeout(startT); const r = rec; rec = null; if (r) try { r.abort(); } catch(e) {} }
-    function finish(){ clearTimeout(silenceT); if (mode !== "listening") return; const r = rec;
-      if (heard){ stop(); analyze(heard); } else if (r){ try { r.stop(); } catch(e) {} } else set("idle"); }
+    function startSR(first){
+      let r; try { r = new SR(); } catch(e) { return first ? typeMode() : pause(); }
+      rec = r; r.lang = "de-DE"; r.interimResults = true; r.continuous = true; r.maxAlternatives = 1; const at = Date.now();
+      r.onstart = r.onaudiostart = () => { if (rec === r) lastStart = lastStart || Date.now(); };
+      r.onresult = e => { if (rec !== r) return; const sess = Array.from(e.results).map(x => x[0].transcript).join(" "); heard = (base + " " + sess).replace(/\s+/g, " ").trim(); pulse = 1; show(); };
+      r.onerror = e => { if (rec !== r) return;
+        if (e.error === "not-allowed" || e.error === "service-not-allowed"){ if (first && !heard){ stop(); typeMode("Kein Mikrofon-Zugriff. Tipp stattdessen."); } else { rec = null; pause(); } }
+        else if (e.error === "audio-capture" && meter){ stopMeter(true); } };
+      /* the phone ended the recognition (a pause, a time limit): start again and keep what was said */
+      r.onend = () => { if (rec !== r) return; rec = null; base = heard;
+        if (want && mode === "listening"){ if (Date.now() - at < 1500 && ++quick >= 3){ if (meter) stopMeter(true); else if (quick >= 6) return pause(); } setTimeout(() => { if (want && mode === "listening" && !rec) startSR(false); }, 80); return; }
+        if (mode === "finishing") done(); };
+      try { r.start(); } catch(e) { rec = null; return first ? typeMode() : pause(); }
+    }
+    /* recognition can't go on by itself (some phones need a new tap): keep the text, tap continues */
+    function pause(){ want = false; stopMeter(); try { Focus.hush(false); } catch(e) {} set("paused", heard ? "Tippen zum Weitersprechen" : "Tippen zum Sprechen"); }
+    function stop(){ want = false; clearTimeout(startT); clearTimeout(finT); const r = rec; rec = null; if (r) try { r.abort(); } catch(e) {} stopMeter(); try { Focus.hush(false); } catch(e) {} }
+    function finish(){ if (mode !== "listening") return; want = false; haptic([10, 30, 10]); stopMeter(); try { Focus.hush(false); } catch(e) {}
+      set("finishing"); const r = rec; if (r){ try { r.stop(); } catch(e) {} clearTimeout(finT); finT = setTimeout(done, 1500); } else done(); }
+    function done(){ clearTimeout(finT); if (mode !== "finishing") return; const r = rec; rec = null; if (r) try { r.abort(); } catch(e) {}
+      if (heard) analyze(heard); else set("idle", "Nichts gehört. Tipp auf den Knopf und sprich."); }
+    /* the voice band: the real microphone level where the phone allows a second listener, else it moves with what is recognised */
+    let meterBad = false; try { meterBad = localStorage.getItem(MB) === "1"; } catch(e) {}
+    async function startMeter(){ if (meterBad || meter || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+      try { const st = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true}}); if (!want){ st.getTracks().forEach(t => t.stop()); return; }
+        const AC = window.AudioContext || window.webkitAudioContext, ac = new AC(), an = ac.createAnalyser(); an.fftSize = 512; ac.createMediaStreamSource(st).connect(an); meter = {st, ac, an, buf: new Uint8Array(an.fftSize)}; } catch(e) {} }
+    function stopMeter(bad){ if (bad){ meterBad = true; try { localStorage.setItem(MB, "1"); } catch(e) {} } if (!meter) return; try { meter.st.getTracks().forEach(t => t.stop()); meter.ac.close(); } catch(e) {} meter = null; }
+    const level = () => { if (meter){ meter.an.getByteTimeDomainData(meter.buf); let s = 0; for (let i = 0; i < meter.buf.length; i++){ const d = (meter.buf[i] - 128) / 128; s += d * d; } return Math.min(1, Math.sqrt(s / meter.buf.length) * 5); }
+      pulse *= .9; return mode === "listening" ? Math.min(1, .08 + pulse * (.45 + Math.random() * .5)) : 0; };
+    let lastBar = 0;
+    function draw(){
+      cancelAnimationFrame(raf); if (!ov) return; raf = requestAnimationFrame(draw);
+      const cv = ov.querySelector("#kcwave"), tm = ov.querySelector("#kcvtime"); if (!cv || cv.hidden) return; const dpr = Math.min(3, window.devicePixelRatio || 1), w = cv.clientWidth, hh = cv.clientHeight; if (!w) return;
+      if (cv.width !== Math.round(w * dpr)){ cv.width = Math.round(w * dpr); cv.height = Math.round(hh * dpr); }
+      const n = Math.floor(w / 7), now2 = Date.now(), lv = level(); if (now2 - lastBar > 55){ lastBar = now2; bars.push(mode === "listening" ? lv : 0); while (bars.length > n) bars.shift(); }
+      const c = cv.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, hh); c.lineCap = "round"; c.lineWidth = 4;
+      for (let i = 0; i < n; i++){ const v = bars[bars.length - n + i] || 0, x = i * 7 + 3.5, bh = Math.max(4, v * (hh - 8)); c.strokeStyle = mode === "listening" ? `rgba(255,${90 + Math.round(v * 60)},80,${.35 + (i / n) * .65})` : "rgba(255,255,255,.18)"; c.beginPath(); c.moveTo(x, hh / 2 - bh / 2); c.lineTo(x, hh / 2 + bh / 2); c.stroke(); }
+      const ring = ov.querySelector(".kc-ring"); if (ring) ring.style.transform = `scale(${1 + (mode === "listening" ? lv * .45 : 0)})`;
+      if (tm){ const sec = mode === "listening" || mode === "paused" ? Math.floor((now2 - t0) / 1000) : -1, txt = sec >= 0 ? Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0") : ""; if (tm.textContent !== txt) tm.textContent = txt; }
+    }
     function typeMode(hint){ stop(); set("typing", hint || ""); const t = ov.querySelector("#kctext"); t.value = heard || ""; setTimeout(() => t.focus(), 60); }
-    function close(){ stop(); mode = "idle"; if (ov){ ov.remove(); ov = null; } }
+    function close(){ stop(); mode = "idle"; cancelAnimationFrame(raf); if (ov){ ov.remove(); ov = null; } }
     async function analyze(text){
       set("thinking", ""); const hd = ov.querySelector("#kcheard"); hd.textContent = text; hd.classList.remove("dim");
       const at = Date.now();
@@ -669,6 +705,12 @@
 .kc-vt{font:900 26px var(--display)}.kc-heard{font:700 20px/1.35 var(--body);min-height:2.7em;max-height:40vh;overflow:auto}.kc-heard.dim{color:rgba(255,255,255,.35)}.kc-vh{font:700 14px var(--body);color:rgba(255,255,255,.6);min-height:1.3em}
 .kc-mic{width:132px;height:132px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;color:#fff;background:#3D3A35;box-shadow:inset 0 -6px 0 rgba(0,0,0,.3);transition:background .2s,transform .15s}
 .kc-voice.rec .kc-mic{background:#E23B3B;box-shadow:0 0 0 0 rgba(226,59,59,.6),inset 0 -6px 0 #a52525;animation:kcPulse 1.4s infinite}
+.kc-wave{width:min(420px,100%);height:84px;display:block}
+.kc-mic{position:relative}.kc-ring{position:absolute;inset:-10px;border-radius:50%;border:4px solid rgba(255,90,80,.0);transition:transform .08s linear;pointer-events:none}
+.kc-voice.rec .kc-ring{border-color:rgba(255,90,80,.45)}.kc-voice.rec .kc-mic{animation:none}.kc-mi{display:grid;place-items:center}.kc-ms2{display:none;width:40px;height:40px;border-radius:9px;background:#fff}
+.kc-voice.rec .kc-mi{display:none}.kc-voice.rec .kc-ms2{display:block}.kc-mic:active{transform:scale(.94)}
+.kc-vtime{font:800 17px var(--body);font-variant-numeric:tabular-nums;color:#ff6b6b;align-self:center}.kc-vdone{width:min(320px,100%)}
+.kc-voice.typing .kc-wave{display:none}
 .kc-voice.rec .kc-vt{color:#ff6b6b}.kc-voice.think .kc-mic{background:#3D3A35;animation:kcSpin 1s linear infinite;opacity:.7}
 @keyframes kcPulse{0%{box-shadow:0 0 0 0 rgba(226,59,59,.55),inset 0 -6px 0 #a52525}70%{box-shadow:0 0 0 26px rgba(226,59,59,0),inset 0 -6px 0 #a52525}100%{box-shadow:0 0 0 0 rgba(226,59,59,0),inset 0 -6px 0 #a52525}}
 @keyframes kcSpin{50%{transform:scale(.92)}}

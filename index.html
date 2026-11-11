@@ -2801,7 +2801,7 @@ html.booting .app{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794411262";
+const CHESSNAT_BUILD = "1794411486";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -2954,8 +2954,11 @@ function hashStr(s){ let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^
 const Focus = {on: false, q: new Map(),
   set(v){ if (this.on === !!v) return; this.on = !!v; if (!v){ const q = [...this.q.values()]; this.q.clear(); q.forEach((f, i) => setTimeout(() => { try { f(); } catch(e) {} }, 1600 + i * 300)); } },
   /* returns true when the thing was put aside for later (one per key) */
-  later(key, f){ if (!this.on) return false; this.q.set(key, f); return true; }};
+  later(key, f){ if (!this.on) return false; this.q.set(key, f); return true; },
+  /* quiet: while recording a voice note nothing pops up at all (no toast, no card); cards wait until it's over */
+  quiet: false, hush(v){ v = !!v; if (this.quiet === v) return; this.quiet = v; this.set(v); if (!v) setTimeout(() => { try { if (!Notify.cur) Notify.next(); } catch(e) {} }, 900); }};
 function toast(t, ms = 2200){
+  if (Focus.quiet) return;
   document.querySelectorAll(".toast").forEach(o => { o.classList.add("out"); setTimeout(() => o.remove(), 250); });
   /* inside the Natposter game the toast lives in the (possibly turned) game, so it reads the same way as everything else */
   const np = document.documentElement.classList.contains("np-on") && document.querySelector(".np");
@@ -2968,7 +2971,7 @@ const Notify = {
   q: [], cur: null,
   show(o){ if (o.key && this.cur && this.cur.o.key === o.key){ this.close(this.cur, true); } if (o.key) this.q = this.q.filter(x => x.key !== o.key); this.q.push(o); if (!this.cur) this.next(); },
   next(){
-    const o = this.q.shift(); if (!o) return;
+    if (Focus.quiet) return; const o = this.q.shift(); if (!o) return;
     const el = document.createElement("div"); el.className = "ntf " + (o.cls || ""); if (o.accent) el.style.setProperty("--na", o.accent);
     el.innerHTML = `<div class="ntf-in">${o.icon ? `<div class="ntf-ic">${o.icon}</div>` : ""}<div class="ntf-t">${o.label ? `<small>${o.label}</small>` : ""}<b>${o.title || ""}</b>${o.text ? `<span>${o.text}</span>` : ""}</div>${(o.actions || []).map((x, i) => `<button class="ntf-b ${x.primary ? "go" : ""}" data-a="${i}">${x.label}</button>`).join("")}</div>`;
     document.body.appendChild(el); const cur = this.cur = {el, o, t0: performance.now()};
@@ -14377,18 +14380,18 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=114"></script>
-<script src="games/imposter.js?v=114"></script>
-<script src="games/werwolf.js?v=114"></script>
-<script src="games/cards.js?v=114"></script>
-<script src="games/heads.js?v=114"></script>
-<script src="games/more.js?v=114"></script>
-<script src="games/net.js?v=114"></script>
-<script src="games/online.js?v=114"></script>
-<script src="games/natposter.js?v=114"></script>
-<script src="games/arena.js?v=114"></script>
-<script src="games/tipp.js?v=114"></script>
-<script src="games/kcal.js?v=114"></script>
+<script src="games/core.js?v=115"></script>
+<script src="games/imposter.js?v=115"></script>
+<script src="games/werwolf.js?v=115"></script>
+<script src="games/cards.js?v=115"></script>
+<script src="games/heads.js?v=115"></script>
+<script src="games/more.js?v=115"></script>
+<script src="games/net.js?v=115"></script>
+<script src="games/online.js?v=115"></script>
+<script src="games/natposter.js?v=115"></script>
+<script src="games/arena.js?v=115"></script>
+<script src="games/tipp.js?v=115"></script>
+<script src="games/kcal.js?v=115"></script>
 <script>boot();</script>
 </body>
 </html>
