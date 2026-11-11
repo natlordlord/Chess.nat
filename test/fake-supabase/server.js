@@ -111,7 +111,7 @@ const offHit = f => ({code: f[0], product_name: f[1], product_name_de: f[1], bra
   serving_quantity: f[9], serving_size: f[8], product_quantity: f[10], image_front_small_url: null, countries_tags: ["en:germany"], nutriscore_grade: f[3] > 400 ? "e" : f[3] > 200 ? "c" : "a"});
 function ai(req){
   const kind = req.response_format.json_schema.name, user = req.messages[1].content, said = (/Gesagt: „([\s\S]*)“/.exec(user) || [0, user])[1];
-  const it = (name, amount, kcal, carbs, protein, fat) => ({name, amount, grams: 0, product: "none", ref: "", state: "", kcal, carbs, protein, fat, fiber: 2, sugar: Math.round(carbs * .3), satfat: Math.round(fat * .4), quality: kcal > 300 ? 2 : 4});
+  const it = (name, amount, kcal, carbs, protein, fat) => ({name, amount, grams: 0, brand: "none", product: "none", ref: "", state: "", kcal, carbs, protein, fat, fiber: 2, sugar: Math.round(carbs * .3), satfat: Math.round(fat * .4), quality: kcal > 300 ? 2 : 4});
   if (kind === "shop"){ const words = said.split(/,| und /).map(s => s.trim()).filter(Boolean), dish = words.filter(w => /lasagne|chili|kuchen|pizza/i.test(w));
     return {products: words.filter(w => !dish.includes(w)).map(w => { const m = /^(\d+\s*(?:l|liter|g|kg|stück|x)?)\s+(.+)$/i.exec(w); return {name: m ? m[2] : w, amount: m ? m[1] : ""}; }),
       dishes: dish.map(d => ({name: d, items: [{name: "Hackfleisch", amount: "500 g"}, {name: "Passierte Tomaten", amount: "2 Dosen"}, {name: "Lasagneplatten", amount: "1 Packung"}]}))}; }
@@ -124,7 +124,8 @@ function ai(req){
   if (tab.length) { const wild = () => Math.round(100 + Math.random() * 400), dry = /trocken|\broh|ungekocht/i.test(said);
     const items = tab.map(([re, ref, name]) => { const m = new RegExp("(\\d+)\\s*(?:g|gramm)\\s+(?:\\S+\\s+)?(?:" + re.source + ")", "i").exec(said), g = m ? +m[1] : ref === "pesto" ? 30 : 200;
       const brand = /(barilla|dingsbums)/i.exec(said);
-      return Object.assign(it(name, g + " g", wild(), wild() / 10, wild() / 20, wild() / 40), {grams: g, product: brand && ref === "pasta" ? brand[1] + " Spaghetti" : "none", ref, state: ref === "pesto" ? "" : dry ? "dry" : "cooked"}); });
+      return Object.assign(it(name, g + " g", wild(), wild() / 10, wild() / 20, wild() / 40), {grams: g, /* like the real model sometimes does: it only names the brand ("Barilla") and leaves product empty */
+        brand: brand && ref === "pasta" ? brand[1] : "none", product: brand && ref === "pasta" && /dingsbums/i.test(said) ? brand[1] + " Spaghetti" : "none", name: ref === "pasta" && brand ? "Spaghetti" : name, ref, state: ref === "pesto" ? "" : dry ? "dry" : "cooked"}); });
     return {title: said.split(/\s+/).slice(0, 4).join(" "), emoji: "🍝", items, kcal: 0, carbs: 0, protein: 0, fat: 0, minutesAgo: 0, note: ""}; }
   /* foods outside the fixed table: the stand-in "AI" guesses a little differently every time and names the food only when it
      is on the BEKANNT list of the checked database. The server then answers with the checked values and never stores anything. */

@@ -17,8 +17,9 @@ const SCHEMA = {
   properties: {
     title: {type: "string", description: "Kurzer Name der Mahlzeit, max. 4 Wörter"},
     emoji: {type: "string", description: "Ein passendes Essens-Emoji"},
-    items: {type: "array", items: {type: "object", additionalProperties: false, required: ["name", "food", "product", "amount", "grams", "ref", "state", "kcal", "carbs", "protein", "fat", "fiber", "sugar", "satfat", "quality"],
+    items: {type: "array", items: {type: "object", additionalProperties: false, required: ["name", "food", "brand", "product", "amount", "grams", "ref", "state", "kcal", "carbs", "protein", "fat", "fiber", "sugar", "satfat", "quality"],
       properties: {name: {type: "string"}, food: {type: "string", description: "Name aus der Liste BEKANNT, wenn die Zutat genau dieses Lebensmittel ist, exakt so geschrieben; sonst leer"},
+        brand: {type: "string", description: "Die Marke oder der Händler, den der Nutzer zu dieser Zutat genannt hat (z. B. 'Barilla', 'Aldi', 'Rewe', 'Ja', 'Milka', 'Arla'). Nichts genannt: 'none'"},
         product: {type: "string", description: "Nur wenn der Nutzer ein bestimmtes Produkt oder eine Marke nennt: Marke und Produktname, so wie man es im Supermarkt sucht (z. B. 'Barilla Pesto Genovese', 'Nutella', 'Ja Vollmilch 3,5'). Nennt er nur das Lebensmittel (Nudeln, Pesto, Milch): 'none'"},
         amount: {type: "string", description: "Menge, z. B. '2 Scheiben (80 g)'"},
         grams: {type: "number", description: "Gewicht dieser Zutat in Gramm (bei Getränken ml), so wie gegessen. Immer angeben, auch geschätzt."},
@@ -41,7 +42,7 @@ Die Kalorien sind das Wichtigste: realistisch, nicht zu niedrig. Getränke mit K
 Die Summenfelder müssen der Summe der Zutaten entsprechen. Wenn nichts Essbares erkennbar ist, gib leere items und 0 zurück und erkläre es in note.
 TABELLE: Für diese Lebensmittel rechnet die App die Nährwerte selbst aus einer festen Tabelle, damit dasselbe Essen bei jedem dieselben Werte hat. Ist eine Zutat genau eines davon (auch als Teil eines Gerichts, z. B. die Nudeln in „Nudeln mit Pesto“), setze ref auf die Kennung und grams auf das Gewicht; zerlege Gerichte dafür in ihre Zutaten. Nimm ref nur, wenn es wirklich dieses Lebensmittel ist (Nudelsalat, Reiswaffeln, Milchreis, Käsekuchen sind es nicht): dann ref = "none".
 ${FOODS.list.map(f => f.id + " = " + f.n + (f.cf ? " (zwei Zustände: " + f.st[0] + " / " + f.st[1] + ")" : "")).join("; ")}
-PRODUKT: Nennt der Nutzer eine Marke oder ein bestimmtes Produkt („Barilla Spaghetti“, „Pesto von Barilla“, „Nutella“, „Skyr von Arla“), schreib Marke und Produktname in product. Die App sucht dann genau dieses Produkt in Open Food Facts und nimmt dessen Werte statt der Tabelle. ref und state trotzdem setzen, wenn es zur TABELLE gehört. Erfinde keine Marke, die nicht gesagt wurde: dann product = "none".
+PRODUKT (wichtig): Nennt der Nutzer zu einer Zutat eine Marke, einen Händler oder ein bestimmtes Produkt, schreib die Marke bzw. den Händler in brand und Marke plus Produktname in product. Beispiel: „250 g Barilla Spaghetti mit Pesto alla Genovese von Aldi“ → Spaghetti: brand "Barilla", product "Barilla Spaghetti"; Pesto: brand "Aldi", product "Aldi Pesto Genovese". Weitere: „Nutella“ → brand "Nutella"; „Skyr von Arla“ → brand "Arla", product "Arla Skyr". Die App sucht dann genau dieses Produkt in Open Food Facts und nimmt dessen Werte statt der Tabelle. ref und state trotzdem setzen, wenn es zur TABELLE gehört. Erfinde keine Marke, die nicht gesagt wurde: dann product = "none".
 Zustand: Nudeln, Reis, Couscous, Bulgur, Quinoa, Linsen, Kichererbsen und Bohnen werden gekocht schwerer, Fleisch wird gebraten leichter. Sagt der Nutzer „gekocht“, „gebraten“, „auf dem Teller“ oder nichts dazu, ist grams das fertige Gewicht: state = "cooked". Sagt er „trocken“, „roh“, „ungekocht“ oder nennt er das Gewicht aus der Packung, ist state = "dry". Rechne das Gewicht nie selbst um.
 DATENBANK: Zusätzlich gibt es eine geprüfte Datenbank mit festen Werten pro 100 g. Ihre Namen stehen unter BEKANNT. Ist eine Zutat, die nicht in der TABELLE steht, genau eines dieser Lebensmittel (auch anders geschrieben, in der Mehrzahl oder mit Marke), setze food exakt auf diesen Namen und grams auf das echte Gewicht: die App nimmt dann die geprüften Werte. Passt keiner wirklich, bleibt food leer; erfinde keine Namen und nimm nichts nur Ähnliches.
 Antworte nur mit JSON nach diesem Schema: ${JSON.stringify(SCHEMA)}`;
@@ -168,21 +169,27 @@ async function knownFoods(req){
    is converted with the table's cooking factor. Not found: the table's value stays and the note says so. */
 const pnorm = t => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ß/g, "ss");
 async function offProduct(name){
-  const words = pnorm(name).split(/[^a-z0-9]+/).filter(w => w.length >= 3); if (!words.length) return null;
-  const url = "https://search.openfoodfacts.org/search?" + new URLSearchParams({q: name, page_size: "30", langs: "de,en", fields: "code,product_name,product_name_de,generic_name,brands,nutriments,countries_tags"});
+  const FILL = /^(alla|allo|von|vom|mit|und|der|die|das|the|des|del|della|aus|bio|marke|eigenmarke)$/;
+  const words = pnorm(name).split(/[^a-z0-9]+/).filter(w => w.length >= 3 && !FILL.test(w)); if (!words.length) return null;
+  const url = "https://search.openfoodfacts.org/search?" + new URLSearchParams({q: name, page_size: "30", langs: "de,en", fields: "code,product_name,product_name_de,generic_name,brands,stores,nutriments,countries_tags"});
   const r = await fetch(url, Object.assign({headers: {"User-Agent": "ChessNat/1.0 (chess-nat.vercel.app)"}}, soon(5000))); if (!r.ok) return null; const j = await r.json();
   const L = (j.hits || []).map((p, ix) => { const n = p.nutriments || {}, brand = (Array.isArray(p.brands) ? p.brands[0] : String(p.brands || "").split(",")[0]) || "";
     return {ix, code: String(p.code || ""), name: String(p.product_name_de || p.product_name || p.generic_name || "").trim().slice(0, 80), brand: String(brand).trim().slice(0, 40),
       k: Number(n["energy-kcal_100g"]) || (Number(n["energy_100g"]) ? Number(n["energy_100g"]) / 4.184 : 0), c: Number(n.carbohydrates_100g), p: Number(n.proteins_100g), f: Number(n.fat_100g),
       fi: Number(n.fiber_100g) || 0, su: Number(n.sugars_100g) || 0, sf: Number(n["saturated-fat_100g"]) || 0, sa: Number(n.salt_100g) || 0,
+      st: Array.isArray(p.stores) ? p.stores.join(" ") : String(p.stores || ""),
       de: Array.isArray(p.countries_tags) && (p.countries_tags.includes("en:germany") || p.countries_tags.includes("en:austria")) ? 1 : 0}; })
-    .filter(x => x.name && x.k > 0 && x.k <= 950 && [x.c, x.p, x.f].every(v => isFinite(v) && v >= 0 && v <= 100)).filter(x => { const t = pnorm(x.name + " " + x.brand); return words.every(w => t.includes(w)); });
+    .filter(x => x.name && x.k > 0 && x.k <= 950 && [x.c, x.p, x.f].every(v => isFinite(v) && v >= 0 && v <= 100)).filter(x => { const t = pnorm(x.name + " " + x.brand + " " + x.st); return words.every(w => t.includes(w)); });
   L.sort((a, b) => b.de - a.de || a.ix - b.ix); return L[0] || null;
 }
 async function fromProducts(items, raw){
   const miss = [];
-  await Promise.all(items.map(async (it, ix) => { const i = raw[ix] || {}, pn = String(i.product || "").trim(), g = Number(i.grams); if (!pn || /^(none|null|-)$/i.test(pn) || pn.length > 80 || !(g > 0 && g <= 5000)) return;
-    const P = await offProduct(pn).catch(() => null); if (!P){ miss.push(pn); return; }
+  await Promise.all(items.map(async (it, ix) => { const i = raw[ix] || {}, clean = v => { v = String(v || "").trim(); return /^(none|null|keine?|-)?$/i.test(v) || v.length > 80 ? "" : v; }, br = clean(i.brand), g = Number(i.grams);
+    /* what to look for: the product as the AI wrote it, else the brand that was said plus the name of the ingredient */
+    const asks = [clean(i.product), br ? br + " " + String(i.name || "") : ""].filter((v, k, A) => v && A.indexOf(v) === k); if (!asks.length || !(g > 0 && g <= 5000)) return;
+    let P = null; for (const a of asks){ P = await offProduct(a).catch(() => null); if (P) break; }
+    console.log("kcal product", JSON.stringify({asks, found: P && [P.name, P.brand, P.code, P.k]}));
+    const pn = asks[0]; if (!P){ miss.push(pn); return; }
     /* a pack of something that is cooked states the dry weight: its kcal sit in the dry range of that food */
     const F = FOODS.byId && FOODS.byId[it.ref], lo = F && (F.kr ? F.kr[0] : F.k * .75), hi = F && (F.kr ? F.kr[1] : F.k * 1.25), dryPack = !!(F && F.cf && P.k >= lo && P.k <= hi), cooked = dryPack && i.state !== "dry", d = cooked ? F.cf : 1, f = g / 100 / d;
     const st = dryPack ? F.st[cooked ? 1 : 0] : "";
