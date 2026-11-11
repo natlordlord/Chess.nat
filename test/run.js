@@ -380,6 +380,24 @@ const PARTS = {
   },
 
   /* ---------- Feedback im Mehr-Menü ---------- */
+  /* ---------- "is in a game right now": the status on the friends list and the profile, and joining from there ---------- */
+  async now(browser){
+    const a = await L.open(browser, "tester"), b = await L.open(browser, "mila");
+    await b.evaluate(() => { PG.st.myName = "Mila"; App.go("lobby", {host: true, game: "imposter"}); }); await sleep(5500);
+    const row = (await L.table("chess_now", "user_id=eq." + ID.mila))[0]; ok(row && row.what && row.what.k === "party" && row.what.g === "imposter" && /^[a-z0-9]{5}$/.test(row.what.c || ""), "Mila öffnet eine Imposter-Lobby: ihr Status steht in der Datenbank", JSON.stringify(row && row.what));
+    await a.tap('#tabbar [data-t="friends"]'); await sleep(1800);
+    const fr = await txt(a, '#main .fr:has-text("Mila")'); ok(/In der Lobby: Imposter/.test(fr) && /Mitspielen/.test(fr), "Freunde-Liste zeigt bei Mila „In der Lobby: Imposter“ mit Knopf „Mitspielen“", fr.slice(0, 200)); await a.shot("now-freunde");
+    ok(!/Lobby|Spielt gerade/.test(await txt(a, '#main .fr:has-text("Jonas")')), "bei Jonas steht nichts");
+    await a.evaluate(id => App.go("fprofile", {id}), ID.mila); await sleep(1800);
+    const card = await txt(a, "#main .now-card"); ok(/Ist gerade im Game/i.test(card) && /Imposter/.test(card), "Profil zeigt die Karte „Ist gerade im Game“", card.slice(0, 200)); await a.shot("now-profil");
+    await a.evaluate(() => { PG.st.myName = "Nat"; }); await a.tap("#main .now-card [data-now-join]"); await sleep(3000);
+    ok(await a.evaluate(() => App.route === "lobby" && !!PNet.P && !PNet.P.isHost), "Tipp auf „Mitspielen“ führt in Milas Lobby");
+    ok(await b.evaluate(() => PNet.P.roster.length === 2), "Mila sieht dich in ihrer Lobby", JSON.stringify(await b.evaluate(() => PNet.P.roster.map(r => r.name)))); await b.shot("now-lobby");
+    await b.evaluate(() => { PNet.leave(true); App.go("home"); }); await sleep(5500);
+    ok(!(await L.table("chess_now", "user_id=eq." + ID.mila)).length, "Mila verlässt die Lobby: der Status ist wieder weg");
+    await clean([a, b], "Ist gerade im Game");
+  },
+
   async feedback(browser){
     const page = await L.open(browser, "tester"); await page.evaluate(() => openSheet()); await sleep(400); await page.locator('#sheet [data-s="__feedback"]').tap(); await sleep(600);
     ok(await has(page, "#fbtx"), "Mehr → Feedback öffnet das Formular"); await page.fill("#fbtx", "Test: die Einkaufsliste ist super"); await page.tap("#fbs"); await sleep(1000);

@@ -64,6 +64,7 @@ module.exports = db => {
   const POLICIES = {
     kv: own("user_id"), chess_push: own("user_id"), kcal_body: own("user_id"), kcal_weights: own("user_id"),
     chess_players: {select: T, insert: (r, u) => r.id === u, update: {using: (r, u) => r.id === u, check: (r, u) => r.id === u}},
+    chess_now: {select: (r, u) => r.user_id === u || friends(r.user_id, u), insert: (r, u) => r.user_id === u, update: {using: (r, u) => r.user_id === u, check: (r, u) => r.user_id === u}, delete: (r, u) => r.user_id === u},
     chess_friends: {select: (r, u) => r.a === u || r.b === u, delete: (r, u) => r.a === u || r.b === u, insert: (r, u) => r.requested_by === u && r.status === "pending",
       update: {using: (r, u) => (r.a === u || r.b === u) && r.requested_by !== u, check: r => r.status === "accepted"}},
     chess_duels: {select: (r, u) => r.white === u || r.black === u,

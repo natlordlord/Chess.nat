@@ -13373,7 +13373,7 @@ Views.friends = {
     const other = r => r.a === me.id ? r.b : r.a;
     const friends = D.friends.filter(r => r.status === "accepted").map(other).sort((x, y) => (Social.isOnline(Social.P(y)) - Social.isOnline(Social.P(x))) || Social.P(x).name.localeCompare(Social.P(y).name));
     const incoming = D.friends.filter(r => r.status === "pending" && r.requested_by !== me.id).map(other), sent = D.friends.filter(r => r.status === "pending" && r.requested_by === me.id).map(other);
-    const person = (id, right, tap) => { const p = Social.P(id), o = st[id]; return `<div class="li fr ${tap ? "fr-tap" : ""}" ${tap ? `data-prof="${id}"` : ""}>${Social.face(p, 42)}<div class="grow"><div class="t">${Social.dot(p)}${esc(p.name)}${p.rating ? ` <span class="muted">(${p.rating})</span>` : ""}</div><div class="s">${p.avatar && p.avatar._lv ? `Lv ${p.avatar._lv}${p.avatar._title ? " " + esc(p.avatar._title) : ""} · ` : ""}${esc(Social.seen(p))}${o && o.cage === "mine" ? " · 🔒 in your cage" : o && o.cage === "theirs" ? " · you're in their cage" : ""}</div></div>${right}</div>`; };
+    const person = (id, right, tap) => { const p = Social.P(id), o = st[id]; return `<div class="li fr ${tap ? "fr-tap" : ""}" ${tap ? `data-prof="${id}"` : ""}>${Social.face(p, 42)}<div class="grow"><div class="t">${Social.dot(p)}${esc(p.name)}${p.rating ? ` <span class="muted">(${p.rating})</span>` : ""}</div><div class="s">${p.avatar && p.avatar._lv ? `Lv ${p.avatar._lv}${p.avatar._title ? " " + esc(p.avatar._title) : ""} · ` : ""}${esc(Social.seen(p))}${o && o.cage === "mine" ? " · 🔒 in your cage" : o && o.cage === "theirs" ? " · you're in their cage" : ""}</div>${tap && typeof Now !== "undefined" ? Now.slot(id) : ""}</div>${right}</div>`; };
     const tab = ["board", "cages"].includes(this.tab) ? this.tab : "friends";
     const seg = `<div class="fr-seg" role="tablist"><button class="${tab === "friends" ? "on" : ""}" data-ftab="friends" role="tab">${icon("users", 17)} Friends</button><button class="${tab === "board" ? "on" : ""}" data-ftab="board" role="tab">${icon("trophy", 17)} Ranks</button><button class="${tab === "cages" ? "on" : ""}" data-ftab="cages" role="tab">${icon("cage", 17)} Cages</button></div>`;
     const head = `<div class="fr-head"><h1 class="h-title">Friends</h1><button class="btn sm fr-news" id="fnews" hidden>${icon("bell", 18)} News</button></div>${seg}`;
@@ -13483,6 +13483,7 @@ Views.fprofile = {
         <div class="muted">${p.realName ? esc(p.realName) + " · " : ""}${p.handle ? "@" + esc(p.handle) : ""}</div>
         ${av._lv ? `<div class="fp-lv"><span class="lvchip">${av._lv}</span><b>${esc(av._title || "")}</b></div>` : ""}
         <div class="muted" style="font-size:13px">${esc(Social.seen(p))}</div></div></div>
+      ${typeof Now !== "undefined" ? Now.cardSlot(id) : ""}
       ${av._pt ? playerTypeCard(av._pt, false) : ""}
       ${av._st ? `<div class="fp-act-row">${stat(fmtN(av._st.pz || 0), "Puzzles solved")}${stat(fmtN(av._st.gp || 0), "Games played")}${stat(av._st.st || 0, "Best streak")}</div>` : ""}
       <div class="fp-stats">${stat(p.rating || "–", "Puzzle rating")}${p.ratings && p.ratings.blitz ? stat(p.ratings.blitz, "Blitz") : ""}${p.ratings && p.ratings.rapid ? stat(p.ratings.rapid, "Rapid") : ""}${stat(p.trophies || 0, "Trophies")}${fl ? stat("🔥 " + fl, "Flame") : ""}${av._jr ? stat(av._jr, "Journey") : ""}</div>
@@ -14551,6 +14552,7 @@ const Ranks = {
 <script src="games/natposter.js?v=129"></script>
 <script src="games/arena.js?v=129"></script>
 <script src="games/tipp.js?v=129"></script>
+<script src="games/now.js?v=1"></script>
 <script src="data/foods.js?v=3"></script>
 <script src="games/kcal.js?v=165"></script>
 <script>boot();</script>

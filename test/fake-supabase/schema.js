@@ -8,6 +8,7 @@ chess_duels|id|id:text:!: ; white:uuid:!: ; black:uuid:!: ; result:text:!: ; rea
 chess_events|id|id:int8:!:@identity ; user_id:uuid:!:@uid ; session:text:?: ; kind:text:!: ; name:text:?: ; meta:jsonb:?: ; device:text:?: ; created_at:timestamptz:!:@now
 chess_feedback|id|id:uuid:!:@uuid ; user_id:uuid:!:@uid ; name:text:?: ; body:text:!: ; img:text:?: ; info:text:?: ; created_at:timestamptz:!:@now
 chess_fixes|user_id,id|id:text:!: ; user_id:uuid:!: ; xp:int4:!:0 ; pz:int4:!:0 ; note:text:?: ; created_at:timestamptz:!:@now ; puzzle:jsonb:?:
+chess_now|user_id|user_id:uuid:!:@uid ; what:jsonb:!: ; updated_at:timestamptz:!:@now
 chess_friends|a,b|a:uuid:!: ; b:uuid:!: ; requested_by:uuid:!: ; status:text:!:'pending' ; created_at:timestamptz:!:@now
 chess_gifts|id|id:int8:!:@identity ; from_id:uuid:!:@uid ; to_id:uuid:!: ; kind:text:!:'heart' ; created_at:timestamptz:!:@now
 chess_invites|id|id:int8:!:@identity ; from_id:uuid:!:@uid ; to_id:uuid:!: ; code:text:!: ; tc:text:?: ; status:text:!:'open' ; created_at:timestamptz:!:@now
