@@ -90,6 +90,7 @@ a{color:var(--go-hi)}
 .nav:hover{background:var(--panel-2)}
 .nav.on{background:var(--panel-3)}
 .nav .badge{margin-left:auto;background:var(--bad);color:#fff;font-size:11px;border-radius:9px;padding:1px 6px}
+.grow{flex:1;min-width:0}/* "grow" fills the row everywhere (level bar, list rows …) */
 .rail .grow{flex:1}
 .rail .mini{display:flex;align-items:center;gap:8px;padding:8px 10px;color:var(--muted);font-size:13px}
 .rankchip{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;background:var(--panel-2);margin:6px 2px 0;cursor:pointer;border:0;width:calc(100% - 4px);text-align:left}
@@ -2799,7 +2800,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794372814";
+const CHESSNAT_BUILD = "1794373079";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -14365,18 +14366,18 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=108"></script>
-<script src="games/imposter.js?v=108"></script>
-<script src="games/werwolf.js?v=108"></script>
-<script src="games/cards.js?v=108"></script>
-<script src="games/heads.js?v=108"></script>
-<script src="games/more.js?v=108"></script>
-<script src="games/net.js?v=108"></script>
-<script src="games/online.js?v=108"></script>
-<script src="games/natposter.js?v=108"></script>
-<script src="games/arena.js?v=108"></script>
-<script src="games/tipp.js?v=108"></script>
-<script src="games/kcal.js?v=108"></script>
+<script src="games/core.js?v=109"></script>
+<script src="games/imposter.js?v=109"></script>
+<script src="games/werwolf.js?v=109"></script>
+<script src="games/cards.js?v=109"></script>
+<script src="games/heads.js?v=109"></script>
+<script src="games/more.js?v=109"></script>
+<script src="games/net.js?v=109"></script>
+<script src="games/online.js?v=109"></script>
+<script src="games/natposter.js?v=109"></script>
+<script src="games/arena.js?v=109"></script>
+<script src="games/tipp.js?v=109"></script>
+<script src="games/kcal.js?v=109"></script>
 <script>boot();</script>
 </body>
 </html>
