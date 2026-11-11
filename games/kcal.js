@@ -35,30 +35,39 @@
   /* ---------- state ---------- */
   const LS = id => "chessnat-kcal-" + id;
   const K = {
-    prof: null, meals: [], friends: [], fmeals: [], invites: [], loaded: false, loading: null, loadT: 0,
+    prof: null, meals: [], friends: [], fmeals: [], invites: [], body: null, weights: [], ice: [], loaded: false, loading: null, loadT: 0,
     on(){ return !!(this.prof && this.prof.enabled); },
     goal(){ return (this.prof && this.prof.goal) || 2500; },
     dayMeals(k){ return this.meals.filter(m => m.day === k).sort((a, b) => Date.parse(b.ts) - Date.parse(a.ts)); },
     dayKcal(k){ return this.meals.filter(m => m.day === k).reduce((s, m) => s + (m.kcal || 0), 0); },
     /* the flame as the phone sees it right now (the database keeps the same count for friends and pushes) */
-    flame(){ const g = this.goal(), t = today(); let d = this.dayKcal(t) >= g ? t : addDays(t, -1), n = 0;
-      while (this.dayKcal(d) >= g && n < 3650){ n++; d = addDays(d, -1); } return n; },
+    flame(){ const g = this.goal(), t = today(), ice = new Set(this.ice || []), hit = d => this.dayKcal(d) >= g; let d = hit(t) ? t : addDays(t, -1), n = 0;
+      /* a day covered by a streak freeze keeps the flame without counting */
+      for (let k = 0; k < 3650; k++){ if (hit(d)) n++; else if (!ice.has(d)) break; d = addDays(d, -1); } return n; },
+    daySum(k, f){ return this.meals.filter(m => m.day === k).reduce((s, m) => s + (Number(m[f]) || 0), 0); },
+    /* the day's targets: from the goals set up (or, before that, a sensible split of the kcal goal) */
+    targets(){ const p = this.prof || {}, g = this.goal(); return {kcal: g, protein: p.protein || Math.round(g * .25 / 4), carbs: p.carbs || Math.round(g * .47 / 4), fat: p.fat || Math.round(g * .28 / 9)}; },
     litToday(){ return this.dayKcal(today()) >= this.goal(); },
-    cache(){ const id = meId(); if (!id) return; try { localStorage.setItem(LS(id), JSON.stringify({prof: this.prof, meals: this.meals.filter(m => m.day >= addDays(today(), -40))})); } catch(e) {} },
-    fromCache(){ const id = meId(); if (!id || this.loaded) return; try { const c = JSON.parse(localStorage.getItem(LS(id)) || "null"); if (c){ this.prof = c.prof; this.meals = c.meals || []; } } catch(e) {} },
+    cache(){ const id = meId(); if (!id) return; try { localStorage.setItem(LS(id), JSON.stringify({prof: this.prof, body: this.body, weights: (this.weights || []).slice(0, 30), ice: this.ice, meals: this.meals.filter(m => m.day >= addDays(today(), -40))})); } catch(e) {} },
+    fromCache(){ const id = meId(); if (!id || this.loaded) return; try { const c = JSON.parse(localStorage.getItem(LS(id)) || "null"); if (c){ this.prof = c.prof; this.meals = c.meals || []; this.body = c.body || null; this.weights = c.weights || []; this.ice = c.ice || []; } } catch(e) {} },
     async load(force){
       const c = sb(), id = meId(); if (!c || !id) return;
       if (this.loading) return this.loading;
       if (!force && this.loaded && Date.now() - this.loadT < 60000) return;
       this.loading = (async () => {
         const since = addDays(today(), -120);
-        const [p, m, inv] = await Promise.all([
+        const opt = q => Promise.resolve(q).catch(() => ({data: null}));
+        const [p, m, inv, bd, w, ice] = await Promise.all([
           c.from("kcal_profile").select("*").eq("user_id", id).maybeSingle(),
           c.from("kcal_meals").select("*").eq("user_id", id).gte("day", since).order("ts", {ascending: false}).limit(2000),
-          c.from("kcal_invites").select("*").eq("to_id", id)
+          c.from("kcal_invites").select("*").eq("to_id", id),
+          opt(c.from("kcal_body").select("*").eq("user_id", id).maybeSingle()),
+          opt(c.from("kcal_weights").select("*").eq("user_id", id).order("ts", {ascending: false}).limit(300)),
+          opt(c.from("kcal_ice").select("day").eq("user_id", id).gte("day", since))
         ]);
         if (p.error && m.error) throw p.error;
         this.prof = p.data || null; this.meals = m.data || []; this.invites = inv.data || [];
+        if (bd && !bd.error) this.body = bd.data || null; if (w && !w.error && w.data) this.weights = w.data; if (ice && !ice.error && ice.data) this.ice = ice.data.map(x => x.day);
         this.loaded = true; this.loadT = Date.now(); this.cache();
       })().finally(() => { this.loading = null; });
       return this.loading;
@@ -88,15 +97,30 @@
         grams: meal.grams || null, code: meal.code || null, said: meal.said ? String(meal.said).slice(0, 2000) : null, items: meal.items || null, note: meal.note ? String(meal.note).slice(0, 500) : null};
       const r = await c.from("kcal_meals").insert(row).select().single();
       if (r.error) throw r.error;
-      const wasLit = this.litToday();
-      this.meals.unshift(r.data); this.cache(); refreshHome();
-      if (!wasLit && this.litToday() && r.data.day === today()) setTimeout(() => celebrate(), 450);
+      const before = snap();
+      this.meals.unshift(r.data); this.cache(); refreshHome(); cheer(before);
       return r.data;
     },
     async update(id, patch){
       const r = await sb().from("kcal_meals").update(patch).eq("id", id).select().single(); if (r.error) throw r.error;
-      const i = this.meals.findIndex(m => m.id === id); if (i >= 0) this.meals[i] = r.data; this.cache(); refreshHome(); return r.data;
+      const before = snap(), i = this.meals.findIndex(m => m.id === id); if (i >= 0) this.meals[i] = r.data; this.cache(); refreshHome(); cheer(before); return r.data;
     },
+    async saveBody(patch){
+      const c = sb(), id = meId(); if (!c || !id) throw new Error("Bitte anmelden");
+      const row = Object.assign({}, this.body || {}, patch, {user_id: id, updated_at: new Date().toISOString()});
+      const r = await c.from("kcal_body").upsert(row).select().maybeSingle(); if (r.error) throw r.error; this.body = r.data || row; this.cache(); return this.body;
+    },
+    /* a weigh-in: fasted when nothing is logged today yet; the first fasted one sets the time to compare with */
+    async addWeight(kg, pooped){
+      const c = sb(), id = meId(); if (!c || !id) throw new Error("Bitte anmelden"); const at = new Date(), fasted = !this.dayMeals(today()).length;
+      const r = await c.from("kcal_weights").insert({user_id: id, ts: at.toISOString(), day: today(), kg, fasted, pooped: pooped == null ? null : !!pooped}).select().single(); if (r.error) throw r.error;
+      this.weights.unshift(r.data); const patch = {weight: kg}; if (this.body && this.body.weigh_min == null && fasted) patch.weigh_min = at.getHours() * 60 + at.getMinutes();
+      await this.saveBody(patch);
+      /* the needs follow the weight (unless the targets were set by hand) */
+      if (this.body && this.body.setup_at && !this.body.custom){ const n = needs(this.body); if (n.kcal !== this.goal() || n.protein !== (this.prof || {}).protein) await this.saveProf({goal: n.kcal, protein: n.protein, carbs: n.carbs, fat: n.fat}); }
+      this.cache(); refreshHome(); return r.data;
+    },
+    async buyIce(){ const r = await sb().rpc("kcal_buy_ice"); if (r.error) throw r.error; this.prof.ice = r.data; this.cache(); refreshHome(); return r.data; },
     async del(id){
       const r = await sb().from("kcal_meals").delete().eq("id", id); if (r.error) throw r.error;
       this.meals = this.meals.filter(m => m.id !== id); this.cache(); refreshHome();
@@ -124,7 +148,9 @@
   /* ---------- home card ---------- */
   let homeEl = null;
   function refreshHome(){ if (homeEl && homeEl.isConnected) fillHome(homeEl); if (typeof App !== "undefined" && App.route === "kcal" && App.view && App.view.draw) App.view.draw(); }
-  function flameChip(n, lit){ return `<span class="kc-fl ${lit ? "lit" : n ? "" : "off"}" title="${n} Tage Kalorienziel in Folge">🔥<b>${n}</b></span>`; }
+  function flameChip(n, lit, ice){ return ice == null ? `<span class="kc-fl ${lit ? "lit" : n ? "" : "off"}" title="${n} Tage Kalorienziel in Folge">🔥<b>${n}</b></span>`
+    : `<button class="kc-fl big ${lit ? "lit" : n ? "" : "off"}" data-kc-fl aria-label="${n} Tage in Folge">🔥<b>${n}</b>${ice ? `<i class="kc-ice">${"🧊".repeat(Math.min(2, ice))}</i>` : ""}</button>`; }
+  const myIce = () => (K.prof && K.prof.ice) || 0;
   function fillHome(el){
     homeEl = el;
     if (!K.on()){
@@ -139,21 +165,18 @@
       }
       el.hidden = true; el.innerHTML = ""; return;
     }
-    const t = today(), eaten = K.dayKcal(t), g = K.goal(), pct = Math.min(1, eaten / g), lit = eaten >= g, n = K.flame(), miss = g - eaten;
-    const last = K.dayMeals(t)[0];
+    const t = today(), g = K.goal(), eaten = K.dayKcal(t), lit = eaten >= g, n = K.flame(), miss = g - eaten;
     let tip = "";
-    if (lit) tip = `<div class="kc-tip ok">🔥 Ziel geschafft${n > 1 ? `, ${n} Tage in Folge` : ""}!</div>`;
-    else if (new Date().getHours() >= 9 && (eaten < expected() - 250 || new Date().getHours() >= 20)){ const i = idea(miss); tip = `<div class="kc-tip">Noch <b>${fmt(miss)} kcal</b>. Zum Beispiel ${h(i.text)} (≈ ${fmt(i.kcal)} kcal)</div>`; }
+    if (!lit && new Date().getHours() >= 9 && (eaten < expected() - 250 || new Date().getHours() >= 20)){ const i = idea(miss); tip = `<div class="kc-tip">Noch <b>${fmt(miss)} kcal</b>. Zum Beispiel ${h(i.text)} (≈ ${fmt(i.kcal)} kcal)</div>`; }
     el.hidden = false; el.className = "unit kc-home";
-    el.innerHTML = `<div class="kc-hd"><button class="kc-ttl" data-kc-go>Kalorien heute</button>${flameChip(n, lit)}<button class="kc-ov" data-kc-go>${svg(IC.chart, 16)} Übersicht</button></div>
-      <button class="kc-num" data-kc-go><b>${fmt(eaten)}</b><span>/ ${fmt(g)} kcal</span></button>
-      <div class="kc-bar ${lit ? "done" : ""}"><i style="width:${Math.round(pct * 100)}%"></i></div>
-      ${last ? `<div class="kc-last">${h(last.emoji || "🍽️")} ${h(last.title)} · ${fmt(last.kcal)} kcal · ${hhmm(last.ts)}</div>` : ""}
-      <div class="kc-btns"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 28)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 28)}<span>Barcode</span></button><button class="kc-big kc-find" data-kc-find>${svg(IC.search, 28)}<span>Suchen</span></button></div>${tip}`;
-    el.querySelectorAll("[data-kc-go]").forEach(b => b.onclick = () => App.go("kcal"));
-    el.querySelector("[data-kc-say]").onclick = () => Voice2.open();
-    el.querySelector("[data-kc-scan]").onclick = () => KCScan.open();
-    el.querySelector("[data-kc-find]").onclick = () => Search.open();
+    /* top: the day and its macros; middle (where the thumb is): speak and scan; below: search and what you eat often */
+    el.innerHTML = `<div class="kc-hd"><button class="kc-ttl" data-kc-go>Kalorien heute</button>${flameChip(n, lit, myIce())}<button class="kc-ov" data-kc-go>${svg(IC.chart, 16)} Übersicht</button></div>
+      ${sumHTML(t, true)}
+      <div class="kc-btns two"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 32)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 32)}<span>Barcode</span></button></div>
+      <button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Lebensmittel suchen …</span></button>
+      ${setupCard()}${quickHTML()}${tip}`;
+    wireDay(el);
+    if (K.loaded) Weigh.check();
   }
   window.homeKcal = async el => {
     if (!el) return; homeEl = el;
@@ -169,6 +192,116 @@
     const n = K.flame(); haptic([20, 40, 20]);
     const sh = detailSheet(`<div class="kc-cel"><div class="kc-celf">🔥</div><h2>Kalorienziel geschafft!</h2><p class="muted">${n > 1 ? `${n} Tage in Folge. Deine Flamme brennt weiter.` : "Deine Flamme brennt. Morgen wieder!"}</p></div>`);
     setTimeout(() => { try { sh.close(); } catch(e) {} }, 4000);
+  }
+
+  /* ---------- confetti: big for the day's goal, small for protein, carbs or fat ---------- */
+  function confetti(big, from){ try {
+    const cv = document.createElement("canvas"), dpr = Math.min(2, window.devicePixelRatio || 1), W = innerWidth, H = innerHeight; cv.className = "kc-conf"; cv.width = W * dpr; cv.height = H * dpr; document.body.appendChild(cv);
+    const c = cv.getContext("2d"); c.scale(dpr, dpr); const cols = ["#8FC458", "#FFD15C", "#E9573F", "#4FA3FF", "#B65CE0", "#F2A33A"], n = big ? 170 : 50, x0 = from ? from.x : W / 2, y0 = from ? from.y : H * .38, P = [];
+    for (let i = 0; i < n; i++){ const a = -Math.PI / 2 + (Math.random() - .5) * (big ? 2.6 : 1.7), v = (big ? 9 : 6) + Math.random() * (big ? 10 : 5); P.push({x: x0, y: y0, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: Math.random() * 6.3, vr: (Math.random() - .5) * .4, w: 5 + Math.random() * 6, h: 3 + Math.random() * 4, c: cols[i % cols.length]}); }
+    const t0 = performance.now(), dur = big ? 2800 : 1600, f = t => { const k = (t - t0) / dur; c.clearRect(0, 0, W, H);
+      P.forEach(q => { q.x += q.vx; q.y += q.vy; q.vy += .3; q.vx *= .99; q.r += q.vr; c.save(); c.globalAlpha = Math.max(0, 1 - Math.max(0, k - .6) / .4); c.translate(q.x, q.y); c.rotate(q.r); c.fillStyle = q.c; c.fillRect(-q.w / 2, -q.h / 2, q.w, q.h); c.restore(); });
+      if (k < 1) requestAnimationFrame(f); else cv.remove(); }; requestAnimationFrame(f); } catch(e) {} }
+  const snap = () => { const t = today(); return {kcal: K.dayKcal(t), protein: K.daySum(t, "protein"), carbs: K.daySum(t, "carbs"), fat: K.daySum(t, "fat")}; };
+  /* a goal crossed just now: the day's kcal → the big celebration; protein, carbs, fat → a small burst (each once a day) */
+  function cheer(before){ const t = today(), T = K.targets(), now2 = snap(), key = "chessnat-kc-cheer-" + t; let done = {}; try { done = JSON.parse(localStorage.getItem(key) || "{}"); } catch(e) {}
+    const crossed = k => before[k] < T[k] && now2[k] >= T[k] && !done[k]; let big = false, small = null;
+    if (crossed("kcal")){ done.kcal = 1; big = true; }
+    [["protein", "💪 Proteinziel geschafft!"], ["carbs", "🍞 KH-Ziel erreicht"], ["fat", "🥑 Fett-Ziel erreicht"]].forEach(([k, l]) => { if (crossed(k)){ done[k] = 1; if (!small) small = l; } });
+    if (!big && !small) return; try { localStorage.setItem(key, JSON.stringify(done)); } catch(e) {}
+    setTimeout(() => { if (big){ celebrate(); confetti(true); } else { confetti(false); say(small); haptic([10, 30, 10]); } }, 450); }
+
+  /* ---------- the day's needs, like a calorie calculator: Mifflin-St Jeor × activity, then the goal on top ---------- */
+  const AIMS = [["lose", "🔥", "Abnehmen", "Fett verlieren, Muskeln halten", .8, 2], ["keep", "⚖️", "Gewicht halten", "Fit bleiben, so wie jetzt", 1, 1.6], ["muscle", "💪", "Muskeln aufbauen", "Sauber zunehmen, viel Protein", 1.1, 2], ["gain", "📈", "Zunehmen", "Mehr auf die Waage", 1.15, 1.7], ["bulk", "🦍", "Bulken", "So viel Masse wie geht", 1.2, 1.8]];
+  const ACTS = [[1.2, "Kaum Bewegung", "Viel sitzen, kein Sport"], [1.375, "Etwas aktiv", "1–2× Sport pro Woche"], [1.55, "Aktiv", "3–5× Sport pro Woche"], [1.725, "Sehr aktiv", "6–7× Sport oder körperliche Arbeit"], [1.9, "Extrem aktiv", "Leistungssport und harte Arbeit"]];
+  function needs(b){ const age = Math.max(14, new Date().getFullYear() - (b.born || 1995)), w = Number(b.weight) || 75, hg = Number(b.height) || 178, bmr = 10 * w + 6.25 * hg - 5 * age + (b.sex === "f" ? -161 : 5), tdee = bmr * (Number(b.activity) || 1.375), A = AIMS.find(a => a[0] === b.aim) || AIMS[1];
+    const kcal = Math.round(tdee * A[4] / 10) * 10, protein = Math.round(w * A[5]), fat = Math.round(kcal * .27 / 9), carbs = Math.max(0, Math.round((kcal - protein * 4 - fat * 9) / 4));
+    return {kcal, protein, carbs, fat, bmr: Math.round(bmr), tdee: Math.round(tdee), A}; }
+  /* the questions at the start (and whenever the goal changes): one question per screen, big answers */
+  const Setup = {
+    open(done){
+      if (!meId()) return say("Bitte erst anmelden");
+      const b = Object.assign({aim: null, sex: null, born: null, height: null, weight: null, activity: null}, K.body || {}), steps = ["aim", "sex", "body", "act", "res"], ov = document.createElement("div"); let step = 0;
+      ov.className = "kc-ov-full kc-setup"; ov.setAttribute("data-notr", ""); document.body.appendChild(ov);
+      const close = () => ov.remove();
+      const draw = () => { const k = steps[step]; let body = "";
+        if (k === "aim") body = `<h2>Was ist dein Ziel?</h2><div class="kc-opts">${AIMS.map(a => `<button class="kc-opt ${b.aim === a[0] ? "on" : ""}" data-v="${a[0]}"><span>${a[1]}</span><b>${a[2]}<small>${a[3]}</small></b></button>`).join("")}</div>`;
+        else if (k === "sex") body = `<h2>Du bist …</h2><div class="kc-opts two">${[["m", "👨", "Mann"], ["f", "👩", "Frau"]].map(a => `<button class="kc-opt ${b.sex === a[0] ? "on" : ""}" data-v="${a[0]}"><span>${a[1]}</span><b>${a[2]}</b></button>`).join("")}</div>`;
+        else if (k === "body") body = `<h2>Ein paar Zahlen</h2><div class="kc-bform"><label><span>Alter</span><input id="sAge" inputmode="numeric" value="${b.born ? new Date().getFullYear() - b.born : ""}" placeholder="25"><em>Jahre</em></label><label><span>Größe</span><input id="sH" inputmode="numeric" value="${b.height || ""}" placeholder="180"><em>cm</em></label><label><span>Gewicht</span><input id="sW" inputmode="decimal" value="${b.weight ? nf(b.weight, 1) : ""}" placeholder="75"><em>kg</em></label></div><button class="btn go big" id="sNext">Weiter</button>`;
+        else if (k === "act") body = `<h2>Wie viel bewegst du dich?</h2><div class="kc-opts">${ACTS.map(a => `<button class="kc-opt ${Number(b.activity) === a[0] ? "on" : ""}" data-v="${a[0]}"><b>${a[1]}<small>${a[2]}</small></b></button>`).join("")}</div>`;
+        else { const n = needs(b); body = `<h2>Dein Tagesbedarf</h2><div class="kc-res"><div class="kc-resk"><b>${fmt(n.kcal)}</b><span>kcal am Tag</span></div>
+            <div class="kc-macros"><span><b>${n.protein} g</b>Protein</span><span><b>${n.carbs} g</b>KH</span><span><b>${n.fat} g</b>Fett</span></div>
+            <p class="muted">Grundumsatz ${fmt(n.bmr)} kcal, mit Bewegung ${fmt(n.tdee)} kcal${n.A[4] !== 1 ? `, für „${n.A[2]}“ ${n.A[4] > 1 ? "+" : "−"}${Math.round(Math.abs(n.A[4] - 1) * 100)} %` : ""}. Protein: ${nf(n.A[5], 1)} g pro kg Körpergewicht.</p></div>
+            <button class="btn go big" id="sSave">Passt, los geht’s</button>`; }
+        ov.innerHTML = `<div class="kc-vtop"><button class="kc-x" data-back aria-label="Zurück">${step ? svg('<path d="M15 5l-7 7 7 7"/>', 22) : svg(IC.x, 22)}</button><div class="kc-dots">${steps.map((x, i) => `<i class="${i <= step ? "on" : ""}"></i>`).join("")}</div><span style="width:44px"></span></div><div class="kc-smid">${body}</div>`;
+        ov.querySelector("[data-back]").onclick = () => { if (step){ step--; draw(); } else close(); };
+        ov.querySelectorAll("[data-v]").forEach(x => x.onclick = () => { haptic(10); const v = x.dataset.v; if (k === "aim") b.aim = v; if (k === "sex") b.sex = v; if (k === "act") b.activity = +v; x.classList.add("on"); setTimeout(() => { step++; draw(); }, 120); });
+        const nx = ov.querySelector("#sNext"); if (nx){ const ins = ov.querySelectorAll("input"); ins.forEach(i => field(i)); try { ins[0].focus({preventScroll: true}); } catch(e) {}
+          nx.onclick = () => { const age = num(ov.querySelector("#sAge").value), hh = num(ov.querySelector("#sH").value), w = num(ov.querySelector("#sW").value);
+            if (!(age >= 12 && age <= 100)) return say("Alter zwischen 12 und 100"); if (!(hh >= 120 && hh <= 230)) return say("Größe in cm, z. B. 180"); if (!(w >= 30 && w <= 300)) return say("Gewicht in kg, z. B. 75");
+            b.born = new Date().getFullYear() - Math.round(age); b.height = Math.round(hh); b.weight = Math.round(w * 10) / 10; try { document.activeElement.blur(); } catch(e) {} step++; draw(); }; }
+        const sv = ov.querySelector("#sSave"); if (sv) sv.onclick = async () => { sv.disabled = true; const n = needs(b);
+          try { const lastKg = K.weights[0] && Number(K.weights[0].kg);
+            await K.saveBody({aim: b.aim, sex: b.sex, born: b.born, height: b.height, weight: b.weight, activity: b.activity, custom: false, setup_at: new Date().toISOString()});
+            await K.saveProf({enabled: true, goal: n.kcal, protein: n.protein, carbs: n.carbs, fat: n.fat});
+            if (!(Math.abs(lastKg - b.weight) < .05)) await K.addWeight(b.weight, null).catch(() => {});
+            close(); haptic([15, 30, 15]); confetti(false); say(`🎯 ${fmt(n.kcal)} kcal am Tag, ${n.protein} g Protein`); refreshHome(); if (done) done(); } catch(e) { sv.disabled = false; say("Ging nicht: " + (e.message || e)); } };
+      };
+      draw();
+    }
+  };
+  /* ---------- weighing: about once a week, before the first meal, near the time of the first weigh-in ---------- */
+  const Weigh = {
+    shown: 0,
+    due(){ const b = K.body; if (!b || !b.setup_at || !K.on()) return false; const last = K.weights[0], days = last ? (Date.now() - Date.parse(last.ts)) / 864e5 : 99;
+      if (days < 6.5 || K.dayMeals(today()).length) return false; try { if (Date.now() - Number(localStorage.getItem("chessnat-kc-wlater") || 0) < 3 * 3600e3) return false; } catch(e) {}
+      const mins = new Date().getHours() * 60 + new Date().getMinutes(); if (b.weigh_min == null) return mins >= 300 && mins <= 720; return Math.abs(mins - b.weigh_min) <= 75 || (days > 9 && mins >= 300 && mins <= 840); },
+    check(){ if (Weigh.shown || !Weigh.due()) return; Weigh.shown = 1; setTimeout(() => { if (!document.querySelector(".dsheet,.kc-ov-full,.onb")) Weigh.open(); else Weigh.shown = 0; }, 900); },
+    open(){ const last = K.weights[0], b = K.body || {}; let poop = null;
+      const sh = detailSheet(`<div class="kc-form kc-weigh" data-notr><div class="kc-celf">⚖️</div><h3>Zeit fürs Wiegen</h3><p class="muted">Nüchtern, ${b.weigh_min != null ? `ungefähr wie beim ersten Mal (${pad(Math.floor(b.weigh_min / 60))}:${pad(b.weigh_min % 60)} Uhr)` : "am besten morgens"}. So kannst du die Werte vergleichen.</p>
+        <div class="kc-gram"><label><input id="kwkg" inputmode="decimal" value="${last ? nf(last.kg, 1) : b.weight ? nf(b.weight, 1) : ""}"> kg</label></div>
+        <p class="kc-pt">Warst du heute schon auf der Toilette?</p><div class="kc-seg"><button class="btn" data-p="1">Ja</button><button class="btn" data-p="0">Noch nicht</button></div>
+        <div class="kc-row2"><button class="btn go" id="kwsave">Speichern</button><button class="btn" id="kwlater">Später</button></div></div>`);
+      const el = sh.el, inp = el.querySelector("#kwkg"); field(inp);
+      el.querySelectorAll("[data-p]").forEach(x => x.onclick = () => { poop = x.dataset.p === "1"; el.querySelectorAll("[data-p]").forEach(y => y.classList.toggle("go", y === x)); haptic(8); });
+      el.querySelector("#kwlater").onclick = () => { try { localStorage.setItem("chessnat-kc-wlater", String(Date.now())); } catch(e) {} sh.close(); };
+      el.querySelector("#kwsave").onclick = async () => { const kg = num(inp.value); if (!(kg >= 30 && kg <= 300)) return say("Gewicht in kg, z. B. 75,4"); if (poop == null) return say("Kurz noch: schon auf Toilette gewesen?");
+        try { const prev = K.weights[0]; await K.addWeight(Math.round(kg * 10) / 10, poop); sh.close(); haptic(15); const d = prev ? Math.round((kg - prev.kg) * 10) / 10 : 0;
+          say(`⚖️ ${nf(kg, 1)} kg gespeichert${prev ? ` (${d > 0 ? "+" : d < 0 ? "−" : "±"}${nf(Math.abs(d), 1)} kg)` : ""}`); } catch(e) { say("Ging nicht: " + (e.message || e)); } };
+      return sh; }
+  };
+  /* ---------- the flame and the streak freezes ("Streak on Ice"): one for every full week, or bought; two at most ---------- */
+  const ICE_PRICE = 500;
+  function iceSheet(){ const n = myIce(), f = K.flame(), bal = typeof natBal === "function" ? natBal() : 0;
+    const sh = detailSheet(`<div class="kc-form kc-icebox" data-notr><div class="kc-celf">🔥</div><h3>${f} ${f === 1 ? "Tag" : "Tage"} in Folge</h3><p class="muted">Jeden Tag, an dem du dein Kalorienziel schaffst, brennt deine Flamme weiter.</p>
+      <div class="kc-ices">${[0, 1].map(i => `<span class="${i < n ? "on" : ""}">🧊</span>`).join("")}</div>
+      <p class="kc-icet"><b>Streak on Ice:</b> Verpasst du mal einen Tag, bleibt deine Flamme trotzdem. Eins gibt’s für jede volle Woche, oder du kaufst es. Höchstens zwei.</p>
+      ${n < 2 ? `<button class="btn go big" id="kcbuy" ${bal < ICE_PRICE ? "disabled" : ""}>🧊 Kaufen für ${ICE_PRICE} Natcoins</button>${bal < ICE_PRICE ? `<p class="muted">Du hast ${fmt(bal)} Natcoins.</p>` : ""}` : `<p class="muted">Du hast beide. Stark!</p>`}</div>`);
+    const bb = sh.el.querySelector("#kcbuy"); if (bb) bb.onclick = async () => { if (!(typeof natSpend === "function" && natSpend(ICE_PRICE))) return say("Nicht genug Natcoins"); bb.disabled = true;
+      try { await K.buyIce(); sh.close(); haptic([15, 30, 15]); confetti(false); say("🧊 Streak on Ice gekauft"); } catch(e) { if (typeof natEarn === "function") natEarn(ICE_PRICE, true); bb.disabled = false; say("Ging nicht: " + (e.message || e)); } };
+    return sh; }
+  /* ---------- the day at a glance: kcal, then carbs, protein and fat against their targets ---------- */
+  function sumHTML(t, go){ const T = K.targets(), eaten = K.dayKcal(t), lit = eaten >= T.kcal, pc = Math.round(Math.min(1, eaten / T.kcal) * 100);
+    const row = (k, l) => { const v = K.daySum(t, k), g = T[k]; return `<div class="kc-mc ${v >= g ? "ok" : ""}"><span>${l}</span><b>${fmt(v)}<small> / ${fmt(g)} g</small></b><i><u style="width:${Math.round(Math.min(1, v / g) * 100)}%"></u></i></div>`; };
+    return `<button class="kc-num" ${go ? "data-kc-go" : ""}><b>${fmt(eaten)}</b><span>/ ${fmt(T.kcal)} kcal</span><em class="${lit ? "ok" : ""}">${lit ? "🔥 geschafft" : pc + " %"}</em></button>
+      <div class="kc-bar ${lit ? "done" : ""}"><i style="width:${pc}%"></i></div>
+      <div class="kc-mac">${row("carbs", "KH")}${row("protein", "Protein")}${row("fat", "Fett")}</div>`; }
+  /* what is eaten again and again: one tap adds it once more */
+  function frequent(){ const since = addDays(today(), -45), G = new Map();
+    K.meals.forEach(m => { if (m.day < since) return; const it = Array.isArray(m.items) && m.items.length === 1 ? m.items[0] : null, key = m.code || (it && it.code) || String(m.title || "").toLowerCase().trim(); if (!key) return;
+      const g = G.get(key) || {n: 0, m, ts: 0}; g.n++; const ts = Date.parse(m.ts) || 0; if (ts > g.ts){ g.ts = ts; g.m = m; } G.set(key, g); });
+    return [...G.values()].filter(g => g.n >= 2).sort((a, b) => b.n - a.n || b.ts - a.ts).slice(0, 4).map(g => g.m); }
+  function quickHTML(){ const l = frequent(); if (!l.length) return ""; return `<div class="kc-quick"><div class="kc-qh">Oft gegessen</div>${l.map(m => `<button class="kc-q" data-quick="${h(m.id)}"><span class="kc-qe">${h(m.emoji || "🍽️")}</span><span class="kc-qn">${h(m.title)}<small>${fmt(m.kcal)} kcal${m.grams ? " · " + m.grams + " g" : ""}</small></span><em>${svg(IC.plus, 20)}</em></button>`).join("")}</div>`; }
+  async function quickAdd(id, btn){ const m = K.meals.find(x => x.id === id); if (!m || (btn && btn.disabled)) return; if (btn){ btn.disabled = true; btn.classList.add("ok"); } haptic(12);
+    try { await K.add({source: "quick", title: m.title, emoji: m.emoji, kcal: m.kcal, carbs: m.carbs, protein: m.protein, fat: m.fat, grams: m.grams, code: m.code, items: m.items, note: m.note}); say(`${m.emoji || "🍽️"} ${m.title} eingetragen`); }
+    catch(e) { if (btn){ btn.disabled = false; btn.classList.remove("ok"); } say("Ging nicht: " + (e.message || e)); } }
+  const setupCard = () => K.on() && !(K.body && K.body.setup_at) ? `<button class="kc-setup-b" data-kc-setup><span>🎯</span><b>Ziele einrichten<small>Gewicht, Größe, Ziel: dein Tagesbedarf und deine Makros</small></b></button>` : "";
+  /* the buttons of a summary block (home card and the page) */
+  function wireDay(el){
+    el.querySelectorAll("[data-kc-go]").forEach(b => b.onclick = () => App.go("kcal"));
+    const w = (s2, f) => el.querySelectorAll(s2).forEach(b => b.onclick = f);
+    w("[data-kc-say]", () => Voice2.open()); w("[data-kc-scan]", () => KCScan.open()); w("[data-kc-find]", () => Search.open()); w("[data-kc-fl]", () => iceSheet()); w("[data-kc-setup]", () => Setup.open());
+    el.querySelectorAll("[data-quick]").forEach(b => b.onclick = () => quickAdd(b.dataset.quick, b));
   }
 
   /* ---------- numbers you type: a tap selects all of it, so typing replaces it; the field never jumps while you type ---------- */
@@ -555,16 +688,22 @@
       <label class="chk"><input type="checkbox" data-kcs="enabled" ${on ? "checked" : ""}> Auf der Startseite zeigen (Sprechen + Barcode)</label>
       ${on || full ? `<div class="kc-goal"><span>Tagesziel</span><input id="kcgoal" inputmode="numeric" value="${K.goal()}"><span>kcal</span></div>
       <div class="kc-chips">${[2000, 2500, 2800, 3000, 3500].map(v => `<button class="chip ${K.goal() === v ? "on" : ""}" data-goal="${v}">${fmt(v)}</button>`).join("")}</div>
+      ${(() => { const T = K.targets(), b = K.body || {}, A = AIMS.find(a => a[0] === b.aim), lw = K.weights[0];
+        return `<div class="kc-tgt"><div><b>${fmt(T.kcal)} kcal</b><span>${T.protein} g Protein · ${T.carbs} g KH · ${T.fat} g Fett</span>${A ? `<small>${A[1]} ${A[2]}${lw ? ` · ${nf(lw.kg, 1)} kg` : ""}</small>` : ""}</div></div>
+        <div class="kc-row2"><button class="btn" data-kcs-setup>🎯 ${b.setup_at ? "Ziele neu berechnen" : "Ziele einrichten"}</button>${b.setup_at ? `<button class="btn" data-kcs-weigh>⚖️ Gewicht</button>` : ""}</div>`; })()}
       <label class="chk"><input type="checkbox" data-kcs="share" ${p.share !== false ? "checked" : ""}> Freunde mit Tracker sehen meine Kalorien und Flammen</label>
+      <label class="chk"><input type="checkbox" data-kcs="fpush" ${p.fpush !== false ? "checked" : ""}> Push, wenn Freunde essen oder ihr Ziel schaffen</label>
       <label class="chk"><input type="checkbox" data-kcs="remind" ${p.remind !== false ? "checked" : ""}> Erinnerungen mit Essensvorschlag (Push)</label>
       <p class="muted" style="font-size:12.5px;margin:6px 0 0">Push muss in der App an sein (Freunde → Benachrichtigungen). Eine Flamme gibt es für jeden Tag, an dem du dein Ziel erreichst.</p>` : ""}`;
   }
   function wireSettings(el, redraw){
     el.querySelectorAll("[data-kcs]").forEach(c => c.onchange = async () => { const k = c.dataset.kcs;
-      try { await K.saveProf({[k]: c.checked}); if (k === "enabled") say(c.checked ? "Kalorien-Tracker ist auf der Startseite" : "Kalorien-Tracker ist aus"); redraw(); } catch(e) { c.checked = !c.checked; say("Ging nicht: " + (e.message || e)); } });
+      try { await K.saveProf({[k]: c.checked}); if (k === "enabled") say(c.checked ? "Kalorien-Tracker ist auf der Startseite" : "Kalorien-Tracker ist aus"); redraw(); if (k === "enabled" && c.checked && !(K.body && K.body.setup_at)) Setup.open(redraw); } catch(e) { c.checked = !c.checked; say("Ging nicht: " + (e.message || e)); } });
     const set = async v => { v = Math.round(Number(v) || 0); if (v < 800 || v > 7000) return say("Ziel zwischen 800 und 7000 kcal");
-      try { await K.saveProf({goal: v}); say("Ziel: " + fmt(v) + " kcal"); redraw(); } catch(e) { say("Ging nicht: " + (e.message || e)); } };
-    const gi = el.querySelector("#kcgoal"); if (gi) gi.onchange = () => set(gi.value);
+      try { await K.saveProf({goal: v}); if (K.body && K.body.setup_at) await K.saveBody({custom: true}).catch(() => {}); say("Ziel: " + fmt(v) + " kcal"); redraw(); } catch(e) { say("Ging nicht: " + (e.message || e)); } };
+    const gi = el.querySelector("#kcgoal"); if (gi){ field(gi); gi.onchange = () => set(gi.value); }
+    const su = el.querySelector("[data-kcs-setup]"); if (su) su.onclick = () => { const sh0 = el.closest(".dsheet"); if (sh0) sh0.querySelector("[data-dclose]").click(); Setup.open(redraw); };
+    const wb = el.querySelector("[data-kcs-weigh]"); if (wb) wb.onclick = () => { const sh0 = el.closest(".dsheet"); if (sh0) sh0.querySelector("[data-dclose]").click(); Weigh.open(); };
     el.querySelectorAll("[data-goal]").forEach(b => b.onclick = () => set(b.dataset.goal));
   }
   window.kcalSettings = async el => {
@@ -594,15 +733,19 @@
           <p class="muted">Sag einfach, was du gegessen hast, oder scann den Barcode. Die Kalorien landen automatisch beim richtigen Tag. Mit Freunden, die auch tracken, seht ihr euch gegenseitig und sammelt Flammen, wenn ihr euer Ziel schafft.</p>
           ${K.invites.length ? `<p><b>${h(pname(K.invites[0].from_id))}</b> hat dich eingeladen.</p>` : ""}
           <button class="btn go big" id="kcon">Einschalten</button></div></div>`;
-        main.querySelector("#kcon").onclick = async () => { try { await K.saveProf({enabled: true}); say("Kalorien-Tracker ist an 🔥"); this.draw(); } catch(e) { say("Ging nicht: " + (e.message || e)); } };
+        main.querySelector("#kcon").onclick = () => Setup.open(() => this.draw());
         return;
       }
       const tabs = [["today", "Heute"], ["history", "Verlauf"], ["friends", "Freunde"]];
-      main.innerHTML = `<div class="page kc-page" data-notr><div class="kc-top"><h1 class="h-title">Kalorien</h1>${flameChip(K.flame(), K.litToday())}<button class="kc-x kc-gear" id="kcset" aria-label="Einstellungen">${svg(IC.gear, 20)}</button></div>
+      main.innerHTML = `<div class="page kc-page" data-notr><div class="kc-top"><h1 class="h-title">Kalorien</h1>${flameChip(K.flame(), K.litToday(), myIce())}<button class="kc-x kc-gear" id="kcset" aria-label="Einstellungen">${svg(IC.gear, 20)}</button></div>
         <div class="row kc-tabs">${tabs.map(([k, l]) => `<button class="btn sm ${this.tab === k ? "go" : ""}" data-tab="${k}">${l}</button>`).join("")}</div><div id="kcbody"></div></div>`;
       main.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { this.tab = b.dataset.tab; this.sel = null; this.draw(); if (this.tab === "friends") K.loadFriends().then(() => this.draw()).catch(() => {}); });
       main.querySelector("#kcset").onclick = () => { const sh = detailSheet(`<div class="kc-setsheet" data-notr>${settingsHTML(true)}</div>`); const box = sh.el.querySelector(".kc-setsheet");
         const re = () => { box.innerHTML = settingsHTML(true); wireSettings(box, re); this.draw(); }; wireSettings(box, re); };
+      const fl = main.querySelector(".kc-top [data-kc-fl]"); if (fl) fl.onclick = () => iceSheet();
+      /* the first visit with the tracker on: the goal questions, once */
+      if (K.loaded && !(K.body && K.body.setup_at) && !this.setupAsked && !document.querySelector(".kc-setup")){ this.setupAsked = 1; setTimeout(() => { if (App.route === "kcal" && !(K.body && K.body.setup_at)) Setup.open(() => this.draw()); }, 300); }
+      else if (K.loaded) Weigh.check();
       const body = main.querySelector("#kcbody");
       if (this.tab === "today") this.today(body); else if (this.tab === "history") this.history(body); else this.friendsTab(body);
     },
@@ -613,15 +756,15 @@
     },
     wireMeals(el){ el.querySelectorAll("[data-meal]").forEach(b => b.onclick = () => { const m = K.meals.find(x => x.id === b.dataset.meal); if (m) mealSheet(m); }); },
     today(el){
-      const t = today(), eaten = K.dayKcal(t), g = K.goal(), lit = eaten >= g, ms = K.dayMeals(t), sum = k => ms.reduce((s, m) => s + (Number(m[k]) || 0), 0);
-      const miss = g - eaten, i = !lit ? idea(miss) : null;
-      el.innerHTML = `<div class="unit kc-sum"><div class="kc-num"><b>${fmt(eaten)}</b><span>/ ${fmt(g)} kcal</span></div><div class="kc-bar ${lit ? "done" : ""}"><i style="width:${Math.round(Math.min(1, eaten / g) * 100)}%"></i></div>
-        <div class="kc-macros"><span><b>${fmt(sum("carbs"))} g</b>KH</span><span><b>${fmt(sum("protein"))} g</b>Protein</span><span><b>${fmt(sum("fat"))} g</b>Fett</span></div>
+      const t = today(), g = K.goal(), eaten = K.dayKcal(t), lit = eaten >= g, miss = g - eaten, i = !lit ? idea(miss) : null;
+      el.innerHTML = `<div class="unit kc-sum">${sumHTML(t, false)}
+        <div class="kc-btns two"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 32)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 32)}<span>Barcode</span></button></div>
+        <button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Lebensmittel suchen …</span></button>
+        ${setupCard()}${quickHTML()}
         ${lit ? `<div class="kc-tip ok">🔥 Ziel geschafft!</div>` : `<div class="kc-tip">Noch <b>${fmt(miss)} kcal</b>. Zum Beispiel ${h(i.text)} (≈ ${fmt(i.kcal)} kcal)</div>`}
-        <div class="kc-btns"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 28)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 28)}<span>Barcode</span></button><button class="kc-big kc-find" data-kc-find>${svg(IC.search, 28)}<span>Suchen</span></button></div>
         <button class="btn ghost kc-man-b" id="kcmanual">${svg(IC.plus, 16)} Selbst eintragen</button></div>
         <div class="kc-day">Heute</div>${this.dayBlock(t)}`;
-      el.querySelector("[data-kc-say]").onclick = () => Voice2.open(); el.querySelector("[data-kc-scan]").onclick = () => KCScan.open(); el.querySelector("[data-kc-find]").onclick = () => Search.open(); el.querySelector("#kcmanual").onclick = manual;
+      wireDay(el); el.querySelector("#kcmanual").onclick = manual;
       this.wireMeals(el);
     },
     history(el){
@@ -688,6 +831,30 @@
 .kc-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:2px}
 .kc-big{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:96px;border:0;border-radius:18px;color:#fff;font:900 18px var(--display);cursor:pointer;background:var(--go);box-shadow:inset 0 -5px 0 var(--go-deep);-webkit-tap-highlight-color:transparent}
 .kc-big:active{transform:translateY(2px);box-shadow:inset 0 -2px 0 var(--go-deep)}
+.kc-btns.two{grid-template-columns:1fr 1fr;gap:10px}.kc-btns.two .kc-big{height:112px;font-size:19px;border-radius:22px}
+.kc-num em{margin-left:auto;align-self:center;font:900 13px var(--body);color:var(--muted);background:var(--panel-2);border-radius:999px;padding:4px 10px;font-style:normal}.kc-num em.ok{color:#fff;background:linear-gradient(180deg,#ff9a3c,#e9573f)}.kc-num{width:100%}
+.kc-mac{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.kc-mc{background:var(--panel-2);border-radius:14px;padding:8px 10px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.kc-mc span{font:800 11.5px var(--body);color:var(--muted);letter-spacing:.02em}.kc-mc b{font:900 17px var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kc-mc b small{font:800 11.5px var(--body);color:var(--muted)}
+.kc-mc i{display:block;height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}.kc-mc u{display:block;height:100%;border-radius:3px;background:var(--go);transition:width .4s}.kc-mc.ok u{background:linear-gradient(90deg,#FFD15C,#ff9a3c)}
+.kc-sbar{display:flex;align-items:center;gap:10px;width:100%;padding:13px 14px;border-radius:16px;border:2px solid var(--line);background:var(--panel-2);color:var(--muted);font:800 16px var(--body);cursor:text;text-align:left;-webkit-tap-highlight-color:transparent}.kc-sbar:active{border-color:var(--go)}
+.kc-quick{display:flex;flex-direction:column;gap:6px}.kc-qh{font:900 12px var(--body);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin:2px 2px 0}
+.kc-q{display:flex;align-items:center;gap:10px;width:100%;padding:8px 8px 8px 12px;border-radius:14px;border:0;background:var(--panel-2);color:var(--fg);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}.kc-q:active{transform:scale(.98)}
+.kc-qe{font-size:24px}.kc-qn{flex:1;min-width:0;display:flex;flex-direction:column;font:800 15px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kc-qn small{color:var(--muted);font-weight:700;font-size:12px}
+.kc-q em{width:38px;height:38px;border-radius:12px;background:var(--go);color:#fff;display:grid;place-items:center;flex:none;box-shadow:inset 0 -3px 0 var(--go-deep)}.kc-q.ok em{background:#ffb84d}
+.kc-setup-b{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border-radius:16px;border:2px solid var(--go);background:rgba(127,178,74,.12);color:var(--fg);text-align:left;cursor:pointer}.kc-setup-b span{font-size:28px}.kc-setup-b b{display:flex;flex-direction:column;font:900 16px var(--body)}.kc-setup-b small{color:var(--muted);font:700 12.5px var(--body)}
+.kc-fl.big{border:0;cursor:pointer;font-size:18px;padding:5px 12px;color:var(--fg)}.kc-fl .kc-ice{font-style:normal;font-size:13px;margin-left:4px;letter-spacing:-2px}
+.kc-conf{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:400}
+.kc-setup .kc-vtop{align-items:center}.kc-dots{display:flex;gap:6px}.kc-dots i{width:22px;height:6px;border-radius:3px;background:rgba(255,255,255,.15)}.kc-dots i.on{background:var(--go)}
+.kc-smid{flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;max-width:480px;width:100%;margin:0 auto;padding-bottom:6vh}.kc-smid h2{font:900 28px var(--display);margin:0;text-align:center}
+.kc-opts{display:flex;flex-direction:column;gap:10px}.kc-opts.two{flex-direction:row}.kc-opts.two .kc-opt{flex:1;flex-direction:column;justify-content:center;padding:22px 10px}
+.kc-opt{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:18px;border:2px solid rgba(255,255,255,.08);background:#211F1C;color:#fff;text-align:left;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.35);transition:transform .1s,border-color .15s;-webkit-tap-highlight-color:transparent}
+.kc-opt:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.35)}.kc-opt.on{border-color:var(--go);background:rgba(127,178,74,.16)}.kc-opt span{font-size:32px}.kc-opt b{display:flex;flex-direction:column;font:900 18px var(--body)}.kc-opt small{font:700 13px var(--body);color:rgba(255,255,255,.55);margin-top:2px}
+.kc-bform{display:flex;flex-direction:column;gap:10px}.kc-bform label{display:flex;align-items:center;gap:10px;background:#211F1C;border-radius:16px;padding:6px 14px;border:2px solid rgba(255,255,255,.08)}.kc-bform label:focus-within{border-color:var(--go)}
+.kc-bform span{flex:1;font:800 16px var(--body);color:rgba(255,255,255,.7)}.kc-bform input{width:110px;text-align:right;border:0;background:none;color:#fff;font:900 26px var(--display);padding:8px 0;outline:none}.kc-bform em{font-style:normal;font:800 15px var(--body);color:rgba(255,255,255,.55);width:44px}
+.kc-res{display:flex;flex-direction:column;gap:12px;text-align:center}.kc-resk b{display:block;font:900 64px/1 var(--display);color:#9BE25A}.kc-resk span{font:800 16px var(--body);color:rgba(255,255,255,.6)}.kc-res p{margin:0;font-size:13.5px}
+.kc-weigh{text-align:center;align-items:stretch}.kc-weigh h3{margin:0}.kc-weigh .kc-gram label{justify-content:center}.kc-seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kc-icebox{text-align:center}.kc-icebox h3{margin:0;font:900 24px var(--display)}.kc-ices{display:flex;justify-content:center;gap:14px;font-size:44px}.kc-ices span{filter:grayscale(1) opacity(.3)}.kc-ices span.on{filter:none}.kc-icet{margin:0;font-size:14px;line-height:1.4}
+.kc-tgt>div{display:flex;flex-direction:column;gap:2px;background:var(--panel-2);border-radius:14px;padding:10px 12px;margin:6px 0}.kc-tgt b{font:900 20px var(--display)}.kc-tgt span{font:800 13px var(--body)}.kc-tgt small{color:var(--muted);font:700 12px var(--body)}
 .kc-find{background:#E9A92B;box-shadow:inset 0 -5px 0 #B47E18}.kc-find:active{box-shadow:inset 0 -2px 0 #B47E18}
 .kc-amt{display:flex;flex-direction:column;gap:6px}.kc-al{font:800 13px var(--body)}.kc-al small{font-weight:700}
 .kc-srch{display:flex;flex-direction:column;gap:10px}.kc-srch h3{margin:0}

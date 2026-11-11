@@ -2801,7 +2801,7 @@ html.booting .app{visibility:hidden}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794411983";
+const CHESSNAT_BUILD = "1794412517";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11326,6 +11326,10 @@ Views.home = {
     main.innerHTML = `<div class="page">${siteBanner()}
       <div class="unit kc-home" id="homeKcal" hidden></div>
       <div class="unit th-home" id="homeTipp" hidden></div>
+      <div class="unit" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><div style="min-width:180px"><div class="muted" style="font-weight:800;font-size:13px;letter-spacing:.06em">TODAY'S PLAN</div><div style="font:900 22px var(--display)">${planDone() ? "Done for today ✓" : PLAN.filter(([k, n]) => planVal(k) >= n).length + " / " + PLAN.length}</div><div class="dim" style="font-size:12.5px">${icon("flame", 14)} ${S.plan.streak} day streak · best ${S.plan.best}</div></div>
+        <div style="flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">${PLAN.filter(([k, n]) => !(planVal(k) >= n && popped[k] && !toPop.includes(k))).map(([k, n, t]) => { const v = Math.min(n, planVal(k)); return `<button class="lsn ${v >= n ? "done" : ""} ${toPop.includes(k) ? "pop" : ""}" data-plan="${k}"><span class="n">${v >= n ? "✓" : v}</span><span><div class="t">${t}</div><div class="s">${v} / ${n}</div></span></button>`; }).join("")}</div></div>
+      ${typeof goalCardHTML === "function" ? goalCardHTML() : ""}
+      ${typeof homeDailyHTML === "function" ? homeDailyHTML() : ""}
       <div class="unit home-rank" style="--rk1:${rk.tier.c1};--rk2:${rk.tier.c2}">
         <button class="hr-crest" data-go="me" aria-label="Your profile">${crestSVG(rk.idx, rk.div, 150)}</button>
         <div class="hr-l">${esc(rk.label)}</div>
@@ -11336,10 +11340,6 @@ Views.home = {
         <button class="hr-lv" data-go="me" aria-label="Your level">${levelCardHTML(true)}</button>
         <div class="hr-goal"><span>Journey to 1600</span><div class="bar sm"><i style="width:${Math.round(pct * 100)}%"></i></div><b>${Math.round(pct * 100)}%</b></div>
       </div>
-      <div class="unit" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><div style="min-width:180px"><div class="muted" style="font-weight:800;font-size:13px;letter-spacing:.06em">TODAY'S PLAN</div><div style="font:900 22px var(--display)">${planDone() ? "Done for today ✓" : PLAN.filter(([k, n]) => planVal(k) >= n).length + " / " + PLAN.length}</div><div class="dim" style="font-size:12.5px">${icon("flame", 14)} ${S.plan.streak} day streak · best ${S.plan.best}</div></div>
-        <div style="flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">${PLAN.filter(([k, n]) => !(planVal(k) >= n && popped[k] && !toPop.includes(k))).map(([k, n, t]) => { const v = Math.min(n, planVal(k)); return `<button class="lsn ${v >= n ? "done" : ""} ${toPop.includes(k) ? "pop" : ""}" data-plan="${k}"><span class="n">${v >= n ? "✓" : v}</span><span><div class="t">${t}</div><div class="s">${v} / ${n}</div></span></button>`; }).join("")}</div></div>
-      ${typeof goalCardHTML === "function" ? goalCardHTML() : ""}
-      ${typeof homeDailyHTML === "function" ? homeDailyHTML() : ""}
       <div class="tiles">
         ${journeyTile()}
         ${next ? `<button class="tile" data-go="lesson" data-l="${next.id}" style="grid-column:span 2;border:1px solid var(--go)">${icon("book", 40)}<span class="pill go">Continue learning</span><h3>${esc(next.title)}</h3><p>${esc(next.sub || "")}</p></button>` : ""}
@@ -14380,18 +14380,18 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=117"></script>
-<script src="games/imposter.js?v=117"></script>
-<script src="games/werwolf.js?v=117"></script>
-<script src="games/cards.js?v=117"></script>
-<script src="games/heads.js?v=117"></script>
-<script src="games/more.js?v=117"></script>
-<script src="games/net.js?v=117"></script>
-<script src="games/online.js?v=117"></script>
-<script src="games/natposter.js?v=117"></script>
-<script src="games/arena.js?v=117"></script>
-<script src="games/tipp.js?v=117"></script>
-<script src="games/kcal.js?v=117"></script>
+<script src="games/core.js?v=118"></script>
+<script src="games/imposter.js?v=118"></script>
+<script src="games/werwolf.js?v=118"></script>
+<script src="games/cards.js?v=118"></script>
+<script src="games/heads.js?v=118"></script>
+<script src="games/more.js?v=118"></script>
+<script src="games/net.js?v=118"></script>
+<script src="games/online.js?v=118"></script>
+<script src="games/natposter.js?v=118"></script>
+<script src="games/arena.js?v=118"></script>
+<script src="games/tipp.js?v=118"></script>
+<script src="games/kcal.js?v=118"></script>
 <script>boot();</script>
 </body>
 </html>
