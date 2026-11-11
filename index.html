@@ -8793,20 +8793,29 @@ function detailSheet(html, onClose){
   /* the field is brought into sight only when the keyboard opens or a field gets focus, never while you scroll (that made the card jump back) */
   let kb0 = 0;
   const vv = window.visualViewport, kbFit = toField => { if (done || !vv) return; const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)), card2 = el.querySelector(".dcard");
-    if (kb > 60) unlift();
-    el.style.paddingBottom = kb > 60 ? kb + "px" : ""; el.classList.toggle("kb", kb > 60); el.style.transform = vv.offsetTop ? `translateY(${vv.offsetTop}px)` : ""; if (card2) card2.style.maxHeight = kb > 60 ? (vv.height - 12) + "px" : "";
+    el.style.transform = vv.offsetTop ? `translateY(${vv.offsetTop}px)` : "";
+    /* the card already made room for the keyboard by itself (see below): nothing more moves, whatever the iPhone reports later */
+    if (el.classList.contains("kbf")){ kb0 = kb; return; }
+    el.style.paddingBottom = kb > 60 ? kb + "px" : ""; el.classList.toggle("kb", kb > 60); if (card2) card2.style.maxHeight = kb > 60 ? (vv.height - 12) + "px" : "";
     const grew = kb > 60 && Math.abs(kb - kb0) > 40; kb0 = kb;
     const a = document.activeElement; if ((toField === true || grew) && kb > 60 && a && el.contains(a) && /INPUT|TEXTAREA/.test(a.tagName)) requestAnimationFrame(() => { try { a.scrollIntoView({block: "nearest"}); } catch(e) {} }); };
   /* the iPhone (home-screen app) often reports no keyboard height at all: the card then stays where it is and the field you type in
      lies behind the keyboard. So, whatever the keyboard says: a field in the lower part of the screen is brought into the upper part
-     (the card gets room underneath and scrolls); when typing ends, the card is as it was */
+     (the card gets room underneath and scrolls) right when it is tapped, while the keyboard comes up; when typing ends, the card is
+     as it was. Nothing jumps: the card glides from where it stood to where it stands now, both ways */
   const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1), typing = () => { const a = document.activeElement; return a && el.contains(a) && /INPUT|TEXTAREA/.test(a.tagName) && !/^(checkbox|radio|range|button|file)$/.test(a.type) ? a : null; };
-  let liftT = 0;
-  function unlift(){ if (!el.classList.contains("kbf")) return; el.classList.remove("kbf"); const c = el.querySelector(".dcard"); if (c) c.style.paddingBottom = ""; }
-  const lift = () => { const a = typing(), c = el.querySelector(".dcard"); if (done || !a || !c || el.classList.contains("kb")) return; const H = window.innerHeight;
-    if (!el.classList.contains("kbf")){ if (a.getBoundingClientRect().bottom < H * .5) return; el.classList.add("kbf"); c.style.paddingBottom = Math.round(H * .6) + "px"; }
-    requestAnimationFrame(() => { const r = a.getBoundingClientRect(); if (r.bottom > H * .5 || r.top < 70) c.scrollTop += r.top - H * .36; }); };
-  if (IOS){ el.addEventListener("focusin", () => { clearTimeout(liftT); liftT = setTimeout(lift, 360); });
+  let liftT = 0, glideA = null, top0 = null;
+  const glide = (c, d) => { if (Math.abs(d) < 2 || !c.animate || matchMedia("(prefers-reduced-motion:reduce)").matches) return; let from = d;
+    /* already gliding: go on from where it is right now */
+    if (glideA){ try { const m = new DOMMatrixReadOnly(getComputedStyle(c).transform); from += m.m42; } catch(e) {} try { glideA.cancel(); } catch(e) {} }
+    glideA = c.animate([{transform: `translateY(${from}px)`}, {transform: "translateY(0)"}], {duration: 420, easing: "cubic-bezier(.22,1,.36,1)"}); glideA.onfinish = glideA.oncancel = () => { glideA = null; }; };
+  function unlift(){ if (!el.classList.contains("kbf")) return; const c = el.querySelector(".dcard"), ref = c && (c.children[1] || c), y0 = ref ? ref.getBoundingClientRect().top : 0;
+    el.classList.remove("kbf"); if (!c) return; c.style.paddingBottom = ""; if (top0 != null){ c.scrollTop = top0; top0 = null; } glide(c, y0 - ref.getBoundingClientRect().top); }
+  const lift = () => { const a = typing(), c = el.querySelector(".dcard"); if (done || !a || !c || el.classList.contains("kb")) return; const H = window.innerHeight, y0 = a.getBoundingClientRect().top;
+    if (!el.classList.contains("kbf")){ if (a.getBoundingClientRect().bottom < H * .5) return; el.classList.add("kbf"); top0 = c.scrollTop; c.style.paddingBottom = Math.round(H * .6) + "px"; }
+    const r = a.getBoundingClientRect(); if (r.bottom > H * .5 || r.top < 70) c.scrollTop += r.top - H * .36;
+    glide(c, y0 - a.getBoundingClientRect().top); };
+  if (IOS){ el.addEventListener("focusin", () => { clearTimeout(liftT); liftT = setTimeout(lift, 30); });
     el.addEventListener("focusout", () => { clearTimeout(liftT); liftT = setTimeout(() => { if (!done && !typing()) unlift(); }, 140); }); }
   const onVV = () => kbFit(false);
   if (vv){ vv.addEventListener("resize", onVV); vv.addEventListener("scroll", onVV); el.addEventListener("focusin", () => setTimeout(() => kbFit(true), 60)); setTimeout(onVV, 0); }
