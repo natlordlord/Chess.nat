@@ -96,7 +96,7 @@
     if (!HB.int) HB.int = setInterval(() => { try { hostLoop(); } catch(e) { console.error(e); } }, 50);
     if (A.ph === "pick" && now() >= A.pickEnd){ A.ph = "fight"; A.fight = now(); A.end = now() + FIGHT; mg.end = A.end;
       A.ids.forEach(id => { if (!CLS[A.cls[id]]) A.cls[id] = KEYS[Math.floor(Math.random() * KEYS.length)]; A.mx[id] = A.hp[id] = CLS[A.cls[id]].hp; A.dmg[id] = 0; A.kills[id] = 0; A.lh[id] = A.ls[id] = 0; });
-      botsInit(s, A); ch = true; }
+      botsInit(s, A); A.cubes = []; A.pw = {}; A.cseq = 0; A.cubeT = now(); for (let i = 0; i < Math.min(8, 3 + A.ids.length); i++) cubeRandom(A, 99999); ch = true; }
     /* a new host after a handover takes the bots over where they were */
     if (A.ph === "fight" && !Object.keys(HB.bots).length && (s.bots || []).some(b => A.ids.includes(b.id))) botsInit(s, A);
     /* someone who left is out */
@@ -105,6 +105,13 @@
       if (alive.length <= 1 || now() >= A.end || (humans.length && !alive.some(id => humans.includes(id)) && alive.length)){ finish(G, mg); ch = true; } }
     return ch;
   }
+  /* energy cubes, like Brawl Stars' power cubes: each one +8 % health and +8 % damage, whoever is knocked out drops theirs */
+  const CUBE = .08, CUBES = 10;
+  function cubeAdd(A, x, y, n){ A.cubes.push({k: ++A.cseq, x: Math.round(x), y: Math.round(y), n: n || 1}); HB.cdirty = true; }
+  function cubeRandom(A, gr){ const L = areas(); for (let i = 0; i < 40; i++){ const a = L[Math.floor(Math.random() * L.length)], x = a.x + 30 + Math.random() * (a.w - 60), y = a.y + 60 + Math.random() * (a.h - 90);
+    if (walkA(x, y) && Math.hypot(x - GC.x, y - GC.y) < gr - 80 && !A.cubes.some(c => Math.hypot(c.x - x, c.y - y) < 140) && !A.ids.some(id => { const q = posOf(id); return q && Math.hypot(q.x - x, q.y - y) < 90; })) return cubeAdd(A, x, y, 1); } }
+  function cubeGrab(A, id, k){ const i = A.cubes.findIndex(c => c.k === k); if (i < 0 || A.out.includes(id)) return; const c = A.cubes[i], q = posOf(id); if (!q || Math.hypot(q.x - c.x, q.y - c.y) > 90) return;
+    A.cubes.splice(i, 1); const was = A.pw[id] || 0, now2 = Math.min(CUBES, was + c.n), base = CLS[A.cls[id]].hp; A.pw[id] = now2; A.mx[id] = Math.round(base * (1 + CUBE * now2)); A.hp[id] = Math.min(A.mx[id], A.hp[id] + base * CUBE * (now2 - was)); HB.dirty = true; HB.cdirty = true; }
   function botsInit(s, A){ HB.bots = {}; (s.bots || []).forEach(b => { if (!A.ids.includes(b.id)) return; const q = C.AP[b.id], p = q && q.dx != null ? {x: q.dx, y: q.dy} : A.sp[b.id];
     HB.bots[b.id] = {x: p.x, y: p.y, a: 0, f: 1, mv: 0, am: AMMO, rl: 0, cd: 600 + Math.random() * 900, str: Math.random() < .5 ? -1 : 1, strT: 0, seen: 0, skill: .55 + Math.random() * .45, sup: 0, dash: null, kb: null, hide: 0}; }); }
   function hostLoop(){
@@ -112,8 +119,11 @@
     const A = mg.ar; if (A.ph === "pick"){ if (now() >= A.pickEnd && hostTick(G)) PNet.refresh(); return; }
     if (A.ph !== "fight") return;
     const dt = .05; botsStep(A, dt); regen(A, dt); botHazards(A, dt);
+    if (A.cubes){ if (now() - A.cubeT > 7000 && A.cubes.length < 8){ A.cubeT = now(); cubeRandom(A, gasR(now() - A.fight)); }
+      for (const id in HB.bots){ if (A.out.includes(id)) continue; const b = HB.bots[id], c = A.cubes.find(c => Math.hypot(c.x - b.x, c.y - b.y) < 38); if (c) cubeGrab(A, id, c.k); }
+      if (HB.cdirty){ HB.cdirty = false; send({t: "acu", c: A.cubes, pw: A.pw}); } }
     if (now() - HB.ambT > 100){ HB.ambT = now(); const l = Object.entries(HB.bots).filter(([id]) => !A.out.includes(id)).map(([id, b]) => [id, Math.round(b.x), Math.round(b.y), Math.round(b.a * 100), b.mv ? 1 : 0, b.f]); if (l.length) PNet.raw({t: "amb", l, ts: now()}); }
-    if (HB.dirty && now() - HB.hpT > 200){ HB.dirty = false; HB.hpT = now(); send({t: "ahp", hp: rnd(A.hp), out: A.out, f: A.feed.slice(-4)}); }
+    if (HB.dirty && now() - HB.hpT > 200){ HB.dirty = false; HB.hpT = now(); send({t: "ahp", hp: rnd(A.hp), mx: A.mx, out: A.out, f: A.feed.slice(-4)}); }
     if (hostTick(G)) PNet.refresh();
   }
   const rnd = o => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, Math.round(v)]));
@@ -122,8 +132,8 @@
     if (k){ const key = vic + "|" + k; if (HB.seen.has(key)) return; HB.seen.add(key); if (HB.seen.size > 6000) HB.seen.clear(); }
     d = Math.min(90, d); A.hp[vic] = Math.max(0, A.hp[vic] - d); A.lh[vic] = now(); if (by && by !== vic && A.dmg[by] != null) A.dmg[by] += d; HB.dirty = true;
     if (by && by !== vic && HB.bots[by]) HB.bots[by].sup = Math.min(1, HB.bots[by].sup + d / CLS[A.cls[by]].sc);
-    if (A.hp[vic] <= 0){ A.out.push(vic); if (by && by !== vic && A.kills[by] != null) A.kills[by]++; const kb = by && by !== vic && A.ids.includes(by) ? by : ""; A.feed.push([kb, vic, kb ? A.cls[kb] : "gas"]); if (A.feed.length > 8) A.feed.shift();
-      HB.hpT = now(); HB.dirty = false; send({t: "ahp", hp: rnd(A.hp), out: A.out, f: A.feed.slice(-4), ko: vic}); hostTick(G); PNet.refresh(); }
+    if (A.hp[vic] <= 0){ A.out.push(vic); if (A.cubes){ const q = posOf(vic); if (q) cubeAdd(A, q.x, q.y, (A.pw[vic] || 0) + 1); } if (by && by !== vic && A.kills[by] != null) A.kills[by]++; const kb = by && by !== vic && A.ids.includes(by) ? by : ""; A.feed.push([kb, vic, kb ? A.cls[kb] : "gas"]); if (A.feed.length > 8) A.feed.shift();
+      HB.hpT = now(); HB.dirty = false; send({t: "ahp", hp: rnd(A.hp), mx: A.mx, out: A.out, f: A.feed.slice(-4), ko: vic}); hostTick(G); PNet.refresh(); }
   }
   function regen(A, dt){ A.ids.forEach(id => { if (A.out.includes(id) || A.hp[id] >= A.mx[id]) return; if (now() - (A.lh[id] || 0) > 3000 && now() - (A.ls[id] || 0) > 3000){ A.hp[id] = Math.min(A.mx[id], A.hp[id] + A.mx[id] * .14 * dt); HB.dirty = true; } }); }
   const posOf = id => { if (id === PNet.me && C.me) return C.me; const b = HB.bots[id]; if (b) return b; const p = C.AP[id]; return p && p.dx != null ? {x: p.dx, y: p.dy} : null; };
@@ -149,6 +159,7 @@
       else if (outGas) go(GC);
       else if (best && best.los && !b.hide){ const want = cl.rg * (cl.cone ? .5 : .68), dx = best.q.x - b.x, dy = best.q.y - b.y, d = best.d || 1, k = d > want ? 1 : d < want * .55 ? -.8 : 0;
         if (now() > b.strT){ b.strT = now() + 500 + Math.random() * 900; if (Math.random() < .45) b.str *= -1; } gx = dx / d * k - dy / d * b.str * .85; gy = dy / d * k + dx / d * b.str * .85; }
+      else if (!b.hide && A.cubes && (() => { let cb = null, cd = 1e9; A.cubes.forEach(c => { const d = Math.hypot(c.x - b.x, c.y - b.y); if (d < cd && d < (best ? 260 : 700) && Math.hypot(c.x - GC.x, c.y - GC.y) < gr - 40){ cd = d; cb = c; } }); if (cb){ go(cb); return true; } return false; })()) {}
       else if (best && !b.hide) go(best.q);
       else if (!b.hide && el > 4000){ const t = {x: GC.x + Math.cos(id.length + el / 9000) * 140, y: GC.y + Math.sin(id.length + el / 9000) * 120}; if (Math.hypot(t.x - b.x, t.y - b.y) > 120) go(t); }
       const m = Math.hypot(gx, gy); b.mv = m > .1 ? 1 : 0;
@@ -178,7 +189,7 @@
     else { mg.perk = mg.win ? {opts: perkOpts(G, mg.win), until: now() + N().RES + BAN + PERK, pick: null} : null;
       s.meet.until = now() + N().RES + BAN + (+G.opts.meet || 60) * 1000;
       if (mg.win && isBot(mg.win) && mg.perk){ const o = mg.perk.opts[Math.floor(Math.random() * mg.perk.opts.length)], R = revivable(G); hostAct(G, mg.win, {a: "arperk", v: o, t: R[Math.floor(Math.random() * R.length)]}); } }
-    send({t: "ahp", hp: rnd(A.hp), out: A.out, f: A.feed.slice(-4)});
+    send({t: "ahp", hp: rnd(A.hp), mx: A.mx, out: A.out, f: A.feed.slice(-4)});
   }
   const revivable = G => { const s = G.s; return G.ids.filter(x => !s.alive[x] && !(s.gone || {})[x] && s.killed && s.killed[x] && s.imps.includes(s.killed[x].by)); };
   function perkOpts(G, id){ const imp = G.s.imps.includes(id), pool = imp ? ["sabkeep", "killreset", "ghost"] : ["revive", "chain", "track", "knife", "flame"].filter(k => k !== "revive" || revivable(G).length);
@@ -193,7 +204,7 @@
   }
   function hostView(G, mg, id){
     const A = mg.ar, P2 = mg.perk;
-    return {ph: A.ph, ids: A.ids, cls: A.cls, hp: rnd(A.hp), mx: A.mx, out: A.out, sp: A.sp, feed: A.feed.slice(-4), kills: A.kills, pickLeft: Math.max(0, A.pickEnd - now()), pk: A.pk || PICK, fightEl: A.fight ? now() - A.fight : 0, left: A.end ? Math.max(0, A.end - now()) : 0,
+    return {ph: A.ph, ids: A.ids, cls: A.cls, hp: rnd(A.hp), mx: A.mx, cubes: A.cubes || [], pw: A.pw || {}, out: A.out, sp: A.sp, feed: A.feed.slice(-4), kills: A.kills, pickLeft: Math.max(0, A.pickEnd - now()), pk: A.pk || PICK, fightEl: A.fight ? now() - A.fight : 0, left: A.end ? Math.max(0, A.end - now()) : 0,
       perk: P2 ? (id === mg.win ? {opts: P2.opts, pick: P2.pick, t: P2.t || null, left: Math.max(0, P2.until - now()), rev: P2.opts.includes("revive") ? revivable(G) : []} : {pick: !!P2.pick}) : null};
   }
   /* after the meeting: what the winner picked changes the round */
@@ -210,10 +221,10 @@
   }
 
   /* ---------------- this phone: move, aim, shoot, draw ---------------- */
-  const C = {on: false, seed: null, A: null, me: null, am: AMMO, rl: 0, cd: 0, sup: 0, seq: 0, AP: {}, proj: [], fx: [], fields: [], trail: [], pops: [], sent: 0, sentP: null, moveP: null, aimP: null, supP: null, keys: {}, dot: 0, dotT: 0, dotBy: "", burn: 0, burnBy: "", hurtT: 0, shake: 0, hitAt: {}, shotAt: {}, kb: null, L: null, t0: 0, pickEnd: 0, pickDur: PICK, fightT0: 0, endAt: 0, doneAt: 0, started: false, hpT: 0, outShown: false, lastTr: {}, sndT: {}, kbDone: {}, v: null};
+  const C = {cubes: [], pw: {}, cgT: {}, on: false, seed: null, A: null, me: null, am: AMMO, rl: 0, cd: 0, sup: 0, seq: 0, AP: {}, proj: [], fx: [], fields: [], trail: [], pops: [], sent: 0, sentP: null, moveP: null, aimP: null, supP: null, keys: {}, dot: 0, dotT: 0, dotBy: "", burn: 0, burnBy: "", hurtT: 0, shake: 0, hitAt: {}, shotAt: {}, kb: null, L: null, t0: 0, pickEnd: 0, pickDur: PICK, fightT0: 0, endAt: 0, doneAt: 0, started: false, hpT: 0, outShown: false, lastTr: {}, sndT: {}, kbDone: {}, v: null};
   const me = () => PNet.me;
   const NPo = () => N().NP;
-  function reset(keep){ Object.assign(C, {seed: null, A: null, me: null, proj: [], fx: [], fields: [], trail: [], pops: [], AP: {}, moveP: null, aimP: null, supP: null, started: false, doneAt: 0, outShown: false, lastTr: {}, burn: 0, dot: 0, sup: 0, kb: null, hitAt: {}, shotAt: {}, kbDone: {}, picked: 0, win: null});
+  function reset(keep){ Object.assign(C, {cubes: [], pw: {}, cgT: {}, seed: null, A: null, me: null, proj: [], fx: [], fields: [], trail: [], pops: [], AP: {}, moveP: null, aimP: null, supP: null, started: false, doneAt: 0, outShown: false, lastTr: {}, burn: 0, dot: 0, sup: 0, kb: null, hitAt: {}, shotAt: {}, kbDone: {}, picked: 0, win: null});
     if (!keep) leaveLayer(); else if (C.L){ const r = C.L.querySelector(".ar-res"); if (r){ r.classList.remove("on"); r._h = null; } } }
   const amIn = () => C.A && C.A.ids.includes(me());
   const alive = id => C.A && C.A.ids.includes(id) && !C.A.out.includes(id);
@@ -236,6 +247,7 @@
     else if (n === "hurt"){ x.tone(0, 230, 80, .14, .2, "square"); }
     else if (n === "hit"){ x.tone(0, 680, 320, .06, .07, "square"); }
     else if (n === "ko"){ x.chord(0, [60, 63, 67], .45, .07, "sawtooth"); x.noise(0, .4, 1800, 200, .2, "lowpass"); }
+    else if (n === "cube"){ x.chord(0, [72, 79, 84], .22, .06, "triangle"); }
     else if (n === "empty"){ x.tone(0, 320, 300, .04, .05, "square"); }
     else if (n === "go"){ x.chord(0, [67, 71, 74], .25, .07, "square"); x.chord(.22, [72, 76, 79], .45, .07, "square"); }
     else if (n === "win"){ x.chord(0, [60, 64, 67], .3, .07, "triangle"); x.chord(.25, [65, 69, 72], .3, .07, "triangle"); x.chord(.5, [72, 76, 79], .7, .08, "triangle"); }
@@ -246,7 +258,7 @@
     C.v = v; const mg = v && v.phase === "meet" && v.meet && v.meet.mg; if (!mg || mg.g !== "arena" || !mg.ar){ if (C.seed != null || C.on) reset(); return; }
     const a = mg.ar; if (C.seed !== mg.seed){ reset(!!v.arena); C.seed = mg.seed; C.t0 = now() - (mg.el || 0); }
     const A = C.A || (C.A = {hp: {}, mx: {}, out: [], feed: []}); A.ph = a.ph; A.ids = a.ids; A.cls = a.cls; A.sp = a.sp; A.kills = a.kills || {}; A.perk = a.perk;
-    if (now() - C.hpT > 500){ A.hp = Object.assign({}, a.hp); A.out = a.out.slice(); A.feed = a.feed || []; } A.mx = a.mx;
+    if (now() - C.hpT > 500){ A.hp = Object.assign({}, a.hp); A.out = a.out.slice(); A.feed = a.feed || []; A.mx = a.mx; C.cubes = a.cubes || []; C.pw = a.pw || {}; }
     const pe = now() + a.pickLeft; if (Math.abs(pe - C.pickEnd) > 250) C.pickEnd = pe; C.pickDur = a.pk || PICK;
     if (a.ph === "fight"){ const f0 = now() - a.fightEl; if (!C.fightT0 || Math.abs(f0 - C.fightT0) > 250) C.fightT0 = f0; C.endAt = now() + a.left; if (!C.started) start(); }
     if (mg.done && !C.doneAt){ C.doneAt = now(); C.win = mg.win; if (v.arena && amIn()) reward(mg.win === me()); banner(mg.win ? `👑 ${esc(NPo().nm(mg.win))}` : T("Draw", "Unentschieden"), mg.win === me() ? "win" : ""); snd(mg.win === me() ? "win" : "ko"); if (mg.win === me()) Haptic.go([30, 50, 30, 50, 80]); }
@@ -256,7 +268,7 @@
     setTimeout(() => { try { if (typeof addXP === "function") addXP(xp, "natstars"); if (won && typeof natWin === "function") natWin("natstars"); } catch(e) {} }, 1800); }
   /* the first few fights: where to touch, what the yellow button and the fog do */
   function hint(){ const n = PG.st.nsHint || 0, box = C.L && C.L.querySelector(".ar-tip"); if (n >= 3 || !box) return; PG.st.nsHint = n + 1; try { PG.persist(); } catch(e) {}
-    box.innerHTML = `<span class="t-mv">👆 ${T("Drag = run", "Ziehen = laufen")}</span><span class="t-fire">🎯 ${T("Drag = aim · tap = auto", "Ziehen = zielen · Tippen = Auto")}</span><span class="t-sup">⭐ ${T("Super charges when you hit", "Super lädt durch Treffer")}</span><span class="t-fog">🌫️ ${T("Invisible in the fog", "Im Nebel unsichtbar")}</span>`;
+    box.innerHTML = `<span class="t-mv">👆 ${T("Drag = run", "Ziehen = laufen")}</span><span class="t-fire">🎯 ${T("Drag = aim · tap = auto", "Ziehen = zielen · Tippen = Auto")}</span><span class="t-sup">⭐ ${T("Super charges when you hit", "Super lädt durch Treffer")}</span><span class="t-fog">🌫️ ${T("Invisible in the fog", "Im Nebel unsichtbar")} · ⚡ ${T("Cubes make you stronger", "Würfel machen stärker")}</span>`;
     box.classList.add("on"); clearTimeout(C.tipT); C.tipT = setTimeout(() => box.classList.remove("on"), 6500); }
   function start(){
     C.started = true; const sp = C.A.sp[me()]; C.me = sp ? {x: sp.x, y: sp.y, a: 0, f: 1, mv: false} : null; C.am = AMMO; C.rl = 0; C.cd = 0; C.sup = 0; C.cls = C.A.cls[me()] || "shot";
@@ -370,7 +382,7 @@
   }
   const dmgOf = p => { const cl = CLS[p.c]; if (p.su && cl.su.dmg) return cl.su.dmg; return p.c === "snipe" ? Math.round(cl.dmg + cl.far * Math.min(1, p.tr / cl.rg)) : cl.dmg; };
   /* a hit that this phone decides: tell everyone (the host keeps the health) */
-  function hitOut(v, d, k, by, ex){ if (!(d > 0) || !C.A || !alive(v)) return; const m = {t: "ah", v, by: by || "", d: Math.round(d), k};
+  function hitOut(v, d, k, by, ex){ if (!(d > 0) || !C.A || !alive(v)) return; if (by && by !== v) d *= 1 + CUBE * (C.pw[by] || 0); const m = {t: "ah", v, by: by || "", d: Math.round(d), k};
     if (ex && ex.burn) m.b = 1; if (ex && ex.kx != null){ m.kx = Math.round(ex.kx); m.ky = Math.round(ex.ky); }
     send(m); if (by === me() && v !== me()){ const was = C.sup; C.sup = Math.min(1, C.sup + d / CLS[C.cls].sc); if (was < 1 && C.sup >= 1){ snd("ready"); Haptic.go([10, 30, 10]); } } }
   /* something touches a body */
@@ -410,7 +422,9 @@
       if (v === me()) hurtFx(d, m);
       else { const q = pos(v); if (q) C.pops.push({x: q.x, y: q.y - 120, txt: "-" + d, t: now(), mine: m.by === me()}); if (m.by === me()) snd("hit", q);
         if (host && HB.bots[v]){ const b = HB.bots[v]; if (m.b){ const o = HB.dot[v] || (HB.dot[v] = {d: 0, t: now(), by: m.by}); o.burn = now() + CLS.fire.burn; o.burnBy = m.by; } if (m.kx != null) b.kb = {vx: m.kx / .16, vy: m.ky / .16, until: now() + 160}; } } }
-    else if (m.t === "ahp"){ C.A.hp = Object.assign({}, m.hp); C.A.out = (m.out || []).slice(); C.A.feed = m.f || []; C.hpT = now();
+    else if (m.t === "acu"){ const had = C.pw[me()] || 0; C.cubes = m.c || []; C.pw = m.pw || {}; if ((C.pw[me()] || 0) > had){ snd("cube"); Haptic.go(12); C.fx.push({k: "cube", x: C.me ? C.me.x : 0, y: C.me ? C.me.y : 0, t: now()}); } }
+    else if (m.t === "acg"){ if (host){ const mg = hostMg(); if (mg && mg.ar.cubes && mg.ar.ph === "fight") cubeGrab(mg.ar, m.id, +m.k); } }
+    else if (m.t === "ahp"){ if (m.mx) C.A.mx = m.mx; C.A.hp = Object.assign({}, m.hp); C.A.out = (m.out || []).slice(); C.A.feed = m.f || []; C.hpT = now();
       if (m.ko){ const q = pos(m.ko); if (q) C.fx.push({k: "ko", x: q.x, y: q.y, t: now()}); snd("ko", q); if (m.ko === me()) Haptic.go([60, 40, 120]); } }
   }
   function hurtFx(d, m){
@@ -441,6 +455,7 @@
       C.rl += dt * 1000; while (C.am < AMMO && C.rl >= cl.rl){ C.am++; C.rl -= cl.rl; } if (C.am >= AMMO) C.rl = 0; C.cd -= dt * 1000;
       const moved = !C.sentP || Math.hypot(C.me.x - C.sentP.x, C.me.y - C.sentP.y) > 2 || Math.abs(C.me.a - C.sentP.a) > .15, gap = C.me.dash ? 50 : 95;
       if ((moved && t - C.sent > gap) || t - C.sent > 800){ C.sent = t; C.sentP = {x: C.me.x, y: C.me.y, a: C.me.a}; PNet.raw({t: "am", x: Math.round(C.me.x), y: Math.round(C.me.y), a: Math.round(C.me.a * 100), f: C.me.f, m: C.me.mv ? 1 : 0, ts: t}); }
+      for (const cb of C.cubes) if (Math.hypot(cb.x - C.me.x, cb.y - C.me.y) < 38 && t - (C.cgT[cb.k] || 0) > 600){ C.cgT[cb.k] = t; send({t: "acg", k: cb.k}); }
       const h = hazards(C.me, me(), el, gr); if (h.dps > 0){ C.dot += h.dps * dt; C.dotBy = h.by || C.dotBy; } if (t - C.dotT > 300 && C.dot >= 1){ hitOut(me(), Math.round(C.dot), "d" + me().slice(0, 3) + t, C.dotBy || me()); C.dot = 0; C.dotT = t; C.dotBy = ""; }
     }
     /* everyone else, a moment behind so it stays smooth; a little ahead when a message is late */
@@ -483,6 +498,8 @@
   const sprite = (k, w, h, fn) => { if (SPR[k]) return SPR[k]; const cv = document.createElement("canvas"); cv.width = w; cv.height = h; fn(cv.getContext("2d")); return SPR[k] = cv; };
   const emo = (e, px) => sprite("e" + e + px, px * 2, px * 2, c => { c.font = `${px * 1.5}px system-ui,"Apple Color Emoji","Segoe UI Emoji",sans-serif`; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(e, px, px * 1.08); });
   const emoAt = (c, e, x, y, px) => c.drawImage(emo(e, px >= 40 ? 64 : 32), x - px / 2, y - px / 2, px, px);
+  const cubeSpr = () => sprite("cube", 64, 64, c => { const g = c.createLinearGradient(0, 4, 0, 60); g.addColorStop(0, "#C9F57E"); g.addColorStop(1, "#4E9E26"); c.fillStyle = g; c.beginPath(); if (c.roundRect) c.roundRect(6, 6, 52, 52, 12); else c.rect(6, 6, 52, 52); c.fill();
+    c.strokeStyle = "rgba(255,255,255,.7)"; c.lineWidth = 3; c.stroke(); c.fillStyle = "#fff"; c.beginPath(); c.moveTo(36, 12); c.lineTo(20, 36); c.lineTo(31, 36); c.lineTo(27, 53); c.lineTo(45, 27); c.lineTo(34, 27); c.closePath(); c.fill(); });
   const fireSpr = () => sprite("fire", 64, 64, c => { const g = c.createRadialGradient(32, 32, 2, 32, 32, 32); g.addColorStop(0, "rgba(255,220,120,1)"); g.addColorStop(.5, "rgba(255,120,40,.8)"); g.addColorStop(1, "rgba(255,80,30,0)"); c.fillStyle = g; c.fillRect(0, 0, 64, 64); });
   const fireBlob = (c, x, y, r, a) => { if (a <= 0) return; c.globalAlpha = Math.min(1, a); c.drawImage(fireSpr(), x - r, y - r * .62, r * 2, r * 1.24); c.globalAlpha = 1; };
   /* one picture per fog patch: soft grey-green puffs */
@@ -524,6 +541,9 @@
     /* fire on the floor */
     C.fields.forEach(f => { const k = Math.min(1, (f.until - t) / 600); fireBlob(c, f.x, f.y, f.r, .6 * k); });
     C.trail.forEach(p => { const k = 1 - (t - p.t) / 1800; fireBlob(c, p.x, p.y, 26, .55 * k); });
+    /* energy cubes */
+    C.cubes.forEach(cb => { const bob = Math.sin(t / 260 + cb.k) * 4, s2 = 30 + Math.min(4, cb.n - 1) * 3; c.fillStyle = "rgba(0,0,0,.3)"; c.beginPath(); c.ellipse(cb.x, cb.y + 10, s2 * .55, 7, 0, 0, 7); c.fill(); c.drawImage(cubeSpr(), cb.x - s2 / 2, cb.y - s2 - 6 + bob, s2, s2);
+      if (cb.n > 1){ if (c.font !== NUMF) c.font = NUMF; c.textAlign = "center"; c.fillStyle = "#fff"; c.fillText("×" + cb.n, cb.x, cb.y - s2 - 12 + bob); } });
     /* the gas closing in */
     if (A.ph === "fight"){ const gr = gasR(t - C.fightT0); if (gr < 2000){ c.save(); c.beginPath(); c.rect(300, -200, 2000, 1500); c.arc(GC.x, GC.y, gr, 0, Math.PI * 2, true); c.fillStyle = `rgba(88,200,92,${.26 + pulse * .08})`; c.fill("evenodd"); c.strokeStyle = "rgba(150,240,130,.85)"; c.lineWidth = 6; c.setLineDash([22, 14]); c.lineDashOffset = -t / 40; c.beginPath(); c.arc(GC.x, GC.y, gr, 0, Math.PI * 2); c.stroke(); c.restore(); } }
     /* aiming: where the shot will go */
@@ -545,9 +565,10 @@
       if (A.ph === "fight" && !out){ const hp = A.hp[id] || 0, mx = A.mx[id] || 1, w = 74, y = q.y - 124, f = Math.max(0, Math.min(1, hp / mx)); c.fillStyle = "rgba(10,10,14,.85)"; rr(c, q.x - w / 2 - 3, y - 3, w + 6, self ? 26 : 16, 6); c.fill();
         c.fillStyle = self ? "#7FD04A" : "#E9573F"; rr(c, q.x - w / 2, y, w * f, 10, 5); c.fill(); if (c.font !== NUMF) c.font = NUMF; c.textAlign = "center"; c.fillStyle = "#fff"; c.fillText(Math.ceil(hp), q.x, y - 6);
         const ce = CLS[A.cls[id]]; if (ce) emoAt(c, ce.e, q.x - w / 2 - 15, y + 5, 20);
+        const pw = C.pw[id] || 0; if (pw){ c.drawImage(cubeSpr(), q.x + w / 2 + 6, y - 6, 18, 18); c.textAlign = "left"; c.fillStyle = "#B8F07A"; c.fillText(pw, q.x + w / 2 + 26, y + 8); c.textAlign = "center"; }
         /* my reload bar right under my health, like in Brawl Stars */
         if (self){ const sw = (w - 4) / AMMO; for (let i = 0; i < AMMO; i++){ const f2 = i < C.am ? 1 : i === C.am ? Math.min(1, C.rl / CLS[C.cls].rl) : 0; c.fillStyle = "rgba(255,255,255,.14)"; c.fillRect(q.x - w / 2 + i * (sw + 2), y + 13, sw, 7); if (f2 > 0){ c.fillStyle = f2 >= 1 ? "#F2A33A" : "#9b6a2a"; c.fillRect(q.x - w / 2 + i * (sw + 2), y + 13, sw * f2, 7); } }
-          if (C.sup >= 1) emoAt(c, CLS[C.cls].su.e, q.x + w / 2 + 15, y + 5, 22); } } });
+          if (C.sup >= 1) emoAt(c, CLS[C.cls].su.e, q.x - w / 2 - 15, y + 26, 22); } } });
     /* bullets and bangs */
     C.proj.forEach(p => { const y = p.y - 34;
       if (p.c === "rock"){ c.save(); c.translate(p.x, y); c.rotate(Math.atan2(p.vy, p.vx)); c.fillStyle = "rgba(200,200,200,.35)"; for (let i = 1; i < 5; i++){ c.beginPath(); c.arc(-i * 12, Math.sin(t / 40 + i) * 3, 5 + i, 0, 7); c.fill(); } c.fillStyle = "#E9573F"; rr(c, -14, -7, 28, 14, 7); c.fill(); c.fillStyle = "#FFD15C"; c.beginPath(); c.arc(-16, 0, 5, 0, 7); c.fill(); c.restore(); }
@@ -562,6 +583,7 @@
       else if (f.k === "land"){ if (k < .5){ const kk = k / .5; c.strokeStyle = `rgba(255,255,255,${.8 * (1 - kk)})`; c.lineWidth = 6; c.beginPath(); c.ellipse(f.x, f.y + 10, 30 + kk * 70, (30 + kk * 70) * .4, 0, 0, 7); c.stroke(); } }
       else if (f.k === "swipe"){ if (k < .45){ const kk = k / .45; c.strokeStyle = `rgba(255,255,255,${.85 * (1 - kk)})`; c.lineWidth = 12; c.lineCap = "round"; c.beginPath(); c.arc(f.x, f.y - 34, f.rg * .8, f.a - f.cone + kk * .3, f.a + f.cone * (kk * 2 - 1)); c.stroke(); } }
       else if (f.k === "flame"){ if (k < .5){ const kk = k / .5; for (let i = 0; i < 12; i++){ const an = f.a + (((i * 7919) % 100) / 100 - .5) * f.cone * 1.8, r = f.rg * (.25 + .75 * ((i * 37 % 100) / 100)) * Math.min(1, kk * 2.2); fireBlob(c, f.x + Math.cos(an) * r, f.y - 34 + Math.sin(an) * r, 14 + kk * 14, .9 * (1 - kk)); } } }
+      else if (f.k === "cube"){ if (k < .6){ const kk = k / .6; c.strokeStyle = `rgba(184,240,122,${.9 * (1 - kk)})`; c.lineWidth = 5; c.beginPath(); c.ellipse(f.x, f.y + 10, 24 + kk * 50, (24 + kk * 50) * .4, 0, 0, 7); c.stroke(); } }
       else if (f.k === "ko"){ c.globalAlpha = Math.max(0, 1 - k); emoAt(c, "💀", f.x, f.y - 92 - k * 40, 44 + k * 30); c.globalAlpha = 1; } });
     /* the fog on top: whoever is inside is hidden; mine turns see-through */
     if (!SPR.clip){ SPR.clip = new Path2D(); areas().forEach(a => SPR.clip.rect(a.x, a.y, a.w, a.h)); } c.save(); c.clip(SPR.clip);
