@@ -998,7 +998,17 @@
      Changes by the others arrive live ---------- */
   const Shop = { lists: [], cur: null, items: [], mem: [], sh: null, ch: null,
     async open(){ if (!meId() || !sb()) return say("Bitte erst anmelden");
-      this.sh = detailSheet(`<div class="kc-shop" data-notr><div id="kcshb"><p class="muted">Lädt …</p></div></div>`, () => this.stop()); this.box = this.sh.el.querySelector("#kcshb");
+      /* a full screen like the food search, the way that already works with the iPhone keyboard: everything sits at the top,
+         the screen follows when iOS pushes the page, and the list ends above the keyboard */
+      const ov = document.createElement("div"); ov.className = "kc-sov kc-shov"; ov.setAttribute("data-notr", "");
+      ov.innerHTML = `<div class="kc-sovt"><b class="kc-shtt">${svg(IC.list, 20)} Einkaufen</b><button class="kc-sx" id="kcshx">Fertig</button></div><div class="kc-sovb kc-shop" id="kcshb"><p class="muted">Lädt …</p></div>`;
+      document.body.appendChild(ov); document.documentElement.classList.add("kc-sopen"); const body = this.box = ov.querySelector("#kcshb"); let closed = false;
+      const vv = window.visualViewport, fit = () => { if (!vv || closed) return; const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop); body.style.paddingBottom = (kb + 24) + "px"; ov.style.transform = vv.offsetTop ? `translateY(${vv.offsetTop}px)` : ""; };
+      if (vv){ vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); fit(); }
+      const close = () => { if (closed) return; closed = true; if (vv){ vv.removeEventListener("resize", fit); vv.removeEventListener("scroll", fit); } try { document.activeElement && document.activeElement.blur(); } catch(e) {} document.documentElement.classList.remove("kc-sopen"); this.stop();
+        if (ov.animate){ const an = ov.animate([{opacity: 1}, {opacity: 0}], {duration: 160, easing: "ease-in"}); an.onfinish = () => ov.remove(); } else ov.remove(); };
+      ov.querySelector("#kcshx").onclick = close; this.sh = {el: ov, close};
+      if (ov.animate) ov.animate([{opacity: 0}, {opacity: 1}], {duration: 200, easing: "ease-out"});
       try { await this.loadLists(); if (!this.lists.length){ const r = await sb().from("shop_lists").insert({owner: meId(), name: "Einkaufsliste"}).select().single(); if (r.error) throw r.error; this.lists = [r.data]; }
         let last = null; try { last = localStorage.getItem("chessnat-shop"); } catch(e) {} await this.pick((this.lists.find(l => l.id === last) || this.lists[0]).id); }
       catch(e) { this.box.innerHTML = `<p class="muted">Ging nicht: ${h(e.message || String(e))}</p>`; } },
@@ -1056,7 +1066,7 @@
       const lv = q("[data-leave]"); if (lv) lv.onclick = async () => { await sb().from("shop_members").delete().eq("list_id", this.cur.id).eq("user_id", me); await this.loadLists(); if (this.lists.length) this.pick(this.lists[0].id); else this.sh.close(); }; },
     /* the owner picks the friends who share this list */
     share(){ const me = meId(), fr = (typeof Social !== "undefined" ? Social.data.friends : []).filter(r => r.status === "accepted").map(r => r.a === me ? r.b : r.a), id = this.cur.id;
-      const s2 = detailSheet(`<div class="kc-shop" data-notr><h3>Wer teilt „${h(this.cur.name)}“?</h3>${fr.length ? `<div class="kc-fr">${fr.map(f => `<div class="kc-frr"><span class="kc-av">${avatar(f)}</span><span class="kc-frm"><b>${h(pname(f))}</b></span><button class="btn sm ${this.mem.includes(f) ? "" : "go"}" data-m="${h(f)}">${this.mem.includes(f) ? "Dabei ✓" : "Hinzufügen"}</button></div>`).join("")}</div>` : `<p class="muted">Füg erst unter Freunde jemanden hinzu.</p>`}<button class="btn go big" data-dclose style="margin-top:10px">Fertig</button></div>`, () => this.load());
+      const s2 = detailSheet(`<div class="kc-shop" data-notr><h3>Wer teilt „${h(this.cur.name)}“?</h3>${fr.length ? `<div class="kc-fr">${fr.map(f => `<div class="kc-frr"><span class="kc-av">${avatar(f)}</span><span class="kc-frm"><b>${h(pname(f))}</b></span><button class="btn sm ${this.mem.includes(f) ? "" : "go"}" data-m="${h(f)}">${this.mem.includes(f) ? "Dabei ✓" : "Hinzufügen"}</button></div>`).join("")}</div>` : `<p class="muted">Füg erst unter Freunde jemanden hinzu.</p>`}<button class="btn go big" data-dclose style="margin-top:10px">Fertig</button></div>`, () => this.load()); s2.el.style.zIndex = 320;
       s2.el.querySelectorAll("[data-m]").forEach(b => b.onclick = async () => { const f = b.dataset.m, on = this.mem.includes(f); b.disabled = true;
         const r = on ? await sb().from("shop_members").delete().eq("list_id", id).eq("user_id", f) : await sb().from("shop_members").insert({list_id: id, user_id: f}); b.disabled = false; if (r.error) return say("Ging nicht: " + r.error.message);
         this.mem = on ? this.mem.filter(x => x !== f) : this.mem.concat(f); b.textContent = on ? "Hinzufügen" : "Dabei ✓"; b.classList.toggle("go", on); haptic(8); }); } };
@@ -1278,7 +1288,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-hb{display:flex;flex-direction:column;gap:2px;font:700 10px var(--body);color:var(--muted);width:52px}.kc-hb i{display:block;height:4px;border-radius:2px;background:rgba(255,255,255,.09);overflow:hidden}.kc-hb u{display:block;height:100%;background:#9BE25A;border-radius:2px}
 .kc-hs{font:900 26px var(--display);font-variant-numeric:tabular-nums}.kc-hs.g{color:#9BE25A}.kc-hs.m{color:#F2C23A}.kc-hs.b{color:#EF7A5F}.kc-hrn{line-height:1.35}
 .kc-top{gap:8px}.kc-top .kc-gear{flex:none}.kc-shop{display:flex;flex-direction:column;gap:10px}.kc-shop h3{margin:0;font:900 20px var(--display);display:flex;align-items:center;gap:8px}#kcshb{display:flex;flex-direction:column;gap:10px}
-.kc-shh{display:flex;justify-content:space-between;align-items:center;gap:8px;padding-right:44px}.kc-shl{display:flex;gap:6px;overflow-x:auto}.kc-shl .chip{flex:none}
+.kc-shh{display:flex;justify-content:space-between;align-items:center;gap:8px}.kc-shtt{flex:1;display:flex;align-items:center;gap:8px;font:900 19px var(--display);color:var(--fg)}.kc-shov .kc-sovb{gap:10px}.kc-shl{display:flex;gap:6px;overflow-x:auto}.kc-shl .chip{flex:none}
 .kc-shm{display:flex;align-items:center;gap:4px}.kc-shm .kc-av{width:28px;height:28px;border-radius:50%;overflow:hidden;display:inline-block}.kc-shm .kc-av svg{width:100%;height:100%}.kc-shm small{margin-left:6px;font:600 12px var(--body)}
 .kc-sha{display:flex;gap:6px}.kc-sha input{flex:1;min-width:0;padding:12px!important;font:700 16px var(--body)!important;border-radius:12px!important}.kc-sha .btn{flex:none;min-width:46px;font-size:20px}
 .kc-shs{display:flex;flex-direction:column;gap:4px}.kc-shr{display:flex;align-items:center;gap:10px;padding:8px 8px 8px 10px;background:var(--panel-2);border-radius:12px}

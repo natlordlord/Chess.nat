@@ -2837,8 +2837,6 @@ h1.h-title{letter-spacing:-.02em}
 @media (hover:hover) and (pointer:fine){.tile:hover{transform:translateY(-2px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.11),0 8px 22px rgba(0,0,0,.25)}.tile:active{transform:scale(.985)}}
 @media (prefers-reduced-motion:reduce){#main>.page,#main>.stage,.toast{animation:none!important}}
 .ps-opts.ps-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.ps-grid .ps-o{margin:0;min-width:0;padding-right:8px}.ps-grid .ps-o b{font-size:15px;line-height:1.15;overflow-wrap:anywhere;min-width:0}
-.dsheet.kbtop{align-items:flex-start!important;padding-bottom:0!important;padding-top:calc(env(safe-area-inset-top,0px) + 6px)}
-.dsheet.kbtop .dcard{max-height:46vh!important;border-radius:22px;overflow-y:auto}
 </style>
 </head>
 <body>
@@ -2847,7 +2845,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794419437";
+const CHESSNAT_BUILD = "1794419504";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -8792,19 +8790,11 @@ function detailSheet(html, onClose){
   /* the keyboard (iPhone): the card sits right above it instead of behind it, and the field you type in stays in sight */
   /* the field is brought into sight only when the keyboard opens or a field gets focus, never while you scroll (that made the card jump back) */
   let kb0 = 0;
-  const vv = window.visualViewport, kbFit = toField => { if (done || !vv) return; /* the keyboard's height is what the visible part is shorter than the page, no matter how far iOS has pushed the page up (offsetTop).
-       The sheet itself follows that push (translateY below), so subtracting it here once more left the card behind the keyboard */
-    const kb = Math.max(0, Math.round(window.innerHeight - vv.height)), card2 = el.querySelector(".dcard");
+  const vv = window.visualViewport, kbFit = toField => { if (done || !vv) return; const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)), card2 = el.querySelector(".dcard");
     el.style.paddingBottom = kb > 60 ? kb + "px" : ""; el.classList.toggle("kb", kb > 60); el.style.transform = vv.offsetTop ? `translateY(${vv.offsetTop}px)` : ""; if (card2) card2.style.maxHeight = kb > 60 ? (vv.height - 12) + "px" : "";
     const grew = kb > 60 && Math.abs(kb - kb0) > 40; kb0 = kb;
     const a = document.activeElement; if ((toField === true || grew) && kb > 60 && a && el.contains(a) && /INPUT|TEXTAREA/.test(a.tagName)) requestAnimationFrame(() => { try { a.scrollIntoView({block: "nearest"}); } catch(e) {} }); };
   const onVV = () => kbFit(false);
-  /* touch screens: while a field in the card has the keyboard, the card docks to the top of the screen and stays short enough to sit
-     above any keyboard. This does not depend on what the phone reports as the keyboard's height (iOS 26 gets that wrong once it has
-     pushed the page up, and the card ended up behind the keyboard) */
-  if (matchMedia("(pointer:coarse)").matches){ const typing = t => t && /^(INPUT|TEXTAREA)$/.test(t.tagName) && !/^(checkbox|radio|range|button|file)$/.test(t.type || "");
-    el.addEventListener("focusin", e => { if (!typing(e.target)) return; el.classList.add("kbtop"); [90, 380].forEach(ms => setTimeout(() => { if (!done && document.activeElement === e.target) try { e.target.scrollIntoView({block: "center"}); } catch(_) {} }, ms)); });
-    el.addEventListener("focusout", () => setTimeout(() => { const a = document.activeElement; if (!(a && el.contains(a) && typing(a))) el.classList.remove("kbtop"); }, 180)); }
   if (vv){ vv.addEventListener("resize", onVV); vv.addEventListener("scroll", onVV); el.addEventListener("focusin", () => setTimeout(() => kbFit(true), 60)); setTimeout(onVV, 0); }
   const close = () => { if (done) return; done = true; if (vv){ vv.removeEventListener("resize", onVV); vv.removeEventListener("scroll", onVV); } el.classList.add("out"); setTimeout(() => el.remove(), 200); if (onClose) onClose(); };
   el.onclick = e => { if (e.target === el || e.target.closest("[data-dclose]")) close(); };
@@ -14480,7 +14470,7 @@ const Ranks = {
 <script src="games/natposter.js?v=128"></script>
 <script src="games/arena.js?v=128"></script>
 <script src="games/tipp.js?v=128"></script>
-<script src="games/kcal.js?v=137"></script>
+<script src="games/kcal.js?v=138"></script>
 <script>boot();</script>
 </body>
 </html>
