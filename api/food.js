@@ -22,8 +22,10 @@ module.exports = async (req, res) => {
         serving: Math.round(Number(p.serving_quantity) || 0), pack: Math.round(Number(p.product_quantity) || 0), img: p.image_front_small_url || null,
         de: Array.isArray(p.countries_tags) && (p.countries_tags.includes("en:germany") || p.countries_tags.includes("en:austria")) ? 1 : 0};
     }).filter(x => { const key = (x.name + "|" + x.brand + "|" + x.k).toLowerCase(); if (!x.name || !(x.k > 0) || x.k > 950 || seen.has(key)) return false; seen.add(key); return true; });
-    /* German products first, otherwise the search's own order */
-    const out = items.map((x, i) => [x, i]).sort((a, b) => b[0].de - a[0].de || a[1] - b[1]).map(([x]) => { delete x.de; return x; }).slice(0, 20);
+    /* only what has a word of the search in its name or brand; the most words first, then products sold in Germany, then the search's own order */
+    const norm = t => String(t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ß/g, "ss");
+    const words = norm(q).split(/[^a-z0-9]+/).filter(w => w.length >= 3), hits = x => { const t = norm(x.name + " " + x.brand); return words.filter(w => t.includes(w)).length; };
+    const out = items.map((x, i) => [x, i, words.length ? hits(x) : 1]).filter(a => a[2] > 0).sort((a, b) => b[2] - a[2] || b[0].de - a[0].de || a[1] - b[1]).map(([x]) => { delete x.de; return x; }).slice(0, 20);
     res.setHeader("Cache-Control", "public, s-maxage=86400, stale-while-revalidate=604800");
     return res.status(200).json({items: out});
   } catch(e) {

@@ -222,6 +222,17 @@
   const addProduct = (P, src) => amountSheet(P, {done: async it => { const m = await K.add({source: src || "barcode", code: it.code, grams: Math.round(it.g), title: P.name.slice(0, 80), emoji: "📦", kcal: it.kcal, carbs: it.carbs, protein: it.protein, fat: it.fat, items: [it], note: "Nährwerte von Open Food Facts"});
     haptic(15); say(`📦 ${fmt(m.kcal)} kcal eingetragen`); }});
 
+  /* a product from Open Food Facts by its barcode (kept on the phone once seen) */
+  async function offGet(code, ms){
+    let p = null; try { p = JSON.parse(localStorage.getItem("chessnat-off-" + code) || "null"); } catch(e) {}
+    if (p) return p;
+    try { const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), ms || 6000);
+      const r = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=product_name,product_name_de,generic_name,brands,nutriments,serving_quantity,serving_size,image_front_small_url,product_quantity`, {signal: ctl.signal});
+      clearTimeout(to); const j = await r.json(); if (j && j.status !== 0 && j.product && j.product.nutriments) p = j.product;
+      if (p) try { localStorage.setItem("chessnat-off-" + code, JSON.stringify(p)); } catch(e) {}
+    } catch(e) {}
+    return p;
+  }
   /* ---------- search: type a name (Open Food Facts via /api/food), pick the product, say how much ---------- */
   const RK = "chessnat-kcal-recent";
   const recents = () => { try { return JSON.parse(localStorage.getItem(RK) || "[]"); } catch(e) { return []; } };
@@ -231,10 +242,13 @@
       if (!meId()) return say("Bitte erst anmelden");
       const sh = detailSheet(`<div class="kc-srch" data-notr><h3>${h(opt.title || "Lebensmittel suchen")}</h3><div class="kc-sq">${svg(IC.search, 18)}<input id="kcq" type="search" enterkeyhint="search" placeholder="z. B. Nutella, Toast, Honey Nut Flakes" autocomplete="off" value="${h(opt.q || "")}"></div>
         <div class="kc-sr" id="kcsr"></div><button class="btn ghost kc-man-b" id="kcsm">${svg(IC.plus, 16)} Selbst eintragen</button></div>`);
-      const el = sh.el, q = el.querySelector("#kcq"), out = el.querySelector("#kcsr"); let seq = 0, tmr = 0, list = [];
-      const pick = P => { sh.close(); haptic(10); if (opt.pick) opt.pick(P); else addProduct(P, "search"); };
+      const el = sh.el, q = el.querySelector("#kcq"), out = el.querySelector("#kcsr"); let seq = 0, tmr = 0, list = [], busy = 0;
+      /* the search doesn't know the portion size: the full product (by its barcode) does */
+      const pick = async (P, b) => { if (busy) return; busy = 1; haptic(10); if (b) b.classList.add("load");
+        if (P.code && !P.serving){ const full = await Promise.race([offGet(P.code, 4000), new Promise(r => setTimeout(r, 4200))]); if (full){ const F = prodOf(P.code, full); P = Object.assign({}, P, {serving: F.serving || P.serving, pack: F.pack || P.pack, img: P.img || F.img}); } }
+        sh.close(); if (opt.pick) opt.pick(P); else addProduct(P, "search"); };
       const row = (P, i) => `<button class="kc-sres" data-i="${i}">${P.img ? `<img src="${h(P.img)}" alt="" loading="lazy">` : `<span class="kc-sph">📦</span>`}<span class="kc-sn">${h(P.name)}<small>${h(P.brand || "")}${P.serving ? `${P.brand ? " · " : ""}Portion ${P.serving} g` : ""}</small></span><b>${fmt(P.k)}<small>kcal/100 g</small></b></button>`;
-      const draw = (l, head) => { list = l; out.innerHTML = (head ? `<div class="kc-sh muted">${head}</div>` : "") + l.map(row).join(""); out.querySelectorAll("[data-i]").forEach(b => b.onclick = () => pick(list[+b.dataset.i])); };
+      const draw = (l, head) => { list = l; out.innerHTML = (head ? `<div class="kc-sh muted">${head}</div>` : "") + l.map(row).join(""); out.querySelectorAll("[data-i]").forEach(b => b.onclick = () => pick(list[+b.dataset.i], b)); };
       const empty = () => { const r = recents(); if (r.length) draw(r, "Zuletzt"); else out.innerHTML = `<p class="muted kc-sh">Tipp den Namen ein. Die Werte kommen von Open Food Facts.</p>`; };
       const go = async () => { const v = q.value.trim(), my = ++seq; if (v.length < 2) return empty(); out.classList.add("busy");
         try { const r = await fetch("/api/food?q=" + encodeURIComponent(v)), j = await r.json().catch(() => ({})); if (my !== seq) return; if (!r.ok || !Array.isArray(j.items)) throw new Error(j.error || "Suche gerade nicht erreichbar");
@@ -513,13 +527,7 @@
     async function got(code){
       if (!ov) return; stopScan(); haptic([15, 30, 15]);
       ov.classList.add("found"); ov.querySelector("#kchint").textContent = "Gefunden: " + code + " … suche Produkt";
-      let p = null; try { p = JSON.parse(localStorage.getItem(cacheKey(code)) || "null"); } catch(e) {}
-      if (!p) try {
-        const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 9000);
-        const r = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=product_name,product_name_de,generic_name,brands,nutriments,serving_quantity,serving_size,image_front_small_url,product_quantity`, {signal: ctl.signal});
-        clearTimeout(to); const j = await r.json(); if (j && j.status !== 0 && j.product && j.product.nutriments) p = j.product;
-        if (p) try { localStorage.setItem(cacheKey(code), JSON.stringify(p)); } catch(e) {}
-      } catch(e) {}
+      const p = await offGet(code, 9000);
       if (!ov) return;
       if (!p){ ov.querySelector("#kchint").textContent = "Nicht in der Datenbank. Such es lieber beim Namen."; const cb = pickCb; setTimeout(() => { if (ov){ close(); Search.open(cb ? {pick: cb} : {}); } }, 1500); return; }
       const cb = pickCb; close(); const P = prodOf(code, p); if (cb) cb(P); else addProduct(P, "barcode");
@@ -685,7 +693,7 @@
 .kc-sq{display:flex;align-items:center;gap:8px;padding:0 12px;border-radius:14px;border:2px solid var(--line);background:var(--panel-2);color:var(--muted)}.kc-sq:focus-within{border-color:var(--go)}
 .kc-sq input{flex:1;min-width:0;border:0;background:none;color:var(--fg);font:800 17px var(--body);padding:12px 0;outline:none;-webkit-appearance:none}
 .kc-sr{display:flex;flex-direction:column;gap:6px;min-height:140px;transition:opacity .15s}.kc-sr.busy{opacity:.5}
-.kc-sres{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;border:0;background:var(--panel-2);color:var(--fg);text-align:left;cursor:pointer;width:100%;-webkit-tap-highlight-color:transparent}.kc-sres:active{transform:scale(.98)}
+.kc-sres{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;border:0;background:var(--panel-2);color:var(--fg);text-align:left;cursor:pointer;width:100%;-webkit-tap-highlight-color:transparent}.kc-sres:active{transform:scale(.98)}.kc-sres.load{opacity:.55}
 .kc-sres img,.kc-sph{width:44px;height:44px;border-radius:10px;object-fit:contain;flex:none;background:#fff;display:flex;align-items:center;justify-content:center;font-size:24px}
 .kc-sn{flex:1;min-width:0;display:flex;flex-direction:column;font:800 15px var(--body);line-height:1.2}.kc-sn small{color:var(--muted);font-weight:700;font-size:12px;margin-top:2px}
 .kc-sres b{display:flex;flex-direction:column;align-items:flex-end;font:900 17px var(--display);white-space:nowrap}.kc-sres b small{font:700 11px var(--body);color:var(--muted)}
