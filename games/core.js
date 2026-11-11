@@ -224,7 +224,7 @@ Views.games = {
       .concat([tile(`data-go="tipp"`, "⚽", "#DC052D", T("Tipping game", "Tippspiel"), T("Germany, Bayern, Bundesliga, UFC. Your own rounds.", "Deutschland, Bayern, Bundesliga, UFC. Eigene Tipprunden."))])
       .concat(PG.games.some(g => g.id === "natposter") ? [tile(`data-g="natposter"`, "🚀", "#7B5CD6", "Natposter", T("Space station, tasks, a traitor.", "Raumstation, Aufgaben, ein Verräter."))] : [])
       .concat(PG.games.filter(g => g.id !== "natposter").sort((a, b) => (b.id === "arena") - (a.id === "arena")).map(g => { const a = PG.ART[g.id] || ["🎲", "#7FB24A"]; return tile(`data-g="${g.id}"`, a[0], a[1], h(T(g.name[0], g.name[1])), h(T(g.sub[0], g.sub[1]))); }));
-    main.innerHTML = `<div class="page"><h1 class="h-title">${T("Play", "Spielen")}</h1>
+    main.innerHTML = `<div class="page"><h1 class="h-title">${T("Games", "Spiele")}</h1>
       <div id="pgrj" data-notr></div>
       <div class="tiles pg-all" data-notr style="margin-top:12px">${list.join("")}</div>
       <div class="pg-code" data-notr><button class="btn ghost" data-lobby>${icon("users", 18)} ${open ? T("Back to your lobby", "Zurück zur Lobby") + " · " + h(PNet.P.code.toUpperCase()) : T("Join with a code", "Mit Code beitreten")}</button></div></div>`;

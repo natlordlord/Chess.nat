@@ -2799,7 +2799,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794369832";
+const CHESSNAT_BUILD = "1794369899";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11361,7 +11361,7 @@ Views.play = {
   mount(main){
     const myLink = Object.values(S.linkGames || {}).filter(r => { if (r.result) return false; const g = new Chess(); (r.moves || []).forEach(u => g.move({from: u.slice(0,2), to: u.slice(2,4), promotion: u[4] || undefined})); return g.turn() === r.color; }).length;
     const rec = recommendBot();
-    main.innerHTML = `<div class="page"><h1 class="h-title">Play</h1>
+    main.innerHTML = `<div class="page"><button class="btn ghost sm" data-go="games">← Games</button><h1 class="h-title" style="margin-top:6px">Chess</h1>
       <div class="unit" style="display:flex;gap:12px;align-items:center;margin-top:10px">${botAvatar(rec, 56)}<div style="flex:1;min-width:0"><div class="muted" style="font-size:12px;font-weight:800">RECOMMENDED BOT</div><div style="font:900 20px var(--display)">${esc(rec.name)} <span class="muted">${rec.r}</span></div><div class="muted" style="font-size:13px">${esc(rec.lesson)}</div></div><button class="btn go" id="prec">Play</button></div>
       <div class="tiles">
         <button class="tile" data-go="online">${icon("globe", 40)}<h3>Play Online</h3><p>Rated games against real people. Your official rating.</p></button>
@@ -14354,18 +14354,18 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=93"></script>
-<script src="games/imposter.js?v=93"></script>
-<script src="games/werwolf.js?v=93"></script>
-<script src="games/cards.js?v=93"></script>
-<script src="games/heads.js?v=93"></script>
-<script src="games/more.js?v=93"></script>
-<script src="games/net.js?v=93"></script>
-<script src="games/online.js?v=93"></script>
-<script src="games/natposter.js?v=93"></script>
-<script src="games/arena.js?v=93"></script>
-<script src="games/tipp.js?v=93"></script>
-<script src="games/kcal.js?v=93"></script>
+<script src="games/core.js?v=94"></script>
+<script src="games/imposter.js?v=94"></script>
+<script src="games/werwolf.js?v=94"></script>
+<script src="games/cards.js?v=94"></script>
+<script src="games/heads.js?v=94"></script>
+<script src="games/more.js?v=94"></script>
+<script src="games/net.js?v=94"></script>
+<script src="games/online.js?v=94"></script>
+<script src="games/natposter.js?v=94"></script>
+<script src="games/arena.js?v=94"></script>
+<script src="games/tipp.js?v=94"></script>
+<script src="games/kcal.js?v=94"></script>
 <script>boot();</script>
 </body>
 </html>
