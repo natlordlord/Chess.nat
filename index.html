@@ -8812,8 +8812,9 @@ function detailSheet(html, onClose){
   function unlift(){ if (!el.classList.contains("kbf")) return; const c = el.querySelector(".dcard"), ref = c && (c.children[1] || c), y0 = ref ? ref.getBoundingClientRect().top : 0;
     el.classList.remove("kbf"); if (!c) return; c.style.paddingBottom = ""; if (top0 != null){ c.scrollTop = top0; top0 = null; } glide(c, y0 - ref.getBoundingClientRect().top); }
   const lift = () => { const a = typing(), c = el.querySelector(".dcard"); if (done || !a || !c || el.classList.contains("kb")) return; const H = window.innerHeight, y0 = a.getBoundingClientRect().top;
-    if (!el.classList.contains("kbf")){ if (a.getBoundingClientRect().bottom < H * .5) return; el.classList.add("kbf"); top0 = c.scrollTop; c.style.paddingBottom = Math.round(H * .6) + "px"; }
-    const r = a.getBoundingClientRect(); if (r.bottom > H * .5 || r.top < 70) c.scrollTop += r.top - H * .36;
+    if (!el.classList.contains("kbf")){ if (a.getBoundingClientRect().bottom < H * .52) return; el.classList.add("kbf"); top0 = c.scrollTop; c.style.paddingBottom = Math.round(H * .44) + "px"; }
+    /* as little as possible moves: the card stands on the keyboard, and it scrolls only as far as the field needs */
+    const r = a.getBoundingClientRect(); if (r.bottom > H * .52) c.scrollTop += r.bottom - H * .48; else if (r.top < 70) c.scrollTop += r.top - 96;
     glide(c, y0 - a.getBoundingClientRect().top); };
   if (IOS){ el.addEventListener("focusin", () => { clearTimeout(liftT); liftT = setTimeout(lift, 30); });
     el.addEventListener("focusout", () => { clearTimeout(liftT); liftT = setTimeout(() => { if (!done && !typing()) unlift(); }, 140); }); }
@@ -14531,7 +14532,7 @@ const Ranks = {
 <script src="games/arena.js?v=129"></script>
 <script src="games/tipp.js?v=128"></script>
 <script src="data/foods.js?v=1"></script>
-<script src="games/kcal.js?v=156"></script>
+<script src="games/kcal.js?v=157"></script>
 <script>boot();</script>
 </body>
 </html>

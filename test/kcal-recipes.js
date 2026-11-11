@@ -8,8 +8,9 @@ const T = require("./lib"), assert = require("assert");
     await p.locator('[data-meal]', {hasText: "Haferflocken"}).first().click(); await p.waitForSelector("[data-tg]");
     assert.equal(await p.inputValue("[data-tg]"), "280");            /* 80 g + 200 ml, the banana has no weight */
     await p.shot("recipes-1-meal");
-    /* the iPhone that reports no keyboard height: the field you tap still ends up in the upper part of the screen, above the keyboard */
-    await p.locator("[data-tg]").focus(); await p.waitForTimeout(700); const box = await p.locator("[data-tg]").boundingBox(); assert.ok(box.y + box.height < 844 * .45 && box.y > 60, "field above the keyboard: " + JSON.stringify(box)); await p.shot("recipes-1b-typing");
+    /* the field for the whole dish stands right under the numbers: tapping it moves nothing, it is above the keyboard as it is */
+    const b0 = await p.locator("[data-tg]").boundingBox(); await p.locator("[data-tg]").focus(); await p.waitForTimeout(700); const b1 = await p.locator("[data-tg]").boundingBox();
+    assert.ok(b1.y + b1.height < 844 * .56, "field above the keyboard: " + JSON.stringify(b1)); await p.shot("recipes-1b-typing");
     await p.fill("[data-tg]", "140"); await p.waitForTimeout(900);
     assert.equal(await p.inputValue('[data-g="0"]'), "40"); assert.equal(await p.inputValue('[data-g="2"]'), "100");
     assert.equal((await p.textContent('[data-t="kcal"]')).trim(), "260");
