@@ -484,6 +484,8 @@
     else if (m.t === "acg"){ if (host){ const mg = hostMg(); if (mg && mg.ar.cubes && mg.ar.ph === "fight") cubeGrab(mg.ar, m.id, +m.k); } }
     else if (m.t === "ahp"){ if (m.mx) C.A.mx = m.mx; C.A.hp = Object.assign({}, m.hp); C.A.out = (m.out || []).slice(); C.A.feed = m.f || []; C.hpT = now();
       if (m.ko){ const q = pos(m.ko); if (q) C.fx.push({k: "ko", x: q.x, y: q.y, t: now()}); snd("ko", q); if (m.ko === me()) Haptic.go([60, 40, 120]);
+        /* your KO: a big gold pop over the fallen one and a short buzz */
+        const lf = (m.f || [])[(m.f || []).length - 1]; if (q && m.ko !== me() && lf && lf[0] === me() && lf[1] === m.ko){ C.pops.push({x: q.x, y: q.y - 150, txt: "💀 KO!", t: now(), mine: 1, ko: 1}); Haptic.go([15, 30, 15]); }
         /* two left: the final duel */
         const al = C.A.ids.filter(id => !C.A.out.includes(id)); if (!C.A.team && al.length === 2 && C.A.ids.length > 2 && C.A.ph === "fight" && !C.fin){ C.fin = 1; setTimeout(() => { if (C.A && C.A.ph === "fight"){ banner("⚔️ " + T("Final duel!", "Finale!") + `<small>${esc(NPo().nm(al[0]))} vs ${esc(NPo().nm(al[1]))}</small>`, al.includes(me()) ? "win" : ""); snd("final"); if (al.includes(me())) Haptic.go([40, 60, 40]); } }, 700); } } }
   }
@@ -664,7 +666,7 @@
     /* the fog on top: whoever is inside is hidden; mine turns see-through */
     if (!SPR.clip){ SPR.clip = new Path2D(); areas().forEach(a => SPR.clip.rect(a.x, a.y, a.w, a.h)); } c.save(); c.clip(SPR.clip);
     for (let i = 0; i < FOG.length; i++){ const F = fogSpr(i); c.globalAlpha = i === myFog ? .38 : .93 + Math.sin(t / 900 + i) * .05; c.drawImage(F.cv, F.x0, F.y0 + Math.sin(t / 1300 + i * 2) * 2, F.w, F.h); } c.globalAlpha = 1; c.restore();
-    C.pops.forEach(p => { const k = (t - p.t) / 900; c.globalAlpha = Math.max(0, 1 - k); c.font = `900 ${p.mine ? 26 : 22}px Figtree,system-ui,sans-serif`; c.textAlign = "center"; c.lineWidth = 4; c.strokeStyle = "rgba(0,0,0,.6)"; c.strokeText(p.txt, p.x, p.y - k * 40); c.fillStyle = p.me ? "#ff6a55" : p.mine ? "#FFD15C" : "#fff"; c.fillText(p.txt, p.x, p.y - k * 40); c.globalAlpha = 1; });
+    C.pops.forEach(p => { const k = (t - p.t) / 900; c.globalAlpha = Math.max(0, 1 - k); c.font = `900 ${p.ko ? 36 : p.mine ? 26 : 22}px Figtree,system-ui,sans-serif`; c.textAlign = "center"; c.lineWidth = 4; c.strokeStyle = "rgba(0,0,0,.6)"; c.strokeText(p.txt, p.x, p.y - k * 40); c.fillStyle = p.me ? "#ff6a55" : p.mine ? "#FFD15C" : "#fff"; c.fillText(p.txt, p.x, p.y - k * 40); c.globalAlpha = 1; });
     c.setTransform(1, 0, 0, 1, 0, 0);
     /* inside the fog you see little: darkness around a small circle */
     if (myFog >= 0){ const sx = C.me.x * z + ox, sy = (C.me.y - 40) * z + oy, g = c.createRadialGradient(sx, sy, VIS * z * .7, sx, sy, VIS * z * 1.25); g.addColorStop(0, "rgba(8,12,14,0)"); g.addColorStop(1, "rgba(8,12,14,.8)"); c.fillStyle = g; c.fillRect(0, 0, cw, ch); }
@@ -710,7 +712,7 @@
   PG.arena = {CLS, PERKS, PICK, FIGHT, NEXT, LAYS, setLay, hostInit, hostTick, hostAct, hostView, applyPerk, client, fx: FX, stopHost};
   PG.onArena = m => onMsg(m);
   if (PG.ART) PG.ART.arena = ["⭐", "#E9A92B"];
-  window.__ar = () => ({on: C.on, team: C.A && C.A.team, ph: C.A && C.A.ph, me: C.me && {x: Math.round(C.me.x), y: Math.round(C.me.y)}, hp: C.A && C.A.hp, out: C.A && C.A.out, cls: C.A && C.A.cls, am: C.am, sup: C.sup, proj: C.proj.length, bots: Object.keys(HB.bots).length, fog: C.me ? fogAt(C.me.x, C.me.y) : -1});
+  window.__ar = () => ({on: C.on, team: C.A && C.A.team, ph: C.A && C.A.ph, me: C.me && {x: Math.round(C.me.x), y: Math.round(C.me.y)}, hp: C.A && C.A.hp, out: C.A && C.A.out, cls: C.A && C.A.cls, am: C.am, sup: C.sup, proj: C.proj.length, bots: Object.keys(HB.bots).length, fog: C.me ? fogAt(C.me.x, C.me.y) : -1, kop: C.pops.filter(p => p.ko).length});
   window.__arFire = (a, su, len) => a == null ? autoFire(su) : fire(a, su, len);
   window.__arMove = (dx, dy) => { C.moveP = dx == null ? null : {dx, dy, id: -1}; };
   window.__arTo = (x, y) => { if (C.me){ C.me.x = x; C.me.y = y; } };
