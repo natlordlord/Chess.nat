@@ -7,7 +7,7 @@
    Caches live across updates (PAGE for the app itself, STATIC for everything else), so an update never
    leaves the phone without a copy to start from; a new VERSION only makes the phone pick up this file.
    Bump STATIC only to throw away every static file. */
-const VERSION = "chessnat-v75";
+const VERSION = "chessnat-v76";
 const PAGE = "chessnat-page", STATIC = "chessnat-static-1";
 const SHELL = [
   "/", "/config.js", "/platform.js", "/pwa.js", "/manifest.webmanifest", "/favicon.svg",

@@ -444,6 +444,9 @@
   if (typeof TAB_OF !== "undefined") TAB_OF.tipp = "tipp";
   window.Tipp = Tipp;
   /* on the home screen: my running games and the next big game I haven't tipped yet */
+  /* short team names for tight rows: "FC Bayern München" -> "Bayern" */
+  const SN = {"FC Bayern München": "Bayern", "Bayern München": "Bayern", "Borussia Dortmund": "Dortmund", "Borussia Mönchengladbach": "Gladbach", "Bayer 04 Leverkusen": "Leverkusen", "Bayer Leverkusen": "Leverkusen", "RB Leipzig": "Leipzig", "Eintracht Frankfurt": "Frankfurt", "VfB Stuttgart": "Stuttgart", "SC Freiburg": "Freiburg", "TSG Hoffenheim": "Hoffenheim", "TSG 1899 Hoffenheim": "Hoffenheim", "1. FC Union Berlin": "Union", "Union Berlin": "Union", "SV Werder Bremen": "Bremen", "Werder Bremen": "Bremen", "VfL Wolfsburg": "Wolfsburg", "1. FSV Mainz 05": "Mainz", "Mainz 05": "Mainz", "FC Augsburg": "Augsburg", "1. FC Heidenheim 1846": "Heidenheim", "1. FC Heidenheim": "Heidenheim", "FC St. Pauli": "St. Pauli", "1. FC Köln": "Köln", "Hamburger SV": "HSV", "VfL Bochum": "Bochum", "Holstein Kiel": "Kiel", "Real Madrid": "Real", "FC Barcelona": "Barça", "Paris Saint-Germain": "PSG", "Manchester City": "Man City", "Manchester United": "Man Utd", "Atlético Madrid": "Atlético", "Atletico Madrid": "Atlético", "Inter Mailand": "Inter", "Internazionale": "Inter", "Tottenham Hotspur": "Tottenham", "Newcastle United": "Newcastle"};
+  const sn = n => { n = String(n || ""); if (SN[n]) return SN[n]; if (n.length <= 12) return n; const x = n.replace(/^(1\. )?(FC|SC|SV|VfB|VfL|TSG|RB|FSV|SpVgg|SSV|AFC|CF) /, "").replace(/ (FC|CF|SC|\d{2,4})$/, "").trim(); return x || n; };
   function homeHTML(){
     const now = Date.now(), live = Tipp.ev.filter(e => e.state === "in" && Tipp.myTip(e)).slice(0, 2);
     const next = Tipp.ev.filter(e => e.state === "pre" && Date.parse(e.start_at) > now + 60e3 && Date.parse(e.start_at) < now + 4 * 864e5 && (e.fav || bay(e.home) || bay(e.away) || e.comp === "nt") && !Tipp.myOn(e.id).length && (e.markets || []).length).slice(0, 3 - live.length);
@@ -451,8 +454,8 @@
     const flag = e => e.comp === "nt" ? "🇩🇪 " : bay(e.home) || bay(e.away) ? "⭐ " : e.sport === "mma" || e.sport === "box" ? "🥊 " : e.sport === "hb" ? "🤾 " : "";
     const day = t => { const d = new Date(t), n = new Date(); const dd = Math.round((new Date(d.toDateString()) - new Date(n.toDateString())) / 864e5); return dd === 0 ? T("Today", "Heute") : dd === 1 ? T("Tomorrow", "Morgen") : d.toLocaleDateString(de() ? "de-DE" : "en-GB", {weekday: "short"}); };
     return `<div class="th-h">⚽ ${T("Tipping game", "Tippspiel")}</div>` + live.map(e => { const my = Tipp.myTip(e), ls = my.score && e.sport === "fb" ? liveSt(my.score, +e.score_h, +e.score_a) : null;
-        return `<button class="th-row live" data-th="${h(e.id)}"><span class="th-t">● ${h(e.clock || "LIVE")}</span><span class="th-m">${h(e.home)} <b>${e.score_h ?? "–"}:${e.score_a ?? "–"}</b> ${h(e.away)}</span><span class="th-tip ${ls ? ls.c : ""}">${ls ? ls.l.split(" ")[0] + " " : ""}${h(my.score || my.name)}</span></button>`; }).join("")
-      + next.map(e => `<button class="th-row" data-th="${h(e.id)}" data-q="1"><span class="th-t">${h(day(e.start_at))} ${hm(e.start_at)}</span><span class="th-m">${flag(e)}${h(e.home)} – ${h(e.away)}</span><span class="th-go">${T("Tip", "Tippen")}</span></button>`).join("");
+        return `<button class="th-row live" data-th="${h(e.id)}"><span class="th-t">● ${h(e.clock || "LIVE")}</span><span class="th-m">${h(sn(e.home))} <b>${e.score_h ?? "–"}:${e.score_a ?? "–"}</b> ${h(sn(e.away))}</span><span class="th-tip ${ls ? ls.c : ""}">${ls ? ls.l.split(" ")[0] + " " : ""}${h(my.score || my.name)}</span></button>`; }).join("")
+      + next.map(e => `<button class="th-row" data-th="${h(e.id)}" data-q="1"><span class="th-t">${h(day(e.start_at))}<br>${hm(e.start_at)}</span><span class="th-m">${flag(e)}${h(sn(e.home))} – ${h(sn(e.away))}</span><span class="th-go">${T("Tip", "Tippen")}</span></button>`).join("");
   }
   window.homeTipp = async el => {
     if (!el) return; const fill = () => { if (!el.isConnected) return; const x = homeHTML(); el.innerHTML = x; el.hidden = !x;
@@ -517,9 +520,9 @@
 .tp-otip{font:900 17px var(--display);min-width:44px;text-align:right}
 .tp-ls{display:inline-block;font:900 11px var(--body);padding:2px 7px;border-radius:7px;vertical-align:2px;background:var(--go);color:#fff;margin-right:2px}.tp-ls.ok{background:#d9a53a}.tp-ls.out{background:var(--panel-3);color:var(--muted)}
 .tp-qn{margin:8px 0 0;text-align:center;font:800 12px var(--body);color:var(--muted)}
-.th-home{padding:12px 14px!important;display:flex;flex-direction:column;gap:6px}.th-home[hidden]{display:none}.th-h{font:900 13px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.th-home{padding:12px 14px!important;display:flex;flex-direction:column;gap:6px}.th-home[hidden]{display:none}.th-home .th-h{font:900 13px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:2px 2px 2px}
 .th-row{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:14px;border:0;background:var(--panel-2);color:var(--fg);text-align:left;cursor:pointer;font:inherit}.th-row:active{transform:scale(.98)}
-.th-t{flex:none;font:800 12px var(--body);color:var(--muted);min-width:64px}.th-row.live .th-t{color:#e5484d}
+.th-t{flex:none;font:800 12px/1.25 var(--body);color:var(--muted);min-width:44px;text-align:center}.th-row.live .th-t{color:#e5484d}
 .th-m{flex:1;min-width:0;font:800 15px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.th-m b{font-family:var(--display);margin:0 2px}
 .th-go{flex:none;background:var(--go);color:#fff;font:900 14px var(--body);padding:7px 12px;border-radius:10px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.2)}
 .th-tip{flex:none;font:900 15px var(--display);padding:6px 10px;border-radius:10px;background:var(--go);color:#fff}.th-tip.ok{background:linear-gradient(180deg,#E9B64A,#c9921f)}.th-tip.out{background:var(--panel-3);color:var(--muted)}
