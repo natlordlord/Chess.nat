@@ -255,7 +255,7 @@
   const C = {emo: {}, cubes: [], pw: {}, cgT: {}, on: false, seed: null, A: null, me: null, am: AMMO, rl: 0, cd: 0, sup: 0, seq: 0, AP: {}, proj: [], fx: [], fields: [], trail: [], pops: [], sent: 0, sentP: null, moveP: null, aimP: null, supP: null, keys: {}, dot: 0, dotT: 0, dotBy: "", burn: 0, burnBy: "", hurtT: 0, shake: 0, hitAt: {}, shotAt: {}, kb: null, L: null, t0: 0, pickEnd: 0, pickDur: PICK, fightT0: 0, endAt: 0, doneAt: 0, started: false, hpT: 0, outShown: false, lastTr: {}, sndT: {}, kbDone: {}, v: null};
   const me = () => PNet.me;
   const NPo = () => N().NP;
-  function reset(keep){ Object.assign(C, {winTeam: null, cubes: [], pw: {}, cgT: {}, seed: null, A: null, me: null, proj: [], fx: [], fields: [], trail: [], pops: [], AP: {}, moveP: null, aimP: null, supP: null, started: false, doneAt: 0, outShown: false, lastTr: {}, burn: 0, dot: 0, sup: 0, kb: null, hitAt: {}, shotAt: {}, kbDone: {}, picked: 0, win: null});
+  function reset(keep){ Object.assign(C, {fin: 0, winTeam: null, cubes: [], pw: {}, cgT: {}, seed: null, A: null, me: null, proj: [], fx: [], fields: [], trail: [], pops: [], AP: {}, moveP: null, aimP: null, supP: null, started: false, doneAt: 0, outShown: false, lastTr: {}, burn: 0, dot: 0, sup: 0, kb: null, hitAt: {}, shotAt: {}, kbDone: {}, picked: 0, win: null});
     if (!keep) leaveLayer(); else if (C.L){ const r = C.L.querySelector(".ar-res"); if (r){ r.classList.remove("on"); r._h = null; } } }
   const amIn = () => C.A && C.A.ids.includes(me());
   const alive = id => C.A && C.A.ids.includes(id) && !C.A.out.includes(id);
@@ -280,6 +280,7 @@
     else if (n === "hit"){ x.tone(0, 680, 320, .06, .07, "square"); }
     else if (n === "ko"){ x.chord(0, [60, 63, 67], .45, .07, "sawtooth"); x.noise(0, .4, 1800, 200, .2, "lowpass"); }
     else if (n === "cube"){ x.chord(0, [72, 79, 84], .22, .06, "triangle"); }
+    else if (n === "final"){ x.tone(0, 98, 98, .5, .12, "sawtooth"); x.tone(.45, 131, 131, .5, .12, "sawtooth"); x.chord(.9, [55, 62, 67], .9, .06, "sawtooth"); x.noise(.9, .8, 300, 2000, .12, "bandpass", .8); }
     else if (n === "empty"){ x.tone(0, 320, 300, .04, .05, "square"); }
     else if (n === "go"){ x.chord(0, [67, 71, 74], .25, .07, "square"); x.chord(.22, [72, 76, 79], .45, .07, "square"); }
     else if (n === "win"){ x.chord(0, [60, 64, 67], .3, .07, "triangle"); x.chord(.25, [65, 69, 72], .3, .07, "triangle"); x.chord(.5, [72, 76, 79], .7, .08, "triangle"); }
@@ -478,7 +479,9 @@
     else if (m.t === "acu"){ const had = C.pw[me()] || 0; C.cubes = m.c || []; C.pw = m.pw || {}; if ((C.pw[me()] || 0) > had){ snd("cube"); Haptic.go(12); C.fx.push({k: "cube", x: C.me ? C.me.x : 0, y: C.me ? C.me.y : 0, t: now()}); } }
     else if (m.t === "acg"){ if (host){ const mg = hostMg(); if (mg && mg.ar.cubes && mg.ar.ph === "fight") cubeGrab(mg.ar, m.id, +m.k); } }
     else if (m.t === "ahp"){ if (m.mx) C.A.mx = m.mx; C.A.hp = Object.assign({}, m.hp); C.A.out = (m.out || []).slice(); C.A.feed = m.f || []; C.hpT = now();
-      if (m.ko){ const q = pos(m.ko); if (q) C.fx.push({k: "ko", x: q.x, y: q.y, t: now()}); snd("ko", q); if (m.ko === me()) Haptic.go([60, 40, 120]); } }
+      if (m.ko){ const q = pos(m.ko); if (q) C.fx.push({k: "ko", x: q.x, y: q.y, t: now()}); snd("ko", q); if (m.ko === me()) Haptic.go([60, 40, 120]);
+        /* two left: the final duel */
+        const al = C.A.ids.filter(id => !C.A.out.includes(id)); if (!C.A.team && al.length === 2 && C.A.ids.length > 2 && C.A.ph === "fight" && !C.fin){ C.fin = 1; setTimeout(() => { if (C.A && C.A.ph === "fight"){ banner("⚔️ " + T("Final duel!", "Finale!") + `<small>${esc(NPo().nm(al[0]))} vs ${esc(NPo().nm(al[1]))}</small>`, al.includes(me()) ? "win" : ""); snd("final"); if (al.includes(me())) Haptic.go([40, 60, 40]); } }, 700); } } }
   }
   function hurtFx(d, m){
     if (!alive(me()) || !C.me) return; if (C.A.hp[me()] != null) C.A.hp[me()] = Math.max(1, C.A.hp[me()] - d); C.hpT = now();
