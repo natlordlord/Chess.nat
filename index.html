@@ -1991,7 +1991,7 @@ html.i18n-wait body{visibility:hidden}
   .overlay > .card-over.lobby{width:min(94%,420px)}
 }
 /* the sidebar never shows scrollbars: one line per entry, it scrolls by wheel/finger if a screen is very short */
-.rail{overflow-x:hidden;scrollbar-width:none;overscroll-behavior:contain}
+.rail{overflow-x:hidden;scrollbar-width:none;overscroll-behavior:contain}.rail>:not(.nav){flex-shrink:0}.rail .nav{min-height:20px}
 .rail::-webkit-scrollbar{display:none}
 .rail .nav{white-space:nowrap;min-width:0}
 .rail .nav > span,.rail .nav{overflow:hidden;text-overflow:ellipsis}
@@ -1999,7 +1999,7 @@ html.i18n-wait body{visibility:hidden}
 .rail .me .nm,.rail .me .nm small,.rail .me .nm span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-height:860px){.rail .nav{padding-top:7px;padding-bottom:7px}.brand{padding-bottom:10px}}
 @media (max-height:760px){.rail .nav{padding-top:5px;padding-bottom:5px;font-size:14px}}
-.railme{min-width:0;overflow:hidden}.railme .rm-t{min-width:0;overflow:hidden}.railme .rm-t *{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.railme{min-width:0;overflow:hidden;flex:none}.railme .rm-t{min-width:0;overflow:hidden}.railme .rm-t *{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .jpath{scrollbar-width:none}.jpath::-webkit-scrollbar{display:none}
 .jpawn-cv{filter:none}
 
@@ -2799,7 +2799,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794361483";
+const CHESSNAT_BUILD = "1794361614";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -14343,17 +14343,17 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=71"></script>
-<script src="games/imposter.js?v=71"></script>
-<script src="games/werwolf.js?v=71"></script>
-<script src="games/cards.js?v=71"></script>
-<script src="games/heads.js?v=71"></script>
-<script src="games/more.js?v=71"></script>
-<script src="games/net.js?v=71"></script>
-<script src="games/online.js?v=71"></script>
-<script src="games/natposter.js?v=71"></script>
-<script src="games/arena.js?v=71"></script>
-<script src="games/tipp.js?v=71"></script>
+<script src="games/core.js?v=72"></script>
+<script src="games/imposter.js?v=72"></script>
+<script src="games/werwolf.js?v=72"></script>
+<script src="games/cards.js?v=72"></script>
+<script src="games/heads.js?v=72"></script>
+<script src="games/more.js?v=72"></script>
+<script src="games/net.js?v=72"></script>
+<script src="games/online.js?v=72"></script>
+<script src="games/natposter.js?v=72"></script>
+<script src="games/arena.js?v=72"></script>
+<script src="games/tipp.js?v=72"></script>
 <script>boot();</script>
 </body>
 </html>
