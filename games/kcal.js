@@ -729,8 +729,8 @@
       <p class="muted kc-pt">${add ? "Produkt suchen oder scannen:" : "Das echte Produkt nehmen:"}</p>
       <div class="kc-rep"><button class="btn" data-rep="scan">${svg(IC.code, 18)} Barcode</button><button class="btn" data-rep="search">${svg(IC.search, 18)} Suchen</button></div>
       ${!add && w.per && w.g ? `<button class="btn kc-amtb" data-rep="amount">Menge ändern <small>${h(w.amount || nf(w.g, 0) + " g")}</small></button>` : ""}
-      <p class="muted kc-pt">Oder selbst eintippen:</p>
-      <label>Was<input id="kpn" maxlength="80" value="${h(w.name || "")}" placeholder="z. B. Honey Nut Flakes"></label>
+      <p class="muted kc-pt">Oder hier tippen und das echte Produkt aus Open Food Facts antippen:</p>
+      <label>Was<input id="kpn" maxlength="80" value="${h(w.name || "")}" placeholder="z. B. Spaghetti Barilla" autocomplete="off" autocorrect="off" enterkeyhint="search"></label><div id="kpsg"></div>
       <label>Menge<input id="kpa" maxlength="60" value="${h(w.amount || "")}" placeholder="z. B. 2 Scheiben"></label>
       <div class="kc-nums">${KS.map(([k, l]) => `<label>${l}<input data-k="${k}" inputmode="decimal" value="${nf(w[k] || 0, k === "kcal" ? 0 : 1)}"></label>`).join("")}</div>
       ${add ? "" : `<div class="kc-portion"><span class="muted">Mal nehmen</span><div>${[[.25, "¼"], [.5, "½"], [2, "2×"], [3, "3×"], [4, "4×"], [5, "5×"]].map(([f, l]) => `<button class="chip" data-f="${f}">${l}</button>`).join("")}</div></div>`}
@@ -752,6 +752,19 @@
     const done = async ps => { const nm = await saveParts(m, ps); haptic(15); mealSheet(nm); };
     /* the real product instead: scanned or searched, then how much */
     const swap = P => amountSheet(P, {g: (!add && (w.g || gramsIn(w.amount))) || 0, btn: add ? "Dazu" : "Übernehmen", done: async it => { const ps = partsOf(m); if (add) ps.push(it); else ps[idx] = it; await done(ps); }});
+    /* typing into "Was" searches the real products (the food table first, then Open Food Facts); a tap takes that product with its own
+       values. The amount stays: if the grams are known the part is replaced at once, otherwise the amount is asked. Something that is
+       weighed cooked (noodles, rice …) keeps that: the pack's dry values are converted. Typing a name without picking still works. */
+    { const pn = el.querySelector("#kpn"), sg = el.querySelector("#kpsg"); let tm = 0, seq = 0, L = [];
+      const said = () => String(w.amount || "") + " " + String(w.name || ""), stOf = () => w.st === "dry" || (w.per && w.per.ck === "dry") || /trocken|\broh|ungekocht/i.test(said()) ? "dry" : w.st === "cooked" || (w.per && w.per.ck === "cooked") || /gekocht|gebraten/i.test(said()) ? "cooked" : "";
+      const take = async P => { const st0 = stOf(); w.name = el.querySelector("#kpn").defaultValue; const g = (!add && (w.g || gramsIn(w.amount))) || 0, ck = !!cookOf(P), P2 = ck ? (st0 ? cookP(P, st0) : null) : P; haptic(10); sh.close();
+        if (g > 0 && P2){ recent(P.base || P); const ps = partsOf(m); ps[idx] = itemOf(P2, g); try { await done(ps); say("✓ " + String(P.name).slice(0, 30)); } catch(e) { say("Ging nicht: " + (e.message || e)); } }
+        else swap(ck && st0 ? Object.assign({}, P, {ck0: st0}) : P); };
+      const draw = () => { sg.innerHTML = L.length ? `<div class="kc-shsg kc-psg">${L.map((x, i) => `<button type="button" data-sg="${i}"><b>${h(x.name)}</b><small>${h(x.brand || "")}${x.brand ? " · " : ""}${fmt(x.k)} kcal / 100 g</small><i>›</i></button>`).join("")}</div>` : "";
+        sg.querySelectorAll("[data-sg]").forEach(b => b.onclick = () => take(L[+b.dataset.sg])); };
+      pn.addEventListener("input", () => { clearTimeout(tm); const v = pn.value.trim(), my = ++seq; if (v.length < 2){ L = []; draw(); return; }
+        L = tabFind(v).slice(0, 2); draw();
+        tm = setTimeout(async () => { try { const r = await fetch("/api/food?q=" + encodeURIComponent(v)), j = await r.json().catch(() => ({})); if (my !== seq || !Array.isArray(j.items)) return; L = tabFind(v).slice(0, 2).concat(j.items).slice(0, 7); draw(); } catch(e) {} }, 300); }); }
     el.querySelectorAll("[data-rep]").forEach(b => b.onclick = () => { const k = b.dataset.rep; read(); sh.close();
       if (k === "scan") KCScan.open({pick: swap}); else if (k === "search") Search.open({pick: swap, q: add ? "" : (w.per && w.per.n) || w.name.replace(/\(.*?\)/g, "").trim(), title: add ? "Etwas dazu suchen" : "Echtes Produkt suchen"}); else swap(perP(w)); });
     el.querySelector("#kps").onclick = async () => { read(); if (!w.name) return say("Wie heißt es?"); const ps = partsOf(m); if (add) ps.push(w); else ps[idx] = w;
@@ -1567,7 +1580,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-aski{width:100%;box-sizing:border-box;padding:14px!important;border-radius:14px!important;border:2px solid var(--line)!important;background:#2A2825!important;color:var(--fg);font:700 16px var(--body)!important;text-align:center}.kc-askn{margin:0;font:700 16px var(--body);color:var(--muted)}
 .kc-askc{display:flex;flex-direction:column;gap:10px;text-align:center}.kc-aske{font-size:44px}.kc-askc h3{margin:0;font:900 22px var(--display)}.kc-askq{font:700 18px var(--body);margin:0}.kc-askb{display:flex;flex-direction:column;gap:8px}
 .kc-shov .kc-shr{padding:12px 10px 12px 12px;border-radius:16px;gap:12px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}.kc-shr.new,.kc-shd.new{animation:kcRow .26s cubic-bezier(.22,1,.36,1)}@keyframes kcRow{from{opacity:0;transform:translateY(6px)}}.kc-shr.tmp{opacity:.6}
-.kc-shov .kc-shc{width:36px;height:36px;border-radius:12px;font-size:20px;border-width:2.5px}.kc-shov .kc-shn{cursor:pointer}.kc-shov .kc-drn{text-align:center;font-size:12.5px;margin:6px 0 0}.kc-ck{margin:8px 0 10px;padding:10px 12px;border-radius:14px;background:var(--panel-2);display:flex;flex-direction:column;gap:7px}.kc-ck b{font:800 14px var(--body)}.kc-ckb{display:flex;gap:8px;flex-wrap:wrap}.kc-ckb .chip{flex:1 1 auto;justify-content:center;white-space:nowrap}.kc-ck small{font-size:12px;line-height:1.35}.kc-ck.ask{box-shadow:inset 0 0 0 2px var(--go)}.kc-ck.shake{animation:kcShake .32s}@keyframes kcShake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}.kc-sadd .kc-ck{margin-top:0}
+.kc-shov .kc-shc{width:36px;height:36px;border-radius:12px;font-size:20px;border-width:2.5px}.kc-shov .kc-shn{cursor:pointer}.kc-shov .kc-psg{margin:-2px 0 8px}.kc-psg button{width:100%}.kc-psg small{max-width:58%}.kc-drn{text-align:center;font-size:12.5px;margin:6px 0 0}.kc-ck{margin:8px 0 10px;padding:10px 12px;border-radius:14px;background:var(--panel-2);display:flex;flex-direction:column;gap:7px}.kc-ck b{font:800 14px var(--body)}.kc-ckb{display:flex;gap:8px;flex-wrap:wrap}.kc-ckb .chip{flex:1 1 auto;justify-content:center;white-space:nowrap}.kc-ck small{font-size:12px;line-height:1.35}.kc-ck.ask{box-shadow:inset 0 0 0 2px var(--go)}.kc-ck.shake{animation:kcShake .32s}@keyframes kcShake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}.kc-sadd .kc-ck{margin-top:0}
 .kc-shn b{font:800 17px var(--body);overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto}.kc-shr{gap:9px}.kc-shov .kc-shn small{font-size:12.5px}
 .kc-shbuy{flex:none;border:0;border-radius:12px;padding:9px 9px;background:var(--panel-3);color:var(--fg);font:800 12.5px var(--body);box-shadow:inset 0 -3px 0 rgba(0,0,0,.25);cursor:pointer}.kc-shbuy.on{background:var(--go);color:#fff;box-shadow:inset 0 -3px 0 var(--go-deep)}.kc-shbuy[disabled]{opacity:.4}
 .kc-shov .kc-shx{font-size:24px;padding:6px 8px;border-radius:10px}.kc-shx.arm{background:#E2523E;color:#fff;font:800 13px var(--body);padding:9px 10px}

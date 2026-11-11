@@ -86,6 +86,17 @@ const PARTS = {
     ok(await has(page, "#main .kc-pinm"), "Angepinntes steht bei den Vorschlägen mit Pin");
     await clean(page, "Eintrag ändern");
 
+    /* "Ändern": typing into "Was" lists the real products, a tap takes that product and keeps the amount */
+    await page.locator("#main [data-meal]", {hasText: "Hähnchen"}).first().tap(); await sleep(500); await page.locator('.dsheet [data-it="0"]').tap(); await sleep(500);
+    await page.fill("#kpn", ""); await page.tap("#kpn"); await page.keyboard.type("hähnchen", {delay: 25}); await page.waitForSelector('#kpsg [data-sg]:has-text("Wiesenhof")', {timeout: 5000}).catch(() => {});
+    ok(/Wiesenhof/.test(await txt(page, "#kpsg")) && /kcal \/ 100 g/.test(await txt(page, "#kpsg")), "Ändern: beim Tippen in „Was“ erscheinen die echten Produkte zur Auswahl", await txt(page, "#kpsg")); await page.shot("kcal-aendern-produkte");
+    await page.locator('#kpsg [data-sg]:has-text("Wiesenhof")').tap(); await sleep(900);
+    if (await has(page, '.dsheet [data-ck="cooked"]')){ await page.tap('.dsheet [data-ck="dry"]'); await sleep(500); await page.fill("#kcg", "200"); await page.locator("#kcg").blur(); await page.tap("#kcadd"); await sleep(1000); }
+    else if (await has(page, "#kcadd")){ await page.fill("#kcg", "200"); await page.locator("#kcg").blur(); await page.tap("#kcadd"); await sleep(1000); }
+    m = (await L.table("kcal_meals", "title=like.H*hnchen*"))[0];
+    ok(m && m.items && /Hähnchenbrustfilet \(Wiesenhof\)/.test(m.items[0].name) && m.items[0].code === "4000000000086" && m.kcal === 212, "das gewählte Produkt ersetzt die Position mit seinen eigenen Werten (200 g = 212 kcal)", JSON.stringify(m && [m.kcal, m.items]).slice(0, 300));
+    await closeSheets(page); await clean(page, "Produkt in „Ändern“ wählen");
+
     /* typing your own entry */
     await page.tap("#kcmanual"); await sleep(500); await page.fill("#kcmt", "Proteinshake");
     const nums = page.locator(".dsheet [data-k]"); await nums.nth(0).fill("210"); await nums.nth(1).fill("8,5"); await nums.nth(2).fill("32"); await nums.nth(3).fill("4");
