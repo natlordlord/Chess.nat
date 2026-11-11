@@ -27,7 +27,7 @@
   const IC = {
     mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
     code: '<path d="M4 6v12M7 6v12M10 6v12M14 6v12M17 6v12M20 6v12"/>',
-    chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>', chef: '<path d="M6 13.5A4 4 0 0 1 7.5 6a4.5 4.5 0 0 1 9 0A4 4 0 0 1 18 13.5V20H6z"/><path d="M6 17h12"/>',
+    chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>', chef: '<path d="M6 13.5A4 4 0 0 1 7.5 6a4.5 4.5 0 0 1 9 0A4 4 0 0 1 18 13.5V20H6z"/><path d="M6 17h12"/>', list: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/>',
     gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
     plus: '<path d="M12 5v14M5 12h14"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>', kb: '<rect x="2" y="6" width="20" height="13" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 15h10"/>',
     torch: '<path d="M8 2h8l-2 6v13h-4V8z"/><path d="M12 12v2"/>',
@@ -993,6 +993,55 @@
   /* ---------- the page ---------- */
   const avatar = id => { try { return Social.face(Social.P(id), 40); } catch(e) { return "🙂"; } };
   const pname = id => { try { return Social.P(id).name; } catch(e) { return "Freund"; } };
+  /* ---------- the shopping list: lists you share with the friends you pick. Everyone on a list adds products (typed or searched),
+     ticks off what is bought and can say "I'll buy that"; every row shows who put it there and who takes care of it.
+     Changes by the others arrive live ---------- */
+  const Shop = { lists: [], cur: null, items: [], mem: [], sh: null, ch: null,
+    async open(){ if (!meId() || !sb()) return say("Bitte erst anmelden");
+      this.sh = detailSheet(`<div class="kc-shop" data-notr><div id="kcshb"><p class="muted">Lädt …</p></div></div>`, () => this.stop()); this.box = this.sh.el.querySelector("#kcshb");
+      try { await this.loadLists(); if (!this.lists.length){ const r = await sb().from("shop_lists").insert({owner: meId(), name: "Einkaufsliste"}).select().single(); if (r.error) throw r.error; this.lists = [r.data]; }
+        let last = null; try { last = localStorage.getItem("chessnat-shop"); } catch(e) {} await this.pick((this.lists.find(l => l.id === last) || this.lists[0]).id); }
+      catch(e) { this.box.innerHTML = `<p class="muted">Ging nicht: ${h(e.message || String(e))}</p>`; } },
+    stop(){ try { if (this.ch) sb().removeChannel(this.ch); } catch(e) {} this.ch = null; this.sh = null; },
+    async loadLists(){ const r = await sb().from("shop_lists").select("*").order("created_at"); if (r.error) throw r.error; this.lists = r.data || []; },
+    async pick(id){ this.cur = this.lists.find(l => l.id === id) || null; if (!this.cur) return; try { localStorage.setItem("chessnat-shop", id); } catch(e) {}
+      try { if (this.ch) sb().removeChannel(this.ch); } catch(e) {}
+      this.ch = sb().channel("shop-" + id).on("postgres_changes", {event: "*", schema: "public", table: "shop_items", filter: "list_id=eq." + id}, () => this.load()).subscribe();
+      await this.load(); },
+    async load(){ if (!this.cur || !this.sh) return; const id = this.cur.id, [a, b] = await Promise.all([sb().from("shop_items").select("*").eq("list_id", id).order("created_at"), sb().from("shop_members").select("user_id").eq("list_id", id)]);
+      if (!this.cur || this.cur.id !== id || !this.sh) return; if (a.error){ say("Ging nicht: " + a.error.message); return; } this.items = a.data || []; this.mem = (b.data || []).map(x => x.user_id); this.draw(); },
+    who(id){ return id === meId() ? "du" : pname(id); },
+    draw(){ if (!this.sh) return; const me = meId(), L = this.cur, own = L.owner === me, open = this.items.filter(i => !i.done_by), done = this.items.filter(i => i.done_by), keep = (this.box.querySelector("#kcsha") || {}).value || "";
+      const row = i => `<div class="kc-shr ${i.done_by ? "done" : ""}"><button class="kc-shc" data-done="${i.id}" aria-label="Abhaken">${i.done_by ? "✓" : ""}</button><span class="kc-shn"><b>${h(i.name)}${i.amount ? ` <em>${h(i.amount)}</em>` : ""}</b><small>von ${h(this.who(i.added_by))}${i.done_by ? ` · gekauft von ${h(this.who(i.done_by))}` : i.claimed_by ? ` · <u>${i.claimed_by === me ? "kaufst du" : "kauft " + h(this.who(i.claimed_by))}</u>` : ""}</small></span>${i.done_by ? "" : `<button class="chip ${i.claimed_by === me ? "on" : ""}" data-claim="${i.id}" ${i.claimed_by && i.claimed_by !== me ? "disabled" : ""}>${i.claimed_by === me ? "Kaufe ich ✓" : "Kaufe ich"}</button>`}<button class="kc-shx" data-del="${i.id}" aria-label="Entfernen">×</button></div>`;
+      this.box.innerHTML = `<div class="kc-shh"><h3>${svg(IC.list, 20)} ${h(L.name)}</h3>${own ? `<button class="btn sm" data-share>Teilen</button>` : ""}</div>
+        <div class="kc-shl">${this.lists.map(l => `<button class="chip ${l.id === L.id ? "on" : ""}" data-list="${l.id}">${h(l.name)}</button>`).join("")}<button class="chip" data-new>+ Liste</button></div>
+        <div class="kc-shm">${[L.owner].concat(this.mem.filter(x => x !== L.owner)).map(id => `<span class="kc-av" title="${h(this.who(id))}">${avatar(id)}</span>`).join("")}<small class="muted">${this.mem.filter(x => x !== L.owner).length ? "sehen und bearbeiten diese Liste" : own ? "Nur du. Über „Teilen“ holst du Freunde dazu." : ""}</small></div>
+        <div class="kc-sha"><input id="kcsha" maxlength="120" placeholder="Was fehlt? z. B. Milch, 2 Liter" enterkeyhint="done" autocomplete="off" value="${h(keep)}"><button class="btn go" data-add>+</button><button class="btn" data-find aria-label="Produkt suchen">${svg(IC.search, 18)}</button></div>
+        ${open.length ? `<div class="kc-shs">${open.map(row).join("")}</div>` : `<p class="muted kc-empty">${done.length ? "Alles gekauft 🎉" : "Noch nichts auf der Liste."}</p>`}
+        ${done.length ? `<div class="kc-day"><span>Gekauft</span><button class="kc-link" data-clear>Gekauftes löschen</button></div><div class="kc-shs">${done.map(row).join("")}</div>` : ""}
+        ${own && this.lists.length > 1 ? `<button class="kc-link" data-dellist>Diese Liste löschen</button>` : !own ? `<button class="kc-link" data-leave>Liste verlassen</button>` : ""}`;
+      this.wire(); },
+    async run(q){ const r = await q; if (r && r.error) say("Ging nicht: " + r.error.message); await this.load(); },
+    add(name, amount, code){ name = String(name || "").trim(); if (!name) return; let am = amount || null; if (!am){ const m = /^(.*?)[,;]\s*(.+)$/.exec(name); if (m){ name = m[1].trim(); am = m[2].trim(); } } haptic(10);
+      return this.run(sb().from("shop_items").insert({list_id: this.cur.id, name: name.slice(0, 120), amount: am ? String(am).slice(0, 60) : null, code: code || null, added_by: meId()})); },
+    wire(){ const B = this.box, me = meId(), q = x => B.querySelector(x), all = (x, f) => B.querySelectorAll(x).forEach(b => b.onclick = () => f(b)), stamp = () => ({updated_by: me, updated_at: new Date().toISOString()});
+      const inp = q("#kcsha"), send = () => { const v = inp.value; inp.value = ""; this.add(v); }; inp.onkeydown = e => { if (e.key === "Enter"){ e.preventDefault(); send(); } }; q("[data-add]").onclick = send;
+      q("[data-find]").onclick = () => Search.open({title: "Produkt für die Liste suchen", pick: P => this.add(P.name + (P.brand ? " (" + P.brand + ")" : ""), null, P.code)});
+      all("[data-done]", b => { const i = this.items.find(x => x.id === b.dataset.done); if (!i) return; haptic(12); this.run(sb().from("shop_items").update(Object.assign({done_by: i.done_by ? null : me, done_at: i.done_by ? null : new Date().toISOString()}, stamp())).eq("id", i.id)); });
+      all("[data-claim]", b => { const i = this.items.find(x => x.id === b.dataset.claim); if (!i) return; haptic(8); this.run(sb().from("shop_items").update(Object.assign({claimed_by: i.claimed_by === me ? null : me}, stamp())).eq("id", i.id)); });
+      all("[data-del]", b => this.run(sb().from("shop_items").delete().eq("id", b.dataset.del)));
+      all("[data-list]", b => this.pick(b.dataset.list));
+      const cl = q("[data-clear]"); if (cl) cl.onclick = () => this.run(sb().from("shop_items").delete().eq("list_id", this.cur.id).not("done_by", "is", null));
+      q("[data-new]").onclick = async () => { const n = (prompt("Wie heißt die neue Liste?") || "").trim(); if (!n) return; const r = await sb().from("shop_lists").insert({owner: me, name: n.slice(0, 60)}).select().single(); if (r.error) return say("Ging nicht: " + r.error.message); this.lists.push(r.data); this.pick(r.data.id); };
+      const sh = q("[data-share]"); if (sh) sh.onclick = () => this.share();
+      const dl = q("[data-dellist]"); if (dl) dl.onclick = async () => { if (!dl.dataset.armed){ dl.dataset.armed = 1; dl.textContent = "Wirklich löschen?"; return; } const r = await sb().from("shop_lists").delete().eq("id", this.cur.id); if (r.error) return say("Ging nicht: " + r.error.message); await this.loadLists(); this.pick(this.lists[0].id); };
+      const lv = q("[data-leave]"); if (lv) lv.onclick = async () => { await sb().from("shop_members").delete().eq("list_id", this.cur.id).eq("user_id", me); await this.loadLists(); if (this.lists.length) this.pick(this.lists[0].id); else this.sh.close(); }; },
+    /* the owner picks the friends who share this list */
+    share(){ const me = meId(), fr = (typeof Social !== "undefined" ? Social.data.friends : []).filter(r => r.status === "accepted").map(r => r.a === me ? r.b : r.a), id = this.cur.id;
+      const s2 = detailSheet(`<div class="kc-shop" data-notr><h3>Wer teilt „${h(this.cur.name)}“?</h3>${fr.length ? `<div class="kc-fr">${fr.map(f => `<div class="kc-frr"><span class="kc-av">${avatar(f)}</span><span class="kc-frm"><b>${h(pname(f))}</b></span><button class="btn sm ${this.mem.includes(f) ? "" : "go"}" data-m="${h(f)}">${this.mem.includes(f) ? "Dabei ✓" : "Hinzufügen"}</button></div>`).join("")}</div>` : `<p class="muted">Füg erst unter Freunde jemanden hinzu.</p>`}<button class="btn go big" data-dclose style="margin-top:10px">Fertig</button></div>`, () => this.load());
+      s2.el.querySelectorAll("[data-m]").forEach(b => b.onclick = async () => { const f = b.dataset.m, on = this.mem.includes(f); b.disabled = true;
+        const r = on ? await sb().from("shop_members").delete().eq("list_id", id).eq("user_id", f) : await sb().from("shop_members").insert({list_id: id, user_id: f}); b.disabled = false; if (r.error) return say("Ging nicht: " + r.error.message);
+        this.mem = on ? this.mem.filter(x => x !== f) : this.mem.concat(f); b.textContent = on ? "Hinzufügen" : "Dabei ✓"; b.classList.toggle("go", on); haptic(8); }); } };
   Views.kcal = {
     tab: "today", sel: null,
     mount(main, arg){
@@ -1014,13 +1063,14 @@
         return;
       }
       const tabs = [["today", "Heute"], ["history", "Verlauf"], ["stats", "Analyse"], ["friends", "Freunde"]];
-      main.innerHTML = `<div class="page kc-page" data-notr><div class="kc-top"><h1 class="h-title">Kalorien</h1>${flameChip(K.flame(), K.litToday(), myIce())}<button class="kc-x kc-gear" id="kccook" aria-label="Kochen">${svg(IC.chef, 20)}</button><button class="kc-x kc-gear" id="kcset" aria-label="Einstellungen">${svg(IC.gear, 20)}</button></div>
+      main.innerHTML = `<div class="page kc-page" data-notr><div class="kc-top"><h1 class="h-title">Kalorien</h1>${flameChip(K.flame(), K.litToday(), myIce())}<button class="kc-x kc-gear" id="kccook" aria-label="Kochen">${svg(IC.chef, 20)}</button><button class="kc-x kc-gear" id="kcshop" aria-label="Einkaufsliste">${svg(IC.list, 20)}</button><button class="kc-x kc-gear" id="kcset" aria-label="Einstellungen">${svg(IC.gear, 20)}</button></div>
         <div class="row kc-tabs">${tabs.map(([k, l]) => `<button class="btn sm ${this.tab === k ? "go" : ""}" data-tab="${k}">${l}</button>`).join("")}</div><div id="kcbody"></div></div>`;
       main.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { this.tab = b.dataset.tab; this.sel = null; this.draw(); if (this.tab === "friends") K.loadFriends().then(() => this.draw()).catch(() => {}); });
       main.querySelector("#kcset").onclick = () => { const sh = detailSheet(`<div class="kc-setsheet" data-notr>${settingsHTML(true)}</div>`); const box = sh.el.querySelector(".kc-setsheet");
         const re = () => { box.innerHTML = settingsHTML(true); wireSettings(box, re); this.draw(); }; wireSettings(box, re); };
       const fl = main.querySelector(".kc-top [data-kc-fl]"); if (fl) fl.onclick = () => iceSheet();
       main.querySelector("#kccook").onclick = () => Cook.open();
+      main.querySelector("#kcshop").onclick = () => Shop.open();
       /* the first visit with the tracker on: the goal questions, once */
       if (K.loaded && !(K.body && K.body.setup_at) && !this.setupAsked && !document.querySelector(".kc-setup")){ this.setupAsked = 1; setTimeout(() => { if (onPage() && !(K.body && K.body.setup_at)) Setup.open(() => this.draw()); }, 300); }
       else if (K.loaded) Weigh.check();
@@ -1209,6 +1259,15 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-hrm{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}.kc-hrm>b{font:800 15px var(--body)}.kc-hrm small{color:var(--muted);font:600 11.5px var(--body)}.kc-hbs{display:flex;gap:6px;flex-wrap:wrap}
 .kc-hb{display:flex;flex-direction:column;gap:2px;font:700 10px var(--body);color:var(--muted);width:52px}.kc-hb i{display:block;height:4px;border-radius:2px;background:rgba(255,255,255,.09);overflow:hidden}.kc-hb u{display:block;height:100%;background:#9BE25A;border-radius:2px}
 .kc-hs{font:900 26px var(--display);font-variant-numeric:tabular-nums}.kc-hs.g{color:#9BE25A}.kc-hs.m{color:#F2C23A}.kc-hs.b{color:#EF7A5F}.kc-hrn{line-height:1.35}
+.kc-top{gap:8px}.kc-top .kc-gear{flex:none}.kc-shop{display:flex;flex-direction:column;gap:10px}.kc-shop h3{margin:0;font:900 20px var(--display);display:flex;align-items:center;gap:8px}#kcshb{display:flex;flex-direction:column;gap:10px}
+.kc-shh{display:flex;justify-content:space-between;align-items:center;gap:8px;padding-right:44px}.kc-shl{display:flex;gap:6px;overflow-x:auto}.kc-shl .chip{flex:none}
+.kc-shm{display:flex;align-items:center;gap:4px}.kc-shm .kc-av{width:28px;height:28px;border-radius:50%;overflow:hidden;display:inline-block}.kc-shm .kc-av svg{width:100%;height:100%}.kc-shm small{margin-left:6px;font:600 12px var(--body)}
+.kc-sha{display:flex;gap:6px}.kc-sha input{flex:1;min-width:0;padding:12px!important;font:700 16px var(--body)!important;border-radius:12px!important}.kc-sha .btn{flex:none;min-width:46px;font-size:20px}
+.kc-shs{display:flex;flex-direction:column;gap:4px}.kc-shr{display:flex;align-items:center;gap:10px;padding:8px 8px 8px 10px;background:var(--panel-2);border-radius:12px}
+.kc-shc{flex:none;width:28px;height:28px;border-radius:9px;border:2px solid var(--go);background:none;color:#fff;font:900 16px var(--body);cursor:pointer;transition:transform .12s,background-color .15s}.kc-shc:active{transform:scale(.88)}
+.kc-shr.done .kc-shc{background:var(--go)}.kc-shr.done .kc-shn b{text-decoration:line-through;color:var(--muted)}
+.kc-shn{flex:1;min-width:0;display:flex;flex-direction:column}.kc-shn b{font:800 15px var(--body);overflow-wrap:anywhere}.kc-shn em{font-style:normal;color:var(--muted);font-weight:700}.kc-shn small{color:var(--muted);font:600 11.5px var(--body)}.kc-shn u{text-decoration:none;color:var(--go-hi)}
+.kc-shr .chip{flex:none;font-size:12px;padding:5px 9px}.kc-shr .chip[disabled]{opacity:.45}.kc-shx{flex:none;border:0;background:none;color:var(--muted);font:700 22px/1 var(--body);padding:2px 6px;cursor:pointer}
 .kc-quick{display:flex;flex-direction:column;gap:6px}.kc-sugg{margin-top:16px}.kc-qh{font:900 12px var(--body);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin:2px 2px 0}
 .kc-q{display:flex;align-items:center;gap:10px;width:100%;padding:8px 8px 8px 12px;border-radius:14px;border:0;background:var(--panel-2);color:var(--fg);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}.kc-q:active{transform:scale(.98)}
 .kc-qe{font-size:24px}.kc-qn{flex:1;min-width:0;display:flex;flex-direction:column;font:800 15px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kc-qn small{color:var(--muted);font-weight:700;font-size:12px}

@@ -1,0 +1,5 @@
+-- Shared shopping lists in the calorie tracker (applied as migration "shop_lists" on 2026-11-11).
+-- shop_lists: one list, owned by its creator. shop_members: the friends the owner shares it with.
+-- shop_items: products (kind 'product') and, later, dishes (kind 'dish', their ingredients point at them with parent).
+-- Everyone on a list may add, tick off (done_by), claim (claimed_by) and remove items; only the owner changes who is on it.
+-- Access is decided by shop_can(list) / shop_owns(list); shop_items is in the realtime publication so changes arrive live.
