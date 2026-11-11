@@ -23,9 +23,11 @@ const results = [];
 async function probe(page, model, name, sel, {tap = true, wait = 1100, native = false} = {}){
   const loc = page.locator(sel).first(); if (!(await loc.count()) || !(await loc.isVisible().catch(() => false))){ results.push({name, model, skip: "Feld nicht gefunden"}); return; }
   await page.evaluate(() => { const a = document.activeElement; if (a && a.blur) a.blur(); }); await sleep(450);
-  await page.evaluate(s => { window.__stop = window.__film(s); }, sel); await sleep(80);
+  /* a sheet from the bottom must stay the same sheet: its top edge may glide up when it grows, but never drop down first and come back up */
+  await page.evaluate(s => { window.__stop = window.__film(s); const card = document.querySelector(s).closest(".dcard"); window.__stopC = card ? window.__film(card) : null; }, sel); await sleep(80);
   if (tap) await loc.tap({timeout: 4000}).catch(async () => { await loc.focus(); }); else await loc.focus();
-  await sleep(wait); const S = await page.evaluate(() => window.__stop()), H = 844;
+  await sleep(wait); const S = await page.evaluate(() => window.__stop()), C = await page.evaluate(() => window.__stopC ? window.__stopC() : null), H = 844;
+  const drop = C && C.length ? Math.max(...C.map(x => x[1])) - C[0][1] : 0;
   const focused = await page.evaluate(s => document.activeElement === document.querySelector(s), sel);
   let maxStep = 0, rev = 0, dir = 0, moved = S.length ? Math.abs(S[S.length - 1][1] - S[0][1]) : 0, tJump = 0;
   /* per 60th of a second: a frame the test machine dropped is not a jump */
@@ -33,7 +35,7 @@ async function probe(page, model, name, sel, {tap = true, wait = 1100, native = 
   const end = S[S.length - 1] || [0, 0, 0], start = S[0] || [0, 0, 0];
   if (process.env.DUMP) console.log(name, model, S.filter((x, i) => !i || x[1] !== S[i - 1][1]).map(x => x[0] + ":" + x[1]).join(" "));
   /* a glide starts fast, so a big step is only a jump when it is most of the way at once */
-  results.push({name, model, focused, from: start[1], to: end[1], bottom: end[2], visible: native || (end[2] <= H - KB - 4 && end[1] >= 0), native, maxStep, tJump, rev, smooth: native || ((maxStep <= JUMP || maxStep <= moved * .3) && rev === 0)});
+  results.push({name, model, focused, from: start[1], to: end[1], bottom: end[2], visible: native || (end[2] <= H - KB - 4 && end[1] >= 0), native, maxStep, tJump, rev, drop, smooth: native || ((maxStep <= JUMP || maxStep <= moved * .3) && rev === 0 && drop <= 6)});
   await page.evaluate(() => { const a = document.activeElement; if (a && a.blur) a.blur(); }); await sleep(500);
 }
 const close = async page => { for (let i = 0; i < 4; i++){ const n = await page.locator(".dsheet [data-dclose]").count(); if (!n) break; await page.locator(".dsheet [data-dclose]").last().click({force: true}).catch(() => {}); await sleep(350); }
@@ -43,11 +45,15 @@ async function run(browser, model){
   await fetch(L.BASE + "/__fake/reset");
   /* a meal made of a food from the checked table, so it may be saved as a recipe */
   await L.stage("POST", "kcal_meals", "", {user_id: ID.tester, day: new Date().toLocaleDateString("sv"), title: "Nudeln Test", emoji: "🍝", source: "voice", kcal: 390, carbs: 77.2, protein: 13.6, fat: 1.6, items: [{name: "Nudeln", amount: "250 g gekocht", kcal: 390, carbs: 77.2, protein: 13.6, fat: 1.6, ref: "pasta", st: "cooked"}]});
+  /* and a long one: its sheet fills the whole screen */
+  await L.stage("POST", "kcal_meals", "", {user_id: ID.tester, day: new Date().toLocaleDateString("sv"), title: "Cookie-Trauben-Dessert", emoji: "🍨", source: "voice", kcal: 515, carbs: 49.6, protein: 7.7, fat: 33.2,
+    items: [["Mascarpone", "36 g", 140], ["Magerquark", "29 g", 20], ["Sahne", "36 ml (36 g)", 87], ["Zucker", "5,76 g", 23], ["Vanillezucker", "1 Päckchen (1,15 g)", 5], ["Grüne kernlose Trauben", "86 g", 60], ["Chocolate Chip Cookies", "36 g", 180]].map(([name, amount, kcal]) => ({name, amount, kcal, carbs: 5, protein: 1, fat: 4}))});
   const page = await L.open(browser, "tester", {before: [sim, model]});
   const P = (n, s, o) => probe(page, model, n, s, o), step = async (n, f) => { if (process.env.ONLY && !process.env.ONLY.split(",").some(x => n.includes(x))) return; try { await f(); } catch(e) { results.push({name: n, model, skip: String(e.message || e).split("\n")[0].slice(0, 90)}); } await close(page); };
   await step("Kalorien: Suche", async () => { await page.tap("#main [data-kc-find]"); await sleep(700); await P("Kalorien: Suche (Feld oben)", "#kcq"); await page.tap("#kcq"); await page.keyboard.type("milch"); await page.waitForSelector('.kc-sres:has-text("Weihenstephan")', {timeout: 6000}); await page.tap('.kc-sres:has-text("Weihenstephan")'); await sleep(600); await P("Suche: Gramm unter dem Treffer", ".kc-sadd input"); });
   await step("Selbst eintragen", async () => { await page.tap("#kcmanual"); await sleep(700); await P("Selbst eintragen: Was", "#kcmt"); await P("Selbst eintragen: kcal", '.dsheet [data-k="kcal"]'); await P("Selbst eintragen: Fett", '.dsheet [data-k="fat"]'); });
   await step("Eintrag", async () => { await page.locator("#main [data-meal]", {hasText: "Haferflocken"}).first().tap(); await sleep(600); await P("Eintrag: Davon gegessen", ".dsheet [data-tg]"); await P("Eintrag: Gramm einer Zutat", '.dsheet input[data-g="0"]'); await P("Eintrag: Gramm letzte Zutat", '.dsheet input[data-g="2"]'); });
+  await step("Eintrag lang", async () => { await page.locator("#main [data-meal]", {hasText: "Cookie"}).first().tap(); await sleep(600); await P("Langer Eintrag: Davon gegessen", ".dsheet [data-tg]"); await P("Langer Eintrag: Gramm 1. Zutat", '.dsheet input[data-g="0"]'); await P("Langer Eintrag: Gramm letzte Zutat", '.dsheet input[data-g="6"]'); });
   await step("Ändern", async () => { await page.locator("#main [data-meal]", {hasText: "Haferflocken"}).first().tap(); await sleep(500); await page.locator('.dsheet [data-it="0"]').tap(); await sleep(600); await P("Ändern: Was", "#kpn"); await P("Ändern: Menge", "#kpa"); await P("Ändern: kcal", '.dsheet [data-k="kcal"]'); });
   await step("Barcode", async () => { await page.tap("#main [data-kc-scan]"); await page.waitForSelector("#kccode", {timeout: 5000}); await sleep(500); await P("Barcode: Nummer eintippen", "#kccode"); await page.fill("#kccode", "4000000000079"); await page.locator("#kcman button").tap(); await page.waitForSelector("#kcg", {timeout: 5000}); await sleep(500); await P("Produkt: Gramm", "#kcg"); await P("Produkt: Portionen", "#kcn"); });
   await page.evaluate(() => document.querySelectorAll(".kc-ov-full").forEach(e => e.remove())); 
@@ -72,7 +78,7 @@ async function run(browser, model){
   const pad = (s, n) => String(s).padEnd(n).slice(0, n); let bad = 0;
   console.log(pad("Feld", 38) + pad("Tastatur", 9) + pad("von→nach", 11) + pad("sichtbar", 9) + pad("weich", 7) + "größter Sprung / Richtungswechsel");
   for (const r of results){ if (r.skip){ console.log(pad(r.name, 38) + pad(r.model, 9) + "– " + r.skip); continue; } if (!r.visible || !r.smooth) bad++;
-    console.log(pad(r.name, 38) + pad(r.model, 9) + pad(r.from + "→" + r.to, 11) + pad(r.native ? "iPhone" : r.visible ? "ja" : "NEIN " + r.bottom, 9) + pad(r.smooth ? "ja" : "NEIN", 7) + Math.round(r.maxStep) + " px" + (r.maxStep > JUMP ? " bei " + r.tJump + " ms" : "") + " / " + r.rev + (r.focused ? "" : "  (Fokus kam nicht an)")); }
+    console.log(pad(r.name, 38) + pad(r.model, 9) + pad(r.from + "→" + r.to, 11) + pad(r.native ? "iPhone" : r.visible ? "ja" : "NEIN " + r.bottom, 9) + pad(r.smooth ? "ja" : "NEIN", 7) + Math.round(r.maxStep) + " px" + (r.maxStep > JUMP ? " bei " + r.tJump + " ms" : "") + " / " + r.rev + (r.drop > 6 ? "  Blatt sackt " + r.drop + " px ab und kommt wieder hoch" : "") + (r.focused ? "" : "  (Fokus kam nicht an)")); }
   console.log("\n" + (results.filter(r => !r.skip).length - bad) + " von " + results.filter(r => !r.skip).length + " in Ordnung (Tastatur " + KB + " px, sichtbar = Feld endet darüber; weich = kein Sprung über " + JUMP + " px in einem Bild, kein Hin und Her)");
   process.exit(bad ? 1 : 0);
 })();

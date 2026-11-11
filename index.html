@@ -2199,7 +2199,7 @@ html.i18n-wait body{visibility:hidden}
 .onb-perm{display:flex;justify-content:center;gap:14px}.onb-perm .onb-bell{margin:0}.onb-perm .onb-bell.mic{animation-delay:.6s}.onb-perm .onb-bell:empty{display:none}
 
 /* sheets: the × stays at the top, Close stays at the bottom while the content scrolls */
-.dcard{position:relative;padding-top:0;transition:transform .2s}
+.dcard{position:relative;padding-top:0;transition:transform .2s,max-height .18s ease-out}
 .dtop{position:sticky;top:0;z-index:3;display:flex;justify-content:center;align-items:center;height:30px;margin:0 -16px 6px;background:var(--panel)}
 .dtop .grab{margin:0}
 .dx{position:absolute;right:10px;top:6px;width:32px;height:32px;border-radius:50%;border:0;display:grid;place-items:center;background:var(--panel-2);color:var(--muted);cursor:pointer}
@@ -2848,7 +2848,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794433861";
+const CHESSNAT_BUILD = "1794438813";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -3873,11 +3873,15 @@ function PuzzleRunner(board, hooks = {}){
       R.wrong.push({san: m.san, uci, expected: exp, fen: fenBefore});
       const first = !R.failed; R.failed = true; R.locked = true; R.refute = null; R.snap = true; board.cancelPremove && board.cancelPremove();
       hooks.onWrong && hooks.onWrong(R, first, m);
-      const p0 = R.p, fenAfter = R.g.fen(), delay = hooks.fast ? 500 : 800;
+      /* with the engine at hand the wrong move waits for its answer (at most 2.2 s); without it the board goes back at once as before */
+      const p0 = R.p, fenAfter = R.g.fen(), delay = hooks.fast ? 500 : !Engine.failed && !R.g.game_over() ? 2200 : 800;
       /* the engine's answer goes into the panel text; the board snaps back quickly, and touching the board snaps it back at once */
-      if (!hooks.fast && !Engine.failed && !R.g.game_over()) Engine.run({fen: fenAfter, depth: 8}).then(r => { if (!r || !r.best || R.p !== p0) return; R.refute = {played: m.san, reply: sanOf(fenAfter, r.best)}; hooks.onRefute && hooks.onRefute(R); });
+      if (!hooks.fast && !Engine.failed && !R.g.game_over()) Engine.run({fen: fenAfter, depth: 8}).then(r => { if (!r || !r.best || R.p !== p0) return; R.refute = {played: m.san, reply: sanOf(fenAfter, r.best)}; hooks.onRefute && hooks.onRefute(R);
+        /* show it on the board too: a red arrow for the opponent's answer, and the wrong move stays a moment longer so there is time to see it */
+        if (R.g.fen() === fenAfter && !R.done && (hooks.noRetry || R.pendingReset === back)){ board.setArrows([[r.best.slice(0, 2), r.best.slice(2, 4), "r"]]); clearTimeout(R.resetT); R.resetT = setTimeout(reset, 1700); } });
       const back = () => { if (R.p !== p0 || R.pendingReset !== back) return; R.pendingReset = null; R.snap = false; clearTimeout(R.resetT); if (R.g.fen() === fenAfter) R.g.undo(); const h = R.g.history({verbose: true}); const l = h[h.length - 1]; board.set(R.g, l ? {from: l.from, to: l.to} : null); board.mark({}); board.setArrows([]); if (!hooks.noRetry) R.locked = false; };
-      R.pendingReset = hooks.noRetry ? null : back; R.resetT = setTimeout(() => { if (hooks.noRetry){ if (R.p === p0){ R.g.undo(); const h = R.g.history({verbose: true}); const l = h[h.length - 1]; board.set(R.g, l ? {from: l.from, to: l.to} : null); board.mark({}); } } else back(); }, delay);
+      R.pendingReset = hooks.noRetry ? null : back; const reset = () => { if (hooks.noRetry){ if (R.p === p0 && R.g.fen() === fenAfter){ R.g.undo(); const h = R.g.history({verbose: true}); const l = h[h.length - 1]; board.set(R.g, l ? {from: l.from, to: l.to} : null); board.mark({}); board.setArrows([]); } } else back(); };
+      R.resetT = setTimeout(reset, delay);
     }
   };
   R.finish = () => {
@@ -8797,6 +8801,9 @@ function detailSheet(html, onClose){
     el.style.transform = vv.offsetTop ? `translateY(${vv.offsetTop}px)` : "";
     /* the card already made room for the keyboard by itself (see below): nothing more moves, whatever the iPhone reports later */
     if (el.classList.contains("kbf")){ kb0 = kb; return; }
+    /* the keyboard reports its height: the room underneath grows and the card's height shrinks at the same pace (both are animated the same
+       way in the styles), so the card's top edge stays put and its lower part simply disappears behind the keyboard. Shrinking the height
+       at once made a tall card collapse to the bottom and come up again, as if a new card rose from below */
     el.style.paddingBottom = kb > 60 ? kb + "px" : ""; el.classList.toggle("kb", kb > 60); if (card2) card2.style.maxHeight = kb > 60 ? (vv.height - 12) + "px" : "";
     const grew = kb > 60 && Math.abs(kb - kb0) > 40; kb0 = kb;
     const a = document.activeElement; if ((toField === true || grew) && kb > 60 && a && el.contains(a) && /INPUT|TEXTAREA/.test(a.tagName)) requestAnimationFrame(() => { try { a.scrollIntoView({block: "nearest"}); } catch(e) {} }); };
@@ -8810,13 +8817,22 @@ function detailSheet(html, onClose){
     /* already gliding: go on from where it is right now */
     if (glideA){ try { const m = new DOMMatrixReadOnly(getComputedStyle(c).transform); from += m.m42; } catch(e) {} try { glideA.cancel(); } catch(e) {} }
     glideA = c.animate([{transform: `translateY(${from}px)`}, {transform: "translateY(0)"}], {duration: 420, easing: "cubic-bezier(.22,1,.36,1)"}); glideA.onfinish = glideA.oncancel = () => { glideA = null; }; };
-  function unlift(){ if (!el.classList.contains("kbf")) return; const c = el.querySelector(".dcard"), ref = c && (c.children[1] || c), y0 = ref ? ref.getBoundingClientRect().top : 0;
-    el.classList.remove("kbf"); if (!c) return; c.style.paddingBottom = ""; if (top0 != null){ c.scrollTop = top0; top0 = null; } glide(c, y0 - ref.getBoundingClientRect().top); }
-  const lift = () => { const a = typing(), c = el.querySelector(".dcard"); if (done || !a || !c || el.classList.contains("kb")) return; const H = window.innerHeight, y0 = a.getBoundingClientRect().top;
+  /* Nothing may appear from somewhere: you always see the same card, and only what really changes place moves.
+     Two things can change when a field is tapped: the card's own edge (it grows when it gets room underneath) and how far its content
+     is scrolled. Each is animated as what it is: the edge glides, the content scrolls. (Before, the whole card was pushed down by the
+     full distance and slid back up. On a card that already fills the screen that looked like a second card coming up from below.) */
+  let scA = 0;
+  const scrollGlide = (c, to, then) => { cancelAnimationFrame(scA); const from = c.scrollTop, d = to - from;
+    if (Math.abs(d) < 2 || matchMedia("(prefers-reduced-motion:reduce)").matches){ c.scrollTop = to; if (then) then(); return; }
+    const t0 = performance.now(), D = 420, step = now => { const t = Math.min(1, (now - t0) / D); c.scrollTop = from + d * (1 - Math.pow(1 - t, 4)); if (t < 1) scA = requestAnimationFrame(step); else if (then) then(); }; scA = requestAnimationFrame(step); };
+  function unlift(){ if (!el.classList.contains("kbf")) return; const c = el.querySelector(".dcard"); if (!c){ el.classList.remove("kbf"); return; }
+    /* first the content scrolls back to where it was, then the card gives the room underneath back and its edge settles */
+    const back = top0; top0 = null; scrollGlide(c, back == null ? c.scrollTop : back, () => { if (done || typing()) return; const y0 = c.getBoundingClientRect().top; el.classList.remove("kbf"); c.style.paddingBottom = ""; if (back != null) c.scrollTop = back; glide(c, y0 - c.getBoundingClientRect().top); }); }
+  const lift = () => { const a = typing(), c = el.querySelector(".dcard"); if (done || !a || !c || el.classList.contains("kb")) return; const H = window.innerHeight, y0 = c.getBoundingClientRect().top;
     if (!el.classList.contains("kbf")){ if (a.getBoundingClientRect().bottom < H * .52) return; el.classList.add("kbf"); top0 = c.scrollTop; c.style.paddingBottom = Math.round(H * .44) + "px"; }
     /* as little as possible moves: the card stands on the keyboard, and it scrolls only as far as the field needs */
-    const r = a.getBoundingClientRect(); if (r.bottom > H * .52) c.scrollTop += r.bottom - H * .48; else if (r.top < 70) c.scrollTop += r.top - 96;
-    glide(c, y0 - a.getBoundingClientRect().top); };
+    const r = a.getBoundingClientRect(), s0 = c.scrollTop, s1 = r.bottom > H * .52 ? s0 + r.bottom - H * .48 : r.top < 70 ? s0 + r.top - 96 : s0;
+    glide(c, y0 - c.getBoundingClientRect().top); scrollGlide(c, s1); };
   if (IOS){ el.addEventListener("focusin", () => { clearTimeout(liftT); liftT = setTimeout(lift, 30); });
     el.addEventListener("focusout", () => { clearTimeout(liftT); liftT = setTimeout(() => { if (!done && !typing()) unlift(); }, 140); }); }
   const onVV = () => kbFit(false);
