@@ -1052,9 +1052,10 @@
       el.innerHTML = `<div class="unit kc-sum">${sumHTML(t, false)}
         <div class="kc-btns two"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 32)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 32)}<span>Barcode</span></button></div>
         <button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Lebensmittel suchen …</span></button>
-        ${setupCard()}${quickHTML()}</div>
+        ${setupCard()}</div>
         <div class="kc-lh"><span>Heute</span>${heads()}</div>${this.dayBlock(t)}
-        <button class="kc-link" id="kcmanual">${svg(IC.plus, 15)} Selbst eintragen</button>`;
+        <button class="kc-link" id="kcmanual">${svg(IC.plus, 15)} Selbst eintragen</button>
+        ${(q => q ? `<div class="unit kc-sum kc-sugg">${q}</div>` : "")(quickHTML())}`;
       wireDay(el); animSum(el); el.querySelector("#kcmanual").onclick = () => manual();
       this.wireMeals(el);
     },
@@ -1176,7 +1177,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-mc span{font:800 11.5px var(--body);color:var(--muted);letter-spacing:.02em}.kc-mc b{font:900 17px var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kc-mc b small{font:800 11.5px var(--body);color:var(--muted)}
 .kc-mc i{display:block;height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}.kc-mc u{display:block;height:100%;border-radius:3px;background:var(--go);transition:width .4s}.kc-mc.ok u{background:linear-gradient(90deg,#FFD15C,#ff9a3c)}
 .kc-sbar{display:flex;align-items:center;gap:10px;width:100%;padding:13px 14px;border-radius:16px;border:2px solid var(--line);background:var(--panel-2);color:var(--muted);font:800 16px var(--body);cursor:text;text-align:left;-webkit-tap-highlight-color:transparent}.kc-sbar:active{border-color:var(--go)}
-.kc-quick{display:flex;flex-direction:column;gap:6px}.kc-qh{font:900 12px var(--body);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin:2px 2px 0}
+.kc-quick{display:flex;flex-direction:column;gap:6px}.kc-sugg{margin-top:16px}.kc-qh{font:900 12px var(--body);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin:2px 2px 0}
 .kc-q{display:flex;align-items:center;gap:10px;width:100%;padding:8px 8px 8px 12px;border-radius:14px;border:0;background:var(--panel-2);color:var(--fg);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}.kc-q:active{transform:scale(.98)}
 .kc-qe{font-size:24px}.kc-qn{flex:1;min-width:0;display:flex;flex-direction:column;font:800 15px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kc-qn small{color:var(--muted);font-weight:700;font-size:12px}
 .kc-q em{width:38px;height:38px;border-radius:12px;background:var(--go);color:#fff;display:grid;place-items:center;flex:none;box-shadow:inset 0 -3px 0 var(--go-deep)}.kc-q.ok em{background:#ffb84d}
