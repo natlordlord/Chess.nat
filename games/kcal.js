@@ -486,7 +486,7 @@
       const pick = async (P, b) => { if (busy) return; haptic(10);
         if (b.classList.contains("open")){ b.classList.remove("open"); const nx = b.nextElementSibling; if (nx && nx.classList.contains("kc-sadd")) nx.remove(); return; }
         busy = 1; b.classList.add("load");
-        if (P.code && !P.serving && !P.ss){ const full = await Promise.race([offGet(P.code, 3000), new Promise(r => setTimeout(r, 3200))]); if (full){ const F = prodOf(P.code, full); P = Object.assign({}, P, {serving: F.serving || P.serving, pack: F.pack || P.pack, img: P.img || F.img, ss: F.ss || P.ss || ""}); } }
+        if (P.code && !P.serving && !P.ss && !unitOf(P)){ const full = await Promise.race([offGet(P.code, 3000), new Promise(r => setTimeout(r, 3200))]); if (full){ const F = prodOf(P.code, full); P = Object.assign({}, P, {serving: F.serving || P.serving, pack: F.pack || P.pack, img: P.img || F.img, ss: F.ss || P.ss || ""}); } }
         busy = 0; b.classList.remove("load"); if (closed) return;
         if (opt.pick){ close(); opt.pick(P); return; }
         out.querySelectorAll(".kc-sres.open").forEach(x => { x.classList.remove("open"); const nx = x.nextElementSibling; if (nx && nx.classList.contains("kc-sadd")) nx.remove(); });
