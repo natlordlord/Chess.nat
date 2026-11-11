@@ -2799,7 +2799,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794370152";
+const CHESSNAT_BUILD = "1794370313";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11146,6 +11146,7 @@ Views.local = {
 
 /* ===== Icons (own line set) ===== */
 const ICONS = {
+  star: `<path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8 6.6 19.7l1.1-6.1-4.5-4.2 6.1-.8z"/>`,
   ball: `<circle cx="12" cy="12" r="9"/><path d="M12 7.2l3.6 2.6-1.4 4.2H9.8L8.4 9.8z"/><path d="M12 7.2V3M15.6 9.8l4-1.3M14.2 14l2.5 3.4M9.8 14l-2.5 3.4M8.4 9.8l-4-1.3"/>`,
   lock: `<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>`,
   coin: `<circle cx="12" cy="12" r="9"/><path d="M9.5 15.5v-7l5 7v-7"/>`,
@@ -11525,13 +11526,18 @@ Views.me = {
       <div class="tiles"><button class="tile" data-go="repertoire">${icon("scroll", 36)}<h3>Your openings</h3><p>The repertoire that fits your style, with a drill.</p></button><button class="tile" data-go="profile">${icon("target", 36)}<h3>Play style</h3><p>Your strengths, weak spots and opening repertoire.</p></button>
         ${window.ChessInstall && ChessInstall.can() ? `<button class="tile" id="meinst">${icon("download", 36)}<h3>Get the app</h3><p>On your home screen, full screen, with notifications. iPhone and Android.</p></button>` : ""}
         <button class="tile" data-go="stats">${icon("chart", 36)}<h3>Stats</h3><p>Rating history and puzzle themes.</p></button>
-        <button class="tile" data-go="friends" data-tab="cages">${icon("cage", 36)}<h3>Cages</h3><p>${caughtBots().length} bots caught.</p></button></div>
+        <button class="tile" data-go="friends" data-tab="cages">${icon("cage", 36)}<h3>Cages</h3><p>${caughtBots().length} bots caught.</p></button>
+        ${(() => { const de = I18N.lang === "de", st = (typeof PG !== "undefined" && PG.st) || {}, w = st.nsWins || 0, k = st.nsKills || 0, tp = window.Tipp && Tipp.loaded ? (Tipp.tips || []) : null, op = tp ? tp.filter(t => t.status === "open").length : 0, wn = tp ? tp.filter(t => t.status === "won").length : 0;
+          /* the other two big games next to chess: your own numbers at a glance */
+          return `<button class="tile" id="mens" data-notr>${icon("star", 36)}<h3>Nat Stars</h3><p>${w || k ? `🏆 ${w} ${de ? (w === 1 ? "Sieg" : "Siege") : (w === 1 ? "win" : "wins")}${k ? ` · 💀 ${k} K.o.` : ""}` : de ? "Wie Brawl Stars: ballern, verstecken, gewinnen." : "Like Brawl Stars: shoot, hide, win."}</p></button>`
+            + `<button class="tile" data-go="tipp" data-notr>${icon("ball", 36)}<h3>${de ? "Tippspiel" : "Tipping"}</h3><p>${tp && (op || wn) ? `${op} ${de ? "offen" : "open"} · ${wn} ${de ? "gewonnen" : "won"}` : de ? "Bundesliga, Bayern, UFC tippen." : "Tip Bundesliga, Bayern, UFC."}</p></button>`; })()}</div>
       ${window.ChessSite && ChessSite.getSession && ChessSite.getSession() ? `<div class="me-out"><span class="muted" data-notr>${esc(ChessSite.getSession().user.email || "")}</span><button class="btn" id="meout">${icon("xmark", 16)} Sign out</button></div>` : ""}
     </div>`;
     this.stage = heroStage($("#mest"), av, {tier}); $("#mest").insertAdjacentHTML("beforeend", `<span class="me-dress">${icon("user", 14)} Wardrobe</span>`);
     /* tap your figure: straight into the wardrobe (a drag only turns it) */
     { const st = $("#mest"); let x0 = 0, y0 = 0; st.addEventListener("pointerdown", e => { x0 = e.clientX; y0 = e.clientY; }); st.onclick = e => { if (Math.hypot(e.clientX - x0, e.clientY - y0) > 8) return; App.go("awards", {tab: "wardrobe"}); }; }
     $$("[data-go]", main).forEach(b => b.onclick = () => App.go(b.dataset.go, b.dataset.tab ? {tab: b.dataset.tab} : undefined));
+    { const ns = $("#mens", main); if (ns) ns.onclick = () => App.go("party", {g: "arena"}); }
     { const kb = $("#meknife", main); if (kb) kb.onclick = () => knifeInspect(natItem(S.knife)); }
     if ($("#metitle")) $("#metitle").onclick = () => titleSheet(() => this.mount(main));
     if ($("#melv")) $("#melv").onclick = () => levelSheet();
@@ -11559,7 +11565,7 @@ Views.me = {
       save(); natApplyBoard(); this.designs(); });
     el.querySelectorAll("[data-dshop]").forEach(b => b.onclick = () => App.go("shop", {tab: "coll"}));
   },
-  push(){ const el = $("#mepush"); if (!el || typeof Push === "undefined") return; el.innerHTML = `<h2 class="h-sec" style="margin-top:18px">Notifications</h2>${Push.card()}`; Push.wire(el, () => this.push()); },
+  push(){ const el = $("#mepush"); if (!el || typeof Push === "undefined") return; el.innerHTML = `<h2 class="h-sec" style="margin-top:18px">Notifications</h2>${Push.card()}`; const ph = el.querySelector(".pushcard h3"); if (ph) ph.hidden = true; /* the section title already says it */ Push.wire(el, () => this.push()); },
   async friends(){
     const el = $("#mefr"); if (!el || typeof Social === "undefined") return;
     const site = window.ChessSite; if (!site || !site.ready) return; await site.sessionReady; if (!site.getSession()) return;
@@ -14357,18 +14363,18 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=96"></script>
-<script src="games/imposter.js?v=96"></script>
-<script src="games/werwolf.js?v=96"></script>
-<script src="games/cards.js?v=96"></script>
-<script src="games/heads.js?v=96"></script>
-<script src="games/more.js?v=96"></script>
-<script src="games/net.js?v=96"></script>
-<script src="games/online.js?v=96"></script>
-<script src="games/natposter.js?v=96"></script>
-<script src="games/arena.js?v=96"></script>
-<script src="games/tipp.js?v=96"></script>
-<script src="games/kcal.js?v=96"></script>
+<script src="games/core.js?v=97"></script>
+<script src="games/imposter.js?v=97"></script>
+<script src="games/werwolf.js?v=97"></script>
+<script src="games/cards.js?v=97"></script>
+<script src="games/heads.js?v=97"></script>
+<script src="games/more.js?v=97"></script>
+<script src="games/net.js?v=97"></script>
+<script src="games/online.js?v=97"></script>
+<script src="games/natposter.js?v=97"></script>
+<script src="games/arena.js?v=97"></script>
+<script src="games/tipp.js?v=97"></script>
+<script src="games/kcal.js?v=97"></script>
 <script>boot();</script>
 </body>
 </html>
