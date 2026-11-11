@@ -485,8 +485,10 @@
     if (l && t <= l.t && b.length) return; b.push({t, x, y}); if (b.length > 10) b.shift(); p.a = a; p.f = f || 1; p.mv = !!mv; p.t = now(); }
 
   const Q = {n: 0, sum: 0, d0: 0};
-  function quality(dt){ const NP = NPo(); if (!NP.cv || !C.A || C.A.ph !== "fight" || now() - C.fightT0 < 2000) { Q.n = Q.sum = 0; return; } Q.sum += dt; if (++Q.n < 90) return; const avg = Q.sum / Q.n; Q.n = Q.sum = 0;
-    if (avg > 1 / 45 && NP.dpr > 1.05){ const w = NP.cv.width / NP.dpr, h = NP.cv.height / NP.dpr, d = Math.max(1, Math.round((NP.dpr - .34) * 100) / 100); if (!Q.d0) Q.d0 = NP.dpr; NP.cv.width = Math.round(w * d); NP.cv.height = Math.round(h * d); NP.dpr = d; } }
+  function quality(dt){ const NP = NPo(); if (!NP.cv || !C.A || C.A.ph !== "fight" || now() - C.fightT0 < 2000) { Q.n = Q.sum = 0; return; } Q.sum += dt; if (++Q.n < 60) return; const avg = Q.sum / Q.n; Q.n = Q.sum = 0;
+    /* big screens (tablets) may go a little below 1:1, the picture stays sharp enough and it runs smooth */
+    const w0 = NP.cv.width / NP.dpr, h0 = NP.cv.height / NP.dpr, floor = w0 * h0 > 5e5 ? .75 : 1;
+    if (avg > 1 / 45 && NP.dpr > floor + .05){ const w = w0, h = h0, d = Math.max(floor, Math.round((NP.dpr - .34) * 100) / 100); if (!Q.d0) Q.d0 = NP.dpr; NP.cv.width = Math.round(w * d); NP.cv.height = Math.round(h * d); NP.dpr = d; } }
   function step(dt){
     if (!C.A) return; quality(dt); const A = C.A, t = now(), el = t - C.fightT0, gr = A.ph === "fight" ? gasR(el) : 99999;
     if (fighting()){ const cl = CLS[C.cls]; let ix = 0, iy = 0;
