@@ -329,7 +329,9 @@
     pickDraw(true);
   }
   function leaveLayer(){ if (C.on) try { Focus.set(false); } catch(e) {} C.on = false; const NP = NPo(); if (NP && NP.el) NP.el.classList.remove("arena"); if (Q.d0 && NP && NP.rs){ Q.d0 = 0; try { NP.rs(); } catch(e) {} } if (C.L){ C.L.remove(); C.L = null; } C.moveP = C.aimP = C.supP = null; }
-  function banner(txt, cls){ C.ban = {txt, cls, t: now()}; const b = C.L && C.L.querySelector(".ar-ban"); if (b){ b.className = "ar-ban on " + (cls || ""); b.innerHTML = txt; b.style.animation = "none"; void b.offsetWidth; b.style.animation = ""; } }
+  function banner(txt, cls){ C.ban = {txt, cls, t: now()}; const b = C.L && C.L.querySelector(".ar-ban"); if (b){ b.className = "ar-ban on " + (cls || ""); b.innerHTML = txt; b.style.animation = "none"; void b.offsetWidth; b.style.animation = ""; }
+    /* the top hint sits where the banner shows: step aside while it plays */
+    const tp = C.L && C.L.querySelector(".ar-tip"); if (tp){ tp.classList.add("ban"); clearTimeout(C.banT); C.banT = setTimeout(() => tp.classList.remove("ban"), 1900); } }
   function wire(L){
     const gw = () => NPo().el.offsetWidth, LOC = N().LOC, joy = L.querySelector(".ar-joy"), knob = joy.firstChild, fb = L.querySelector(".ar-fire"), fk = fb.firstChild, sb = L.querySelector(".ar-sup"), sk = sb.firstChild;
     const emb = L.querySelector(".ar-emb"), emp = L.querySelector(".ar-emp");
@@ -728,8 +730,8 @@
 @keyframes arPulse{50%{transform:scale(1.08)}}
 .ar-feed{position:absolute;top:calc(var(--st,0px) + 62px);right:calc(var(--sr,0px) + 12px);display:flex;flex-direction:column;gap:4px;align-items:flex-end;pointer-events:none}
 .ar-feed div{background:rgba(20,19,17,.72);border-radius:10px;padding:3px 9px;font:700 13px var(--body);color:#ddd}.ar-feed b{color:#fff}
-.ar-ban{position:absolute;left:0;right:0;top:30%;text-align:center;pointer-events:none;font:900 56px var(--display);color:#fff;text-shadow:0 5px 0 rgba(0,0,0,.35);opacity:0;display:flex;flex-direction:column;align-items:center}
-.ar-ban small{font:800 20px var(--body);opacity:.85;margin-top:4px}
+.ar-ban{position:absolute;left:0;right:0;top:max(calc(var(--st,0px) + 58px),14%);text-align:center;pointer-events:none;font:900 clamp(32px,min(10vh,10vw),56px) var(--display);color:#fff;text-shadow:0 5px 0 rgba(0,0,0,.35);opacity:0;display:flex;flex-direction:column;align-items:center}
+.ar-ban small{font:800 clamp(15px,min(4.4vh,4.4vw),20px) var(--body);margin-top:2px;text-shadow:0 2px 0 rgba(0,0,0,.45)}
 .ar-ban.on{animation:arBan 1.8s ease-out forwards}.ar-ban.go{color:#9BE25A}.ar-ban.out{color:#ff7a66}.ar-ban.win{color:#FFD15C}
 @keyframes arBan{0%{opacity:0;transform:scale(1.6)}12%{opacity:1;transform:scale(1)}75%{opacity:1}100%{opacity:0;transform:translateY(-20px)}}
 .ar-pick{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(6,7,12,.82);padding:calc(var(--st,0px) + 10px) calc(var(--sr,0px) + 10px) calc(var(--sb,0px) + 10px) calc(var(--sl,0px) + 10px)}
@@ -758,7 +760,7 @@
 .ar-tip .t-mv{left:calc(var(--sl,0px) + 24px);bottom:calc(var(--sb,0px) + 120px)}
 .ar-tip .t-fire{right:calc(var(--sr,0px) + 18px);bottom:calc(var(--sb,0px) + 156px)}
 .ar-tip .t-sup{right:calc(var(--sr,0px) + 120px);bottom:calc(var(--sb,0px) + 112px);background:#FFD15C}
-.ar-tip .t-fog{left:50%;top:calc(var(--st,0px) + 70px);transform:translateX(-50%);white-space:nowrap}
+.ar-tip .t-fog{left:50%;top:calc(var(--st,0px) + 70px);transform:translateX(-50%);white-space:nowrap}.ar-tip.ban .t-fog{opacity:0;transition:opacity .2s}
 .ar-tip.on span{animation:arTip 1.4s ease-in-out infinite alternate}@keyframes arTip{to{translate:0 -5px}}
 .ar-emb{position:absolute;top:calc(var(--st,0px) + 12px);right:calc(var(--sr,0px) + 12px);width:44px;height:44px;border-radius:14px;border:0;background:rgba(20,19,17,.8);font-size:24px;z-index:2}
 .ar-emp{position:absolute;top:calc(var(--st,0px) + 62px);right:calc(var(--sr,0px) + 12px);display:none;grid-template-columns:repeat(4,46px);gap:6px;padding:8px;border-radius:16px;background:rgba(20,19,17,.92);z-index:3}.ar-emp.on{display:grid}
