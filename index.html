@@ -2825,15 +2825,9 @@ select:focus,input:not([type=range]):not([type=checkbox]):not([type=radio]):focu
 @keyframes pageIn{from{opacity:0}}
 h1.h-title{letter-spacing:-.02em}
 @media (max-width:900px){
-  /* the tab bar: frosted, and the tab you are on sits in a soft pill that pops when you tap */
-  .tabbar{background:color-mix(in srgb,var(--rail) 86%,transparent);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border-top:1px solid var(--hair)}
-  .tabbar button svg{transition:transform .22s var(--spring),color .15s}
-  .tabbar button::before{content:"";position:absolute;top:5px;left:50%;width:52px;height:30px;margin-left:-26px;border-radius:15px;background:rgba(143,196,88,.14);opacity:0;transform:scale(.6);transition:opacity .18s,transform .22s var(--spring);pointer-events:none}
-  .tabbar button.on::before{opacity:1;transform:none}
-  .tabbar button.on svg{transform:translateY(-1px) scale(1.06)}
-  .tabbar button:active svg{transform:scale(.86)}
-  .tabbar button>*{position:relative}
-  .tabbar .dot{position:absolute}
+  /* the tab bar stays solid and calm; the icon just gives a little when you tap it */
+  .tabbar button svg{transition:transform .18s var(--ease),color .15s}
+  .tabbar button:active svg{transform:scale(.88)}
 }
 @media (hover:hover) and (pointer:fine){.tile:hover{transform:translateY(-2px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.11),0 8px 22px rgba(0,0,0,.25)}.tile:active{transform:scale(.985)}}
 @media (prefers-reduced-motion:reduce){#main>.page,#main>.stage,.toast{animation:none!important}}
@@ -2845,7 +2839,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794416048";
+const CHESSNAT_BUILD = "1794417077";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
