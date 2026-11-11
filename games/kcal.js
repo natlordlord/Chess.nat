@@ -182,7 +182,7 @@
       <div class="kc-btns two"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 32)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 32)}<span>Barcode</span></button></div>
       <button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Lebensmittel suchen …</span></button>
       ${setupCard()}${quickHTML()}${tip}`;
-    wireDay(el);
+    wireDay(el); animSum(el);
     if (K.loaded){ Weigh.check(); Wrap.check(); }
   }
   window.homeKcal = async el => {
@@ -314,8 +314,8 @@
 
   /* ---------- the day at a glance: the two that matter most, big, against their targets ---------- */
   function sumHTML(t, go){ const T = K.targets(), S = shows(), top = S.slice(0, 2), rest = S.slice(2), v = k => k === "kcal" ? K.dayKcal(t) : K.daySum(t, k), pc = k => Math.round(Math.min(1, v(k) / (T[k] || 1)) * 100);
-    const box = k => { const ok = v(k) >= T[k]; return `<div class="kc-b2 ${NUT[k].c} ${ok ? "ok" : ""}"><small>${NUT[k].l}${k === "kcal" && ok ? " 🔥" : ""}</small><b>${fmt(v(k))}<em> / ${fmt(T[k])}${k === "kcal" ? "" : " g"}</em></b><i><u style="width:${pc(k)}%"></u></i></div>`; };
-    const small = k => `<span class="${v(k) >= T[k] ? "ok" : ""}">${NUT[k].l} <b>${fmt(v(k))}</b> / ${fmt(T[k])}${k === "kcal" ? " kcal" : " g"}<i><u style="width:${pc(k)}%"></u></i></span>`;
+    const box = k => { const ok = v(k) >= T[k]; return `<div class="kc-b2 ${NUT[k].c} ${ok ? "ok" : ""}"><small>${NUT[k].l}${k === "kcal" && ok ? " 🔥" : ""}</small><b><span data-cnt="${k}" data-v="${Math.round(v(k))}">${fmt(v(k))}</span><em> / ${fmt(T[k])}${k === "kcal" ? "" : " g"}</em></b><i><u data-bar="${k}" style="width:${pc(k)}%"></u></i></div>`; };
+    const small = k => `<span class="${v(k) >= T[k] ? "ok" : ""}">${NUT[k].l} <b data-cnt="${k}" data-v="${Math.round(v(k))}">${fmt(v(k))}</b> / ${fmt(T[k])}${k === "kcal" ? " kcal" : " g"}<i><u data-bar="${k}" style="width:${pc(k)}%"></u></i></span>`;
     return `<div class="kc-two ${top.length < 2 ? "one" : ""}" ${go ? "data-kc-go" : ""}>${top.map(box).join("")}</div>${rest.length ? `<div class="kc-pf">${rest.map(small).join("")}</div>` : ""}`; }
   /* ---------- suggestions: what's pinned first, then what is eaten again and again; + adds it once more, a tap on the row shows it ---------- */
   const keyOf = m => { const it = Array.isArray(m.items) && m.items.length === 1 ? m.items[0] : null; return m.code || (it && it.code) || String(m.title || "").toLowerCase().trim(); };
@@ -535,6 +535,16 @@
     return K.update(m.id, {items: parts, kcal: Math.round(sum("kcal")), carbs: r1(sum("carbs")), protein: r1(sum("protein")), fat: r1(sum("fat")), title: String(title || m.title || "Mahlzeit").slice(0, 120), grams: one && one.g ? Math.round(one.g) : null, code: (one && one.code) || null}); }
   const scalePart = (i, f) => { const o = Object.assign({}, i, {kcal: Math.round((Number(i.kcal) || 0) * f), carbs: r1(i.carbs * f), protein: r1(i.protein * f), fat: r1(i.fat * f)});
     if (i.per && i.g){ o.g = Math.round(i.g * f * 10) / 10; o.amount = amtText(perP(i), o.g); } else o.amount = (i.amount || "") + ` ×${nf(f, 2)}`; return o; };
+  /* a number that travels to its new value instead of jumping: counts up or down and nudges in that direction, tinted for a moment */
+  function tweenNum(el, to, show, dur = 520){ if (!el) return; to = Number(to) || 0; const from = el._cur != null ? el._cur : el._v != null ? el._v : to; el._v = to; cancelAnimationFrame(el._raf);
+    if (Math.abs(from - to) < 1e-9 || matchMedia("(prefers-reduced-motion:reduce)").matches){ el._cur = to; el.textContent = show(to); return; }
+    el.classList.remove("kc-up", "kc-dn"); void el.offsetWidth; el.classList.add(to > from ? "kc-up" : "kc-dn"); const t0 = performance.now();
+    const step = t => { const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3); el._cur = from + (to - from) * e; el.textContent = show(el._cur); if (k < 1) el._raf = requestAnimationFrame(step); else { el._cur = to; el.textContent = show(to); } };
+    el._raf = requestAnimationFrame(step); }
+  /* the day's boxes: after a redraw the numbers and bars run from what stood there before to what is true now */
+  const SUMV = {};
+  function animSum(root){ if (!root) return; root.querySelectorAll("[data-cnt]").forEach(el => { const k = el.dataset.cnt, to = Number(el.dataset.v) || 0, was = SUMV[k]; SUMV[k] = to; if (was == null || was === to) return; el._v = was; el.textContent = fmt(Math.round(was)); tweenNum(el, to, x => fmt(Math.round(x)), 700); });
+    root.querySelectorAll("[data-bar]").forEach(u => { const k = "b" + u.dataset.bar, to = u.style.width, was = SUMV[k]; SUMV[k] = to; if (was == null || was === to) return; u.style.transition = "none"; u.style.width = was; void u.offsetWidth; u.style.transition = "width .7s cubic-bezier(.22,1,.36,1)"; u.style.width = to; }); }
   /* the weight or volume in a part: from its text ("2 Scheiben (80 g)", "0,5 l") or, without one, its stored grams */
   const amtOf = i => { const m = /(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l)\b/i.exec(String(i.amount || "")); if (m) return {v: num(m[1]), u: m[2].toLowerCase(), m: m[0]}; return Number(i.g) > 0 ? {v: Number(i.g), u: "g", m: ""} : null; };
   /* the same part with another weight: calories, carbs, protein and fat follow, the text shows the new number */
@@ -545,9 +555,9 @@
   function mealSheet(m, own = true){
     const items = own ? partsOf(m) : (Array.isArray(m.items) ? m.items : []);
     const sh = detailSheet(`<div class="kc-ms" data-notr><div class="kc-mh"><span class="kc-me">${h(m.emoji || "🍽️")}</span><div><div class="kc-mt">${h(m.title)}</div><div class="muted">${dayLabel(m.day)}, ${hhmm(m.ts)}${m.source === "barcode" ? " · Barcode" : m.source === "search" ? " · Suche" : m.source === "voice" ? " · gesprochen" : ""}</div></div>${own ? pinHTML(m) : ""}</div>
-      <div class="kc-mk"><b>${fmt(m.kcal)}</b> kcal</div>
-      <div class="kc-macros"><span><b>${f1(m.carbs)} g</b>KH</span><span><b>${f1(m.protein)} g</b>Protein</span><span><b>${f1(m.fat)} g</b>Fett</span></div>
-      ${items.length ? `${own ? `<div class="kc-ih muted">Menge antippen und neu eintippen, alles rechnet mit</div>` : ""}<div class="kc-items">${items.map((i, ix) => { const a = own && amtOf(i); return own ? `<div class="kc-irow"><button data-it="${ix}"><span>${h(i.name)}<small>${h(i.amount || "")}</small></span><b>${fmt(i.kcal)} kcal</b>${a ? "" : `<em>${svg(IC.pen, 15)}</em>`}</button>${a ? `<label class="kc-gi"><input data-g="${ix}" inputmode="decimal" enterkeyhint="done" value="${nf(a.v, a.v < 10 ? 2 : 0)}" aria-label="Menge"><i>${a.u}</i></label>` : ""}</div>` : `<div><span>${h(i.name)}<small>${h(i.amount || "")}</small></span><b>${fmt(i.kcal)} kcal</b></div>`; }).join("")}</div>` : ""}
+      <div class="kc-mk"><b data-t="kcal">${fmt(m.kcal)}</b> kcal</div>
+      <div class="kc-macros"><span><b data-t="carbs">${f1(m.carbs)} g</b>KH</span><span><b data-t="protein">${f1(m.protein)} g</b>Protein</span><span><b data-t="fat">${f1(m.fat)} g</b>Fett</span></div>
+      ${items.length ? `${own ? `<div class="kc-ih muted">Menge antippen und neu eintippen, alles rechnet mit</div>` : ""}<div class="kc-items">${items.map((i, ix) => { const a = own && amtOf(i); return own ? `<div class="kc-irow"><button data-it="${ix}"><span>${h(i.name)}<small data-ra="${ix}">${h(i.amount || "")}</small></span><b data-rk="${ix}">${fmt(i.kcal)} kcal</b>${a ? "" : `<em>${svg(IC.pen, 15)}</em>`}</button>${a ? `<label class="kc-gi"><input data-g="${ix}" inputmode="decimal" enterkeyhint="done" value="${nf(a.v, a.v < 10 ? 2 : 0)}" aria-label="Menge"><i>${a.u}</i></label>` : ""}</div>` : `<div><span>${h(i.name)}<small>${h(i.amount || "")}</small></span><b>${fmt(i.kcal)} kcal</b></div>`; }).join("")}</div>` : ""}
       ${own && items.length ? `<button class="kc-roundb" data-round>${svg(IC.code, 22)}<b>Packungen scannen<small>Für genaue Werte: alles scannen, was du gegessen hast, in beliebiger Reihenfolge</small></b></button>` : ""}
       ${own ? `<button class="btn ghost kc-man-b" data-it="-1">${svg(IC.plus, 16)} Etwas dazu</button>` : ""}
       ${m.said ? `<p class="muted kc-said">„${h(m.said)}“</p>` : ""}${m.note ? `<p class="muted kc-said">${h(m.note)}</p>` : ""}
@@ -556,11 +566,17 @@
     if (!own) return sh;
     wirePin(sh.el, m);
     sh.el.querySelectorAll("[data-it]").forEach(b => b.onclick = () => { haptic(8); sh.close(); partSheet(m, +b.dataset.it); });
-    /* a new weight typed into the row: everything is recalculated and saved at once */
-    sh.el.querySelectorAll("[data-g]").forEach(inp => { field(inp); let busy = false; const go = async () => { if (busy) return; const ps = partsOf(m), ix = +inp.dataset.g, a = amtOf(ps[ix]), v = num(inp.value);
-        if (!a || !isFinite(v) || v <= 0){ if (a) inp.value = nf(a.v, a.v < 10 ? 2 : 0); return; } if (Math.abs(v - a.v) < 1e-6) return; busy = true;
-        try { ps[ix] = regram(ps[ix], v); const nm = await saveParts(m, ps); haptic(12); sh.close(); mealSheet(nm); } catch(e) { busy = false; inp.value = nf(a.v, a.v < 10 ? 2 : 0); say("Ging nicht: " + (e.message || e)); } };
-      inp.addEventListener("change", go); inp.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); inp.blur(); } }); });
+    /* a new weight typed into the row: with every digit the numbers travel to their new values (5 → way down, 500 → way up);
+       leaving the field or OK saves it, the sheet stays as it is */
+    { const E = sh.el, q = x => E.querySelector(x), SH = {kcal: x => fmt(Math.round(x)), carbs: x => f1(x) + " g", protein: x => f1(x) + " g", fat: x => f1(x) + " g"};
+      const prime = () => { const ps = partsOf(m), T = sumOf(ps); Object.keys(SH).forEach(k => { const el = q(`[data-t="${k}"]`); if (el) el._v = el._cur = T[k]; }); ps.forEach((i, ix) => { const el = q(`[data-rk="${ix}"]`); if (el) el._v = el._cur = Number(i.kcal) || 0; }); }; prime();
+      const paint = ps => { const T = sumOf(ps); Object.keys(SH).forEach(k => tweenNum(q(`[data-t="${k}"]`), T[k], SH[k])); ps.forEach((i, ix) => { tweenNum(q(`[data-rk="${ix}"]`), i.kcal, x => fmt(Math.round(x)) + " kcal"); const a = q(`[data-ra="${ix}"]`); if (a && a.textContent !== (i.amount || "")) a.textContent = i.amount || ""; }); };
+      E.querySelectorAll("[data-g]").forEach(inp => { field(inp); let busy = false, next = null;
+        const preview = () => { const ps = partsOf(m), ix = +inp.dataset.g, a = amtOf(ps[ix]), v = num(inp.value); if (!a) return null; if (!isFinite(v) || v <= 0) return null; ps[ix] = regram(ps[ix], v); return ps; };
+        inp.addEventListener("input", () => { const ps = preview(); if (ps){ next = ps; paint(ps); } });
+        const go = async () => { const a = amtOf(partsOf(m)[+inp.dataset.g]); if (!next){ if (a) inp.value = nf(a.v, a.v < 10 ? 2 : 0); paint(partsOf(m)); return; } if (busy) return; busy = true; const ps = next; next = null;
+          try { m = await saveParts(m, ps); haptic(12); } catch(e) { if (a) inp.value = nf(a.v, a.v < 10 ? 2 : 0); paint(partsOf(m)); say("Ging nicht: " + (e.message || e)); } busy = false; if (next) go(); };
+        inp.addEventListener("change", go); inp.addEventListener("blur", () => { if (next) go(); }); inp.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); inp.blur(); } }); }); }
     const rb = sh.el.querySelector("[data-round]"); if (rb) rb.onclick = () => { haptic(10); sh.close(); KCScan.open({round: m}); };
     sh.el.querySelectorAll("[data-f]").forEach(b => b.onclick = async () => { try { const nm = await saveParts(m, partsOf(m).map(i => scalePart(i, +b.dataset.f))); sh.close(); mealSheet(nm); } catch(e) { say("Ging nicht: " + (e.message || e)); } });
     const del = sh.el.querySelector("[data-kc-del]"); del.onclick = async () => { if (!del.dataset.armed){ del.dataset.armed = 1; del.textContent = "Wirklich löschen?"; return; }
@@ -588,10 +604,13 @@
     const fill = () => { el.querySelector("#kpa").value = w.amount || ""; ins.forEach(i => { i.value = nf(w[i.dataset.k] || 0, i.dataset.k === "kcal" ? 0 : 1); }); };
     /* a new weight typed into "Menge" (60, 60 g, 0,5 l): the numbers below follow */
     { const pa = el.querySelector("#kpa"); let before = Object.assign({}, w); pa.addEventListener("change", () => { const a = amtOf(before), t = pa.value.trim(), bare = /^\d+(?:[.,]\d+)?$/.test(t), b2 = bare ? {v: num(t), u: a ? a.u : "g"} : amtOf({amount: t});
-        ins.forEach(i => { const v = num(i.value); before[i.dataset.k] = isFinite(v) && v >= 0 ? v : 0; });
         if (a && b2 && b2.v > 0 && b2.u === a.u && Math.abs(b2.v - a.v) > 1e-6){ const o = regram(before, b2.v); if (!bare && !(before.per && before.g)) o.amount = t; Object.assign(w, o); fill(); haptic(8); }
         else if (bare && !a){ w.amount = t + " g"; pa.value = w.amount; read(); } else read();
-        before = Object.assign({}, w); }); }
+        before = Object.assign({}, w); });
+      /* numbers typed by hand become the new base; while a weight is being typed, the numbers already follow, digit by digit */
+      ins.forEach(i => i.addEventListener("change", () => { const v = num(i.value); before[i.dataset.k] = isFinite(v) && v >= 0 ? v : 0; }));
+      pa.addEventListener("input", () => { const a = amtOf(before), t = pa.value.trim(), bare = /^\d+(?:[.,]\d+)?$/.test(t), b2 = bare ? {v: num(t), u: a ? a.u : "g"} : amtOf({amount: t}); if (!(a && b2 && b2.v > 0 && b2.u === a.u)) return;
+        const o = regram(before, b2.v); ins.forEach(i => { const k = i.dataset.k, nv = nf(o[k] || 0, k === "kcal" ? 0 : 1); if (i.value !== nv){ i.value = nv; i.classList.remove("kc-up", "kc-dn"); void i.offsetWidth; i.classList.add(b2.v > a.v ? "kc-up" : "kc-dn"); } }); }); }
     el.querySelectorAll("[data-f]").forEach(b => b.onclick = () => { read(); Object.assign(w, scalePart(w, +b.dataset.f)); fill(); haptic(8); el.querySelectorAll("[data-f]").forEach(x => x.classList.toggle("on", x === b)); });
     const done = async ps => { const nm = await saveParts(m, ps); haptic(15); mealSheet(nm); };
     /* the real product instead: scanned or searched, then how much */
@@ -1036,7 +1055,7 @@
         ${setupCard()}${quickHTML()}</div>
         <div class="kc-lh"><span>Heute</span>${heads()}</div>${this.dayBlock(t)}
         <button class="kc-link" id="kcmanual">${svg(IC.plus, 15)} Selbst eintragen</button>`;
-      wireDay(el); el.querySelector("#kcmanual").onclick = () => manual();
+      wireDay(el); animSum(el); el.querySelector("#kcmanual").onclick = () => manual();
       this.wireMeals(el);
     },
     history(el){
@@ -1235,6 +1254,8 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-ph img{width:64px;height:64px;object-fit:contain;border-radius:10px;background:#fff}.kc-ph>span{font-size:44px}
 .kc-mk{font:800 15px var(--body);color:var(--muted)}.kc-mk small{display:block;font:700 13px var(--body);margin-top:2px}.kc-mk b{font:900 32px var(--display);color:var(--fg)}
 .kc-macros{display:flex;gap:8px}.kc-macros span{flex:1;background:var(--panel-2);border-radius:12px;padding:8px;text-align:center;color:var(--muted);font:700 12px var(--body);display:flex;flex-direction:column}.kc-macros b{color:var(--fg);font:900 16px var(--display)}
+.kc-up{animation:kcUp .5s cubic-bezier(.22,1,.36,1)}.kc-dn{animation:kcDn .5s cubic-bezier(.22,1,.36,1)}[data-t],[data-rk],[data-cnt]{display:inline-block;font-variant-numeric:tabular-nums}
+@keyframes kcUp{0%{transform:translateY(7px);color:#FFB45A}60%{color:#FFB45A}100%{transform:none}}@keyframes kcDn{0%{transform:translateY(-7px);color:#8FD4FF}60%{color:#8FD4FF}100%{transform:none}}
 .kc-items{display:flex;flex-direction:column;gap:4px}
 .kc-items>.kc-irow{display:flex;align-items:stretch;gap:4px;padding:0;background:none}.kc-irow>button{flex:1;min-width:0}
 .kc-gi{flex:none;display:flex;align-items:center;gap:4px;padding:0 10px;border-radius:10px;background:var(--panel-2);border:2px solid var(--line);color:var(--muted);font:800 14px var(--body);cursor:text}
