@@ -11235,7 +11235,7 @@ function renderTabs(){
 }
 function openSheet(){
   const sh = $("#sheet"); const rk = rankOf(S.puzzle.r);
-  const items = [...(window.ChessInstall && ChessInstall.can() ? [["__install", "Get the app", "download"]] : []), ...(typeof News !== "undefined" && News.admin ? [["news", "News senden", "bell"]] : []), ["learn", "Learn", "book"], ["journey", "Journey", "map"], ["theory", "Theory", "scroll"], ["blitz", "Blitz & Battle", "flame"], ["shop", "Shop & Battle Pass", "coin"], ["awards", "Trophies", "trophy"], ["me", "Profile", "user"], ["endgames", "Endgames", "crown"], ["rush", "Puzzle Rush", "bolt"], ["battle", "Puzzle Battle", "swords"], ["daily", "Daily Puzzle", "calendar"], ["train", "Train", "target"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"], ["coords", "Coordinates", "board"], ["settings", "Settings", "gear"], ["account", "Account", "users"]];
+  const items = [...(window.ChessInstall && ChessInstall.can() ? [["__install", "Get the app", "download"]] : []), ...(typeof News !== "undefined" && News.admin ? [["news", "News senden", "bell"]] : []), ...(typeof Kcal !== "undefined" && Kcal.on() ? [["kcal", "Kalorien", "flame"]] : []), ["learn", "Learn", "book"], ["journey", "Journey", "map"], ["theory", "Theory", "scroll"], ["blitz", "Blitz & Battle", "flame"], ["shop", "Shop & Battle Pass", "coin"], ["awards", "Trophies", "trophy"], ["me", "Profile", "user"], ["endgames", "Endgames", "crown"], ["rush", "Puzzle Rush", "bolt"], ["battle", "Puzzle Battle", "swords"], ["daily", "Daily Puzzle", "calendar"], ["train", "Train", "target"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"], ["coords", "Coordinates", "board"], ["settings", "Settings", "gear"], ["account", "Account", "users"]];
   sh.innerHTML = `<div class="panelx" role="dialog" aria-label="More"><div class="grab"></div><button class="rk" data-s="me">${emblem(rk, 36)}<span style="text-align:left"><div style="font-weight:900">${esc(rk.label)}</div><div class="muted" style="font-size:12px">${S.puzzle.r} puzzle rating · ${Cloud.status === "on" ? "synced to your account" : "saved on this device"}</div></span></button>${items.map(([k, n, ic]) => `<button data-s="${k}">${icon(ic, 26)}<span>${n}</span></button>`).join("")}</div>`;
   sh.hidden = false; sh.classList.remove("closing"); const px = $(".panelx", sh); px.style.transform = ""; px.classList.add("opening"); setTimeout(() => px.classList.remove("opening"), 300);
   const close = () => { if (sh.hidden || sh.classList.contains("closing")) return; sh.classList.add("closing"); px.style.transform = ""; setTimeout(() => { sh.hidden = true; sh.classList.remove("closing"); }, 220); };
@@ -11311,6 +11311,7 @@ Views.home = {
     const weak = weakThemes(1)[0]; const goal = 1600; const start = 400;
     const pct = clamp((S.puzzle.r - start) / (goal - start), 0, 1);
     main.innerHTML = `<div class="page">${siteBanner()}
+      <div class="unit kc-home" id="homeKcal" hidden></div>
       <div class="unit th-home" id="homeTipp" hidden></div>
       <div class="unit home-rank" style="--rk1:${rk.tier.c1};--rk2:${rk.tier.c2}">
         <button class="hr-crest" data-go="me" aria-label="Your profile">${crestSVG(rk.idx, rk.div, 150)}</button>
@@ -11344,6 +11345,7 @@ Views.home = {
         <button class="tile" data-go="review">${icon("review", 40)}<h3>Game Review</h3><p>Brilliant, blunder and everything between.</p></button>
       </div></div>`;
     if (typeof goalWire === "function") goalWire(main);
+    if (typeof window.homeKcal === "function") window.homeKcal(main.querySelector("#homeKcal"));
     if (typeof window.homeTipp === "function") window.homeTipp(main.querySelector("#homeTipp"));
     $$("[data-go]", main).forEach(b => b.onclick = () => b.dataset.go === "lesson" ? App.go("lesson", {id: b.dataset.l}) : App.go(b.dataset.go));
     /* finished plan items celebrate once and then disappear */
@@ -11407,6 +11409,7 @@ Views.settings = {
     main.innerHTML = `<div class="page" style="max-width:640px"><h1 class="h-title">Settings</h1>
       <div class="unit lang-unit" style="margin-top:12px" data-notr><h3>Language · Sprache</h3><div class="row" style="margin-top:8px">${[["en", "English"], ["de", "Deutsch"]].map(([k, t]) => `<button class="btn sm ${I18N.lang === k ? "go" : ""}" data-lang="${k}">${t}</button>`).join("")}</div></div>
       <div class="unit"><h3>Profile</h3><label class="muted" style="display:block;margin-top:8px">Display name <input type="text" id="nm" value="${esc(S.name)}" maxlength="24" style="margin-left:8px"></label></div>
+      <div class="unit" id="kcalSet"></div>
       <div class="unit"><h3>Board</h3>${chk("coords", "Show coordinates")}${chk("legal", "Show legal moves")}${chk("openings", "Show opening names (bot games, analysis, review)")}${chk("anim", "Animate pieces")}
         <div class="row" style="margin-top:6px">${["green","brown","blue","slate"].map(b => `<button class="btn sm ${st.board === b ? "go" : ""}" data-b="${b}">${b[0].toUpperCase() + b.slice(1)}</button>`).join("")}</div></div>
       <div class="unit"><h3>Sound and voice</h3>${chk("sound", "Move sounds")}${chk("haptics", "Vibration")}${chk("voice", "Coach voice in lessons (English)")}<div class="row" style="margin:4px 0 8px"><span class="muted">Speed</span>${[[.9,"Slow"],[1,"Normal"],[1.15,"Fast"]].map(([v, t]) => `<button class="btn sm ${(st.voiceRate || 1) === v ? "go" : ""}" data-vr="${v}">${t}</button>`).join("")}</div><button class="btn sm" id="tv">Test voice</button></div>
@@ -11418,6 +11421,7 @@ Views.settings = {
     sv();
     $$("[data-s]", main).forEach(c => c.onchange = () => { st[c.dataset.s] = c.checked; save(); if (c.dataset.s === "sound" && c.checked) Sound.play("Move"); if (c.dataset.s === "haptics" && c.checked) Haptic.go([20, 40, 20]); });
     $$("[data-b]", main).forEach(b => b.onclick = () => { st.board = b.dataset.b; document.body.dataset.board = st.board; save(); this.mount(main); });
+    { const ks = $("#kcalSet"); if (typeof window.kcalSettings === "function") window.kcalSettings(ks); else ks.hidden = true; }
     $("#nm").onchange = e => { S.name = e.target.value.trim().slice(0, 24) || "You"; save(); renderRail(); };
     $$("[data-vr]", main).forEach(b => b.onclick = () => { st.voiceRate = +b.dataset.vr; save(); this.mount(main); Voice.say("Hi! I'm your chess coach. Let's get you to sixteen hundred."); });
     $("#tv").onclick = () => Voice.say("Hi! I'm your chess coach. Let's get you to sixteen hundred.");
@@ -14359,6 +14363,7 @@ const Ranks = {
 <script src="games/natposter.js?v=85"></script>
 <script src="games/arena.js?v=85"></script>
 <script src="games/tipp.js?v=85"></script>
+<script src="games/kcal.js?v=1"></script>
 <script>boot();</script>
 </body>
 </html>
