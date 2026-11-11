@@ -257,7 +257,7 @@
   const C = {emo: {}, cubes: [], pw: {}, cgT: {}, on: false, seed: null, A: null, me: null, am: AMMO, rl: 0, cd: 0, sup: 0, seq: 0, AP: {}, proj: [], fx: [], fields: [], trail: [], pops: [], sent: 0, sentP: null, moveP: null, aimP: null, supP: null, keys: {}, dot: 0, dotT: 0, dotBy: "", burn: 0, burnBy: "", hurtT: 0, shake: 0, hitAt: {}, shotAt: {}, kb: null, L: null, t0: 0, pickEnd: 0, pickDur: PICK, fightT0: 0, endAt: 0, doneAt: 0, started: false, hpT: 0, outShown: false, lastTr: {}, sndT: {}, kbDone: {}, v: null};
   const me = () => PNet.me;
   const NPo = () => N().NP;
-  function reset(keep){ Object.assign(C, {fin: 0, winTeam: null, cubes: [], pw: {}, cgT: {}, seed: null, A: null, me: null, proj: [], fx: [], fields: [], trail: [], pops: [], AP: {}, moveP: null, aimP: null, supP: null, started: false, doneAt: 0, outShown: false, lastTr: {}, burn: 0, dot: 0, sup: 0, kb: null, hitAt: {}, shotAt: {}, kbDone: {}, picked: 0, win: null});
+  function reset(keep){ Object.assign(C, {rew: null, fin: 0, winTeam: null, cubes: [], pw: {}, cgT: {}, seed: null, A: null, me: null, proj: [], fx: [], fields: [], trail: [], pops: [], AP: {}, moveP: null, aimP: null, supP: null, started: false, doneAt: 0, outShown: false, lastTr: {}, burn: 0, dot: 0, sup: 0, kb: null, hitAt: {}, shotAt: {}, kbDone: {}, picked: 0, win: null});
     if (!keep) leaveLayer(); else if (C.L){ const r = C.L.querySelector(".ar-res"); if (r){ r.classList.remove("on"); r._h = null; } } }
   const amIn = () => C.A && C.A.ids.includes(me());
   const alive = id => C.A && C.A.ids.includes(id) && !C.A.out.includes(id);
@@ -300,7 +300,7 @@
       banner(C.winTeam ? (C.winTeam === "h" ? `👑 ${T("You won!", "Ihr habt gewonnen!")}` : `🤖 ${T("The bots win", "Die Bots gewinnen")}`) : mg.win ? `👑 ${esc(NPo().nm(mg.win))}` : T("Draw", "Unentschieden"), iw ? "win" : ""); snd(iw ? "win" : "ko"); if (iw) Haptic.go([30, 50, 30, 50, 80]); }
   }
   /* Nat Stars on its own counts like the other games: XP, and a win is a daily win */
-  function reward(won){ const k = (C.A.kills || {})[me()] || 0, solo = PNet.P && PNet.P.solo; let xp = (won ? 20 : 6) + k * 4; if (solo) xp = Math.round(xp / 2);
+  function reward(won){ const k = (C.A.kills || {})[me()] || 0, solo = PNet.P && PNet.P.solo; let xp = (won ? 20 : 6) + k * 4; if (solo) xp = Math.round(xp / 2); C.rew = {xp, won, k};
     PG.st.nsWins = (PG.st.nsWins || 0) + (won ? 1 : 0); PG.st.nsKills = (PG.st.nsKills || 0) + k;
     /* trophies per fighter: shown on the pick cards */
     const my = C.A.cls && C.A.cls[me()]; if (won && my){ PG.st.nsCls = PG.st.nsCls || {}; PG.st.nsCls[my] = (PG.st.nsCls[my] || 0) + 1; } try { PG.persist(); } catch(e) {}
@@ -392,7 +392,7 @@
   function resDraw(){
     const box = C.L && C.L.querySelector(".ar-res"), v = C.v; if (!box) return; const on = !!(v && v.arena && C.doneAt && now() - C.doneAt > 1700); box.classList.toggle("on", on); if (!on) return;
     const P = NPo().pl(), W = v.arWins || {}, K = v.arK || {}, ids = (C.A.ids || []).slice().sort((a, b) => (W[b] || 0) - (W[a] || 0) || (K[b] || 0) - (K[a] || 0)), left = Math.max(0, Math.ceil((C.doneAt + NEXT - now()) / 1000));
-    const h = `<div class="ar-rbox"><div class="ar-rt">${C.winTeam ? (C.winTeam === "h" ? `👑 <b>${T("You", "Ihr")}</b> ${T("win round", "gewinnt Runde")} ${v.arRound || 1}` : `🤖 <b>${T("The bots", "Die Bots")}</b> ${T("win round", "gewinnen Runde")} ${v.arRound || 1}`) : C.win ? `👑 <b>${esc(NPo().nm(C.win))}</b> ${T("wins round", "gewinnt Runde")} ${v.arRound || 1}` : T("Draw", "Unentschieden")}</div>
+    const h = `<div class="ar-rbox"><div class="ar-rt">${C.winTeam ? (C.winTeam === "h" ? `👑 <b>${T("You", "Ihr")}</b> ${T("win round", "gewinnt Runde")} ${v.arRound || 1}` : `🤖 <b>${T("The bots", "Die Bots")}</b> ${T("win round", "gewinnen Runde")} ${v.arRound || 1}`) : C.win ? `👑 <b>${esc(NPo().nm(C.win))}</b> ${T("wins round", "gewinnt Runde")} ${v.arRound || 1}` : T("Draw", "Unentschieden")}</div>${C.rew ? `<div class="ar-rw">+${C.rew.xp} XP${C.rew.won ? " · 🏆 +1" : ""}${C.rew.k ? ` · 💀 ${C.rew.k}` : ""}</div>` : ""}
       <div class="ar-rl ${ids.length > 4 ? "two" : ""}">${ids.map((id, i) => `<div class="${id === me() ? "me" : ""}"><span class="r">${i + 1}</span><span class="np-hd">${headOf(id, P)}</span><b>${esc(NPo().nm(id))}</b><span class="w">🏆 ${W[id] || 0}</span><span class="k">💀 ${K[id] || 0}</span></div>`).join("")}</div>
       <div class="ar-rn">${T("Next round in", "Nächste Runde in")} <b>${left}</b> · ${(() => { const L2 = LAYS[(LAYS.indexOf(LAY) + 1) % LAYS.length]; return T(L2.en, L2.de); })()}</div><div class="ar-rb">${v.host && !(PNet.P && PNet.P.solo) ? `<button class="btn ghost" data-arx="lobby">↩︎ ${T("To the lobby", "Zur Lobby")}</button>` : ""}<button class="btn ghost" data-arx="quit">🚪 ${T("Leave", "Raus")}</button></div></div>`;
     if (box._h !== h){ box._h = h; box.innerHTML = h; }
@@ -779,7 +779,7 @@
 .ar-pk span{font-size:28px}.ar-pk b{display:block;font:900 14px var(--body)}.ar-pk small{display:block;color:var(--muted,#aaa);font-size:11px;line-height:1.25}
 .ar-pk:active{transform:scale(.97)}.ar-pk.done{border-color:var(--go-hi,#8FC458);justify-content:center;max-width:360px;margin:0 auto}
 .ar-rv{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.ar-rv button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px;border-radius:12px;background:rgba(255,255,255,.06);color:#fff;border:2px solid rgba(255,255,255,.08)}
-.ar-rbox:has(.two){width:min(660px,100%)}.ar-rl.two{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px}
+.ar-rw{text-align:center;font:900 14px var(--body);color:#9BE25A;margin:-2px 0 8px}.ar-rbox:has(.two){width:min(660px,100%)}.ar-rl.two{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px}
 .np.arena .ar-l:has(.ar-res.on) .ar-feed{display:none}
 .np.rot .ar-card{width:min(124px,14.8vh)}.ar-card b,.ar-card em{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (max-width:420px){.np.rot .ar-card{padding:6px 4px}.np.rot .ar-card .e{font-size:30px}.np.rot .ar-card small{display:none}.np.rot .ar-pt{font-size:20px}.np.rot .ar-card b{font-size:13px}}
