@@ -162,7 +162,7 @@
     },
     /* the chosen filter glides into the middle */
     center(x, smooth){ const w = x.parentNode; if (!w) return; const left = x.offsetLeft - (w.clientWidth - x.offsetWidth) / 2; try { w.scrollTo({left: Math.max(0, left), behavior: smooth ? "smooth" : "auto"}); } catch(e) { w.scrollLeft = left; } },
-    balance(){ const el = this.main && this.main.querySelector("#tpbal"); if (el) el.innerHTML = `${coin()}<b>${fmt(bal())}</b>`; },
+    balance(){ const el = this.main && this.main.querySelector("#tpbal"); if (el) el.innerHTML = `${coin()}<b data-natbal>${fmt(bal())}</b>`; },
     async refresh(first){
       try { await Tipp.load(); } catch(e) { const b = this.main && this.main.querySelector("#tpbody"); if (b && first) { const setup = /does not exist|could not find|PGRST20/i.test((e.message || "") + (e.code || "")); b.innerHTML = setup ? `<div class="tp-empty">⚽🛠️<br>${T("Setting up the tipping game – almost there.", "Das Tippspiel wird gerade eingerichtet – gleich geht's los.")}</div>` : `<div class="tp-empty">${T("The tipping game isn't reachable right now.", "Das Tippspiel ist gerade nicht erreichbar.")}<br><small>${h(e.message || "")}</small></div>`; } return; }
       if (App.route !== "tipp") return; if (!first) Tipp.claim().then(() => this.balance());
@@ -465,6 +465,7 @@
 
   const css = document.createElement("style"); css.textContent = `
 .tp-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.tp-bal{display:flex;align-items:center;gap:6px;background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:5px 12px 5px 7px;font:900 16px var(--display)}.tp-bal .natc{width:20px;height:20px}
+@media (max-width:900px){body:not(.busy) .tp-bal{display:none}}
 .tp-tabs{display:flex;width:100%}.tp-tabs button{flex:1}.tp-chips{flex-wrap:nowrap;overflow-x:auto;margin:12px -2px 8px;padding:0 2px 2px;scrollbar-width:none}.tp-chips::-webkit-scrollbar{display:none}.tp-chips .chip{flex:none}
 .tp-tools{display:flex;gap:8px;margin:0 0 6px;flex-wrap:wrap}.tp-empty{color:var(--muted);text-align:center;padding:40px 10px;line-height:1.5}
 .tp-day{font:800 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:16px 2px 7px}.tp-day.live{color:var(--bad)}
