@@ -593,6 +593,8 @@
       if (x === "pitem"){ const [sl, id] = val.split("|"); try { S.avatar = Object.assign({}, S.avatar || {}, {[sl]: id}); save(); } catch(e) {} PNet.refresh(); Haptic.go(8); this.panelDraw(); return; }
       if (x === "invite") return this.openPanel("inv");
       if (x === "pshare") return this.shareLink();
+      /* too few to start: say what helps instead of a dead button */
+      if (x === "start" && this.lastBtn && this.lastBtn.dataset.off){ toast(T("Too few players – invite friends or fill up with bots.", "Noch zu wenige – lad Freunde ein oder füll mit Bots auf.")); return this.openPanel("set"); }
       if (["start", "invite"].includes(x)) return this.act({a: x});
       if (x === "lobby") return this.act({a: "lobby"});
     },
@@ -628,7 +630,7 @@
       el.classList.toggle("ghost", !v.alive); el.classList.toggle("imp", v.imp); el.classList.toggle("lob", v.phase === "lobby");
       const lb = el.querySelector(".np-lob"), lbH = v.phase === "lobby" ? `<div class="np-lobc">${v.lob.arena ? `<em class="np-lobm">⭐ Nat Stars${v.lob.coop ? " · 🤝 Team" : ""}</em>` : ""}<b>${esc(v.lob.code.toUpperCase())}</b><span>${v.lob.n}${v.lob.fill ? ` + ${v.lob.fill} 🤖` : ""} / 15</span></div>
         <button class="np-lb" data-x="invite">📨<span>${T("Invite", "Einladen")}</span></button><button class="np-lb" data-x="look">👕<span>${T("Outfit", "Outfit")}</span></button><button class="np-lb" data-x="settings">⚙️<span>${T("Options", "Optionen")}</span></button>${this.vWant ? `<button class="np-lb np-vlb ${PVoice.on ? (PVoice.muted ? "muted" : "live") : ""}" data-x="mic">${PVoice.on ? (PVoice.muted ? "🔇" : "🎙️") : "🎙️"}<span>${T("Voice", "Reden")}</span>${PVoice.on ? `<i class="np-cnt">${PVoice.peers().length + 1}</i>` : ""}</button>` : ""}<button class="np-lb" data-x="leave">🚪<span>${T("Leave", "Raus")}</span></button><button class="np-lb np-rdy" data-x="ready">✋<span>${T("Ready", "Bereit")}</span><i class="np-cnt"></i></button>
-        ${v.host ? `<button class="np-lb go" data-x="start" ${v.lob.n + (v.lob.fill || 0) < v.lob.min ? "disabled" : ""}>▶<span>${T("Start", "Start")}</span>${v.lob.n + (v.lob.fill || 0) < v.lob.min ? `<i class="np-cnt">${v.lob.n + (v.lob.fill || 0)}/${v.lob.min}</i>` : ""}</button>` : `<button class="np-lb np-wait" disabled>⏳<span>${T("Host", "Host")}</span></button>`}` : "";
+        ${v.host ? `<button class="np-lb go ${v.lob.n + (v.lob.fill || 0) < v.lob.min ? "off" : ""}" data-x="start" ${v.lob.n + (v.lob.fill || 0) < v.lob.min ? 'data-off="1"' : ""}>▶<span>${T("Start", "Start")}</span>${v.lob.n + (v.lob.fill || 0) < v.lob.min ? `<i class="np-cnt">${v.lob.n + (v.lob.fill || 0)}/${v.lob.min}</i>` : ""}</button>` : `<button class="np-lb np-wait" disabled>⏳<span>${T("Host", "Host")}</span></button>`}` : "";
       if (lb._h !== lbH && !(this.quitN && now() - (this.quitT || 0) < 2500)){ lb._h = lbH; lb.innerHTML = lbH; }
       if (v.phase === "lobby"){ const hum = ((this.m && this.m.players) || []).filter(p => p.on), rdy = hum.filter(p => (POS[p.id] || {}).rdy || (p.id === PNet.me && this.ready)).length, enough = hum.length + (v.lob.fill || 0) >= v.lob.min, all = hum.length > 0 && rdy === hum.length && enough;
         if (all && !this.lcd) this.lcd = now() + 3000; if (!all) this.lcd = 0;
@@ -1407,7 +1409,7 @@ html.np-on .xpchip{z-index:2950!important}
 .np-lb{container-type:inline-size}@container (max-width:62px){.np-lb span{font-size:8.5px!important;letter-spacing:0!important}}
 .np-cnt{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#F4F2EE;color:#211F1C;font:900 10.5px/18px var(--mono);font-style:normal;box-shadow:0 2px 4px rgba(0,0,0,.4)}.np-cnt:empty{display:none}
 .np-lob{overflow:visible}.np-lobc{flex:0 0 auto;justify-content:center;min-width:72px}
-.np-lb span{font:800 10.5px var(--body);text-transform:uppercase;letter-spacing:.04em}.np-lb.go{background:var(--go);box-shadow:inset 0 -3px 0 var(--go-deep)}.np-lb[disabled]{opacity:.5}
+.np-lb span{font:800 10.5px var(--body);text-transform:uppercase;letter-spacing:.04em}.np-lb.go{background:var(--go);box-shadow:inset 0 -3px 0 var(--go-deep)}.np-lb[disabled],.np-lb.off{opacity:.5}
 .np-lb.np-wait{opacity:.55}
 .np-mapb{width:auto!important;padding:0 12px;gap:6px}.np-mapb span{font:900 12px var(--body);letter-spacing:.06em;text-transform:uppercase}
 .np-role{text-align:center;width:100%;animation:npRole .9s ease-out}
