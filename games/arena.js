@@ -360,7 +360,9 @@
     L.addEventListener("pointerup", up); L.addEventListener("pointercancel", up);
     L.addEventListener("click", e => { const b = e.target.closest("[data-arc]"); if (b) return pick(b.dataset.arc); const x = e.target.closest("[data-arx]"); if (!x) return; Sound.tap();
       if (x.dataset.arx === "lobby") NPo().act({a: "tolobby"}); if (x.dataset.arx === "quit") NPo().openPanel && NPo().openPanel("quit"); });
-    if (!C.kd){ C.kd = e => { if (!C.on) return; if (/^(Arrow|Key[WASD])/.test(e.code)){ C.keys[e.code] = 1; e.preventDefault(); } if (e.code === "Space"){ e.preventDefault(); autoFire(); } if (e.code === "KeyE" || e.code === "KeyQ"){ e.preventDefault(); autoFire(true); } }; C.ku = e => { delete C.keys[e.code]; };
+    if (!C.kd){ C.kd = e => { if (!C.on) return; if (/^(Arrow|Key[WASD])/.test(e.code)){ C.keys[e.code] = 1; e.preventDefault(); } if (e.code === "Space"){ e.preventDefault(); autoFire(); } if (e.code === "KeyE" || e.code === "KeyQ"){ e.preventDefault(); autoFire(true); }
+        /* on the pick screen, 1–6 picks a fighter */
+        const dg = /^Digit([1-9])$/.exec(e.code); if (dg && C.A && C.A.ph === "pick" && KEYS[+dg[1] - 1] && !/INPUT|TEXTAREA/.test((document.activeElement || {}).tagName || "")) pick(KEYS[+dg[1] - 1]); }; C.ku = e => { delete C.keys[e.code]; };
       window.addEventListener("keydown", C.kd); window.addEventListener("keyup", C.ku); }
   }
   function pick(k){ if (!CLS[k] || !C.A || C.A.ph !== "pick" || !amIn()) return; C.A.cls[me()] = k; PG.st.arCls = k; try { PG.persist(); } catch(e) {} Sound.tap(); Haptic.go(10); NPo().act({a: "arcl", v: k}); pickDraw(true); }
@@ -370,8 +372,8 @@
     const left = Math.max(0, C.pickEnd - now()), mine = A.cls[me()];
     const sig = JSON.stringify(A.cls) + amIn();
     if (force || box._sig !== sig){ box._sig = sig; const P = NPo().pl();
-      box.innerHTML = `<div class="ar-pt">⭐ ${amIn() ? T("Pick your fighter", "Wähl deinen Kämpfer") : "👻 " + T("You're watching", "Du schaust zu")}</div><div class="ar-cards">${KEYS.map(k => { const c = CLS[k], who = A.ids.filter(id => A.cls[id] === k);
-        return `<button class="ar-card ${mine === k ? "sel" : ""}" data-arc="${k}" ${amIn() ? "" : "disabled"}><span class="e">${c.e}</span><b>${esc(nm(c))}</b><small>${esc(T(c.sen, c.sde))}</small><em>${c.su.e} ${esc(nm(c.su))}</em><i class="hp">❤ ${c.hp}${(PG.st.nsCls || {})[k] ? ` <u>🏆 ${PG.st.nsCls[k]}</u>` : ""}</i><span class="who">${who.slice(0, 5).map(id => `<span class="np-hd sm">${headOf(id, P)}</span>`).join("")}</span></button>`; }).join("")}</div><div class="ar-pbar"><i></i></div>`; }
+      box.innerHTML = `<div class="ar-pt">⭐ ${amIn() ? T("Pick your fighter", "Wähl deinen Kämpfer") : "👻 " + T("You're watching", "Du schaust zu")}</div><div class="ar-cards">${KEYS.map((k, ki) => { const c = CLS[k], who = A.ids.filter(id => A.cls[id] === k);
+        return `<button class="ar-card ${mine === k ? "sel" : ""}" data-arc="${k}" ${amIn() ? "" : "disabled"}><kbd class="ar-kb">${ki + 1}</kbd><span class="e">${c.e}</span><b>${esc(nm(c))}</b><small>${esc(T(c.sen, c.sde))}</small><em>${c.su.e} ${esc(nm(c.su))}</em><i class="hp">❤ ${c.hp}${(PG.st.nsCls || {})[k] ? ` <u>🏆 ${PG.st.nsCls[k]}</u>` : ""}</i><span class="who">${who.slice(0, 5).map(id => `<span class="np-hd sm">${headOf(id, P)}</span>`).join("")}</span></button>`; }).join("")}</div><div class="ar-pbar"><i></i></div>`; }
     const bar = box.querySelector(".ar-pbar i"); if (bar) bar.style.width = Math.min(100, left / (C.pickDur || PICK) * 100) + "%";
   }
   const HC = {};
@@ -733,6 +735,7 @@
 .ar-feed{position:absolute;top:calc(var(--st,0px) + 62px);right:calc(var(--sr,0px) + 12px);display:flex;flex-direction:column;gap:4px;align-items:flex-end;pointer-events:none}
 .ar-feed div{background:rgba(20,19,17,.72);border-radius:10px;padding:3px 9px;font:700 13px var(--body);color:#ddd}.ar-feed b{color:#fff}
 .ar-ban{position:absolute;left:0;right:0;top:max(calc(var(--st,0px) + 58px),14%);text-align:center;pointer-events:none;font:900 clamp(32px,min(10vh,10vw),56px) var(--display);color:#fff;text-shadow:0 5px 0 rgba(0,0,0,.35);opacity:0;display:flex;flex-direction:column;align-items:center}
+.ar-kb{display:none}@media (hover:hover) and (pointer:fine){.ar-card{position:relative}.ar-kb{display:block;position:absolute;top:6px;left:8px;font:800 11px var(--mono,monospace);color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.25);border-radius:5px;padding:1px 5px}}
 .ar-ban small{font:800 clamp(15px,min(4.4vh,4.4vw),20px) var(--body);margin-top:2px;text-shadow:0 2px 0 rgba(0,0,0,.45)}
 .ar-ban.on{animation:arBan 1.8s ease-out forwards}.ar-ban.go{color:#9BE25A}.ar-ban.out{color:#ff7a66}.ar-ban.win{color:#FFD15C}
 @keyframes arBan{0%{opacity:0;transform:scale(1.6)}12%{opacity:1;transform:scale(1)}75%{opacity:1}100%{opacity:0;transform:translateY(-20px)}}
@@ -745,6 +748,7 @@
 .ar-card em{font-style:normal;font-size:11px;font-weight:800;color:#FFD15C;text-align:center;line-height:1.15}
 @media (pointer:fine){.ar-l{cursor:crosshair}.ar-l button,.ar-l .ar-card{cursor:pointer}}.ar-card .hp{font-style:normal;font-size:12px;color:#ff8a78}.ar-card .hp u{text-decoration:none;color:#FFD34A;margin-left:4px}.ar-card .who{display:flex;gap:2px;min-height:24px}.ar-card .who .np-hd{width:24px;height:24px;overflow:hidden;border-radius:50%}.ar-card .who svg{width:100%;height:100%;display:block}
 .ar-card.sel{border-color:var(--go-hi,#8FC458);transform:translateY(-5px);box-shadow:0 8px 24px rgba(127,178,74,.25)}
+@media (min-width:1000px) and (min-height:640px){.ar-card{width:152px;padding:14px 8px 10px;font-size:16px;gap:4px}.ar-card .e{font-size:46px}.ar-card small,.ar-card em{font-size:12.5px}.ar-card .hp{font-size:14px}.ar-cards{gap:12px}}
 .ar-pbar{width:min(420px,70%);height:6px;background:rgba(255,255,255,.12);border-radius:3px;overflow:hidden}.ar-pbar i{display:block;height:100%;background:var(--go-hi,#8FC458);transition:width .12s linear}
 .ar-joy{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;background:rgba(244,242,238,.08);border:2px solid rgba(244,242,238,.18);display:none;pointer-events:none}.ar-joy.on{display:block}
 .ar-joy i{position:absolute;left:50%;top:50%;width:52px;height:52px;border-radius:50%;background:rgba(244,242,238,.35);transform:translate(-50%,-50%)}
