@@ -1,5 +1,5 @@
 -- Kalorien-Tracker: Rezepte, die jemand mit Namen veröffentlicht hat. Alle angemeldeten Spieler finden sie in der Suche,
--- ändern und löschen kann nur, wer sie veröffentlicht hat. items = die Zutaten des ganzen Rezepts (wie in kcal_meals.items),
+-- ändern und löschen kann nur, wer sie veröffentlicht hat. Erlaubt sind nur Zutaten mit geprüften Werten (siehe Trigger). items = die Zutaten des ganzen Rezepts (wie in kcal_meals.items),
 -- grams = Gewicht des Ganzen, kcal/carbs/protein/fat = Summe des Ganzen.
 create table if not exists public.kcal_recipes (
   id uuid primary key default gen_random_uuid(),
@@ -21,6 +21,11 @@ alter table public.kcal_recipes enable row level security;
 create or replace function private.kcal_recipe_stamp() returns trigger language plpgsql security definer set search_path = '' as $$
 begin
   new.user_id := auth.uid(); new.author := left(private.pname(auth.uid()), 40); new.name := btrim(new.name);
+  -- only ingredients with checked values: fixed table (ref / per.tab), checked database (food, must exist) or a real product (code)
+  if exists (select 1 from jsonb_array_elements(new.items) e where coalesce(nullif(e->>'ref', ''), nullif(e->>'code', ''), nullif(e->'per'->>'tab', '')) is null
+      and not exists (select 1 from public.kcal_foods f where f.key = nullif(e->>'food', ''))) then
+    raise exception 'Ein Rezept für alle darf nur aus Zutaten mit geprüften Werten bestehen.';
+  end if;
   if tg_op = 'UPDATE' then new.created_at := old.created_at; end if;
   return new;
 end $$;

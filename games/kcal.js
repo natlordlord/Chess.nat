@@ -641,10 +641,16 @@
     asMeal: R => ({title: R.name, emoji: R.emoji || "🍽️", items: Array.isArray(R.items) ? R.items : [], kcal: R.kcal, carbs: R.carbs, protein: R.protein, fat: R.fat, note: R.author ? "Rezept von " + R.author : "Rezept", rid: R.id, ruid: R.user_id}),
     per: R => { const g = Number(R.grams) || 0, f = g > 0 ? 100 / g : 0; return {k: R.kcal * f, c: R.carbs * f, pr: R.protein * f, f: R.fat * f}; }
   };
-  function recipeSheet(m){ const ps = partsOf(m), T = sumOf(ps), g = totG(ps); let sent = false;
+  /* an ingredient with checked values: from the fixed table (ref / per.tab), the checked database (food) or a real product (barcode).
+     Only such ingredients may go into a recipe for everyone; what the AI merely estimated may not */
+  const isChecked = i => !!(i && (i.ref || i.food || i.code || (i.per && i.per.tab)));
+  function recipeSheet(m){ const ps = partsOf(m), T = sumOf(ps), g = totG(ps), bad = ps.filter(i => !isChecked(i)); let sent = false;
+    const list = `<div class="kc-items">${ps.map(i => `<div><span>${h(nice(i.name))}<small>${h(i.amount || "")}${isChecked(i) ? "" : ` · <u class="kc-est">nur geschätzt</u>`}</small></span><b>${fmt(i.kcal)} kcal</b></div>`).join("")}</div>`;
+    if (bad.length){ const sh = detailSheet(`<div class="kc-form" data-notr><h3>Noch nicht für alle</h3><p class="muted">Ein Rezept für alle darf nur aus Zutaten mit geprüften Werten bestehen. ${bad.length === 1 ? "Eine Zutat ist" : bad.length + " Zutaten sind"} nur geschätzt:</p>${list}
+      <p class="muted kc-said">Tipp die Zutat im Gericht an und tausch sie gegen das echte Produkt (Barcode oder Suche). Danach kannst du das Rezept veröffentlichen.</p><button class="btn go big" data-dclose>Zurück zum Gericht</button></div>`, () => setTimeout(() => mealSheet(m), 0)); return sh; }
     const sh = detailSheet(`<div class="kc-form" data-notr><h3>Rezept für alle</h3><p class="muted">Gib dem Ganzen einen Namen. Alle finden es dann in der Suche und tippen nur noch ein, wie viel Gramm sie davon essen.</p>
       <label>Name<input id="kcrn" maxlength="80" enterkeyhint="done" autocomplete="off" autocapitalize="sentences" value="${h(nice(m.title))}"></label>
-      <div class="kc-items">${ps.map(i => `<div><span>${h(nice(i.name))}<small>${h(i.amount || "")}</small></span><b>${fmt(i.kcal)} kcal</b></div>`).join("")}</div>
+      ${list}
       <p class="muted kc-said">Das ganze Rezept, so wie es jetzt dasteht: ${fmt(Math.round(g))} g · ${fmt(Math.round(T.kcal))} kcal · ${fmt(Math.round(T.kcal / g * 100))} kcal pro 100 g</p>
       <button class="btn go big" id="kcrp">Veröffentlichen</button></div>`, () => { if (!sent) setTimeout(() => mealSheet(m), 0); });
     const inp = sh.el.querySelector("#kcrn"), b = sh.el.querySelector("#kcrp"); try { inp.focus({preventScroll: true}); inp.setSelectionRange(0, inp.value.length); } catch(e) {}
@@ -1574,6 +1580,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-sq input{flex:1;min-width:0;border:0;background:none;color:var(--fg);font:800 17px var(--body);padding:12px 0;outline:none;-webkit-appearance:none}
 .kc-sr{display:flex;flex-direction:column;gap:6px;min-height:140px;transition:opacity .15s}.kc-sr.busy{opacity:.5}
 .kc-sres{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;border:0;background:var(--panel-2);color:var(--fg);text-align:left;cursor:pointer;width:100%;-webkit-tap-highlight-color:transparent}.kc-sres:active{transform:scale(.98)}.kc-sres.load{opacity:.55}
+.kc-est{text-decoration:none;color:#FF9A88;font-weight:800}
 .kc-sph.kc-srec{background:var(--panel-3)}
 .kc-sres img,.kc-sph{width:44px;height:44px;border-radius:10px;object-fit:contain;flex:none;background:#fff;display:flex;align-items:center;justify-content:center;font-size:24px}
 .kc-sn{flex:1;min-width:0;display:flex;flex-direction:column;font:800 15px var(--body);line-height:1.2}.kc-sn small{color:var(--muted);font-weight:700;font-size:12px;margin-top:2px}

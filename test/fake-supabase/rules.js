@@ -28,6 +28,8 @@ const CHECKS = {
     ["kcal_body_height_check", r => between(r.height, 100, 250)], ["kcal_body_sex_check", r => oneOf(r.sex, ["m", "f"])], ["kcal_body_weigh_min_check", r => between(r.weigh_min, 0, 1439)], ["kcal_body_weight_check", r => between(r.weight, 25, 400)]],
   kcal_invites: [["kcal_invites_check", r => r.from_id !== r.to_id]],
   kcal_claps: [["kcal_claps_check", r => r.from_id !== r.to_id]],
+  /* private.kcal_recipe_stamp: only ingredients with checked values (fixed table, checked database, real product) */
+  kcal_recipes: [["kcal_recipes_checked_only", r => Array.isArray(r.items) && r.items.every(e => e && (e.ref || e.code || (e.per && e.per.tab) || e.food))]],
   kcal_meals: [["kcal_meals_emoji_check", r => maxLen(r.emoji, 16)], ["kcal_meals_kcal_check", r => between(r.kcal, 0, 20000)], ["kcal_meals_note_check", r => maxLen(r.note, 500)], ["kcal_meals_said_check", r => maxLen(r.said, 2000)],
     ["kcal_meals_source_check", r => oneOf(r.source, ["voice", "barcode", "manual", "text", "search", "quick"])], ["kcal_meals_title_check", r => len(r.title) >= 1 && len(r.title) <= 120]],
   kcal_profile: [["kcal_profile_goal_check", r => between(r.goal, 800, 7000)], ["kcal_profile_ice_check", r => between(r.ice, 0, 2)],
