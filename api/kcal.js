@@ -23,10 +23,50 @@ const SCHEMA = {
 };
 const SYSTEM = `Du bist der Kalorien-Schätzer in einer Tracking-App. Der Nutzer diktiert per Sprache, was er gegessen oder getrunken hat.
 Die Spracherkennung macht Fehler: lies wohlwollend, was gemeint ist.
-Schätze für jede Zutat realistische deutsche Portionen, wenn keine Menge genannt ist, und rechne Kalorien (kcal), Kohlenhydrate (g), Eiweiß (g) und Fett (g) mit typischen Nährwerten (BLS/USDA).
+Schätze für jede Zutat realistische deutsche Portionen, wenn keine Menge genannt ist, und rechne Kalorien (kcal), Kohlenhydrate (g), Protein (g) und Fett (g) mit typischen Nährwerten (BLS/USDA).
 Die Kalorien sind das Wichtigste: realistisch, nicht zu niedrig. Getränke mit Kalorien sind eigene Zutaten.
 Die Summenfelder müssen der Summe der Zutaten entsprechen. Wenn nichts Essbares erkennbar ist, gib leere items und 0 zurück und erkläre es in note.
 Antworte nur mit JSON nach diesem Schema: ${JSON.stringify(SCHEMA)}`;
+
+/* "Was soll ich kochen?": one dish from what is at home that fills the day's gap */
+const COOK = {
+  type: "object", additionalProperties: false,
+  required: ["title", "emoji", "why", "items", "kcal", "carbs", "protein", "fat", "steps", "tip"],
+  properties: {
+    title: {type: "string", description: "Name des Gerichts, max. 5 Wörter"}, emoji: {type: "string"},
+    why: {type: "string", description: "1–2 Sätze, warum das jetzt passt (mit den Zahlen)"},
+    items: {type: "array", items: {type: "object", additionalProperties: false, required: ["name", "grams", "kcal", "carbs", "protein", "fat"],
+      properties: {name: {type: "string"}, grams: {type: "number", description: "Gramm roh/trocken gewogen, so wie man es abwiegt"}, kcal: num, carbs: num, protein: num, fat: num}}},
+    kcal: num, carbs: num, protein: num, fat: num,
+    steps: {type: "array", items: {type: "string"}, description: "3–6 kurze Schritte"},
+    tip: {type: "string", description: "Ein kurzer Tipp, leer wenn keiner"}
+  }
+};
+const COOK_SYS = `Du bist Koch und Ernährungscoach in einer Kalorien-App (Deutsch, du-Form, locker). Der Nutzer sagt, was er gerade zu Hause hat.
+Schlag genau EIN Gericht vor, das er nur aus diesen Zutaten (plus Salz, Pfeffer, Gewürze, etwas Öl) kochen kann und das die heute noch fehlenden Kalorien und Makros möglichst genau trifft.
+Gib für jede Zutat die Menge in Gramm an (roh bzw. trocken gewogen, so wie man es abwiegt) und rechne die Nährwerte mit typischen Werten (BLS/USDA). Die Summen müssen stimmen.
+Wenn er Gerichte nennt, die er oft isst, und eins davon passt, nimm bevorzugt so etwas. Ist die Lücke sehr groß, darf es eine große Portion sein; ist sie klein, ein Snack.
+Antworte nur mit JSON nach diesem Schema: ${JSON.stringify(COOK)}`;
+
+/* the weekly wrap-up: an honest coach's look at the last seven days, measured against the person's goal */
+const WEEK = {
+  type: "object", additionalProperties: false,
+  required: ["headline", "mood", "summary", "good", "better", "focus"],
+  properties: {
+    headline: {type: "string", description: "Kurze, ehrliche Überschrift, max. 6 Wörter"},
+    mood: {type: "string", enum: ["great", "ok", "bad"]},
+    summary: {type: "string", description: "2–3 Sätze mit den wichtigsten Zahlen"},
+    good: {type: "array", items: {type: "string"}, description: "bis zu 3 Dinge, die gut liefen"},
+    better: {type: "array", items: {type: "string"}, description: "bis zu 3 konkrete Dinge für nächste Woche"},
+    focus: {type: "string", description: "Ein Satz: der wichtigste Fokus für die nächste Woche"}
+  }
+};
+const WEEK_SYS = `Du bist ein ehrlicher, direkter Ernährungscoach in einer Kalorien-App (Deutsch, du-Form, locker, kein Arzt-Ton, keine Diagnosen).
+Du bekommst die Daten der letzten 7 Tage, die Ziele und was gegessen wurde. Bewerte passend zum Ziel:
+Muskelaufbau/Bulken/Zunehmen: vor allem die Kalorien erreichen und genug Protein; Abnehmen: Defizit halten und trotzdem genug Protein; Halten: nah am Ziel bleiben.
+Schau auch auf die Qualität anhand der Lebensmittel (viel Zucker, Süßes, Fast Food, kaum Gemüse/Obst?) und sag klar, wenn die Ernährung schlecht ist. Lob ehrlich, was gut ist.
+Nutze die Zahlen (Durchschnitt, Prozent vom Ziel, Gewicht). Kurze Sätze.
+Antworte nur mit JSON nach diesem Schema: ${JSON.stringify(WEEK)}`;
 
 function readBody(req){
   if (req.body && typeof req.body === "object") return Promise.resolve(req.body);
@@ -44,7 +84,8 @@ async function userOf(req){
 function berlinNow(){
   return new Intl.DateTimeFormat("de-DE", {timeZone: "Europe/Berlin", weekday: "long", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"}).format(new Date());
 }
-async function ask(req, text, only){
+async function ask(req, text, only, cfg){
+  cfg = cfg || {system: SYSTEM, schema: SCHEMA, name: "meal", user: `Jetzt ist ${berlinNow()} (Europe/Berlin).\nGesagt: „${text}“`, max: 3000, temp: .2};
   const key = String(process.env.AI_GATEWAY_API_KEY || process.env.AI_KEY || "").trim();
   const token = key || req.headers["x-vercel-oidc-token"] || process.env.VERCEL_OIDC_TOKEN;
   if (!token) throw Object.assign(new Error("no ai credentials"), {status: 500});
@@ -52,11 +93,11 @@ async function ask(req, text, only){
   for (const model of only ? [only] : MODELS){
     const r = await fetch("https://ai-gateway.vercel.sh/v1/chat/completions", {method: "POST",
       headers: {"Content-Type": "application/json", Authorization: "Bearer " + token},
-      body: JSON.stringify({model, max_tokens: 3000, temperature: 0.2,
+      body: JSON.stringify({model, max_tokens: cfg.max, temperature: cfg.temp,
         /* Gemini thinks for seconds by default; a small budget keeps the answer quick */
         ...(/^google\//.test(model) ? {providerOptions: {google: {thinkingConfig: {thinkingBudget: THINK}}}} : {}),
-        response_format: {type: "json_schema", json_schema: {name: "meal", strict: true, schema: SCHEMA}},
-        messages: [{role: "system", content: SYSTEM}, {role: "user", content: `Jetzt ist ${berlinNow()} (Europe/Berlin).\nGesagt: „${text}“`}]})
+        response_format: {type: "json_schema", json_schema: {name: cfg.name, strict: true, schema: cfg.schema}},
+        messages: [{role: "system", content: cfg.system}, {role: "user", content: cfg.user}]})
     }).catch(e => ({ok: false, status: 0, text: async () => String(e)}));
     if (r.ok){
       const j = await r.json();
@@ -82,6 +123,26 @@ module.exports = async (req, res) => {
   const user = await userOf(req);
   if (!user) return res.status(401).json({error: "Bitte anmelden."});
   const b = await readBody(req);
+  const fail = e => { console.log("kcal ai failed", b.mode || "meal", e.status, e.model, String(e.message).slice(0, 300)); return res.status(502).json({error: e.status === 429 ? "Gerade zu viele Anfragen. Gleich nochmal versuchen." : "Die KI hat gerade nicht geantwortet. Nochmal versuchen."}); };
+  const clip = (v, n) => String(v == null ? "" : v).slice(0, n);
+  if (b.mode === "cook"){
+    const have = clip(b.have, 800).trim(); if (have.length < 3) return res.status(400).json({error: "Schreib kurz, was du da hast."});
+    const m = b.missing || {}, usual = (Array.isArray(b.usual) ? b.usual : []).slice(0, 12).map(x => clip(x, 60)).join(", ");
+    const user = `Jetzt ist ${berlinNow()}.\nIch habe zu Hause: ${have}\nHeute fehlen noch: ${Math.round(+m.kcal || 0)} kcal, ${Math.round(+m.protein || 0)} g Protein, ${Math.round(+m.carbs || 0)} g Kohlenhydrate, ${Math.round(+m.fat || 0)} g Fett.\nMein Ziel: ${clip(b.aim, 40) || "unbekannt"}.${usual ? "\nDas esse ich oft: " + usual : ""}`;
+    try { const o = await ask(req, "", null, {system: COOK_SYS, schema: COOK, name: "dish", user, max: 2500, temp: .5});
+      const items = (Array.isArray(o.items) ? o.items : []).slice(0, 15).map(i => ({name: clip(i.name, 60), grams: Math.round(Number(i.grams) || 0), kcal: Math.round(Number(i.kcal) || 0), carbs: r1(i.carbs), protein: r1(i.protein), fat: r1(i.fat)}));
+      const sum = k => items.reduce((s, i) => s + (Number(i[k]) || 0), 0);
+      return res.status(200).json({dish: {title: clip(o.title, 60), emoji: clip(o.emoji || "🍳", 8), why: clip(o.why, 300), items, kcal: Math.round(sum("kcal")), carbs: r1(sum("carbs")), protein: r1(sum("protein")), fat: r1(sum("fat")),
+        steps: (Array.isArray(o.steps) ? o.steps : []).slice(0, 8).map(x => clip(x, 200)), tip: clip(o.tip, 200)}});
+    } catch(e) { return fail(e); }
+  }
+  if (b.mode === "week"){
+    const d = b.data || {}, user = `Daten der Woche (JSON): ${JSON.stringify(d).slice(0, 6000)}`;
+    try { const o = await ask(req, "", null, {system: WEEK_SYS, schema: WEEK, name: "week", user, max: 1500, temp: .4});
+      return res.status(200).json({week: {headline: clip(o.headline, 80), mood: ["great", "ok", "bad"].includes(o.mood) ? o.mood : "ok", summary: clip(o.summary, 500),
+        good: (o.good || []).slice(0, 3).map(x => clip(x, 200)), better: (o.better || []).slice(0, 3).map(x => clip(x, 200)), focus: clip(o.focus, 240)}});
+    } catch(e) { return fail(e); }
+  }
   const text = String(b.text || "").trim().slice(0, 1500);
   if (!text) return res.status(400).json({error: "Nichts zu rechnen."});
   let est;

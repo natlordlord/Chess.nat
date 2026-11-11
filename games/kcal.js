@@ -25,7 +25,7 @@
   const IC = {
     mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
     code: '<path d="M4 6v12M7 6v12M10 6v12M14 6v12M17 6v12M20 6v12"/>',
-    chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>', chef: '<path d="M6 13.5A4 4 0 0 1 7.5 6a4.5 4.5 0 0 1 9 0A4 4 0 0 1 18 13.5V20H6z"/><path d="M6 17h12"/>',
     gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
     plus: '<path d="M12 5v14M5 12h14"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>', kb: '<rect x="2" y="6" width="20" height="13" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 15h10"/>',
     torch: '<path d="M8 2h8l-2 6v13h-4V8z"/><path d="M12 12v2"/>',
@@ -176,7 +176,7 @@
       <button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Lebensmittel suchen …</span></button>
       ${setupCard()}${quickHTML()}${tip}`;
     wireDay(el);
-    if (K.loaded) Weigh.check();
+    if (K.loaded){ Weigh.check(); Wrap.check(); }
   }
   window.homeKcal = async el => {
     if (!el) return; homeEl = el;
@@ -699,6 +699,61 @@
   })();
   window.KCScan = KCScan;
 
+  /* ---------- cooking: what's at home → one dish and how many grams of each, to fill what's still missing today ---------- */
+  const api = async body => { const s2 = window.ChessSite && window.ChessSite.getSession(), r = await fetch("/api/kcal", {method: "POST", headers: {"Content-Type": "application/json", Authorization: "Bearer " + (s2 ? s2.access_token : "")}, body: JSON.stringify(body)});
+    const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Das hat nicht geklappt."); return j; };
+  const aimName = () => { const a = AIMS.find(x => x[0] === (K.body || {}).aim); return a ? a[2] : ""; };
+  const Cook = {
+    open(){
+      if (!meId()) return say("Bitte erst anmelden");
+      const T = K.targets(), t = today(), miss = {kcal: Math.max(0, T.kcal - K.dayKcal(t)), protein: Math.max(0, Math.round(T.protein - K.daySum(t, "protein"))), carbs: Math.max(0, Math.round(T.carbs - K.daySum(t, "carbs"))), fat: Math.max(0, Math.round(T.fat - K.daySum(t, "fat")))};
+      let last = ""; try { last = localStorage.getItem("chessnat-kc-fridge") || ""; } catch(e) {}
+      const sh = detailSheet(`<div class="kc-form kc-cook" data-notr><h3>👨‍🍳 Was soll ich kochen?</h3><p class="muted kc-miss">Heute fehlen noch <b>${fmt(miss.kcal)} kcal</b> · ${miss.protein} g Protein · ${miss.carbs} g KH · ${miss.fat} g Fett</p>
+        <label>Was hast du da?<textarea id="kch" rows="3" placeholder="z. B. Nudeln, Hackfleisch, Tomaten, Zwiebeln, Käse, Eier">${h(last)}</textarea></label><button class="btn go big" id="kcgo">Vorschlag holen</button><div id="kcout"></div></div>`);
+      const el = sh.el, ta = el.querySelector("#kch"), out = el.querySelector("#kcout"), go = el.querySelector("#kcgo"); if (!last) try { ta.focus({preventScroll: true}); } catch(e) {}
+      go.onclick = async () => { const have = ta.value.trim(); if (have.length < 3) return say("Schreib kurz, was du da hast"); try { localStorage.setItem("chessnat-kc-fridge", have); } catch(e) {} ta.blur(); go.disabled = true; go.textContent = "Ich überlege …"; out.innerHTML = `<div class="kc-think"><i></i><i></i><i></i></div>`;
+        try { const j = await api({mode: "cook", have, missing: miss, aim: aimName(), usual: frequent().map(m => m.title).concat(K.meals.slice(0, 30).map(m => m.title)).filter((x, i, a) => a.indexOf(x) === i).slice(0, 12)}), d = j.dish;
+          out.innerHTML = `<div class="kc-dish"><div class="kc-mh"><span class="kc-me">${h(d.emoji)}</span><div><div class="kc-mt">${h(d.title)}</div><div class="muted">${fmt(d.kcal)} kcal · ${f1(d.protein)} g Protein · ${f1(d.carbs)} g KH · ${f1(d.fat)} g Fett</div></div></div>
+            <p class="kc-why">${h(d.why)}</p><div class="kc-items">${d.items.map(i => `<div><span>${h(i.name)}<small>${fmt(i.grams)} g</small></span><b>${fmt(i.kcal)} kcal</b></div>`).join("")}</div>
+            ${d.steps.length ? `<ol class="kc-steps">${d.steps.map(x => `<li>${h(x)}</li>`).join("")}</ol>` : ""}${d.tip ? `<p class="muted kc-said">💡 ${h(d.tip)}</p>` : ""}
+            <button class="btn go big" id="kceat">Gegessen, so eintragen</button></div>`;
+          out.querySelector("#kceat").onclick = async () => { try { const m = await K.add({source: "text", title: d.title, emoji: d.emoji, kcal: d.kcal, carbs: d.carbs, protein: d.protein, fat: d.fat, items: d.items.map(i => ({name: i.name, amount: fmt(i.grams) + " g", kcal: i.kcal, carbs: i.carbs, protein: i.protein, fat: i.fat})), note: "Gekocht nach Vorschlag"}); sh.close(); haptic(15); say(`${m.emoji} ${fmt(m.kcal)} kcal eingetragen`); } catch(e) { say("Ging nicht: " + (e.message || e)); } };
+          go.textContent = "Anderer Vorschlag"; } catch(e) { out.innerHTML = `<p class="muted">⚠️ ${h(e.message || "Keine Verbindung")}</p>`; go.textContent = "Nochmal"; }
+        go.disabled = false; };
+      return sh; }
+  };
+  /* ---------- the weekly wrap-up: once a week, big, it can't be swiped away: the numbers and an honest coach ---------- */
+  const Wrap = {
+    key: "chessnat-kc-wrap",
+    days(){ const t = today(), d = []; for (let i = 7; i >= 1; i--) d.push(addDays(t, -i)); return d; },
+    due(){ if (!K.on() || !K.body || !K.body.setup_at) return false; const logged = this.days().filter(d => K.dayMeals(d).length).length; if (logged < 4) return false;
+      let last = 0; try { last = Number(localStorage.getItem(this.key) || 0); } catch(e) {} return Date.now() - last > 6.5 * 864e5; },
+    check(){ if (this.shown || !this.due() || document.querySelector(".dsheet,.kc-ov-full,.onb")) return; this.shown = 1; setTimeout(() => { if (!document.querySelector(".dsheet,.kc-ov-full,.onb")) this.open(); else this.shown = 0; }, 1200); },
+    data(){ const T = K.targets(), D = this.days(), logged = D.filter(d => K.dayMeals(d).length), avg = f => Math.round(logged.reduce((s, d) => s + (f === "kcal" ? K.dayKcal(d) : K.daySum(d, f)), 0) / Math.max(1, logged.length));
+      const W = (K.weights || []).filter(w => Date.parse(w.ts) > Date.now() - 15 * 864e5).slice().reverse(), dW = W.length >= 2 ? Math.round((W[W.length - 1].kg - W[0].kg) * 10) / 10 : null;
+      const foods = {}; K.meals.filter(m => D.includes(m.day)).forEach(m => (Array.isArray(m.items) && m.items.length ? m.items : [{name: m.title, kcal: m.kcal}]).forEach(i => { const k = String(i.name || "").replace(/\(.*?\)/g, "").trim().slice(0, 40); if (k) foods[k] = (foods[k] || 0) + (Number(i.kcal) || 0); }));
+      return {ziel: aimName(), ziele: {kcal: T.kcal, protein: T.protein, kh: T.carbs, fett: T.fat}, tageMitEintrag: logged.length, tageZielGeschafft: logged.filter(d => K.dayKcal(d) >= T.kcal).length,
+        schnitt: {kcal: avg("kcal"), protein: avg("protein"), kh: avg("carbs"), fett: avg("fat")}, tage: D.map(d => ({tag: d, kcal: K.dayKcal(d), protein: Math.round(K.daySum(d, "protein"))})),
+        gewicht: W.length ? {jetzt: Number(W[W.length - 1].kg), aenderung: dW} : null, lebensmittel: Object.entries(foods).sort((a, b) => b[1] - a[1]).slice(0, 30).map(([k, v]) => k + " " + Math.round(v) + " kcal")}; },
+    open(manual){
+      const d = this.data(), T = K.targets(), pc = (a, b) => b ? Math.round(a / b * 100) : 0, ov = document.createElement("div"); ov.className = "kc-ov-full kc-wrap"; ov.setAttribute("data-notr", "");
+      const D = this.days(), from = new Date(D[0] + "T12:00").toLocaleDateString("de-DE", {day: "numeric", month: "short"}), to = new Date(D[6] + "T12:00").toLocaleDateString("de-DE", {day: "numeric", month: "short"});
+      ov.innerHTML = `<div class="kc-wtop"><small>Wochen-Rückblick · ${from} – ${to}</small><h2>Deine Woche</h2></div>
+        <div class="kc-wst"><div><b>${fmt(d.schnitt.kcal)}</b><span>Ø kcal · ${pc(d.schnitt.kcal, T.kcal)} %</span></div><div><b>${d.tageZielGeschafft}/${d.tageMitEintrag}</b><span>Tage Ziel geschafft</span></div>
+          <div><b>${d.schnitt.protein} g</b><span>Ø Protein · ${pc(d.schnitt.protein, T.protein)} %</span></div><div><b>${d.gewicht && d.gewicht.aenderung != null ? (d.gewicht.aenderung > 0 ? "+" : d.gewicht.aenderung < 0 ? "−" : "±") + nf(Math.abs(d.gewicht.aenderung), 1) + " kg" : d.gewicht ? nf(d.gewicht.jetzt, 1) + " kg" : "–"}</b><span>Gewicht</span></div></div>
+        <div class="kc-wai" id="kcwai"><div class="kc-think"><i></i><i></i><i></i></div><p class="muted">Dein Coach schaut sich die Woche an …</p></div>
+        <button class="btn go big kc-wok" id="kcwok" disabled>Gelesen</button>`;
+      document.body.appendChild(ov); try { localStorage.setItem(this.key, String(Date.now())); } catch(e) {}
+      /* "Gelesen" only after a few seconds, so it's really read */
+      const ok = ov.querySelector("#kcwok"); let left = 5; const tick = () => { if (!ov.isConnected) return; if (left > 0){ ok.textContent = `Gelesen (${left})`; left--; setTimeout(tick, 1000); } else { ok.textContent = "Gelesen"; ok.disabled = false; } }; tick();
+      ok.onclick = () => { ov.remove(); haptic(10); };
+      api({mode: "week", data: d}).then(j => { const w = j.week, box = ov.querySelector("#kcwai"); if (!box) return;
+        box.className = "kc-wai " + w.mood; box.innerHTML = `<h3>${w.mood === "great" ? "🔥 " : w.mood === "bad" ? "⚠️ " : "💡 "}${h(w.headline)}</h3><p>${h(w.summary)}</p>${w.good.length ? `<ul class="g">${w.good.map(x => `<li>${h(x)}</li>`).join("")}</ul>` : ""}${w.better.length ? `<ul class="b">${w.better.map(x => `<li>${h(x)}</li>`).join("")}</ul>` : ""}${w.focus ? `<p class="kc-focus">🎯 ${h(w.focus)}</p>` : ""}`;
+        if (w.mood === "great") confetti(true); })
+        .catch(e => { const box = ov.querySelector("#kcwai"); if (box) box.innerHTML = `<p class="muted">Der Coach ist gerade nicht erreichbar. Die Zahlen oben stimmen trotzdem.</p>`; });
+      return ov; }
+  };
+
   /* ---------- manual entry ---------- */
   function manual(){
     const sh = detailSheet(`<div class="kc-form" data-notr><h3>Selbst eintragen</h3><label>Was<input id="kcmt" maxlength="80" placeholder="z. B. Proteinshake"></label><label>Kalorien<input id="kcmk" inputmode="numeric" placeholder="kcal"></label><button class="btn go big" id="kcms">Eintragen</button></div>`);
@@ -763,18 +818,49 @@
         main.querySelector("#kcon").onclick = () => Setup.open(() => this.draw());
         return;
       }
-      const tabs = [["today", "Heute"], ["history", "Verlauf"], ["friends", "Freunde"]];
-      main.innerHTML = `<div class="page kc-page" data-notr><div class="kc-top"><h1 class="h-title">Kalorien</h1>${flameChip(K.flame(), K.litToday(), myIce())}<button class="kc-x kc-gear" id="kcset" aria-label="Einstellungen">${svg(IC.gear, 20)}</button></div>
+      const tabs = [["today", "Heute"], ["history", "Verlauf"], ["stats", "Analyse"], ["friends", "Freunde"]];
+      main.innerHTML = `<div class="page kc-page" data-notr><div class="kc-top"><h1 class="h-title">Kalorien</h1>${flameChip(K.flame(), K.litToday(), myIce())}<button class="kc-x kc-gear" id="kccook" aria-label="Kochen">${svg(IC.chef, 20)}</button><button class="kc-x kc-gear" id="kcset" aria-label="Einstellungen">${svg(IC.gear, 20)}</button></div>
         <div class="row kc-tabs">${tabs.map(([k, l]) => `<button class="btn sm ${this.tab === k ? "go" : ""}" data-tab="${k}">${l}</button>`).join("")}</div><div id="kcbody"></div></div>`;
       main.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { this.tab = b.dataset.tab; this.sel = null; this.draw(); if (this.tab === "friends") K.loadFriends().then(() => this.draw()).catch(() => {}); });
       main.querySelector("#kcset").onclick = () => { const sh = detailSheet(`<div class="kc-setsheet" data-notr>${settingsHTML(true)}</div>`); const box = sh.el.querySelector(".kc-setsheet");
         const re = () => { box.innerHTML = settingsHTML(true); wireSettings(box, re); this.draw(); }; wireSettings(box, re); };
       const fl = main.querySelector(".kc-top [data-kc-fl]"); if (fl) fl.onclick = () => iceSheet();
+      main.querySelector("#kccook").onclick = () => Cook.open();
       /* the first visit with the tracker on: the goal questions, once */
       if (K.loaded && !(K.body && K.body.setup_at) && !this.setupAsked && !document.querySelector(".kc-setup")){ this.setupAsked = 1; setTimeout(() => { if (App.route === "kcal" && !(K.body && K.body.setup_at)) Setup.open(() => this.draw()); }, 300); }
       else if (K.loaded) Weigh.check();
       const body = main.querySelector("#kcbody");
-      if (this.tab === "today") this.today(body); else if (this.tab === "history") this.history(body); else this.friendsTab(body);
+      if (this.tab === "today") this.today(body); else if (this.tab === "history") this.history(body); else if (this.tab === "stats") this.stats(body); else this.friendsTab(body);
+      if (K.loaded) Wrap.check();
+    },
+    /* Analyse: averages against the targets, kcal and protein per day, the macro split, weight, what brings the most kcal */
+    stats(el){
+      const n = this.range || 7, T = K.targets(), t = today(), days = []; for (let i = n; i >= 1; i--) days.push(addDays(t, -i)); if (K.dayMeals(t).length) days.push(t);
+      const logged = days.filter(d => K.dayMeals(d).length), avg = f => logged.length ? logged.reduce((s, d) => s + (f === "kcal" ? K.dayKcal(d) : K.daySum(d, f)), 0) / logged.length : 0;
+      const A = {kcal: avg("kcal"), protein: avg("protein"), carbs: avg("carbs"), fat: avg("fat")}, hit = logged.filter(d => K.dayKcal(d) >= T.kcal).length;
+      const tile = (k, l, u) => { const pc = T[k] ? Math.round(A[k] / T[k] * 100) : 0; return `<div class="kc-st"><small>Ø ${l}</small><b>${fmt(A[k])}<span> ${u}</span></b><i><u style="width:${Math.min(100, pc)}%"></u></i><em class="${pc >= 95 ? "ok" : pc < 80 ? "lo" : ""}">${pc} % vom Ziel</em></div>`; };
+      const bars = (f, goal, col) => { const vals = days.map(d => f === "kcal" ? K.dayKcal(d) : K.daySum(d, f)), mx = Math.max(goal * 1.2, ...vals) || 1;
+        return `<div class="kc-ch" style="--goal:${(goal / mx * 100).toFixed(1)}%">${days.map((d, i) => `<span title="${dayLabel(d)}: ${fmt(vals[i])}"><i style="height:${(vals[i] / mx * 100).toFixed(1)}%;background:${vals[i] >= goal ? col : col + "99"}"></i><small>${n <= 7 ? new Date(d + "T12:00").toLocaleDateString("de-DE", {weekday: "short"}).slice(0, 2) : +d.slice(8)}</small></span>`).join("")}<b class="kc-chg"></b></div>`; };
+      /* the energy split: what share of the kcal came from carbs, protein, fat, against the targets' split */
+      const e = {carbs: A.carbs * 4, protein: A.protein * 4, fat: A.fat * 9}, et = e.carbs + e.protein + e.fat || 1, tt = T.carbs * 4 + T.protein * 4 + T.fat * 9 || 1;
+      const split = (o, tot) => `<div class="kc-split"><i style="width:${o.carbs / tot * 100}%" class="c"></i><i style="width:${o.protein / tot * 100}%" class="p"></i><i style="width:${o.fat / tot * 100}%" class="f"></i></div>`;
+      /* weight: every weigh-in as a line */
+      const W = (K.weights || []).slice().reverse(), wl = W.length >= 2 ? (() => { const ks = W.map(w => Number(w.kg)), lo = Math.min(...ks) - .5, hi = Math.max(...ks) + .5, X = i => 8 + i / (W.length - 1) * 284, Y = k => 92 - (k - lo) / (hi - lo) * 80;
+        return `<svg class="kc-wl" viewBox="0 0 300 100"><polyline points="${W.map((w, i) => X(i).toFixed(1) + "," + Y(+w.kg).toFixed(1)).join(" ")}"/>${W.map((w, i) => `<circle cx="${X(i).toFixed(1)}" cy="${Y(+w.kg).toFixed(1)}" r="3.5"/>`).join("")}</svg>`; })() : "";
+      const dW = W.length >= 2 ? Math.round((W[W.length - 1].kg - W[0].kg) * 10) / 10 : null;
+      /* the foods that brought the most kcal */
+      const F = new Map(); K.meals.filter(m => days.includes(m.day)).forEach(m => (Array.isArray(m.items) && m.items.length ? m.items : [{name: m.title, kcal: m.kcal}]).forEach(i => { const k = String(i.name || "").replace(/\(.*?\)/g, "").trim(); if (!k) return; const o = F.get(k.toLowerCase()) || {name: k, kcal: 0, n: 0}; o.kcal += Number(i.kcal) || 0; o.n++; F.set(k.toLowerCase(), o); }));
+      const top = [...F.values()].sort((a, b) => b.kcal - a.kcal).slice(0, 8), tk = top.length ? top[0].kcal : 1, all = logged.reduce((s, d) => s + K.dayKcal(d), 0) || 1;
+      el.innerHTML = `<div class="row kc-rng">${[[7, "7 Tage"], [30, "30 Tage"]].map(([v, l]) => `<button class="chip ${n === v ? "on" : ""}" data-rng="${v}">${l}</button>`).join("")}<button class="chip" id="kcwrap">📋 Wochen-Rückblick</button></div>
+        ${logged.length ? `<div class="kc-sts">${tile("kcal", "Kalorien", "kcal")}${tile("protein", "Protein", "g")}${tile("carbs", "KH", "g")}${tile("fat", "Fett", "g")}</div>
+        <div class="unit kc-an"><h3>Kalorien <small>${hit} von ${logged.length} Tagen geschafft</small></h3>${bars("kcal", T.kcal, "#7FB24A")}</div>
+        <div class="unit kc-an"><h3>Protein <small>Ziel ${T.protein} g</small></h3>${bars("protein", T.protein, "#4FA3FF")}</div>
+        <div class="unit kc-an"><h3>Aufteilung der Kalorien</h3><div class="kc-spl"><span>Du</span>${split(e, et)}</div><div class="kc-spl"><span>Ziel</span>${split({carbs: T.carbs * 4, protein: T.protein * 4, fat: T.fat * 9}, tt)}</div>
+          <div class="kc-leg"><span class="c">KH ${Math.round(e.carbs / et * 100)} %</span><span class="p">Protein ${Math.round(e.protein / et * 100)} %</span><span class="f">Fett ${Math.round(e.fat / et * 100)} %</span></div></div>` : `<p class="muted kc-empty">In diesem Zeitraum ist noch nichts eingetragen.</p>`}
+        <div class="unit kc-an"><h3>Gewicht ${dW != null ? `<small>${dW > 0 ? "+" : dW < 0 ? "−" : "±"}${nf(Math.abs(dW), 1)} kg seit ${new Date(W[0].ts).toLocaleDateString("de-DE", {day: "numeric", month: "short"})}</small>` : ""}</h3>${wl || `<p class="muted">${W.length ? `${nf(W[0].kg, 1)} kg. Der Verlauf erscheint ab der zweiten Messung.` : "Noch nicht gewogen."}</p>`}<button class="btn sm" id="kcwnow">⚖️ Jetzt wiegen</button></div>
+        ${top.length ? `<div class="unit kc-an"><h3>Das bringt die meisten Kalorien</h3><div class="kc-top8">${top.map(o => `<div><span>${h(o.name)}<small>${o.n}× · ${Math.round(o.kcal / all * 100)} %</small></span><i><u style="width:${(o.kcal / tk * 100).toFixed(0)}%"></u></i><b>${fmt(o.kcal)}</b></div>`).join("")}</div></div>` : ""}`;
+      el.querySelectorAll("[data-rng]").forEach(b => b.onclick = () => { this.range = +b.dataset.rng; this.draw(); });
+      el.querySelector("#kcwrap").onclick = () => Wrap.open(true); el.querySelector("#kcwnow").onclick = () => Weigh.open();
     },
     dayBlock(k, own = true){
       const ms = own ? K.dayMeals(k) : [];
@@ -858,6 +944,26 @@
 .kc-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:2px}
 .kc-big{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:96px;border:0;border-radius:18px;color:#fff;font:900 18px var(--display);cursor:pointer;background:var(--go);box-shadow:inset 0 -5px 0 var(--go-deep);-webkit-tap-highlight-color:transparent}
 .kc-big:active{transform:translateY(2px);box-shadow:inset 0 -2px 0 var(--go-deep)}
+.kc-rng{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 10px}.kc-sts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.kc-st{background:var(--panel);border-radius:16px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}.kc-st small{color:var(--muted);font:800 12px var(--body)}.kc-st b{font:900 24px var(--display)}.kc-st b span{font:800 13px var(--body);color:var(--muted)}
+.kc-st i{display:block;height:6px;border-radius:3px;background:var(--panel-2);overflow:hidden}.kc-st u{display:block;height:100%;background:var(--go);border-radius:3px}.kc-st em{font:800 12px var(--body);font-style:normal;color:var(--muted)}.kc-st em.ok{color:#9BE25A}.kc-st em.lo{color:#ff8a78}
+.kc-an h3{margin:0 0 10px;font:900 17px var(--display);display:flex;justify-content:space-between;align-items:baseline;gap:8px}.kc-an h3 small{color:var(--muted);font:800 12px var(--body)}
+.kc-ch{position:relative;display:flex;align-items:flex-end;gap:3px;height:130px;padding-bottom:18px}.kc-ch span{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0;position:relative}
+.kc-ch span i{display:block;width:100%;max-width:26px;border-radius:5px 5px 2px 2px;min-height:2px}.kc-ch span small{position:absolute;bottom:-17px;font:800 10px var(--body);color:var(--muted)}
+.kc-chg{position:absolute;left:0;right:0;bottom:calc(18px + (100% - 18px) * var(--goal) / 100%);border-top:2px dashed rgba(255,255,255,.35);pointer-events:none}
+.kc-spl{display:flex;align-items:center;gap:8px;margin:4px 0}.kc-spl span{width:34px;font:800 12px var(--body);color:var(--muted)}.kc-split{flex:1;display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--panel-2)}.kc-split i{display:block;height:100%}
+.kc-split .c,.kc-leg .c::before{background:#E9A92B}.kc-split .p,.kc-leg .p::before{background:#4FA3FF}.kc-split .f,.kc-leg .f::before{background:#E9573F}.kc-leg{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px;font:800 12px var(--body)}.kc-leg span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px}
+.kc-wl{width:100%;height:110px;display:block;margin-bottom:8px}.kc-wl polyline{fill:none;stroke:var(--go);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}.kc-wl circle{fill:var(--panel);stroke:var(--go);stroke-width:2.5}
+.kc-top8{display:flex;flex-direction:column;gap:6px}.kc-top8>div{display:grid;grid-template-columns:minmax(0,1.2fr) 1fr auto;gap:8px;align-items:center}.kc-top8 span{display:flex;flex-direction:column;font:800 13.5px var(--body);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kc-top8 small{color:var(--muted);font-weight:700;font-size:11.5px}
+.kc-top8 i{display:block;height:8px;border-radius:4px;background:var(--panel-2);overflow:hidden}.kc-top8 u{display:block;height:100%;background:#E9A92B;border-radius:4px}.kc-top8 b{font:900 14px var(--display)}
+.kc-cook textarea{width:100%;box-sizing:border-box;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);font:600 16px var(--body);padding:10px}.kc-miss{margin:0}
+.kc-dish{display:flex;flex-direction:column;gap:10px;margin-top:6px}.kc-why{margin:0;font:700 14px/1.4 var(--body)}.kc-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font:600 14px/1.4 var(--body)}
+.kc-think{display:flex;gap:6px;justify-content:center;padding:14px}.kc-think i{width:10px;height:10px;border-radius:50%;background:var(--go);animation:kcThink 1s ease-in-out infinite}.kc-think i:nth-child(2){animation-delay:.15s}.kc-think i:nth-child(3){animation-delay:.3s}@keyframes kcThink{50%{transform:translateY(-6px);opacity:.5}}
+.kc-wrap{overflow:auto;gap:14px;justify-content:flex-start;padding-top:calc(env(safe-area-inset-top,0px) + 24px)}.kc-wtop{text-align:center}.kc-wtop small{color:rgba(255,255,255,.55);font:800 13px var(--body)}.kc-wtop h2{margin:2px 0 0;font:900 34px var(--display)}
+.kc-wst{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:480px;width:100%;margin:0 auto}.kc-wst>div{background:#211F1C;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:2px}.kc-wst b{font:900 24px var(--display)}.kc-wst span{font:800 12px var(--body);color:rgba(255,255,255,.6)}
+.kc-wai{max-width:480px;width:100%;margin:0 auto;background:#211F1C;border-radius:18px;padding:14px 16px;border:2px solid rgba(255,255,255,.08)}.kc-wai.great{border-color:#8FC458}.kc-wai.bad{border-color:#E9573F}.kc-wai h3{margin:0 0 6px;font:900 20px var(--display)}.kc-wai p{margin:0 0 8px;font:600 15px/1.45 var(--body)}
+.kc-wai ul{margin:0 0 8px;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font:700 14px/1.4 var(--body)}.kc-wai ul.g li::before{content:"✓ ";color:#9BE25A;font-weight:900}.kc-wai ul.b li::before{content:"→ ";color:#FFD15C;font-weight:900}.kc-focus{font-weight:800!important}
+.kc-wok{max-width:480px;width:100%;margin:6px auto 0}
 .kc-btns.two{grid-template-columns:1fr 1fr;gap:10px}.kc-btns.two .kc-big{height:112px;font-size:19px;border-radius:22px}
 .kc-num em{margin-left:auto;align-self:center;font:900 13px var(--body);color:var(--muted);background:var(--panel-2);border-radius:999px;padding:4px 10px;font-style:normal}.kc-num em.ok{color:#fff;background:linear-gradient(180deg,#ff9a3c,#e9573f)}.kc-num{width:100%}
 .kc-mac{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.kc-mc{background:var(--panel-2);border-radius:14px;padding:8px 10px;display:flex;flex-direction:column;gap:3px;min-width:0}
