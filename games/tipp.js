@@ -41,7 +41,7 @@
     async loadGroups(){ const c = sb(); if (!c || !meId()){ this.groups = []; return; } const {data, error} = await c.rpc("tipp_groups_mine"); if (!error) this.groups = data || []; if (this.gid && !this.groups.some(g => g.id === this.gid)) this.setGroup(""); },
     async saveGroup(id, name, comps){ const c = sb(); if (!c || !meId()) return null; const {data, error} = await c.rpc("tipp_group_save", {p_id: id || null, p_name: name, p_comps: comps}); if (error){ toast(error.message); return null; } await this.loadGroups(); return data; },
     async join(code){ const c = sb(); code = String(code || "").toLowerCase().replace(/[^0-9a-f]/g, "").slice(0, 12); if (!code) return null;
-      if (!c || !meId()){ try { localStorage.setItem("chessnat-tipp-join", code); } catch(e) {} toast(T("Sign in to join the round.", "Zum Mitmachen bitte anmelden.")); return null; }
+      if (!c || !meId()){ try { localStorage.setItem("chessnat-tipp-join", code); } catch(e) {} toast(T("Sign in to join the round.", "Zum Mitmachen bitte anmelden.")); setTimeout(() => { if (!meId()) App.go("account"); }, 900); return null; }
       try { localStorage.removeItem("chessnat-tipp-join"); } catch(e) {}
       const {data, error} = await c.rpc("tipp_join", {p_code: code}); if (error || !data){ toast(T("This round doesn't exist (anymore).", "Diese Tipprunde gibt es nicht (mehr).")); return null; }
       await this.loadGroups(); this.setGroup(data.id); return data; },
@@ -555,4 +555,7 @@
 .tp-pgl{display:flex;flex-wrap:wrap;gap:4px;margin:5px 0 3px}.tp-pgl span{background:var(--panel-2);border-radius:8px;padding:3px 8px;font:700 12.5px var(--body)}.tp-pgl i{font-style:normal;color:var(--muted);margin-left:2px}
 .tp-kr.f small{max-width:45%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}`;
   document.head.appendChild(css);
+  /* an invite that waited for the sign-in: once signed in, open the round right away */
+  (() => { let n = 0; const tick = () => { let jc = null; try { jc = localStorage.getItem("chessnat-tipp-join"); } catch(e) {} if (!jc || ++n > 12) return;
+    if (meId() && typeof App !== "undefined" && ["home", "account", "me"].includes(App.route)) { App.go("tipp", {join: jc}); return; } setTimeout(tick, 1500); }; setTimeout(tick, 2000); })();
 })();
