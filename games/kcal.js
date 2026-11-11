@@ -1370,14 +1370,12 @@
         return;
       }
       const tabs = [["today", "Heute"], ["history", "Verlauf"], ["stats", "Analyse"], ["friends", "Freunde"]];
-      main.innerHTML = `<div class="page kc-page" data-notr><div class="kc-top"><h1 class="h-title">Kalorien</h1>${flameChip(K.flame(), K.litToday(), myIce())}<button class="kc-x kc-gear" id="kccook" aria-label="Kochen">${svg(IC.chef, 20)}</button><button class="kc-x kc-gear" id="kcshop" aria-label="Einkaufsliste">${svg(IC.list, 20)}</button><button class="kc-x kc-gear" id="kcset" aria-label="Einstellungen">${svg(IC.gear, 20)}</button></div>
+      main.innerHTML = `<div class="page kc-page" data-notr><div class="kc-top"><h1 class="h-title">Kalorien</h1>${flameChip(K.flame(), K.litToday(), myIce())}<button class="kc-x kc-gear" id="kcset" aria-label="Einstellungen">${svg(IC.gear, 20)}</button></div>
         <div class="row kc-tabs">${tabs.map(([k, l]) => `<button class="btn sm ${this.tab === k ? "go" : ""}" data-tab="${k}">${l}</button>`).join("")}</div><div id="kcbody"></div></div>`;
       main.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { this.tab = b.dataset.tab; this.sel = null; this.draw(); if (this.tab === "friends") this.loadFr(); });
       main.querySelector("#kcset").onclick = () => { const sh = detailSheet(`<div class="kc-setsheet" data-notr>${settingsHTML(true)}</div>`); const box = sh.el.querySelector(".kc-setsheet");
         const re = () => { box.innerHTML = settingsHTML(true); wireSettings(box, re); this.draw(); }; wireSettings(box, re); };
       const fl = main.querySelector(".kc-top [data-kc-fl]"); if (fl) fl.onclick = () => iceSheet();
-      main.querySelector("#kccook").onclick = () => Cook.open();
-      main.querySelector("#kcshop").onclick = () => Shop.open();
       /* the first visit with the tracker on: the goal questions, once */
       if (K.loaded && !(K.body && K.body.setup_at) && !this.setupAsked && !document.querySelector(".kc-setup")){ this.setupAsked = 1; setTimeout(() => { if (onPage() && !(K.body && K.body.setup_at)) Setup.open(() => this.draw()); }, 300); }
       else if (K.loaded) Weigh.check();
@@ -1431,10 +1429,11 @@
       el.innerHTML = `<div class="unit kc-sum">${sumHTML(t, false)}
         <div class="kc-btns two"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 32)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 32)}<span>Barcode</span></button></div>
         <button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Lebensmittel suchen …</span></button>
+        <div class="kc-btns two"><button class="kc-tile shop" id="kcshop">${svg(IC.list, 24)}<span><b>Einkaufsliste</b><small>mit Freunden</small></span></button><button class="kc-tile cook" id="kccook">${svg(IC.chef, 24)}<span><b>Kochen</b><small>Was hast du da?</small></span></button></div>
         ${setupCard()}</div>
         <div class="kc-lh"><span>Heute</span>${heads()}</div>${this.dayBlock(t)}
         <button class="kc-link" id="kcmanual">${svg(IC.plus, 15)} Selbst eintragen</button>
-        ${(q => q ? `<div class="unit kc-sum kc-sugg">${q}</div>` : "")(quickHTML())}`;
+        ${(q => q ? `<div class="unit kc-sum kc-sugg">${q}</div>` : "")(quickHTML())}`; el.querySelector("#kcshop").onclick = () => Shop.open(); el.querySelector("#kccook").onclick = () => Cook.open();
       wireDay(el); animSum(el); el.querySelector("#kcmanual").onclick = () => manual();
       this.wireMeals(el);
     },
@@ -1570,7 +1569,11 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-mrow.head{padding:12px 14px;color:var(--fg);font:900 16px var(--body);cursor:default}button.kc-mrow.head{cursor:pointer}.kc-mrow.head .kc-n{font:900 16px var(--display)}.kc-mrow .kc-n{font:800 14.5px var(--body)}
 .kc-mt2{flex:1;min-width:0;white-space:nowrap;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;gap:1px}.kc-mtn{max-width:100%;overflow:hidden;text-overflow:ellipsis}.kc-mt2 small{order:-1;font-variant-numeric:tabular-nums}.kc-mt2 small{font:600 11px var(--body);color:var(--muted);opacity:.75;margin:0;letter-spacing:.02em}
 .kc-link{display:flex;align-items:center;justify-content:center;gap:6px;margin:14px auto 4px;border:0;background:none;color:var(--muted);font:800 14px var(--body);cursor:pointer}
-.kc-btns.two{grid-template-columns:1fr 1fr;gap:10px}.kc-btns.two .kc-big{height:112px;font-size:19px;border-radius:22px}
+.kc-btns.two{grid-template-columns:1fr 1fr;gap:10px}
+.kc-tile{display:flex;align-items:center;gap:8px;height:76px;padding:0 12px;border:0;border-radius:20px;color:#fff;text-align:left;cursor:pointer;min-width:0;-webkit-tap-highlight-color:transparent}
+.kc-tile svg{flex:none}.kc-tile span{display:flex;flex-direction:column;min-width:0}.kc-tile b{font:900 16px var(--display);white-space:nowrap}.kc-tile small{font:700 11.5px var(--body);opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kc-tile.shop{background:#D9952A;box-shadow:inset 0 -5px 0 #A86E16}.kc-tile.cook{background:#E0694E;box-shadow:inset 0 -5px 0 #B04A32}
+.kc-tile:active{transform:translateY(2px);box-shadow:inset 0 -2px 0 rgba(0,0,0,.3)}.kc-btns.two .kc-big{height:112px;font-size:19px;border-radius:22px}
 .kc-num em{margin-left:auto;align-self:center;font:900 13px var(--body);color:var(--muted);background:var(--panel-2);border-radius:999px;padding:4px 10px;font-style:normal}.kc-num em.ok{color:#fff;background:linear-gradient(180deg,#ff9a3c,#e9573f)}.kc-num{width:100%}
 .kc-mac{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.kc-mc{background:var(--panel-2);border-radius:14px;padding:8px 10px;display:flex;flex-direction:column;gap:3px;min-width:0}
 .kc-mc span{font:800 11.5px var(--body);color:var(--muted);letter-spacing:.02em}.kc-mc b{font:900 17px var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kc-mc b small{font:800 11.5px var(--body);color:var(--muted)}

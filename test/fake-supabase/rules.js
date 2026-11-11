@@ -117,7 +117,7 @@ module.exports = db => {
   };
 
   const raise = (message, code = "P0001") => { throw {status: 400, body: {code, message, details: null, hint: null}}; };
-  const tippPts = (sport, sh, sa, w, rh, ra, rw) => sport === "mma" ? (w == null || rw == null ? null : w === rw ? 3 : 0)
+  const tippPts = (sport, sh, sa, w, rh, ra, rw) => (sport === "mma" || sport === "lol") ? (w == null || rw == null ? null : w === rw ? 3 : 0)
     : sh == null || sa == null || rh == null || ra == null ? null : sh === rh && sa === ra ? 4
     : Math.sign(sh - sa) === Math.sign(rh - ra) && rh !== ra && sh - sa === rh - ra ? 3 : Math.sign(sh - sa) === Math.sign(rh - ra) ? 2 : 0;
   const evPts = (e, sh, sa, w, final = true) => e.state === "canc" || (final && e.state !== "post") || e.state === "pre" ? null
@@ -143,7 +143,7 @@ module.exports = db => {
       if (!u) raise("not signed in"); const ev = R.tipp_events.find(e => e.id === p_event); if (!ev) raise("no such event");
       if (ev.state !== "pre" || Date.parse(ev.start_at) <= Date.now()) raise("closed");
       if (ev.sport === "fb"){ if (p_h == null || p_a == null || p_h < 0 || p_h > 20 || p_a < 0 || p_a > 20) raise("bad score"); p_w = null; }
-      else if (ev.sport === "mma" && ev.meta && String(ev.meta.title) === "true"){ if (!["a", "b"].includes(p_w)) raise("bad pick"); p_h = p_a = null; }
+      else if (ev.sport === "lol" || (ev.sport === "mma" && ev.meta && String(ev.meta.title) === "true")){ if (!["a", "b"].includes(p_w)) raise("bad pick"); p_h = p_a = null; }
       else raise("not tippable");
       let r = R.tipp_picks.find(p => p.user_id === u && p.event_id === p_event);
       if (r) Object.assign(r, {sh: p_h, sa: p_a, w: p_w, updated_at: db.now()});
@@ -154,7 +154,7 @@ module.exports = db => {
       const g = new Map();
       R.tipp_picks.forEach(p => { const e = R.tipp_events.find(x => x.id === p.event_id); if (!e) return; const k = (p.user_id || "") + "|" + (p.bot || ""), pl = player(p.user_id), pts = evPts(e, p.sh, p.sa, p.w);
         const o = g.get(k) || {uid: p.user_id, bot: p.bot, name: pl ? pl.name : p.bot === "ki" ? "Nat-KI" : "?", avatar: pl ? pl.avatar : null, pts: 0, exact: 0, n: 0, open: 0}; g.set(k, o);
-        if (pts != null){ o.pts += pts; o.n++; if ((e.sport === "fb" && pts === 4) || (e.sport === "mma" && pts === 3)) o.exact++; } else if (e.state !== "canc") o.open++; });
+        if (pts != null){ o.pts += pts; o.n++; if ((e.sport === "fb" && pts === 4) || ((e.sport === "mma" || e.sport === "lol") && pts === 3)) o.exact++; } else if (e.state !== "canc") o.open++; });
       return [...g.values()].sort((a, b) => b.pts - a.pts || b.exact - a.exact || a.n - b.n);
     },
     tipp_event_picks(u, {p_event}){

@@ -241,7 +241,7 @@ const PARTS = {
     const w = (await L.table("kcal_weights", "user_id=eq." + ID.tester + "&order=created_at.desc&limit=1"))[0]; ok(w && w.kg === 78.6, "Wiegen speichert 78,6 kg", JSON.stringify(w)); await closeSheets(page);
     await clean(page, "Flamme und Wiegen");
     /* cooking */
-    await page.tap("#kccook"); await sleep(500); await page.fill("#kch", "Hähnchen, Reis, Paprika"); await page.tap("#kcgo"); await page.waitForFunction(() => /Hähnchen-Reis/.test(document.querySelector("#kcout").innerText), null, {timeout: 6000}).catch(() => {});
+    await page.tap('#main [data-tab="today"]'); await sleep(500); await page.tap("#kccook"); await sleep(500); await page.fill("#kch", "Hähnchen, Reis, Paprika"); await page.tap("#kcgo"); await page.waitForFunction(() => /Hähnchen-Reis/.test(document.querySelector("#kcout").innerText), null, {timeout: 6000}).catch(() => {});
     ok(/Hähnchen-Reis-Pfanne/.test(await txt(page, "#kcout")), "Kochen: Vorschlag mit Grammzahlen kommt", (await txt(page, "#kcout")).slice(0, 150)); await page.shot("kcal-kochen");
     const eat = page.locator("#kceat"); if (await eat.count()){ const n = (await meals("tester")).length; await eat.tap(); await sleep(900); ok((await meals("tester")).length === n + 1, "Gericht lässt sich direkt eintragen"); }
     await closeSheets(page); await clean(page, "Kochen");
@@ -363,7 +363,7 @@ const PARTS = {
   /* ---------- Tippspiel ---------- */
   async tipp(browser){
     const page = await L.open(browser, "tester"); await page.tap('#tabbar [data-t="tipp"]'); await sleep(1500);
-    const t = await txt(page, "#main"); ok(/Bayern/.test(t) && /Leipzig/.test(t) && /3 offen/.test(t), "Tippspiel zeigt die offenen Spiele (3 offen)", t.slice(0, 200)); await page.shot("tipp");
+    const t = await txt(page, "#main"); ok(/Bayern/.test(t) && /Leipzig/.test(t) && /4 offen/.test(t), "Tippspiel zeigt die offenen Spiele (4 offen)", t.slice(0, 200)); await page.shot("tipp");
     ok(/Makhachev/.test(t), "UFC-Titelkampf ist tippbar gelistet", t.slice(0, 300));
     await clean(page, "Tippspiel öffnen");
     /* only the result: plus and minus, saved at once */
@@ -372,6 +372,8 @@ const PARTS = {
     ok(pick && pick.sh != null && pick.sa != null, "Ergebnis mit + tippen wird sofort gespeichert", JSON.stringify(pick));
     if (pick) ok(new RegExp("Bayern . " + pick.sh + " . Dortmund . " + pick.sa).test((await txt(page, "#main")).replace(/[−+]/g, ".")), "die Seite zeigt denselben Tipp wie die Datenbank (" + pick.sh + ":" + pick.sa + ")", (await txt(page, "#main")).slice(120, 260));
     await page.tap('#main [data-w="a"]'); await sleep(1200); const ufc = (await L.table("tipp_picks", "event_id=eq.t-ufc&user_id=eq." + ID.tester))[0]; ok(ufc && ufc.w === "a", "UFC: Sieger tippen gespeichert", JSON.stringify(ufc));
+    ok(/Worlds · Finale/i.test(await txt(page, "#main")) && /Bilibili Gaming/.test(await txt(page, "#main")), "League of Legends: das Worlds-Finale ist tippbar gelistet, mit vollem Teamnamen");
+    await page.tap('#main [data-ev="t-lol"] [data-w="b"]'); await sleep(1200); const lol = (await L.table("tipp_picks", "event_id=eq.t-lol&user_id=eq." + ID.tester))[0]; ok(lol && lol.w === "b", "LoL: Sieger tippen gespeichert", JSON.stringify(lol)); await page.shot("tipp-lol");
     await page.tap('#main [data-tab="res"]'); await sleep(1000); const r = await txt(page, "#main"); ok(/Leverkusen/.test(r) && /Freiburg/.test(r), "Ergebnisse: laufendes und beendetes Spiel", r.slice(0, 250)); await page.shot("tipp-ergebnisse");
     await page.tap('#main [data-tab="table"]'); await sleep(1000); const tb = await txt(page, "#main"); ok(/Nat Tester|Du/.test(tb) && /Mila/.test(tb), "Rangliste zeigt dich und Mila", tb.slice(0, 250)); await page.shot("tipp-rangliste");
     await clean(page, "Tippen"); await page.context().close();

@@ -10,8 +10,8 @@
   const meId = () => (typeof Social !== "undefined" && Social.me) || (window.ChessSite && ChessSite.storedUid ? ChessSite.storedUid() : null);
   const h = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
   const bay = n => /bayern/i.test(n || "");
-  const COMP = {"nt": ["🇩🇪", T("Germany", "Deutschland")], "ger.1": ["⚽", "Bundesliga"], "uefa.champions": ["⭐", "Champions League"], "ger.dfb_pokal": ["🏆", "DFB-Pokal"], "ufc": ["🥊", T("UFC title fight", "UFC-Titelkampf")]};
-  const FILTERS = [["all", T("All", "Alle")], ["nt", "🇩🇪 " + T("Germany", "Deutschland")], ["bay", "⭐ Bayern"], ["ger.1", "Bundesliga"], ["uefa.champions", "Champions League"], ["ger.dfb_pokal", "DFB-Pokal"], ["ufc", "🥊 UFC"]];
+  const COMP = {"nt": ["🇩🇪", T("Germany", "Deutschland")], "ger.1": ["⚽", "Bundesliga"], "uefa.champions": ["⭐", "Champions League"], "ger.dfb_pokal": ["🏆", "DFB-Pokal"], "ufc": ["🥊", T("UFC title fight", "UFC-Titelkampf")], "lol": ["🎮", "League of Legends"]};
+  const FILTERS = [["all", T("All", "Alle")], ["nt", "🇩🇪 " + T("Germany", "Deutschland")], ["bay", "⭐ Bayern"], ["ger.1", "Bundesliga"], ["uefa.champions", "Champions League"], ["ger.dfb_pokal", "DFB-Pokal"], ["ufc", "🥊 UFC"], ["lol", "🎮 LoL"]];
   /* short club names, so a row never wraps ("Bayern" instead of "FC Bayern München") */
   const SN = {"FC Bayern München": "Bayern", "FC Bayern": "Bayern", "Bayern München": "Bayern", "Borussia Dortmund": "Dortmund", "Borussia Mönchengladbach": "Gladbach", "Bayer 04 Leverkusen": "Leverkusen", "Bayer Leverkusen": "Leverkusen", "RB Leipzig": "Leipzig", "Eintracht Frankfurt": "Frankfurt", "VfB Stuttgart": "Stuttgart", "SC Freiburg": "Freiburg", "TSG Hoffenheim": "Hoffenheim", "TSG 1899 Hoffenheim": "Hoffenheim", "1. FC Union Berlin": "Union Berlin", "Union Berlin": "Union Berlin", "SV Werder Bremen": "Bremen", "Werder Bremen": "Bremen", "VfL Wolfsburg": "Wolfsburg", "1. FSV Mainz 05": "Mainz", "Mainz 05": "Mainz", "FC Augsburg": "Augsburg", "1. FC Heidenheim 1846": "Heidenheim", "1. FC Heidenheim": "Heidenheim", "FC St. Pauli": "St. Pauli", "1. FC Köln": "Köln", "Hamburger SV": "HSV", "VfL Bochum": "Bochum", "Holstein Kiel": "Kiel", "SC Paderborn 07": "Paderborn", "SV Elversberg": "Elversberg", "Real Madrid": "Real Madrid", "FC Barcelona": "Barcelona", "Paris Saint-Germain": "Paris SG", "Manchester City": "Man City", "Manchester United": "Man United", "Atlético Madrid": "Atlético", "Atletico Madrid": "Atlético", "Inter Mailand": "Inter", "Internazionale": "Inter", "Tottenham Hotspur": "Tottenham", "Newcastle United": "Newcastle", "Bosnien-Herzegowina": "Bosnien"};
   const sn = n => { n = String(n || ""); if (SN[n]) return SN[n]; if (n.length <= 14) return n; const x = n.replace(/^(1\. )?(FC|SC|SV|VfB|VfL|TSG|RB|FSV|SpVgg|SSV|AFC|CF) /, "").replace(/ (FC|CF|SC|\d{2,4})$/, "").trim(); return x || n; };
@@ -27,17 +27,19 @@
   const tap = () => { try { Sound.tap(); } catch(e) {} };
 
   /* what is tipped at all: football, and the UFC title fights (five rounds on a numbered card) */
-  const tippable = e => e && e.state !== "canc" && (e.sport === "fb" || (e.sport === "mma" && e.meta && e.meta.title));
+  const tippable = e => e && e.state !== "canc" && (e.sport === "fb" || e.sport === "lol" || (e.sport === "mma" && e.meta && e.meta.title));
+  /* tipped by winner (3 points) instead of a score: UFC title fights and the big League of Legends series */
+  const isW = e => e.sport === "mma" || e.sport === "lol", wn = (e, n) => e.sport === "lol" ? String(n || "") : last(n), ico = e => e.sport === "lol" ? "🎮" : "🥊";
   const open = e => e.state === "pre" && Date.parse(e.start_at) > Date.now();
   /* the same rule as the database (tipp_pts) */
   const ptsOf = (e, p) => { if (!p || !e || e.state === "pre") return null;
-    if (e.sport === "mma"){ const w = e.state === "post" && e.meta ? e.meta.winner : null; return w ? (p.w === w ? 3 : 0) : null; }
+    if (isW(e)){ const w = e.state === "post" && e.meta ? e.meta.winner : null; return w ? (p.w === w ? 3 : 0) : null; }
     const reg = e.state === "post" && e.meta && Array.isArray(e.meta.reg) ? e.meta.reg : null, rh = reg ? +reg[0] : e.score_h, ra = reg ? +reg[1] : e.score_a;
     if (p.sh == null || p.sa == null || rh == null || ra == null) return null;
     if (p.sh === rh && p.sa === ra) return 4; const s = Math.sign(p.sh - p.sa); if (s !== Math.sign(rh - ra)) return 0;
     return rh !== ra && p.sh - p.sa === rh - ra ? 3 : 2; };
-  const tipText = (e, p) => !p ? "" : e.sport === "mma" ? last(p.w === "a" ? e.home : e.away) : `${p.sh}:${p.sa}`;
-  const full = (e, pt) => pt === 4 || (e.sport === "mma" && pt === 3);
+  const tipText = (e, p) => !p ? "" : isW(e) ? wn(e, p.w === "a" ? e.home : e.away) : `${p.sh}:${p.sa}`;
+  const full = (e, pt) => pt === 4 || (isW(e) && pt === 3);
   const ptsBadge = (pt, live, top) => pt == null ? "" : `<span class="tq-p p${pt} ${top ? "p4" : ""} ${live ? "live" : ""}">${top ? "🎯 " : ""}${live ? T("now ", "gerade ") : ""}+${pt}</span>`;
 
   const Tipp = {
@@ -49,7 +51,7 @@
       const c = sb(); if (!c) throw new Error("offline");
       const me = meId(), from = new Date(Date.now() - 21 * 864e5).toISOString(), to = new Date(Date.now() + 40 * 864e5).toISOString();
       const [e, p] = await Promise.all([
-        c.from("tipp_events").select("id,sport,comp,home,away,home_logo,away_logo,start_at,state,clock,score_h,score_a,meta,fav").gte("start_at", from).lte("start_at", to).order("start_at"),
+        c.from("tipp_events").select("id,sport,comp,name,home,away,home_logo,away_logo,start_at,state,clock,score_h,score_a,meta,fav").gte("start_at", from).lte("start_at", to).order("start_at"),
         me ? c.from("tipp_picks").select("event_id,sh,sa,w,updated_at").eq("user_id", me) : Promise.resolve({data: []})]);
       if (e.error) throw e.error;
       this.ev = (e.data || []).filter(tippable).sort((a, b) => Date.parse(a.start_at) - Date.parse(b.start_at));
@@ -71,7 +73,7 @@
     async save(e, p){
       const c = sb(); if (!c || !meId()) throw new Error("not signed in");
       const n = (this.seq[e.id] || 0) + 1; this.seq[e.id] = n; this.pending[e.id] = p; this.picks[e.id] = p;
-      const {error} = await c.rpc("tipp_pick", e.sport === "mma" ? {p_event: e.id, p_w: p.w} : {p_event: e.id, p_h: p.sh, p_a: p.sa});
+      const {error} = await c.rpc("tipp_pick", isW(e) ? {p_event: e.id, p_w: p.w} : {p_event: e.id, p_h: p.sh, p_a: p.sa});
       if (this.seq[e.id] !== n) return "stale";
       delete this.pending[e.id];
       if (error) throw error;
@@ -136,9 +138,9 @@
       return out;
     },
     cardHTML(e){
-      const p = Tipp.mine(e.id), c = COMP[e.comp] || ["⚽", ""], fav = e.comp === "nt" || bay(e.home) || bay(e.away) || (e.sport === "mma");
-      const top = `<div class="tq-top"><span>${hm(e.start_at)} · ${c[0]} ${h(e.sport === "mma" ? T("Title fight", "Titelkampf") : c[1])}</span><span class="tq-ok" data-ok>${p ? "✓ " + T("Saved", "Gespeichert") : ""}</span></div>`;
-      if (e.sport === "mma") return `<div class="tq ${fav ? "fav" : ""} ${p ? "done" : ""}" data-ev="${h(e.id)}">${top}<div class="tq-f">${["a", "b"].map(s => `<button class="tq-fb ${p && p.w === s ? "on" : ""}" data-w="${s}"><b>${h(s === "a" ? e.home : e.away)}</b>${e.meta && e.meta.rec ? `<small>${h((e.meta.rec[s === "a" ? 0 : 1]) || "")}</small>` : ""}</button>`).join(`<span class="tq-vs">vs</span>`)}</div></div>`;
+      const p = Tipp.mine(e.id), c = COMP[e.comp] || ["⚽", ""], fav = e.comp === "nt" || bay(e.home) || bay(e.away) || (isW(e));
+      const top = `<div class="tq-top"><span>${hm(e.start_at)} · ${c[0]} ${h(e.sport === "mma" ? T("Title fight", "Titelkampf") : e.sport === "lol" ? (e.name || c[1]) : c[1])}</span><span class="tq-ok" data-ok>${p ? "✓ " + T("Saved", "Gespeichert") : ""}</span></div>`;
+      if (isW(e)) return `<div class="tq ${fav ? "fav" : ""} ${p ? "done" : ""}" data-ev="${h(e.id)}">${top}<div class="tq-f">${["a", "b"].map(s => `<button class="tq-fb ${p && p.w === s ? "on" : ""}" data-w="${s}"><b>${h(s === "a" ? e.home : e.away)}</b>${e.meta && e.meta.rec ? `<small>${h((e.meta.rec[s === "a" ? 0 : 1]) || "")}</small>` : ""}</button>`).join(`<span class="tq-vs">vs</span>`)}</div></div>`;
       const row = (s, nm, lg) => `<div class="tq-r">${lg ? `<img class="tq-lg" src="${h(lg)}" alt="" loading="lazy">` : `<span class="tq-lg tq-lg0"></span>`}<span class="tq-n">${h(sn(nm))}</span>
         <div class="tq-st" data-s="${s}"><button data-d="-1" aria-label="−">−</button><b class="${p ? "" : "e"}">${p ? p[s === "h" ? "sh" : "sa"] : "?"}</b><button data-d="1" aria-label="+">+</button></div></div>`;
       return `<div class="tq ${fav ? "fav" : ""} ${p ? "done" : ""}" data-ev="${h(e.id)}">${top}${row("h", e.home, e.home_logo)}${row("a", e.away, e.away_logo)}</div>`;
@@ -155,11 +157,11 @@
     resRow(e){
       const p = Tipp.mine(e.id), pt = ptsOf(e, p), lv = e.state !== "post", reg = !lv && e.meta && Array.isArray(e.meta.reg) ? e.meta.reg : null;
       const sc = `${reg ? reg[0] : e.score_h ?? "–"}:${reg ? reg[1] : e.score_a ?? "–"}`, win = e.state === "post" && e.meta ? e.meta.winner : null;
-      const mid = e.sport === "mma" ? `<span class="tr-n">${win === "a" ? "🏆 " : ""}${h(last(e.home))}</span><b class="tr-s sm">vs</b><span class="tr-n r">${h(last(e.away))}${win === "b" ? " 🏆" : ""}</span>`
+      const mid = isW(e) ? `<span class="tr-n">${win === "a" ? "🏆 " : ""}${h(wn(e, e.home))}</span><b class="tr-s sm">${e.sport === "lol" && e.score_h != null ? e.score_h + ":" + e.score_a : "vs"}</b><span class="tr-n r">${h(wn(e, e.away))}${win === "b" ? " 🏆" : ""}</span>`
         : `<span class="tr-n">${h(sn(e.home))}</span><b class="tr-s">${sc}</b><span class="tr-n r">${h(sn(e.away))}</span>`;
       const mine = p ? `${T("Your tip", "Dein Tipp")} <b>${h(tipText(e, p))}</b>` : `<span class="dim">${T("No tip", "Kein Tipp")}</span>`;
       return `<button class="tr ${lv ? "live" : ""} ${full(e, pt) ? "hit" : ""}" data-det="${h(e.id)}"><div class="tr-top"><span>${lv ? `<i class="tp-dot"></i>${h(e.clock || "Live")}` : hm(e.start_at)} · ${(COMP[e.comp] || ["⚽"])[0]}</span></div>
-        <div class="tr-m">${mid}</div><div class="tr-f"><span>${mine}</span>${ptsBadge(pt, lv && e.sport !== "mma", full(e, pt))}</div></button>`;
+        <div class="tr-m">${mid}</div><div class="tr-f"><span>${mine}</span>${ptsBadge(pt, lv && !isW(e), full(e, pt))}</div></button>`;
     },
     /* ---------- Rangliste ---------- */
     tableHTML(){
@@ -194,14 +196,14 @@
       if (!open(e)){ toast(T("Too late – it has started.", "Zu spät – schon angepfiffen.")); return; }
       tap(); haptic(8); this.busyT = Date.now();
       /* show it at once; save shortly after the last tap */
-      if (e.sport === "mma") card.querySelectorAll("[data-w]").forEach(b => b.classList.toggle("on", b.dataset.w === p.w));
+      if (isW(e)) card.querySelectorAll("[data-w]").forEach(b => b.classList.toggle("on", b.dataset.w === p.w));
       else card.querySelectorAll(".tq-st").forEach(st => { const b = st.querySelector("b"), v = String(st.dataset.s === "h" ? p.sh : p.sa); if (b.textContent !== v){ b.textContent = v; b.classList.remove("bump", "e"); void b.offsetWidth; b.classList.add("bump"); } });
       Tipp.picks[e.id] = p; Tipp.pending[e.id] = p; card.classList.add("done");
       const ok = card.querySelector("[data-ok]"); ok.textContent = "…"; ok.className = "tq-ok wait";
       clearTimeout(card._t); card._t = setTimeout(async () => {
         try { const r = await Tipp.save(e, p); if (r === "stale") return; ok.textContent = "✓ " + T("Saved", "Gespeichert"); ok.className = "tq-ok"; this.todo(); }
         catch(er){ ok.textContent = "⚠️ " + errText(er); ok.className = "tq-ok bad"; toast(errText(er), 3000); }
-      }, e.sport === "mma" ? 50 : 650);
+      }, isW(e) ? 50 : 650);
     },
     todo(){ const t = this.main && this.main.querySelector(".tp-todo"); if (!t) return; const n = this.shown().filter(open).filter(e => !Tipp.mine(e.id)).length; t.className = "tp-todo" + (n ? "" : " done"); t.textContent = n ? `${n} ${T("open", "offen")}` : `✓ ${T("all tipped", "alles getippt")}`; },
     /* everyone's tips on a game (once it has started) */
@@ -209,11 +211,11 @@
       const e = Tipp.ev.find(x => x.id === id); if (!e) return; const c = sb(); let rows = [];
       if (c && meId()) try { const {data} = await c.rpc("tipp_event_picks", {p_event: id}); rows = data || []; } catch(er) {}
       const lv = e.state !== "post", reg = !lv && e.meta && Array.isArray(e.meta.reg) ? e.meta.reg : null;
-      const sc = e.sport === "mma" ? (e.meta && e.meta.winner ? `🏆 ${h(e.meta.winner === "a" ? e.home : e.away)}` : "vs") : `${reg ? reg[0] : e.score_h ?? "–"}:${reg ? reg[1] : e.score_a ?? "–"}`;
-      const list = rows.length ? rows.map(r => `<div class="tp-ot ${r.uid && r.uid === meId() ? "me" : ""}"><b>${r.bot === "ki" ? "🤖 Nat-KI" : h(r.name)}</b><span class="tp-otip">${h(e.sport === "mma" ? last(r.w === "a" ? e.home : e.away) : `${r.sh}:${r.sa}`)}</span>${ptsBadge(r.pts, lv && e.sport !== "mma", full(e, r.pts))}</div>`).join("")
+      const sc = isW(e) ? (e.meta && e.meta.winner ? `🏆 ${h(e.meta.winner === "a" ? e.home : e.away)}` : "vs") : `${reg ? reg[0] : e.score_h ?? "–"}:${reg ? reg[1] : e.score_a ?? "–"}`;
+      const list = rows.length ? rows.map(r => `<div class="tp-ot ${r.uid && r.uid === meId() ? "me" : ""}"><b>${r.bot === "ki" ? "🤖 Nat-KI" : h(r.name)}</b><span class="tp-otip">${h(isW(e) ? wn(e, r.w === "a" ? e.home : e.away) : `${r.sh}:${r.sa}`)}</span>${ptsBadge(r.pts, lv && !isW(e), full(e, r.pts))}</div>`).join("")
         : `<div class="tp-empty" style="padding:16px">${T("Nobody tipped this one.", "Hier hat keiner getippt.")}</div>`;
       detailSheet(`<div class="tp-det"><div class="tq-top"><span>${h((COMP[e.comp] || ["", ""]).join(" "))}</span><span>${lv ? h(e.clock || "Live") : dayName(e.start_at) + " · " + hm(e.start_at)}</span></div>
-        <div class="tr-m big"><span class="tr-n">${h(e.sport === "mma" ? e.home : sn(e.home))}</span><b class="tr-s ${e.sport === "mma" ? "sm" : ""}">${sc}</b><span class="tr-n r">${h(e.sport === "mma" ? e.away : sn(e.away))}</span></div>
+        <div class="tr-m big"><span class="tr-n">${h(isW(e) ? e.home : sn(e.home))}</span><b class="tr-s ${isW(e) ? "sm" : ""}">${sc}</b><span class="tr-n r">${h(isW(e) ? e.away : sn(e.away))}</span></div>
         <div class="tp-others">${list}</div></div>`);
     },
   };
@@ -223,14 +225,14 @@
     const now = Date.now(), me = meId(); if (!me || Tipp.who !== me) return "";
     const live = Tipp.ev.filter(e => (e.state === "in" || (e.state === "pre" && Date.parse(e.start_at) <= now)) && Tipp.mine(e.id)).slice(0, 2);
     const fresh = Tipp.ev.filter(e => e.state === "post" && Tipp.mine(e.id) && now - Date.parse(e.start_at) < 20 * 3600e3).slice(-1);
-    const next = Tipp.ev.filter(e => open(e) && Date.parse(e.start_at) > now + 60e3 && Date.parse(e.start_at) < now + 4 * 864e5 && (e.fav || e.comp === "nt" || bay(e.home) || bay(e.away) || e.sport === "mma") && !Tipp.mine(e.id))
+    const next = Tipp.ev.filter(e => open(e) && Date.parse(e.start_at) > now + 60e3 && Date.parse(e.start_at) < now + 4 * 864e5 && (e.fav || e.comp === "nt" || bay(e.home) || bay(e.away) || isW(e)) && !Tipp.mine(e.id))
       .slice(0, Math.max(0, 3 - live.length - fresh.length));
     if (!live.length && !next.length && !fresh.length) return "";
-    const nm = e => e.sport === "mma" ? `🥊 ${h(last(e.home))} – ${h(last(e.away))}` : `${e.comp === "nt" ? "🇩🇪 " : bay(e.home) || bay(e.away) ? "⭐ " : ""}${h(sn(e.home))} – ${h(sn(e.away))}`;
-    const score = e => e.sport === "mma" ? "" : ` <b>${e.score_h ?? 0}:${e.score_a ?? 0}</b> `;
+    const nm = e => isW(e) ? `${ico(e)} ${h(wn(e, e.home))} – ${h(wn(e, e.away))}` : `${e.comp === "nt" ? "🇩🇪 " : bay(e.home) || bay(e.away) ? "⭐ " : ""}${h(sn(e.home))} – ${h(sn(e.away))}`;
+    const score = e => isW(e) ? "" : ` <b>${e.score_h ?? 0}:${e.score_a ?? 0}</b> `;
     return `<div class="th-h">⚽ ${T("Tipping game", "Tippspiel")}</div>`
-      + live.map(e => { const p = Tipp.mine(e.id), pt = ptsOf(e, p); return `<button class="th-row live" data-th="${h(e.id)}" data-tab="res"><span class="th-t">● ${h(e.clock || "Live")}</span><span class="th-m">${e.sport === "mma" ? nm(e) : `${h(sn(e.home))}${score(e)}${h(sn(e.away))}`}</span><span class="th-tip ${pt === 4 ? "ok" : pt ? "" : "out"}">${h(tipText(e, p))}${pt != null ? ` · ${pt}` : ""}</span></button>`; }).join("")
-      + fresh.map(e => { const p = Tipp.mine(e.id), pt = ptsOf(e, p), reg = e.meta && Array.isArray(e.meta.reg) ? e.meta.reg : [e.score_h, e.score_a]; return `<button class="th-row" data-th="${h(e.id)}" data-tab="res"><span class="th-t">${T("Final", "Ende")}</span><span class="th-m">${e.sport === "mma" ? nm(e) : `${h(sn(e.home))} <b>${reg[0]}:${reg[1]}</b> ${h(sn(e.away))}`}</span><span class="th-tip ${pt === 4 || (e.sport === "mma" && pt === 3) ? "ok" : pt ? "" : "out"}">${pt === 4 || (e.sport === "mma" && pt === 3) ? "🎯 " : ""}+${pt ?? 0}</span></button>`; }).join("")
+      + live.map(e => { const p = Tipp.mine(e.id), pt = ptsOf(e, p); return `<button class="th-row live" data-th="${h(e.id)}" data-tab="res"><span class="th-t">● ${h(e.clock || "Live")}</span><span class="th-m">${isW(e) ? nm(e) : `${h(sn(e.home))}${score(e)}${h(sn(e.away))}`}</span><span class="th-tip ${pt === 4 ? "ok" : pt ? "" : "out"}">${h(tipText(e, p))}${pt != null ? ` · ${pt}` : ""}</span></button>`; }).join("")
+      + fresh.map(e => { const p = Tipp.mine(e.id), pt = ptsOf(e, p), reg = e.meta && Array.isArray(e.meta.reg) ? e.meta.reg : [e.score_h, e.score_a]; return `<button class="th-row" data-th="${h(e.id)}" data-tab="res"><span class="th-t">${T("Final", "Ende")}</span><span class="th-m">${isW(e) ? nm(e) : `${h(sn(e.home))} <b>${reg[0]}:${reg[1]}</b> ${h(sn(e.away))}`}</span><span class="th-tip ${pt === 4 || (isW(e) && pt === 3) ? "ok" : pt ? "" : "out"}">${pt === 4 || (isW(e) && pt === 3) ? "🎯 " : ""}+${pt ?? 0}</span></button>`; }).join("")
       + next.map(e => `<button class="th-row" data-th="${h(e.id)}"><span class="th-t">${h(dayShort(e.start_at))}<br>${hm(e.start_at)}</span><span class="th-m">${nm(e)}</span><span class="th-go">${T("Tip", "Tippen")}</span></button>`).join("");
   }
   window.homeTipp = async el => {

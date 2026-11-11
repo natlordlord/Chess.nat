@@ -41,7 +41,8 @@ module.exports = db => {
   const ev = (id, home, away, when, o = {}) => Object.assign({id, sport: "fb", comp: "bl1", home, away, start_at: when.toISOString()}, o);
   db.seed("tipp_events", [ev("t-pre", "FC Bayern München", "Borussia Dortmund", new Date(now + 26 * 3600e3), {fav: true}), ev("t-pre2", "RB Leipzig", "VfB Stuttgart", new Date(now + 28 * 3600e3)),
     ev("t-live", "Bayer Leverkusen", "Eintracht Frankfurt", ago(50), {state: "in", clock: "50'", score_h: 1, score_a: 0}), ev("t-post", "SC Freiburg", "Werder Bremen", ago(26 * 60), {state: "post", score_h: 2, score_a: 1}),
-    {id: "t-ufc", sport: "mma", comp: "ufc", name: "UFC 322 · Titelkampf", home: "Makhachev", away: "Della Maddalena", start_at: new Date(now + 3 * 864e5).toISOString(), meta: {title: true}}]);
+    {id: "t-ufc", sport: "mma", comp: "ufc", name: "UFC 322 · Titelkampf", home: "Makhachev", away: "Della Maddalena", start_at: new Date(now + 3 * 864e5).toISOString(), meta: {title: true}},
+    {id: "t-lol", sport: "lol", comp: "lol", name: "Worlds · Finale", home: "Gen.G", away: "Bilibili Gaming", start_at: new Date(now + 3.2 * 864e5).toISOString(), fav: true, meta: {title: true, bo: 5}}]);
   db.seed("tipp_picks", [{user_id: tester, event_id: "t-post", sh: 2, sa: 1}, {user_id: mila, event_id: "t-post", sh: 1, sa: 0}, {user_id: mila, event_id: "t-live", sh: 2, sa: 0}, {user_id: tester, event_id: "t-live", sh: 1, sa: 1}, {bot: "ki", event_id: "t-post", sh: 1, sa: 1}]);
 };
 module.exports.ID = ID;
