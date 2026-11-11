@@ -2800,7 +2800,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794373324";
+const CHESSNAT_BUILD = "1794403938";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11530,10 +11530,10 @@ Views.me = {
         ${window.ChessInstall && ChessInstall.can() ? `<button class="tile" id="meinst">${icon("download", 36)}<h3>Get the app</h3><p>On your home screen, full screen, with notifications. iPhone and Android.</p></button>` : ""}
         <button class="tile" data-go="stats">${icon("chart", 36)}<h3>Stats</h3><p>Rating history and puzzle themes.</p></button>
         <button class="tile" data-go="friends" data-tab="cages">${icon("cage", 36)}<h3>Cages</h3><p>${caughtBots().length} bots caught.</p></button>
-        ${(() => { const de = I18N.lang === "de", st = (typeof PG !== "undefined" && PG.st) || {}, w = st.nsWins || 0, k = st.nsKills || 0, tp = window.Tipp && Tipp.loaded ? (Tipp.tips || []) : null, op = tp ? tp.filter(t => t.status === "open").length : 0, wn = tp ? tp.filter(t => t.status === "won").length : 0;
+        ${(() => { const de = I18N.lang === "de", st = (typeof PG !== "undefined" && PG.st) || {}, w = st.nsWins || 0, k = st.nsKills || 0, tr = window.Tipp && Tipp.myRow ? Tipp.myRow() : null;
           /* the other two big games next to chess: your own numbers at a glance */
           return `<button class="tile" id="mens" data-notr>${icon("star", 36)}<h3>Nat Stars</h3><p>${w || k ? `🏆 ${w} ${de ? (w === 1 ? "Sieg" : "Siege") : (w === 1 ? "win" : "wins")}${k ? ` · 💀 ${k} K.o.` : ""}` : de ? "Wie Brawl Stars: ballern, verstecken, gewinnen." : "Like Brawl Stars: shoot, hide, win."}</p></button>`
-            + `<button class="tile" data-go="tipp" data-notr>${icon("ball", 36)}<h3>${de ? "Tippspiel" : "Tipping"}</h3><p>${tp && (op || wn) ? `${op} ${de ? "offen" : "open"} · ${wn} ${de ? "gewonnen" : "won"}` : de ? "Bundesliga, Bayern, UFC tippen." : "Tip Bundesliga, Bayern, UFC."}</p></button>`; })()}</div>
+            + `<button class="tile" data-go="tipp" data-notr>${icon("ball", 36)}<h3>${de ? "Tippspiel" : "Tipping"}</h3><p>${tr ? `🏆 ${tr.pts} ${de ? "Punkte" : "points"}${tr.exact ? ` · 🎯 ${tr.exact}×` : ""}` : de ? "Ergebnisse tippen, Punkte sammeln." : "Tip results, collect points."}</p></button>`; })()}</div>
       ${window.ChessSite && ChessSite.getSession && ChessSite.getSession() ? `<div class="me-out"><span class="muted" data-notr>${esc(ChessSite.getSession().user.email || "")}</span><button class="btn" id="meout">${icon("xmark", 16)} Sign out</button></div>` : ""}
     </div>`;
     this.stage = heroStage($("#mest"), av, {tier}); $("#mest").insertAdjacentHTML("beforeend", `<span class="me-dress">${icon("user", 14)} Wardrobe</span>`);
@@ -14366,18 +14366,18 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=111"></script>
-<script src="games/imposter.js?v=111"></script>
-<script src="games/werwolf.js?v=111"></script>
-<script src="games/cards.js?v=111"></script>
-<script src="games/heads.js?v=111"></script>
-<script src="games/more.js?v=111"></script>
-<script src="games/net.js?v=111"></script>
-<script src="games/online.js?v=111"></script>
-<script src="games/natposter.js?v=111"></script>
-<script src="games/arena.js?v=111"></script>
-<script src="games/tipp.js?v=111"></script>
-<script src="games/kcal.js?v=111"></script>
+<script src="games/core.js?v=112"></script>
+<script src="games/imposter.js?v=112"></script>
+<script src="games/werwolf.js?v=112"></script>
+<script src="games/cards.js?v=112"></script>
+<script src="games/heads.js?v=112"></script>
+<script src="games/more.js?v=112"></script>
+<script src="games/net.js?v=112"></script>
+<script src="games/online.js?v=112"></script>
+<script src="games/natposter.js?v=112"></script>
+<script src="games/arena.js?v=112"></script>
+<script src="games/tipp.js?v=112"></script>
+<script src="games/kcal.js?v=112"></script>
 <script>boot();</script>
 </body>
 </html>

@@ -1,6 +1,6 @@
-// Chess.nat Tippspiel: every minute (pg_cron -> private.tipp_tick) this pulls fixtures, live scores, real odds
-// and match statistics from ESPN, builds the betting markets from a Poisson model fitted to the bookmaker odds,
-// lets the AI tipster ("Nat-KI") place its tips, sends goal pushes and settles finished events.
+// Chess.nat Tippspiel: every minute (pg_cron -> private.tipp_tick) this pulls fixtures, live scores and odds from
+// ESPN, lets the AI tipster ("Nat-KI") tip a score (football) or a winner (UFC title fights), sends kick-off, goal
+// and final-whistle pushes with everybody's points (tipp_picks; points are worked out in the database).
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
@@ -187,15 +187,18 @@ function mmaEvents(L: J, e: J): J[] {
     const cs = c.competitors || [], A = cs.find((x: J) => x.order === 1) || cs[0] || {}, B = cs.find((x: J) => x.order === 2) || cs[1] || {};
     const st = c.status?.type || {}, an = A.athlete?.displayName || "?", bn = B.athlete?.displayName || "?";
     const how = (c.details || []).map((d: J) => d?.type?.text || "").join(" ");
+    /* title fights (and the other big ones) go five rounds on a numbered UFC card: only those are tipped */
+    const rounds = +(c.format?.regulation?.periods || 3);
     out.push({ id: `espn:ufc:${c.id}`, sport: "mma", comp: "ufc", name: `${an} vs. ${bn}`, home: an, away: bn, home_logo: A.athlete?.flag?.href || null, away_logo: B.athlete?.flag?.href || null,
       home_id: A.id || null, away_id: B.id || null, start_at: c.date || e.date, state: /cancel/i.test(st.name || "") ? "canc" : (st.state || "pre"),
       clock: st.state === "in" ? `R${c.status?.period || 1} ${c.status?.displayClock || ""}` : st.state === "post" ? (st.shortDetail || "Final") : null,
-      score_h: st.state === "post" ? (A.winner ? 1 : 0) : null, score_a: st.state === "post" ? (B.winner ? 1 : 0) : null, fav: i >= n - 2,
+      score_h: st.state === "post" ? (A.winner ? 1 : 0) : null, score_a: st.state === "post" ? (B.winner ? 1 : 0) : null, fav: rounds === 5 && /^UFC \d+/.test(e.name || ""),
       meta: { espn: e.id, cid: c.id, slug: L.slug, sport: L.sport, card: e.name, main: i >= n - 5, order: n - i, rec: [A.records?.[0]?.summary, B.records?.[0]?.summary],
-        winner: A.winner ? "a" : B.winner ? "b" : null, how, round: c.status?.period || null } });
+        winner: A.winner ? "a" : B.winner ? "b" : null, how, round: c.status?.period || null, rounds, title: rounds === 5 && /^UFC \d+/.test(e.name || ""), cls: c.type?.abbreviation || null } });
   });
   return out;
 }
+const tippable = (e: J) => e.sport === "fb" || (e.sport === "mma" && !!e.meta?.title);
 const recP = (r?: string) => { const [w, l] = String(r || "0-0").split("-").map(Number); return ((w || 0) + 3) / ((w || 0) + (l || 0) + 6); };
 
 /* ---------- settlement ---------- */
@@ -235,13 +238,26 @@ const bvbF = (m: J, o: J, home = "", away = "") => {
   else if (m.k === "cs" && o.p !== "x"){ const [a, b] = o.p.split("-").map(Number); r = a === b ? "d" : (a > b) === bh ? "w" : "l"; }
   return r === "w" ? 0.3 : r === "d" ? 0.8 : 1;
 };
-async function kiTip(id: string, markets: J[], home = "", away = ""){
-  if (!markets.length) return;
-  const { count } = await sb.from("tipp_tips").select("id", { count: "exact", head: true }).eq("event_id", id).eq("bot", "ki");
+async function kiTip(e: J, markets: J[], model: J = {}){
+  if (!markets.length || !tippable(e)) return;
+  const { count } = await sb.from("tipp_picks").select("id", { count: "exact", head: true }).eq("event_id", e.id).eq("bot", "ki");
   if (count) return;
-  const main = markets[0], side = markets.filter(m => m !== main && ["btts", "ou25", "pen", "yc35", "how", "dist", "x0", "x1", "x2"].includes(m.k));
-  const picks = [main].concat(side.length ? [side[Math.floor(Math.random() * side.length)]] : []);
-  await sb.from("tipp_tips").insert(picks.map(m => { const o = pickBy(m.o.map((o: J) => Object.assign({}, o, { pr: (o.pr || 0) * bvbF(m, o, home, away) }))); return { user_id: null, bot: "ki", event_id: id, market: m.k, pick: o.p, label: `${m.t}: ${o.l}`, stake: 100, odds: o.q }; }));
+  let row: J;
+  if (e.sport === "fb"){
+    const cs = markets.find(m => m.k === "cs"); if (!cs) return;
+    const o = pickBy(cs.o.map((o: J) => Object.assign({}, o, { pr: (o.pr || 0) * bvbF(cs, o, e.home, e.away) })));
+    let h = 1, a = 1;
+    if (o.p !== "x"){ [h, a] = o.p.split("-").map(Number); }
+    else { /* "anything else": a rarer score from the goal model */
+      const pk = (l: number) => { let k = 0, p = Math.exp(-l), s2 = p; const u = Math.random(); while (u > s2 && k < 9){ k++; p *= l / k; s2 += p; } return k; };
+      const dw = (x: number, y: number) => (BVB.test(e.home) && x > y) || (BVB.test(e.away) && y > x);
+      for (let i = 0; i < 30; i++){ const x = pk(model.lh || 1.5), y = pk(model.la || 1.1); if (dw(x, y) && Math.random() < 0.7) continue; if (!cs.o.some((q: J) => q.p === `${x}-${y}`)){ h = x; a = y; break; } } }
+    row = { bot: "ki", event_id: e.id, sh: h, sa: a };
+  } else {
+    const wm = markets.find(m => m.k === "win"); if (!wm) return;
+    row = { bot: "ki", event_id: e.id, w: pickBy(wm.o).p };
+  }
+  await sb.from("tipp_picks").insert(row);
 }
 
 async function sync() {
@@ -268,11 +284,11 @@ async function sync() {
       const who = e.score_h > o.score_h ? e.home : e.away; await live(e.id, `⚽ Tor für ${who}! ${e.score_h}:${e.score_a}${e.clock ? " · " + e.clock : ""}`); }
     if (e.sport === "fb" && e.state === "in" && /^(HT|Halftime|Half Time)/i.test(String(e.meta?.detail || e.clock || "")) && !/^(HT|Halftime|Half Time)/i.test(String(o.meta?.detail || o.clock || "")))
       await live(e.id, `⏸️ Halbzeit · ${e.home} ${e.score_h}:${e.score_a} ${e.away}`);
-    if (e.sport === "fb" && e.state === "in" && o.state === "pre") await notify(e.id, "🟢 Anpfiff", `${e.home} – ${e.away} läuft. Viel Glück mit deinen Tipps!`);
+    if (e.sport === "fb" && e.state === "in" && o.state === "pre") await notify(e.id, "🟢 Anpfiff", `${e.home} – ${e.away} läuft. Viel Glück mit deinem Tipp!`);
   }
   /* markets: before kick-off, refreshed every 3 hours, frozen after */
   const pre = keep.filter(e => e.state === "pre" && Date.parse(e.start_at) > now.getTime() + 60e3 && Date.parse(e.start_at) < now.getTime() + 14 * 864e5)
-    .filter(e => { const o = old[e.id]; return !o || !o.markets || !o.markets.length || !o.odds_at || now.getTime() - Date.parse(o.odds_at) > 3 * 3600e3; })
+    .filter(e => tippable(e)).filter(e => { const o = old[e.id]; return !o || !o.markets || !o.markets.length || !o.odds_at || now.getTime() - Date.parse(o.odds_at) > 3 * 3600e3; })
     .sort((a, b) => Date.parse(a.start_at) - Date.parse(b.start_at)).slice(0, 10);
   for (const e of pre){
     let markets: J[] = [], model: J = {}, src = "model";
@@ -291,26 +307,7 @@ async function sync() {
     }
     const { error } = await sb.from("tipp_events").update({ markets, model, odds_src: src, odds_at: now.toISOString() }).eq("id", e.id).eq("state", "pre");
     if (error) log.push("markets " + error.message);
-    if (Date.parse(e.start_at) < now.getTime() + 4 * 864e5) await kiTip(e.id, markets, e.home, e.away);
-  }
-  /* manual events (boxing, Oktagon, handball): live at the start, AI tip, reminder, and a nudge to the admins for the result */
-  const { data: man } = await sb.from("tipp_events").select("*").not("id", "like", "espn:%").in("state", ["pre", "in"]).lt("start_at", new Date(now.getTime() + 4 * 864e5).toISOString()).limit(40);
-  for (const e of (man || []) as J[]){
-    const t = Date.parse(e.start_at) - now.getTime(), m = e.meta || {};
-    if (e.state === "pre" && t <= 0){ await sb.from("tipp_events").update({ state: "in" }).eq("id", e.id); await notify(e.id, e.sport === "hb" ? "🤾 Anwurf" : "🥊 Es geht los", `${e.home} – ${e.away}. Viel Glück mit deinen Tipps!`); continue; }
-    if (e.state === "in"){ if (t < -4 * 3600e3 && !m.nudged){ await sb.rpc("tipp_admin_nudge", { p_event: e.id, p_title: "📝 Ergebnis fehlt", p_body: `${e.home} – ${e.away}: trag das Ergebnis ein, dann wird abgerechnet.` }); await sb.from("tipp_events").update({ meta: Object.assign({}, m, { nudged: true }) }).eq("id", e.id); } continue; }
-    if ((e.markets || []).length) await kiTip(e.id, e.markets, e.home, e.away);
-    if (e.fav && t > 40 * 60e3 && t < 75 * 60e3 && !m.rem){ await sb.rpc("tipp_remind", { p_event: e.id, p_title: `${e.sport === "hb" ? "🤾" : "🥊"} Gleich: ${e.home} – ${e.away}`, p_body: "In einer Stunde geht's los. Noch kein Tipp abgegeben?" });
-      await sb.from("tipp_events").update({ meta: Object.assign({}, m, { rem: true }) }).eq("id", e.id); }
-  }
-  /* live statistics for running football games (cards, corners) */
-  for (const e of keep.filter(e => e.sport === "fb" && e.state === "in").slice(0, 6)){
-    const j = await get(`${SITE}/soccer/${e.meta.slug}/summary?event=${e.meta.espn}`); if (!j) continue;
-    const T = (j.boxscore?.teams || []) as J[], st = (n: string) => T.reduce((s, t) => s + (+((t.statistics || []).find((x: J) => x.name === n)?.displayValue) || 0), 0);
-    const S = { yc: st("yellowCards"), rc: st("redCards"), cor: st("wonCorners"), pens: st("penaltyKickShots") }, os = (old[e.id] || {}).stats || {};
-    await sb.from("tipp_events").update({ stats: S }).eq("id", e.id);
-    if (os.rc != null && S.rc > os.rc) await notify(e.id, "🟥 Rote Karte!", `${e.home} ${e.score_h}:${e.score_a} ${e.away}${e.clock ? " · " + e.clock : ""}`);
-    if (os.pens != null && S.pens > os.pens) await notify(e.id, "⚽ Elfmeter!", `${e.home} ${e.score_h}:${e.score_a} ${e.away}${e.clock ? " · " + e.clock : ""}`);
+    if (Date.parse(e.start_at) < now.getTime() + 4 * 864e5) await kiTip(e, markets, model);
   }
   /* settle what has finished */
   const { data: due } = await sb.from("tipp_events").select("*").in("state", ["post", "canc"]).eq("settled", false).like("id", "espn:%").limit(8);
@@ -318,7 +315,8 @@ async function sync() {
     if (ev.state === "canc"){ const R: J = {}; (ev.markets || []).forEach((m: J) => R[m.k] = "void"); await sb.rpc("tipp_settle", { p_event: ev.id, p_res: R }); continue; }
     if (ev.sport === "fb"){
       const res = await soccerResult(ev); if (!res) continue;
-      await sb.from("tipp_events").update({ stats: res.stats }).eq("id", ev.id);
+      await sb.from("tipp_events").update({ stats: res.stats, meta: Object.assign({}, ev.meta || {}, { reg: res.reg }) }).eq("id", ev.id);
+      try { await sb.rpc("tipp_final", { p_event: ev.id }); } catch (_) { /* ignore */ }
       await sb.rpc("tipp_settle", { p_event: ev.id, p_res: res.R });
     } else {
       const m = ev.meta || {}, w = m.winner, how = String(m.how || "");
@@ -326,12 +324,13 @@ async function sync() {
       R.how = /kotko|ko\/tko|tko|knock/i.test(how) ? "ko" : /submission/i.test(how) ? "sub" : /decision/i.test(how) ? "dec" : "void";
       R.dist = R.how === "dec" ? "y" : R.how === "void" ? "void" : "n";
       if (!w && !/draw|no contest/i.test(how) && Date.parse(ev.start_at) > now.getTime() - 8 * 3600e3) continue; /* wait for the result */
+      if (tippable(ev)) try { await sb.rpc("tipp_final", { p_event: ev.id }); } catch (_) { /* ignore */ }
       await sb.rpc("tipp_settle", { p_event: ev.id, p_res: R });
     }
   }
   /* kick-off reminders for the big ones */
-  for (const e of keep.filter(e => e.fav && e.state === "pre")){ const t = Date.parse(e.start_at) - now.getTime(), o = old[e.id];
-    if (t > 40 * 60e3 && t < 75 * 60e3 && !(o?.meta || {}).rem){ await sb.rpc("tipp_remind", { p_event: e.id, p_title: e.sport === "fb" ? `⚽ Gleich: ${e.home} – ${e.away}` : `🥊 Gleich: ${e.home} vs. ${e.away}`, p_body: "In einer Stunde geht's los. Noch kein Tipp abgegeben?" });
+  for (const e of keep.filter(e => e.fav && e.state === "pre" && tippable(e))){ const t = Date.parse(e.start_at) - now.getTime(), o = old[e.id];
+    if (t > 40 * 60e3 && t < 75 * 60e3 && !(o?.meta || {}).rem){ await sb.rpc("tipp_remind", { p_event: e.id, p_title: e.sport === "fb" ? `⚽ Gleich: ${e.home} – ${e.away}` : `🥊 Gleich: ${e.home} vs. ${e.away}`, p_body: "In einer Stunde geht's los. Noch kein Tipp? Ergebnis tippen, fertig." });
       await sb.from("tipp_events").update({ meta: Object.assign({}, o?.meta || {}, e.meta, { rem: true }) }).eq("id", e.id); } }
   return { events: keep.length, priced: pre.length, settled: (due || []).length, log };
 }
