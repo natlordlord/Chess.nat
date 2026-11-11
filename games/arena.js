@@ -9,7 +9,7 @@
   const {T} = PG, now = () => Date.now(), N = () => PG.npx;
   const PICK = 6500, PICK2 = 4200, FIGHT = 150000, PERK = 7000, BAN = 2600, NEXT = BAN + 6500, BODY = 26, SPD = 255;
   const TS = 64, MW = 44, MH = 44, WW = MW * TS, WH = MH * TS, GC = {x: WW / 2, y: WH / 2};
-  const LAG = 110, SEE = 150, REVEAL = 1000, VIS = 230, AMMO = 3, CHG = 1100, CRATE = 72;
+  const LAG = 110, SEE = 170, SMALLB = 12, REVEAL = 1000, AMMO = 3, CHG = 1100, CRATE = 72;
   /* the gas: on its own a round is long and the gas slow; a meeting fight is short and starts closer together */
   const gasPlan = (arena, n) => arena ? {a: 28000, b: 128000, r0: Math.min(2000, Math.max(1350, 1150 + 95 * n)), r1: 190, fl: FIGHT} : {a: 14000, b: 50000, r0: Math.min(1250, 760 + 50 * n), r1: 150, fl: 60000};
   let GZ = gasPlan(true, 6);
@@ -24,11 +24,12 @@
       su: {en: "Body slam", de: "Sprungschlag", at: 1, rg: 340, dmg: 55, splash: 115, kb: 95, dur: 520}},
     gun: {c: "#2FB39A", en: "Revolver", de: "Revolver", sen: "6 shots in a row · far", sde: "6 Schüsse am Stück · weit", hp: 135, sp: 1, rl: 1600, cd: 480, rg: 640, n: 6, gap: 65, v: 1350, dmg: 10, r: 6, sc: 140,
       su: {en: "Bullet storm", de: "Kugelhagel", n: 12, gap: 55, v: 1500, rg: 760, dmg: 13}},
-    rang: {c: "#7FB84A", en: "Boomerang", de: "Bumerang", sen: "Flies back · hits twice", sde: "Kommt zurück · trifft doppelt", hp: 150, sp: 1.02, rl: 1500, cd: 450, rg: 470, v: 900, dmg: 24, r: 15, sc: 120,
+    rang: {c: "#7FB84A", en: "Boomerang", de: "Bumerang", sen: "Through crates & enemies · back again", sde: "Durch Kisten & Gegner · und zurück", hp: 150, sp: 1.02, rl: 1500, cd: 450, rg: 470, v: 900, dmg: 24, r: 15, sc: 120,
       su: {en: "Triple", de: "Dreifach", n: 3, spr: .32, dmg: 28, rg: 520}},
-    zap: {c: "#E0B321", en: "Lightning", de: "Blitz", sen: "Jumps to 3 enemies", sde: "Springt auf 3 Gegner", hp: 130, sp: 1, rl: 1650, cd: 450, rg: 440, dmg: 30, jump: 210, chain: [30, 22, 16], sc: 115,
+    zap: {off: 1, c: "#E0B321", en: "Lightning", de: "Blitz", sen: "Jumps to 3 enemies", sde: "Springt auf 3 Gegner", hp: 130, sp: 1, rl: 1650, cd: 450, rg: 440, dmg: 30, jump: 210, chain: [30, 22, 16], sc: 115,
       su: {en: "Thunderstorm", de: "Gewitter", at: 1, rg: 520, splash: 140, dmg: 20, hits: 5, every: 420}}};
-  const KEYS = Object.keys(CLS);
+  /* the lightning stays in the code (old rounds) but is no longer offered */
+  const KEYS = Object.keys(CLS).filter(k => !CLS[k].off);
   const EMO = ["😂", "😎", "😡", "😭", "👍", "🔥", "💀", "GG"];
   const PERKS = {
     vote2: {e: "🗳️", en: "Double vote", de: "Doppelte Stimme", sen: "Your vote counts twice now.", sde: "Deine Stimme zählt jetzt doppelt."},
@@ -118,7 +119,8 @@
     for (let s0 = 0; s0 < MW * MH; s0++){ if (g[s0] !== 3 || fa[s0]) continue; const cells = [], st2 = [s0]; fa[s0] = fog.length + 1;
       while (st2.length){ const c = st2.pop(); cells.push(c); for (const d of nb(c)) if (g[d] === 3 && !fa[d]){ fa[d] = fog.length + 1; st2.push(d); } }
       const P = cells.map(c => [(c % MW + .5) * TS, (Math.floor(c / MW) + .5) * TS]); fog.push({P, mid: {x: P.reduce((s, p) => s + p[0], 0) / P.length, y: P.reduce((s, p) => s + p[1], 0) / P.length}}); }
-    return {L, g, ca0, ca: ca0.slice(), cr, fa, fog};
+    const bt = []; for (let c = 0; c < MW * MH; c++) if (g[c] === 3) bt.push(c);
+    return {L, g, ca0, ca: ca0.slice(), cr, fa, fog, bt};
   }
   function setLay(i){ const L = LAYS[((i | 0) % LAYS.length + LAYS.length) % LAYS.length]; if (L === LAY && MP) return; LAY = L; MP = MAPS[L.id] || (MAPS[L.id] = genMap(L)); FOG = MP.fog; MC.ch.clear(); PF.clear(); }
   function resetCrates(){ if (!MP) setLay(0); MP.ca.set(MP.ca0); PF.clear(); }
@@ -151,7 +153,9 @@
   function nearFree(x, y){ const i0 = Math.floor(x / TS), j0 = Math.floor(y / TS); for (let r = 0; r < 14; r++) for (let j = j0 - r; j <= j0 + r; j++) for (let i = i0 - r; i <= i0 + r; i++){ if (Math.max(Math.abs(i - i0), Math.abs(j - j0)) !== r) continue; const px = (i + .5) * TS, py = (j + .5) * TS; if (inAr(px, py) && walkA(px, py)) return {x: px, y: py}; } return {x: GC.x, y: GC.y}; }
   /* everyone starts on a ring inside the gas, evenly spread */
   function spawns(n, R, r0){ const a0 = R() * Math.PI * 2, rad = Math.min(r0 * .78, WW / 2 - 150), out = []; for (let i = 0; i < n; i++){ const a = a0 + i / n * Math.PI * 2; out.push(nearFree(GC.x + Math.cos(a) * rad, GC.y + Math.sin(a) * rad)); } return out; }
-  /* bushes: inside you are hidden (unless someone is close or you just shot or got hit) and see little */
+  /* bushes, like Brawl Stars: inside you are hidden from everyone outside (unless you just shot or got hit).
+     From inside you still see the whole map; only other people in the bushes you see just a few steps around you,
+     or everyone in the same bush when it is a small one */
   const fogAt = (x, y) => { const c = cell(x, y); return c < 0 || !MP ? -1 : MP.fa[c] - 1; };
   const fogMid = i => FOG[i].mid;
 
@@ -176,7 +180,7 @@
     const A = mg.ar; let ch = false;
     if (!HB.int) HB.int = setInterval(() => { try { hostLoop(); } catch(e) { console.error(e); } }, 50);
     if (A.ph === "pick" && now() >= A.pickEnd){ A.ph = "fight"; A.fight = now(); A.end = now() + (A.gz || GZ).fl; mg.end = A.end;
-      A.ids.forEach(id => { if (!CLS[A.cls[id]]) A.cls[id] = KEYS[Math.floor(Math.random() * KEYS.length)]; A.mx[id] = A.hp[id] = Math.round(CLS[A.cls[id]].hp * hpF(A, id)); A.dmg[id] = 0; A.kills[id] = 0; A.lh[id] = A.ls[id] = 0; });
+      A.ids.forEach(id => { if (!KEYS.includes(A.cls[id])) A.cls[id] = KEYS[Math.floor(Math.random() * KEYS.length)]; A.mx[id] = A.hp[id] = Math.round(CLS[A.cls[id]].hp * hpF(A, id)); A.dmg[id] = 0; A.kills[id] = 0; A.lh[id] = A.ls[id] = 0; });
       botsInit(s, A); A.cubes = []; A.pw = {}; A.cseq = 0; ch = true; }
     /* a new host after a handover takes the bots over where they were */
     if (A.ph === "fight" && !Object.keys(HB.bots).length && (s.bots || []).some(b => A.ids.includes(b.id))) botsInit(s, A);
@@ -186,8 +190,9 @@
       if (teams <= 1 || now() >= A.end || (humans.length && !alive.some(id => humans.includes(id)) && alive.length)){ finish(G, mg); ch = true; } }
     return ch;
   }
-  /* power cubes, like Brawl Stars: each one +8 % health and +8 % damage, whoever is knocked out drops theirs */
-  const CUBE = .08, CUBES = 10;
+  /* power cubes, like Brawl Stars but harder: each one +15 % health and +15 % damage (up to 12), whoever is knocked out drops theirs.
+     With 10 cubes you have 2.5× the health and hit 2.5× as hard, so farming crates really pays off */
+  const CUBE = .15, CUBES = 12;
   function cubeAdd(A, x, y, n){ A.cubes.push({k: ++A.cseq, x: Math.round(x), y: Math.round(y), n: n || 1}); HB.cdirty = true; }
   function cubeGrab(A, id, k){ const i = A.cubes.findIndex(c => c.k === k); if (i < 0 || A.out.includes(id)) return; const c = A.cubes[i], q = posOf(id); if (!q || Math.hypot(q.x - c.x, q.y - c.y) > 90) return;
     A.cubes.splice(i, 1); const was = A.pw[id] || 0, now2 = Math.min(CUBES, was + c.n), base = Math.round(CLS[A.cls[id]].hp * hpF(A, id)); A.pw[id] = now2; A.mx[id] = Math.round(base * (1 + CUBE * now2)); A.hp[id] = Math.min(A.mx[id], A.hp[id] + base * CUBE * (now2 - was)); HB.dirty = true; HB.cdirty = true; }
@@ -230,7 +235,9 @@
   const velOf = id => { const b = C.AP[id] && C.AP[id].buf; if (!b || b.length < 2) return {x: 0, y: 0}; const p = b[b.length - 2], q = b[b.length - 1], dt = Math.max(30, q.t - p.t) / 1000; return {x: (q.x - p.x) / dt, y: (q.y - p.y) / dt}; };
   /* can the one at "from" see "id"? A bush hides, unless close, or the one in it just shot or got hit */
   const revealed = id => now() - (C.shotAt[id] || 0) < REVEAL || now() - (C.hitAt[id] || 0) < REVEAL;
-  const seenFrom = (from, id, q) => { q = q || posOf(id); if (!q) return false; if (fogAt(q.x, q.y) < 0 || revealed(id)) return true; return !!from && Math.hypot(q.x - from.x, q.y - from.y) < SEE; };
+  const smallBush = i => i >= 0 && !!FOG[i] && FOG[i].P.length <= SMALLB;
+  const seenFrom = (from, id, q) => { q = q || posOf(id); if (!q) return false; const fq = fogAt(q.x, q.y); if (fq < 0 || revealed(id)) return true; if (!from) return false;
+    if (smallBush(fq) && fogAt(from.x, from.y) === fq) return true; return Math.hypot(q.x - from.x, q.y - from.y) < SEE; };
   /* bots: keep their distance (the boxer rushes in), strafe, shoot what they see, break crates when nobody is around, hide in bushes when hurt, run from the gas */
   const WANT = {shot: .5, bomb: .75, snipe: .8, punch: .2, gun: .72, rang: .66, zap: .66};
   function botShoot(id, b, A, a, ex, su, easy){ const k = A.cls[id], cl = CLS[k]; if (!su){ b.am--; b.cd = cl.cd + 200 + Math.random() * 600 + (easy ? 420 - soloLv() * 260 : 0); } b.a = a; b.f = Math.cos(a) < 0 ? -1 : 1; A.ls[id] = now();
@@ -300,7 +307,7 @@
     return ["vote2"].concat(PG.shuffle(pool).slice(0, 2)); }
   function hostAct(G, id, a){
     const s = G.s, mg = s.meet && s.meet.mg; if (!mg || mg.g !== "arena" || !mg.ar) return false; const A = mg.ar;
-    if (a.a === "arcl"){ if (A.ph === "pick" && A.ids.includes(id) && CLS[a.v]) A.cls[id] = a.v; return true; }
+    if (a.a === "arcl"){ if (A.ph === "pick" && A.ids.includes(id) && KEYS.includes(a.v)) A.cls[id] = a.v; return true; }
     if (a.a === "arperk"){ const P2 = mg.perk; if (!mg.done || !P2 || P2.pick || id !== mg.win || !P2.opts.includes(a.v)) return true;
       if (a.v === "revive"){ if (!revivable(G).includes(a.t)) return true; P2.t = a.t; }
       P2.pick = a.v; s.perkNext = {id, k: a.v, t: P2.t || null}; return true; }
@@ -325,11 +332,11 @@
   }
 
   /* ---------------- this phone: move, aim, shoot, draw ---------------- */
-  const C = {emo: {}, cubes: [], pw: {}, cgT: {}, on: false, seed: null, A: null, me: null, am: AMMO, rl: 0, cd: 0, sup: 0, seq: 0, AP: {}, proj: [], fx: [], pops: [], jabs: [], burst: [], storms: [], jump: {}, lunge: {}, glow: {}, cubeT: {}, crb: new Set(), crh: {}, crf: {}, crT: 0, chg: null, scr: null,
+  const C = {emo: {}, cubes: [], pw: {}, cgT: {}, on: false, seed: null, A: null, me: null, am: AMMO, rl: 0, cd: 0, sup: 0, seq: 0, AP: {}, proj: [], fx: [], pops: [], jabs: [], burst: [], storms: [], jump: {}, lunge: {}, glow: {}, cubeT: {}, crb: new Set(), crh: {}, crf: {}, crg: {}, crT: 0, chg: null, scr: null,
     sent: 0, sentP: null, moveP: null, aimP: null, supP: null, keys: {}, dot: 0, dotT: 0, dotBy: "", hurtT: 0, shake: 0, hitAt: {}, shotAt: {}, kb: null, L: null, t0: 0, pickEnd: 0, pickDur: PICK, fightT0: 0, endAt: 0, doneAt: 0, started: false, hpT: 0, outShown: false, sndT: {}, kbDone: {}, v: null};
   const me = () => PNet.me;
   const NPo = () => N().NP;
-  function reset(keep){ Object.assign(C, {rew: null, fin: 0, winTeam: null, cubes: [], pw: {}, cgT: {}, seed: null, A: null, me: null, proj: [], fx: [], pops: [], jabs: [], burst: [], storms: [], jump: {}, lunge: {}, glow: {}, cubeT: {}, crb: new Set(), crh: {}, crf: {}, crT: 0, chg: null, AP: {}, moveP: null, aimP: null, supP: null, started: false, doneAt: 0, outShown: false, dot: 0, sup: 0, kb: null, hitAt: {}, shotAt: {}, kbDone: {}, picked: 0, win: null});
+  function reset(keep){ Object.assign(C, {rew: null, fin: 0, winTeam: null, cubes: [], pw: {}, cgT: {}, seed: null, A: null, me: null, proj: [], fx: [], pops: [], jabs: [], burst: [], storms: [], jump: {}, lunge: {}, glow: {}, cubeT: {}, crb: new Set(), crh: {}, crf: {}, crg: {}, crT: 0, chg: null, AP: {}, moveP: null, aimP: null, supP: null, started: false, doneAt: 0, outShown: false, dot: 0, sup: 0, kb: null, hitAt: {}, shotAt: {}, kbDone: {}, picked: 0, win: null});
     resetCrates(); if (!keep) leaveLayer(); else if (C.L){ const r = C.L.querySelector(".ar-res"); if (r){ r.classList.remove("on"); r._h = null; } } }
   const amIn = () => C.A && C.A.ids.includes(me());
   const alive = id => C.A && C.A.ids.includes(id) && !C.A.out.includes(id);
@@ -463,12 +470,12 @@
       C.ku = e => { delete C.keys[e.code]; if (e.code === "Space" && C.chg){ const ch = chgNow(); C.chg = null; autoFire(false, ch); } };
       window.addEventListener("keydown", C.kd); window.addEventListener("keyup", C.ku); }
   }
-  function pick(k){ if (!CLS[k] || !C.A || C.A.ph !== "pick" || !amIn()) return; C.A.cls[me()] = k; PG.st.arCls = k; try { PG.persist(); } catch(e) {} snd("pick", null, KEYS.indexOf(k)); Haptic.go(12); NPo().act({a: "arcl", v: k}); pickDraw();
+  function pick(k){ if (!KEYS.includes(k) || !C.A || C.A.ph !== "pick" || !amIn()) return; C.A.cls[me()] = k; PG.st.arCls = k; try { PG.persist(); } catch(e) {} snd("pick", null, KEYS.indexOf(k)); Haptic.go(12); NPo().act({a: "arcl", v: k}); pickDraw();
     const b = C.L && C.L.querySelector(`.ar-card[data-arc="${k}"]`); if (b){ b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop"); } }
   /* the cards are built once and then only updated, so a tap never lands on a card that is being replaced */
   function pickDraw(force){
     const box = C.L && C.L.querySelector(".ar-pick"); if (!box) return; const A = C.A, on = A && A.ph === "pick"; box.classList.toggle("on", !!on); if (!on) return;
-    if (amIn() && !C.picked){ C.picked = 1; const k = CLS[PG.st.arCls] ? PG.st.arCls : KEYS[Math.floor(Math.random() * KEYS.length)]; if (A.cls[me()] !== k){ A.cls[me()] = k; NPo().act({a: "arcl", v: k}); } }
+    if (amIn() && !C.picked){ C.picked = 1; const k = KEYS.includes(PG.st.arCls) ? PG.st.arCls : KEYS[Math.floor(Math.random() * KEYS.length)]; if (A.cls[me()] !== k){ A.cls[me()] = k; NPo().act({a: "arcl", v: k}); } }
     const left = Math.max(0, C.pickEnd - now()), mine = A.cls[me()], inn = !!amIn();
     if (!box._built || box._in !== inn){ box._built = 1; box._in = inn;
       box.innerHTML = `<div class="ar-pt">${inn ? T("Pick your fighter", "Wähl deinen Kämpfer") : "👻 " + T("You're watching", "Du schaust zu")}</div><div class="ar-cards">${KEYS.map((k, ki) => { const c = CLS[k];
@@ -611,7 +618,7 @@
     else if (m.t === "acu"){ const old = C.pw || {}; setCubes(m.c); C.pw = m.pw || {};
       /* someone grabbed a cube: a green burst; mine with the charge-up sound and a buzz */
       for (const id in C.pw){ const n2 = C.pw[id] || 0, n1 = old[id] || 0; if (n2 <= n1) continue; const q = id === me() ? C.me : pos(id); C.glow[id] = now(); if (q) C.fx.push({k: "power", x: q.x, y: q.y, t: now(), d: 820, me: id === me()});
-        if (id === me()){ snd("cube", null, n2); Haptic.go([10, 30, 18]); if (q) C.pops.push({x: q.x, y: q.y - 150, txt: "+" + (n2 - n1) + " ⚡", t: now(), cube: 1}); } else snd("cube", q, n2); } }
+        if (id === me()){ snd("cube", null, n2); Haptic.go([10, 30, 18]); if (q) C.pops.push({x: q.x, y: q.y - 150, txt: "+" + (n2 - n1), t: now(), cube: 1}); } else snd("cube", q, n2); } }
     else if (m.t === "acg"){ if (host){ const mg = hostMg(); if (mg && mg.ar.cubes && mg.ar.ph === "fight") cubeGrab(mg.ar, m.id, +m.k); } }
     else if (m.t === "ahp"){ if (m.mx) C.A.mx = m.mx; C.A.hp = Object.assign({}, m.hp); C.A.out = (m.out || []).slice(); C.A.feed = m.f || []; C.hpT = now();
       if (m.ko){ const q = pos(m.ko); if (q) C.fx.push({k: "ko", x: q.x, y: q.y, t: now()}); snd("ko", q); if (m.ko === me()){ Haptic.go([60, 40, 120]); C.chg = null; }
@@ -681,7 +688,7 @@
         cratesIn(p.x1, p.y1, s2.splash).forEach(i => { crateFx(i); if (p.au) hitCrate(i, s2.dmg, p.k + "c" + i, p.by); });
         if (p.au) C.A.ids.forEach(id => { if (id === p.by || !alive(id) || mate(id, p.by)) return; const q = pos(id); if (!q) return; const dd = Math.hypot(q.x - p.x1, q.y - p.y1); if (dd > s2.splash + BODY * .6) return;
           const kb = p.su && s2.kb ? {kx: (q.x - p.x1) / (dd || 1) * s2.kb, ky: (q.y - p.y1) / (dd || 1) * s2.kb} : null; hitOut(id, s2.dmg, p.k + ":" + id, p.by, kb); }); } }
-    /* bullets and boomerangs: walls stop them, crates take the hit, a boomerang turns round */
+    /* bullets and boomerangs: walls stop them, crates take the hit; the boomerang cuts through crates and people and only turns at a wall or its range */
     const turn = p => { p.back = 1; p.done = {}; p.tr = 0; };
     for (const p of C.proj){ if (p.dead || p.lob) continue;
       if (p.rang && p.back){ const q = pos(p.by); if (q && alive(p.by)){ const dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy) || 1, v = CLS.rang.v * 1.08; p.vx = dx / d * v; p.vy = dy / d * v; if (d < 34){ p.dead = 1; continue; } } }
@@ -689,7 +696,7 @@
       for (let i = 0; i < n; i++){ p.x += p.vx * dt / n; p.y += p.vy * dt / n; p.tr += sp / n;
         const ci = crateAt(p.x, p.y);
         if (ci >= 0 && !p.cd[ci + bk]){ p.cd[ci + bk] = 1; crateFx(ci); if (p.au) hitCrate(ci, dmgOf(p), p.k + "c" + ci + bk, p.by);
-          if (p.rang && !p.back){ p.cd[ci + "b"] = 1; turn(p); break; } if (p.pierce) continue; p.dead = 1; C.fx.push({k: "spark", x: p.x, y: p.y, t}); break; }
+          if (p.rang || p.pierce) continue; p.dead = 1; C.fx.push({k: "spark", x: p.x, y: p.y, t}); break; }
         const c = cell(p.x, p.y); if (c < 0 || MP.g[c] === 1 || p.tr >= p.rg){ if (p.rang && !p.back){ turn(p); break; } p.dead = 1; C.fx.push({k: "spark", x: p.x, y: p.y, t}); break; }
         const id = bodyAt(p); if (id){ p.done[id] = 1; C.hitAt[id] = t;
           if (p.au){ const kb = p.su && p.c === "shot" && !C.kbDone[p.sk + id] ? (C.kbDone[p.sk + id] = 1, {kx: p.vx / Math.hypot(p.vx, p.vy) * CLS.shot.su.kb, ky: p.vy / Math.hypot(p.vx, p.vy) * CLS.shot.su.kb}) : null; hitOut(id, dmgOf(p), p.k + bk, p.by, kb); }
@@ -750,8 +757,7 @@
     c.fillStyle = "#3E3B37"; c.fillRect(5, 14, 8, 48); c.fillRect(51, 14, 8, 48); c.fillStyle = "#9C958B"; [[9, 20], [55, 20], [9, 55], [55, 55]].forEach(([x, y]) => { c.beginPath(); c.arc(x, y, 1.6, 0, 7); c.fill(); });
     c.strokeStyle = "#2A1B10"; c.lineWidth = 2.5; c.strokeRect(5, 14, 54, 48); c.beginPath(); c.moveTo(5, 30); c.lineTo(59, 30); c.stroke();
     const g = c.createRadialGradient(32, 46, 2, 32, 46, 17); g.addColorStop(0, "rgba(170,255,120,.6)"); g.addColorStop(1, "rgba(170,255,120,0)"); c.fillStyle = g; c.fillRect(14, 30, 36, 32);
-    c.fillStyle = "#4CC22E"; rr(c, 24, 38, 16, 16, 4); c.fill(); c.strokeStyle = "#1E5A12"; c.lineWidth = 2; c.stroke();
-    c.fillStyle = "#fff"; c.beginPath(); c.moveTo(33.5, 40); c.lineTo(28, 47); c.lineTo(31.5, 47); c.lineTo(30, 52.5); c.lineTo(36, 45); c.lineTo(32.5, 45); c.closePath(); c.fill();
+    cube3d(c, 32, 47, 7.5, .62);
     if (dmg){ c.strokeStyle = "rgba(30,15,5,.75)"; c.lineWidth = 1.6; c.beginPath(); c.moveTo(14, 31); c.lineTo(20, 38); c.lineTo(17, 45); c.moveTo(48, 31); c.lineTo(44, 36); c.lineTo(50, 42); c.lineTo(46, 50); c.moveTo(30, 15); c.lineTo(34, 21); c.lineTo(31, 28); c.stroke(); } });
   /* the power cube in 3D: it turns slowly, lit from the top left, a lightning bolt on every side */
   const CF = [[0, 0, 1, 1, 0, 0, 0, 1, 0], [0, 0, -1, -1, 0, 0, 0, 1, 0], [1, 0, 0, 0, 0, -1, 0, 1, 0], [-1, 0, 0, 0, 0, 1, 0, 1, 0], [0, 1, 0, 1, 0, 0, 0, 0, -1], [0, -1, 0, 1, 0, 0, 0, 0, 1]];
@@ -762,20 +768,33 @@
     const F = CF.map(f => { const n = R(f[0], f[1], f[2]), u = R(f[3], f[4], f[5]), v = R(f[6], f[7], f[8]); return {n, u, v}; }).filter(f => f.n[2] > .02).sort((a, b) => a.n[2] - b.n[2]);
     c.lineJoin = "round";
     for (const f of F){ const P = (a, b) => [x + (f.n[0] + f.u[0] * a + f.v[0] * b) * s, y - (f.n[1] + f.u[1] * a + f.v[1] * b) * s], lam = Math.max(0, f.n[0] * LIT[0] + f.n[1] * LIT[1] + f.n[2] * LIT[2]), m = (a, b) => Math.round(a + (b - a) * lam);
-      c.fillStyle = `rgb(${m(40, 196)},${m(112, 245)},${m(24, 122)})`; c.beginPath(); [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([a, b], i) => { const p = P(a, b); i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]); }); c.closePath(); c.fill(); c.strokeStyle = "rgba(22,70,14,.75)"; c.lineWidth = 1.6; c.stroke();
-      c.fillStyle = `rgba(255,255,255,${.55 + lam * .4})`; c.beginPath(); BOLT.forEach(([a, b], i) => { const p = P(a * .78, -b * .78); i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]); }); c.closePath(); c.fill(); } }
+      const quad = k => { c.beginPath(); [[-k, -k], [k, -k], [k, k], [-k, k]].forEach(([a, b], i) => { const p = P(a, b); i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]); }); c.closePath(); };
+      /* a bevelled face: dark rim, a lit inner panel with a gloss from its top corner, the bolt with a dark outline */
+      quad(1); c.fillStyle = `rgb(${m(24, 92)},${m(84, 190)},${m(18, 54)})`; c.fill(); c.strokeStyle = "rgba(10,44,8,.9)"; c.lineWidth = Math.max(1.2, s * .12); c.stroke();
+      const p0 = P(-.8, .8), p1 = P(.8, -.8), g = c.createLinearGradient(p0[0], p0[1], p1[0], p1[1]); g.addColorStop(0, `rgb(${m(70, 214)},${m(150, 255)},${m(40, 150)})`); g.addColorStop(1, `rgb(${m(34, 120)},${m(110, 214)},${m(22, 70)})`);
+      quad(.76); c.fillStyle = g; c.fill(); c.strokeStyle = `rgba(230,255,190,${.25 + lam * .45})`; c.lineWidth = Math.max(.8, s * .06); c.stroke();
+      c.beginPath(); BOLT.forEach(([a, b], i) => { const p = P(a * .62, -b * .62); i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]); }); c.closePath();
+      c.strokeStyle = "rgba(14,60,10,.85)"; c.lineWidth = Math.max(1, s * .16); c.stroke(); c.fillStyle = `rgba(255,255,240,${.75 + lam * .25})`; c.fill();
+      if (lam > .55){ const h0 = P(-.7, .7), h1 = P(-.15, .7), h2 = P(-.7, .15); c.fillStyle = `rgba(255,255,255,${(lam - .55) * .9})`; c.beginPath(); c.moveTo(h0[0], h0[1]); c.lineTo(h1[0], h1[1]); c.lineTo(h2[0], h2[1]); c.closePath(); c.fill(); } } }
+  /* little four-point sparkles that twinkle around something valuable */
+  const sparkle = (c, x, y, r, al) => { if (al <= .02) return; c.fillStyle = `rgba(255,255,230,${al})`; c.beginPath(); c.moveTo(x, y - r); c.quadraticCurveTo(x, y, x + r, y); c.quadraticCurveTo(x, y, x, y + r); c.quadraticCurveTo(x, y, x - r, y); c.quadraticCurveTo(x, y, x, y - r); c.fill(); };
   const glowSpr = () => sprite("cglow", 96, 96, c => { const g = c.createRadialGradient(48, 48, 4, 48, 48, 48); g.addColorStop(0, "rgba(170,255,110,.75)"); g.addColorStop(.45, "rgba(120,230,70,.28)"); g.addColorStop(1, "rgba(120,230,70,0)"); c.fillStyle = g; c.fillRect(0, 0, 96, 96); });
   const fireSpr = () => sprite("fire", 64, 64, c => { const g = c.createRadialGradient(32, 32, 2, 32, 32, 32); g.addColorStop(0, "rgba(255,220,120,1)"); g.addColorStop(.5, "rgba(255,120,40,.8)"); g.addColorStop(1, "rgba(255,80,30,0)"); c.fillStyle = g; c.fillRect(0, 0, 64, 64); });
   const fireBlob = (c, x, y, r, a) => { if (a <= 0) return; c.globalAlpha = Math.min(1, a); c.drawImage(fireSpr(), x - r, y - r * .62, r * 2, r * 1.24); c.globalAlpha = 1; };
-  /* one picture per bush: overlapping leafy balls with a dark rim and light tops, standing a little above the ground */
-  function fogSpr(i){ const key = "fog" + LAY.id + i; return SPR[key] || (SPR[key] = (() => {
-    const P = FOG[i].P, x0 = Math.min(...P.map(p => p[0])) - 56, y0 = Math.min(...P.map(p => p[1])) - 70, x1 = Math.max(...P.map(p => p[0])) + 56, y1 = Math.max(...P.map(p => p[1])) + 46, S = 1.25;
-    const cv = document.createElement("canvas"); cv.width = Math.ceil((x1 - x0) * S); cv.height = Math.ceil((y1 - y0) * S); const c = cv.getContext("2d"), R = rngOf(i * 977 + 13 + LAY.seed); c.scale(S, S); c.translate(-x0, -y0);
-    const B = []; P.forEach(([x, y]) => { for (let k = 0; k < 4; k++) B.push([x + (R() - .5) * 36, y - 10 + (R() - .5) * 32, 24 + R() * 9]); }); B.sort((a, b) => a[1] - b[1]);
-    c.fillStyle = "#1D4720"; B.forEach(([x, y, r]) => { c.beginPath(); c.arc(x, y + 3, r + 4, 0, 7); c.fill(); });
-    B.forEach(([x, y, r]) => { const g = c.createRadialGradient(x - r * .35, y - r * .45, r * .1, x, y, r); g.addColorStop(0, "#74BE55"); g.addColorStop(.55, "#428E3B"); g.addColorStop(1, "#2C6B2C"); c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill(); });
-    c.strokeStyle = "rgba(180,235,140,.45)"; c.lineWidth = 2.2; c.lineCap = "round"; B.forEach(([x, y, r]) => { for (let k = 0; k < 2; k++){ const a = R() * 7, px = x + Math.cos(a) * r * .45, py = y + Math.sin(a) * r * .4; c.beginPath(); c.moveTo(px, py); c.lineTo(px + Math.cos(a - .7) * 7, py + Math.sin(a - .7) * 7); c.stroke(); } });
-    return {cv, x0, y0, w: x1 - x0, h: y1 - y0}; })()); }
+  /* bushes like in Brawl Stars: every tile its own raised square clump of long pointed leaves, light tips, a dark front where the bush ends */
+  const BV = 5;
+  const bushSpr = (v, front) => sprite("bush" + v + (front ? "f" : ""), 176, 208, c => { c.scale(2, 2); c.translate(12, 36); const R = rngOf(v * 131 + 7), L = TS;
+    c.fillStyle = "rgba(0,0,0,.22)"; rrr(c, 2, 2, L, L - 2, 12); c.fill();
+    if (front){ const g = c.createLinearGradient(0, L - 18, 0, L); g.addColorStop(0, "#2F6E2C"); g.addColorStop(1, "#1E4B1F"); c.fillStyle = g; rrr(c, 0, L - 20, L, 20, [0, 0, 10, 10]); c.fill();
+      c.strokeStyle = "rgba(120,190,90,.35)"; c.lineWidth = 2; c.lineCap = "round"; for (let k = 0; k < 5; k++){ const x = 6 + k * 13 + R() * 4; c.beginPath(); c.moveTo(x, L - 15); c.lineTo(x + 2, L - 4); c.stroke(); } }
+    const top = c.createLinearGradient(0, -14, 0, L - 14); top.addColorStop(0, "#62AE43"); top.addColorStop(1, "#3B8233"); c.fillStyle = top; rrr(c, 0, -14, L, L, 12); c.fill(); c.strokeStyle = "rgba(22,62,22,.55)"; c.lineWidth = 2; c.stroke();
+    const leaf = (bx, by, an, len, w) => { const tx = bx + Math.cos(an) * len, ty = by + Math.sin(an) * len, mx = (bx + tx) / 2, my = (by + ty) / 2, px = -Math.sin(an) * w, py = Math.cos(an) * w;
+      c.beginPath(); c.moveTo(bx, by); c.quadraticCurveTo(mx + px, my + py, tx, ty); c.quadraticCurveTo(mx - px, my - py, bx, by); c.closePath(); };
+    const LV = []; for (let k = 0; k < 17; k++) LV.push([3 + R() * 58, -8 + R() * 52, -Math.PI / 2 + (R() - .5) * 1.5, 17 + R() * 13, 5.5 + R() * 3]); LV.sort((a, b) => a[1] - b[1]);
+    LV.forEach(([bx, by, an, len, w]) => { leaf(bx, by, an, len, w); c.strokeStyle = "#22521E"; c.lineWidth = 3.2; c.lineJoin = "round"; c.stroke();
+      const g = c.createLinearGradient(bx, by, bx + Math.cos(an) * len, by + Math.sin(an) * len); g.addColorStop(0, "#3A8530"); g.addColorStop(.55, "#68B447"); g.addColorStop(1, "#A6DB66"); c.fillStyle = g; c.fill();
+      c.strokeStyle = "rgba(220,250,170,.4)"; c.lineWidth = 1.2; c.beginPath(); c.moveTo(bx, by); c.lineTo(bx + Math.cos(an) * len * .8, by + Math.sin(an) * len * .8); c.stroke(); });
+    const hl = c.createRadialGradient(18, -2, 2, 18, -2, 34); hl.addColorStop(0, "rgba(230,255,180,.22)"); hl.addColorStop(1, "rgba(230,255,180,0)"); c.fillStyle = hl; c.fillRect(-12, -36, 88, 70); });
   /* people: the avatar as a bitmap, the name as a bitmap */
   const BMP = {}, TAG = {};
   function body(p){ const im = N().avImg(p.id, p.av), k = im.src.length + ":" + im.src.slice(-40), b = BMP[p.id]; if (b && b.k === k) return b.cv; if (!(im.complete && im.naturalWidth)) return b ? b.cv : null;
@@ -784,9 +803,11 @@
     cv.width = w; cv.height = 40; c.font = f; c.fillStyle = self ? "rgba(79,122,42,.9)" : "rgba(20,19,17,.72)"; rr(c, 0, 0, w, 40, 20); c.fill(); c.fillStyle = "#fff"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(p.name, w / 2, 21); return TAG[k] = {cv, w: w / 2, h: 20}; }
   /* a fighter: shadow and ring on the ground, the avatar (in the air while jumping), the weapon in the hand pointing where they aim */
   function fig(c, x, y, p, o){
-    const h = 118, w = h * 200 / 256, bob = o.mv && !o.jh ? Math.sin(now() / 90 + (p.id.charCodeAt(1) || 0)) * 3 : 0, cv = body(p), jh = o.jh || 0, sc = 1 + jh / 900;
+    const pw = Math.min(CUBES, o.pw || 0), h = 118, w = h * 200 / 256, bob = o.mv && !o.jh ? Math.sin(now() / 90 + (p.id.charCodeAt(1) || 0)) * 3 : 0, cv = body(p), jh = o.jh || 0, sc = (1 + jh / 900) * (1 + pw * .025);
     c.fillStyle = "rgba(0,0,0,.32)"; c.beginPath(); c.ellipse(x, y + 16, 26 * (1 - jh / 400), 8 * (1 - jh / 400), 0, 0, 7); c.fill();
     c.strokeStyle = o.mate ? "rgba(79,163,255,.9)" : o.me ? "rgba(143,196,88,.85)" : "rgba(233,87,63,.75)"; c.lineWidth = 3; c.beginPath(); c.ellipse(x, y + 16, 30, 10, 0, 0, 7); c.stroke();
+    if (pw){ const k = pw / CUBES, pu = (Math.sin(now() / 260) + 1) / 2; c.strokeStyle = `rgba(150,245,90,${.35 + k * .5})`; c.lineWidth = 2 + k * 4; c.beginPath(); c.ellipse(x, y + 16, 36 + k * 14 + pu * 4, 12 + k * 5 + pu * 1.5, 0, 0, 7); c.stroke();
+      c.save(); c.globalAlpha *= .25 + k * .5; c.drawImage(glowSpr(), x - 60 - k * 30, y - 100 - k * 30, 120 + k * 60, 140 + k * 50); c.restore(); }
     const a = o.a || 0, bx = x + Math.cos(a) * (o.lu || 0) * 12, by = y - jh, im = o.k && !(o.k === "punch" && o.lu > .05) ? wpnImg(o.k) : null, behind = Math.sin(a) < -.35;
     const weapon = () => { if (!im) return; const s = o.k === "punch" ? 30 : 38, hx = bx + Math.cos(a) * 24, hy = by - 36 + Math.sin(a) * 14; c.save(); c.translate(hx, hy); if (o.k === "punch") c.rotate(a + Math.PI / 2); else if (o.k !== "bomb" && o.k !== "zap"){ c.rotate(a); if (Math.cos(a) < 0) c.scale(1, -1); } c.drawImage(im, -s / 2, -s / 2, s, s); c.restore(); };
     if (o.glow > 0){ c.globalAlpha = o.glow * .9; c.drawImage(glowSpr(), bx - 70, by - 120, 140, 150); c.globalAlpha = 1; }
@@ -805,6 +826,45 @@
     for (let s = 1; s < pts.length; s++){ const [ax, ay] = pts[s - 1], [bx, by] = pts[s], d = Math.hypot(bx - ax, by - ay), n = Math.max(2, Math.ceil(d / 24)), px = -(by - ay) / (d || 1), py = (bx - ax) / (d || 1);
       for (let k = 1; k <= n; k++){ const f = k / n, o = k === n ? 0 : (R() - .5) * 2 * amp; c.lineTo(ax + (bx - ax) * f + px * o, ay + (by - ay) * f + py * o); } } c.stroke(); }
   const NUMF = "900 14px Figtree, system-ui, sans-serif";
+  const CNF = "900 12px Figtree, system-ui, sans-serif";
+  /* where a ray along "an" stops: a wall always, a crate unless the shot goes through crates */
+  const rayTo = (a, an, rg, thruCr) => { if (!thruCr) return rayEnd(a, an, rg); const dx = Math.cos(an), dy = Math.sin(an); for (let s = 16; s < rg; s += 12){ const x = a.x + dx * s, y = a.y + dy * s, c = cell(x, y); if (c < 0 || MP.g[c] === 1) return {x, y}; } return {x: a.x + dx * rg, y: a.y + dy * rg}; };
+  function aimDraw(c, aimP, su, t){
+    const cl = CLS[C.cls], s2 = su ? Object.assign({}, cl, cl.su) : cl, a = C.me.a, o = {x: C.me.x, y: C.me.y + 8}, rgb = su ? "255,209,92" : "255,255,255", thru = C.cls === "rang";
+    const col = al => `rgba(${rgb},${al})`, run = (t / 900) % 1;
+    c.save(); c.lineJoin = "round"; c.lineCap = "round";
+    if (cl.lob || (su && cl.su.at)){
+      const dd = throwDist(cl, su, Math.hypot(aimP.dx, aimP.dy)), lx = o.x + Math.cos(a) * dd, ly = o.y + Math.sin(a) * dd, sp2 = s2.splash || 60, jmp = C.cls === "punch", hh = (jmp ? 190 : 130) + dd * .12;
+      /* the arc: dots that grow out from the hand and fade in, running gently towards the landing */
+      const n = Math.max(8, Math.round(dd / 34)); for (let i = 1; i < n; i++){ const k = (i + run) / n; if (k >= 1) continue; const x = o.x + (lx - o.x) * k, y = o.y - 30 + (ly - o.y + 30) * k - Math.sin(k * Math.PI) * hh;
+        c.fillStyle = col(.18 + .5 * Math.sin(k * Math.PI * .5 + .3)); c.beginPath(); c.arc(x, y, 3.5 + k * 3, 0, 7); c.fill(); }
+      /* the landing: soft fill, bright rim, a second ring pulsing out */
+      const g = c.createRadialGradient(lx, ly, 2, lx, ly, sp2); g.addColorStop(0, col(.08)); g.addColorStop(.7, col(.2)); g.addColorStop(1, col(.38));
+      c.fillStyle = g; c.beginPath(); c.ellipse(lx, ly, sp2, sp2 * .62, 0, 0, 7); c.fill(); c.strokeStyle = col(.85); c.lineWidth = 3.5; c.stroke();
+      const pk = (t / 700) % 1; c.strokeStyle = col(.5 * (1 - pk)); c.lineWidth = 2.5; c.beginPath(); c.ellipse(lx, ly, sp2 * (.35 + pk * .65), sp2 * .62 * (.35 + pk * .65), 0, 0, 7); c.stroke();
+      c.strokeStyle = col(.7); c.lineWidth = 3; c.beginPath(); c.moveTo(lx - 9, ly); c.lineTo(lx + 9, ly); c.moveTo(lx, ly - 6); c.lineTo(lx, ly + 6); c.stroke(); }
+    else if (s2.cone || (s2.spr && (s2.n || 1) > 1)){
+      /* a fan: built from rays so walls cut it, filled with a fade from the brawler outwards */
+      const w = s2.cone || s2.spr * ((s2.n || 1) / 2 + .4), r = s2.rg + (s2.cone ? BODY : 0), N2 = 18, pts = [];
+      for (let i = 0; i <= N2; i++){ const an = a - w + 2 * w * i / N2, e = rayTo(o, an, r, thru); pts.push([e.x, e.y]); }
+      const g = c.createRadialGradient(o.x, o.y, 10, o.x, o.y, r); g.addColorStop(0, col(.46)); g.addColorStop(.75, col(.2)); g.addColorStop(1, col(.06));
+      c.beginPath(); c.moveTo(o.x, o.y); pts.forEach(p => c.lineTo(p[0], p[1])); c.closePath(); c.fillStyle = g; c.fill();
+      c.strokeStyle = col(.55); c.lineWidth = 2.5; c.beginPath(); c.moveTo(o.x, o.y); c.lineTo(pts[0][0], pts[0][1]); c.moveTo(o.x, o.y); c.lineTo(pts[N2][0], pts[N2][1]); c.stroke();
+      c.strokeStyle = col(.75); c.lineWidth = 3.5; c.beginPath(); pts.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.stroke();
+      /* one line per pellet, faint, so you see how the shot spreads */
+      if ((s2.n || 1) > 1 && !s2.cone){ c.strokeStyle = col(.16); c.lineWidth = 2; for (let i = 0; i < s2.n; i++){ const an = a + (i - (s2.n - 1) / 2) * s2.spr, e = rayTo(o, an, r, thru); c.beginPath(); c.moveTo(o.x + Math.cos(an) * 30, o.y + Math.sin(an) * 30); c.lineTo(e.x, e.y); c.stroke(); } }
+      for (let k = 0; k < 3; k++){ const f = ((k / 3 + run) % 1), d = 40 + f * (r - 60); chev(c, o.x + Math.cos(a) * d, o.y + Math.sin(a) * d, a, 9, col(.55 * Math.sin(f * Math.PI))); } }
+    else {
+      /* a straight shot: a band as wide as the bullet, fading towards its end, with a bright tip where it stops */
+      const e = rayTo(o, a, s2.rg, thru), L = Math.hypot(e.x - o.x, e.y - o.y), hw = Math.max(9, (s2.r || 8) * 1.6), px = -Math.sin(a), py = Math.cos(a);
+      const g = c.createLinearGradient(o.x, o.y, e.x, e.y); g.addColorStop(0, col(.5)); g.addColorStop(.7, col(.24)); g.addColorStop(1, col(.1));
+      const x0 = o.x + Math.cos(a) * 18, y0 = o.y + Math.sin(a) * 18;
+      c.beginPath(); c.moveTo(x0 + px * hw * .6, y0 + py * hw * .6); c.lineTo(e.x + px * hw, e.y + py * hw); c.arc(e.x, e.y, hw, a + Math.PI / 2, a - Math.PI / 2, true); c.lineTo(x0 - px * hw * .6, y0 - py * hw * .6); c.closePath(); c.fillStyle = g; c.fill();
+      c.strokeStyle = col(.5); c.lineWidth = 2; c.stroke();
+      c.fillStyle = col(.8); c.beginPath(); c.arc(e.x, e.y, hw * .45, 0, 7); c.fill();
+      for (let k = 0; k < 3; k++){ const f = ((k / 3 + run) % 1), d = 30 + f * Math.max(0, L - 50); chev(c, o.x + Math.cos(a) * d, o.y + Math.sin(a) * d, a, hw * .75, col(.6 * Math.sin(f * Math.PI))); } }
+    c.restore(); }
+  const chev = (c, x, y, a, s, st) => { c.strokeStyle = st; c.lineWidth = 3; c.beginPath(); c.moveTo(x - Math.cos(a) * s + Math.cos(a + Math.PI / 2) * s, y - Math.sin(a) * s + Math.sin(a + Math.PI / 2) * s); c.lineTo(x, y); c.lineTo(x - Math.cos(a) * s - Math.cos(a + Math.PI / 2) * s, y - Math.sin(a) * s - Math.sin(a + Math.PI / 2) * s); c.stroke(); };
   function render(){
     const NP = NPo(), c = NP.ctx, cv = NP.cv; if (!c || !C.A) return; if (!MP) setLay(0); const d = NP.dpr, A = C.A, cw = cv.width, ch = cv.height, t = now();
     let cam = C.me && alive(me()) ? C.me : null;
@@ -818,21 +878,31 @@
     c.setTransform(z, 0, 0, z, ox, oy); c.imageSmoothingEnabled = true; drawMap(c, z, ox, oy, cw, ch);
     const pulse = (Math.sin(t / 200) + 1) / 2, vx0 = -ox / z - 90, vx1 = (cw - ox) / z + 90, vy0 = -oy / z - 90, vy1 = (ch - oy) / z + 140, inV = (x, y) => x > vx0 && x < vx1 && y > vy0 && y < vy1;
     /* crates: shake and flash when hit */
-    MP.cr.forEach((cr, i) => { if (!MP.ca[cr.c] || !inV(cr.x, cr.y)) return; const hp = C.crh[i], hit = t - (C.crf[i] || 0), sx = hit < 140 ? (Math.random() - .5) * 7 : 0;
-      c.drawImage(crateSpr(hp != null && hp < CRATE * .5 ? 1 : 0), cr.x - 32 + sx, cr.y - 32, 64, 72); if (hit < 110){ c.globalAlpha = .5 * (1 - hit / 110); c.fillStyle = "#fff"; c.fillRect(cr.x - 27 + sx, cr.y - 18, 54, 48); c.globalAlpha = 1; } });
+    const bars = []; MP.cr.forEach((cr, i) => { if (!MP.ca[cr.c] || !inV(cr.x, cr.y)) return; const hp = C.crh[i], hit = t - (C.crf[i] || 0), sx = hit < 140 ? (Math.random() - .5) * 7 : 0;
+      c.drawImage(crateSpr(hp != null && hp < CRATE * .5 ? 1 : 0), cr.x - 32 + sx, cr.y - 32, 64, 72); if (hit < 110){ c.globalAlpha = .5 * (1 - hit / 110); c.fillStyle = "#fff"; c.fillRect(cr.x - 27 + sx, cr.y - 18, 54, 48); c.globalAlpha = 1; }
+      bars.push([i, cr, sx, hp]); });
+    /* the crates' life, like in Brawl Stars: a bar with the number in it on the lid, drawn over all crates so a stack stays readable; the part just lost fades out */
+    if (c.font !== CNF) c.font = CNF; c.textAlign = "center"; c.textBaseline = "middle";
+    bars.forEach(([i, cr, sx, hp]) => { const left = hp == null ? CRATE : Math.max(0, hp), f = left / CRATE, w = 50, bx = cr.x - w / 2 + sx, by = cr.y - 30, gh = C.crg[i] || (C.crg[i] = {f, t: 0});
+      if (gh.f > f && !gh.t) gh.t = t; if (gh.t && t - gh.t > 260){ gh.f = Math.max(f, gh.f - (t - gh.t - 260) / 900); if (gh.f <= f){ gh.f = f; gh.t = 0; } }
+      c.fillStyle = "rgba(10,10,14,.85)"; rr(c, bx - 2, by - 2, w + 4, 16, 6); c.fill();
+      if (gh.f > f){ c.fillStyle = "rgba(255,255,255,.75)"; rr(c, bx, by, w * gh.f, 12, 5); c.fill(); }
+      if (f > 0){ c.fillStyle = f > .5 ? "#5FBE3A" : f > .25 ? "#E8B42E" : "#E9573F"; rr(c, bx, by, w * f, 12, 5); c.fill(); c.fillStyle = "rgba(255,255,255,.28)"; c.fillRect(bx + 3, by + 1.5, Math.max(0, w * f - 6), 2.5); }
+      c.lineWidth = 3; c.strokeStyle = "rgba(0,0,0,.7)"; c.strokeText(Math.ceil(left), cr.x + sx, by + 6.5); c.fillStyle = "#fff"; c.fillText(Math.ceil(left), cr.x + sx, by + 6.5); });
+    c.textBaseline = "alphabetic";
     /* power cubes: pop out of the crate with a hop, then float and turn */
     C.cubes.forEach(cb => { if (!inV(cb.x, cb.y)) return; const age = t - (C.cubeT[cb.k] || 0), pk = age < 520 ? age / 520 : 1, hop = Math.sin(pk * Math.PI) * 46 * (1 - pk * .3), sc = pk < 1 ? Math.min(1.15, .25 + pk * 1.05) : 1, bob = Math.sin(t / 260 + cb.k) * 4, s2 = (12 + Math.min(4, cb.n - 1) * 1.5) * sc, cy2 = cb.y - 28 + bob - hop;
       c.fillStyle = "rgba(0,0,0,.28)"; c.beginPath(); c.ellipse(cb.x, cb.y + 10, 20 * sc, 6 * sc, 0, 0, 7); c.fill(); c.globalAlpha = .7 + pulse * .3; c.drawImage(glowSpr(), cb.x - 48 * sc, cy2 - 48 * sc, 96 * sc, 96 * sc); c.globalAlpha = 1;
+      c.strokeStyle = `rgba(170,255,110,${.35 + pulse * .3})`; c.lineWidth = 2.5; c.beginPath(); c.ellipse(cb.x, cb.y + 10, 24 * sc, 8 * sc, 0, 0, 7); c.stroke();
       cube3d(c, cb.x, cy2, s2, t / 650 + cb.k);
+      for (let i = 0; i < 3; i++){ const ph = (t / 900 + i / 3 + cb.k * .37) % 1, an = i * 2.1 + cb.k; sparkle(c, cb.x + Math.cos(an) * s2 * 2.1, cy2 + Math.sin(an) * s2 * 1.5 - ph * 10, 3 + 4 * Math.sin(ph * Math.PI), .95 * Math.sin(ph * Math.PI)); }
       if (cb.n > 1){ if (c.font !== NUMF) c.font = NUMF; c.textAlign = "center"; c.lineWidth = 3; c.strokeStyle = "rgba(0,0,0,.6)"; c.strokeText("×" + cb.n, cb.x, cy2 - s2 * 1.9); c.fillStyle = "#fff"; c.fillText("×" + cb.n, cb.x, cy2 - s2 * 1.9); } });
     /* the gas closing in */
     if (A.ph === "fight"){ const gr = gasR(t - C.fightT0); if (gr < 4000){ c.save(); c.beginPath(); c.rect(-600, -600, WW + 1200, WH + 1200); c.arc(GC.x, GC.y, gr, 0, Math.PI * 2, true); c.fillStyle = `rgba(88,200,92,${.26 + pulse * .08})`; c.fill("evenodd"); c.strokeStyle = "rgba(150,240,130,.85)"; c.lineWidth = 6; c.setLineDash([22, 14]); c.lineDashOffset = -t / 40; c.beginPath(); c.arc(GC.x, GC.y, gr, 0, Math.PI * 2); c.stroke(); c.restore(); } }
-    /* aiming: where the shot will go */
+    /* aiming, like in Brawl Stars: a soft shape on the ground that fades out towards its end, bright edges, little arrows running out,
+       stopped by walls (the boomerang's goes through crates); throws and the jump get a dotted arc and a pulsing landing ring */
     const aimP = C.supP && C.supP.man ? C.supP : C.aimP && C.aimP.man ? C.aimP : null;
-    if (fighting() && aimP){ const cl = CLS[C.cls], su = aimP === C.supP, s2 = su ? Object.assign({}, cl, cl.su) : cl, a = C.me.a, x = C.me.x, y = C.me.y - 30; c.save(); c.globalAlpha = .32; c.fillStyle = su ? "#FFD15C" : "#fff"; c.strokeStyle = c.fillStyle;
-      if (cl.lob || (su && cl.su.at)){ const dd = throwDist(cl, su, Math.hypot(aimP.dx, aimP.dy)), lx = C.me.x + Math.cos(a) * dd, ly = C.me.y + Math.sin(a) * dd, sp2 = s2.splash || 60; c.lineWidth = 4; c.setLineDash([10, 8]); c.beginPath(); c.moveTo(C.me.x, C.me.y - 30); c.quadraticCurveTo((C.me.x + lx) / 2, (C.me.y + ly) / 2 - 140, lx, ly); c.stroke(); c.setLineDash([]); c.beginPath(); c.ellipse(lx, ly, sp2, sp2 * .62, 0, 0, 7); c.fill(); }
-      else if (s2.cone || (s2.spr && (s2.n || 1) > 1)){ const w = s2.cone || s2.spr * ((s2.n || 1) / 2 + .4), r = s2.rg + (s2.cone ? BODY : 0); c.beginPath(); c.moveTo(x, y); c.arc(x, y, r, a - w, a + w); c.closePath(); c.fill(); }
-      else { const e = rayEnd(C.me, a, s2.rg); c.lineWidth = (s2.r || 10) * 2.4; c.lineCap = "round"; c.beginPath(); c.moveTo(x, y); c.lineTo(e.x, e.y - 30); c.stroke(); } c.restore(); }
+    if (fighting() && aimP) aimDraw(c, aimP, aimP === C.supP, t);
     if (C.autoLine && t - C.autoLine.t < 200 && C.me){ c.strokeStyle = "rgba(255,255,255,.5)"; c.lineWidth = 3; c.setLineDash([8, 8]); c.beginPath(); c.moveTo(C.me.x, C.me.y - 30); c.lineTo(C.autoLine.x, C.autoLine.y - 30); c.stroke(); c.setLineDash([]); }
     /* people: those on open ground first, then the bushes, then those you can see inside a bush (see-through) */
     const P = NP.pl(), myFog = C.me && alive(me()) ? fogAt(C.me.x, C.me.y) : -1;
@@ -843,7 +913,7 @@
     const drawP = q => { const id = q.id, p = P.find(x => x.id === id) || {id, name: "?"}, self = id === me(), out = A.out.includes(id), y0 = q.y - q.jh;
       if (q.ch > 0 && !out && A.cls[id] === "snipe") laser(q.x, q.y, q.a, q.ch, self);
       c.globalAlpha = out ? .4 : q.bush ? .74 : 1;
-      fig(c, q.x, q.y, p, {f: q.f, mv: q.mv, me: self, mate: mate(id, me()), flash: C.hitAt[id] && t - C.hitAt[id] < 110, k: A.ph === "fight" && !out ? A.cls[id] : null, a: q.a, jh: q.jh, lu: q.lu, glow: Math.max(0, 1 - (t - (C.glow[id] || 0)) / 700)});
+      fig(c, q.x, q.y, p, {pw: out ? 0 : C.pw[id] || 0, f: q.f, mv: q.mv, me: self, mate: mate(id, me()), flash: C.hitAt[id] && t - C.hitAt[id] < 110, k: A.ph === "fight" && !out ? A.cls[id] : null, a: q.a, jh: q.jh, lu: q.lu, glow: Math.max(0, 1 - (t - (C.glow[id] || 0)) / 700)});
       c.globalAlpha = 1;
       if (self && q.ch > 0){ c.strokeStyle = q.ch >= 1 ? "#A9D6FF" : "rgba(169,214,255,.75)"; c.lineWidth = q.ch >= 1 ? 6 : 4; c.beginPath(); c.ellipse(q.x, q.y + 16, 38, 14, 0, -Math.PI / 2, -Math.PI / 2 + q.ch * Math.PI * 2); c.stroke(); }
       const em = C.emo[id]; if (em && t - em.t < 2200){ const k = Math.min(1, (t - em.t) / 160), yy = y0 - 172 - (1 - k) * 12; c.globalAlpha = t - em.t > 1900 ? (2200 - (t - em.t)) / 300 : 1; c.fillStyle = "#fff"; rr(c, q.x - 26, yy - 26, 52, 46, 14); c.fill(); c.beginPath(); c.moveTo(q.x - 7, yy + 19); c.lineTo(q.x, yy + 28); c.lineTo(q.x + 7, yy + 19); c.fill();
@@ -851,7 +921,7 @@
       if (A.ph === "fight" && !out){ const hp = A.hp[id] || 0, mx = A.mx[id] || 1, w = 74, y = y0 - 124, f = Math.max(0, Math.min(1, hp / mx)); c.fillStyle = "rgba(10,10,14,.85)"; rr(c, q.x - w / 2 - 3, y - 3, w + 6, self ? 26 : 16, 6); c.fill();
         c.fillStyle = self ? "#7FD04A" : mate(id, me()) ? "#4FA3FF" : "#E9573F"; rr(c, q.x - w / 2, y, w * f, 10, 5); c.fill(); if (c.font !== NUMF) c.font = NUMF; c.textAlign = "center"; c.fillStyle = "#fff"; c.fillText(Math.ceil(hp), q.x, y - 6);
         const bi = badImg(A.cls[id]); if (bi) c.drawImage(bi, q.x - w / 2 - 27, y - 7, 22, 22);
-        const pw = C.pw[id] || 0; if (pw){ cube3d(c, q.x + w / 2 + 13, y + 3, 6.5, .7); c.textAlign = "left"; c.fillStyle = "#B8F07A"; c.fillText(pw, q.x + w / 2 + 24, y + 8); c.textAlign = "center"; }
+        const pw = C.pw[id] || 0; if (pw){ cube3d(c, q.x + w / 2 + 13, y + 3, 7.5, .7 + t / 1400); c.textAlign = "left"; c.lineWidth = 3; c.strokeStyle = "rgba(0,0,0,.7)"; c.strokeText(pw, q.x + w / 2 + 25, y + 9); c.fillStyle = "#B8F07A"; c.fillText(pw, q.x + w / 2 + 25, y + 9); c.textAlign = "center"; }
         /* my reload bar right under my health, like in Brawl Stars */
         if (self){ const sw = (w - 4) / AMMO; for (let i = 0; i < AMMO; i++){ const f2 = i < C.am ? 1 : i === C.am ? Math.min(1, C.rl / CLS[C.cls].rl) : 0; c.fillStyle = "rgba(255,255,255,.14)"; c.fillRect(q.x - w / 2 + i * (sw + 2), y + 13, sw, 7); if (f2 > 0){ c.fillStyle = f2 >= 1 ? "#F2A33A" : "#9b6a2a"; c.fillRect(q.x - w / 2 + i * (sw + 2), y + 13, sw * f2, 7); } }
           if (C.sup >= 1){ c.fillStyle = "#FFD15C"; c.beginPath(); for (let i = 0; i < 10; i++){ const r = i % 2 ? 5 : 11, an = -Math.PI / 2 + i * Math.PI / 5; c.lineTo(q.x - w / 2 - 15 + Math.cos(an) * r, y + 28 + Math.sin(an) * r); } c.closePath(); c.fill(); } } } };
@@ -890,17 +960,20 @@
         c.fillStyle = `rgba(205,185,150,${.45 * (1 - k)})`; for (let i = 0; i < 8; i++){ const an = i * .785, r = R2 * (.4 + k * .7); c.beginPath(); c.arc(f.x + Math.cos(an) * r, f.y + 8 + Math.sin(an) * r * .45, 12 + k * 14, 0, 7); c.fill(); } }
       else if (f.k === "land"){ if (k < .5){ const kk = k / .5; c.strokeStyle = `rgba(255,255,255,${.8 * (1 - kk)})`; c.lineWidth = 6; c.beginPath(); c.ellipse(f.x, f.y + 10, 30 + kk * 70, (30 + kk * 70) * .4, 0, 0, 7); c.stroke(); } }
       else if (f.k === "ko"){ c.globalAlpha = Math.max(0, 1 - k); emoAt(c, "💀", f.x, f.y - 92 - k * 40, 44 + k * 30); c.globalAlpha = 1; } });
-    /* the bushes on top: whoever is inside is hidden; mine turns see-through */
-    for (let i = 0; i < FOG.length; i++){ const F = fogSpr(i); if (F.x0 > vx1 || F.x0 + F.w < vx0 || F.y0 > vy1 || F.y0 + F.h < vy0) continue; c.globalAlpha = i === myFog ? .42 : .97; c.drawImage(F.cv, F.x0, F.y0 + Math.sin(t / 1300 + i * 2) * 1.5, F.w, F.h); } c.globalAlpha = 1;
+    /* the bushes on top, tile by tile: whoever is inside is hidden. When I am in a bush, the leaves around me turn see-through
+       (a small bush completely), so I see who is close; the rest of the map stays fully visible */
+    { const sm = smallBush(myFog), mv = C.me && C.me.mv;
+      for (const ce of MP.bt){ const i = ce % MW, j = (ce - i) / MW, x = i * TS, y = j * TS; if (x > vx1 || x + TS < vx0 || y - 40 > vy1 || y + TS < vy0) continue;
+        let al = 1, sw = Math.sin(t / 1100 + i * 1.7 + j * .9) * 1.1;
+        if (myFog >= 0){ const d = Math.hypot(x + TS / 2 - C.me.x, y + TS / 2 - C.me.y), k = sm && MP.fa[ce] - 1 === myFog ? 1 : Math.max(0, Math.min(1, (SEE + 50 - d) / 80)); al = 1 - .64 * k; if (mv && d < 60) sw += Math.sin(t / 55 + i) * 2.4; }
+        c.globalAlpha = al; c.drawImage(bushSpr(hash(i, j, 77) * BV | 0, j === MH - 1 || MP.g[ce + MW] !== 3), x - 12 + sw, y - 36, 88, 104); } c.globalAlpha = 1; }
     list.forEach(q => { if (q.bush) drawP(q); });
     /* thunderstorms: a dark cloud over a dashed circle */
     C.storms.forEach(s => { const su = CLS.zap.su, age = t - s.t0, k = Math.min(1, age / 250), out = Math.max(0, 1 - (age - su.hits * su.every) / 400); c.save(); c.globalAlpha = k * out;
       c.strokeStyle = "rgba(255,226,120,.75)"; c.lineWidth = 4; c.setLineDash([12, 10]); c.lineDashOffset = -t / 30; c.beginPath(); c.ellipse(s.x, s.y, su.splash, su.splash * .62, 0, 0, 7); c.stroke(); c.setLineDash([]); c.fillStyle = "rgba(255,226,120,.08)"; c.fill();
       c.fillStyle = "rgba(42,44,60,.8)"; for (let i = 0; i < 6; i++){ const an = i * 1.05 + t / 1200; c.beginPath(); c.arc(s.x + Math.cos(an) * 62, s.y - 175 + Math.sin(an) * 18, 46, 0, 7); c.fill(); } c.restore(); });
-    C.pops.forEach(p => { const k = (t - p.t) / 900; c.globalAlpha = Math.max(0, 1 - k); c.font = `900 ${p.ko ? 36 : p.mine || p.cube ? 26 : 22}px Figtree,system-ui,sans-serif`; c.textAlign = "center"; c.lineWidth = 4; c.strokeStyle = "rgba(0,0,0,.6)"; c.strokeText(p.txt, p.x, p.y - k * 40); c.fillStyle = p.cube ? "#A6F06A" : p.me ? "#ff6a55" : p.mine ? "#FFD15C" : "#fff"; c.fillText(p.txt, p.x, p.y - k * 40); c.globalAlpha = 1; });
+    C.pops.forEach(p => { const k = (t - p.t) / 900; c.globalAlpha = Math.max(0, 1 - k); c.font = `900 ${p.ko ? 36 : p.mine || p.cube ? 26 : 22}px Figtree,system-ui,sans-serif`; c.textAlign = "center"; c.lineWidth = 4; c.strokeStyle = "rgba(0,0,0,.6)"; c.strokeText(p.txt, p.x, p.y - k * 40); c.fillStyle = p.cube ? "#A6F06A" : p.me ? "#ff6a55" : p.mine ? "#FFD15C" : "#fff"; c.fillText(p.txt, p.cube ? p.x - 12 : p.x, p.y - k * 40); if (p.cube) cube3d(c, p.x + 16, p.y - k * 40 - 10, 9, .7 + k * 2); c.globalAlpha = 1; });
     c.setTransform(1, 0, 0, 1, 0, 0);
-    /* inside a bush you see little: darkness around a small circle */
-    if (myFog >= 0){ const sx = C.me.x * z + ox, sy = (C.me.y - 40) * z + oy, g = c.createRadialGradient(sx, sy, VIS * z * .7, sx, sy, VIS * z * 1.25); g.addColorStop(0, "rgba(8,12,14,0)"); g.addColorStop(1, "rgba(8,12,14,.8)"); c.fillStyle = g; c.fillRect(0, 0, cw, ch); }
     /* the screen goes red when you're hit or nearly dead */
     const hk = Math.max(0, 1 - (t - C.hurtT) / 400), low = fighting() && (A.hp[me()] || 0) / (A.mx[me()] || 1) < .3 ? .25 + pulse * .2 : 0, red = Math.max(hk * .5, low);
     if (red > 0){ const g = c.createRadialGradient(cw / 2, ch / 2, Math.min(cw, ch) * .3, cw / 2, ch / 2, Math.max(cw, ch) * .7); g.addColorStop(0, "rgba(200,30,20,0)"); g.addColorStop(1, `rgba(200,30,20,${red})`); c.fillStyle = g; c.fillRect(0, 0, cw, ch); }
@@ -949,6 +1022,7 @@
   window.__arTo = (x, y) => { if (C.me){ C.me.x = x; C.me.y = y; } };
   window.__arSeen = id => { const q = pos(id); return q && {x: Math.round(q.x), y: Math.round(q.y), vis: visible(id)}; };
   window.__arSup = v => { C.sup = v; };
+  window.__arAim = (dx, dy, su) => { const P2 = dx == null ? null : {x0: 0, y0: 0, dx, dy, man: true, id: -2}; if (su) C.supP = P2; else C.aimP = P2; };
   window.__arBot = (id, x, y) => { const b = HB.bots[id]; if (b){ b.x = b.px = x; b.y = b.py = y; } };
   window.__arFreeze = v => { HB.freeze = !!v; };
   /* test helpers: the nearest crate, a free spot next to it, the map */
