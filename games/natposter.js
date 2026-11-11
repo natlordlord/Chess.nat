@@ -587,7 +587,7 @@
       if (x === "settings") return this.openPanel("set");
       if (x === "look") return this.openPanel("look");
       if (x === "pclose") return this.closePanel();
-      if (x === "popt"){ const [k, raw] = val.split("|"), o = (PG.online.natposter.opts || []).find(q => q.k === k); if (!o || !this.v.host) return; const c = o.c.find(q => String(q[0]) === raw); if (c){ PNet.setOpt(k, c[0]); setTimeout(() => this.panelDraw(), 80); } return; }
+      if (x === "popt"){ const [k, raw] = val.split("|"), o = (PG.online.natposter.opts || []).find(q => q.k === k); if (!o || !this.v.host) return; const c = o.c.find(q => String(q[0]) === raw); if (c){ PNet.setOpt(k, c[0]); const mo = (this.m && this.m.opts) || {}; if (k === "team" && c[0] === "coop" && !(+mo.fill > 0) && !(this.v.lob && this.v.lob.fill)) PNet.setOpt("fill", 4); setTimeout(() => this.panelDraw(), 80); } return; }
       if (x === "pview"){ if (val === "rot"){ PG.st.npPortrait = !PG.st.npPortrait; PG.persist(); this.rs(); } else if (val === "full"){ PG.st.npNoFull = !PG.st.npNoFull; PG.persist(); PG.st.npNoFull ? this.unfull() : this.full(); } else if (val === "voice"){ PG.st.npNoVoice = !PG.st.npNoVoice; PG.persist(); } this.panelDraw(); return; }
       if (x === "pslot"){ this.lookSlot = val; this.panelDraw(); return; }
       if (x === "pitem"){ const [sl, id] = val.split("|"); try { S.avatar = Object.assign({}, S.avatar || {}, {[sl]: id}); save(); } catch(e) {} PNet.refresh(); Haptic.go(8); this.panelDraw(); return; }

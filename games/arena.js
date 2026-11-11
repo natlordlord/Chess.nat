@@ -106,7 +106,7 @@
     const s = G.s, map = s.arena ? ((s.arRound || 1) - 1) % LAYS.length : 0; setLay(map);
     const ids = G.ids.filter(id => s.alive[id]), sp = spawns(ids.length, rngOf(mg.seed)), pk = s.arena && (s.arRound || 0) > 1 ? PICK2 : PICK;
     /* together against the bots: all people one team, the bots the other */
-    const team = s.arena && G.opts && G.opts.team === "coop" ? Object.fromEntries(ids.map(id => [id, isBot(id) ? "b" : "h"])) : null;
+    const team = s.arena && G.opts && G.opts.team === "coop" && ids.some(isBot) && ids.some(id => !isBot(id)) ? Object.fromEntries(ids.map(id => [id, isBot(id) ? "b" : "h"])) : null;
     mg.ar = {map, team, ph: "pick", pickEnd: mg.t0 + N().SPIN + pk, pk, fight: 0, end: 0, ids, hp: {}, mx: {}, cls: {}, out: [], sp: Object.fromEntries(ids.map((id, i) => [id, sp[i]])), dmg: {}, kills: {}, lh: {}, ls: {}, feed: []};
     (s.bots || []).forEach(b => { if (ids.includes(b.id)) mg.ar.cls[b.id] = KEYS[Math.floor(Math.random() * KEYS.length)]; });
     mg.end = mg.ar.pickEnd + FIGHT; HB.seen.clear(); HB.bots = {}; HB.dot = {};
