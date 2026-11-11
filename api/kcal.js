@@ -128,6 +128,18 @@ module.exports = async (req, res) => {
   const b = await readBody(req);
   const fail = e => { console.log("kcal ai failed", b.mode || "meal", e.status, e.model, String(e.message).slice(0, 300)); return res.status(502).json({error: e.status === 429 ? "Gerade zu viele Anfragen. Gleich nochmal versuchen." : "Die KI hat gerade nicht geantwortet. Nochmal versuchen."}); };
   const clip = (v, n) => String(v == null ? "" : v).slice(0, n);
+  /* the shopping list: free text (typed or dictated) becomes products and dishes with what they need */
+  if (b.mode === "shop"){
+    const text = clip(b.text, 600).trim(); if (text.length < 2) return res.status(400).json({error: "Schreib oder sag kurz, was fehlt."});
+    const line = {type: "object", additionalProperties: false, required: ["name", "amount"], properties: {name: {type: "string", description: "Produkt, so wie es im Supermarkt heißt"}, amount: {type: "string", description: "Menge, z. B. '2 Liter', '500 g'; leer, wenn keine genannt und keine sinnvoll"}}};
+    const SHOP = {type: "object", additionalProperties: false, required: ["products", "dishes"], properties: {products: {type: "array", items: line, description: "einzelne Produkte, die gekauft werden sollen"},
+      dishes: {type: "array", items: {type: "object", additionalProperties: false, required: ["name", "items"], properties: {name: {type: "string"}, items: {type: "array", items: line, description: "Zutaten zum Einkaufen für 2 Personen, ohne Salz, Pfeffer, Wasser, Öl"}}}}}};
+    try { const o = await ask(req, "", null, {system: "Du füllst eine gemeinsame Einkaufsliste. Der Text ist getippt oder diktiert (Spracherkennung macht Fehler: lies wohlwollend). Trenne: einzelne Produkte (Milch, Eier) kommen in products. Wünscht jemand ein Gericht (Lasagne, Chili), kommt es in dishes mit den Zutaten, die man dafür einkauft. Nichts erfinden, was nicht gemeint ist. Antworte auf Deutsch.", schema: SHOP, name: "shop", user: text, max: 1500, temp: .2});
+      const ln = i => ({name: clip(i && i.name, 100).trim(), amount: clip(i && i.amount, 50).trim()});
+      return res.status(200).json({products: (Array.isArray(o.products) ? o.products : []).slice(0, 30).map(ln).filter(x => x.name),
+        dishes: (Array.isArray(o.dishes) ? o.dishes : []).slice(0, 8).map(d => ({name: clip(d.name, 80).trim(), items: (Array.isArray(d.items) ? d.items : []).slice(0, 20).map(ln).filter(x => x.name)})).filter(d => d.name)});
+    } catch(e) { return fail(e); }
+  }
   if (b.mode === "cook"){
     const have = clip(b.have, 800).trim(); if (have.length < 3) return res.status(400).json({error: "Schreib kurz, was du da hast."});
     const m = b.missing || {}, usual = (Array.isArray(b.usual) ? b.usual : []).slice(0, 12).map(x => clip(x, 60)).join(", ");
