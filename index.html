@@ -2845,7 +2845,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794415751";
+const CHESSNAT_BUILD = "1794415921";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -8788,11 +8788,15 @@ function detailSheet(html, onClose){
   const el = document.createElement("div"); el.className = "dsheet"; el.innerHTML = `<div class="dcard"><div class="dtop"><div class="grab"></div><button class="dx" data-dclose aria-label="Close">${icon("xmark", 18)}</button></div>${html}<div class="dfoot"><button class="btn" data-dclose style="width:100%">Close</button></div></div>`;
   document.body.appendChild(el); let done = false;
   /* the keyboard (iPhone): the card sits right above it instead of behind it, and the field you type in stays in sight */
-  const vv = window.visualViewport, kbFit = () => { if (done || !vv) return; const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)), card2 = el.querySelector(".dcard");
+  /* the field is brought into sight only when the keyboard opens or a field gets focus, never while you scroll (that made the card jump back) */
+  let kb0 = 0;
+  const vv = window.visualViewport, kbFit = toField => { if (done || !vv) return; const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)), card2 = el.querySelector(".dcard");
     el.style.paddingBottom = kb > 60 ? kb + "px" : ""; el.classList.toggle("kb", kb > 60); el.style.transform = vv.offsetTop ? `translateY(${vv.offsetTop}px)` : ""; if (card2) card2.style.maxHeight = kb > 60 ? (vv.height - 12) + "px" : "";
-    const a = document.activeElement; if (kb > 60 && a && el.contains(a) && /INPUT|TEXTAREA/.test(a.tagName)) requestAnimationFrame(() => { try { a.scrollIntoView({block: "nearest"}); } catch(e) {} }); };
-  if (vv){ vv.addEventListener("resize", kbFit); vv.addEventListener("scroll", kbFit); el.addEventListener("focusin", () => setTimeout(kbFit, 60)); setTimeout(kbFit, 0); }
-  const close = () => { if (done) return; done = true; if (vv){ vv.removeEventListener("resize", kbFit); vv.removeEventListener("scroll", kbFit); } el.classList.add("out"); setTimeout(() => el.remove(), 200); if (onClose) onClose(); };
+    const grew = kb > 60 && Math.abs(kb - kb0) > 40; kb0 = kb;
+    const a = document.activeElement; if ((toField === true || grew) && kb > 60 && a && el.contains(a) && /INPUT|TEXTAREA/.test(a.tagName)) requestAnimationFrame(() => { try { a.scrollIntoView({block: "nearest"}); } catch(e) {} }); };
+  const onVV = () => kbFit(false);
+  if (vv){ vv.addEventListener("resize", onVV); vv.addEventListener("scroll", onVV); el.addEventListener("focusin", () => setTimeout(() => kbFit(true), 60)); setTimeout(onVV, 0); }
+  const close = () => { if (done) return; done = true; if (vv){ vv.removeEventListener("resize", onVV); vv.removeEventListener("scroll", onVV); } el.classList.add("out"); setTimeout(() => el.remove(), 200); if (onClose) onClose(); };
   el.onclick = e => { if (e.target === el || e.target.closest("[data-dclose]")) close(); };
   const card = el.querySelector(".dcard"); let y0 = null, dy = 0;
   card.addEventListener("touchstart", e => { y0 = card.scrollTop <= 0 ? e.touches[0].clientY : null; dy = 0; }, {passive: true});
@@ -14442,18 +14446,18 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=124"></script>
-<script src="games/imposter.js?v=124"></script>
-<script src="games/werwolf.js?v=124"></script>
-<script src="games/cards.js?v=124"></script>
-<script src="games/heads.js?v=124"></script>
-<script src="games/more.js?v=124"></script>
-<script src="games/net.js?v=124"></script>
-<script src="games/online.js?v=124"></script>
-<script src="games/natposter.js?v=126"></script>
-<script src="games/arena.js?v=126"></script>
-<script src="games/tipp.js?v=124"></script>
-<script src="games/kcal.js?v=124"></script>
+<script src="games/core.js?v=127"></script>
+<script src="games/imposter.js?v=127"></script>
+<script src="games/werwolf.js?v=127"></script>
+<script src="games/cards.js?v=127"></script>
+<script src="games/heads.js?v=127"></script>
+<script src="games/more.js?v=127"></script>
+<script src="games/net.js?v=127"></script>
+<script src="games/online.js?v=127"></script>
+<script src="games/natposter.js?v=127"></script>
+<script src="games/arena.js?v=127"></script>
+<script src="games/tipp.js?v=127"></script>
+<script src="games/kcal.js?v=127"></script>
 <script>boot();</script>
 </body>
 </html>

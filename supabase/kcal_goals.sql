@@ -29,3 +29,11 @@ create table if not exists public.kcal_ice (user_id uuid not null references aut
 alter table public.kcal_ice enable row level security;
 create policy "kcal ice: see own and friends" on public.kcal_ice for select to authenticated using (public.kcal_can_see(user_id));
 -- functions: see the migration kcal_ice_streak_and_friend_pushes (private.kcal_recalc, private.kcal_ice_tick, public.kcal_buy_ice, private.on_kcal_meal_new)
+
+-- Part 3: what each person cares about (shown big / as columns) and pinned suggestions
+alter table public.kcal_profile add column if not exists show text[];
+alter table public.kcal_profile add column if not exists pins jsonb not null default '[]'::jsonb;
+alter table public.kcal_profile drop constraint if exists kcal_profile_show_ok;
+alter table public.kcal_profile add constraint kcal_profile_show_ok check (show is null or (cardinality(show) between 1 and 3 and show <@ array['kcal','carbs','protein','fat']));
+alter table public.kcal_profile drop constraint if exists kcal_profile_pins_ok;
+alter table public.kcal_profile add constraint kcal_profile_pins_ok check (jsonb_typeof(pins) = 'array' and jsonb_array_length(pins) <= 12 and octet_length(pins::text) < 60000);
