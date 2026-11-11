@@ -141,7 +141,10 @@ global.fetch = async (url, init = {}) => {
   /* the server function asks the database as the signed-in person (the shared food database) */
   if (/supabase\.co\/rest\/v1\//.test(url)){ const U = new URL(url), name = U.pathname.split("/rest/v1/")[1], uid = uidOf((init.headers || {}).Authorization), bd = init.body ? JSON.parse(init.body) : null;
     try { const r = name.startsWith("rpc/") ? db.rpc(name.slice(4), bd || {}, uid) : db.rest(init.method || "GET", name, U.searchParams, bd, init.headers || {}, uid); return json(r.body, r.status); } catch(e) { return json(e.body || {message: String(e.message || e)}, e.status || 500); } }
-  if (/ai-gateway\.vercel\.sh/.test(url)){ if (process.env.FAKE_AI_DOWN === "1") return json({error: "down"}, 503); return json({choices: [{message: {content: JSON.stringify(ai(JSON.parse(init.body)))}}]}); }
+  if (/ai-gateway\.vercel\.sh/.test(url)){ if (process.env.FAKE_AI_DOWN === "1") return json({error: "down"}, 503);
+    /* like Gemini: an empty string in an enum makes the whole request fail (that took "Sprechen" down on 2026-11-11) */
+    { const bad = []; (function walk(o, p){ if (!o || typeof o !== "object") return; if (Array.isArray(o.enum) && o.enum.some(v => v === "")) bad.push(p); for (const k in o) walk(o[k], p + "." + k); })(((JSON.parse(init.body).response_format || {}).json_schema || {}).schema, "schema");
+      if (bad.length) return json({error: {message: bad.map(b => "* GenerateContentRequest.generation_config.response_" + b + ".enum[0]: cannot be empty").join("\n"), type: "AI_APICallError"}}, 400); } return json({choices: [{message: {content: JSON.stringify(ai(JSON.parse(init.body)))}}]}); }
   if (/search\.openfoodfacts\.org/.test(url)){ const q = new URL(url).searchParams.get("q").toLowerCase(); return json({hits: FOODS.filter(f => q.split(/\s+/).some(w => w.length > 1 && (f[1] + " " + f[2]).toLowerCase().includes(w.slice(0, 4)))).map(offHit)}); }
   return realFetch(url, init);
 };
