@@ -462,14 +462,17 @@
       /* the keyboard opens in the same tap (iPhone only allows that), then the field glides from where the bar was to the top */
       if (!opt.q){ try { q.focus({preventScroll: true}); } catch(e) {} }
       if (from && from.getBoundingClientRect && ov.animate){ const r = from.getBoundingClientRect(), sq = ov.querySelector(".kc-sq"), r2 = sq.getBoundingClientRect();
-        try { sq.animate([{transform: `translate(${r.left - r2.left}px,${r.top - r2.top}px)`, width: r.width + "px"}, {transform: "none", width: r.width + "px", offset: .7}, {transform: "none", width: r2.width + "px"}], {duration: 380, easing: "cubic-bezier(.2,.85,.25,1)"});
-          ov.querySelector(".kc-sx").animate([{opacity: 0}, {opacity: 0, offset: .6}, {opacity: 1}], {duration: 380});
-          ov.animate([{backgroundColor: "rgba(20,19,17,0)"}, {backgroundColor: "rgba(20,19,17,1)"}], {duration: 220, easing: "ease-out"}); body.animate([{opacity: 0, transform: "translateY(16px)"}, {opacity: 1, transform: "none"}], {duration: 300, delay: 60, easing: "ease-out", fill: "backwards"}); } catch(e) {} }
+        /* one soft move: the bar itself lifts off (its place on the page is hidden meanwhile), travels up and narrows on the way,
+           the dark background and "Abbrechen" fade in behind it */
+        try { const E = "cubic-bezier(.22,1,.36,1)", D = 560; from.style.visibility = "hidden"; ov._from = from;
+          sq.animate([{transform: `translate(${r.left - r2.left}px,${r.top - r2.top}px)`, width: r.width + "px"}, {transform: "none", width: r2.width + "px"}], {duration: D, easing: E});
+          ov.querySelector(".kc-sx").animate([{opacity: 0, transform: "translateX(14px)"}, {opacity: 0, transform: "translateX(14px)", offset: .35}, {opacity: 1, transform: "none"}], {duration: D, easing: "ease-out"});
+          ov.animate([{backgroundColor: "rgba(20,19,17,0)"}, {backgroundColor: "rgba(20,19,17,1)"}], {duration: 380, easing: "ease-out"}); body.animate([{opacity: 0, transform: "translateY(22px)"}, {opacity: 1, transform: "none"}], {duration: 420, delay: 160, easing: E, fill: "backwards"}); } catch(e) {} }
       /* always exactly the visible part of the screen, the keyboard never covers a result */
       /* the search covers the whole screen (also behind the keyboard, which is see-through on the iPhone); the list ends above the keyboard */
       const vv = window.visualViewport, fit = () => { if (!vv || closed) return; const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop); body.style.paddingBottom = (kb + 24) + "px"; ov.style.transform = vv.offsetTop ? `translateY(${vv.offsetTop}px)` : ""; };
       if (vv){ vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); } fit();
-      const close = () => { if (closed) return; closed = true; if (vv){ vv.removeEventListener("resize", fit); vv.removeEventListener("scroll", fit); } try { q.blur(); } catch(e) {} document.documentElement.classList.remove("kc-sopen");
+      const close = () => { if (closed) return; closed = true; if (vv){ vv.removeEventListener("resize", fit); vv.removeEventListener("scroll", fit); } try { q.blur(); } catch(e) {} document.documentElement.classList.remove("kc-sopen"); if (ov._from) ov._from.style.visibility = "";
         if (ov.animate){ const an = ov.animate([{opacity: 1}, {opacity: 0}], {duration: 160, easing: "ease-in"}); an.onfinish = () => ov.remove(); } else ov.remove(); };
       ov.querySelector("#kcsx").onclick = () => { haptic(6); close(); };
       /* nothing typed yet: a tap on the dark area closes it again */

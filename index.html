@@ -346,6 +346,9 @@ table.tb th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-sp
      that is short by the status bar, leaving a strip under the tab bar. The page is only fixed layers,
      so give it the screen's height. The min() cap keeps it from ever scrolling (WebKit 316008). */
   html.app-mode{min-height:min(100lvh,calc(100% + env(safe-area-inset-top,0px)))}
+  /* iOS 26 blurs the top of whatever the page itself could scroll (its scroll-edge effect), which smeared the top bar.
+     The page never scrolls here (only .main does), so say so: with the search open (page locked) the blur was already gone */
+  html.app-mode,html.app-mode body{overflow:hidden}
   .app{position:fixed;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;padding-top:var(--sat);background:var(--bg)}
   .main{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
   .page{padding:12px max(14px,var(--sal)) 20px max(14px,var(--sar))}
@@ -2817,7 +2820,7 @@ button,.btn,.tile,.chip,.nav,[role=button]{touch-action:manipulation;-webkit-use
 .seg{border-radius:12px}.seg button{border-radius:9px}
 /* fields: taller, rounder, and a green ring when you type */
 select,input[type=number],input[type=text],input[type=email],input[type=password],input[type=search],textarea{border-radius:var(--r-sm);transition:border-color .15s,box-shadow .15s}
-select:focus,input:not([type=range]):not([type=checkbox]):not([type=radio]):focus,textarea:focus{outline:0;border-color:var(--go);box-shadow:0 0 0 3px rgba(127,178,74,.22)}
+select:focus,input:not([type=range]):not([type=checkbox]):not([type=radio]):focus,textarea:focus{outline:0;border-color:var(--go)}
 .toast{border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.45),inset 0 0 0 1px var(--hair);animation:toastIn .26s var(--spring) both}
 @keyframes toastIn{from{opacity:0;transform:translate(-50%,12px) scale(.96)}}
 /* a new screen fades in instead of snapping (opacity only: fixed children keep their place) */
@@ -2839,7 +2842,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794417331";
+const CHESSNAT_BUILD = "1794417461";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -14451,7 +14454,7 @@ const Ranks = {
 <script src="games/natposter.js?v=128"></script>
 <script src="games/arena.js?v=128"></script>
 <script src="games/tipp.js?v=128"></script>
-<script src="games/kcal.js?v=129"></script>
+<script src="games/kcal.js?v=130"></script>
 <script>boot();</script>
 </body>
 </html>
