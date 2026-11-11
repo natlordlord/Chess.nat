@@ -304,7 +304,8 @@
     setTimeout(() => { try { if (typeof addXP === "function") addXP(xp, "natstars"); if (won && typeof natWin === "function") natWin("natstars"); } catch(e) {} }, 1800); }
   /* the first few fights: where to touch, what the yellow button and the fog do */
   function hint(){ const n = PG.st.nsHint || 0, box = C.L && C.L.querySelector(".ar-tip"); if (n >= 3 || !box) return; PG.st.nsHint = n + 1; try { PG.persist(); } catch(e) {}
-    box.innerHTML = `<span class="t-mv">👆 ${T("Drag = run", "Ziehen = laufen")}</span><span class="t-fire">🎯 ${T("Drag = aim · tap = auto", "Ziehen = zielen · Tippen = Auto")}</span><span class="t-sup">⭐ ${T("Super charges when you hit", "Super lädt durch Treffer")}</span><span class="t-fog">🌫️ ${T("Invisible in the fog", "Im Nebel unsichtbar")} · ⚡ ${T("Cubes make you stronger", "Würfel machen stärker")}</span>`;
+    const mo = matchMedia("(pointer: fine)").matches && !matchMedia("(pointer: coarse)").matches;
+    box.innerHTML = `<span class="t-mv">${mo ? "⌨️ " + T("WASD = run", "WASD = laufen") : "👆 " + T("Drag = run", "Ziehen = laufen")}</span><span class="t-fire">🎯 ${mo ? T("Click = shoot · right-click = super", "Klick = schießen · Rechtsklick = Super") : T("Drag = aim · tap = auto", "Ziehen = zielen · Tippen = Auto")}</span><span class="t-sup">⭐ ${T("Super charges when you hit", "Super lädt durch Treffer")}</span><span class="t-fog">🌫️ ${T("Invisible in the fog", "Im Nebel unsichtbar")} · ⚡ ${T("Cubes make you stronger", "Würfel machen stärker")}</span>`;
     box.classList.add("on"); clearTimeout(C.tipT); C.tipT = setTimeout(() => box.classList.remove("on"), 6500); }
   function start(){
     C.started = true; const sp = C.A.sp[me()]; C.me = sp ? {x: sp.x, y: sp.y, a: 0, f: 1, mv: false} : null; C.am = AMMO; C.rl = 0; C.cd = 0; C.sup = 0; C.cls = C.A.cls[me()] || "shot";
@@ -331,17 +332,22 @@
     const emb = L.querySelector(".ar-emb"), emp = L.querySelector(".ar-emp");
     emb.onclick = () => { Sound.tap(); emp.classList.toggle("on"); };
     emp.onclick = e => { const b = e.target.closest("[data-em]"); if (!b) return; emp.classList.remove("on"); if (now() - (C.emT || 0) < 1500) return; C.emT = now(); send({t: "aem", e: b.dataset.em}); Haptic.go(8); };
-    L.addEventListener("pointerdown", e => { if (e.target.closest("button")) return; emp.classList.remove("on"); e.preventDefault(); const p = LOC(e);
+    /* with a mouse (laptop, PC): WASD/arrows walk, click shoots where the pointer is, right-click fires the super */
+    const mouseShot = (e, su) => { const NP = NPo(), p = LOC(e), zc = C.z || 1, hc = NP.el.offsetHeight; if (!C.me || !fighting()) return;
+      const dx = p.x - gw() / 2, dy = p.y - (hc / 2 + 40 * zc); fire(Math.atan2(dy, dx), su, Math.hypot(dx, dy) / zc); };
+    L.addEventListener("contextmenu", e => { if (e.target.closest("button")) return; e.preventDefault(); if (C.sup >= 1) mouseShot(e, true); });
+    L.addEventListener("pointerdown", e => { if (e.pointerType === "mouse" && !e.target.closest("button,.ar-sup,.ar-fire,.ar-res,.ar-pick,.ar-emp")){ e.preventDefault(); emp.classList.remove("on"); if (e.button === 0){ mouseShot(e); C.mHold = {e, t: now(), sh: ev => mouseShot(ev)}; } return; }
+      if (e.target.closest("button")) return; emp.classList.remove("on"); e.preventDefault(); const p = LOC(e);
       if (e.target.closest(".ar-sup")){ if (C.supP || C.sup < 1 || !fighting()) return; C.supP = {x0: p.x, y0: p.y, dx: 0, dy: 0, id: e.pointerId, man: false}; sb.classList.add("on"); }
       else if (p.x < gw() * .45){ if (C.moveP) return; C.moveP = {x0: p.x, y0: p.y, dx: 0, dy: 0, id: e.pointerId}; joy.style.left = p.x + "px"; joy.style.top = p.y + "px"; joy.classList.add("on"); knob.style.transform = "translate(-50%,-50%)"; }
       else { if (C.aimP) return; C.aimP = {x0: p.x, y0: p.y, dx: 0, dy: 0, id: e.pointerId, man: false}; fb.classList.add("on"); fb.style.left = (p.x - 55) + "px"; fb.style.top = (p.y - 55) + "px"; fk.style.transform = ""; }
       try { L.setPointerCapture(e.pointerId); } catch(_) {} });
-    L.addEventListener("pointermove", e => { const p = LOC(e);
+    L.addEventListener("pointermove", e => { if (C.mHold && e.pointerType === "mouse") C.mHold.e = e; const p = LOC(e);
       if (C.moveP && e.pointerId === C.moveP.id){ let dx = p.x - C.moveP.x0, dy = p.y - C.moveP.y0; const d = Math.hypot(dx, dy), m = 56; if (d > m){ dx *= m / d; dy *= m / d; } C.moveP.dx = dx / m; C.moveP.dy = dy / m; knob.style.transform = `translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`; }
       const st = (P2, k) => { let dx = p.x - P2.x0, dy = p.y - P2.y0; const d = Math.hypot(dx, dy); if (d > 16) P2.man = true; P2.dx = dx; P2.dy = dy; const kk = Math.min(1, 40 / Math.max(1, d)); k.style.transform = `translate(${dx * kk}px,${dy * kk}px)`; };
       if (C.aimP && e.pointerId === C.aimP.id) st(C.aimP, fk);
       if (C.supP && e.pointerId === C.supP.id) st(C.supP, sk); });
-    const up = e => { if (C.moveP && e.pointerId === C.moveP.id){ C.moveP = null; joy.classList.remove("on"); }
+    const up = e => { if (e.pointerType === "mouse") C.mHold = null; if (C.moveP && e.pointerId === C.moveP.id){ C.moveP = null; joy.classList.remove("on"); }
       if (C.aimP && e.pointerId === C.aimP.id){ const a = C.aimP; C.aimP = null; fb.classList.remove("on"); fb.style.left = fb.style.top = ""; fk.style.transform = "";
         if (e.type === "pointerup") { if (a.man) fire(Math.atan2(a.dy, a.dx), false, Math.hypot(a.dx, a.dy)); else autoFire(); } }
       if (C.supP && e.pointerId === C.supP.id){ const a = C.supP; C.supP = null; sb.classList.remove("on"); sk.style.transform = "";
@@ -496,6 +502,7 @@
     if (fighting()){ const cl = CLS[C.cls]; let ix = 0, iy = 0;
       if (C.me.dash) dashStep(C.me, me(), dt);
       else {
+        if (C.mHold && C.mHold.sh && C.am >= 1 && C.cd <= 0) C.mHold.sh(C.mHold.e);
         if (C.moveP){ ix = C.moveP.dx; iy = C.moveP.dy; } const k = C.keys; if (k.ArrowLeft || k.KeyA) ix -= 1; if (k.ArrowRight || k.KeyD) ix += 1; if (k.ArrowUp || k.KeyW) iy -= 1; if (k.ArrowDown || k.KeyS) iy += 1;
         const m = Math.hypot(ix, iy); if (m > 1){ ix /= m; iy /= m; } C.me.mv = m > .05;
         if (C.me.mv){ const sp = SPD * cl.sp * dt, nx = C.me.x + ix * sp, ny = C.me.y + iy * sp; if (walkA(nx, C.me.y)) C.me.x = nx; if (walkA(C.me.x, ny)) C.me.y = ny; if (Math.abs(ix) > .1) C.me.f = ix < 0 ? -1 : 1; if (!(C.aimP && C.aimP.man) && !(C.supP && C.supP.man)) C.me.a = Math.atan2(iy, ix); }
@@ -587,7 +594,7 @@
     const NP = NPo(), c = NP.ctx, cv = NP.cv; if (!c || !C.A) return; const d = NP.dpr, A = C.A, cw = cv.width, ch = cv.height, t = now();
     let cam = C.me && alive(me()) ? C.me : null;
     if (!cam){ const k = (A.feed || []).slice().reverse().find(f => f[1] === me()), fol = A.team ? A.ids.find(id => alive(id) && mate(id, me())) || (k && k[0] && alive(k[0]) ? k[0] : null) : k && k[0] && alive(k[0]) ? k[0] : A.ids.filter(alive).sort((a, b) => (A.hp[b] || 0) - (A.hp[a] || 0))[0]; cam = (fol && pos(fol)) || C.me || GC; }
-    const spec = !(C.me && alive(me())), z = Math.min(Math.sqrt(cw * ch / 1.11e6), ch / 680, 1.05 * d) * (spec ? .84 : 1), sh = C.shake > .5 ? C.shake * d : 0;
+    const spec = !(C.me && alive(me())), z = Math.min(Math.sqrt(cw * ch / 1.11e6), ch / 680, 1.05 * d) * (spec ? .84 : 1), _zc = (C.z = z / d), sh = C.shake > .5 ? C.shake * d : 0;
     const ox = cw / 2 - cam.x * z + (Math.random() - .5) * sh, oy = ch / 2 - (cam.y - 40) * z + (Math.random() - .5) * sh;
     c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = "#0B0C12"; c.fillRect(0, 0, cw, ch);
     const M = mapCache(z); c.setTransform(z, 0, 0, z, ox, oy); c.imageSmoothingEnabled = true;
