@@ -2693,6 +2693,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 .dm-home .dm-me img{width:36px;height:36px;border-radius:10px;box-shadow:0 0 0 2px #fff,0 0 18px var(--go);animation:dmPop 1s cubic-bezier(.2,1.6,.4,1) both}
 .dm-home .dm-me small{font-size:7.5px;color:#fff}
 @keyframes dmPop{0%{transform:scale(0)}100%{transform:none}}
+html.booting .app{visibility:hidden}
 .dm-splash{position:absolute;inset:0;display:grid;place-items:center;background:#1b1d1a}.dm-splash img{width:72px;height:72px;border-radius:18px;animation:dmPop .7s cubic-bezier(.2,1.6,.4,1) both}
 .dm-swipe{position:absolute;left:50%;bottom:6px;width:70px;height:4px;border-radius:3px;background:#fff;transform:translateX(-50%);z-index:3}
 .dm-finger{position:absolute;z-index:9;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:rgba(255,255,255,.55);border:2px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.5);transition:left .55s cubic-bezier(.4,0,.2,1),top .55s cubic-bezier(.4,0,.2,1),opacity .2s;pointer-events:none;
@@ -2800,7 +2801,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794403938";
+const CHESSNAT_BUILD = "1794407398";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -3197,13 +3198,15 @@ async function connectCloud(){
   try { localStorage.setItem(LAST_UID_KEY, uid); } catch(e) {}
   Cloud.uid = uid; Cloud.base = "data/users/" + uid; try { Cloud.owner = !!(u.isOwner && await u.isOwner()); } catch(e) {}
   // this browser may hold someone else's progress: only reuse the shared local copy if it belongs to this account or to nobody yet
+  const before = JSON.stringify(S);
   let mine = null; try { mine = JSON.parse(localStorage.getItem(localKey()) || "null"); } catch(e) {}
   let claimed = null; try { claimed = localStorage.getItem(CLAIM_KEY); } catch(e) {}
   if (mine) S = mergeDefaults(mine);
   else if ((claimed && claimed !== uid) || (S_FROM_LAST && LAST_UID !== uid)) S = DEF();
   S_FROM_LAST = false;
   try { if (!claimed) localStorage.setItem(CLAIM_KEY, uid); } catch(e) {}
-  Cloud.db = db; Cloud.status = "on"; renderRailStatus(); App.refresh();
+  /* redraw only when this account's progress differs from what is on screen (no flash on every start) */
+  Cloud.db = db; Cloud.status = "on"; renderRailStatus(); if (JSON.stringify(S) !== before) App.refresh();
   let remote = null;
   try { const snap = await db.doc(Cloud.base + "/profile").get(); remote = snap.exists ? snap.data() : null; } catch(e){ cloudErr(e, "read"); return; }
   if (!remote && Cloud.owner){ try { const old = await db.doc("profile/main").get(); if (old.exists && (old.data().ts || 0) > (S.ts || 0)) adopt(old.data()); } catch(e) {} }
@@ -11447,13 +11450,21 @@ function boot(){
   sizeBoard();
   if (typeof Chess === "undefined"){ $("#main").innerHTML = `<div class="page"><div class="msg no"><div class="ic">!</div><div><h4>Chess engine library didn't load</h4><p>Check your connection and reload.</p></div></div></div>`; return; }
   loadPuzzles(); connectCloud(); Voice.load(); setTimeout(() => Openings.load(), 2500);
-  const h = (location.hash || "").slice(1);
-  if (h.startsWith("m-")) App.go("linkgame", {hash: h});
-  else if (h.startsWith("g-") && Views.friend) App.go("friend", {join: h.slice(2)});
-  else if (h.startsWith("battle-") && h.length > 7) App.go("battle", {join: h.slice(7)});
-  else if (h.startsWith("duel-") && h.length > 5) App.go("duel", {join: h.slice(5)});
-  else if (h.startsWith("tipp-") && h.length > 5 && Views.tipp) App.go("tipp", {join: h.slice(5)});
-  else App.go(Views[h] && h !== "lesson" ? h : "home");
+  /* the first screen only once the saved sign-in is back (usually a few ms, never more than 0.35 s; after that the saved sign-in stands in):
+     so it opens with your calorie card, your tips and no "save your progress" box that vanishes again */
+  const site = window.ChessSite; let went = false;
+  const first = () => { if (went) return; went = true; document.documentElement.classList.remove("booting"); if (!App.view) firstRoute(); };
+  if (site && site.ready && site.sessionReady && !site.getSession()){ document.documentElement.classList.add("booting"); site.sessionReady.then(() => setTimeout(first, 0), first); setTimeout(first, 350); }
+  else first();
+  function firstRoute(){
+    const h = (location.hash || "").slice(1);
+    if (h.startsWith("m-")) App.go("linkgame", {hash: h});
+    else if (h.startsWith("g-") && Views.friend) App.go("friend", {join: h.slice(2)});
+    else if (h.startsWith("battle-") && h.length > 7) App.go("battle", {join: h.slice(7)});
+    else if (h.startsWith("duel-") && h.length > 5) App.go("duel", {join: h.slice(5)});
+    else if (h.startsWith("tipp-") && h.length > 5 && Views.tipp) App.go("tipp", {join: h.slice(5)});
+    else App.go(Views[h] && h !== "lesson" ? h : "home");
+  }
   /* Android back: close what's open, otherwise go back one screen */
   /* no edge swipes while a Natposter round fills the screen */
   document.addEventListener("touchstart", e => { if (!document.documentElement.classList.contains("np-on")) return; const t = e.touches[0]; if (t && (t.clientX < 28 || t.clientX > innerWidth - 28)) e.preventDefault(); }, {passive: false});
@@ -12611,7 +12622,7 @@ Views.account = {
   }
 };
 function siteBanner(){
-  const site = window.ChessSite; if (!site || !site.ready || site.getSession()) return "";
+  const site = window.ChessSite; if (!site || !site.ready || site.getSession() || (site.storedUid && site.storedUid())) return "";
   return `<div class="unit" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;border:1px solid var(--go)"><div style="flex:1;min-width:200px"><h3>Save your progress</h3><p class="muted" style="margin:2px 0 0">Create a free account so your rating, lessons and games follow you to every device.</p></div><button class="btn go" onclick="App.go('account')">${authHad() ? "Sign in" : "Create account"}</button></div>`;
 }
 
@@ -14366,18 +14377,18 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=112"></script>
-<script src="games/imposter.js?v=112"></script>
-<script src="games/werwolf.js?v=112"></script>
-<script src="games/cards.js?v=112"></script>
-<script src="games/heads.js?v=112"></script>
-<script src="games/more.js?v=112"></script>
-<script src="games/net.js?v=112"></script>
-<script src="games/online.js?v=112"></script>
-<script src="games/natposter.js?v=112"></script>
-<script src="games/arena.js?v=112"></script>
-<script src="games/tipp.js?v=112"></script>
-<script src="games/kcal.js?v=112"></script>
+<script src="games/core.js?v=113"></script>
+<script src="games/imposter.js?v=113"></script>
+<script src="games/werwolf.js?v=113"></script>
+<script src="games/cards.js?v=113"></script>
+<script src="games/heads.js?v=113"></script>
+<script src="games/more.js?v=113"></script>
+<script src="games/net.js?v=113"></script>
+<script src="games/online.js?v=113"></script>
+<script src="games/natposter.js?v=113"></script>
+<script src="games/arena.js?v=113"></script>
+<script src="games/tipp.js?v=113"></script>
+<script src="games/kcal.js?v=113"></script>
 <script>boot();</script>
 </body>
 </html>

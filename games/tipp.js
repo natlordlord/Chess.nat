@@ -7,7 +7,7 @@
   const de = () => typeof I18N === "undefined" || I18N.lang === "de";
   const T = (en, dg) => de() ? dg : en;
   const sb = () => window.ChessSite && window.ChessSite.sb;
-  const meId = () => typeof Social !== "undefined" ? Social.me : null;
+  const meId = () => (typeof Social !== "undefined" && Social.me) || (window.ChessSite && ChessSite.storedUid ? ChessSite.storedUid() : null);
   const h = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
   const bay = n => /bayern/i.test(n || "");
   const COMP = {"nt": ["🇩🇪", T("Germany", "Deutschland")], "ger.1": ["⚽", "Bundesliga"], "uefa.champions": ["⭐", "Champions League"], "ger.dfb_pokal": ["🏆", "DFB-Pokal"], "ufc": ["🥊", T("UFC title fight", "UFC-Titelkampf")]};
@@ -55,8 +55,12 @@
       this.ev = (e.data || []).filter(tippable).sort((a, b) => Date.parse(a.start_at) - Date.parse(b.start_at));
       const P = {}; (p.data || []).forEach(r => P[r.event_id] = {sh: r.sh, sa: r.sa, w: r.w}); Object.assign(P, this.pending || {}); this.picks = P;
       this.who = me; this.loaded = true; this.loadT = Date.now(); this.err = false;
+      if (me) try { localStorage.setItem("chessnat-tipp-cache", JSON.stringify({who: me, t: Date.now(), ev: this.ev, picks: this.picks})); } catch(e) {}
       if (me && !this.claimed){ this.claimed = true; this.claim(); }
     },
+    /* the last list on this phone: the home card and the page show it at once, fresh data follows */
+    fromCache(){ const me = meId(); if (!me || this.who === me) return this.who === me; try { const c = JSON.parse(localStorage.getItem("chessnat-tipp-cache") || "null");
+      if (c && c.who === me && Date.now() - c.t < 36 * 3600e3 && Array.isArray(c.ev)){ this.ev = c.ev; this.picks = Object.assign({}, c.picks || {}, this.pending || {}); this.who = me; this.loaded = true; this.loadT = 0; return true; } } catch(e) {} return false; },
     /* the old Natcoin bets are gone: their open stakes come back once */
     async claim(){ const c = sb(); if (!c || !meId()) return; try { const {data} = await c.rpc("tipp_claim"); if (data && data.sum > 0 && typeof natEarn === "function"){ natEarn(data.sum); toast(T(`💰 Your old stakes are back: +${data.sum} Natcoins`, `💰 Deine alten Einsätze sind zurück: +${data.sum} Natcoins`), 3600); } } catch(e) {} },
     async loadTable(){ const c = sb(); if (!c) return; const {data, error} = await c.rpc("tipp_table"); if (!error) this.table = data || []; },
@@ -92,6 +96,7 @@
       main.querySelectorAll("[data-f]").forEach(b => b.onclick = () => { tap(); const k = b.dataset.f; if (k === "all") Tipp.sel.clear(); else if (Tipp.sel.has(k)) Tipp.sel.delete(k); else Tipp.sel.add(k); Tipp.saveSel();
         main.querySelectorAll("[data-f]").forEach(x => x.classList.toggle("on", x.dataset.f === "all" ? !Tipp.sel.size : Tipp.sel.has(x.dataset.f))); this.render(true); });
       main.querySelector("#tppts").onclick = () => { tap(); main.querySelector('[data-tab="table"]').click(); };
+      this.pre = Tipp.fromCache() && Tipp.ev.length > 0; if (this.pre) this.render(true);
       this.refresh(true).then(() => this.loadTable());
       clearInterval(this.iv); this.iv = setInterval(() => { if (App.route !== "tipp") return clearInterval(this.iv); if (!document.hidden) this.refresh(); }, 30000);
     },
@@ -100,7 +105,7 @@
       try { await Tipp.load(); } catch(e) { Tipp.err = true; }
       if (App.route !== "tipp" || !this.main || !this.main.isConnected) return;
       if (!first && Tipp.tab === "tip" && Date.now() - (this.busyT || 0) < 8000) return;
-      this.render(first);
+      this.render(first && !this.pre); this.pre = false;
       if (first && (this.arg.open || this.arg.quick)) this.focus(this.arg.open || this.arg.quick);
     },
     async loadTable(){ await Tipp.loadTable(); if (App.route !== "tipp") return; this.pill(); if (Tipp.tab === "table") this.render(); },
@@ -232,12 +237,15 @@
     if (!el) return;
     const fill = () => { if (!el.isConnected) return; const x = homeHTML(); if (el._h === x) return; el._h = x; el.innerHTML = x; el.hidden = !x;
       el.querySelectorAll("[data-th]").forEach(b => b.onclick = () => { tap(); App.go("tipp", b.dataset.tab ? {tab: b.dataset.tab} : {open: b.dataset.th}); }); };
-    /* only once you're signed in and your tips are here (else it would ask for games you already tipped),
+    /* with your tips at hand (in memory or this phone's copy) it is there in the very first frame;
+       otherwise only once you're signed in and your tips are loaded (else it would ask for games you already tipped),
        and after the calorie card above has settled, so nothing above it jumps */
-    let n = 0; while (!meId() && el.isConnected && n++ < 24) await new Promise(r => setTimeout(r, 500));
-    if (!meId() || !el.isConnected) return;
-    n = 0; while (typeof Kcal !== "undefined" && !Kcal.loaded && !Kcal.prof && el.isConnected && n++ < 16) await new Promise(r => setTimeout(r, 250));
-    await new Promise(r => setTimeout(r, 60));
+    if (meId() && Tipp.fromCache()) fill();
+    if (!el._h){
+      let n = 0; while (!meId() && el.isConnected && n++ < 24) await new Promise(r => setTimeout(r, 500));
+      if (!meId() || !el.isConnected) return;
+      n = 0; while (typeof Kcal !== "undefined" && !Kcal.loaded && !Kcal.prof && el.isConnected && n++ < 16) await new Promise(r => setTimeout(r, 250));
+    }
     if (Tipp.who === meId() && Date.now() - (Tipp.loadT || 0) < 120000) return fill();
     try { await Tipp.load(); } catch(e) { return; } fill(); };
 

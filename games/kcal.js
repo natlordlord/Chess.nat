@@ -7,7 +7,8 @@
    No sounds here on purpose: recording only turns the button red. */
 (() => {
   const sb = () => window.ChessSite && window.ChessSite.sb;
-  const meId = () => typeof Social !== "undefined" ? Social.me : null;
+  /* who is signed in: known as soon as the saved session is back, before Social has started */
+  const meId = () => (typeof Social !== "undefined" && Social.me) || (window.ChessSite && ChessSite.storedUid ? ChessSite.storedUid() : null);
   const h = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
   const fmt = n => Math.round(Number(n) || 0).toLocaleString("de-DE");
   const f1 = n => (Math.round((Number(n) || 0) * 10) / 10).toLocaleString("de-DE");

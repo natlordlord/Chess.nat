@@ -113,7 +113,11 @@
     if (n === "db") return session ? db : null;
     return null;
   }};
-  window.ChessSite = {sb, ready, sessionReady, getSession: () => session,
+  /* who was signed in on this phone, read straight from the saved session: lets the first screen show your own
+     cards before the session restore (or a token refresh over the network) has finished */
+  const storedUid = () => { if (session) return session.user.id; if (!ready || booted) return null;
+    try { const ref = new URL(CFG.supabaseUrl).hostname.split(".")[0], v = JSON.parse(localStorage.getItem("sb-" + ref + "-auth-token") || "null"); return (v && v.user && v.user.id) || null; } catch(e) { return null; } };
+  window.ChessSite = {sb, ready, sessionReady, getSession: () => session, storedUid,
     async signUp(email, password){ return sb.auth.signUp({email, password, options: {emailRedirectTo: location.origin + "/"}}); },
     async signIn(email, password){ return sb.auth.signInWithPassword({email, password}); },
     async resend(email){ return sb.auth.resend({type: "signup", email, options: {emailRedirectTo: location.origin + "/"}}); },
