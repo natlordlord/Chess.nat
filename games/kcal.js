@@ -1137,7 +1137,12 @@
       const nt = q("[data-noto]"); if (nt) nt.onclick = () => { this.addTo = null; this.draw(); };
       all("[data-to]", b => { this.addTo = b.dataset.to; this.snd("tap"); this.draw(); q("#kcsha").focus(); });
       all("[data-done]", b => { const i = this.items.find(x => x.id === b.dataset.done); if (!real(i)) return; const on = !i.done_by; haptic(12); this.snd(on ? "Capture" : "tap");
-        this.mut(() => { i.done_by = on ? me : null; }, sb().from("shop_items").update(Object.assign({done_by: on ? me : null, done_at: on ? new Date().toISOString() : null}, stamp())).eq("id", i.id)); });
+        /* ticking fast, one after the other: only this row is changed on the page (nothing is rebuilt under your finger, so no tap gets lost);
+           the server follows in the background, and the list is read again only once you have paused */
+        const at = on ? new Date().toISOString() : null; i.done_by = on ? me : null; i.done_at = at;
+        B.querySelectorAll(`[data-done="${i.id}"]`).forEach(e => { const r = e.closest(".kc-shr"); if (!r) return; r.classList.toggle("done", on); const c = r.querySelector(".kc-shc"); if (c) c.textContent = on ? "✓" : ""; r.querySelectorAll(".kc-shbuy,.kc-shq").forEach(x => { x.style.display = on ? "none" : ""; }); });
+        this.pend = (this.pend || 0) + 1; clearTimeout(this.calm);
+        sb().from("shop_items").update(Object.assign({done_by: on ? me : null, done_at: at}, stamp())).eq("id", i.id).then(r => r, e => ({error: e})).then(r => { this.pend--; if (r && r.error) say("Ging nicht: " + (r.error.message || r.error)); if (!this.pend){ clearTimeout(this.calm); this.calm = setTimeout(() => { if (!this.pend) this.load(); }, 900); } }); });
       all("[data-claim]", b => { const i = this.items.find(x => x.id === b.dataset.claim); if (!real(i)) return; const on = i.claimed_by !== me; haptic(8); this.snd("tap");
         this.mut(() => { i.claimed_by = on ? me : null; }, sb().from("shop_items").update(Object.assign({claimed_by: on ? me : null}, stamp())).eq("id", i.id)); });
       /* removing takes two taps: the first one asks */
