@@ -2845,7 +2845,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794419002";
+const CHESSNAT_BUILD = "1794419181";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -8790,7 +8790,9 @@ function detailSheet(html, onClose){
   /* the keyboard (iPhone): the card sits right above it instead of behind it, and the field you type in stays in sight */
   /* the field is brought into sight only when the keyboard opens or a field gets focus, never while you scroll (that made the card jump back) */
   let kb0 = 0;
-  const vv = window.visualViewport, kbFit = toField => { if (done || !vv) return; const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)), card2 = el.querySelector(".dcard");
+  const vv = window.visualViewport, kbFit = toField => { if (done || !vv) return; /* the keyboard's height is what the visible part is shorter than the page, no matter how far iOS has pushed the page up (offsetTop).
+       The sheet itself follows that push (translateY below), so subtracting it here once more left the card behind the keyboard */
+    const kb = Math.max(0, Math.round(window.innerHeight - vv.height)), card2 = el.querySelector(".dcard");
     el.style.paddingBottom = kb > 60 ? kb + "px" : ""; el.classList.toggle("kb", kb > 60); el.style.transform = vv.offsetTop ? `translateY(${vv.offsetTop}px)` : ""; if (card2) card2.style.maxHeight = kb > 60 ? (vv.height - 12) + "px" : "";
     const grew = kb > 60 && Math.abs(kb - kb0) > 40; kb0 = kb;
     const a = document.activeElement; if ((toField === true || grew) && kb > 60 && a && el.contains(a) && /INPUT|TEXTAREA/.test(a.tagName)) requestAnimationFrame(() => { try { a.scrollIntoView({block: "nearest"}); } catch(e) {} }); };
