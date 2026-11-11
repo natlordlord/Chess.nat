@@ -298,7 +298,9 @@
   }
   /* Nat Stars on its own counts like the other games: XP, and a win is a daily win */
   function reward(won){ const k = (C.A.kills || {})[me()] || 0, solo = PNet.P && PNet.P.solo; let xp = (won ? 20 : 6) + k * 4; if (solo) xp = Math.round(xp / 2);
-    PG.st.nsWins = (PG.st.nsWins || 0) + (won ? 1 : 0); PG.st.nsKills = (PG.st.nsKills || 0) + k; try { PG.persist(); } catch(e) {}
+    PG.st.nsWins = (PG.st.nsWins || 0) + (won ? 1 : 0); PG.st.nsKills = (PG.st.nsKills || 0) + k;
+    /* trophies per fighter: shown on the pick cards */
+    const my = C.A.cls && C.A.cls[me()]; if (won && my){ PG.st.nsCls = PG.st.nsCls || {}; PG.st.nsCls[my] = (PG.st.nsCls[my] || 0) + 1; } try { PG.persist(); } catch(e) {}
     setTimeout(() => { try { if (typeof addXP === "function") addXP(xp, "natstars"); if (won && typeof natWin === "function") natWin("natstars"); } catch(e) {} }, 1800); }
   /* the first few fights: where to touch, what the yellow button and the fog do */
   function hint(){ const n = PG.st.nsHint || 0, box = C.L && C.L.querySelector(".ar-tip"); if (n >= 3 || !box) return; PG.st.nsHint = n + 1; try { PG.persist(); } catch(e) {}
@@ -358,7 +360,7 @@
     const sig = JSON.stringify(A.cls) + amIn();
     if (force || box._sig !== sig){ box._sig = sig; const P = NPo().pl();
       box.innerHTML = `<div class="ar-pt">⭐ ${amIn() ? T("Pick your fighter", "Wähl deinen Kämpfer") : "👻 " + T("You're watching", "Du schaust zu")}</div><div class="ar-cards">${KEYS.map(k => { const c = CLS[k], who = A.ids.filter(id => A.cls[id] === k);
-        return `<button class="ar-card ${mine === k ? "sel" : ""}" data-arc="${k}" ${amIn() ? "" : "disabled"}><span class="e">${c.e}</span><b>${esc(nm(c))}</b><small>${esc(T(c.sen, c.sde))}</small><em>${c.su.e} ${esc(nm(c.su))}</em><i class="hp">❤ ${c.hp}</i><span class="who">${who.slice(0, 5).map(id => `<span class="np-hd sm">${headOf(id, P)}</span>`).join("")}</span></button>`; }).join("")}</div><div class="ar-pbar"><i></i></div>`; }
+        return `<button class="ar-card ${mine === k ? "sel" : ""}" data-arc="${k}" ${amIn() ? "" : "disabled"}><span class="e">${c.e}</span><b>${esc(nm(c))}</b><small>${esc(T(c.sen, c.sde))}</small><em>${c.su.e} ${esc(nm(c.su))}</em><i class="hp">❤ ${c.hp}${(PG.st.nsCls || {})[k] ? ` <u>🏆 ${PG.st.nsCls[k]}</u>` : ""}</i><span class="who">${who.slice(0, 5).map(id => `<span class="np-hd sm">${headOf(id, P)}</span>`).join("")}</span></button>`; }).join("")}</div><div class="ar-pbar"><i></i></div>`; }
     const bar = box.querySelector(".ar-pbar i"); if (bar) bar.style.width = Math.min(100, left / (C.pickDur || PICK) * 100) + "%";
   }
   const HC = {};
@@ -725,7 +727,7 @@
 .ar-card{width:min(124px,14.8vw);min-width:0;flex:0 1 auto;padding:10px 6px 8px;border-radius:16px;background:var(--panel,#1e1d1b);border:3px solid rgba(255,255,255,.06);display:flex;flex-direction:column;align-items:center;gap:3px;color:#fff;font:800 14px var(--body);transition:transform .15s,border-color .15s}
 .ar-card .e{font-size:38px;line-height:1.1}.ar-card small{color:var(--muted,#aaa);font-weight:700;font-size:11px;line-height:1.2;text-align:center;min-height:26px}
 .ar-card em{font-style:normal;font-size:11px;font-weight:800;color:#FFD15C;text-align:center;line-height:1.15}
-.ar-card .hp{font-style:normal;font-size:12px;color:#ff8a78}.ar-card .who{display:flex;gap:2px;min-height:24px}.ar-card .who .np-hd{width:24px;height:24px;overflow:hidden;border-radius:50%}.ar-card .who svg{width:100%;height:100%;display:block}
+.ar-card .hp{font-style:normal;font-size:12px;color:#ff8a78}.ar-card .hp u{text-decoration:none;color:#FFD34A;margin-left:4px}.ar-card .who{display:flex;gap:2px;min-height:24px}.ar-card .who .np-hd{width:24px;height:24px;overflow:hidden;border-radius:50%}.ar-card .who svg{width:100%;height:100%;display:block}
 .ar-card.sel{border-color:var(--go-hi,#8FC458);transform:translateY(-5px);box-shadow:0 8px 24px rgba(127,178,74,.25)}
 .ar-pbar{width:min(420px,70%);height:6px;background:rgba(255,255,255,.12);border-radius:3px;overflow:hidden}.ar-pbar i{display:block;height:100%;background:var(--go-hi,#8FC458);transition:width .12s linear}
 .ar-joy{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;background:rgba(244,242,238,.08);border:2px solid rgba(244,242,238,.18);display:none;pointer-events:none}.ar-joy.on{display:block}
