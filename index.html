@@ -2799,7 +2799,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794368885";
+const CHESSNAT_BUILD = "1794369023";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -3011,6 +3011,8 @@ function rankOf(r){
   return {tier:t, idx:i, div:ROMAN[d], label:t.name + " " + ROMAN[d], lp:Math.round(pct * 100), pct, next:nextLabel, nextAt:Math.round(dHi)};
 }
 function betterThan(r){ const z = (r - 1600) / 330; const t = 1 / (1 + .2316419 * Math.abs(z)); const d = .3989423 * Math.exp(-z * z / 2); let p = d * t * (.3193815 + t * (-.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274)))); p = z > 0 ? 1 - p : p; const v = p * 100; return v < 1 ? v.toFixed(2) : v >= 99 ? v.toFixed(2) : Math.round(v); }
+/* the "better than X%" line: hidden below 1% (a new player shouldn't read "better than 0.02%"), decimal comma in German */
+function btPct(r){ const v = betterThan(r); return +v < 1 ? "" : String(v).replace(".", typeof I18N !== "undefined" && I18N.lang === "de" ? "," : "."); }
 /* ---------- daily plan ---------- */
 const PLAN = [["pz", 10, "Solve 10 puzzles"], ["ls", 1, "Finish a lesson"], ["gm", 1, "Play a game"], ["rd", 1, "Daily Puzzle or Puzzle Rush"]];
 function planVal(k){ const d = S.day; if (d.k !== todayKey()) return 0; return k === "rd" ? (d.rush || 0) + (d.daily || 0) : (d[k] || 0); }
@@ -4007,7 +4009,7 @@ Views.puzzles = {
       if (ti && p){ ti.outerHTML = this.review ? `<span class="pill pzrev" id="pzinfo">${icon("refresh", 14)} Review · not rated</span>` : `<button class="pill pzr ${show ? "on" : ""}" id="pzinfo" data-pzr title="Tap to ${S.settings.showPzRating ? "hide" : "show"} the puzzle rating">Rated puzzle · ${show ? "<b>" + p.r + "</b>" : "rating hidden 👁"}</button>`; } }
     const head = `<div class="row" style="gap:12px;align-items:center">${emblem(rk, 56)}<div style="flex:1;min-width:0"><div style="font:900 30px var(--display);line-height:1;font-variant-numeric:tabular-nums">${S.puzzle.r}${this.delta ? `<span style="font-size:16px;margin-left:8px;color:${this.delta > 0 ? "var(--go-hi)" : "var(--bad)"}">${this.delta > 0 ? "+" : ""}${this.delta}</span>` : ""}</div><div class="muted" style="font-weight:700">${esc(rk.label)}${rk.idx < 7 ? ` · ${rk.lp} LP` : ` · ${rk.lp} LP`}</div></div></div>
       <div class="bar" style="margin-top:10px"><i style="width:${Math.round(rk.pct * 100)}%"></i></div>
-      <div class="dim" style="font-size:12px;margin-top:4px">${rk.next && rk.nextAt - S.puzzle.r <= 30 && rk.nextAt > S.puzzle.r ? `<b class="pz-near">Only ${rk.nextAt - S.puzzle.r} points to ${esc(rk.next)}!</b>` : rk.next ? `Next: ${esc(rk.next)} at ${rk.nextAt}` : "Top of the ladder"} · Better than ${betterThan(S.puzzle.r)}% of players</div>`;
+      <div class="dim" style="font-size:12px;margin-top:4px">${rk.next && rk.nextAt - S.puzzle.r <= 30 && rk.nextAt > S.puzzle.r ? `<b class="pz-near">Only ${rk.nextAt - S.puzzle.r} points to ${esc(rk.next)}!</b>` : rk.next ? `Next: ${esc(rk.next)} at ${rk.nextAt}` : "Top of the ladder"}${btPct(S.puzzle.r) ? " · Better than " + btPct(S.puzzle.r) + "% of players" : ""}</div>`;
     let msg = "";
     const tm = p ? sideToMoveText(R.user) : "";
     if (state === "load") msg = this.resumed ? `<div class="msg hint"><div class="ic">↺</div><div><h4>Unfinished puzzle</h4><p>This one still counts. Solve it, or skip it as a miss.</p></div></div>` : `<div class="msg"><div class="ic">…</div><div><h4>Get ready</h4><p>Your opponent is about to move.</p></div></div>`;
@@ -11318,7 +11320,7 @@ Views.home = {
         <div class="hr-l">${esc(rk.label)}</div>
         <div class="hr-lp"><b>${rk.lp} LP</b><span>${S.puzzle.r} puzzle rating</span></div>
         <div class="bar lpbar hr-bar"><i style="width:${Math.round(rk.pct * 100)}%"></i></div>
-        <div class="dim hr-sub">${rk.next ? "Next: " + esc(rk.next) + " at " + rk.nextAt + " · " : ""}better than ${betterThan(S.puzzle.r)}% of players</div>
+        <div class="dim hr-sub">${rk.next ? "Next: " + esc(rk.next) + " at " + rk.nextAt + (btPct(S.puzzle.r) ? " · " : "") : ""}${btPct(S.puzzle.r) ? "better than " + btPct(S.puzzle.r) + "% of players" : ""}</div>
         <button class="hr-flame" data-go="puzzles">${flameChip("big")}<span><b>${flameCount() ? flameCount() + "-day flame" : "Light your flame"}</b><small>${flameLitToday() ? "Lit today. Come back tomorrow." : `Play ${FLAME_GOAL - flameToday()} more puzzle${FLAME_GOAL - flameToday() === 1 ? "" : "s"} today${flameCount() ? " to keep it" : ""}`}${flameShields() ? ` <span class="fl-sh">${SHIELD_SVG}${flameShields()}</span>` : flameCount() ? ` <span class="fl-sh off">Shield at ${(Math.floor(flameCount() / 7) + 1) * 7} days</span>` : ""}</small></span><i class="hr-fdots">${[0, 1, 2].map(i => `<i class="${i < flameToday() ? "on" : ""}"></i>`).join("")}</i></button>
         <button class="hr-lv" data-go="me" aria-label="Your level">${levelCardHTML(true)}</button>
         <div class="hr-goal"><span>Journey to 1600</span><div class="bar sm"><i style="width:${Math.round(pct * 100)}%"></i></div><b>${Math.round(pct * 100)}%</b></div>
@@ -11500,7 +11502,7 @@ Views.me = {
           <div class="muted" style="font-weight:700">${handle ? esc(handle) : sess ? "No player ID yet" : "Playing without an account"}</div>
           <div class="row" style="gap:6px;margin-top:8px"><span class="pill go">${esc(cls.name)}</span><span class="pill">${esc(BODY_TIERS[tier].name)} body</span><span class="pill">${n} trophies</span></div>
         </div></div>
-      <div class="merank">${crestSVG(rk.idx, rk.div, 76)}<div class="grow"><div class="mr-l">${esc(rk.label)}</div><div class="mr-lp"><b>${rk.lp} LP</b><span class="muted">${S.puzzle.r} puzzle rating</span></div><div class="bar lpbar"><i style="width:${Math.round(rk.pct * 100)}%"></i></div><div class="dim" style="font-size:12px;margin-top:3px">${rk.next ? "Next: " + esc(rk.next) + " at " + rk.nextAt : "Top of the ladder"} · better than ${betterThan(S.puzzle.r)}%</div></div></div>
+      <div class="merank">${crestSVG(rk.idx, rk.div, 76)}<div class="grow"><div class="mr-l">${esc(rk.label)}</div><div class="mr-lp"><b>${rk.lp} LP</b><span class="muted">${S.puzzle.r} puzzle rating</span></div><div class="bar lpbar"><i style="width:${Math.round(rk.pct * 100)}%"></i></div><div class="dim" style="font-size:12px;margin-top:3px">${rk.next ? "Next: " + esc(rk.next) + " at " + rk.nextAt : "Top of the ladder"}${btPct(S.puzzle.r) ? " · better than " + btPct(S.puzzle.r) + "%" : ""}</div></div></div>
       ${playerTypeCard(playerProfile().typeKey, true)}
       ${(a => `<div class="fp-act-row me-act"><div class="fp-st"><b>${fmtN(a.pz)}</b><span>Puzzles solved</span></div><div class="fp-st"><b>${fmtN(a.gp)}</b><span>Games played</span></div><div class="fp-st"><b>${a.st}</b><span>Best streak</span></div></div>`)(myActivity())}
       <button class="me-lv" id="melv" aria-label="Your level and rewards">${levelCardHTML()}</button>
@@ -14352,18 +14354,18 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=86"></script>
-<script src="games/imposter.js?v=86"></script>
-<script src="games/werwolf.js?v=86"></script>
-<script src="games/cards.js?v=86"></script>
-<script src="games/heads.js?v=86"></script>
-<script src="games/more.js?v=86"></script>
-<script src="games/net.js?v=86"></script>
-<script src="games/online.js?v=86"></script>
-<script src="games/natposter.js?v=86"></script>
-<script src="games/arena.js?v=86"></script>
-<script src="games/tipp.js?v=86"></script>
-<script src="games/kcal.js?v=86"></script>
+<script src="games/core.js?v=87"></script>
+<script src="games/imposter.js?v=87"></script>
+<script src="games/werwolf.js?v=87"></script>
+<script src="games/cards.js?v=87"></script>
+<script src="games/heads.js?v=87"></script>
+<script src="games/more.js?v=87"></script>
+<script src="games/net.js?v=87"></script>
+<script src="games/online.js?v=87"></script>
+<script src="games/natposter.js?v=87"></script>
+<script src="games/arena.js?v=87"></script>
+<script src="games/tipp.js?v=87"></script>
+<script src="games/kcal.js?v=87"></script>
 <script>boot();</script>
 </body>
 </html>
