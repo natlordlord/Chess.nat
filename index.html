@@ -1999,7 +1999,7 @@ html.i18n-wait body{visibility:hidden}
 .rail .me .nm,.rail .me .nm small,.rail .me .nm span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-height:860px){.rail .nav{padding-top:7px;padding-bottom:7px}.brand{padding-bottom:10px}}
 @media (max-height:760px){.rail .nav{padding-top:5px;padding-bottom:5px;font-size:14px}}
-.railme{min-width:0;overflow:hidden;flex:none}.railme .rm-t{min-width:0;overflow:hidden}.railme .rm-t *{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.railme{min-width:0;overflow:hidden;flex:none;gap:10px}.rm-rk{min-width:0}.rm-rk>span{min-width:0;overflow:hidden;text-overflow:ellipsis}.railme .rm-t{min-width:0;overflow:hidden}.railme .rm-t *{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .jpath{scrollbar-width:none}.jpath::-webkit-scrollbar{display:none}
 .jpawn-cv{filter:none}
 
@@ -2799,7 +2799,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794363494";
+const CHESSNAT_BUILD = "1794368885";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11193,7 +11193,7 @@ const LOGO = `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="8"
 
 const NAV = [
   ["home", "Home", "home"], ["journey", "Journey", "map"], ["learn", "Learn", "book"], ["theory", "Theory", "scroll"], ["puzzles", "Puzzles", "puzzle"], ["rush", "Puzzle Rush", "bolt"], ["battle", "Puzzle Battle", "swords"], ["daily", "Daily Puzzle", "calendar"],
-  ["train", "Train", "target"], ["endgames", "Endgames", "crown"], ["tipp", "Tipping", "ball"], ["online", "Play Online", "globe"], ["bots", "Play Bots", "bot"], ["blitz", "Blitz", "flame"], ["friends", "Friends", "heart"], ["chat", "Chat", "chat"], ["awards", "Trophies", "trophy"], ["shop", "Shop", "coin"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["me", "Profile", "user"], ["stats", "Stats", "chart"],
+  ["train", "Train", "target"], ["endgames", "Endgames", "crown"], ["tipp", "Tipping", "ball"], ["online", "Play Online", "globe"], ["bots", "Vs Bots", "bot"], ["blitz", "Blitz", "flame"], ["friends", "Friends", "heart"], ["chat", "Chat", "chat"], ["awards", "Trophies", "trophy"], ["shop", "Shop", "coin"], ["friend", "Vs a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["me", "Profile", "user"], ["stats", "Stats", "chart"],
 ];
 /* bottom of the rail, like chess.com: who you are, then a row of small icon buttons */
 function railAccount(){
@@ -11485,7 +11485,7 @@ function renderTop(){
 /* desktop rail: who you are sits at the top now */
 function railMe(){
   const rk = rankOf(S.puzzle.r), cur = App.route;
-  return `<button class="railme ${cur === "me" ? "on" : ""}" data-r="me"><span class="rm-av">${avatarBadge(myAvatar(), 46)}</span><span class="rm-t"><b>${esc(S.name && S.name !== "You" ? S.name : "You")}</b><span class="rm-rk">${crestSVG(rk.idx, "", 18)}${esc(rk.label)} · ${rk.lp} LP</span><span class="rm-lv"><span class="lvchip xs">${playerLevel()}</span>Level ${playerLevel()}${flameChip("rmf")}</span></span></button>${typeof natChipHTML === "function" ? `<div class="rail-nat">${natChipHTML()}</div>` : ""}`;
+  return `<button class="railme ${cur === "me" ? "on" : ""}" data-r="me"><span class="rm-av">${avatarBadge(myAvatar(), 42)}</span><span class="rm-t"><b>${esc(S.name && S.name !== "You" ? S.name : "You")}</b><span class="rm-rk">${crestSVG(rk.idx, "", 18)}<span>${esc(rk.label)} · ${rk.lp} LP</span></span><span class="rm-lv"><span class="lvchip xs">${playerLevel()}</span>Level ${playerLevel()}${flameChip("rmf")}</span></span></button>${typeof natChipHTML === "function" ? `<div class="rail-nat">${natChipHTML()}</div>` : ""}`;
 }
 Views.me = {
   mount(main){
@@ -14352,18 +14352,18 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=85"></script>
-<script src="games/imposter.js?v=85"></script>
-<script src="games/werwolf.js?v=85"></script>
-<script src="games/cards.js?v=85"></script>
-<script src="games/heads.js?v=85"></script>
-<script src="games/more.js?v=85"></script>
-<script src="games/net.js?v=85"></script>
-<script src="games/online.js?v=85"></script>
-<script src="games/natposter.js?v=85"></script>
-<script src="games/arena.js?v=85"></script>
-<script src="games/tipp.js?v=85"></script>
-<script src="games/kcal.js?v=1"></script>
+<script src="games/core.js?v=86"></script>
+<script src="games/imposter.js?v=86"></script>
+<script src="games/werwolf.js?v=86"></script>
+<script src="games/cards.js?v=86"></script>
+<script src="games/heads.js?v=86"></script>
+<script src="games/more.js?v=86"></script>
+<script src="games/net.js?v=86"></script>
+<script src="games/online.js?v=86"></script>
+<script src="games/natposter.js?v=86"></script>
+<script src="games/arena.js?v=86"></script>
+<script src="games/tipp.js?v=86"></script>
+<script src="games/kcal.js?v=86"></script>
 <script>boot();</script>
 </body>
 </html>
