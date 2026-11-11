@@ -127,6 +127,15 @@ async function ask(req, text, only, cfg){
 }
 /* A food from the table: the numbers are worked out here from its values per 100 g and the grams, not taken from the AI.
    Weighed cooked, the grams are first turned back into dry (or raw) weight with the food's cooking factor. */
+/* the table's values come from Open Food Facts (api/foods.js, kept at the edge for a week): read them once per instance and every few hours,
+   so the server calculates with exactly the numbers the phone shows. If that answer isn't there, the numbers in data/foods.js are used. */
+let liveAt = 0, liveP = null;
+function liveTable(req){
+  if (!FOODS.apply || Date.now() - liveAt < 6 * 3600e3) return Promise.resolve();
+  if (!liveP){ const host = String(req.headers["x-forwarded-host"] || req.headers.host || ""), proto = req.headers["x-forwarded-proto"] || (/^(localhost|127\.)/.test(host) ? "http" : "https");
+    liveP = (host ? fetch(proto + "://" + host + "/api/foods", soon(3500)).then(r => r.ok ? r.json() : null).then(j => { if (j && FOODS.apply(j)) liveAt = Date.now(); }) : Promise.resolve()).catch(() => {}).then(() => { liveP = null; }); }
+  return liveP;
+}
 function fromTable(it, i){
   const F = FOODS.byId && FOODS.byId[String(i.ref || "")], g = Number(i.grams);
   if (!F || !(g > 0) || g > 5000) return it;
@@ -218,6 +227,7 @@ module.exports = async (req, res) => {
     return res.status(502).json({error: e.status === 429 ? "Gerade zu viele Anfragen. Gleich nochmal versuchen." : "Die KI hat gerade nicht geantwortet. Nochmal versuchen."});
   }
   const ago = Math.max(0, Math.min(24 * 60, Number(est.minutesAgo) || 0));
+  await liveTable(req);
   const items = (Array.isArray(est.items) ? est.items : []).slice(0, 30).map(i => {
     const it = {name: String(i.name || "").slice(0, 80), amount: String(i.amount || "").slice(0, 60), kcal: Math.round(Number(i.kcal) || 0), carbs: r1(i.carbs), protein: r1(i.protein), fat: r1(i.fat),
       h: {fi: r1(i.fiber), su: r1(i.sugar), sf: r1(i.satfat), q: Math.max(1, Math.min(5, Math.round(Number(i.quality) || 3)))}};

@@ -77,8 +77,28 @@
     F("osaft", "Orangensaft", "orangensaft|o-saft|osaft", 43, 9, .7, .2, .2, 9, 0, 3),
     F("bier", "Bier", "bier|pils|helles|weizenbier", 42, 3, .5, 0, 0, 0, 0, 1)
   ];
+  /* Where the numbers come from: the Open Food Facts category of each food. api/foods.js takes the median of the products in
+     that category and the values above are replaced by it (apply). The numbers written above are only what is used until that
+     answer is there, and for the foods Open Food Facts has no category with enough products for (mostly fresh, unpacked food). */
+  const OFF = {pasta: "en:dry-pastas", pasta_vk: ["en:whole-wheat-pastas", "en:wholemeal-pastas"], reis: ["en:white-rices", "en:basmati-rices", "en:long-grain-rices"], reis_vk: ["en:brown-rices", "en:whole-grain-rices"],
+    couscous: "en:couscous", bulgur: ["en:bulgurs", "en:bulgur"], quinoa: ["en:quinoa", "en:quinoas"], linsen: ["en:lentils", "en:dried-lentils"], kichererbsen: ["en:chickpeas", "en:dried-chickpeas"], bohnen: ["en:kidney-beans", "en:red-beans", "en:white-beans"],
+    haehnchen: ["en:chicken-breasts", "en:chicken-breast-fillets"], pute: ["en:turkey-breasts", "en:turkey-cutlets"], rind: ["en:beef-steaks", "en:rump-steaks"], hack: ["en:mixed-minced-meats", "en:minced-meats"], rinderhack: ["en:minced-beef", "en:ground-beef", "en:ground-beef-steaks"],
+    haferflocken: ["en:rolled-oats", "en:oat-flakes", "en:rolled-flakes"], brot: ["en:rye-breads", "en:mixed-breads"], vollkornbrot: ["en:wholemeal-breads", "en:whole-grain-breads"], toast: ["en:sandwich-breads", "en:toast-breads", "en:sliced-breads"],
+    ei: ["en:chicken-eggs", "en:eggs"], milch: "en:whole-milks", milch15: "en:semi-skimmed-milks", butter: "en:butters", oel: ["en:olive-oils", "en:extra-virgin-olive-oils"], pesto: ["en:green-pestos", "en:pestos"], tomatensauce: ["en:tomato-sauces", "en:passata"],
+    gouda: ["en:goudas", "en:gouda"], mozzarella: ["en:mozzarella", "en:mozzarellas"], parmesan: ["en:parmigiano-reggiano", "en:grana-padano"], feta: ["en:feta", "en:fetas"], quark: ["en:quarks", "en:low-fat-quark"], skyr: ["en:skyrs", "en:skyr"], joghurt: ["en:plain-yogurts", "en:natural-yogurts"],
+    lachs: ["en:salmons", "en:salmon-fillets"], thunfisch: ["en:tunas-in-brine", "en:canned-tunas"], nutella: ["en:cocoa-and-hazelnuts-spreads", "en:hazelnut-spreads"], erdnussbutter: "en:peanut-butters", honig: "en:honeys", zucker: ["en:white-sugars", "en:sugars"], marmelade: ["en:jams", "en:strawberry-jams"],
+    mandeln: "en:almonds", pommes: ["en:frozen-fries", "en:fries"], whey: ["en:whey-proteins", "en:protein-powders"], cola: "en:colas", osaft: "en:orange-juices", bier: "en:beers"};
+  FOODS.forEach(f => { if (OFF[f.id]) f.off = OFF[f.id]; });
+  const apply = data => { let n = 0; if (!data || !data.foods) return n;
+    for (const f of FOODS){ const v = data.foods[f.id]; if (!v || !(Number(v.k) > 0)) continue; for (const key of ["k", "c", "p", "f", "fi", "su", "sf"]) if (v[key] != null && isFinite(Number(v[key]))) f[key] = Number(v[key]); f.src = {n: v.n, cat: v.cat, at: data.at}; n++; }
+    return n; };
   /* the values of a food in the state it was weighed in: per 100 g cooked = per 100 g dry ÷ cf */
   const per100 = (f, cooked) => { const d = f.cf && cooked ? f.cf : 1, r = v => Math.round(v / d * 10) / 10; return {k: r(f.k), c: r(f.c), p: r(f.p), f: r(f.f), fi: r(f.fi), su: r(f.su), sf: r(f.sf), q: f.q}; };
-  const api = {list: FOODS, byId: Object.fromEntries(FOODS.map(f => [f.id, f])), per100};
-  if (typeof module !== "undefined" && module.exports) module.exports = api; else root.KCAL_FOODS = api;
+  const api = {list: FOODS, byId: Object.fromEntries(FOODS.map(f => [f.id, f])), per100, apply};
+  if (typeof module !== "undefined" && module.exports){ module.exports = api; return; }
+  root.KCAL_FOODS = api;
+  /* on the phone: what was fetched last time is used at once, and once a day the current answer is fetched */
+  const KEY = "chessnat-foods-off"; let had = null; try { had = JSON.parse(localStorage.getItem(KEY) || "null"); } catch(e) {} if (had) apply(had);
+  api.ready = (!had || Date.now() - (had.t || 0) > 20 * 3600e3) && typeof fetch === "function"
+    ? fetch("/api/foods").then(r => r.ok ? r.json() : null).then(j => { if (j && j.foods && Object.keys(j.foods).length){ apply(j); j.t = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(j)); } catch(e) {} } }).catch(() => {}) : Promise.resolve();
 })(typeof window !== "undefined" ? window : this);

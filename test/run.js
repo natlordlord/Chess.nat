@@ -369,6 +369,25 @@ const PARTS = {
     await page.tap('#tabbar [data-t="tipp"]'); await sleep(1500); await page.evaluate(() => { window.__fx.fades = 0; window.__fx.rebuilds = 0; }); await page.tap('#tabbar [data-t="home"]'); await sleep(2500);
     const fx = await page.evaluate(() => window.__fx); ok(fx.fades === 1 && fx.rebuilds === 1, "Tipp auf Home: die Seite blendet genau einmal ein und wird einmal aufgebaut (kein Flackern)", JSON.stringify(fx));
     await fetch(L.BASE + "/__fake/delay?ms=0"); await clean(page, "Start und Home"); await page.context().close();
+  },
+
+  /* ---------- die Tabellenwerte kommen aus Open Food Facts (Median der Kategorie). Muss der letzte Teil sein: er stellt die Tabelle um ---------- */
+  async quelle(browser){
+    await fetch(L.BASE + "/__fake/off-cats?on=1");
+    const j = await (await fetch(L.BASE + "/api/foods?debug=1")).json(), pa = j.foods.pasta;
+    ok(pa && pa.k === 351 && pa.n === 29, "/api/foods: Nudeln = Median aus 29 Packungen der Kategorie (351 kcal), das falsch einsortierte Fertiggericht fliegt raus", JSON.stringify(pa));
+    ok(j.miss.includes("reis") && !j.foods.reis, "ein Lebensmittel ohne genug Produkte wird als fehlend gemeldet und behält seinen Tabellenwert", JSON.stringify(j.miss).slice(0, 120));
+    const hear = () => { class SR { start(){ SR.cur = this; } stop(){ setTimeout(() => this.onend && this.onend(), 20); } abort(){ this.stop(); } }
+      window.SpeechRecognition = window.webkitSpeechRecognition = SR; window.__hear = t => { const r = SR.cur; if (r && r.onresult) r.onresult({resultIndex: 0, results: Object.assign([Object.assign([{transcript: t, confidence: .9}], {isFinal: true})], {length: 1})}); }; };
+    const page = await L.open(browser, "tester", {before: hear}); await page.evaluate(() => KCAL_FOODS.ready);
+    ok(await page.evaluate(() => KCAL_FOODS.byId.pasta.k === 351 && KCAL_FOODS.byId.pasta.src.n === 29 && KCAL_FOODS.byId.reis.k === 351), "die App übernimmt die Werte von /api/foods (Nudeln 351), der Rest bleibt");
+    await page.tap("#main [data-kc-find]"); await sleep(400); await page.keyboard.type("nudeln", {delay: 20}); await page.waitForFunction(() => /Open Food Facts/.test((document.querySelector(".kc-sov") || {}).innerText || ""), null, {timeout: 5000}).catch(() => {});
+    const first = await txt(page, ".kc-sres"); ok(/Nudeln, gekocht/.test(first) && /Open Food Facts · Mittel aus 29 Produkten/.test(first) && /153/.test(first), "Suche nennt die Quelle: „Open Food Facts · Mittel aus 29 Produkten“, 153 kcal gekocht", first); await page.shot("quelle-suche"); await page.tap("#kcsx"); await sleep(400);
+    const n = (await meals("tester")).length; await page.tap("#main [data-kc-say]"); await sleep(700); await page.evaluate(() => window.__hear("250 g gekochte Nudeln")); await sleep(400);
+    if (await page.locator("#kcmic").isVisible().catch(() => false)){ await page.tap("#kcmic"); await sleep(300); } if (await page.locator("#kcvdone").isVisible().catch(() => false)) await page.tap("#kcvdone");
+    for (let i = 0; i < 30 && (await meals("tester")).length === n; i++) await sleep(200); const m = (await meals("tester", "&limit=1"))[0];
+    ok(m.items[0].kcal === 382, "Sprechen rechnet mit demselben Wert: 250 g gekocht = 382 kcal (351 ÷ 2,3 × 2,5)", JSON.stringify(m.items[0]));
+    await fetch(L.BASE + "/__fake/off-cats?on=0"); await clean(page, "Quelle Open Food Facts"); await page.context().close();
   }
 };
 

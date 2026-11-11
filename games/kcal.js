@@ -413,7 +413,8 @@
       <small class="muted">Die Packung nennt das Gewicht ${a}. 100 g ${a} ${up ? "werden" : "sind"} ${b} etwa ${nf(100 * F.cf, 0)} g${P.ck === "cooked" ? `, also ${fmt((P.base || P).k)} kcal pro 100 g ${a} = ${fmt(P.k)} kcal pro 100 g ${b}` : ""}.</small></div>`; };
   const cookWire = (el, P, again) => el.querySelectorAll("[data-ck]").forEach(b => b.onclick = () => { haptic(8); ckSet(b.dataset.ck); again(cookP(P, b.dataset.ck)); });
   /* the foods of the table show up in the search too, before the products: "Nudeln, gekocht" has one value for everybody */
-  const tabP = (F, cooked) => { const base = {tab: F.id, code: null, name: F.n, brand: "Standardwert", img: null, k: F.k, c: F.c, pr: F.p, f: F.f, fi: F.fi, su: F.su, sf: F.sf, sa: 0, ns: "", hd: 1, q: F.q, serving: 0, pack: 0, ss: ""}; return F.cf ? cookP(base, cooked ? "cooked" : "dry") : base; };
+  const tabP = (F, cooked) => { const base = {tab: F.id, code: null, name: F.n, brand: F.src ? "Open Food Facts · Mittel aus " + F.src.n + " Produkten" : "Standardwert", img: null, k: F.k, c: F.c, pr: F.p, f: F.f, fi: F.fi, su: F.su, sf: F.sf, sa: 0, ns: "", hd: 1, q: F.q, serving: 0, pack: 0, ss: ""}; return F.cf ? cookP(base, cooked ? "cooked" : "dry") : base; };
+  const tabSrc = id => { const F = TAB.byId[id]; return F && F.src ? "Open Food Facts: Mittel aus " + F.src.n + " Produkten der Kategorie " + F.src.cat : "Standardwerte aus der Nährwert-Tabelle"; };
   const tabFind = v => { const norm = t => String(t).toLowerCase().trim(), q = norm(v).replace(/\b(gekochte[rsn]?|gebratene[rsn]?|trockene?|rohe[rsn]?|ungekochte[rsn]?)\b/g, "").trim(), dry = /trocken|roh|ungekocht/.test(norm(v)); if (q.length < 2) return [];
     const hit = TAB.list.filter(F => new RegExp("^(" + F.al + ")$", "i").test(q)).concat(TAB.list.filter(F => !new RegExp("^(" + F.al + ")$", "i").test(q) && (norm(F.n).startsWith(q) || new RegExp("^(" + F.al + ")", "i").test(q) && q.length >= 4))).slice(0, 3);
     return hit.flatMap(F => F.cf ? (dry ? [tabP(F, false), tabP(F, true)] : [tabP(F, true), tabP(F, false)]) : [tabP(F)]); };
@@ -468,7 +469,7 @@
     return sh;
   }
   /* a product picked from the scan or the search becomes a new meal */
-  const addProduct = (P, src) => amountSheet(P, {done: async it => { const m = await K.add({source: src || "barcode", code: it.code, grams: Math.round(it.g), title: P.name.slice(0, 80), emoji: "📦", kcal: it.kcal, carbs: it.carbs, protein: it.protein, fat: it.fat, items: [it], note: P.tab ? "Standardwerte aus der Nährwert-Tabelle" : "Nährwerte von Open Food Facts"});
+  const addProduct = (P, src) => amountSheet(P, {done: async it => { const m = await K.add({source: src || "barcode", code: it.code, grams: Math.round(it.g), title: P.name.slice(0, 80), emoji: "📦", kcal: it.kcal, carbs: it.carbs, protein: it.protein, fat: it.fat, items: [it], note: P.tab ? tabSrc(P.tab) : "Nährwerte von Open Food Facts"});
     haptic(15); say(`📦 ${brief(m)} eingetragen`); }});
 
   /* a product from Open Food Facts by its barcode (kept on the phone once seen) */
@@ -566,7 +567,7 @@
           const st = g >= 50 ? 10 : 5; setG(up ? Math.floor(g / st + 1e-6) * st + st : g <= st ? Math.max(1, g - 1) : Math.ceil(g / st - 1e-6) * st - st); });
         cookWire(pn, P, P2 => { pickG = g; b.classList.remove("open"); pn.remove(); pick(P2, b); });
         pn.querySelector("[data-add]").onclick = async e2 => { const ab = e2.currentTarget; if (ab.disabled) return; if (P.cfood && !P.ck){ say("Erst wählen: " + P.cfood.st[1] + " oder " + P.cfood.st[0] + " gewogen?"); const c = pn.querySelector(".kc-ck"); if (c){ c.classList.remove("shake"); void c.offsetWidth; c.classList.add("shake"); } return; } ab.disabled = true; recent(P.base || P); const it = itemOf(P, g);
-          try { const m = await K.add({source: "search", code: it.code, grams: Math.round(g), title: P.name.slice(0, 80), emoji: "📦", kcal: it.kcal, carbs: it.carbs, protein: it.protein, fat: it.fat, items: [it], note: P.tab ? "Standardwerte aus der Nährwert-Tabelle" : "Nährwerte von Open Food Facts"});
+          try { const m = await K.add({source: "search", code: it.code, grams: Math.round(g), title: P.name.slice(0, 80), emoji: "📦", kcal: it.kcal, carbs: it.carbs, protein: it.protein, fat: it.fat, items: [it], note: P.tab ? tabSrc(P.tab) : "Nährwerte von Open Food Facts"});
             haptic(15); close(); say(`✓ ${P.name.slice(0, 30)} · ${brief(m)}`); } catch(err) { ab.disabled = false; say("Ging nicht: " + (err.message || err)); } };
         requestAnimationFrame(() => { try { pn.scrollIntoView({block: "nearest", behavior: "smooth"}); } catch(e) {} }); };
       if (q.value.trim().length >= 2) go(); else empty();
