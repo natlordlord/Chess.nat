@@ -125,12 +125,22 @@ function ai(req){
     const items = tab.map(([re, ref, name]) => { const m = new RegExp("(\\d+)\\s*(?:g|gramm)\\s+(?:\\S+\\s+)?" + re.source, "i").exec(said), g = m ? +m[1] : ref === "pesto" ? 30 : 200;
       return Object.assign(it(name, g + " g", wild(), wild() / 10, wild() / 20, wild() / 40), {grams: g, ref, state: ref === "pesto" ? "" : dry ? "dry" : "cooked"}); });
     return {title: said.split(/\s+/).slice(0, 4).join(" "), emoji: "🍝", items, kcal: 0, carbs: 0, protein: 0, fat: 0, minutesAgo: 0, note: ""}; }
+  /* foods outside the fixed table: the stand-in "AI" guesses a little differently every time and names the food for the shared
+     database (the one already known, if it is on the BEKANNT list). The server has to answer with the stored values. */
+  const sh = [[/mascarpone/i, "Mascarpone", 400, 3, 4.5, 41], [/trauben/i, "Weintraube", 70, 16, .7, .3]].filter(t => t[0].test(said));
+  if (sh.length){ const known = (/BEKANNT: (.*)/.exec(user) || [])[1] || "";
+    const items = sh.map(([re, food, k, c, p, f]) => { const m = new RegExp("(\\d+)\\s*(?:g|gramm)\\s+(?:\\S+\\s+)?" + re.source, "i").exec(said), g = m ? +m[1] : 100, w = .85 + Math.random() * .3, x = g / 100 * w;
+      return Object.assign(it(food, g + " g", Math.round(k * x), c * x, p * x, f * x), {grams: g, food: known.split("; ").includes(food) ? food : food}); });
+    return {title: said.split(/\s+/).slice(0, 4).join(" "), emoji: "🍇", items, kcal: 0, carbs: 0, protein: 0, fat: 0, minutesAgo: 0, note: ""}; }
   return {title: said.split(/\s+/).slice(0, 4).join(" ") || "Mahlzeit", emoji: "🥐", items: [it("Brötchen", "2 Stück (120 g)", 332, 66, 10.8, 2.2), it("Nutella", "30 g", 162, 17.3, 1.9, 9.3), it("Kakao", "1 Glas (250 ml)", 180, 24, 8.5, 5.5)], kcal: 674, carbs: 107.3, protein: 21.2, fat: 17, minutesAgo: 0, note: ""};
 }
 const realFetch = global.fetch, json = (o, status = 200) => new Response(JSON.stringify(o), {status, headers: {"content-type": "application/json"}});
 global.fetch = async (url, init = {}) => {
   url = String(url);
   if (/supabase\.co\/auth\/v1\/user/.test(url)){ const u = db.users.find(x => x.id === uidOf((init.headers || {}).Authorization)); return u ? json(userJSON(u)) : json({msg: "invalid JWT"}, 401); }
+  /* the server function asks the database as the signed-in person (the shared food database) */
+  if (/supabase\.co\/rest\/v1\//.test(url)){ const U = new URL(url), name = U.pathname.split("/rest/v1/")[1], uid = uidOf((init.headers || {}).Authorization), bd = init.body ? JSON.parse(init.body) : null;
+    try { const r = name.startsWith("rpc/") ? db.rpc(name.slice(4), bd || {}, uid) : db.rest(init.method || "GET", name, U.searchParams, bd, init.headers || {}, uid); return json(r.body, r.status); } catch(e) { return json(e.body || {message: String(e.message || e)}, e.status || 500); } }
   if (/ai-gateway\.vercel\.sh/.test(url)){ if (process.env.FAKE_AI_DOWN === "1") return json({error: "down"}, 503); return json({choices: [{message: {content: JSON.stringify(ai(JSON.parse(init.body)))}}]}); }
   if (/search\.openfoodfacts\.org/.test(url)){ const q = new URL(url).searchParams.get("q").toLowerCase(); return json({hits: FOODS.filter(f => q.split(/\s+/).some(w => w.length > 1 && (f[1] + " " + f[2]).toLowerCase().includes(w.slice(0, 4)))).map(offHit)}); }
   return realFetch(url, init);
