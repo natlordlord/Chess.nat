@@ -155,3 +155,33 @@ begin
   end loop;
   return n;
 end $$;
+
+-- After kick-off: what the people in my tipping rounds (and the KI) tipped on this game (migration tipp_event_tips)
+create or replace function public.tipp_event_tips(p_event text)
+ returns table(uid uuid, bot text, name text, avatar jsonb, cs text, x text, status text, net integer)
+ language plpgsql stable security definer set search_path to ''
+as $$
+declare me uuid := auth.uid(); ev public.tipp_events;
+begin
+  if me is null then return; end if;
+  select * into ev from public.tipp_events where id = p_event; if not found then return; end if;
+  if ev.state = 'pre' and ev.start_at > now() then return; end if;
+  return query
+  with people as (
+    select distinct m2.user_id u from public.tipp_members m1 join public.tipp_members m2 on m2.group_id = m1.group_id where m1.user_id = me
+    union select me
+  ), t as (
+    select t.user_id, t.bot, t.market, t.pick, t.label, t.status, t.payout, t.stake from public.tipp_tips t
+    where t.event_id = p_event and (t.bot = 'ki' or t.user_id in (select u from people))
+  )
+  select t.user_id, max(t.bot), coalesce(max(p.name), case when max(t.bot) = 'ki' then 'Nat-KI' else '?' end), (array_agg(p.avatar))[1],
+    max(case when t.market = 'cs' and t.pick ~ '^[0-9]+-[0-9]+$' then replace(t.pick, '-', ':') when t.market = 'cs' and t.label ~ '[0-9]+:[0-9]+$' then substring(t.label from '([0-9]+:[0-9]+)$') end),
+    max(case when t.market in ('1x2', 'win') then t.pick end),
+    case when bool_or(t.status = 'open') then 'open' when bool_or(t.status = 'won') then 'won' else max(t.status) end,
+    coalesce(sum(case when t.status in ('won', 'lost', 'void') then t.payout - t.stake else 0 end), 0)::int
+  from t left join public.chess_players p on p.id = t.user_id
+  group by t.user_id, t.bot
+  order by 7, 1;
+end $$;
+revoke all on function public.tipp_event_tips(text) from public, anon;
+grant execute on function public.tipp_event_tips(text) to authenticated;

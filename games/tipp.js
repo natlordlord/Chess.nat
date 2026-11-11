@@ -229,9 +229,17 @@
             <p class="tp-pk-sum">${sc ? T("✓ Winner · goals · exact score are picked", "✓ Sieger · Tore · genaues Ergebnis sind gewählt") : T("Tap the boxes and type the score", "Tipp auf die Felder und gib das Ergebnis ein")}</p>`; })()
           : open ? `<button class="btn ghost sm" data-kiev="${h(e.id)}" style="margin:2px 0 8px">🤖 ${T("Nat-KI picks a tip", "KI-Tipp für dieses Spiel")}</button>` : ""}
         ${mine.length ? `<div class="tp-mine">${mine.map(t => this.tipRow(t, e)).join("")}</div>` : ""}
+        ${!open && meId() ? `<div class="tp-others" hidden></div>` : ""}
         ${Object.entries(groups).map(([g, ms]) => `<div class="tp-g">${h(g)}</div>${ms.map(mk).join("")}`).join("")}
         ${Tipp.admin && e.id.startsWith("man:") ? `<button class="btn ghost sm" data-admin="${h(e.id)}" style="margin-top:10px">✎ ${T("Edit event", "Event bearbeiten")}</button>` : ""}</div>`;
       const d = detailSheet(html); this.sheet = d;
+      /* after kick-off: what everyone in my rounds (and the KI) tipped, and how it stands */
+      const ot = d.el.querySelector(".tp-others"); if (ot && sb()) sb().rpc("tipp_event_tips", {p_event: e.id}).then(({data}) => { const rows = (data || []).filter(r => r.cs || r.x); if (!rows.length || !ot.isConnected) return;
+        const tipOf = r => r.cs || (e.sport === "fb" ? {h: "1", d: "X", a: "2"}[r.x] : ((e.markets[0] || {o: []}).o.find(o => o.p === r.x) || {}).l) || "?";
+        ot.innerHTML = `<div class="tp-g">👥 ${T("Tips", "Tipps")}</div>` + rows.map(r => { const tp = tipOf(r), ls = e.sport === "fb" && e.score_h != null && r.status === "open" ? liveSt(r.cs || tp, +e.score_h, +e.score_a) : null;
+          const face = r.bot === "ki" ? "🤖" : (() => { try { return avatarSVG(Object.assign({}, r.avatar || {}, {aura: "none", pet: "none"}), {head: true, size: 30}); } catch(_) { return "🙂"; } })();
+          return `<div class="tp-ot ${r.uid === meId() ? "me" : ""}"><span class="tp-av">${face}</span><b>${h(r.name)}</b>${ls ? `<span class="tp-ls ${ls.c}">${ls.l}</span>` : r.status === "won" ? `<span class="tp-ls ok">✓ +${fmt(r.net)}</span>` : r.status === "lost" ? `<span class="tp-ls out">✗</span>` : ""}<span class="tp-otip">${h(String(tp))}</span></div>`; }).join("");
+        ot.hidden = false; }).catch(() => {});
       d.el.querySelectorAll(".tp-o[data-k]").forEach(b => b.onclick = () => { const m = e.markets.find(x => x.k === b.dataset.k), o = m && m.o.find(x => x.p === b.dataset.p); if (!o) return; Tipp.toggle(e, m, o);
         d.el.querySelectorAll(`.tp-o[data-ev]`).forEach(x => x.classList.toggle("on", Tipp.inSlip(e.id, x.dataset.k, x.dataset.p))); this.slipBar(); this.syncCards(); });
       /* the score: arrows, or the AI spins the numbers like a slot machine */
@@ -504,6 +512,9 @@
 .tp-kr .nm{flex:1;font:800 14px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-kr .nm.r{text-align:right}.tp-kr .d{width:34px;height:38px;display:grid;place-items:center;background:var(--panel);border-radius:9px;font:900 22px var(--display)}.tp-kr i{font-style:normal;font-weight:900;color:var(--muted)}
 .tp-kr.f .nm{flex:none}.tp-kr .w{flex:1;font:900 15px var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-kr small{color:var(--muted);font-weight:700}
 .tp-kr.done{background:color-mix(in srgb,var(--go) 16%,var(--panel-2))}.tp-kr.done .d,.tp-kr.done .w{animation:tpBump .3s cubic-bezier(.3,1.6,.5,1)}
+.tp-others{margin:6px 0 4px}.tp-ot{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:12px;background:var(--panel-2);margin-top:5px}.tp-ot.me{outline:2px solid color-mix(in srgb,var(--go) 60%,transparent)}
+.tp-ot b{flex:1;min-width:0;font:800 14px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-ot .tp-av{width:30px;height:30px;display:grid;place-items:center;font-size:20px;flex:none}.tp-ot .tp-av svg{width:30px;height:30px}
+.tp-otip{font:900 17px var(--display);min-width:44px;text-align:right}
 .tp-ls{display:inline-block;font:900 11px var(--body);padding:2px 7px;border-radius:7px;vertical-align:2px;background:var(--go);color:#fff;margin-right:2px}.tp-ls.ok{background:#d9a53a}.tp-ls.out{background:var(--panel-3);color:var(--muted)}
 .tp-qn{margin:8px 0 0;text-align:center;font:800 12px var(--body);color:var(--muted)}
 .th-home{padding:12px 14px!important;display:flex;flex-direction:column;gap:6px}.th-home[hidden]{display:none}.th-h{font:900 13px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
