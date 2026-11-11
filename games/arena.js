@@ -105,7 +105,9 @@
   function hostInit(G, mg){
     const s = G.s, map = s.arena ? ((s.arRound || 1) - 1) % LAYS.length : 0; setLay(map);
     const ids = G.ids.filter(id => s.alive[id]), sp = spawns(ids.length, rngOf(mg.seed)), pk = s.arena && (s.arRound || 0) > 1 ? PICK2 : PICK;
-    mg.ar = {map, ph: "pick", pickEnd: mg.t0 + N().SPIN + pk, pk, fight: 0, end: 0, ids, hp: {}, mx: {}, cls: {}, out: [], sp: Object.fromEntries(ids.map((id, i) => [id, sp[i]])), dmg: {}, kills: {}, lh: {}, ls: {}, feed: []};
+    /* together against the bots: all people one team, the bots the other */
+    const team = s.arena && G.opts && G.opts.team === "coop" ? Object.fromEntries(ids.map(id => [id, isBot(id) ? "b" : "h"])) : null;
+    mg.ar = {map, team, ph: "pick", pickEnd: mg.t0 + N().SPIN + pk, pk, fight: 0, end: 0, ids, hp: {}, mx: {}, cls: {}, out: [], sp: Object.fromEntries(ids.map((id, i) => [id, sp[i]])), dmg: {}, kills: {}, lh: {}, ls: {}, feed: []};
     (s.bots || []).forEach(b => { if (ids.includes(b.id)) mg.ar.cls[b.id] = KEYS[Math.floor(Math.random() * KEYS.length)]; });
     mg.end = mg.ar.pickEnd + FIGHT; HB.seen.clear(); HB.bots = {}; HB.dot = {};
   }
@@ -121,8 +123,8 @@
     if (A.ph === "fight" && !Object.keys(HB.bots).length && (s.bots || []).some(b => A.ids.includes(b.id))) botsInit(s, A);
     /* someone who left is out */
     if (A.ph === "fight") A.ids.forEach(id => { if ((s.gone || {})[id] && !A.out.includes(id)){ A.out.push(id); ch = true; } });
-    if (A.ph === "fight"){ const alive = A.ids.filter(id => !A.out.includes(id)), humans = A.ids.filter(id => !isBot(id) && !(s.gone || {})[id]);
-      if (alive.length <= 1 || now() >= A.end || (humans.length && !alive.some(id => humans.includes(id)) && alive.length)){ finish(G, mg); ch = true; } }
+    if (A.ph === "fight"){ const alive = A.ids.filter(id => !A.out.includes(id)), humans = A.ids.filter(id => !isBot(id) && !(s.gone || {})[id]), teams = A.team ? new Set(alive.map(id => A.team[id])).size : alive.length;
+      if (teams <= 1 || now() >= A.end || (humans.length && !alive.some(id => humans.includes(id)) && alive.length)){ finish(G, mg); ch = true; } }
     return ch;
   }
   /* energy cubes, like Brawl Stars' power cubes: each one +8 % health and +8 % damage, whoever is knocked out drops theirs */
@@ -149,6 +151,7 @@
   const rnd = o => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, Math.round(v)]));
   function hostHit(vic, d, by, k){
     const G = hostG(), mg = hostMg(), A = mg && mg.ar; if (!A || A.ph !== "fight" || !A.ids.includes(vic) || A.out.includes(vic) || !(d > 0)) return;
+    if (A.team && by && by !== vic && A.team[by] && A.team[by] === A.team[vic]) return;
     if (k){ const key = vic + "|" + k; if (HB.seen.has(key)) return; HB.seen.add(key); if (HB.seen.size > 6000) HB.seen.clear(); }
     d = Math.min(90, d); A.hp[vic] = Math.max(0, A.hp[vic] - d); A.lh[vic] = now(); if (by && by !== vic && A.dmg[by] != null) A.dmg[by] += d; HB.dirty = true;
     if (by && by !== vic && HB.bots[by]) HB.bots[by].sup = Math.min(1, HB.bots[by].sup + d / CLS[A.cls[by]].sc);
@@ -169,7 +172,7 @@
       b.rl += dt * 1000; while (b.am < AMMO && b.rl >= cl.rl){ b.am++; b.rl -= cl.rl; } if (b.am >= AMMO) b.rl = 0; b.cd -= dt * 1000;
       if (b.dash){ dashStep(b, id, dt, A); continue; }
       if (b.kb && b.kb.until > now()){ const nx = b.x + b.kb.vx * dt, ny = b.y + b.kb.vy * dt; if (walkA(nx, b.y)) b.x = nx; if (walkA(b.x, ny)) b.y = ny; }
-      let best = null; A.ids.forEach(o => { if (o === id || A.out.includes(o)) return; const q = posOf(o); if (!q || !seenFrom(b, o, q)) return; const d = Math.hypot(q.x - b.x, q.y - b.y), los = d < 900 && (clear(b, q) || (cl.lob && d < cl.rg * 1.05)), sc = d - (los ? 260 : 0); if (!best || sc < best.sc) best = {id: o, q, d, los, sc}; });
+      let best = null; A.ids.forEach(o => { if (o === id || A.out.includes(o) || (A.team && A.team[o] === A.team[id])) return; const q = posOf(o); if (!q || !seenFrom(b, o, q)) return; const d = Math.hypot(q.x - b.x, q.y - b.y), los = d < 900 && (clear(b, q) || (cl.lob && d < cl.rg * 1.05)), sc = d - (los ? 260 : 0); if (!best || sc < best.sc) best = {id: o, q, d, los, sc}; });
       let gx = 0, gy = 0; const outGas = Math.hypot(b.x - GC.x, b.y - GC.y) > gr - 60, low = A.hp[id] / A.mx[id] < .38;
       const go = t => { const w = wayTo(b, t), dx = w.x - b.x, dy = w.y - b.y, d = Math.hypot(dx, dy) || 1; gx = dx / d; gy = dy / d; };
       /* hurt and nobody close: off into the nearest fog to heal */
@@ -206,7 +209,9 @@
     const s = G.s, A = mg.ar; A.ph = "done"; stopHost();
     const alive = A.ids.filter(id => !A.out.includes(id)).sort((a, b) => A.hp[b] / A.mx[b] - A.hp[a] / A.mx[a] || (A.dmg[b] || 0) - (A.dmg[a] || 0));
     const rank = alive.concat(A.out.slice().reverse()); rank.forEach((id, i) => { mg.sc[id] = -(i + 1); mg.at[id] = now(); });
-    mg.win = rank[0] || null; mg.done = now(); mg.end = now() + BAN; if (mg.win){ s.dw = s.dw || {}; s.dw[mg.win] = (s.dw[mg.win] || 0) + 1; }
+    mg.win = rank[0] || null; mg.done = now(); mg.end = now() + BAN; s.dw = s.dw || {};
+    if (A.team && mg.win){ mg.winTeam = A.team[mg.win]; A.ids.forEach(id => { if (A.team[id] === mg.winTeam && !isBot(id)) s.dw[id] = (s.dw[id] || 0) + 1; }); if (mg.winTeam === "b") s.dw[mg.win] = (s.dw[mg.win] || 0) + 1; }
+    else if (mg.win) s.dw[mg.win] = (s.dw[mg.win] || 0) + 1;
     G.sk++; s.snd = {k: "s" + G.sk, n: "mgwin"};
     if (s.arena){ s.arK = s.arK || {}; A.ids.forEach(id => { s.arK[id] = (s.arK[id] || 0) + (A.kills[id] || 0); }); mg.perk = null; }
     else { mg.perk = mg.win ? {opts: perkOpts(G, mg.win), until: now() + N().RES + BAN + PERK, pick: null} : null;
@@ -227,7 +232,7 @@
   }
   function hostView(G, mg, id){
     const A = mg.ar, P2 = mg.perk;
-    return {map: A.map || 0, ph: A.ph, ids: A.ids, cls: A.cls, hp: rnd(A.hp), mx: A.mx, cubes: A.cubes || [], pw: A.pw || {}, out: A.out, sp: A.sp, feed: A.feed.slice(-4), kills: A.kills, pickLeft: Math.max(0, A.pickEnd - now()), pk: A.pk || PICK, fightEl: A.fight ? now() - A.fight : 0, left: A.end ? Math.max(0, A.end - now()) : 0,
+    return {map: A.map || 0, team: A.team || null, ph: A.ph, ids: A.ids, cls: A.cls, hp: rnd(A.hp), mx: A.mx, cubes: A.cubes || [], pw: A.pw || {}, out: A.out, sp: A.sp, feed: A.feed.slice(-4), kills: A.kills, pickLeft: Math.max(0, A.pickEnd - now()), pk: A.pk || PICK, fightEl: A.fight ? now() - A.fight : 0, left: A.end ? Math.max(0, A.end - now()) : 0,
       perk: P2 ? (id === mg.win ? {opts: P2.opts, pick: P2.pick, t: P2.t || null, left: Math.max(0, P2.until - now()), rev: P2.opts.includes("revive") ? revivable(G) : []} : {pick: !!P2.pick}) : null};
   }
   /* after the meeting: what the winner picked changes the round */
@@ -247,7 +252,7 @@
   const C = {emo: {}, cubes: [], pw: {}, cgT: {}, on: false, seed: null, A: null, me: null, am: AMMO, rl: 0, cd: 0, sup: 0, seq: 0, AP: {}, proj: [], fx: [], fields: [], trail: [], pops: [], sent: 0, sentP: null, moveP: null, aimP: null, supP: null, keys: {}, dot: 0, dotT: 0, dotBy: "", burn: 0, burnBy: "", hurtT: 0, shake: 0, hitAt: {}, shotAt: {}, kb: null, L: null, t0: 0, pickEnd: 0, pickDur: PICK, fightT0: 0, endAt: 0, doneAt: 0, started: false, hpT: 0, outShown: false, lastTr: {}, sndT: {}, kbDone: {}, v: null};
   const me = () => PNet.me;
   const NPo = () => N().NP;
-  function reset(keep){ Object.assign(C, {cubes: [], pw: {}, cgT: {}, seed: null, A: null, me: null, proj: [], fx: [], fields: [], trail: [], pops: [], AP: {}, moveP: null, aimP: null, supP: null, started: false, doneAt: 0, outShown: false, lastTr: {}, burn: 0, dot: 0, sup: 0, kb: null, hitAt: {}, shotAt: {}, kbDone: {}, picked: 0, win: null});
+  function reset(keep){ Object.assign(C, {winTeam: null, cubes: [], pw: {}, cgT: {}, seed: null, A: null, me: null, proj: [], fx: [], fields: [], trail: [], pops: [], AP: {}, moveP: null, aimP: null, supP: null, started: false, doneAt: 0, outShown: false, lastTr: {}, burn: 0, dot: 0, sup: 0, kb: null, hitAt: {}, shotAt: {}, kbDone: {}, picked: 0, win: null});
     if (!keep) leaveLayer(); else if (C.L){ const r = C.L.querySelector(".ar-res"); if (r){ r.classList.remove("on"); r._h = null; } } }
   const amIn = () => C.A && C.A.ids.includes(me());
   const alive = id => C.A && C.A.ids.includes(id) && !C.A.out.includes(id);
@@ -255,8 +260,9 @@
   /* where someone is on this screen: me exactly, the host's bots exactly, everyone else smoothed */
   const pos = id => id === me() && C.me ? C.me : isHost() && HB.bots[id] ? HB.bots[id].D || HB.bots[id] : C.AP[id] && C.AP[id].dx != null ? {x: C.AP[id].dx, y: C.AP[id].dy} : C.A && C.A.sp[id] ? C.A.sp[id] : null;
   const isHost = () => !!(PNet.P && PNet.P.isHost);
+  const mate = (a, b) => !!(a && b && a !== b && C.A && C.A.team && C.A.team[a] && C.A.team[a] === C.A.team[b]);
   const authOf = by => by === me() || (isHost() && !!HB.bots[by]);
-  const visible = id => { if (id === me() || !C.me || !alive(me())) return true; return seenFrom(C.me, id, pos(id)); };
+  const visible = id => { if (id === me() || !C.me || !alive(me()) || mate(id, me())) return true; return seenFrom(C.me, id, pos(id)); };
   /* sounds: from NP's little synth (quiet when the game sound is off), softer when it's far away */
   function snd(n, at){ const x = NPo().sfx, d = at && C.me ? Math.hypot(at.x - C.me.x, at.y - C.me.y) : 0, g = Math.max(.15, 1 - d / 900); if (now() - (C.sndT[n] || 0) < 45) return; C.sndT[n] = now(); try {
     if (n === "shot"){ x.noise(0, .14, 2600, 400, .2 * g, "lowpass"); x.tone(0, 170, 55, .1, .12 * g, "square"); }
@@ -280,11 +286,12 @@
   function view(v){
     C.v = v; const mg = v && v.phase === "meet" && v.meet && v.meet.mg; if (!mg || mg.g !== "arena" || !mg.ar){ if (C.seed != null || C.on) reset(); return; }
     const a = mg.ar; setLay(a.map || 0); if (C.seed !== mg.seed){ reset(!!v.arena); C.seed = mg.seed; C.t0 = now() - (mg.el || 0); }
-    const A = C.A || (C.A = {hp: {}, mx: {}, out: [], feed: []}); A.ph = a.ph; A.ids = a.ids; A.cls = a.cls; A.sp = a.sp; A.kills = a.kills || {}; A.perk = a.perk;
+    const A = C.A || (C.A = {hp: {}, mx: {}, out: [], feed: []}); A.team = a.team || null; A.ph = a.ph; A.ids = a.ids; A.cls = a.cls; A.sp = a.sp; A.kills = a.kills || {}; A.perk = a.perk;
     if (now() - C.hpT > 500){ A.hp = Object.assign({}, a.hp); A.out = a.out.slice(); A.feed = a.feed || []; A.mx = a.mx; C.cubes = a.cubes || []; C.pw = a.pw || {}; }
     const pe = now() + a.pickLeft; if (Math.abs(pe - C.pickEnd) > 250) C.pickEnd = pe; C.pickDur = a.pk || PICK;
     if (a.ph === "fight"){ const f0 = now() - a.fightEl; if (!C.fightT0 || Math.abs(f0 - C.fightT0) > 250) C.fightT0 = f0; C.endAt = now() + a.left; if (!C.started) start(); }
-    if (mg.done && !C.doneAt){ C.doneAt = now(); C.win = mg.win; if (v.arena && amIn()) reward(mg.win === me()); banner(mg.win ? `👑 ${esc(NPo().nm(mg.win))}` : T("Draw", "Unentschieden"), mg.win === me() ? "win" : ""); snd(mg.win === me() ? "win" : "ko"); if (mg.win === me()) Haptic.go([30, 50, 30, 50, 80]); }
+    if (mg.done && !C.doneAt){ C.doneAt = now(); C.win = mg.win; C.winTeam = mg.winTeam || null; if (v.arena && amIn()) reward(C.winTeam ? C.A.team && C.A.team[me()] === C.winTeam : mg.win === me()); const iw = C.winTeam ? C.A.team && C.A.team[me()] === C.winTeam : mg.win === me();
+      banner(C.winTeam ? (C.winTeam === "h" ? `👑 ${T("You won!", "Ihr habt gewonnen!")}` : `🤖 ${T("The bots win", "Die Bots gewinnen")}`) : mg.win ? `👑 ${esc(NPo().nm(mg.win))}` : T("Draw", "Unentschieden"), iw ? "win" : ""); snd(iw ? "win" : "ko"); if (iw) Haptic.go([30, 50, 30, 50, 80]); }
   }
   /* Nat Stars on its own counts like the other games: XP, and a win is a daily win */
   function reward(won){ const k = (C.A.kills || {})[me()] || 0, solo = PNet.P && PNet.P.solo; let xp = (won ? 20 : 6) + k * 4; if (solo) xp = Math.round(xp / 2);
@@ -371,14 +378,14 @@
   function resDraw(){
     const box = C.L && C.L.querySelector(".ar-res"), v = C.v; if (!box) return; const on = !!(v && v.arena && C.doneAt && now() - C.doneAt > 1700); box.classList.toggle("on", on); if (!on) return;
     const P = NPo().pl(), W = v.arWins || {}, K = v.arK || {}, ids = (C.A.ids || []).slice().sort((a, b) => (W[b] || 0) - (W[a] || 0) || (K[b] || 0) - (K[a] || 0)), left = Math.max(0, Math.ceil((C.doneAt + NEXT - now()) / 1000));
-    const h = `<div class="ar-rbox"><div class="ar-rt">${C.win ? `👑 <b>${esc(NPo().nm(C.win))}</b> ${T("wins round", "gewinnt Runde")} ${v.arRound || 1}` : T("Draw", "Unentschieden")}</div>
+    const h = `<div class="ar-rbox"><div class="ar-rt">${C.winTeam ? (C.winTeam === "h" ? `👑 <b>${T("You", "Ihr")}</b> ${T("win round", "gewinnt Runde")} ${v.arRound || 1}` : `🤖 <b>${T("The bots", "Die Bots")}</b> ${T("win round", "gewinnen Runde")} ${v.arRound || 1}`) : C.win ? `👑 <b>${esc(NPo().nm(C.win))}</b> ${T("wins round", "gewinnt Runde")} ${v.arRound || 1}` : T("Draw", "Unentschieden")}</div>
       <div class="ar-rl ${ids.length > 4 ? "two" : ""}">${ids.map((id, i) => `<div class="${id === me() ? "me" : ""}"><span class="r">${i + 1}</span><span class="np-hd">${headOf(id, P)}</span><b>${esc(NPo().nm(id))}</b><span class="w">🏆 ${W[id] || 0}</span><span class="k">💀 ${K[id] || 0}</span></div>`).join("")}</div>
       <div class="ar-rn">${T("Next round in", "Nächste Runde in")} <b>${left}</b> · ${(() => { const L2 = LAYS[(LAYS.indexOf(LAY) + 1) % LAYS.length]; return T(L2.en, L2.de); })()}</div><div class="ar-rb">${v.host && !(PNet.P && PNet.P.solo) ? `<button class="btn ghost" data-arx="lobby">↩︎ ${T("To the lobby", "Zur Lobby")}</button>` : ""}<button class="btn ghost" data-arx="quit">🚪 ${T("Leave", "Raus")}</button></div></div>`;
     if (box._h !== h){ box._h = h; box.innerHTML = h; }
   }
 
   /* ---- shooting ---- */
-  function nearestEnemy(rg, lob){ let best = null; C.A.ids.forEach(id => { if (id === me() || !alive(id) || !visible(id)) return; const q = pos(id); if (!q) return; const d = Math.hypot(q.x - C.me.x, q.y - C.me.y); if (d > rg) return; if (!lob && !clear(C.me, q)) return; if (!best || d < best.d) best = {id, q, d}; }); return best; }
+  function nearestEnemy(rg, lob){ let best = null; C.A.ids.forEach(id => { if (id === me() || !alive(id) || !visible(id) || mate(id, me())) return; const q = pos(id); if (!q) return; const d = Math.hypot(q.x - C.me.x, q.y - C.me.y); if (d > rg) return; if (!lob && !clear(C.me, q)) return; if (!best || d < best.d) best = {id, q, d}; }); return best; }
   function autoFire(su){ if (!fighting()) return; const cl = CLS[C.cls], s2 = su ? cl.su : cl, t = nearestEnemy((s2.rg || cl.rg) * 1.12, !!cl.lob);
     if (!t) return fire(C.me.a || 0, su); const v = velOf(t.id), sp = s2.v || cl.v, tt = cl.lob ? cl.lob / 1000 : sp ? t.d / sp : 0, tx = t.q.x + v.x * tt, ty = t.q.y + v.y * tt; C.autoLine = {x: t.q.x, y: t.q.y, t: now()};
     fire(Math.atan2(ty - C.me.y, tx - C.me.x), su, cl.lob ? -Math.hypot(tx - C.me.x, ty - C.me.y) : 0); }
@@ -396,7 +403,7 @@
     let from = {x: +m.x, y: +m.y}; if (by !== me()){ const p = C.AP[by]; if (p){ p.a = a; p.f = Math.cos(a) < 0 ? -1 : 1; p.shotT = now(); if (p.dx != null && Math.hypot(p.dx - from.x, p.dy - from.y) < 140 && !HB.bots[by]) from = {x: p.dx, y: p.dy}; } }
     if (su){ snd("super", from); C.fx.push({k: "sup", x: from.x, y: from.y, t: now()}); }
     else C.fx.push({k: "flash", x: from.x + Math.cos(a) * 30, y: from.y + Math.sin(a) * 30, a, t: now(), c: m.c});
-    const hitList = (r, cone) => C.A.ids.filter(id => { if (id === by || !alive(id)) return false; const q = pos(id); if (!q) return false; const d = Math.hypot(q.x - from.x, q.y - from.y); if (d > r + BODY) return false;
+    const hitList = (r, cone) => C.A.ids.filter(id => { if (id === by || !alive(id) || mate(id, by)) return false; const q = pos(id); if (!q) return false; const d = Math.hypot(q.x - from.x, q.y - from.y); if (d > r + BODY) return false;
       if (cone && angDiff(Math.atan2(q.y - from.y, q.x - from.x), a) > cone + Math.atan2(BODY, Math.max(1, d))) return false; return clear(from, q); });
     if (su && m.c === "melee"){ snd("melee", from); if (by === me() && C.me) C.me.dash = {a, until: now() + cl.su.dur, hit: {}, k: m.k}; else if (isHost() && HB.bots[by]) HB.bots[by].dash = {a, until: now() + cl.su.dur, hit: {}, k: m.k}; return; }
     if (su && m.c === "fire"){ snd("fire", from); C.fx.push({k: "ring", x: from.x, y: from.y, t: now(), rg: cl.su.rg});
@@ -416,28 +423,28 @@
   }
   const dmgOf = p => { const cl = CLS[p.c]; if (p.su && cl.su.dmg) return cl.su.dmg; return p.c === "snipe" ? Math.round(cl.dmg + cl.far * Math.min(1, p.tr / cl.rg)) : cl.dmg; };
   /* a hit that this phone decides: tell everyone (the host keeps the health) */
-  function hitOut(v, d, k, by, ex){ if (!(d > 0) || !C.A || !alive(v)) return; if (by && by !== v) d *= 1 + CUBE * (C.pw[by] || 0); const m = {t: "ah", v, by: by || "", d: Math.round(d), k};
+  function hitOut(v, d, k, by, ex){ if (!(d > 0) || !C.A || !alive(v) || mate(v, by)) return; if (by && by !== v) d *= 1 + CUBE * (C.pw[by] || 0); const m = {t: "ah", v, by: by || "", d: Math.round(d), k};
     if (ex && ex.burn) m.b = 1; if (ex && ex.kx != null){ m.kx = Math.round(ex.kx); m.ky = Math.round(ex.ky); }
     send(m); if (by === me() && v !== me()){ const was = C.sup; C.sup = Math.min(1, C.sup + d / CLS[C.cls].sc); if (was < 1 && C.sup >= 1){ snd("ready"); Haptic.go([10, 30, 10]); } } }
   /* something touches a body */
-  function bodyAt(p){ const ids = C.A.ids; for (let i = 0; i < ids.length; i++){ const id = ids[i]; if (id === p.by || !alive(id) || p.done[id]) continue; const q = pos(id); if (!q) continue; if (Math.hypot(q.x - p.x, q.y - p.y) < BODY + p.r) return id; } return null; }
+  function bodyAt(p){ const ids = C.A.ids; for (let i = 0; i < ids.length; i++){ const id = ids[i]; if (id === p.by || !alive(id) || p.done[id] || mate(id, p.by)) continue; const q = pos(id); if (!q) continue; if (Math.hypot(q.x - p.x, q.y - p.y) < BODY + p.r) return id; } return null; }
   function boom(p, direct){
     const cl = CLS.rock; snd("boom", p); C.fx.push({k: "boom", x: p.x, y: p.y, t: now()}); C.shake = Math.max(C.shake, C.me && Math.hypot(p.x - C.me.x, p.y - C.me.y) < 400 ? 10 : 3);
-    if (p.au) C.A.ids.forEach(id => { if (id === direct || id === p.by || !alive(id)) return; const q = pos(id); if (q && Math.hypot(q.x - p.x, q.y - p.y) < cl.splash + BODY * .5 && clear(p, {x: q.x + (p.x - q.x) * .1, y: q.y + (p.y - q.y) * .1})) hitOut(id, cl.sdmg, p.k + "x" + id, p.by); });
+    if (p.au) C.A.ids.forEach(id => { if (id === direct || id === p.by || !alive(id) || mate(id, p.by)) return; const q = pos(id); if (q && Math.hypot(q.x - p.x, q.y - p.y) < cl.splash + BODY * .5 && clear(p, {x: q.x + (p.x - q.x) * .1, y: q.y + (p.y - q.y) * .1})) hitOut(id, cl.sdmg, p.k + "x" + id, p.by); });
     C.fields.push({x: p.x, y: p.y, r: 64, until: now() + cl.field, by: p.by, t: now()});
   }
   /* the leap: fly forward, everyone you touch gets hit once */
   function dashStep(o, id, dt, A){
     const d = o.dash, sp = CLS.melee.su.rg / (CLS.melee.su.dur / 1000), nx = o.x + Math.cos(d.a) * sp * dt, ny = o.y + Math.sin(d.a) * sp * dt;
     if (walkA(nx, o.y)) o.x = nx; if (walkA(o.x, ny)) o.y = ny; o.mv = 1; o.f = Math.cos(d.a) < 0 ? -1 : 1;
-    (A || C.A).ids.forEach(t => { if (t === id || d.hit[t] || !alive(t)) return; const q = pos(t); if (q && Math.hypot(q.x - o.x, q.y - o.y) < BODY * 2 + 18){ d.hit[t] = 1; hitOut(t, CLS.melee.su.dmg, d.k + ":" + t, id, {kx: Math.cos(d.a) * 70, ky: Math.sin(d.a) * 70}); } });
+    (A || C.A).ids.forEach(t => { if (t === id || d.hit[t] || !alive(t) || mate(t, id)) return; const q = pos(t); if (q && Math.hypot(q.x - o.x, q.y - o.y) < BODY * 2 + 18){ d.hit[t] = 1; hitOut(t, CLS.melee.su.dmg, d.k + ":" + t, id, {kx: Math.cos(d.a) * 70, ky: Math.sin(d.a) * 70}); } });
     if (now() >= d.until){ o.dash = null; C.fx.push({k: "land", x: o.x, y: o.y, t: now()}); snd("boom", o); }
   }
   /* what hurts where I stand: fire, the fire trail, burning, the gas */
   function hazards(q, id, el, gr){
     let dps = 0, by = ""; const t = now();
-    C.fields.forEach(f => { if (f.by !== id && f.until > t && Math.hypot(q.x - f.x, q.y - f.y) < f.r){ dps = Math.max(dps, 26); by = f.by; } });
-    let tr = 0; C.trail.forEach(p => { if (p.by !== id && t - p.t < 1800 && Math.hypot(q.x - p.x, q.y - p.y) < 30){ tr = 24; by = by || p.by; } }); dps += tr;
+    C.fields.forEach(f => { if (f.by !== id && !mate(f.by, id) && f.until > t && Math.hypot(q.x - f.x, q.y - f.y) < f.r){ dps = Math.max(dps, 26); by = f.by; } });
+    let tr = 0; C.trail.forEach(p => { if (p.by !== id && !mate(p.by, id) && t - p.t < 1800 && Math.hypot(q.x - p.x, q.y - p.y) < 30){ tr = 24; by = by || p.by; } }); dps += tr;
     if (id === me() && C.burn > t){ dps += 7; by = by || C.burnBy; } const o = HB.dot[id]; if (o && o.burn > t){ dps += 7; by = by || o.burnBy; }
     if (el >= GAS0 && Math.hypot(q.x - GC.x, q.y - GC.y) > gr){ dps += 22; }
     return {dps, by};
@@ -505,7 +512,7 @@
     /* bombs */
     for (const p of C.proj){ if (!p.lob || p.dead) continue; const k = Math.min(1, (t - p.t) / p.dur); p.x = p.x0 + (p.x1 - p.x0) * k; p.y = p.y0 + (p.y1 - p.y0) * k;
       if (k >= 1){ p.dead = 1; const cl = CLS[p.c], s2 = p.su ? Object.assign({}, cl, cl.su) : cl; snd("boom", p); C.fx.push({k: "boom", x: p.x1, y: p.y1, t, big: p.su}); C.shake = Math.max(C.shake, C.me && Math.hypot(p.x1 - C.me.x, p.y1 - C.me.y) < 400 ? (p.su ? 14 : 9) : 3);
-        if (p.au) C.A.ids.forEach(id => { if (id === p.by || !alive(id)) return; const q = pos(id); if (!q) return; const dd = Math.hypot(q.x - p.x1, q.y - p.y1); if (dd > s2.splash + BODY * .6) return;
+        if (p.au) C.A.ids.forEach(id => { if (id === p.by || !alive(id) || mate(id, p.by)) return; const q = pos(id); if (!q) return; const dd = Math.hypot(q.x - p.x1, q.y - p.y1); if (dd > s2.splash + BODY * .6) return;
           const kb = p.su && s2.kb ? {kx: (q.x - p.x1) / (dd || 1) * s2.kb, ky: (q.y - p.y1) / (dd || 1) * s2.kb} : null; hitOut(id, s2.dmg, p.k + ":" + id, p.by, kb); }); } }
     /* bullets */
     for (const p of C.proj){ if (p.dead || p.lob) continue; const sp = Math.hypot(p.vx, p.vy) * dt, n = Math.max(1, Math.ceil(sp / 10));
@@ -560,7 +567,8 @@
   function fig(c, x, y, p, o){
     const h = 118, w = h * 200 / 256, bob = o.mv ? Math.sin(now() / 90 + (p.id.charCodeAt(1) || 0)) * 3 : 0, cv = body(p);
     c.fillStyle = "rgba(0,0,0,.32)"; c.beginPath(); c.ellipse(x, y + 16, 26, 8, 0, 0, 7); c.fill();
-    if (o.me){ c.strokeStyle = "rgba(143,196,88,.85)"; c.lineWidth = 3; c.beginPath(); c.ellipse(x, y + 16, 30, 10, 0, 0, 7); c.stroke(); }
+    if (o.mate){ c.strokeStyle = "rgba(79,163,255,.9)"; c.lineWidth = 3; c.beginPath(); c.ellipse(x, y + 16, 30, 10, 0, 0, 7); c.stroke(); }
+    else if (o.me){ c.strokeStyle = "rgba(143,196,88,.85)"; c.lineWidth = 3; c.beginPath(); c.ellipse(x, y + 16, 30, 10, 0, 0, 7); c.stroke(); }
     else { c.strokeStyle = "rgba(233,87,63,.75)"; c.lineWidth = 3; c.beginPath(); c.ellipse(x, y + 16, 30, 10, 0, 0, 7); c.stroke(); }
     if (cv){ if (o.f < 0){ c.save(); c.translate(x, 0); c.scale(-1, 1); c.drawImage(cv, -w / 2, y - h + 18 + bob, w, h); c.restore(); } else c.drawImage(cv, x - w / 2, y - h + 18 + bob, w, h); }
     else { c.fillStyle = "#BAB5AC"; c.beginPath(); c.arc(x, y - 30, 26, 0, 7); c.fill(); }
@@ -601,13 +609,13 @@
       return q && {id, x: q.x, y: q.y, f: id === me() && C.me ? C.me.f : b ? b.f : p ? p.f : 1, mv: id === me() && C.me ? C.me.mv : b ? b.mv : p ? p.mv : 0}; }).filter(Boolean).sort((a, b) => a.y - b.y);
     list.forEach(q => { const id = q.id, p = P.find(x => x.id === id) || {id, name: "?"}, self = id === me(), out = A.out.includes(id), inF = fogAt(q.x, q.y) >= 0;
       c.globalAlpha = out ? .4 : inF ? .62 : 1;
-      fig(c, q.x, q.y, p, {f: q.f, mv: q.mv, me: self, flash: C.hitAt[id] && t - C.hitAt[id] < 110});
+      fig(c, q.x, q.y, p, {f: q.f, mv: q.mv, me: self, mate: mate(id, me()), flash: C.hitAt[id] && t - C.hitAt[id] < 110});
       c.globalAlpha = 1;
       if ((self && C.burn > t) || (HB.dot[id] && HB.dot[id].burn > t)) emoAt(c, "🔥", q.x + Math.sin(t / 90) * 6, q.y - 74, 30);
       const em = C.emo[id]; if (em && t - em.t < 2200){ const k = Math.min(1, (t - em.t) / 160), yy = q.y - 172 - (1 - k) * 12; c.globalAlpha = t - em.t > 1900 ? (2200 - (t - em.t)) / 300 : 1; c.fillStyle = "#fff"; rr(c, q.x - 26, yy - 26, 52, 46, 14); c.fill(); c.beginPath(); c.moveTo(q.x - 7, yy + 19); c.lineTo(q.x, yy + 28); c.lineTo(q.x + 7, yy + 19); c.fill();
         if (em.e === "GG"){ c.fillStyle = "#1b1a18"; c.font = "900 22px Figtree,system-ui,sans-serif"; c.textAlign = "center"; c.fillText("GG", q.x, yy + 6); c.font = NUMF; } else emoAt(c, em.e, q.x, yy - 3, 32); c.globalAlpha = 1; }
       if (A.ph === "fight" && !out){ const hp = A.hp[id] || 0, mx = A.mx[id] || 1, w = 74, y = q.y - 124, f = Math.max(0, Math.min(1, hp / mx)); c.fillStyle = "rgba(10,10,14,.85)"; rr(c, q.x - w / 2 - 3, y - 3, w + 6, self ? 26 : 16, 6); c.fill();
-        c.fillStyle = self ? "#7FD04A" : "#E9573F"; rr(c, q.x - w / 2, y, w * f, 10, 5); c.fill(); if (c.font !== NUMF) c.font = NUMF; c.textAlign = "center"; c.fillStyle = "#fff"; c.fillText(Math.ceil(hp), q.x, y - 6);
+        c.fillStyle = self ? "#7FD04A" : mate(id, me()) ? "#4FA3FF" : "#E9573F"; rr(c, q.x - w / 2, y, w * f, 10, 5); c.fill(); if (c.font !== NUMF) c.font = NUMF; c.textAlign = "center"; c.fillStyle = "#fff"; c.fillText(Math.ceil(hp), q.x, y - 6);
         const ce = CLS[A.cls[id]]; if (ce) emoAt(c, ce.e, q.x - w / 2 - 15, y + 5, 20);
         const pw = C.pw[id] || 0; if (pw){ c.drawImage(cubeSpr(), q.x + w / 2 + 6, y - 6, 18, 18); c.textAlign = "left"; c.fillStyle = "#B8F07A"; c.fillText(pw, q.x + w / 2 + 26, y + 8); c.textAlign = "center"; }
         /* my reload bar right under my health, like in Brawl Stars */
@@ -681,7 +689,7 @@
   PG.arena = {CLS, PERKS, PICK, FIGHT, NEXT, LAYS, setLay, hostInit, hostTick, hostAct, hostView, applyPerk, client, fx: FX, stopHost};
   PG.onArena = m => onMsg(m);
   if (PG.ART) PG.ART.arena = ["⭐", "#E9A92B"];
-  window.__ar = () => ({on: C.on, ph: C.A && C.A.ph, me: C.me && {x: Math.round(C.me.x), y: Math.round(C.me.y)}, hp: C.A && C.A.hp, out: C.A && C.A.out, cls: C.A && C.A.cls, am: C.am, sup: C.sup, proj: C.proj.length, bots: Object.keys(HB.bots).length, fog: C.me ? fogAt(C.me.x, C.me.y) : -1});
+  window.__ar = () => ({on: C.on, team: C.A && C.A.team, ph: C.A && C.A.ph, me: C.me && {x: Math.round(C.me.x), y: Math.round(C.me.y)}, hp: C.A && C.A.hp, out: C.A && C.A.out, cls: C.A && C.A.cls, am: C.am, sup: C.sup, proj: C.proj.length, bots: Object.keys(HB.bots).length, fog: C.me ? fogAt(C.me.x, C.me.y) : -1});
   window.__arFire = (a, su, len) => a == null ? autoFire(su) : fire(a, su, len);
   window.__arMove = (dx, dy) => { C.moveP = dx == null ? null : {dx, dy, id: -1}; };
   window.__arTo = (x, y) => { if (C.me){ C.me.x = x; C.me.y = y; } };
