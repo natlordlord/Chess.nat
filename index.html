@@ -2817,7 +2817,7 @@ button,.btn,.tile,.chip,.nav,[role=button]{touch-action:manipulation;-webkit-use
 .tile,.unit{box-shadow:inset 0 0 0 1px var(--hair),inset 0 1px 0 rgba(255,255,255,.035)}
 .tile{transition:transform .14s var(--ease),background-color .15s,box-shadow .15s}
 .tile:active{transform:scale(.975);background:var(--panel-2)}
-.chip,.seg button,.tabbar button,.nav,.rankchip{transition:transform .12s var(--ease),background-color .15s,color .15s,border-color .15s}
+.chip,.seg button,.nav,.rankchip{transition:transform .12s var(--ease),background-color .15s,color .15s,border-color .15s}
 .chip:active,.seg button:active,.rankchip:active{transform:scale(.95)}
 .seg{border-radius:12px}.seg button{border-radius:9px}
 /* fields: taller, rounder, and a green ring when you type */
@@ -2830,9 +2830,6 @@ select:focus,input:not([type=range]):not([type=checkbox]):not([type=radio]):focu
 @keyframes pageIn{from{opacity:0}}
 h1.h-title{letter-spacing:-.02em}
 @media (max-width:900px){
-  /* the tab bar stays solid and calm; the icon just gives a little when you tap it */
-  .tabbar button svg{transition:transform .18s var(--ease),color .15s}
-  .tabbar button:active svg{transform:scale(.88)}
 }
 @media (hover:hover) and (pointer:fine){.tile:hover{transform:translateY(-2px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.11),0 8px 22px rgba(0,0,0,.25)}.tile:active{transform:scale(.985)}}
 @media (prefers-reduced-motion:reduce){#main>.page,#main>.stage,.toast{animation:none!important}}
@@ -2845,7 +2842,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794420000";
+const CHESSNAT_BUILD = "1794420606";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -14470,7 +14467,7 @@ const Ranks = {
 <script src="games/natposter.js?v=128"></script>
 <script src="games/arena.js?v=128"></script>
 <script src="games/tipp.js?v=128"></script>
-<script src="games/kcal.js?v=139"></script>
+<script src="games/kcal.js?v=140"></script>
 <script>boot();</script>
 </body>
 </html>
