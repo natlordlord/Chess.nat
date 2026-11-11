@@ -3614,6 +3614,7 @@ function makeBoard(wrap, opts = {}){
   let liveFen = null;
   B.set = (g, last) => {
     const fen = g.fen(); if (fen !== liveFen){ if (liveFen !== null){ B.userArrows = []; B.userMarks = {}; } liveFen = fen; }
+    try { if (typeof Watch !== "undefined") Watch.note(B, fen, last); } catch(e) {}
     B.live = {g, last: last || null};
     if (B.ply != null){ B.ply = null; wrap.classList.remove("viewing"); }
     /* premoves: while it's still the opponent's turn the board shows your queued moves already made;
@@ -3656,6 +3657,8 @@ function makeBoard(wrap, opts = {}){
   B.mark = (m) => { B.marks = m || {}; B.paint(); };
   B.setThreats = t => { B.threats = t || {}; B.paint(); };
   B.setArrows = a => { B.arrows = a || []; drawArrows(); };
+  /* moves that friends who are watching suggest: blue arrows, gone with the next position */
+  B.setSug = a => { B.sug = a || []; drawArrows(); };
   let arrowPreview = null;
   /* arrows in the style of the big chess sites: wide, see-through, big head; knight moves bend into an L */
   const ARROW_COL = {g: "#15781B", r: "#882020", b: "#003088", y: "#FFAA00"};
@@ -3676,7 +3679,7 @@ function makeBoard(wrap, opts = {}){
     return `<g opacity=".8"><polyline points="${pts.map(p => p.join(",")).join(" ")}" fill="none" stroke="${col}" stroke-width="${W}" stroke-linejoin="miter" stroke-linecap="butt"/><polygon points="${head}" fill="${col}"/></g>`;
   }
   function drawArrows(){
-    const all = (B.ply != null ? [] : B.arrows).concat(B.userArrows, arrowPreview ? [arrowPreview] : []);
+    const all = (B.ply != null ? [] : B.arrows).concat(B.userArrows, B.ply != null ? [] : (B.sug || []), arrowPreview ? [arrowPreview] : []);
     svg.innerHTML = all.map(([a, b, c = "g"]) => arrowSVG(a, b, c)).join("");
   }
   /* game-style celebration over the board: big word, rating change, puzzle rating and confetti */
@@ -14547,12 +14550,12 @@ const Ranks = {
 <script src="games/cards.js?v=128"></script>
 <script src="games/heads.js?v=128"></script>
 <script src="games/more.js?v=128"></script>
-<script src="games/net.js?v=129"></script>
+<script src="games/net.js?v=130"></script>
 <script src="games/online.js?v=128"></script>
 <script src="games/natposter.js?v=129"></script>
 <script src="games/arena.js?v=129"></script>
 <script src="games/tipp.js?v=129"></script>
-<script src="games/now.js?v=1"></script>
+<script src="games/now.js?v=2"></script>
 <script src="data/foods.js?v=3"></script>
 <script src="games/kcal.js?v=165"></script>
 <script>boot();</script>

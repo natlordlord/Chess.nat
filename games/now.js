@@ -40,11 +40,13 @@ const Now = (() => {
   }
   const of = id => { const x = rows[id]; return x && x.what && Date.now() - Date.parse(x.updated_at) < FRESH ? x.what : null; };
   const joinable = w => !!(w && w.k === "party" && /^[a-z0-9]{4,12}$/.test(String(w.c || "")));
-  const btn = (w, big) => joinable(w) ? `<button class="btn ${big ? "" : "sm"} go now-go" data-now-join="${h(w.c)}">${w.run ? T("Watch", "Zuschauen") : T("Join", "Mitspielen")}</button>` : "";
+  const board = w => !!(w && /^(puzzle|chess|duel)$/.test(w.k));
+  const btn = (w, big, id) => joinable(w) ? `<button class="btn ${big ? "" : "sm"} go now-go" data-now-join="${h(w.c)}">${w.run ? T("Watch", "Zuschauen") : T("Join", "Mitspielen")}</button>`
+    : board(w) ? `<button class="btn ${big ? "" : "sm"} go now-go" data-now-watch="${h(id)}">${T("Watch", "Zuschauen")}</button>` : "";
   /* every place that shows it is an empty slot the page leaves for us: <span data-now="<player id>"> (small) or data-now-card (profile) */
   function html(id, card){ const w = id === me() ? null : of(id); if (!w) return "";
-    return card ? `<div class="now-card"><span class="now-dot"></span><div class="grow"><small>${T("In a game right now", "Ist gerade im Game")}</small><b>${h(text(w))}</b>${w.k === "party" && w.n > 1 ? `<i>${w.n} ${T("players", "Spieler")}</i>` : ""}${joinable(w) && w.run ? `<i>${T("You watch this round and play from the next one.", "Du schaust diese Runde zu und spielst ab der nächsten mit.")}</i>` : ""}</div>${btn(w, true)}</div>`
-      : `<span class="now-chip"><span class="now-dot"></span>${h(text(w))}</span>${btn(w)}`; }
+    return card ? `<div class="now-card"><span class="now-dot"></span><div class="grow"><small>${T("In a game right now", "Ist gerade im Game")}</small><b>${h(text(w))}</b>${w.k === "party" && w.n > 1 ? `<i>${w.n} ${T("players", "Spieler")}</i>` : ""}${joinable(w) && w.run ? `<i>${T("You watch this round and play from the next one.", "Du schaust diese Runde zu und spielst ab der nächsten mit.")}</i>` : ""}${board(w) ? `<i>${T("You see the board live and can suggest moves.", "Du siehst das Brett live und kannst Züge vorschlagen.")}</i>` : ""}</div>${btn(w, true, id)}</div>`
+      : `<span class="now-chip"><span class="now-dot"></span>${h(text(w))}</span>${btn(w, false, id)}`; }
   function paint(){ document.querySelectorAll("[data-now],[data-now-card]").forEach(el => { const card = el.hasAttribute("data-now-card"), x = html(card ? el.dataset.nowCard : el.dataset.now, card); if (el._now !== x){ el._now = x; el.innerHTML = x; } }); }
   const slot = id => `<span class="now-slot" data-notr data-now="${h(id)}"></span>`, cardSlot = id => `<div class="now-slot" data-notr data-now-card="${h(id)}"></div>`;
 
@@ -60,6 +62,7 @@ const Now = (() => {
     document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-now-join]"); if (!b) return; e.preventDefault(); e.stopPropagation();
       try { if (typeof PG !== "undefined" && PG.st && PG.st.left && PG.st.left.c === b.dataset.nowJoin){ PG.st.left = null; PG.persist(); } } catch(er) {}
       App.go("lobby", {join: b.dataset.nowJoin}); }, true);
+    document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-now-watch]"); if (!b) return; e.preventDefault(); e.stopPropagation(); App.go("watch", {id: b.dataset.nowWatch}); }, true);
     const st = document.createElement("style"); st.textContent = `
 .now-slot:empty{display:none}
 span.now-slot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
@@ -77,5 +80,130 @@ div.now-slot{margin:10px 0}
     tick();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
-  return {mine, of, text, load, paint, slot, cardSlot, tick};
+  return {mine, of, text, load, paint, slot, cardSlot, tick, T, h, sb, me};
+})();
+
+/* ===== Watching a friend's board: you see every position live and can drag a piece to suggest a move; the friend sees
+   it as a blue arrow (it changes nothing on their board). Voice chat on top, when both switch their microphone on.
+   Transport: a realtime broadcast channel per player, "chessnat-watch-<player id>". The player's phone only listens
+   while a board is open; who watches says hello every 5 seconds and is forgotten after 16 without one. ===== */
+const Watch = (() => {
+  const {T, h, sb, me} = Now, pid = () => (typeof PNet !== "undefined" ? PNet.me : "x"), SQ = /^[a-h][1-8]$/;
+  const myName = () => String((typeof Social !== "undefined" && Social.player && Social.player.name) || "?").slice(0, 16);
+  const vib = p => { try { if (typeof Haptic !== "undefined") Haptic.go(p); else if (navigator.vibrate) navigator.vibrate(p); } catch(e) {} };
+  function chan(name, onMsg, onLive){
+    const c = sb(); let ch = null, dead = false, live = false;
+    const sub = () => { const x = c.channel(name, {config: {broadcast: {self: false, ack: false}}}); ch = x;
+      x.on("broadcast", {event: "m"}, ({payload}) => { if (x === ch && payload) try { onMsg(payload); } catch(e) { console.error(e); } });
+      x.subscribe(st => { if (x !== ch) return; live = st === "SUBSCRIBED"; if (live){ if (onLive) onLive(); } else if (!dead && /ERROR|TIMED_OUT|CLOSED/.test(st)) setTimeout(revive, 1500); }); };
+    const revive = () => { if (dead || (ch && ch.state === "joined")) return; const o = ch; ch = null; try { c.removeChannel(o); } catch(e) {} sub(); };
+    sub();
+    return {send(m){ if (ch && live) ch.send({type: "broadcast", event: "m", payload: m}).catch(() => {}); }, close(){ dead = true; const o = ch; ch = null; try { c.removeChannel(o); } catch(e) {} }};
+  }
+
+  /* ---- voice: the same peer-to-peer voice chat as in the party games, carried by the watch channel ---- */
+  let voice = false;
+  async function voiceOn(send){
+    if (voice) return true; if (typeof PVoice === "undefined") return false;
+    if (typeof PNet !== "undefined" && PNet.P){ toast(T("Voice chat is busy with your lobby.", "Der Sprachchat läuft schon in deiner Lobby.")); return false; }
+    PVoice.via(m => send(Object.assign({id: pid()}, m)));
+    if (!(await PVoice.start())){ PVoice.via(null); toast(T("The microphone isn't allowed.", "Das Mikrofon ist nicht erlaubt.")); return false; }
+    PVoice.setMic(true); voice = true; return true;
+  }
+  function voiceOff(){ if (!voice) return; voice = false; try { PVoice.setMic(false); PVoice.stop(); } catch(e) {} PVoice.via(null); }
+  const micHTML = () => `<button class="watch-mic ${voice ? "on" : ""}" data-watch-mic aria-label="${T("Voice chat", "Sprachchat")}">${voice ? "🎙️" : "🔇"}</button>`;
+
+  /* ---- my board is being watched ---- */
+  let pub = null, cur = null, lastKey = "", ws = {}, sugs = {}, lastSug = "";
+  const state = () => cur && cur.B.el.isConnected ? {t: "st", id: pid(), fen: cur.fen, last: cur.last, o: cur.B.o, k: (Now.mine() || {}).k || null} : {t: "st", id: pid(), fen: null};
+  function note(B, fen, last){
+    if (typeof App !== "undefined" && App.route === "watch") return;
+    const l = last && SQ.test(last.from) && SQ.test(last.to) ? {from: last.from, to: last.to} : null, key = fen + (l ? l.from + l.to : "");
+    cur = {B, fen, last: l}; if (key === lastKey) return; lastKey = key; sugs = {}; lastSug = ""; if (B.sug && B.sug.length) B.sug = [];
+    if (pub) pub.send(state()); pill();
+  }
+  const paintSug = () => { if (cur && cur.B.setSug && cur.B.el.isConnected) cur.B.setSug(Object.values(sugs)); };
+  function onPub(m){
+    if (!pub || !m || !m.id || m.id === pid()) return;
+    if (m.t === "hi"){ const fresh = !ws[m.id]; ws[m.id] = {name: String(m.name || "?").replace(/\s+/g, " ").trim().slice(0, 16) || "?", t: Date.now()}; pub.send(state());
+      if (fresh){ toast(`👀 ${ws[m.id].name} ${T("is watching you", "schaut dir zu")}`, 2600); vib([10, 30, 10]); } pill(); }
+    else if (m.t === "bye"){ delete ws[m.id]; delete sugs[m.id]; paintSug(); pill(); }
+    else if (m.t === "sug"){ if (!ws[m.id] || !cur || m.fen !== cur.fen || !SQ.test(m.from) || !SQ.test(m.to)) return; sugs[m.id] = [m.from, m.to, "b"]; lastSug = ws[m.id].name; paintSug(); vib(8); pill(); }
+    else if (m.t === "rtc"){ if (voice) PVoice.onMsg(m); }
+  }
+  const watchable = () => { const w = Now.mine(); return !!(w && /^(puzzle|chess|duel)$/.test(w.k)) && !document.hidden && !!me() && !!sb(); };
+  function sync(){
+    const want = watchable();
+    if (want && !pub) pub = chan("chessnat-watch-" + me(), onPub, () => pub && pub.send(state()));
+    else if (!want && pub){ try { pub.send({t: "end", id: pid()}); } catch(e) {} voiceOff(); const p = pub; pub = null; setTimeout(() => p.close(), 250); ws = {}; sugs = {}; cur = null; lastKey = ""; }
+    if (pub){ const now = Date.now(); let gone = false; Object.keys(ws).forEach(id => { if (now - ws[id].t > 16000){ delete ws[id]; delete sugs[id]; gone = true; } }); if (gone){ paintSug(); if (!Object.keys(ws).length) voiceOff(); } }
+    pill();
+  }
+  /* "Mila is watching" with the microphone button, while someone is */
+  function pill(){
+    let el = document.querySelector(".watch-pill"); const names = Object.values(ws).map(w => w.name);
+    if (!pub || !names.length){ if (el) el.remove(); return; }
+    if (!el){ el = document.createElement("div"); el.className = "watch-pill"; el.setAttribute("data-notr", ""); document.body.appendChild(el); }
+    const x = `<span>👀 ${h(names.slice(0, 2).join(", "))}${names.length > 2 ? " +" + (names.length - 2) : ""}${lastSug ? `<small>💡 ${T("Suggestion from", "Vorschlag von")} ${h(lastSug)}</small>` : ""}</span>${micHTML()}`;
+    if (el._x !== x){ el._x = x; el.innerHTML = x; }
+  }
+
+  /* ---- I'm watching ---- */
+  const LBL = {puzzle: ["is solving a puzzle", "löst ein Puzzle"], chess: ["is playing chess", "spielt Schach"], duel: ["is in a puzzle duel", "ist im Puzzle-Duell"]};
+  Views.watch = {
+    mount(main, arg){
+      const V = this; V.id = arg && arg.id; V.fen = null; V.got = false; V.last = null;
+      const p = typeof Social !== "undefined" && Social.P ? Social.P(V.id) : {name: "?"}; V.name = (p && p.name) || "?";
+      if (!V.id || !sb() || !me()){ main.innerHTML = `<div class="page"><p class="muted">${T("Sign in to watch.", "Melde dich an, um zuzuschauen.")}</p></div>`; return; }
+      main.innerHTML = stageHTML(); main.firstElementChild.setAttribute("data-notr", "");
+      $("#topbar").innerHTML = `<span class="pill">👀 ${h(V.name)}</span><span class="pill" id="wst">${T("Connecting …", "Verbinde …")}</span>`;
+      $("#botbar").innerHTML = `<span class="watch-hint" id="whint">${T("Drag a piece to suggest a move.", "Zieh eine Figur, um einen Zug vorzuschlagen.")}</span>`;
+      $("#sp").innerHTML = `<div class="watch-side"><h3>${T("You're watching", "Du schaust zu")}</h3><p class="muted">${h(V.name)} ${T("sees your suggestion as a blue arrow. Only", "sieht deinen Vorschlag als blauen Pfeil. Ziehen kann nur")} ${h(V.name)}${T(" can move.", ".")}</p></div>`;
+      $("#sf").innerHTML = `<div class="watch-foot"><button class="btn" id="wmic">${T("🔇 Voice chat", "🔇 Sprachchat")}</button><button class="btn ghost" id="wleave">${T("Leave", "Verlassen")}</button></div>`;
+      const B = V.board = makeBoard($("#bw"), {history: false}); V.g = new Chess();
+      B.canPick = sq => { if (!V.fen) return false; const pc = V.g.get(sq); return !!pc && pc.color === V.g.turn(); };
+      B.dests = sq => V.fen ? gameDests(V.g)(sq) : [];
+      B.onMove = (from, to) => { B.set(V.g, V.last); B.setArrows([[from, to, "b"]]); V.ch.send({t: "sug", id: pid(), fen: V.fen, from, to}); vib(10); try { Sound.tap(); } catch(e) {}
+        const hn = $("#whint"); if (hn) hn.textContent = T("Suggestion sent ✓", "Vorschlag gesendet ✓"); };
+      V.ch = chan("chessnat-watch-" + V.id, m => V.on(m), () => V.hi());
+      V.hiT = setInterval(() => V.hi(), 5000);
+      V.waitT = setTimeout(() => { if (!V.got && $("#wst")) $("#wst").textContent = T("No board open right now", "Gerade kein Brett offen"); }, 7000);
+      $("#wleave").onclick = () => { if (App.stack.length) history.back(); else App.go("friends"); };
+      $("#wmic").onclick = async () => { if (voice) voiceOff(); else await voiceOn(m => V.ch.send(m)); $("#wmic").textContent = voice ? T("🎙️ Voice chat on", "🎙️ Sprachchat an") : T("🔇 Voice chat", "🔇 Sprachchat"); $("#wmic").classList.toggle("go", voice); };
+      if (typeof sizeBoard === "function") sizeBoard();
+    },
+    hi(){ if (this.ch) this.ch.send({t: "hi", id: pid(), uid: me(), name: myName()}); },
+    on(m){
+      const V = this; if (!m || !m.id || m.id === pid()) return;
+      if (m.t === "rtc"){ if (voice) PVoice.onMsg(m); return; }
+      const st = $("#wst"); if (!st) return;
+      if (m.t === "end" || (m.t === "st" && !m.fen)){ V.fen = null; st.textContent = m.t === "end" ? `${V.name} ${T("has finished", "ist fertig")}` : T("Between two boards …", "Gerade zwischen zwei Brettern …"); V.board.setArrows([]); return; }
+      if (m.t !== "st" || typeof m.fen !== "string" || m.fen.length > 100) return;
+      V.got = true; const lb = LBL[m.k] || LBL.chess; st.textContent = `${V.name} ${T(lb[0], lb[1])}`;
+      const last = m.last && SQ.test(m.last.from) && SQ.test(m.last.to) ? {from: m.last.from, to: m.last.to} : null;
+      if (m.fen === V.fen && V.board.o === (m.o === "b" ? "b" : "w")) return;
+      let g; try { g = new Chess(m.fen); } catch(e) { return; } if (!g.fen || g.fen().split(" ")[0] !== m.fen.split(" ")[0]) return;
+      V.fen = m.fen; V.g = g; V.last = last; V.board.setOrientation(m.o === "b" ? "b" : "w"); V.board.setArrows([]); V.board.set(g, last);
+      const hn = $("#whint"); if (hn) hn.textContent = T("Drag a piece to suggest a move.", "Zieh eine Figur, um einen Zug vorzuschlagen.");
+    },
+    unmount(){ clearInterval(this.hiT); clearTimeout(this.waitT); if (!this.ch) return; try { this.ch.send({t: "bye", id: pid()}); } catch(e) {} voiceOff(); const c = this.ch; this.ch = null; setTimeout(() => c.close(), 250); }
+  };
+
+  function start(){
+    setInterval(sync, 3000); window.addEventListener("chessnat:route", () => setTimeout(sync, 400)); document.addEventListener("visibilitychange", sync);
+    document.addEventListener("click", async e => { const b = e.target.closest && e.target.closest(".watch-pill [data-watch-mic]"); if (!b) return; e.preventDefault(); e.stopPropagation();
+      if (voice) voiceOff(); else if (pub) await voiceOn(m => pub && pub.send(m)); const el = document.querySelector(".watch-pill"); if (el) el._x = ""; pill(); }, true);
+    const st = document.createElement("style"); st.textContent = `
+.watch-pill{position:fixed;left:12px;bottom:calc(var(--tab-h,0px) + env(safe-area-inset-bottom,0px) + 84px);z-index:2400;display:flex;align-items:center;gap:10px;padding:8px 8px 8px 14px;border-radius:999px;background:rgba(30,40,24,.96);box-shadow:0 8px 22px rgba(0,0,0,.45),inset 0 0 0 1.5px rgba(155,226,90,.5);color:#fff;font:800 14px var(--body);max-width:calc(100vw - 24px);animation:watchIn .35s cubic-bezier(.2,.8,.2,1)}
+@keyframes watchIn{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+.watch-pill span{display:flex;flex-direction:column;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.watch-pill small{font:700 11.5px var(--body);color:#8FB8FF}
+.watch-mic{width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.14);font-size:17px;cursor:pointer;flex:none}
+.watch-mic.on{background:var(--go)}
+.watch-hint{font:800 13.5px var(--body);color:var(--muted)}
+.watch-side h3{margin:0 0 6px}.watch-side p{margin:0}
+.watch-foot{display:grid;grid-template-columns:1fr 1fr;gap:10px}`; document.head.appendChild(st);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
+  return {note, get watchers(){ return Object.values(ws).map(w => w.name); }, get voice(){ return voice; }};
 })();

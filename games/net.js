@@ -200,7 +200,9 @@ const PVoice = (() => {
   const log = (n, m) => { try { if (typeof Track !== "undefined") Track.push("voice", n, m); } catch(e) {} };
   let stream = null, keep = null, keepT = 0, on = false, starting = null, mic = false, mute = false, pcs = {}, lastHi = 0, hiT = 0, lvT = 0;
   const level = {}, an = {};
-  const send = (to, d) => PNet.raw({t: "rtc", to, d});
+  /* the hand-shake normally travels over the party channel; watching a friend's board brings its own channel (via) */
+  let tx = null;
+  const send = (to, d) => tx ? tx({t: "rtc", to, d}) : PNet.raw({t: "rtc", to, d});
   const me = () => PNet.me;
   async function start(){
     if (on || starting) return starting; if (!navigator.mediaDevices || !window.RTCPeerConnection) return false;
@@ -257,7 +259,7 @@ const PVoice = (() => {
       else if (d.cand){ if (!pc.remoteDescription) x.pend.push(d.cand); else { try { await pc.addIceCandidate(d.cand); } catch(e) {} } }
     } catch(e) { console.warn("voice", e); }
   }
-  return {start, stop, onMsg, get on(){ return on; }, get starting(){ return !!starting; }, denied: false,
+  return {start, stop, onMsg, via(f){ tx = f || null; }, get on(){ return on; }, get starting(){ return !!starting; }, denied: false,
     setMic(v){ mic = !!v; applyMic(); }, get mic(){ return mic; }, toggleMute(){ mute = !mute; applyMic(); return mute; }, get muted(){ return mute; },
     talking: id => !!level[id], peers: () => Object.keys(pcs).filter(id => pcs[id].pc.connectionState === "connected"), get _pcs(){ return pcs; }};
 })();

@@ -398,6 +398,32 @@ const PARTS = {
     await clean([a, b], "Ist gerade im Game");
   },
 
+  /* ---------- watching a friend's board: live position, a suggested move as an arrow ---------- */
+  async watch(browser){
+    const a = await L.open(browser, "tester"), b = await L.open(browser, "mila");
+    await b.evaluate(() => App.go("puzzles")); await b.waitForSelector("#bw .board .pc, #bw .board [class*=pc]", {timeout: 15000}).catch(() => {}); await sleep(6000);
+    const row = (await L.table("chess_now", "user_id=eq." + ID.mila))[0]; ok(row && row.what && row.what.k === "puzzle", "Mila löst ein Puzzle: Status „puzzle“ in der Datenbank", JSON.stringify(row && row.what));
+    await a.evaluate(id => App.go("fprofile", {id}), ID.mila); await sleep(2000);
+    const card = await txt(a, "#main .now-card"); ok(/Löst gerade Puzzles/.test(card) && /Zuschauen/.test(card), "Profil: „Löst gerade Puzzles“ mit Knopf „Zuschauen“", card.slice(0, 200));
+    await a.tap("#main .now-card [data-now-watch]"); await sleep(3500);
+    const fenB = await b.evaluate(() => App.view.board && App.view.board.live ? App.view.board.live.g.fen() : null), fenA = await a.evaluate(() => Views.watch.fen);
+    ok(!!fenA && fenA === fenB, "du siehst dieselbe Stellung wie Mila", JSON.stringify([fenA, fenB])); await a.shot("watch-zuschauer");
+    ok(/Nat Tester/.test(await txt(b, ".watch-pill")), "bei Mila steht, dass du zuschaust", await txt(b, ".watch-pill").catch(() => ""));
+    const mv = await a.evaluate(() => { const V = Views.watch, m = V.g.moves({verbose: true})[0]; V.board.onMove(m.from, m.to); return m.from + m.to; }); await sleep(1500);
+    ok(await b.evaluate(() => (App.view.board.sug || []).map(x => x[0] + x[1]).join()) === mv, "dein Vorschlag kommt bei Mila als Pfeil an", mv);
+    ok(await b.evaluate(() => /#003088/i.test(document.querySelector("#bw .arrows").innerHTML)), "der Pfeil ist blau auf ihrem Brett gezeichnet"); ok(/Vorschlag von Nat Tester/.test(await txt(b, ".watch-pill")), "und sie sieht, von wem er kommt"); await b.shot("watch-spieler");
+    ok(await b.evaluate(() => App.view.board.live.g.fen()) === fenB, "an Milas Stellung ändert der Vorschlag nichts");
+    { const m2 = await a.evaluate(() => { const V = Views.watch, L = V.g.moves({verbose: true}).filter(m => !m.promotion); const m = L[L.length - 1]; return {from: m.from, to: m.to, before: Object.keys(V.board.pieces).sort().join()}; });
+      await a.tap(`#bw .sq[data-sq="${m2.from}"]`); await sleep(300); await a.tap(`#bw .sq[data-sq="${m2.to}"]`); await sleep(1500);
+      ok(await b.evaluate(() => (App.view.board.sug || []).map(x => x[0] + x[1]).join()) === m2.from + m2.to, "mit dem Finger getippt: der neue Vorschlag ersetzt den alten", m2.from + m2.to);
+      ok(await a.evaluate(() => Object.keys(Views.watch.board.pieces).sort().join()) === m2.before, "auf deinem Brett bleibt die Stellung stehen (nur der Pfeil)"); await a.shot("watch-vorschlag"); }
+    await a.tap("#wmic"); await sleep(800); await b.tap(".watch-pill [data-watch-mic]"); await sleep(7000);
+    ok(await a.evaluate(() => Watch.voice && PVoice.peers().length === 1) && await b.evaluate(() => Watch.voice && PVoice.peers().length === 1), "Sprachchat: beide schalten das Mikrofon ein und sind verbunden", JSON.stringify([await a.evaluate(() => [Watch.voice, PVoice.on, Object.values(PVoice._pcs).map(x => x.pc.connectionState)]), await b.evaluate(() => [Watch.voice, PVoice.on, Object.values(PVoice._pcs).map(x => x.pc.connectionState)])]));
+    await a.evaluate(() => App.go("friends")); await sleep(1500); ok(!(await has(b, ".watch-pill")), "du gehst: der Hinweis bei Mila verschwindet");
+    ok(await a.evaluate(() => !Watch.voice && !PVoice.on), "und der Sprachchat ist bei dir wieder aus");
+    await clean([a, b], "Zuschauen");
+  },
+
   async feedback(browser){
     const page = await L.open(browser, "tester"); await page.evaluate(() => openSheet()); await sleep(400); await page.locator('#sheet [data-s="__feedback"]').tap(); await sleep(600);
     ok(await has(page, "#fbtx"), "Mehr → Feedback öffnet das Formular"); await page.fill("#fbtx", "Test: die Einkaufsliste ist super"); await page.tap("#fbs"); await sleep(1000);
