@@ -2835,6 +2835,10 @@ h1.h-title{letter-spacing:-.02em}
 @media (prefers-reduced-motion:reduce){#main>.page,#main>.stage,.toast{animation:none!important}}
 .ps-opts.ps-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.ps-grid .ps-o{margin:0;min-width:0;padding-right:8px}.ps-grid .ps-o b{font-size:15px;line-height:1.15;overflow-wrap:anywhere;min-width:0}
 #nmusfix{position:fixed;top:calc(env(safe-area-inset-top,0px) + 4px);z-index:45;width:40px;height:38px;margin:0;border-radius:12px;box-shadow:none;background:var(--panel-2)}#nmusfix.on{background:color-mix(in srgb,var(--go) 16%,var(--panel-2))}
+.fb-ov .fb-t{flex:1;font:900 20px var(--display)}.fb-ov #fbtx{width:100%;box-sizing:border-box;padding:14px;border-radius:16px;border:2px solid var(--go);background:#2A2825;color:var(--fg);font:700 16px var(--body);resize:none}
+.fb-row{display:flex;gap:8px}.fb-row .btn{flex:1;padding:14px}.fb-prev{display:flex;align-items:flex-start;gap:8px}.fb-prev img{max-width:110px;max-height:160px;border-radius:10px}
+.fb-h{font:800 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:12px 2px 6px}#fbl{display:flex;flex-direction:column;gap:8px}
+.fb-i{background:var(--panel-2);border-radius:14px;padding:12px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}.fb-m{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.fb-m b{font:800 15px var(--body)}.fb-m small{color:var(--muted);font:600 11.5px var(--body);text-align:right}.fb-i p{margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}.fb-i img{display:block;max-width:100%;border-radius:10px;margin-top:8px}
 </style>
 </head>
 <body>
@@ -2843,7 +2847,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794422862";
+const CHESSNAT_BUILD = "1794423042";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11299,14 +11303,39 @@ function renderTabs(){
   t.innerHTML = tabs.map(([k, n, ic]) => `<button class="${cur === k ? "on" : ""}" data-t="${k}">${icon(ic, 24)}<span>${n}</span>${(k === "puzzles" || k === "chess") && dailyOpen ? `<i class="dot"></i>` : ""}${k === "friends" ? (fb ? `<i class="tbadge">${fb}</i>` : fo ? `<i class="dot on"></i>` : "") : ""}</button>`).join("");
   $$("[data-t]", t).forEach(b => b.onclick = () => (Sound.tap(), 0) || b.dataset.t === "more" ? openSheet() : App.go(b.dataset.t === "chess" ? "puzzles" : b.dataset.t, b.dataset.t === "friends" ? {tab: "friends"} : undefined));
 }
+/* ===== Feedback: everyone can write what goes wrong (and attach a screenshot); it lands in the feedback log.
+   People see what they sent themselves, the app owner sees everything, newest first. A full screen like the food search,
+   so the field stays above the keyboard. ===== */
+const Feedback = {
+  async open(){ const sb = window.ChessSite && window.ChessSite.sb, me = typeof Social !== "undefined" && Social.me; if (!sb || !me){ toast("Please sign in first"); return; }
+    const ov = document.createElement("div"); ov.className = "kc-sov fb-ov"; let img = null, closed = false;
+    ov.innerHTML = `<div class="kc-sovt"><b class="fb-t">Feedback</b><button class="kc-sx" id="fbx">Done</button></div><div class="kc-sovb" id="fbb">
+      <textarea id="fbtx" maxlength="2000" rows="4" placeholder="What went wrong? What should be better?"></textarea>
+      <div class="fb-row"><label class="btn fb-pic"><input type="file" accept="image/*" id="fbf" hidden>Add screenshot</label><button class="btn go" id="fbs">Send</button></div><div id="fbp"></div><div id="fbl"><p class="muted">Loading …</p></div></div>`;
+    document.body.appendChild(ov); document.documentElement.classList.add("kc-sopen"); const body = ov.querySelector("#fbb"), tx = ov.querySelector("#fbtx"), q = x => ov.querySelector(x);
+    const vv = window.visualViewport, fit = () => { if (!vv || closed) return; const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop); body.style.paddingBottom = (kb + 24) + "px"; ov.style.transform = vv.offsetTop ? `translateY(${vv.offsetTop}px)` : ""; };
+    if (vv){ vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); fit(); }
+    q("#fbx").onclick = () => { closed = true; if (vv){ vv.removeEventListener("resize", fit); vv.removeEventListener("scroll", fit); } document.documentElement.classList.remove("kc-sopen"); ov.remove(); };
+    /* a screenshot is shrunk on the phone (longest side 1000 px, JPEG) so it fits into the message */
+    q("#fbf").onchange = e => { const f = e.target.files && e.target.files[0]; if (!f) return; const im = new Image(), url = URL.createObjectURL(f); im.onload = () => { const k = Math.min(1, 1000 / Math.max(im.width, im.height)), c = document.createElement("canvas"); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+        let d = c.toDataURL("image/jpeg", .6); if (d.length > 390000) d = c.toDataURL("image/jpeg", .35); URL.revokeObjectURL(url); if (d.length > 390000){ toast("That picture is too big"); return; } img = d; q("#fbp").innerHTML = `<div class="fb-prev"><img src="${d}" alt=""><button class="btn sm" id="fbrm">Remove</button></div>`; q("#fbrm").onclick = () => { img = null; q("#fbp").innerHTML = ""; }; };
+      im.onerror = () => toast("Couldn't read that picture"); im.src = url; };
+    const when = t => { const d = new Date(t); return d.toLocaleDateString(I18N.lang === "de" ? "de-DE" : "en-GB", {day: "2-digit", month: "2-digit"}) + ", " + d.toLocaleTimeString("de-DE", {hour: "2-digit", minute: "2-digit"}); };
+    const load = async () => { const {data, error} = await sb.from("chess_feedback").select("*").order("created_at", {ascending: false}).limit(100); if (closed) return; const L = data || [], adm = typeof News !== "undefined" && News.admin;
+      q("#fbl").innerHTML = error ? `<p class="muted">Couldn't load: ${esc(error.message)}</p>` : `<div class="fb-h">${adm ? "All feedback" : "What you sent"} · ${L.length}</div>` + (L.map(r => `<div class="fb-i" data-notr><div class="fb-m"><b>${esc(r.user_id === me ? (I18N.lang === "de" ? "Du" : "You") : r.name || "?")}</b><small>${when(r.created_at)}${r.info && adm ? " · " + esc(r.info) : ""}</small></div><p>${esc(r.body)}</p>${r.img && /^data:image\//.test(r.img) ? `<img src="${r.img}" alt="" loading="lazy">` : ""}</div>`).join("") || `<p class="muted">Nothing yet.</p>`); };
+    q("#fbs").onclick = async () => { const t = tx.value.trim(); if (!t && !img){ toast("Write a few words first"); return; } const b = q("#fbs"); b.disabled = true; let name = ""; try { name = Social.P(me).name || ""; } catch(e) {}
+      const info = [typeof CHESSNAT_BUILD !== "undefined" ? "v" + CHESSNAT_BUILD : "", App.route, innerWidth + "×" + innerHeight, /iPhone|iPad/.test(navigator.userAgent) ? "iOS" : /Android/.test(navigator.userAgent) ? "Android" : "Desktop", document.documentElement.classList.contains("app-mode") ? "App" : "Browser"].filter(Boolean).join(" · ").slice(0, 300);
+      const {error} = await sb.from("chess_feedback").insert({body: t || "(Screenshot)", img, name: name.slice(0, 60) || null, info}); b.disabled = false; if (error){ toast("Couldn't send: " + error.message, 3500); return; }
+      tx.value = ""; img = null; q("#fbp").innerHTML = ""; toast("Thank you! Sent ✓"); try { Sound.play("GenericNotify", .5); } catch(e) {} load(); };
+    load(); } };
 function openSheet(){
   const sh = $("#sheet"); const rk = rankOf(S.puzzle.r);
-  const items = [...(window.ChessInstall && ChessInstall.can() ? [["__install", "Get the app", "download"]] : []), ...(typeof News !== "undefined" && News.admin ? [["news", "News senden", "bell"]] : []), ...(typeof Kcal !== "undefined" && Kcal.on() ? [["kcal", "Kalorien", "flame"]] : []), ["learn", "Learn", "book"], ["journey", "Journey", "map"], ["theory", "Theory", "scroll"], ["blitz", "Blitz & Battle", "flame"], ["shop", "Shop & Battle Pass", "coin"], ["awards", "Trophies", "trophy"], ["me", "Profile", "user"], ["endgames", "Endgames", "crown"], ["rush", "Puzzle Rush", "bolt"], ["battle", "Puzzle Battle", "swords"], ["daily", "Daily Puzzle", "calendar"], ["train", "Train", "target"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"], ["coords", "Coordinates", "board"], ["settings", "Settings", "gear"], ["account", "Account", "users"]];
+  const items = [["__feedback", "Feedback", "chat"], ...(window.ChessInstall && ChessInstall.can() ? [["__install", "Get the app", "download"]] : []), ...(typeof News !== "undefined" && News.admin ? [["news", "News senden", "bell"]] : []), ...(typeof Kcal !== "undefined" && Kcal.on() ? [["kcal", "Kalorien", "flame"]] : []), ["learn", "Learn", "book"], ["journey", "Journey", "map"], ["theory", "Theory", "scroll"], ["blitz", "Blitz & Battle", "flame"], ["shop", "Shop & Battle Pass", "coin"], ["awards", "Trophies", "trophy"], ["me", "Profile", "user"], ["endgames", "Endgames", "crown"], ["rush", "Puzzle Rush", "bolt"], ["battle", "Puzzle Battle", "swords"], ["daily", "Daily Puzzle", "calendar"], ["train", "Train", "target"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"], ["coords", "Coordinates", "board"], ["settings", "Settings", "gear"], ["account", "Account", "users"]];
   sh.innerHTML = `<div class="panelx" role="dialog" aria-label="More"><div class="grab"></div><button class="rk" data-s="me">${emblem(rk, 36)}<span style="text-align:left"><div style="font-weight:900">${esc(rk.label)}</div><div class="muted" style="font-size:12px">${S.puzzle.r} puzzle rating · ${Cloud.status === "on" ? "synced to your account" : "saved on this device"}</div></span></button>${items.map(([k, n, ic]) => `<button data-s="${k}">${icon(ic, 26)}<span>${n}</span></button>`).join("")}</div>`;
   sh.hidden = false; sh.classList.remove("closing"); const px = $(".panelx", sh); px.style.transform = ""; px.classList.add("opening"); setTimeout(() => px.classList.remove("opening"), 300);
   const close = () => { if (sh.hidden || sh.classList.contains("closing")) return; sh.classList.add("closing"); px.style.transform = ""; setTimeout(() => { sh.hidden = true; sh.classList.remove("closing"); }, 220); };
   sh.onclick = e => { if (e.target === sh) close(); };
-  $$("[data-s]", sh).forEach(b => b.onclick = () => { if (px.dataset.dragged === "1") return; sh.hidden = true; if (b.dataset.s === "__install"){ ChessInstall.run(); return; } App.go(b.dataset.s); });
+  $$("[data-s]", sh).forEach(b => b.onclick = () => { if (px.dataset.dragged === "1") return; sh.hidden = true; if (b.dataset.s === "__feedback"){ Feedback.open(); return; } if (b.dataset.s === "__install"){ ChessInstall.run(); return; } App.go(b.dataset.s); });
   /* drag the sheet down to close it (from the handle, or anywhere while the list is scrolled to the top) */
   let d = null;
   const start = (y, fromGrab) => { d = {y, t: performance.now(), dy: 0, on: false, fromGrab}; px.dataset.dragged = "0"; };
@@ -14476,7 +14505,7 @@ const Ranks = {
 <script src="games/natposter.js?v=128"></script>
 <script src="games/arena.js?v=128"></script>
 <script src="games/tipp.js?v=128"></script>
-<script src="games/kcal.js?v=145"></script>
+<script src="games/kcal.js?v=146"></script>
 <script>boot();</script>
 </body>
 </html>

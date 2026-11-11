@@ -1019,7 +1019,9 @@
       this.ch = sb().channel("shop-" + id).on("postgres_changes", {event: "*", schema: "public", table: "shop_items", filter: "list_id=eq." + id}, () => this.load()).subscribe();
       clearInterval(this.tick); this.tick = setInterval(() => { if (this.sh && !this.box.querySelector(".kc-shx.arm")) this.draw(); }, 60000);
       await this.load(); },
-    async load(){ if (!this.cur || !this.sh) return; const id = this.cur.id, [a, b] = await Promise.all([sb().from("shop_items").select("*").eq("list_id", id).order("created_at"), sb().from("shop_members").select("user_id").eq("list_id", id)]);
+    async load(){ if (!this.cur || !this.sh) return; const id = this.cur.id, [a, b] = await Promise.all([/* things added together share one timestamp, and the database then hands them back in whatever order it likes, a different one after
+         each tick. The id as a second key makes the order the same every time */
+        sb().from("shop_items").select("*").eq("list_id", id).order("created_at").order("id"), sb().from("shop_members").select("user_id").eq("list_id", id)]);
       if (!this.cur || this.cur.id !== id || !this.sh) return; if (a.error){ say("Ging nicht: " + a.error.message); return; } this.items = a.data || []; this.mem = (b.data || []).map(x => x.user_id); this.draw(); },
     who(id){ return id === meId() ? "du" : pname(id); },
     snd(k){ try { if (k === "tap") Sound.tap(); else Sound.play(k, .5); } catch(e) {} },
