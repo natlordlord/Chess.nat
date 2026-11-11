@@ -756,6 +756,8 @@
 .np.arena .ar-l:has(.ar-res.on) .ar-feed{display:none}
 .np.rot .ar-card{width:min(124px,14.8vh)}.ar-card b,.ar-card em{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (max-width:420px){.np.rot .ar-card{padding:6px 4px}.np.rot .ar-card .e{font-size:30px}.np.rot .ar-card small{display:none}.np.rot .ar-pt{font-size:20px}.np.rot .ar-card b{font-size:13px}}
+@media (max-height:400px){.ar-fire{width:92px;height:92px;right:calc(var(--sr,0px) + 20px);bottom:calc(var(--sb,0px) + 28px)}.ar-fire b{width:50px;height:50px;font-size:24px}.ar-sup{width:64px;height:64px;right:calc(var(--sr,0px) + 124px);bottom:calc(var(--sb,0px) + 20px)}.ar-sup b{width:44px;height:44px;font-size:22px}
+  .ar-tip span{font-size:12px;padding:5px 8px}.ar-tip .t-fire{bottom:calc(var(--sb,0px) + 132px)}.ar-tip .t-sup{right:calc(var(--sr,0px) + 100px);bottom:calc(var(--sb,0px) + 92px)}.ar-hud span{font-size:15px;padding:5px 10px}}
 @media (max-height:420px){.ar-card{padding:6px 4px}.ar-card .e{font-size:30px}.ar-card small{display:none}.ar-card b{font-size:13px}.ar-pt{font-size:20px}.ar-pk{padding:7px 8px}.ar-pk span{font-size:24px}.ar-pq{margin:2px 0 6px}.ar-rbox{padding:10px 12px;gap:6px}.ar-rl>div{padding:3px 8px}}
 .np-duel:has(.ar-pks) .du-rank>div:nth-child(n+4),.np-duel:has(.ar-rv) .du-rank>div:nth-child(n+4){display:none}
 `; document.head.appendChild(css);
