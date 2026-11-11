@@ -387,7 +387,8 @@
         try { sq.animate([{transform: `translate(${r.left - r2.left}px,${r.top - r2.top}px)`, width: r.width + "px"}, {transform: "none", width: r2.width + "px"}], {duration: 280, easing: "cubic-bezier(.2,.85,.25,1)"});
           ov.animate([{backgroundColor: "rgba(20,19,17,0)"}, {backgroundColor: "rgba(20,19,17,1)"}], {duration: 220, easing: "ease-out"}); body.animate([{opacity: 0, transform: "translateY(16px)"}, {opacity: 1, transform: "none"}], {duration: 300, delay: 60, easing: "ease-out", fill: "backwards"}); } catch(e) {} }
       /* always exactly the visible part of the screen, the keyboard never covers a result */
-      const vv = window.visualViewport, fit = () => { if (!vv || closed) return; ov.style.height = vv.height + "px"; ov.style.transform = `translateY(${vv.offsetTop}px)`; };
+      /* the search covers the whole screen (also behind the keyboard, which is see-through on the iPhone); the list ends above the keyboard */
+      const vv = window.visualViewport, fit = () => { if (!vv || closed) return; const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop); body.style.paddingBottom = (kb + 24) + "px"; ov.style.transform = vv.offsetTop ? `translateY(${vv.offsetTop}px)` : ""; };
       if (vv){ vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); } fit();
       const close = () => { if (closed) return; closed = true; if (vv){ vv.removeEventListener("resize", fit); vv.removeEventListener("scroll", fit); } try { q.blur(); } catch(e) {} document.documentElement.classList.remove("kc-sopen");
         if (ov.animate){ const an = ov.animate([{opacity: 1}, {opacity: 0}], {duration: 160, easing: "ease-in"}); an.onfinish = () => ov.remove(); } else ov.remove(); };
@@ -1017,9 +1018,9 @@
 .kc-grp{display:flex;flex-direction:column;gap:2px;background:var(--panel);border-radius:14px;padding:4px}.kc-grp .kc-meal{background:var(--panel-2);border-radius:10px}.kc-gh{display:flex;justify-content:space-between;gap:8px;padding:6px 8px 4px;font:900 13px var(--body)}.kc-gh b{font:900 13px var(--body);color:#E9A92B}
 .kc-tipb{margin-top:12px}
 html.kc-sopen,html.kc-sopen body{overflow:hidden}
-.kc-sov{position:fixed;left:0;right:0;top:0;height:100%;z-index:300;background:#141312;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 0;will-change:transform}
+.kc-sov{position:fixed;left:0;right:0;top:0;height:100vh;height:100lvh;z-index:300;background:#141312;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 0;will-change:transform}
 .kc-sovt{display:flex;align-items:center;gap:10px}.kc-sovt .kc-sq{flex:1;min-width:0;background:#2A2825;border-color:var(--go)}.kc-sx{flex:none;white-space:nowrap;border:0;background:none;color:var(--go-hi,#8FC458);font:800 16px var(--body);padding:8px 2px;cursor:pointer}
-.kc-sovb{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:10px 0 calc(env(safe-area-inset-bottom,0px) + 16px);display:flex;flex-direction:column;gap:8px;overscroll-behavior:contain}
+.kc-sovb>*{flex-shrink:0}.kc-sovb{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;padding:10px 0 calc(env(safe-area-inset-bottom,0px) + 16px);display:flex;flex-direction:column;gap:8px;overscroll-behavior:contain}
 .kc-sres b .kh{color:#E9A92B;font-weight:800}.kc-sres.open{background:#33302C;border-radius:14px 14px 4px 4px}.kc-sh span{float:right}
 .kc-sadd{background:#33302C;border-radius:4px 4px 14px 14px;margin-top:-6px;padding:10px;display:flex;flex-direction:column;gap:10px;animation:kcIn .2s ease-out}@keyframes kcIn{from{opacity:0;transform:translateY(-6px)}}
 .kc-sk{font:800 15px var(--body);text-align:center}.kc-sk b{font:900 22px var(--display)}.kc-sk small{display:block;color:var(--muted);font-weight:700;font-size:12px;margin-top:2px}
