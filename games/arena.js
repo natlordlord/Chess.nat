@@ -7,7 +7,8 @@
    The host keeps the health ("ahp"), runs the bots ("amb") and decides who is out. ===== */
 (() => {
   const {T} = PG, now = () => Date.now(), N = () => PG.npx;
-  const PICK = 4500, PICK2 = 3200, FIGHT = 60000, PERK = 7000, BAN = 2600, NEXT = BAN + 6500, GAS0 = 20000, GAS1 = 52000, R0 = 820, R1 = 150, GC = {x: 1290, y: 640}, BODY = 26, SPD = 255;
+  const PICK = 4500, PICK2 = 3200, FIGHT = 60000, PERK = 7000, BAN = 2600, NEXT = BAN + 6500, GAS0 = 20000, GAS1 = 52000, R0 = 820, R1 = 150, BODY = 26, SPD = 255;
+  let GC = {x: 1290, y: 640};
   const LAG = 110, SEE = 150, REVEAL = 1000, VIS = 230, AMMO = 3;
   const CLS = {
     shot: {e: "💥", en: "Shotgun", de: "Schrotflinte", sen: "Close · 5 pellets", sde: "Nah · 5 Kugeln", hp: 160, sp: 1, rl: 1450, cd: 380, rg: 330, n: 5, spr: .12, v: 1050, dmg: 11, r: 7, sc: 130,
@@ -36,9 +37,24 @@
   const rngOf = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
   const isBot = id => /^bot/.test(id) || !!(((PNet.P && PNet.P.G && PNet.P.G.s && PNet.P.G.s.bots) || []).find(b => b.id === id));
 
-  /* ---------------- the arena: four rooms and the three halls between them ---------------- */
-  let AR = null, BARS = null, ADJ = null;
-  const areas = () => AR || (AR = N().ROOMS.filter(r => ["caf", "chess", "sto", "o2"].includes(r.id)).concat(N().HALLS.filter(h => [[1230, 556], [976, 760], [1476, 760]].some(([x, y]) => h.x === x && h.y === y))));
+  /* ---------------- the arenas: four rooms of the station and the halls between them; on its own the map changes every round ---------------- */
+  const LAYS = [
+    {id: "mid", en: "Middle", de: "Mitte", rooms: ["caf", "chess", "sto", "o2"], halls: [[1230, 556], [976, 760], [1476, 760]], gc: {x: 1290, y: 640}},
+    {id: "west", en: "West wing", de: "Westflügel", rooms: ["med", "rea", "chess", "ele"], halls: [[300, 476], [416, 760], [300, 976]], gc: {x: 500, y: 815}},
+    {id: "east", en: "East wing", de: "Ostflügel", rooms: ["com", "bri", "o2", "nav"], halls: [[2080, 476], [1936, 760], [2080, 996]], gc: {x: 2200, y: 800}},
+    {id: "low", en: "Lower deck", de: "Unterdeck", rooms: ["sto", "lab", "ele", "nav"], halls: [[1180, 996], [696, 1240], [1496, 1240]], gc: {x: 1250, y: 1290}, r0: 1000}];
+  let LAY = LAYS[0], AR = null, BARS = null, ADJ = null;
+  const areas = () => AR || (AR = N().ROOMS.filter(r => LAY.rooms.includes(r.id)).concat(N().HALLS.filter(h => LAY.halls.some(([x, y]) => h.x === x && h.y === y))));
+  function setLay(i){ const L = LAYS[((i | 0) % LAYS.length + LAYS.length) % LAYS.length]; if (L === LAY && AR) return; LAY = L; AR = BARS = ADJ = null; GC = L.gc;
+    FOG = L.fog || (L.fog = autoFog()); SPN = L.spn || (L.spn = autoSpawn()); SPR.clip = null; MC.cv = null; MC.n = 0;
+    const A2 = areas(); MC.x0 = Math.min(...A2.map(a => a.x)) - 320; MC.y0 = Math.min(...A2.map(a => a.y)) - 300; MC.w = Math.max(...A2.map(a => a.x + a.w)) + 320 - MC.x0; MC.h = Math.max(...A2.map(a => a.y + a.h)) + 300 - MC.y0; }
+  /* fog in two corners of every room, spawn points spread over the rooms: worked out from the furniture */
+  const nearSolid = (x, y, r) => N().OBST.some(o => Math.hypot(x - o.x, y - o.y) < o.r + r) || N().OBR.some(o => N().rdist(o, x, y) < r);
+  function autoFog(){ const out = []; areas().filter(a => a.id).forEach((r, ri) => { const cx = r.x + r.w / 2, cy = r.y + r.h / 2 + 20, C4 = [[r.x + 88, r.y + 128], [r.x + r.w - 88, r.y + 128], [r.x + 88, r.y + r.h - 74], [r.x + r.w - 88, r.y + r.h - 74]];
+      const order = ri % 2 ? [1, 2, 0, 3] : [0, 3, 1, 2]; let n = 0;
+      for (const k of order){ if (n >= 2) break; const [x, y] = C4[k]; if (nearSolid(x, y, 46)) continue; const dx = Math.sign(cx - x), dy = Math.sign(cy - y); out.push([[x, y, 52], [x + dx * 44, y + 8, 40], [x + 6, y + dy * 42, 38]]); n++; } });
+    return out; }
+  function autoSpawn(){ const out = []; areas().filter(a => a.id).forEach(r => { [[.5, .55], [.2, .35], [.8, .35], [.2, .82], [.8, .82]].forEach(([fx, fy]) => { const x = Math.round(r.x + r.w * fx), y = Math.round(r.y + 40 + (r.h - 40) * fy); if (walkA(x, y) && !nearSolid(x, y, 30)) out.push([x, y]); }); }); return out; }
   const inside = (a, x, y) => x >= a.x && x <= a.x + a.w && y >= a.y && y <= a.y + a.h;
   const inAr = (x, y) => areas().some(a => inside(a, x, y));
   const overlap = (a, b) => { const x1 = Math.max(a.x, b.x), x2 = Math.min(a.x + a.w, b.x + b.w), y1 = Math.max(a.y, b.y), y2 = Math.min(a.y + a.h, b.y + b.h); return x1 <= x2 + 1 && y1 <= y2 + 1 && (x2 - x1 > 30 || y2 - y1 > 30) ? {x1, x2, y1, y2} : null; };
@@ -49,7 +65,7 @@
   const shotSolid = (x, y) => N().OBST.some(o => Math.hypot(x - o.x, y - o.y) < o.r - 12) || N().OBR.some(o => x > o.x && x < o.x + o.w && y > o.y && y < o.y + o.h);
   const walkA = (x, y) => { const r = 20; return inAr(x - r, y) && inAr(x + r, y) && inAr(x, y - r) && inAr(x, y + r + 6) && !bodySolid(x, y); };
   const clear = (a, b) => { const d = Math.hypot(b.x - a.x, b.y - a.y), n = Math.ceil(d / 14); for (let i = 1; i < n; i++){ const x = a.x + (b.x - a.x) * i / n, y = a.y + (b.y - a.y) * i / n; if (!inAr(x, y) || shotSolid(x, y)) return false; } return true; };
-  const gasR = el => el < GAS0 ? 99999 : R0 - (R0 - R1) * Math.min(1, (el - GAS0) / (GAS1 - GAS0));
+  const gasR = el => { const r0 = LAY.r0 || R0; return el < GAS0 ? 99999 : r0 - (r0 - R1) * Math.min(1, (el - GAS0) / (GAS1 - GAS0)); };
   const prune = (a, f) => { let j = 0; for (let i = 0; i < a.length; i++) if (f(a[i])) a[j++] = a[i]; a.length = j; };
   const angDiff = (a, b) => { let d = a - b; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return Math.abs(d); };
   /* the next point to walk to: straight there in the same room, else the doorway to the next room */
@@ -59,14 +75,14 @@
     if (prev[bi] === undefined) return to; let j = bi; while (prev[j] !== ai && prev[j] !== -1) j = prev[j];
     const o = overlap(L[ai], L[j]); return {x: (o.x1 + o.x2) / 2, y: (o.y1 + o.y2) / 2};
   }
-  const SPN = [[1060, 200], [1500, 200], [1060, 525], [1500, 525], [1280, 200], [1280, 525], [660, 700], [660, 920], [920, 920], [800, 800], [1430, 700], [1160, 950], [1300, 820], [1680, 720], [1880, 720], [1880, 900], [1680, 900]];
+  let SPN = LAYS[0].spn = [[1060, 200], [1500, 200], [1060, 525], [1500, 525], [1280, 200], [1280, 525], [660, 700], [660, 920], [920, 920], [800, 800], [1430, 700], [1160, 950], [1300, 820], [1680, 720], [1880, 720], [1880, 900], [1680, 900]];
   function spawns(n, R){
     const P = SPN.map(([x, y]) => ({x, y})).filter(p => walkA(p.x, p.y)), out = [P.splice(Math.floor(R() * P.length), 1)[0]];
     while (out.length < n && P.length){ let bi = 0, bd = -1; P.forEach((p, i) => { const d = Math.min(...out.map(q => Math.hypot(p.x - q.x, p.y - q.y))) + R() * 60; if (d > bd){ bd = d; bi = i; } }); out.push(P.splice(bi, 1)[0]); }
     while (out.length < n) out.push({x: out[out.length % 17].x + 30, y: out[out.length % 17].y}); return out;
   }
   /* fog: the station's bushes. Inside you are hidden (unless someone is close or you just shot or got hit) and see little */
-  const FOG = [
+  let FOG = LAYS[0].fog = [
     [[1040, 345, 58], [1064, 292, 46], [1064, 398, 46]],
     [[1520, 345, 58], [1496, 292, 46], [1496, 398, 46]],
     [[1280, 182, 50], [1222, 188, 40], [1338, 188, 40]],
@@ -85,8 +101,9 @@
   /* everything said about the arena also reaches this own screen */
   const send = m => { PNet.raw(m); onMsg(Object.assign({id: PNet.me}, m)); };
   function hostInit(G, mg){
-    const s = G.s, ids = G.ids.filter(id => s.alive[id]), sp = spawns(ids.length, rngOf(mg.seed)), pk = s.arena && (s.arRound || 0) > 1 ? PICK2 : PICK;
-    mg.ar = {ph: "pick", pickEnd: mg.t0 + N().SPIN + pk, pk, fight: 0, end: 0, ids, hp: {}, mx: {}, cls: {}, out: [], sp: Object.fromEntries(ids.map((id, i) => [id, sp[i]])), dmg: {}, kills: {}, lh: {}, ls: {}, feed: []};
+    const s = G.s, map = s.arena ? ((s.arRound || 1) - 1) % LAYS.length : 0; setLay(map);
+    const ids = G.ids.filter(id => s.alive[id]), sp = spawns(ids.length, rngOf(mg.seed)), pk = s.arena && (s.arRound || 0) > 1 ? PICK2 : PICK;
+    mg.ar = {map, ph: "pick", pickEnd: mg.t0 + N().SPIN + pk, pk, fight: 0, end: 0, ids, hp: {}, mx: {}, cls: {}, out: [], sp: Object.fromEntries(ids.map((id, i) => [id, sp[i]])), dmg: {}, kills: {}, lh: {}, ls: {}, feed: []};
     (s.bots || []).forEach(b => { if (ids.includes(b.id)) mg.ar.cls[b.id] = KEYS[Math.floor(Math.random() * KEYS.length)]; });
     mg.end = mg.ar.pickEnd + FIGHT; HB.seen.clear(); HB.bots = {}; HB.dot = {};
   }
@@ -208,7 +225,7 @@
   }
   function hostView(G, mg, id){
     const A = mg.ar, P2 = mg.perk;
-    return {ph: A.ph, ids: A.ids, cls: A.cls, hp: rnd(A.hp), mx: A.mx, cubes: A.cubes || [], pw: A.pw || {}, out: A.out, sp: A.sp, feed: A.feed.slice(-4), kills: A.kills, pickLeft: Math.max(0, A.pickEnd - now()), pk: A.pk || PICK, fightEl: A.fight ? now() - A.fight : 0, left: A.end ? Math.max(0, A.end - now()) : 0,
+    return {map: A.map || 0, ph: A.ph, ids: A.ids, cls: A.cls, hp: rnd(A.hp), mx: A.mx, cubes: A.cubes || [], pw: A.pw || {}, out: A.out, sp: A.sp, feed: A.feed.slice(-4), kills: A.kills, pickLeft: Math.max(0, A.pickEnd - now()), pk: A.pk || PICK, fightEl: A.fight ? now() - A.fight : 0, left: A.end ? Math.max(0, A.end - now()) : 0,
       perk: P2 ? (id === mg.win ? {opts: P2.opts, pick: P2.pick, t: P2.t || null, left: Math.max(0, P2.until - now()), rev: P2.opts.includes("revive") ? revivable(G) : []} : {pick: !!P2.pick}) : null};
   }
   /* after the meeting: what the winner picked changes the round */
@@ -260,7 +277,7 @@
   /* the view from the host: phases, health, classes */
   function view(v){
     C.v = v; const mg = v && v.phase === "meet" && v.meet && v.meet.mg; if (!mg || mg.g !== "arena" || !mg.ar){ if (C.seed != null || C.on) reset(); return; }
-    const a = mg.ar; if (C.seed !== mg.seed){ reset(!!v.arena); C.seed = mg.seed; C.t0 = now() - (mg.el || 0); }
+    const a = mg.ar; setLay(a.map || 0); if (C.seed !== mg.seed){ reset(!!v.arena); C.seed = mg.seed; C.t0 = now() - (mg.el || 0); }
     const A = C.A || (C.A = {hp: {}, mx: {}, out: [], feed: []}); A.ph = a.ph; A.ids = a.ids; A.cls = a.cls; A.sp = a.sp; A.kills = a.kills || {}; A.perk = a.perk;
     if (now() - C.hpT > 500){ A.hp = Object.assign({}, a.hp); A.out = a.out.slice(); A.feed = a.feed || []; A.mx = a.mx; C.cubes = a.cubes || []; C.pw = a.pw || {}; }
     const pe = now() + a.pickLeft; if (Math.abs(pe - C.pickEnd) > 250) C.pickEnd = pe; C.pickDur = a.pk || PICK;
@@ -288,7 +305,7 @@
   function enter(){
     C.on = true; const NP = NPo(); if (!NP.el) return; NP.el.classList.add("arena"); NP.joy = null; try { Focus.set(true); } catch(e) {}
     let L = C.L; if (!L || !L.isConnected){ L = C.L = document.createElement("div"); L.className = "ar-l";
-      L.innerHTML = `<div class="ar-hud"><span class="ar-rd"></span><span class="ar-t"></span><span class="ar-n"></span><span class="ar-gas">☠️ ${T("Gas", "Gas")}</span></div><div class="ar-feed"></div><div class="ar-ban"></div><div class="ar-pick"></div><div class="ar-joy"><i></i></div>
+      L.innerHTML = `<div class="ar-hud"><span class="ar-rd"></span><span class="ar-t"></span><span class="ar-n"></span><span class="ar-gas">☠️ ${T("Gas", "Gas")}</span><span class="ar-sp" hidden>👀 ${T("Watching", "Zuschauen")}</span></div><div class="ar-feed"></div><div class="ar-ban"></div><div class="ar-pick"></div><div class="ar-joy"><i></i></div>
         <div class="ar-sup"><b></b><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46"/></svg></div><div class="ar-fire"><b></b><span class="ar-am"><i><u></u></i><i><u></u></i><i><u></u></i></span></div><div class="ar-res"></div><div class="ar-tip"></div><button class="ar-emb" aria-label="Emote">😀</button><div class="ar-emp">${EMO.map(e => `<button data-em="${e}">${e}</button>`).join("")}</div>`;
       NP.el.appendChild(L); wire(L); }
     pickDraw(true);
@@ -338,8 +355,9 @@
     const L = C.L; if (!L || !C.A) return; const A = C.A, n = A.ids.filter(id => !A.out.includes(id)).length, v = C.v || {};
     const t = A.ph === "fight" ? `⏱ ${Math.max(0, Math.ceil((C.endAt - now()) / 1000))}` : A.ph === "pick" ? `⏱ ${Math.ceil(Math.max(0, C.pickEnd - now()) / 1000)}` : "⏱ 0";
     const set = (s, tx) => { const e = L.querySelector(s); if (e.textContent !== tx) e.textContent = tx; };
-    set(".ar-t", t); set(".ar-n", `🧍 ${n}`); const rd = L.querySelector(".ar-rd"); rd.hidden = !v.arena; if (v.arena) set(".ar-rd", `⭐ ${T("Round", "Runde")} ${v.arRound || 1}`);
+    set(".ar-t", t); set(".ar-n", `🧍 ${n}`); const rd = L.querySelector(".ar-rd"); rd.hidden = !v.arena; if (v.arena) set(".ar-rd", `⭐ ${T("Round", "Runde")} ${v.arRound || 1} · ${T(LAY.en, LAY.de)}`);
     L.querySelector(".ar-gas").classList.toggle("on", A.ph === "fight" && now() - C.fightT0 > GAS0 - 2000);
+    { const sp = L.querySelector(".ar-sp"), on = A.ph === "fight" && (!amIn() || A.out.includes(me())); if (sp.hidden === on) sp.hidden = !on; }
     const fh = (A.feed || []).slice(-3).map(([by, vic, c]) => `<div>${by ? `<b>${esc(NPo().nm(by))}</b> ${CLS[c] ? CLS[c].e : "💀"} ` : "☠️ "}<b>${esc(NPo().nm(vic))}</b></div>`).join(""), fe = L.querySelector(".ar-feed"); if (fe._h !== fh){ fe._h = fh; fe.innerHTML = fh; }
     const fb = L.querySelector(".ar-fire"), sb = L.querySelector(".ar-sup"), show = !!fighting(); fb.style.display = sb.style.display = show ? "" : "none";
     if (show){ const cl = CLS[C.cls], b = fb.firstChild; if (b.textContent !== cl.e) b.textContent = cl.e; fb.querySelectorAll(".ar-am i").forEach((x, i) => { const f = i < C.am ? 1 : i === C.am ? Math.round(Math.min(1, C.rl / cl.rl) * 20) / 20 : 0; if (x._f !== f){ x._f = f; x.firstChild.style.transform = `scaleX(${f})`; x.classList.toggle("full", f >= 1); } });
@@ -353,7 +371,7 @@
     const P = NPo().pl(), W = v.arWins || {}, K = v.arK || {}, ids = (C.A.ids || []).slice().sort((a, b) => (W[b] || 0) - (W[a] || 0) || (K[b] || 0) - (K[a] || 0)), left = Math.max(0, Math.ceil((C.doneAt + NEXT - now()) / 1000));
     const h = `<div class="ar-rbox"><div class="ar-rt">${C.win ? `👑 <b>${esc(NPo().nm(C.win))}</b> ${T("wins round", "gewinnt Runde")} ${v.arRound || 1}` : T("Draw", "Unentschieden")}</div>
       <div class="ar-rl ${ids.length > 4 ? "two" : ""}">${ids.map((id, i) => `<div class="${id === me() ? "me" : ""}"><span class="r">${i + 1}</span><span class="np-hd">${headOf(id, P)}</span><b>${esc(NPo().nm(id))}</b><span class="w">🏆 ${W[id] || 0}</span><span class="k">💀 ${K[id] || 0}</span></div>`).join("")}</div>
-      <div class="ar-rn">${T("Next round in", "Nächste Runde in")} <b>${left}</b></div><div class="ar-rb">${v.host && !(PNet.P && PNet.P.solo) ? `<button class="btn ghost" data-arx="lobby">↩︎ ${T("To the lobby", "Zur Lobby")}</button>` : ""}<button class="btn ghost" data-arx="quit">🚪 ${T("Leave", "Raus")}</button></div></div>`;
+      <div class="ar-rn">${T("Next round in", "Nächste Runde in")} <b>${left}</b> · ${(() => { const L2 = LAYS[(LAYS.indexOf(LAY) + 1) % LAYS.length]; return T(L2.en, L2.de); })()}</div><div class="ar-rb">${v.host && !(PNet.P && PNet.P.solo) ? `<button class="btn ghost" data-arx="lobby">↩︎ ${T("To the lobby", "Zur Lobby")}</button>` : ""}<button class="btn ghost" data-arx="quit">🚪 ${T("Leave", "Raus")}</button></div></div>`;
     if (box._h !== h){ box._h = h; box.innerHTML = h; }
   }
 
@@ -492,6 +510,7 @@
 
   /* ---- drawing: the station is drawn once into a picture, people and fog are cached bitmaps ---- */
   const MC = {cv: null, s: 0, x0: 300, y0: -180, w: 1940, h: 1480, n: 0, at: 0};
+  setTimeout(() => { try { if (N() && N().ROOMS) setLay(0); } catch(e) {} }, 0);
   function mapCache(z){
     const S = Math.max(.5, Math.min(1.5, z)); if (MC.cv && Math.abs(MC.s - S) / S < .2 && !(MC.n === 1 && now() - MC.at > 1500 && !(C.A && C.A.ph === "fight"))) return MC;
     const NP = NPo(), cv = MC.cv || document.createElement("canvas"); cv.width = Math.ceil(MC.w * S); cv.height = Math.ceil(MC.h * S); const c = cv.getContext("2d");
@@ -512,9 +531,9 @@
   const fireSpr = () => sprite("fire", 64, 64, c => { const g = c.createRadialGradient(32, 32, 2, 32, 32, 32); g.addColorStop(0, "rgba(255,220,120,1)"); g.addColorStop(.5, "rgba(255,120,40,.8)"); g.addColorStop(1, "rgba(255,80,30,0)"); c.fillStyle = g; c.fillRect(0, 0, 64, 64); });
   const fireBlob = (c, x, y, r, a) => { if (a <= 0) return; c.globalAlpha = Math.min(1, a); c.drawImage(fireSpr(), x - r, y - r * .62, r * 2, r * 1.24); c.globalAlpha = 1; };
   /* one picture per fog patch: soft grey-green puffs */
-  function fogSpr(i){ return SPR["fog" + i] || (SPR["fog" + i] = (() => {
+  function fogSpr(i){ const key = "fog" + LAY.id + i; return SPR[key] || (SPR[key] = (() => {
     const P = FOG[i], x0 = Math.min(...P.map(c => c[0] - c[2])) - 24, y0 = Math.min(...P.map(c => c[1] - c[2])) - 34, x1 = Math.max(...P.map(c => c[0] + c[2])) + 24, y1 = Math.max(...P.map(c => c[1] + c[2])) + 14, S = 1.5;
-    const cv = document.createElement("canvas"); cv.width = Math.ceil((x1 - x0) * S); cv.height = Math.ceil((y1 - y0) * S); const c = cv.getContext("2d"), R = rngOf(i * 977 + 13); c.scale(S, S); c.translate(-x0, -y0);
+    const cv = document.createElement("canvas"); cv.width = Math.ceil((x1 - x0) * S); cv.height = Math.ceil((y1 - y0) * S); const c = cv.getContext("2d"), R = rngOf(i * 977 + 13 + LAY.id.length * 31); c.scale(S, S); c.translate(-x0, -y0);
     P.forEach(([x, y, r]) => { const g = c.createRadialGradient(x, y, r * .2, x, y, r + 16); g.addColorStop(0, "rgba(120,150,140,.92)"); g.addColorStop(.75, "rgba(110,140,130,.82)"); g.addColorStop(1, "rgba(100,130,120,0)"); c.fillStyle = g; c.beginPath(); c.arc(x, y, r + 16, 0, 7); c.fill(); });
     P.forEach(([x, y, r]) => { for (let k = 0; k < 7; k++){ const an = R() * 7, rr = R() * r * .8, px = x + Math.cos(an) * rr, py = y + Math.sin(an) * rr * .8 - 10, pr = 14 + R() * 18, g = c.createRadialGradient(px, py - pr * .3, 2, px, py, pr);
       g.addColorStop(0, "rgba(190,215,205,.55)"); g.addColorStop(1, "rgba(160,190,180,0)"); c.fillStyle = g; c.beginPath(); c.arc(px, py, pr, 0, 7); c.fill(); } });
@@ -554,7 +573,7 @@
     C.cubes.forEach(cb => { const bob = Math.sin(t / 260 + cb.k) * 4, s2 = 30 + Math.min(4, cb.n - 1) * 3; c.fillStyle = "rgba(0,0,0,.3)"; c.beginPath(); c.ellipse(cb.x, cb.y + 10, s2 * .55, 7, 0, 0, 7); c.fill(); c.drawImage(cubeSpr(), cb.x - s2 / 2, cb.y - s2 - 6 + bob, s2, s2);
       if (cb.n > 1){ if (c.font !== NUMF) c.font = NUMF; c.textAlign = "center"; c.fillStyle = "#fff"; c.fillText("×" + cb.n, cb.x, cb.y - s2 - 12 + bob); } });
     /* the gas closing in */
-    if (A.ph === "fight"){ const gr = gasR(t - C.fightT0); if (gr < 2000){ c.save(); c.beginPath(); c.rect(300, -200, 2000, 1500); c.arc(GC.x, GC.y, gr, 0, Math.PI * 2, true); c.fillStyle = `rgba(88,200,92,${.26 + pulse * .08})`; c.fill("evenodd"); c.strokeStyle = "rgba(150,240,130,.85)"; c.lineWidth = 6; c.setLineDash([22, 14]); c.lineDashOffset = -t / 40; c.beginPath(); c.arc(GC.x, GC.y, gr, 0, Math.PI * 2); c.stroke(); c.restore(); } }
+    if (A.ph === "fight"){ const gr = gasR(t - C.fightT0); if (gr < 2000){ c.save(); c.beginPath(); c.rect(MC.x0, MC.y0, MC.w, MC.h); c.arc(GC.x, GC.y, gr, 0, Math.PI * 2, true); c.fillStyle = `rgba(88,200,92,${.26 + pulse * .08})`; c.fill("evenodd"); c.strokeStyle = "rgba(150,240,130,.85)"; c.lineWidth = 6; c.setLineDash([22, 14]); c.lineDashOffset = -t / 40; c.beginPath(); c.arc(GC.x, GC.y, gr, 0, Math.PI * 2); c.stroke(); c.restore(); } }
     /* aiming: where the shot will go */
     const aimP = C.supP && C.supP.man ? C.supP : C.aimP && C.aimP.man ? C.aimP : null;
     if (fighting() && aimP){ const cl = CLS[C.cls], su = aimP === C.supP, s2 = su ? Object.assign({}, cl, cl.su) : cl, a = C.me.a, x = C.me.x, y = C.me.y - 30; c.save(); c.globalAlpha = .32; c.fillStyle = su ? "#FFD15C" : "#fff"; c.strokeStyle = c.fillStyle;
@@ -642,7 +661,7 @@
     reset(){ this.fl = {}; this.burn = {}; this.patches = []; this.last = {}; this.mine = 0; this.cd = 0; }};
 
   const client = {view, active, step, render, hold, resTick, fmt, onMsg, get on(){ return C.on; }, _C: C};
-  PG.arena = {CLS, PERKS, PICK, FIGHT, NEXT, FOG, hostInit, hostTick, hostAct, hostView, applyPerk, client, fx: FX, stopHost};
+  PG.arena = {CLS, PERKS, PICK, FIGHT, NEXT, LAYS, setLay, hostInit, hostTick, hostAct, hostView, applyPerk, client, fx: FX, stopHost};
   PG.onArena = m => onMsg(m);
   if (PG.ART) PG.ART.arena = ["⭐", "#E9A92B"];
   window.__ar = () => ({on: C.on, ph: C.A && C.A.ph, me: C.me && {x: Math.round(C.me.x), y: Math.round(C.me.y)}, hp: C.A && C.A.hp, out: C.A && C.A.out, cls: C.A && C.A.cls, am: C.am, sup: C.sup, proj: C.proj.length, bots: Object.keys(HB.bots).length, fog: C.me ? fogAt(C.me.x, C.me.y) : -1});

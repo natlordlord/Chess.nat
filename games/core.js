@@ -221,7 +221,7 @@ Views.games = {
     const {T, h} = PG, open = typeof PNet !== "undefined" && PNet.P && !PNet.P.solo;
     const tile = (attr, art, ac, name, sub) => `<button class="tile pg-gt" ${attr} style="--ac:${ac}"><span class="pg-art">${art}</span><h3>${name}</h3><p>${sub}</p></button>`;
     const list = [tile(`data-go="play"`, `<i class="pc wn" style="width:38px;height:38px;display:block"></i>`, "#7FB24A", T("Chess", "Schach"), T("Online, bots, friends, duel, battle.", "Online, Bots, Freunde, Duell, Battle."))]
-      .concat([tile(`data-go="tipp"`, "⚽", "#DC052D", T("Tipping game", "Tippspiel"), T("Bundesliga, CL, UFC, boxing. With Natcoins.", "Bundesliga, CL, UFC, Boxen. Mit Natcoins."))])
+      .concat([tile(`data-go="tipp"`, "⚽", "#DC052D", T("Tipping game", "Tippspiel"), T("Germany, Bayern, Bundesliga, UFC. Your own rounds.", "Deutschland, Bayern, Bundesliga, UFC. Eigene Tipprunden."))])
       .concat(PG.games.some(g => g.id === "natposter") ? [tile(`data-g="natposter"`, "🚀", "#7B5CD6", "Natposter", T("Space station, tasks, a traitor.", "Raumstation, Aufgaben, ein Verräter."))] : [])
       .concat(PG.games.filter(g => g.id !== "natposter").sort((a, b) => (b.id === "arena") - (a.id === "arena")).map(g => { const a = PG.ART[g.id] || ["🎲", "#7FB24A"]; return tile(`data-g="${g.id}"`, a[0], a[1], h(T(g.name[0], g.name[1])), h(T(g.sub[0], g.sub[1]))); }));
     main.innerHTML = `<div class="page"><h1 class="h-title">${T("Play", "Spielen")}</h1>
