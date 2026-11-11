@@ -2799,7 +2799,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794362010";
+const CHESSNAT_BUILD = "1794362138";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11805,7 +11805,8 @@ function natWin(src){ const W = natDay(); W.n++; const r = DAILY_WINS[W.n - 1] |
   if (r.chest != null) chestGrant(r.chest, "win " + (src || ""));
   if (r.coins) natEarn(r.coins);
   save(); if (typeof Quests !== "undefined") Quests.check();
-  if (W.n <= DAILY_WINS.length) toast(`${I18N.t("Daily win")} ${W.n}/${DAILY_WINS.length}: ${r.chest != null ? (r.mega ? "MEGA " : "") + I18N.t(NAT_R[r.chest].n) + " " + I18N.t("chest") : "+" + r.coins + " NAT"}`, 2600);
+  const wt = () => toast(`${I18N.t("Daily win")} ${W.n}/${DAILY_WINS.length}: ${r.chest != null ? (r.mega ? "MEGA " : "") + I18N.t(NAT_R[r.chest].n) + " " + I18N.t("chest") : "+" + r.coins + " NAT"}`, 2600);
+  if (W.n <= DAILY_WINS.length && !Focus.later("natwin", wt)) wt();
   if (r.chest != null) chestAuto(); }
 /* new chests open by themselves: right away, or as soon as the game, the level-up card or another chest is done */
 function chestAuto(){ clearTimeout(chestAuto._t);
@@ -12471,7 +12472,9 @@ const Quests = {
   have(q){ const day = S.day && S.day.k === todayKey() ? S.day : {}; return q.k === "win" ? natDay().n : (day[q.k] || 0); },
   check(){ const L = this.today(); let any = false;
     L.forEach(q => { if (S.quests.done.includes(q.id) || this.have(q) < q.n) return; S.quests.done.push(q.id); passXP(q.xp); any = true;
-      setTimeout(() => toast(`✓ ${I18N.t("Quest done")}: ${I18N.t(q.t)} · +${q.xp} ${I18N.t("pass XP")}`, 3200), 400); });
+      const qt = () => toast(`✓ ${I18N.t("Quest done")}: ${I18N.t(q.t)} · +${q.xp} ${I18N.t("pass XP")}`, 3200);
+      /* in the middle of a game (Nat Stars …) it waits until you leave, so it never covers the result */
+      if (!Focus.later("quest-" + q.t, qt)) setTimeout(qt, 400); });
     if (any) save(); },
   html(){ const L = this.today();
     return `<div class="unit qst"><div class="qst-h"><b>${I18N.t("Daily quests")}</b><small class="dim">${I18N.t("New ones in")} ${untilMidnight()}</small></div>
@@ -14343,17 +14346,17 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=77"></script>
-<script src="games/imposter.js?v=77"></script>
-<script src="games/werwolf.js?v=77"></script>
-<script src="games/cards.js?v=77"></script>
-<script src="games/heads.js?v=77"></script>
-<script src="games/more.js?v=77"></script>
-<script src="games/net.js?v=77"></script>
-<script src="games/online.js?v=77"></script>
-<script src="games/natposter.js?v=77"></script>
-<script src="games/arena.js?v=77"></script>
-<script src="games/tipp.js?v=77"></script>
+<script src="games/core.js?v=78"></script>
+<script src="games/imposter.js?v=78"></script>
+<script src="games/werwolf.js?v=78"></script>
+<script src="games/cards.js?v=78"></script>
+<script src="games/heads.js?v=78"></script>
+<script src="games/more.js?v=78"></script>
+<script src="games/net.js?v=78"></script>
+<script src="games/online.js?v=78"></script>
+<script src="games/natposter.js?v=78"></script>
+<script src="games/arena.js?v=78"></script>
+<script src="games/tipp.js?v=78"></script>
 <script>boot();</script>
 </body>
 </html>
