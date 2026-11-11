@@ -236,7 +236,7 @@
         else if (k === "sex") body = `<h2>Du bist …</h2><div class="kc-opts two">${[["m", "👨", "Mann"], ["f", "👩", "Frau"]].map(a => `<button class="kc-opt ${b.sex === a[0] ? "on" : ""}" data-v="${a[0]}"><span>${a[1]}</span><b>${a[2]}</b></button>`).join("")}</div>`;
         else if (k === "body") body = `<h2>Ein paar Zahlen</h2><div class="kc-bform"><label><span>Alter</span><input id="sAge" inputmode="numeric" value="${b.born ? new Date().getFullYear() - b.born : ""}" placeholder="25"><em>Jahre</em></label><label><span>Größe</span><input id="sH" inputmode="numeric" value="${b.height || ""}" placeholder="180"><em>cm</em></label><label><span>Gewicht</span><input id="sW" inputmode="decimal" value="${b.weight ? nf(b.weight, 1) : ""}" placeholder="75"><em>kg</em></label></div><button class="btn go big" id="sNext">Weiter</button>`;
         else if (k === "show"){ pick = pick || shows().slice();
-          body = `<h2>Was ist dir wichtig?</h2><p class="muted kc-ssub">Kalorien und Protein stehen oben groß, der Rest klein darunter.</p><div class="kc-opts">${NORD.map(x => `<button class="kc-opt ${pick.includes(x) ? "on" : ""}" data-sh="${x}"><span>${NUT[x].e}</span><b>${NUT[x].l}</b></button>`).join("")}</div><button class="btn go big" id="sNext2">Weiter</button>`; }
+          body = `<h2>Was ist dir wichtig?</h2><p class="muted kc-ssub">Die ersten zwei, die du antippst, stehen oben groß, der Rest klein darunter.</p><div class="kc-opts">${NORD.map(x => `<button class="kc-opt ${pick.includes(x) ? "on" : ""}" data-sh="${x}"><span>${NUT[x].e}</span><b>${NUT[x].l}</b></button>`).join("")}</div><button class="btn go big" id="sNext2">Weiter</button>`; }
         else if (k === "act") body = `<h2>Wie viel bewegst du dich?</h2><div class="kc-opts">${ACTS.map(a => `<button class="kc-opt ${Number(b.activity) === a[0] ? "on" : ""}" data-v="${a[0]}"><b>${a[1]}<small>${a[2]}</small></b></button>`).join("")}</div>`;
         else { const n = needs(b); body = `<h2>Dein Tagesbedarf</h2><div class="kc-res"><div class="kc-resk"><b>${fmt(n.kcal)}</b><span>kcal am Tag</span></div>
             <div class="kc-macros"><span><b>${n.protein} g</b>Protein</span><span><b>${n.carbs} g</b>KH</span><span><b>${n.fat} g</b>Fett</span></div>
@@ -254,7 +254,7 @@
         const sv = ov.querySelector("#sSave"); if (sv) sv.onclick = async () => { sv.disabled = true; const n = needs(b);
           try { const lastKg = K.weights[0] && Number(K.weights[0].kg);
             await K.saveBody({aim: b.aim, sex: b.sex, born: b.born, height: b.height, weight: b.weight, activity: b.activity, custom: false, setup_at: new Date().toISOString()});
-            await K.saveProf(Object.assign({enabled: true, goal: n.kcal, protein: n.protein, carbs: n.carbs, fat: n.fat}, pick ? {show: NORD.filter(x => pick.includes(x))} : {})); if (pick && pick.length < NORD.length) setPicked();
+            await K.saveProf(Object.assign({enabled: true, goal: n.kcal, protein: n.protein, carbs: n.carbs, fat: n.fat}, pick ? {show: pick.slice(0, 3)} : {})); if (pick) setPicked(pick.length);
             if (!(Math.abs(lastKg - b.weight) < .05)) await K.addWeight(b.weight, null).catch(() => {});
             close(); haptic([15, 30, 15]); confetti(false); say(`🎯 ${fmt(n.kcal)} kcal am Tag, ${n.protein} g Protein`); refreshHome(); if (done) done(); } catch(e) { sv.disabled = false; say("Ging nicht: " + (e.message || e)); } };
       };
@@ -294,11 +294,12 @@
   /* ---------- what each person cares about (Settings): the first two big at the top, up to three as columns in the lists ---------- */
   const NUT = {kcal: {l: "Kalorien", s: "kcal", c: "k", e: "🔥"}, carbs: {l: "Kohlenhydrate", s: "KH", c: "c", e: "🍞"}, protein: {l: "Protein", s: "Protein", c: "p", e: "💪"}, fat: {l: "Fett", s: "Fett", c: "f", e: "🥑"}}, NORD = ["kcal", "protein", "carbs", "fat"];
   const aimShow = aim => ["kcal", ["muscle", "gain", "bulk"].includes(aim) ? "protein" : "carbs"];
-  /* everyone sees all four: calories and protein big at the top, carbs and fat small below, all four as columns in the lists.
-     Only who changes the chips in the settings on this phone (SHOWK) gets their own pick */
-  const SHOWK = "chessnat-kc-show4", picked = () => { try { return localStorage.getItem(SHOWK) === "1"; } catch(e) { return false; } }, setPicked = () => { try { localStorage.setItem(SHOWK, "1"); } catch(e) {} };
-  function shows(){ const p = K.prof || {};
-    if (picked() && Array.isArray(p.show)){ const s2 = NORD.filter(k => p.show.includes(k)); if (s2.length) return s2; }
+  /* what you see, in the order you tapped it: the first two big at the top, the others small below, all of them as columns in the lists.
+     Nobody picked yet: all four, calories and protein first. The profile keeps at most three (in order); "all four" is remembered
+     on this phone (SHOWK = "4") and the one left over simply comes last */
+  const SHOWK = "chessnat-kc-show4", pickedV = () => { try { return localStorage.getItem(SHOWK) || ""; } catch(e) { return ""; } }, setPicked = n => { try { localStorage.setItem(SHOWK, n >= NORD.length ? "4" : "1"); } catch(e) {} };
+  function shows(){ const p = K.prof || {}, f = pickedV();
+    if (f && Array.isArray(p.show)){ const s2 = p.show.filter((k, i) => NORD.includes(k) && p.show.indexOf(k) === i); if (s2.length) return f === "4" ? s2.concat(NORD.filter(k => !s2.includes(k))) : s2; }
     return NORD.slice(); }
   const vOf = (o, k) => Number(o[k]) || 0;
   const cells = o => { const S = shows(), n3 = S.length > 3 ? " n3 n4" : S.length > 2 ? " n3" : ""; return S.map(k => `<span class="kc-n ${NUT[k].c}${n3}">${k === "kcal" || S.length > 3 ? fmt(Math.round(vOf(o, k))) : g0(vOf(o, k))}</span>`).join(""); };
@@ -901,7 +902,7 @@
     const on = K.on(), p = K.prof || {};
     return `<h3>Kalorien-Tracker</h3>
       <label class="chk"><input type="checkbox" data-kcs="enabled" ${on ? "checked" : ""}> Auf der Startseite zeigen (Sprechen + Barcode)</label>
-      ${on || full ? `<div class="kc-showp"><b>Was dich interessiert</b><div class="kc-chips">${NORD.map(k => `<button class="chip ${shows().includes(k) ? "on" : ""}" data-show="${k}">${NUT[k].e} ${NUT[k].l}</button>`).join("")}</div><small class="muted">Die ersten zwei stehen oben groß, die anderen klein darunter. In den Listen stehen alle.</small></div>
+      ${on || full ? `<div class="kc-showp"><b>Was dich interessiert</b><div class="kc-chips">${NORD.map(k => { const i = shows().indexOf(k); return `<button class="chip ${i >= 0 ? "on" : ""}" data-show="${k}">${i >= 0 ? `<b class="kc-ord">${i + 1}</b> ` : ""}${NUT[k].e} ${NUT[k].l}</button>`; }).join("")}</div><small class="muted">Die Reihenfolge zählt: Was du zuerst antippst, steht oben groß (1 und 2), der Rest klein darunter. Zum Umsortieren abwählen und neu antippen.</small></div>
       <div class="kc-goal"><span>Tagesziel</span><input id="kcgoal" inputmode="numeric" value="${K.goal()}"><span>kcal</span></div>
       <div class="kc-chips">${[2000, 2500, 2800, 3000, 3500].map(v => `<button class="chip ${K.goal() === v ? "on" : ""}" data-goal="${v}">${fmt(v)}</button>`).join("")}</div>
       ${(() => { const T = K.targets(), b = K.body || {}, A = AIMS.find(a => a[0] === b.aim), lw = K.weights[0];
@@ -922,8 +923,8 @@
     const wb = el.querySelector("[data-kcs-weigh]"); if (wb) wb.onclick = () => { const sh0 = el.closest(".dsheet"); if (sh0) sh0.querySelector("[data-dclose]").click(); Weigh.open(); };
     el.querySelectorAll("[data-goal]").forEach(b => b.onclick = () => set(b.dataset.goal));
     el.querySelectorAll("[data-show]").forEach(b => b.onclick = async () => { const k = b.dataset.show, cur = shows(), nx = cur.includes(k) ? cur.filter(x => x !== k) : cur.concat(k);
-      if (!nx.length) return say("Mindestens eins"); setPicked(); haptic(8);
-      b.classList.toggle("on"); try { await K.saveProf({show: NORD.filter(x => nx.includes(x))}); redraw(); } catch(e) { b.classList.toggle("on"); say("Ging nicht: " + (e.message || e)); } });
+      if (!nx.length) return say("Mindestens eins"); const was = pickedV(); setPicked(nx.length); haptic(8);
+      b.classList.toggle("on"); try { await K.saveProf({show: nx.slice(0, 3)}); redraw(); } catch(e) { try { was ? localStorage.setItem(SHOWK, was) : localStorage.removeItem(SHOWK); } catch(_) {} b.classList.toggle("on"); say("Ging nicht: " + (e.message || e)); } });
   }
   window.kcalSettings = async el => {
     if (!el) return;
@@ -1127,7 +1128,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-qa{position:relative;width:32px;height:32px;border-radius:50%;background:none;border:2px solid var(--go);color:var(--go-hi,#8FC458);display:grid;place-items:center;flex:none;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}.kc-qa::after{content:"";position:absolute;inset:-9px}.kc-qa:active,.kc-qa.ok{background:var(--go);color:#fff}.kc-qc .kc-q:has(.kc-qa:active){transform:none}
 .kc-lh.q{margin:4px 10px 4px 14px}.kc-lh.q i{width:32px;flex:none}.kc-qc .kc-q .kc-n{font:800 14.5px var(--body)}.kc-qc .kc-q .kc-n.k{color:var(--fg)}
 .kc-lh{display:flex;align-items:center;gap:10px;margin:20px 14px 8px;font:800 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.kc-lh>span:first-child{flex:1}
-.kc-n{width:58px;text-align:right;flex:none;font-variant-numeric:tabular-nums;white-space:nowrap}.kc-n.c{color:#E9A92B}.kc-n.p{color:#5AAEFF}.kc-n.f{color:#EF7A5F}.kc-lh .kc-n{letter-spacing:.02em}.kc-n.n3{width:50px}.kc-n.n4{width:41px;font-size:13px}.kc-n.n4.k{width:46px}.kc-lh .kc-n.n3{letter-spacing:0}
+.kc-n{width:58px;text-align:right;flex:none;font-variant-numeric:tabular-nums;white-space:nowrap}.kc-n.c{color:#E9A92B}.kc-n.p{color:#5AAEFF}.kc-n.f{color:#EF7A5F}.kc-lh .kc-n{letter-spacing:.02em}.kc-ord{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:rgba(0,0,0,.28);font:900 11px var(--body);margin-right:2px}.kc-n.n3{width:50px}.kc-n.n4{width:41px;font-size:13px}.kc-n.n4.k{width:46px}.kc-lh .kc-n.n3{letter-spacing:0}
 .kc-list2{display:flex;flex-direction:column;gap:10px}.kc-mcard{background:var(--panel);border-radius:16px;overflow:hidden}
 .kc-mrow{display:flex;align-items:center;gap:10px;width:100%;padding:9px 14px;border:0;background:none;color:var(--muted);text-align:left;font:700 14.5px var(--body);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .kc-mrow+.kc-mrow{border-top:1px solid rgba(255,255,255,.05)}.kc-mrow:active{background:rgba(255,255,255,.04)}
