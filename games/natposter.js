@@ -327,6 +327,8 @@
   /* ---------------- this phone: the screen, the joystick, the buttons ---------------- */
   const IMG = {}; const img = (key, src) => { if (IMG[key]) return IMG[key]; const i = new Image(); i.src = src; IMG[key] = i; return i; };
   const fp = o => { const j = o ? JSON.stringify(o) : ""; let h = 5381; for (let i = 0; i < j.length; i++) h = (h * 33 ^ j.charCodeAt(i)) >>> 0; return h.toString(36); };
+  /* the avatar as a plain bitmap once it has loaded: phones redraw an SVG picture from scratch every frame */
+  const BM = new WeakMap(), bmpOf = im => { if (!(im && im.complete && im.naturalWidth)) return im; let cv = BM.get(im); if (!cv){ cv = document.createElement("canvas"); cv.width = 200; cv.height = 256; try { cv.getContext("2d").drawImage(im, 0, 0, 200, 256); } catch(e) { return im; } BM.set(im, cv); } return cv; };
   const avImg = (pid, av) => { const k = "av:" + pid + ":" + fp(av); if (IMG[k]) return IMG[k];
     let svg = ""; try { svg = avatarSVG(Object.assign({}, av || {}, {aura: "none", pet: "none"}), {fit: true}); } catch(e) {}
     svg = svg.replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" ').replace('width="100%" height="100%"', 'width="200" height="256"');
@@ -1075,18 +1077,18 @@
     beamSnd(me){ if (now() - (this.bsT || 0) < 400) return; this.bsT = now(); const x = this.sfx; if (!x) return; try { x.tone(0, 520, 1040, .9, .025, "sine"); x.chord(.25, [79, 83, 86], .7, .02, "sine"); } catch(e) {} if (!me) Haptic.go(10); },
     ventK(q){ const T0 = 380, a = now() - (q.vt || 0); if (q.v) return a >= T0 ? 1 : a / T0; return a >= T0 ? 0 : 1 - a / T0; },
     figure(c, x, y, p, o){
-      const im = avImg(p.id, p.av), h = 118, w = h * 200 / 256, bob = o.mv ? Math.sin(now() / 90) * 3 : 0;
+      const im = avImg(p.id, p.av), bm = bmpOf(im), h = 118, w = h * 200 / 256, bob = o.mv ? Math.sin(now() / 90) * 3 : 0;
       c.save(); c.translate(x, y);
       if (o.body){ const k = o.k || "stab", ok = im.complete && im.naturalWidth;
         c.fillStyle = "#7a1a12"; c.beginPath(); c.ellipse(-6, 14, k === "shot" ? 110 : 70, 24, 0, 0, 7); c.fill(); c.fillStyle = "#a82a1e"; c.beginPath(); c.ellipse(-10, 12, 52, 16, 0, 0, 7); c.fill();
         [[44, -6, 7], [-62, 4, 6], [30, 30, 5], [-30, 32, 4], [58, 22, 4]].forEach(([a, b, r]) => { c.beginPath(); c.arc(a, b, r, 0, 7); c.fill(); });
         c.font = "34px system-ui"; c.textAlign = "center"; c.save(); c.translate(34, 2); c.rotate(.6); c.fillText("🦴", 0, 0); c.restore(); c.globalAlpha = .95;
-        if (k === "chess"){ c.save(); c.scale(1.5, .3); if (ok){ c.filter = "grayscale(.6) brightness(.8)"; c.drawImage(im, -w / 2, -h + 50, w, h); c.filter = "none"; } c.restore(); const q = pieceImg("bq"); if (q.complete && q.naturalWidth) c.drawImage(q, -48, -96, 96, 96); c.restore(); return; }
+        if (k === "chess"){ c.save(); c.scale(1.5, .3); if (ok){ c.filter = "grayscale(.6) brightness(.8)"; c.drawImage(bm, -w / 2, -h + 50, w, h); c.filter = "none"; } c.restore(); const q = pieceImg("bq"); if (q.complete && q.naturalWidth) c.drawImage(q, -48, -96, 96, 96); c.restore(); return; }
         c.rotate(-Math.PI / 2); c.filter = "grayscale(.6) brightness(.8)";
         const X = -w / 2 - 20, Y = -h + 30, cut = h * .4;
-        if (ok){ if (k === "head"){ c.save(); c.beginPath(); c.rect(X, Y + cut, w, h - cut); c.clip(); c.drawImage(im, X, Y, w, h); c.restore(); c.save(); c.translate(-30, 70); c.rotate(2.2); c.beginPath(); c.rect(X, Y, w, cut); c.clip(); c.drawImage(im, X, Y, w, h); c.restore(); }
-          else if (k === "bite"){ c.save(); c.beginPath(); c.rect(X, Y + h * .62, w, h * .38); c.clip(); c.drawImage(im, X, Y, w, h); c.restore(); }
-          else c.drawImage(im, X, Y, w, h); }
+        if (ok){ if (k === "head"){ c.save(); c.beginPath(); c.rect(X, Y + cut, w, h - cut); c.clip(); c.drawImage(bm, X, Y, w, h); c.restore(); c.save(); c.translate(-30, 70); c.rotate(2.2); c.beginPath(); c.rect(X, Y, w, cut); c.clip(); c.drawImage(bm, X, Y, w, h); c.restore(); }
+          else if (k === "bite"){ c.save(); c.beginPath(); c.rect(X, Y + h * .62, w, h * .38); c.clip(); c.drawImage(bm, X, Y, w, h); c.restore(); }
+          else c.drawImage(bm, X, Y, w, h); }
         c.filter = "none";
         if (k === "stab"){ c.font = "40px system-ui"; c.save(); c.translate(-10, 6); c.rotate(.9); c.fillText("🔪", 0, 0); c.restore(); }
         if (k === "bite"){ c.font = "30px system-ui"; c.fillText("🦴", -40, -20); c.fillText("🦴", -10, 30); }
@@ -1108,7 +1110,7 @@
       const fs = this.faceOf(p.id, o.f || 1), vk = o.vk || 0;
       if (vk > 0){ c.save(); c.beginPath(); c.rect(-w, -h * 2, w * 2, h * 2 + 16); c.clip(); c.translate(0, vk * (h - 4)); }
       c.save(); if (rev != null){ c.beginPath(); c.rect(-w, rev, w * 2, h * 2); c.clip(); } c.scale(fs, 1);
-      if (im.complete && im.naturalWidth) c.drawImage(im, -w / 2, -h + 18 + bob, w, h); else { c.fillStyle = "#BAB5AC"; c.beginPath(); c.arc(0, -30, 26, 0, 7); c.fill(); }
+      if (im.complete && im.naturalWidth) c.drawImage(bm, -w / 2, -h + 18 + bob, w, h); else { c.fillStyle = "#BAB5AC"; c.beginPath(); c.arc(0, -30, 26, 0, 7); c.fill(); }
       c.restore(); if (rev != null && rev > -h + 10) c.globalAlpha = Math.max(0, Math.min(1, (18 - rev) / h)); if (vk > 0){ c.restore(); if (vk > .55){ c.restore(); return; } }
       /* the pet from the avatar flies along beside you */
       if (p.av && p.av.pet && p.av.pet !== "none" && !o.ghost){ const pi = petImg(p.av); if (pi && pi.complete && pi.naturalWidth){ const t2 = now() / 400 + (p.id.charCodeAt(0) || 0), px = -(o.f || 1) * 48 + Math.cos(t2) * 6, py = -70 + Math.sin(t2 * 1.7) * 7; c.drawImage(pi, px - 18, py - 23, 36, 46); } }
