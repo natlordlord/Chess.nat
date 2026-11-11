@@ -18,7 +18,7 @@ const SCHEMA = {
     title: {type: "string", description: "Kurzer Name der Mahlzeit, max. 4 Wörter"},
     emoji: {type: "string", description: "Ein passendes Essens-Emoji"},
     items: {type: "array", items: {type: "object", additionalProperties: false, required: ["name", "food", "amount", "grams", "ref", "state", "kcal", "carbs", "protein", "fat", "fiber", "sugar", "satfat", "quality"],
-      properties: {name: {type: "string"}, food: {type: "string", description: "Allgemeiner Name des Lebensmittels für die gemeinsame Datenbank: Einzahl, ohne Menge, ohne Marke (z. B. 'Mascarpone', 'Weintraube', 'Schoko-Cookie'). Steht es in BEKANNT, exakt diese Schreibweise."},
+      properties: {name: {type: "string"}, food: {type: "string", description: "Name aus der Liste BEKANNT, wenn die Zutat genau dieses Lebensmittel ist, exakt so geschrieben; sonst leer"},
         amount: {type: "string", description: "Menge, z. B. '2 Scheiben (80 g)'"},
         grams: {type: "number", description: "Gewicht dieser Zutat in Gramm (bei Getränken ml), so wie gegessen. Immer angeben, auch geschätzt."},
         ref: {type: "string", enum: [""].concat(FOODS.list.map(f => f.id)), description: "Kennung aus der Liste TABELLE, wenn die Zutat genau dieses Lebensmittel ist, sonst leer"},
@@ -40,7 +40,7 @@ Die Summenfelder müssen der Summe der Zutaten entsprechen. Wenn nichts Essbares
 TABELLE: Für diese Lebensmittel rechnet die App die Nährwerte selbst aus einer festen Tabelle, damit dasselbe Essen bei jedem dieselben Werte hat. Ist eine Zutat genau eines davon (auch als Teil eines Gerichts, z. B. die Nudeln in „Nudeln mit Pesto“), setze ref auf die Kennung und grams auf das Gewicht; zerlege Gerichte dafür in ihre Zutaten. Nimm ref nur, wenn es wirklich dieses Lebensmittel ist (Nudelsalat, Reiswaffeln, Milchreis, Käsekuchen sind es nicht): dann ref leer.
 ${FOODS.list.map(f => f.id + " = " + f.n + (f.cf ? " (zwei Zustände: " + f.st[0] + " / " + f.st[1] + ")" : "")).join("; ")}
 Zustand: Nudeln, Reis, Couscous, Bulgur, Quinoa, Linsen, Kichererbsen und Bohnen werden gekocht schwerer, Fleisch wird gebraten leichter. Sagt der Nutzer „gekocht“, „gebraten“, „auf dem Teller“ oder nichts dazu, ist grams das fertige Gewicht: state = "cooked". Sagt er „trocken“, „roh“, „ungekocht“ oder nennt er das Gewicht aus der Packung, ist state = "dry". Rechne das Gewicht nie selbst um.
-DATENBANK: Alles, was nicht in der TABELLE steht, merkt sich die App in einer gemeinsamen Datenbank, in der es jedes Lebensmittel nur einmal gibt: wer es zuerst nennt, legt die Werte pro 100 g fest, danach bekommen alle dieselben. Gib dafür in food den allgemeinen Namen an (Einzahl, ohne Menge und Marke; die Zubereitung nur, wenn sie die Nährwerte pro 100 g deutlich ändert, z. B. „Kartoffel gekocht“, „Pommes frites“). Unter BEKANNT stehen die Namen, die es schon gibt: ist die Zutat eines davon (auch anders geschrieben, Mehrzahl, mit Marke oder Farbe), nimm exakt diesen Namen, damit kein Duplikat entsteht. grams muss dann das echte Gewicht sein.
+DATENBANK: Zusätzlich gibt es eine geprüfte Datenbank mit festen Werten pro 100 g. Ihre Namen stehen unter BEKANNT. Ist eine Zutat, die nicht in der TABELLE steht, genau eines dieser Lebensmittel (auch anders geschrieben, in der Mehrzahl oder mit Marke), setze food exakt auf diesen Namen und grams auf das echte Gewicht: die App nimmt dann die geprüften Werte. Passt keiner wirklich, bleibt food leer; erfinde keine Namen und nimm nichts nur Ähnliches.
 Antworte nur mit JSON nach diesem Schema: ${JSON.stringify(SCHEMA)}`;
 
 /* "Was soll ich kochen?": one dish from what is at home that fills the day's gap */
@@ -137,30 +137,28 @@ function fromTable(it, i){
     amount: ((new RegExp("\\b" + Math.round(g) + "\\s*(g|ml)\\b").test(it.amount) ? it.amount : (it.amount ? it.amount + " · " : "") + gt) + (st && !new RegExp(st, "i").test(it.amount) ? " " + st : "")).slice(0, 60),
     ref: F.id, st: F.cf ? (cooked ? "cooked" : "dry") : undefined});
 }
-/* The shared food database (Supabase table kcal_foods, supabase/kcal_foods.sql): everything that is not in the fixed table.
-   The first time a food is named, its values per 100 g (from the AI) are stored; from then on everyone gets exactly those.
-   One row per food. The calls run as the signed-in person; if the database does not answer, the AI's own numbers stay. */
+/* The checked food database (Supabase table kcal_foods, supabase/kcal_foods.sql): the second source next to the fixed table.
+   It holds only checked values per 100 g from an official source and is read-only for the app: nothing the AI says is ever
+   stored. The AI gets the names in it and only says which one a food is; the numbers then come from the row. A food that is in
+   neither source keeps the AI's estimate, for this one meal only. The calls run as the signed-in person. */
 const sbHead = req => ({apikey: SUPABASE_ANON, Authorization: String(req.headers.authorization || ""), "Content-Type": "application/json"});
 const soon = ms => (typeof AbortSignal !== "undefined" && AbortSignal.timeout ? {signal: AbortSignal.timeout(ms)} : {});
 let KNOWN = {at: 0, names: []};
 async function knownFoods(req){
-  if (Date.now() - KNOWN.at < 60000) return KNOWN.names;
-  try { const r = await fetch(SUPABASE_URL + "/rest/v1/kcal_foods?select=name&order=uses.desc&limit=400", Object.assign({headers: sbHead(req)}, soon(2500)));
+  if (Date.now() - KNOWN.at < Number(process.env.KCAL_KNOWN_MS || 60000)) return KNOWN.names;
+  try { const r = await fetch(SUPABASE_URL + "/rest/v1/kcal_foods?select=name&order=name.asc&limit=1000", Object.assign({headers: sbHead(req)}, soon(2500)));
     if (r.ok){ const j = await r.json(); if (Array.isArray(j)) KNOWN = {at: Date.now(), names: j.map(x => String(x.name || "")).filter(Boolean)}; } } catch(e) {}
   return KNOWN.names;
 }
-async function fromShared(req, items, raw){
+async function fromChecked(req, items, raw){
   const todo = [];
-  items.forEach((it, ix) => { const i = raw[ix] || {}, g = Number(i.grams), name = String(i.food || "").trim(); if (it.ref || !(g >= 5 && g <= 5000) || name.length < 2 || name.length > 60) return;
-    const f = 100 / g, v = x => Math.round((Number(x) || 0) * f * 1000) / 1000;
-    todo.push({ix, g, row: {name, k: v(i.kcal), c: v(i.carbs), p: v(i.protein), f: v(i.fat), fi: v(i.fiber), su: v(i.sugar), sf: v(i.satfat), q: it.h.q}}); });
+  items.forEach((it, ix) => { const i = raw[ix] || {}, g = Number(i.grams), name = String(i.food || "").trim(); if (it.ref || !(g > 0 && g <= 5000) || name.length < 2 || name.length > 60) return; todo.push({ix, g, name}); });
   if (!todo.length) return;
-  try { const r = await fetch(SUPABASE_URL + "/rest/v1/rpc/kcal_foods_resolve", Object.assign({method: "POST", headers: sbHead(req), body: JSON.stringify({items: todo.map(t => t.row)})}, soon(4000)));
-    if (!r.ok){ console.log("kcal foods: resolve failed", r.status, (await r.text().catch(() => "")).slice(0, 200)); return; }
-    const rows = await r.json(); if (!Array.isArray(rows)) return; let fresh = false;
-    todo.forEach((t, n) => { const F = rows[n]; if (!F || !(Number(F.k) >= 0)) return; const f = t.g / 100, it = items[t.ix]; if (Number(F.uses) <= 1) fresh = true;
+  try { const r = await fetch(SUPABASE_URL + "/rest/v1/rpc/kcal_foods_lookup", Object.assign({method: "POST", headers: sbHead(req), body: JSON.stringify({names: todo.map(t => t.name)})}, soon(4000)));
+    if (!r.ok){ console.log("kcal foods: lookup failed", r.status, (await r.text().catch(() => "")).slice(0, 200)); return; }
+    const rows = await r.json(); if (!Array.isArray(rows)) return;
+    todo.forEach((t, n) => { const F = rows[n]; if (!F || !(Number(F.k) >= 0)) return; const f = t.g / 100, it = items[t.ix];
       Object.assign(it, {kcal: Math.round(F.k * f), carbs: r1(F.c * f), protein: r1(F.p * f), fat: r1(F.f * f), h: {fi: r1(F.fi * f), su: r1(F.su * f), sf: r1(F.sf * f), q: Number(F.q) || it.h.q}, food: String(F.key)}); });
-    if (fresh) KNOWN.at = 0;
   } catch(e) { console.log("kcal foods: not reachable", String(e && e.message).slice(0, 120)); }
 }
 const SELFTEST_HASH = "1e09bcb6a579162e0bd707a6b896a71c9034ab0e2e9d5f409f480a590774375d";
@@ -213,7 +211,7 @@ module.exports = async (req, res) => {
   if (!text) return res.status(400).json({error: "Nichts zu rechnen."});
   let est;
   const known = await knownFoods(req);
-  try { est = await ask(req, text, null, {system: SYSTEM, schema: SCHEMA, name: "meal", user: `Jetzt ist ${berlinNow()} (Europe/Berlin).\nBEKANNT: ${known.join("; ").slice(0, 6000) || "(noch nichts)"}\nGesagt: „${text}“`, max: 3000, temp: 0}); }
+  try { est = await ask(req, text, null, {system: SYSTEM, schema: SCHEMA, name: "meal", user: `Jetzt ist ${berlinNow()} (Europe/Berlin).\nBEKANNT: ${known.join("; ").slice(0, 12000) || "(leer)"}\nGesagt: „${text}“`, max: 3000, temp: 0}); }
   catch(e){
     console.log("kcal ai failed", e.status, e.model, String(e.message).slice(0, 300));
     return res.status(502).json({error: e.status === 429 ? "Gerade zu viele Anfragen. Gleich nochmal versuchen." : "Die KI hat gerade nicht geantwortet. Nochmal versuchen."});
@@ -223,7 +221,7 @@ module.exports = async (req, res) => {
     const it = {name: String(i.name || "").slice(0, 80), amount: String(i.amount || "").slice(0, 60), kcal: Math.round(Number(i.kcal) || 0), carbs: r1(i.carbs), protein: r1(i.protein), fat: r1(i.fat),
       h: {fi: r1(i.fiber), su: r1(i.sugar), sf: r1(i.satfat), q: Math.max(1, Math.min(5, Math.round(Number(i.quality) || 3)))}};
     return fromTable(it, i); });
-  await fromShared(req, items, (Array.isArray(est.items) ? est.items : []).slice(0, 30));
+  await fromChecked(req, items, (Array.isArray(est.items) ? est.items : []).slice(0, 30));
   const sum = k => items.reduce((s, i) => s + (Number(i[k]) || 0), 0);
   const meal = {
     title: String(est.title || "Mahlzeit").slice(0, 60), emoji: String(est.emoji || "🍽️").slice(0, 8), items,

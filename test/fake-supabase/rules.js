@@ -126,14 +126,10 @@ module.exports = db => {
   const RPC = {
     kcal_can_see: (u, a) => kcalCanSee(u, a.owner), shop_can: (u, a) => shopCan(u, a.l), shop_owns: (u, a) => shopOwns(u, a.l),
     news_is_admin: u => isAdmin(u), push_config: () => ({}), events_summary: () => [],
-    /* public.kcal_foods_resolve: one row per food; the first plausible values stay, everyone after gets them */
-    kcal_foods_resolve(u, {items}){ if (!u) raise("Bitte anmelden"); if (!Array.isArray(items) || items.length > 40) raise("bad input");
-      const key = t => String(t || "").replace(/\(.*?\)/g, " ").toLowerCase().replace(/[äöüßéèêàáâíóúñç]/g, ch => "aouseeeaaaiounc"["äöüßéèêàáâíóúñç".indexOf(ch)]).replace(/[^a-z0-9]+/g, " ").trim().slice(0, 60), r2 = x => Math.round((Number(x) || 0) * 100) / 100;
-      return items.map(it => { const ky = key(it.name); if (ky.length < 2) return null; let r = R.kcal_foods.find(x => x.key === ky);
-        if (r){ r.uses++; } else { const k = r2(it.k), c = r2(it.c), p = r2(it.p), f = r2(it.f);
-          if (!(k >= 0 && k <= 900 && c >= 0 && c <= 100 && p >= 0 && p <= 100 && f >= 0 && f <= 100 && c + p + f <= 101 && Math.abs(4 * c + 4 * p + 9 * f - k) <= Math.max(40, k * .3))) return null;
-          r = {key: ky, name: String(it.name).trim().slice(0, 60), k, c, p, f, fi: r2(it.fi), su: r2(it.su), sf: r2(it.sf), q: Math.max(1, Math.min(5, Math.round(Number(it.q) || 3))), uses: 1, created_by: u, created_at: new Date().toISOString()}; R.kcal_foods.push(r); }
-        const o = Object.assign({}, r); delete o.created_by; return o; }); },
+    /* public.kcal_foods_lookup: reads the checked foods by name, never writes */
+    kcal_foods_lookup(u, {names}){ if (!u) raise("Bitte anmelden"); if (!Array.isArray(names) || names.length > 40) return [];
+      const key = t => String(t || "").replace(/\(.*?\)/g, " ").toLowerCase().replace(/[äöüßéèêàáâíóúñç]/g, ch => "aouseeeaaaiounc"["äöüßéèêàáâíóúñç".indexOf(ch)]).replace(/[^a-z0-9]+/g, " ").trim().slice(0, 60);
+      return names.map(n => R.kcal_foods.find(x => x.key === key(n)) || null); },
     kcal_buy_ice(u){ if (!u) raise("Bitte anmelden"); const k = R.kcal_profile.find(p => p.user_id === u); if (!k || k.ice >= 2) raise("Du hast schon zwei"); k.ice++; return k.ice; },
     kcal_invite(u, {target}){
       if (!u || !target || target === u) return "invalid"; if (!friends(u, target)) return "not_friends";

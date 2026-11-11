@@ -60,7 +60,7 @@ den App-Modus ein (kein Zoomen, kein Gummiband-Scrollen) und zeigt in Safari den
 | `data/foods.js` | Feste Nährwert-Tabelle für den Kalorien-Tracker (Handy und `api/kcal.js` laden dieselbe Datei): Werte pro 100 g für Grundnahrungsmittel und der Umrechnungssatz trocken ↔ gekocht (Nudeln, Reis, Linsen, Fleisch …). Gleiche Lebensmittel haben damit bei allen dieselben Werte; gescannte Packungen (Trockengewicht) lassen sich gekocht gewogen eintragen |
 | `test/` | Test-Attrappe für die Datenbank und Durchklick-Tests im Browser, eingeloggt (siehe `test/README.md`) |
 | `api/kcal.js` | Vercel-Funktion: rechnet Gesprochenes per KI (Vercel AI Gateway, OIDC) in Kalorien und Makros um, nur für angemeldete Spieler |
-| `supabase/kcal_foods.sql` | Gemeinsame Lebensmittel-Datenbank (`kcal_foods`): was nicht in `data/foods.js` steht, speichert `api/kcal.js` beim ersten Nennen mit Werten pro 100 g (über `kcal_foods_resolve`, prüft Plausibilität, überschreibt nie); danach bekommen alle dieselben Werte, jedes Lebensmittel gibt es nur einmal. Test: `node test/kcal-foods.js` |
+| `supabase/kcal_foods.sql` | Geprüfte Lebensmittel-Datenbank (`kcal_foods`), zweite Quelle neben `data/foods.js`: nur geprüfte Werte pro 100 g mit Quellenangabe, jedes Lebensmittel genau einmal. Für App und KI nur lesbar (`kcal_foods_lookup`), nichts Geschätztes wird je gespeichert; Einträge legt nur der Betreiber an. `api/kcal.js` gibt der KI die Namen, die Zahlen kommen aus der Zeile. Test: `node test/kcal-foods.js` |
 | `vendor/` | chess.js (BSD), supabase-js (MIT), qrcode-generator (MIT, Kazuhiko Arase), zxing-wasm (MIT/Apache 2.0, Barcode-Scanner in `vendor/zxing/`) |
 
 Figuren „Staunty“ von sadsnake1 (CC BY-NC-SA 4.0), nur für private, nicht-kommerzielle Nutzung.
