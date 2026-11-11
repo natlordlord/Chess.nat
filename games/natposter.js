@@ -342,6 +342,9 @@
   const LOC = e => NP.rot ? {x: e.clientY, y: innerWidth - e.clientX} : {x: e.clientX, y: e.clientY};
   const REL = (e, el) => { const p = LOC(e); let x = 0, y = 0, n = el; while (n && n !== NP.el){ x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; } return {x: p.x - x, y: p.y - y}; };
   const NP = {dust: [], el: null, v: null, m: null, act: null, raf: 0, me: {x: BTN.x, y: BTN.y + 150, f: 1}, joy: null, keys: {}, sent: 0, lastSend: {}, mini: null, vent: null, spawnK: 0, shown: {}, sndK: null, lastStep: 0, zoom: 1, mapOpen: false,
+    /* a phone that can't keep up while running around draws with fewer pixels instead of stuttering */
+    qual(dt){ if (!this.v || this.v.phase !== "play" || !this.cv || (PG.arena && PG.arena.client.on)){ this.qn = this.qs = 0; return; } this.qs = (this.qs || 0) + Math.min(.2, dt); this.qn = (this.qn || 0) + 1; if (this.qn < 120) return;
+      const avg = this.qs / this.qn; this.qn = this.qs = 0; if (avg > 1 / 45 && this.dpr > 1.05){ const w = this.cv.width / this.dpr, h = this.cv.height / this.dpr, d = Math.max(1, Math.round((this.dpr - .34) * 100) / 100); this.cv.width = Math.round(w * d); this.cv.height = Math.round(h * d); this.dpr = d; } },
     draw(body, v, m, act){
       if (v.phase === "lobby" && this.v && this.v.phase !== "lobby") this.lobbyIn = 0;
       if (v.gid && v.gid !== this.gid){ this.gid = v.gid; this.shown = {}; this.deathT = {}; this.evShow = null; this.dblT = 0; QUIET = false; if (PG.arena) PG.arena.fx.reset(); }
@@ -474,7 +477,7 @@
       const FAST = ".np-btns,.np-top,.np-lob";
       el.addEventListener("pointerdown", e => { const b = e.target.closest("[data-x]"); if (!b || b.disabled || !b.closest(FAST)) return; e.preventDefault(); b._pd = now(); b.classList.add("pr"); setTimeout(() => b.classList.remove("pr"), 140); Sound.tap(); this.lastBtn = b; this.click(b.dataset.x, b.dataset.v); });
       el.addEventListener("click", e => { const b = e.target.closest("[data-x]"); if (!b || b.disabled) return; if (b.closest(FAST) && now() - (b._pd || 0) < 800) return; Sound.tap(); this.lastBtn = b; this.click(b.dataset.x, b.dataset.v); });
-      let last = performance.now(); const loop = t => { const dt = Math.min(.05, (t - last) / 1000); last = t; try { this.step(dt); this.render(); } catch(err) { console.error(err); } this.raf = requestAnimationFrame(loop); };
+      let last = performance.now(); const loop = t => { const raw = (t - last) / 1000, dt = Math.min(.05, raw); last = t; try { this.step(dt); this.render(); this.qual(raw); } catch(err) { console.error(err); } this.raf = requestAnimationFrame(loop); };
       this.raf = requestAnimationFrame(loop);
     },
     ghost(){ return this.v && !this.v.alive; },
