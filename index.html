@@ -2799,7 +2799,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794363123";
+const CHESSNAT_BUILD = "1794363274";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -2807,17 +2807,17 @@ const CHESSNAT_BUILD = "1794363123";
 const DLOC = () => (typeof I18N !== "undefined" && I18N.lang === "de") ? "de-DE" : "en-GB";
 const I18N = (() => {
   const KEY = "chessnat-i18n-de", SKIP = "script,style,textarea,input,select,option,.bub,.chat-msgs,[data-notr],.moves,.pgn,code,.toast-raw";
-  let lang = "en", exact = null, buckets = null, obs = null, busy = false;
+  let lang = "en", exact = null, buckets = null, obs = null, busy = false, pk = new Set();
   const done = new WeakMap(), adone = new WeakMap();
   const choice = () => { try { const s = JSON.parse(localStorage.getItem("chessnat-v2") || "{}"); if (s.settings && s.settings.lang) return s.settings.lang; } catch(e) {}
     try { const l = localStorage.getItem("chessnat-lang"); if (l) return l; } catch(e) {} return /^de\b/i.test(navigator.language || "") ? "de" : "en"; };
   const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const first = s => (s.match(/^[^\s]+/) || [""])[0].toLowerCase(), last = s => (s.match(/[^\s]+$/) || [""])[0].toLowerCase();
   function build(d){
-    exact = new Map(); buckets = {};
+    exact = new Map(); buckets = {}; pk = new Set();
     for (const en in d){ const de = d[en]; if (!de) continue;
       /* a name kept as it is ("Chicken Wings") is still an exact hit, so no pattern bends it */
-      if (!/\{\d+\}/.test(en)){ exact.set(en, de); continue; }
+      if (!/\{\d+\}/.test(en)){ exact.set(en, de); continue; } pk.add(en);
       const parts = en.split(/(\{\d+\})/).filter(p => p !== ""), order = [];
       /* a placeholder glued to a word is an ending ("game{1}" → "s"); the others hold a name or a number, never a whole sentence */
       const src = "^" + parts.map((p, i) => { const m = p.match(/^\{(\d+)\}$/); if (m){ order.push(+m[1]); return i > 0 && /\p{L}$/u.test(parts[i - 1]) ? "(\\p{L}{0,3})" : "([^]{1,48}?)"; } return esc(p); }).join("") + "$";
@@ -2836,6 +2836,8 @@ const I18N = (() => {
   function tr(core, depth = 0){
     const s = core.replace(/\s+/g, " ");
     const hit = exact.get(s); if (hit) return hit;
+    /* "Daily wins 0/6": a known phrase with a count after it keeps its exact German, the count stays */
+    { const nm = s.match(/^(.*?[A-Za-z].*?)(\s+[\d\s\/·.,:%+−\-()]+)$/); if (nm && !pk.has(nm[1] + " {0}")){ const h2 = exact.get(nm[1]); if (h2) return h2 + nm[2]; } }
     const tryB = b => { if (!b) return null; for (const p of b){ const m = p.re.exec(s); if (!m) continue;
       const vals = {}; p.order.forEach((k, i) => { const v = m[i + 1], c = v.trim(); vals[k] = exact.get(c) || (depth < 1 && c.length > 3 && /[A-Za-z]{2}/.test(c) ? (x => x ? v.replace(c, x) : v)(tr(c, depth + 1)) : v); });
       /* an English plural "s" glued to a word becomes the German plural of that word */
@@ -11328,7 +11330,7 @@ Views.home = {
         ${journeyTile()}
         ${next ? `<button class="tile" data-go="lesson" data-l="${next.id}" style="grid-column:span 2;border:1px solid var(--go)">${icon("book", 40)}<span class="pill go">Continue learning</span><h3>${esc(next.title)}</h3><p>${esc(next.sub || "")}</p></button>` : ""}
         <button class="tile" data-go="daily">${icon("calendar", 40)}<h3>Daily Puzzle</h3><p>${S.daily.done[todayKey()] ? "Solved today ✓" : "Not solved yet"} · Streak ${S.daily.streak}</p></button>
-        <button class="tile" data-go="puzzles">${icon("puzzle", 40)}<h3>Puzzles</h3><p>Rated puzzles that adapt to you. ${PZ.total ? PZ.total.toLocaleString("en-US") + " puzzles." : ""}</p></button>
+        <button class="tile" data-go="puzzles">${icon("puzzle", 40)}<h3>Puzzles</h3><p>${I18N.t("Rated puzzles that adapt to you.")}</p></button>
         <button class="tile" data-go="rush">${icon("bolt", 40)}<h3>Puzzle Rush</h3><p>Best: ${S.rush.best3 || 0} (3 min) · ${S.rush.best5 || 0} (5 min) · ${S.rush.bestS || 0} (Survival)</p></button>
         <button class="tile" data-go="train">${icon("target", 40)}<h3>Train a weakness</h3><p>${weak ? "Weakest: " + esc(themeKeyLabel(weak.k)) + " (" + Math.round(weak.acc * 100) + "%)" : "Drill one pattern at a time."}</p></button>
         <button class="tile" data-go="awards">${icon("trophy", 40)}<h3>Trophies</h3><p>${typeof achCount === "function" ? achCount() + " of " + ACH.length : ""} unlocked. Dress up your avatar.</p></button>
@@ -14346,17 +14348,17 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=81"></script>
-<script src="games/imposter.js?v=81"></script>
-<script src="games/werwolf.js?v=81"></script>
-<script src="games/cards.js?v=81"></script>
-<script src="games/heads.js?v=81"></script>
-<script src="games/more.js?v=81"></script>
-<script src="games/net.js?v=81"></script>
-<script src="games/online.js?v=81"></script>
-<script src="games/natposter.js?v=81"></script>
-<script src="games/arena.js?v=81"></script>
-<script src="games/tipp.js?v=81"></script>
+<script src="games/core.js?v=82"></script>
+<script src="games/imposter.js?v=82"></script>
+<script src="games/werwolf.js?v=82"></script>
+<script src="games/cards.js?v=82"></script>
+<script src="games/heads.js?v=82"></script>
+<script src="games/more.js?v=82"></script>
+<script src="games/net.js?v=82"></script>
+<script src="games/online.js?v=82"></script>
+<script src="games/natposter.js?v=82"></script>
+<script src="games/arena.js?v=82"></script>
+<script src="games/tipp.js?v=82"></script>
 <script>boot();</script>
 </body>
 </html>
