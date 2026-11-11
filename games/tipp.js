@@ -497,6 +497,7 @@
 .tp-form label{min-width:0}.tp-form input,.tp-form select{width:100%;box-sizing:border-box}.tp-2,.tp-3{display:grid;gap:8px}.tp-2{grid-template-columns:1fr 1fr}.tp-3{grid-template-columns:2fr 1fr 1fr}.tp-chk{flex-direction:row!important;align-items:center;gap:8px!important}
 .pg-gt.tp-tile .pg-art{font-size:34px}
 .tp-chips{scroll-behavior:smooth;margin:12px 0 4px;padding:2px 0 4px;overscroll-behavior-x:contain;touch-action:pan-x}
+@media (hover:hover) and (pointer:fine) and (min-width:760px){.tp-chips{flex-wrap:wrap;overflow:visible;gap:6px}}
 .tp{overflow-x:clip;max-width:100%}#tpbody{overflow-x:clip}.tp-chips .chip{transition:background .25s,color .25s,transform .2s}.tp-chips .chip.on{transform:scale(1.04)}
 #tpbody.tp-in-r{animation:tpInR .28s cubic-bezier(.2,.8,.25,1)}#tpbody.tp-in-l{animation:tpInL .28s cubic-bezier(.2,.8,.25,1)}
 @keyframes tpInR{from{opacity:0;transform:translateX(26px)}}@keyframes tpInL{from{opacity:0;transform:translateX(-26px)}}
