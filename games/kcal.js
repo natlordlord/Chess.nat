@@ -96,8 +96,20 @@
       this.prof = r.data || Object.assign({}, this.prof || {}, row); this.cache(); refreshHome();
       if (this.prof.enabled) KCScan.preload();
     },
+    /* A draft: what was said is worked out and shown first, and only "Passt" enters it. Until then it lives on the phone alone:
+       nothing is saved, the day's numbers don't move and friends get no "hat gegessen" message. Changing amounts, scanning packs,
+       naming it all work on the draft. Closed without "Passt", it is gone (and says so). */
+    drafts: {},
+    watchDrafts(){ if (this._dw) return; let idle = 0; this._dw = setInterval(() => { const ids = Object.keys(this.drafts); if (!ids.length){ clearInterval(this._dw); this._dw = null; return; }
+      if (document.querySelector(".dsheet, .kc-ov-full, .kc-sov")){ idle = 0; return; } if (++idle < 2) return; ids.forEach(k => delete this.drafts[k]); say("Nicht eingetragen (ohne „Passt“ geschlossen)"); }, 700); },
+    async commit(id){ const d = this.drafts[id]; if (!d) throw new Error("Schon eingetragen"); delete this.drafts[id];
+      try { return await this.add({source: d.source, said: d.said, ts: d.ts, day: d.day, title: d.title, emoji: d.emoji, kcal: d.kcal, carbs: d.carbs, protein: d.protein, fat: d.fat, grams: d.grams, code: d.code, items: d.items, note: d.note}); }
+      catch(e) { this.drafts[id] = d; throw e; } },
     async add(meal){
       const c = sb(), id = meId(); if (!c || !id) throw new Error("Bitte anmelden");
+      if (meal.draft){ const d = {id: "draft-" + Date.now(), draft: true, user_id: id, day: meal.day || dayOf(meal.ts || Date.now()), ts: meal.ts || new Date().toISOString(), title: String(meal.title || "Mahlzeit").slice(0, 120), emoji: meal.emoji || "🍽️", source: meal.source || "manual",
+        kcal: Math.max(0, Math.round(meal.kcal || 0)), carbs: meal.carbs || 0, protein: meal.protein || 0, fat: meal.fat || 0, grams: meal.grams || null, code: meal.code || null, said: meal.said || null, items: meal.items || null, note: meal.note || null, created_at: new Date().toISOString()};
+        this.drafts[d.id] = d; this.watchDrafts(); return d; }
       const row = {user_id: id, day: meal.day || dayOf(meal.ts || Date.now()), ts: meal.ts || new Date().toISOString(), title: String(meal.title || "Mahlzeit").slice(0, 120), emoji: meal.emoji || "🍽️",
         source: meal.source || "manual", kcal: Math.max(0, Math.round(meal.kcal || 0)), carbs: meal.carbs || 0, protein: meal.protein || 0, fat: meal.fat || 0,
         grams: meal.grams || null, code: meal.code || null, said: meal.said ? String(meal.said).slice(0, 2000) : null, items: meal.items || null, note: meal.note ? String(meal.note).slice(0, 500) : null};
@@ -108,6 +120,7 @@
       return r.data;
     },
     async update(id, patch){
+      if (this.drafts[id]){ this.drafts[id] = Object.assign({}, this.drafts[id], patch); return this.drafts[id]; }
       const r = await sb().from("kcal_meals").update(patch).eq("id", id).select().single(); if (r.error) throw r.error;
       const before = snap(), i = this.meals.findIndex(m => m.id === id); if (i >= 0) this.meals[i] = r.data; this.cache(); refreshHome(); cheer(before); return r.data;
     },
@@ -128,6 +141,7 @@
     },
     async buyIce(){ const r = await sb().rpc("kcal_buy_ice"); if (r.error) throw r.error; this.prof.ice = r.data; this.cache(); refreshHome(); return r.data; },
     async del(id){
+      if (this.drafts[id]){ delete this.drafts[id]; return; }
       const r = await sb().from("kcal_meals").delete().eq("id", id); if (r.error) throw r.error;
       this.meals = this.meals.filter(m => m.id !== id); this.cache(); refreshHome();
     }
@@ -674,7 +688,10 @@
       ${own && totOK(items) ? `<button class="btn ghost kc-man-b" data-pub>📖 Als Rezept für alle speichern</button>` : ""}
       ${m.said ? `<p class="muted kc-said">„${h(m.said)}“</p>` : ""}${m.note ? `<p class="muted kc-said">${h(m.note)}</p>` : ""}
       ${own ? `<div class="kc-portion"><span class="muted">Alles mal</span><div>${[[.5, "½"], [.75, "¾"], [1.25, "1¼"], [1.5, "1½"], [2, "2×"], [3, "3×"]].map(([f, l]) => `<button class="chip" data-f="${f}">${l}</button>`).join("")}</div></div>
-      <div class="kc-row2"><button class="btn go" data-dclose>Passt</button><button class="btn" data-kc-del>Löschen</button></div>` : ""}</div>`);
+      <div class="kc-row2">${m.draft ? `<button class="btn go" data-commit>Passt</button><button class="btn" data-kc-del>Verwerfen</button>` : `<button class="btn go" data-dclose>Passt</button><button class="btn" data-kc-del>Löschen</button>`}</div>${m.draft ? `<p class="muted kc-drn">Noch nicht eingetragen. Erst „Passt“ speichert es.</p>` : ""}` : ""}</div>`);
+    /* a draft is entered by "Passt": first let a field that is still being typed in finish, then save what the draft is now */
+    { const cb = sh.el.querySelector("[data-commit]"); if (cb) cb.onclick = async () => { if (cb.disabled) return; cb.disabled = true; const E = document.activeElement; if (E && sh.el.contains(E)) try { E.blur(); } catch(e) {}
+        await new Promise(r => setTimeout(r, 60)); try { const saved = await K.commit(m.id); sh.close(); haptic(15); say(`✓ ${brief(saved)} eingetragen`); } catch(e) { cb.disabled = false; say("Ging nicht: " + (e.message || e)); } }; }
     if (!own) return sh;
     wirePin(sh.el, m);
     sh.el.querySelectorAll("[data-it]").forEach(b => b.onclick = () => { haptic(8); sh.close(); partSheet(m, +b.dataset.it); });
@@ -699,8 +716,8 @@
     const pb = sh.el.querySelector("[data-pub]"); if (pb) pb.onclick = () => { haptic(10); const E = document.activeElement; if (E && sh.el.contains(E)) try { E.blur(); } catch(e) {} sh.close(); recipeSheet(m); };
     const rb = sh.el.querySelector("[data-round]"); if (rb) rb.onclick = () => { haptic(10); sh.close(); KCScan.open({round: m}); };
     sh.el.querySelectorAll("[data-f]").forEach(b => b.onclick = async () => { try { const nm = await saveParts(m, partsOf(m).map(i => scalePart(i, +b.dataset.f))); sh.close(); mealSheet(nm); } catch(e) { say("Ging nicht: " + (e.message || e)); } });
-    const del = sh.el.querySelector("[data-kc-del]"); del.onclick = async () => { if (!del.dataset.armed){ del.dataset.armed = 1; del.textContent = "Wirklich löschen?"; return; }
-      try { await K.del(m.id); sh.close(); say("Gelöscht"); } catch(e) { say("Ging nicht: " + (e.message || e)); } };
+    const del = sh.el.querySelector("[data-kc-del]"); del.onclick = async () => { if (!m.draft && !del.dataset.armed){ del.dataset.armed = 1; del.textContent = "Wirklich löschen?"; return; }
+      try { await K.del(m.id); sh.close(); say(m.draft ? "Verworfen" : "Gelöscht"); } catch(e) { say("Ging nicht: " + (e.message || e)); } };
     return sh;
   }
   function partSheet(m, idx){
@@ -844,7 +861,7 @@
         const m = j.meal;
         if (!m.items.length && !m.kcal) throw new Error(m.note || "Da hab ich nichts Essbares erkannt.");
         const ts = new Date(at - (m.minutesAgo || 0) * 60000).toISOString();
-        const saved = await K.add({source: "voice", said: text, ts, day: dayOf(ts), title: m.title, emoji: m.emoji, kcal: m.kcal, carbs: m.carbs, protein: m.protein, fat: m.fat, items: m.items, note: m.note});
+        const saved = await K.add({draft: true, source: "voice", said: text, ts, day: dayOf(ts), title: m.title, emoji: m.emoji, kcal: m.kcal, carbs: m.carbs, protein: m.protein, fat: m.fat, items: m.items, note: m.note});
         close(); haptic(15); mealSheet(saved);
       } catch(e) {
         if (!ov) return say("Konnte nicht rechnen: " + (e.message || e));
@@ -1550,7 +1567,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-aski{width:100%;box-sizing:border-box;padding:14px!important;border-radius:14px!important;border:2px solid var(--line)!important;background:#2A2825!important;color:var(--fg);font:700 16px var(--body)!important;text-align:center}.kc-askn{margin:0;font:700 16px var(--body);color:var(--muted)}
 .kc-askc{display:flex;flex-direction:column;gap:10px;text-align:center}.kc-aske{font-size:44px}.kc-askc h3{margin:0;font:900 22px var(--display)}.kc-askq{font:700 18px var(--body);margin:0}.kc-askb{display:flex;flex-direction:column;gap:8px}
 .kc-shov .kc-shr{padding:12px 10px 12px 12px;border-radius:16px;gap:12px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}.kc-shr.new,.kc-shd.new{animation:kcRow .26s cubic-bezier(.22,1,.36,1)}@keyframes kcRow{from{opacity:0;transform:translateY(6px)}}.kc-shr.tmp{opacity:.6}
-.kc-shov .kc-shc{width:36px;height:36px;border-radius:12px;font-size:20px;border-width:2.5px}.kc-shov .kc-shn{cursor:pointer}.kc-shov .kc-ck{margin:8px 0 10px;padding:10px 12px;border-radius:14px;background:var(--panel-2);display:flex;flex-direction:column;gap:7px}.kc-ck b{font:800 14px var(--body)}.kc-ckb{display:flex;gap:8px;flex-wrap:wrap}.kc-ckb .chip{flex:1 1 auto;justify-content:center;white-space:nowrap}.kc-ck small{font-size:12px;line-height:1.35}.kc-ck.ask{box-shadow:inset 0 0 0 2px var(--go)}.kc-ck.shake{animation:kcShake .32s}@keyframes kcShake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}.kc-sadd .kc-ck{margin-top:0}
+.kc-shov .kc-shc{width:36px;height:36px;border-radius:12px;font-size:20px;border-width:2.5px}.kc-shov .kc-shn{cursor:pointer}.kc-shov .kc-drn{text-align:center;font-size:12.5px;margin:6px 0 0}.kc-ck{margin:8px 0 10px;padding:10px 12px;border-radius:14px;background:var(--panel-2);display:flex;flex-direction:column;gap:7px}.kc-ck b{font:800 14px var(--body)}.kc-ckb{display:flex;gap:8px;flex-wrap:wrap}.kc-ckb .chip{flex:1 1 auto;justify-content:center;white-space:nowrap}.kc-ck small{font-size:12px;line-height:1.35}.kc-ck.ask{box-shadow:inset 0 0 0 2px var(--go)}.kc-ck.shake{animation:kcShake .32s}@keyframes kcShake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}.kc-sadd .kc-ck{margin-top:0}
 .kc-shn b{font:800 17px var(--body);overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto}.kc-shr{gap:9px}.kc-shov .kc-shn small{font-size:12.5px}
 .kc-shbuy{flex:none;border:0;border-radius:12px;padding:9px 9px;background:var(--panel-3);color:var(--fg);font:800 12.5px var(--body);box-shadow:inset 0 -3px 0 rgba(0,0,0,.25);cursor:pointer}.kc-shbuy.on{background:var(--go);color:#fff;box-shadow:inset 0 -3px 0 var(--go-deep)}.kc-shbuy[disabled]{opacity:.4}
 .kc-shov .kc-shx{font-size:24px;padding:6px 8px;border-radius:10px}.kc-shx.arm{background:#E2523E;color:#fff;font:800 13px var(--body);padding:9px 10px}

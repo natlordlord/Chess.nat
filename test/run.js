@@ -104,11 +104,23 @@ const PARTS = {
     await page.shot("kcal-sprechen");
     if (await page.locator("#kcmic").isVisible().catch(() => false)){ await page.tap("#kcmic"); await sleep(400); }
     if (await page.locator("#kcvdone").isVisible().catch(() => false)) await page.tap("#kcvdone");
-    await page.waitForFunction(() => /Brötchen/.test((document.querySelector(".dsheet") || {}).innerText || ""), null, {timeout: 6000}).catch(() => {});
+    await page.waitForSelector(".dsheet [data-commit]", {timeout: 8000}).catch(() => {});
+    const nb = (await meals("tester")).length, sb0 = (await sums(page)).kcal;
+    ok(/Brötchen/.test(await txt(page, ".dsheet")) && /674 kcal/.test(await txt(page, ".dsheet")), "Sprechen: Gesagtes wird ausgerechnet und gezeigt (674 kcal, drei Positionen)", (await txt(page, ".dsheet")).slice(0, 160));
+    ok((await meals("tester")).length === nb && /Noch nicht eingetragen/.test(await txt(page, ".dsheet")), "noch nichts gespeichert: erst „Passt“ trägt es ein (vorher geht auch keine Nachricht an Freunde)");
+    /* closed without "Passt": nothing is entered, and it says so */
+    await page.locator(".dsheet .dx").first().tap(); await sleep(2400);
+    ok((await meals("tester")).length === nb && /Nicht eingetragen/.test(await toast(page)), "ohne „Passt“ geschlossen: nichts eingetragen, mit Hinweis", await toast(page));
+    await page.tap("#main [data-kc-say]"); await sleep(700); await page.evaluate(() => window.__hear("zwei Brötchen mit Nutella und ein Kakao")); await sleep(500);
+    if (await page.locator("#kcmic").isVisible().catch(() => false)){ await page.tap("#kcmic"); await sleep(400); } if (await page.locator("#kcvdone").isVisible().catch(() => false)) await page.tap("#kcvdone");
+    await page.waitForSelector(".dsheet [data-commit]", {timeout: 8000}).catch(() => {});
+    /* change an amount on the draft, then "Passt" */
+    const dg = page.locator(".dsheet input[data-g]").first(); await dg.tap(); await sleep(150); await page.keyboard.type("60", {delay: 120}); await page.keyboard.press("Tab"); await sleep(600);
+    ok((await meals("tester")).length === nb, "Menge im Entwurf ändern speichert noch nichts"); await page.tap(".dsheet [data-commit]"); await sleep(1300);
     m = (await meals("tester", "&limit=1"))[0];
-    ok(m.source === "voice" && m.kcal === 674 && m.items.length === 3, "Sprechen: Gesagtes wird ausgerechnet und eingetragen (674 kcal, drei Positionen)", JSON.stringify([m.title, m.source, m.kcal]));
-    ok(m.items[0].h && m.items[0].h.q && m.said, "mit Gesundheits-Werten je Position (Ballaststoffe, Zucker, Qualität) und dem gesagten Satz", JSON.stringify(m.items[0]));
-    ok(/Brötchen/.test(await txt(page, ".dsheet")), "danach steht der Eintrag zum Nachbessern offen");
+    ok((await meals("tester")).length === nb + 1 && m.source === "voice" && m.kcal === 508 && m.items.length === 3, "„Passt“ trägt den Entwurf ein, mit der geänderten Menge (1 Brötchen: 508 kcal)", JSON.stringify([m.title, m.source, m.kcal]));
+    ok(m.items[0].h && m.items[0].h.q && m.said, "mit Gesundheits-Werten je Position und dem gesagten Satz", JSON.stringify(m.items[0]));
+    ok((await sums(page)).kcal === sb0 + 508 && !(await has(page, ".dsheet")), "erst jetzt läuft die Tageszahl hoch, das Blatt schließt sich", JSON.stringify(await sums(page)));
     await closeSheets(page); await clean(page, "Sprechen");
 
     /* barcode typed by hand (the camera sees nothing in a test) */
@@ -134,6 +146,7 @@ const PARTS = {
     const a = await L.open(browser, "tester", {before: hear}), b = await L.open(browser, "mila", {before: hear});
     const say = async (page, who, text) => { const n = (await meals(who)).length; await page.tap("#main [data-kc-say]"); await sleep(700); await page.evaluate(t => window.__hear(t), text); await sleep(400);
       if (await page.locator("#kcmic").isVisible().catch(() => false)){ await page.tap("#kcmic"); await sleep(300); } if (await page.locator("#kcvdone").isVisible().catch(() => false)) await page.tap("#kcvdone");
+      await page.waitForSelector(".dsheet [data-commit]", {timeout: 8000}); await page.tap(".dsheet [data-commit]");
       for (let i = 0; i < 30 && (await meals(who)).length === n; i++) await sleep(200); return (await meals(who, "&limit=1"))[0]; };
     /* the stand-in AI guesses wildly different calories for the noodles each time; the table has to win */
     const m1 = await say(a, "tester", "250 g gekochte Nudeln mit Pesto"), m2 = await say(b, "mila", "180 Gramm gekochte Nudeln mit Pesto");
@@ -391,6 +404,7 @@ const PARTS = {
     const first = await txt(page, ".kc-sres"); ok(/Nudeln, gekocht/.test(first) && /Open Food Facts · Mittel aus 29 Produkten/.test(first) && /153/.test(first), "Suche nennt die Quelle: „Open Food Facts · Mittel aus 29 Produkten“, 153 kcal gekocht", first); await page.shot("quelle-suche"); await page.tap("#kcsx"); await sleep(400);
     const n = (await meals("tester")).length; await page.tap("#main [data-kc-say]"); await sleep(700); await page.evaluate(() => window.__hear("250 g gekochte Nudeln")); await sleep(400);
     if (await page.locator("#kcmic").isVisible().catch(() => false)){ await page.tap("#kcmic"); await sleep(300); } if (await page.locator("#kcvdone").isVisible().catch(() => false)) await page.tap("#kcvdone");
+    await page.waitForSelector(".dsheet [data-commit]", {timeout: 8000}); await page.tap(".dsheet [data-commit]");
     for (let i = 0; i < 30 && (await meals("tester")).length === n; i++) await sleep(200); const m = (await meals("tester", "&limit=1"))[0];
     ok(m.items[0].kcal === 382, "Sprechen rechnet mit demselben Wert: 250 g gekocht = 382 kcal (351 ÷ 2,3 × 2,5)", JSON.stringify(m.items[0]));
     await fetch(L.BASE + "/__fake/off-cats?on=0"); await clean(page, "Quelle Open Food Facts"); await page.context().close();
