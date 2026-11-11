@@ -212,3 +212,8 @@ returns jsonb language plpgsql security definer set search_path = '' as $$
 begin
   raise exception 'Das Tippspiel ist neu: bitte App neu öffnen.';
 end $$;
+
+-- only UFC title fights count (meta.title, set by the edge function): drop tips on the small fights; tipp_pick
+-- now also refuses a fight without meta.title (see the live definition: "elsif ev.sport = 'mma' and title")
+delete from public.tipp_picks p using public.tipp_events e
+where e.id = p.event_id and e.sport = 'mma' and not coalesce((e.meta ->> 'title')::boolean, false);
