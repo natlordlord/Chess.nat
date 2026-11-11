@@ -2799,7 +2799,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794369899";
+const CHESSNAT_BUILD = "1794370067";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -2857,14 +2857,17 @@ const I18N = (() => {
     const out = v.slice(0, v.indexOf(core[0])) + de + v.slice(v.lastIndexOf(core[core.length - 1]) + 1); done.set(n, out); if (out !== v) n.nodeValue = out;
   }
   const ATTRS = ["placeholder", "aria-label", "title", "alt"];
+  /* text fields are never translated inside, but their placeholder and label are */
+  const FIELD = el => /^(INPUT|TEXTAREA)$/.test(el.tagName) && !el.closest("[data-notr],.bub,.chat-msgs");
   function attrs(el){ for (const a of ATTRS){ const v = el.getAttribute && el.getAttribute(a); if (!v) continue; const key = a + "\u0000" + v; let m = adone.get(el); if (m && m[a] === v) continue;
     const de = tr(v.trim()); if (!m) adone.set(el, m = {}); m[a] = de || v; if (de && de !== v) el.setAttribute(a, de); } }
   function walk(root){
     if (!exact || !root) return;
     if (root.nodeType === 3){ textNode(root); return; }
+    if (root.nodeType === 1 && FIELD(root)) attrs(root);
     if (root.nodeType !== 1 || root.closest && root.closest(SKIP)) return;
     attrs(root);
-    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, {acceptNode: n => n.nodeType === 1 && n.matches(SKIP) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT});
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, {acceptNode: n => { if (n.nodeType === 1 && n.matches(SKIP)){ if (FIELD(n)) attrs(n); return NodeFilter.FILTER_REJECT; } return NodeFilter.FILTER_ACCEPT; }});
     let n; while ((n = w.nextNode())){ if (n.nodeType === 3) textNode(n); else if (n.attributes && n.attributes.length) attrs(n); }
   }
   function watch(){
@@ -11410,7 +11413,7 @@ Views.settings = {
     const chk = (k, t) => `<label class="chk"><input type="checkbox" data-s="${k}" ${(k === "haptics" ? st[k] !== false : st[k]) ? "checked" : ""}> ${t}</label>`;
     main.innerHTML = `<div class="page" style="max-width:640px"><h1 class="h-title">Settings</h1>
       <div class="unit lang-unit" style="margin-top:12px" data-notr><h3>Language · Sprache</h3><div class="row" style="margin-top:8px">${[["en", "English"], ["de", "Deutsch"]].map(([k, t]) => `<button class="btn sm ${I18N.lang === k ? "go" : ""}" data-lang="${k}">${t}</button>`).join("")}</div></div>
-      <div class="unit"><h3>Profile</h3><label class="muted" style="display:block;margin-top:8px">Display name <input type="text" id="nm" value="${esc(S.name)}" maxlength="24" style="margin-left:8px"></label></div>
+      <div class="unit"><h3>Profile</h3><label class="muted" style="display:block;margin-top:8px">Display name <input type="text" id="nm" value="${esc(S.name && S.name !== "You" ? S.name : "")}" placeholder="Your name" maxlength="24" style="margin-left:8px"></label></div>
       <div class="unit" id="kcalSet"></div>
       <div class="unit"><h3>Board</h3>${chk("coords", "Show coordinates")}${chk("legal", "Show legal moves")}${chk("openings", "Show opening names (bot games, analysis, review)")}${chk("anim", "Animate pieces")}
         <div class="row" style="margin-top:6px">${["green","brown","blue","slate"].map(b => `<button class="btn sm ${st.board === b ? "go" : ""}" data-b="${b}">${b[0].toUpperCase() + b.slice(1)}</button>`).join("")}</div></div>
@@ -14354,18 +14357,18 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=94"></script>
-<script src="games/imposter.js?v=94"></script>
-<script src="games/werwolf.js?v=94"></script>
-<script src="games/cards.js?v=94"></script>
-<script src="games/heads.js?v=94"></script>
-<script src="games/more.js?v=94"></script>
-<script src="games/net.js?v=94"></script>
-<script src="games/online.js?v=94"></script>
-<script src="games/natposter.js?v=94"></script>
-<script src="games/arena.js?v=94"></script>
-<script src="games/tipp.js?v=94"></script>
-<script src="games/kcal.js?v=94"></script>
+<script src="games/core.js?v=95"></script>
+<script src="games/imposter.js?v=95"></script>
+<script src="games/werwolf.js?v=95"></script>
+<script src="games/cards.js?v=95"></script>
+<script src="games/heads.js?v=95"></script>
+<script src="games/more.js?v=95"></script>
+<script src="games/net.js?v=95"></script>
+<script src="games/online.js?v=95"></script>
+<script src="games/natposter.js?v=95"></script>
+<script src="games/arena.js?v=95"></script>
+<script src="games/tipp.js?v=95"></script>
+<script src="games/kcal.js?v=95"></script>
 <script>boot();</script>
 </body>
 </html>
