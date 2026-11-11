@@ -44,7 +44,7 @@ const CHECKS = {
   tipp_tips: [["tipp_tips_stake_check", r => between(r.stake, 1, 1000000)]]
 };
 /* UNIQUE constraints besides the primary keys */
-const UNIQUE = {chess_players: [["chess_players_name_lc_key", ["name_lc"]]], tipp_groups: [["tipp_groups_code_key", ["code"]]], tipp_picks: [["tipp_picks_user_event", ["user_id", "event_id"]]]};
+const UNIQUE = {chess_players: [["chess_players_name_lc_key", ["name_lc"]]], tipp_groups: [["tipp_groups_code_key", ["code"]]], tipp_picks: [["tipp_picks_user_event", ["user_id", "event_id"]]], kcal_recipes: [["kcal_recipes_own_name", ["user_id", "name"]]]};
 const GENERATED = {chess_players: {name_lc: r => r.name == null ? null : String(r.name).trim().toLowerCase()}};
 
 module.exports = db => {
@@ -80,6 +80,7 @@ module.exports = db => {
     kcal_meals: {select: (r, u) => kcalCanSee(u, r.user_id), insert: (r, u) => r.user_id === u, update: {using: (r, u) => r.user_id === u, check: (r, u) => r.user_id === u}, delete: (r, u) => r.user_id === u},
     kcal_invites: {select: (r, u) => r.from_id === u || r.to_id === u, delete: (r, u) => r.from_id === u || r.to_id === u},
     kcal_ice: {select: (r, u) => kcalCanSee(u, r.user_id)},
+    kcal_recipes: {select: (r, u) => !!u, insert: (r, u) => r.user_id === u, update: {using: (r, u) => r.user_id === u, check: (r, u) => r.user_id === u}, delete: (r, u) => r.user_id === u},
     kcal_claps: {select: (r, u) => r.from_id === u || r.to_id === u, insert: (r, u) => r.from_id === u},
     tipp_picks: {select: (r, u) => r.user_id === u || R.tipp_events.some(e => e.id === r.event_id && (e.state !== "pre" || Date.parse(e.start_at) <= Date.now()))},
     tipp_groups: {}, tipp_members: {},
@@ -107,6 +108,8 @@ module.exports = db => {
   /* AFTER triggers: (op, new row, old row) */
   const TRIGGERS = {
     kcal_meals: (op, n, o) => kcalRecalc((n || o).user_id),
+    /* private.kcal_recipe_stamp: who published it comes from the players table, never from the phone */
+    kcal_recipes: (op, n) => { if (n){ const p = R.chess_players.find(x => x.id === n.user_id); n.author = (p && p.name) || "A friend"; } },
     kcal_profile: (op, n, o) => { if (op === "INSERT" || (op === "UPDATE" && n.goal !== o.goal)) kcalRecalc(n.user_id); }
   };
 

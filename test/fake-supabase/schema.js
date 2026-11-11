@@ -23,6 +23,7 @@ kcal_ice|user_id,day|user_id:uuid:!: ; day:date:!:
 kcal_invites|from_id,to_id|from_id:uuid:!:@uid ; to_id:uuid:!: ; created_at:timestamptz:!:@now
 kcal_meals|id|id:uuid:!:@uuid ; user_id:uuid:!:@uid ; day:date:!: ; ts:timestamptz:!:@now ; title:text:!: ; emoji:text:?: ; source:text:?: ; kcal:int4:!:0 ; carbs:numeric:!:0 ; protein:numeric:!:0 ; fat:numeric:!:0 ; grams:int4:?: ; code:text:?: ; said:text:?: ; items:jsonb:?: ; note:text:?: ; created_at:timestamptz:!:@now
 kcal_profile|user_id|user_id:uuid:!:@uid ; enabled:bool:!:false ; goal:int4:!:2500 ; share:bool:!:true ; remind:bool:!:true ; flame:int4:!:0 ; flame_day:date:?: ; best:int4:!:0 ; last_remind_at:timestamptz:?: ; last_remind_kind:text:?: ; updated_at:timestamptz:!:@now ; protein:int2:?: ; carbs:int2:?: ; fat:int2:?: ; ice:int2:!:0 ; fpush:bool:!:true ; show:_text:?: ; pins:jsonb:!:[]
+kcal_recipes|id|id:uuid:!:@uuid ; user_id:uuid:!:@uid ; author:text:?: ; name:text:!: ; emoji:text:!:🍽️ ; items:jsonb:!: ; grams:numeric:!: ; kcal:int4:!: ; carbs:numeric:!:0 ; protein:numeric:!:0 ; fat:numeric:!:0 ; created_at:timestamptz:!:@now
 kcal_weights|id|id:uuid:!:@uuid ; user_id:uuid:!: ; ts:timestamptz:!:@now ; day:date:!: ; kg:numeric:!: ; fasted:bool:?: ; pooped:bool:?: ; created_at:timestamptz:!:@now
 kv|user_id,path|user_id:uuid:!: ; path:text:!: ; data:jsonb:!: ; updated_at:timestamptz:!:@now
 shop_answers|ask_id,user_id|ask_id:uuid:!: ; user_id:uuid:!:@uid ; answer:text:!: ; amount:text:?: ; created_at:timestamptz:!:@now

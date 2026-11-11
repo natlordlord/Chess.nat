@@ -344,19 +344,25 @@
     try { const r = await K.add(mealCopy(m, m, Array.isArray(m.items) ? m.items : null)); say(`${m.emoji || "🍽️"} ${nice(m.title).slice(0, 30)} · ${brief(r)}`); }
     catch(e) { if (btn){ btn.disabled = false; btn.classList.remove("ok"); } say("Ging nicht: " + (e.message || e)); } }
   /* a suggestion tapped: what it is, how much, add it; pin it so it stays on top */
-  function entrySheet(m){
+  function entrySheet(m, opt = {}){
     const parts = partsOf(m), one = parts.length === 1 && parts[0].per ? parts[0] : null;
     const addAs = async (o, items) => { const r = await K.add(mealCopy(m, o, items)); haptic(15); say(`✓ ${nice(m.title).slice(0, 30)} · ${brief(r)}`); };
     if (one) return amountSheet(perP(one), {g: one.g || gramsIn(one.amount) || 0, btn: "Hinzufügen", pin: m, done: async it => addAs(it, [it])});
     let f = 1;
     const sh = detailSheet(`<div class="kc-ms" data-notr><div class="kc-mh"><span class="kc-me">${h(m.emoji || "🍽️")}</span><div><div class="kc-mt">${h(nice(m.title))}</div></div>${pinHTML(m)}</div>
       <div class="kc-mk kc-ek" id="kcek"></div><div class="kc-items" id="kcei"></div>
+      ${totOK(parts) ? totHTML(parts, "Davon esse ich") : ""}
       <div class="kc-portion"><span class="muted">Menge</span><div>${[[.5, "½"], [.75, "¾"], [1, "1×"], [1.5, "1½"], [2, "2×"], [3, "3×"]].map(([v, l]) => `<button class="chip ${v === 1 ? "on" : ""}" data-f="${v}">${l}</button>`).join("")}</div></div>
-      <button class="btn go big" id="kceadd">Hinzufügen</button></div>`);
-    const el = sh.el, now = () => parts.map(i => f === 1 ? Object.assign({}, i) : scalePart(i, f)),
+      <button class="btn go big" id="kceadd">Hinzufügen</button>${m.note && m.rid ? `<p class="muted kc-said">${h(m.note)}</p>` : ""}
+      ${m.rid && m.ruid === meId() ? `<button class="btn ghost kc-man-b" data-rdel>Mein Rezept wieder entfernen</button>` : ""}</div>`);
+    const el = sh.el, T0 = totG(parts), now = () => f === 1 ? parts.map(i => Object.assign({}, i)) : T0 > 0 ? scaleAll(parts, f) : parts.map(i => scalePart(i, f)),
       draw = () => { const ps = now(); el.querySelector("#kcek").innerHTML = vline(sumOf(ps)); el.querySelector("#kcei").innerHTML = ps.map(i => `<div><span>${h(nice(i.name))}<small>${h(i.amount || "")}</small></span><b>${h(brief(i))}</b></div>`).join(""); };
     draw(); wirePin(el, m);
-    el.querySelectorAll("[data-f]").forEach(b => b.onclick = () => { f = +b.dataset.f; haptic(8); el.querySelectorAll("[data-f]").forEach(x => x.classList.toggle("on", x === b)); draw(); });
+    const tg = el.querySelector("[data-tg]"); if (tg) field(tg, v => { if (!(v > 0)) return; f = v / T0; el.querySelectorAll("[data-f]").forEach(x => x.classList.toggle("on", Math.abs(+x.dataset.f - f) < 1e-6)); draw(); });
+    el.querySelectorAll("[data-f]").forEach(b => b.onclick = () => { f = +b.dataset.f; haptic(8); el.querySelectorAll("[data-f]").forEach(x => x.classList.toggle("on", x === b)); if (tg) tg.value = nf(T0 * f, 0); draw(); });
+    if (opt.focus && tg) try { tg.focus({preventScroll: true}); } catch(e) {}
+    const rd = el.querySelector("[data-rdel]"); if (rd) rd.onclick = async () => { if (!rd.dataset.armed){ rd.dataset.armed = 1; rd.textContent = "Wirklich für alle entfernen?"; return; }
+      try { await Recipes.del(m.rid); sh.close(); say("Rezept entfernt"); } catch(e) { say("Ging nicht: " + (e.message || e)); } };
     el.querySelector("#kceadd").onclick = async e => { const b = e.currentTarget; if (b.disabled) return; b.disabled = true; const ps = now();
       try { await addAs(sumOf(ps), ps); sh.close(); } catch(err) { b.disabled = false; say("Ging nicht: " + (err.message || err)); } };
     return sh; }
@@ -487,11 +493,17 @@
       const per = P => { const S = shows(), o = P2o(P), k0 = S[0]; return `<b>${k0 === "kcal" ? fmt(o.kcal) : f1(o[k0])}<small>${k0 === "kcal" ? "kcal" : "g " + NUT[k0].s}</small>${S.slice(1).map(k => `<small class="${NUT[k].c}">${one1(o, k)}</small>`).join("")}</b>`; };
       const row = (P, i) => { const U = unitOf(P), ut = U && U.one !== "Portion" ? `1 ${U.one} ≈ ${nf(U.g, 0)} g` : P.serving ? `Portion ${P.serving} g` : "";
         return `<button class="kc-sres" data-i="${i}">${P.img ? `<img src="${h(P.img)}" alt="" loading="lazy">` : `<span class="kc-sph">📦</span>`}<span class="kc-sn">${h(P.name)}<small>${h(P.brand || "")}${ut ? `${P.brand ? " · " : ""}${ut}` : ""}</small></span>${per(P)}</button>`; };
-      const draw = (l, head) => { list = l; out.innerHTML = (head ? `<div class="kc-sh muted">${head} <span>pro 100 g</span></div>` : `<div class="kc-sh muted">pro 100 g</div>`) + l.map(row).join(""); out.querySelectorAll("[data-i]").forEach(b => b.onclick = () => pick(list[+b.dataset.i], b)); };
-      const empty = () => { const r = recents(); if (r.length) draw(r, "Zuletzt"); else out.innerHTML = `<p class="muted kc-sh">Tipp den Namen ein, z. B. Eier, Toast, Nutella.</p>`; };
+      /* recipes people published stand above the products; a tap opens the recipe with the gram field ready */
+      let recs = [];
+      const rrow = (R, i) => `<button class="kc-sres" data-rc="${i}"><span class="kc-sph kc-srec">${h(R.emoji || "🍽️")}</span><span class="kc-sn">${h(R.name)}<small>Rezept${R.author ? " von " + h(R.author) : ""} · ${(R.items || []).length} Zutaten · ${fmt(Math.round(R.grams))} g</small></span>${per(Recipes.per(R))}</button>`;
+      const draw = (l, head) => { list = l; out.innerHTML = (recs.length ? `<div class="kc-sh muted">Rezepte <span>pro 100 g</span></div>` + recs.map(rrow).join("") : "") + (l.length ? (head ? `<div class="kc-sh muted">${head} <span>pro 100 g</span></div>` : `<div class="kc-sh muted">${recs.length ? "Produkte " : ""}<span>pro 100 g</span></div>`) + l.map(row).join("") : "");
+        out.querySelectorAll("[data-i]").forEach(b => b.onclick = () => pick(list[+b.dataset.i], b)); out.querySelectorAll("[data-rc]").forEach(b => b.onclick = () => { const R = recs[+b.dataset.rc]; if (!R) return; haptic(10); close(); entrySheet(Recipes.asMeal(R), {focus: true}); }); };
+      const empty = () => { const r = recents(), my = seq; recs = []; if (r.length) draw(r, "Zuletzt"); else out.innerHTML = `<p class="muted kc-sh">Tipp den Namen ein, z. B. Eier, Toast, Nutella.</p>`;
+        if (!opt.pick) Recipes.find("").then(R => { if (closed || my !== seq || !R.length || q.value.trim().length >= 2) return; recs = R; draw(recents(), "Zuletzt"); }); };
       const go = async () => { const v = q.value.trim(), my = ++seq; if (v.length < 2) return empty(); out.classList.add("busy");
-        try { const r = await fetch("/api/food?q=" + encodeURIComponent(v)), j = await r.json().catch(() => ({})); if (my !== seq) return; if (!r.ok || !Array.isArray(j.items)) throw new Error(j.error || "Suche gerade nicht erreichbar");
-          if (!j.items.length) out.innerHTML = `<p class="muted kc-sh">Nichts gefunden. Anders schreiben oder selbst eintragen.</p>`; else draw(j.items); }
+        try { const rq = opt.pick ? Promise.resolve([]) : Recipes.find(v), r = await fetch("/api/food?q=" + encodeURIComponent(v)).catch(e => e), j = r && r.json ? await r.json().catch(() => ({})) : {}, R = await rq; if (my !== seq) return; recs = R;
+          if (!r.ok || !Array.isArray(j.items)){ if (R.length) return draw([]); throw new Error(j.error || (r.ok === false ? "Suche gerade nicht erreichbar" : "Keine Verbindung")); }
+          if (!j.items.length && !R.length) out.innerHTML = `<p class="muted kc-sh">Nichts gefunden. Anders schreiben oder selbst eintragen.</p>`; else draw(j.items); }
         catch(e) { if (my === seq) out.innerHTML = `<p class="muted kc-sh">⚠️ ${h(e.message || "Keine Verbindung")}</p>`; }
         finally { if (my === seq) out.classList.remove("busy"); } };
       q.oninput = () => { clearTimeout(tmr); tmr = setTimeout(go, 320); };
@@ -540,7 +552,9 @@
     return K.update(m.id, {items: parts, kcal: Math.round(sum("kcal")), carbs: r1(sum("carbs")), protein: r1(sum("protein")), fat: r1(sum("fat")), title: String(title || m.title || "Mahlzeit").slice(0, 120), grams: one && one.g ? Math.round(one.g) : null, code: (one && one.code) || null}); }
   const scalePart = (i, f) => { const o = Object.assign({}, i, {kcal: Math.round((Number(i.kcal) || 0) * f), carbs: r1(i.carbs * f), protein: r1(i.protein * f), fat: r1(i.fat * f)});
     if (i.h) o.h = Object.assign({}, i.h, {fi: r1((i.h.fi || 0) * f), su: r1((i.h.su || 0) * f), sf: r1((i.h.sf || 0) * f), sa: Math.round((i.h.sa || 0) * f * 100) / 100});
-    if (i.per && i.g){ o.g = Math.round(i.g * f * 10) / 10; o.amount = amtText(perP(i), o.g); } else o.amount = (i.amount || "") + ` ×${nf(f, 2)}`; return o; };
+    if (i.per && i.g){ o.g = Math.round(i.g * f * 10) / 10; o.amount = amtText(perP(i), o.g); } else { /* no weight: the count itself moves ("2 Scheiben" → "1 Scheiben"), an earlier "×" is folded in */
+      const t = String(i.amount || ""), x = /^(.*?)\s*×\s*(\d+(?:[.,]\d+)?)$/.exec(t), n = /^(\d+(?:[.,]\d+)?)(\s+\S.*)$/.exec(x ? x[1] : t), k = f * (x ? num(x[2]) : 1);
+      o.amount = n ? nf(num(n[1]) * k, 2) + n[2] : (x ? x[1] : t) + (Math.abs(k - 1) < 1e-9 ? "" : ` ×${nf(k, 2)}`); } return o; };
   /* a number that travels to its new value instead of jumping: counts up or down and nudges in that direction, tinted for a moment */
   function tweenNum(el, to, show, dur = 520){ if (!el) return; to = Number(to) || 0; const from = el._cur != null ? el._cur : el._v != null ? el._v : to; el._v = to; cancelAnimationFrame(el._raf);
     if (Math.abs(from - to) < 1e-9 || matchMedia("(prefers-reduced-motion:reduce)").matches){ el._cur = to; el.textContent = show(to); return; }
@@ -572,17 +586,55 @@
   const amtOf = i => { const m = /(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l)\b/i.exec(String(i.amount || "")); if (m) return {v: num(m[1]), u: m[2].toLowerCase(), m: m[0]}; return Number(i.g) > 0 ? {v: Number(i.g), u: "g", m: ""} : null; };
   /* the same part with another weight: calories, carbs, protein and fat follow, the text shows the new number */
   const regram = (i, v2) => { const a = amtOf(i); if (!a || !(a.v > 0) || !(v2 > 0)) return i; const f = v2 / a.v, o = scalePart(i, f);
-    if (!(i.per && i.g)){ const t = nf(v2, v2 < 10 ? 2 : 0) + " " + a.u; o.amount = a.m ? String(i.amount).replace(a.m, t) : t; if (Number(i.g) > 0) o.g = Math.round(i.g * f * 10) / 10; } return o; };
+    if (!(i.per && i.g)){ const t = nf(v2, v2 < 10 ? 2 : 0) + " " + a.u; const one = x => nf(x, x < 10 ? 2 : 0); o.amount = a.m ? String(i.amount).replace(/(\d+(?:[.,]\d+)?)(\s*)(kg|g|ml|l)\b/gi, (x, n, sp, u) => x === a.m ? t : one(num(n) * f) + sp + u) : t; if (Number(i.g) > 0) o.g = Math.round(i.g * f * 10) / 10; } return o; };
+  /* a dish of several parts and how much of all of it was eaten: the weights add up to the whole (kg and l count as 1000), and a
+     new total moves every part by the same share ("230 g of the 1.600 g dessert") */
+  const totG = ps => ps.reduce((s, i) => { const a = amtOf(i); return s + (a ? a.v * (a.u === "kg" || a.u === "l" ? 1000 : 1) : 0); }, 0);
+  const scaleAll = (ps, f) => ps.map(i => { const a = amtOf(i); return a ? regram(i, a.v * f) : scalePart(i, f); });
+  const totOK = ps => ps.length > 1 && totG(ps) > 0;
+  const totHTML = (ps, lead) => `<div class="kc-tot"><span>${lead}<small data-tgo>von ${fmt(Math.round(totG(ps)))} g insgesamt</small></span><label class="kc-gi"><input data-tg inputmode="decimal" enterkeyhint="done" value="${nf(totG(ps), 0)}" aria-label="Gegessene Gramm von allem"><i>g</i></label></div>`;
   /* grams in a text like "2 Scheiben (80 g)" */
   const gramsIn = t => { const m = /(\d+(?:[.,]\d+)?)\s*(g|ml)\b/i.exec(String(t || "")); return m ? num(m[1]) : 0; };
+  /* ---------- recipes for everyone: a dish of several parts gets a name and is published; everyone signed in finds it in the
+     search and only types how many grams of it they eat (table kcal_recipes, supabase/kcal_recipes.sql) ---------- */
+  const Recipes = {
+    async find(q){ const c = sb(); if (!c || !meId()) return []; q = String(q || "").replace(/[%_\\,()]/g, " ").trim();
+      try { let x = c.from("kcal_recipes").select("*").order("created_at", {ascending: false}).limit(q ? 8 : 5); if (q) x = x.ilike("name", "%" + q + "%"); const r = await x; return r.error ? [] : r.data || []; } catch(e) { return []; } },
+    async publish(m, name){ const c = sb(); if (!c || !meId()) throw new Error("Bitte anmelden");
+      const ps = partsOf(m), T = sumOf(ps), row = {name: String(name).trim().slice(0, 80), emoji: m.emoji || "🍽️", items: ps, grams: Math.round(totG(ps)), kcal: Math.round(T.kcal), carbs: r1(T.carbs), protein: r1(T.protein), fat: r1(T.fat)};
+      /* the same name again from the same person: the recipe is replaced */
+      const pat = row.name.replace(/[%_\\]/g, "\\$&"), had = await c.from("kcal_recipes").select("id").eq("user_id", meId()).ilike("name", pat).limit(1), id = had.data && had.data[0] && had.data[0].id;
+      let r = id ? await c.from("kcal_recipes").update(row).eq("id", id).select().single() : await c.from("kcal_recipes").insert(row).select().single();
+      if (!id && r.error && r.error.code === "23505") r = await c.from("kcal_recipes").update(row).eq("user_id", meId()).ilike("name", pat).select().single();
+      if (r.error) throw r.error; return r.data; },
+    async del(id){ const r = await sb().from("kcal_recipes").delete().eq("id", id); if (r.error) throw r.error; },
+    asMeal: R => ({title: R.name, emoji: R.emoji || "🍽️", items: Array.isArray(R.items) ? R.items : [], kcal: R.kcal, carbs: R.carbs, protein: R.protein, fat: R.fat, note: R.author ? "Rezept von " + R.author : "Rezept", rid: R.id, ruid: R.user_id}),
+    per: R => { const g = Number(R.grams) || 0, f = g > 0 ? 100 / g : 0; return {k: R.kcal * f, c: R.carbs * f, pr: R.protein * f, f: R.fat * f}; }
+  };
+  function recipeSheet(m){ const ps = partsOf(m), T = sumOf(ps), g = totG(ps); let sent = false;
+    const sh = detailSheet(`<div class="kc-form" data-notr><h3>Rezept für alle</h3><p class="muted">Gib dem Ganzen einen Namen. Alle finden es dann in der Suche und tippen nur noch ein, wie viel Gramm sie davon essen.</p>
+      <label>Name<input id="kcrn" maxlength="80" enterkeyhint="done" autocomplete="off" autocapitalize="sentences" value="${h(nice(m.title))}"></label>
+      <div class="kc-items">${ps.map(i => `<div><span>${h(nice(i.name))}<small>${h(i.amount || "")}</small></span><b>${fmt(i.kcal)} kcal</b></div>`).join("")}</div>
+      <p class="muted kc-said">Das ganze Rezept, so wie es jetzt dasteht: ${fmt(Math.round(g))} g · ${fmt(Math.round(T.kcal))} kcal · ${fmt(Math.round(T.kcal / g * 100))} kcal pro 100 g</p>
+      <button class="btn go big" id="kcrp">Veröffentlichen</button></div>`, () => { if (!sent) setTimeout(() => mealSheet(m), 0); });
+    const inp = sh.el.querySelector("#kcrn"), b = sh.el.querySelector("#kcrp"); try { inp.focus({preventScroll: true}); inp.setSelectionRange(0, inp.value.length); } catch(e) {}
+    const go = async () => { const name = inp.value.trim(); if (name.length < 2){ say("Bitte einen Namen eintippen"); inp.focus(); return; } if (b.disabled) return; b.disabled = true;
+      try { const R = await Recipes.publish(m, name); haptic(15); sent = true; sh.close(); say(`📖 „${R.name.slice(0, 30)}“ ist jetzt für alle in der Suche`, 3200);
+        /* the meal carries the recipe's name from now on */
+        let nm = m; if (R.name !== m.title) try { nm = await K.update(m.id, {title: R.name}); } catch(e) {} mealSheet(nm); }
+      catch(e) { b.disabled = false; say("Ging nicht: " + (e.message || e)); } };
+    b.onclick = go; inp.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); go(); } });
+    return sh; }
   function mealSheet(m, own = true){
     const items = own ? partsOf(m) : (Array.isArray(m.items) ? m.items : []);
     const sh = detailSheet(`<div class="kc-ms" data-notr><div class="kc-mh"><span class="kc-me">${h(m.emoji || "🍽️")}</span><div><div class="kc-mt">${h(m.title)}</div><div class="muted">${dayLabel(m.day)}, ${hhmm(m.ts)}${m.source === "barcode" ? " · Barcode" : m.source === "search" ? " · Suche" : m.source === "voice" ? " · gesprochen" : ""}</div></div>${own ? pinHTML(m) : ""}</div>
       <div class="kc-mk"><b data-t="kcal">${fmt(m.kcal)}</b> kcal</div>
       <div class="kc-macros"><span><b data-t="carbs">${f1(m.carbs)} g</b>KH</span><span><b data-t="protein">${f1(m.protein)} g</b>Protein</span><span><b data-t="fat">${f1(m.fat)} g</b>Fett</span></div>
       ${items.length ? `${own ? `<div class="kc-ih muted">Menge antippen und neu eintippen, alles rechnet mit</div>` : ""}<div class="kc-items">${items.map((i, ix) => { const a = own && amtOf(i); return own ? `<div class="kc-irow"><button data-it="${ix}"><span>${h(i.name)}<small data-ra="${ix}">${h(i.amount || "")}</small></span><b data-rk="${ix}">${fmt(i.kcal)} kcal</b>${a ? "" : `<em>${svg(IC.pen, 15)}</em>`}</button>${a ? `<label class="kc-gi"><input data-g="${ix}" inputmode="decimal" enterkeyhint="done" value="${nf(a.v, a.v < 10 ? 2 : 0)}" aria-label="Menge"><i>${a.u}</i></label>` : ""}</div>` : `<div><span>${h(i.name)}<small>${h(i.amount || "")}</small></span><b>${fmt(i.kcal)} kcal</b></div>`; }).join("")}</div>` : ""}
+      ${own && totOK(items) ? totHTML(items, "Davon gegessen") : ""}
       ${own && items.length ? `<button class="kc-roundb" data-round>${svg(IC.code, 22)}<b>Packungen scannen<small>Für genaue Werte: alles scannen, was du gegessen hast, in beliebiger Reihenfolge</small></b></button>` : ""}
       ${own ? `<button class="btn ghost kc-man-b" data-it="-1">${svg(IC.plus, 16)} Etwas dazu</button>` : ""}
+      ${own && totOK(items) ? `<button class="btn ghost kc-man-b" data-pub>📖 Als Rezept für alle speichern</button>` : ""}
       ${m.said ? `<p class="muted kc-said">„${h(m.said)}“</p>` : ""}${m.note ? `<p class="muted kc-said">${h(m.note)}</p>` : ""}
       ${own ? `<div class="kc-portion"><span class="muted">Alles mal</span><div>${[[.5, "½"], [.75, "¾"], [1.25, "1¼"], [1.5, "1½"], [2, "2×"], [3, "3×"]].map(([f, l]) => `<button class="chip" data-f="${f}">${l}</button>`).join("")}</div></div>
       <div class="kc-row2"><button class="btn go" data-dclose>Passt</button><button class="btn" data-kc-del>Löschen</button></div>` : ""}</div>`);
@@ -593,13 +645,21 @@
        leaving the field or OK saves it, the sheet stays as it is */
     { const E = sh.el, q = x => E.querySelector(x), SH = {kcal: x => fmt(Math.round(x)), carbs: x => f1(x) + " g", protein: x => f1(x) + " g", fat: x => f1(x) + " g"};
       const prime = () => { const ps = partsOf(m), T = sumOf(ps); Object.keys(SH).forEach(k => { const el = q(`[data-t="${k}"]`); if (el) el._v = el._cur = T[k]; }); ps.forEach((i, ix) => { const el = q(`[data-rk="${ix}"]`); if (el) el._v = el._cur = Number(i.kcal) || 0; }); }; prime();
-      const paint = ps => { const T = sumOf(ps); Object.keys(SH).forEach(k => tweenNum(q(`[data-t="${k}"]`), T[k], SH[k])); ps.forEach((i, ix) => { tweenNum(q(`[data-rk="${ix}"]`), i.kcal, x => fmt(Math.round(x)) + " kcal"); const a = q(`[data-ra="${ix}"]`); if (a && a.textContent !== (i.amount || "")) a.textContent = i.amount || ""; }); };
+      const paint = ps => { const T = sumOf(ps); Object.keys(SH).forEach(k => tweenNum(q(`[data-t="${k}"]`), T[k], SH[k])); ps.forEach((i, ix) => { tweenNum(q(`[data-rk="${ix}"]`), i.kcal, x => fmt(Math.round(x)) + " kcal"); const a = q(`[data-ra="${ix}"]`); if (a && a.textContent !== (i.amount || "")) a.textContent = i.amount || ""; const g = q(`[data-g="${ix}"]`), w = g && amtOf(i); if (w && document.activeElement !== g) g.value = nf(w.v, w.v < 10 ? 2 : 0); });
+        const tg = q("[data-tg]"); if (tg && document.activeElement !== tg) tg.value = nf(totG(ps), 0); };
       E.querySelectorAll("[data-g]").forEach(inp => { field(inp); let busy = false, next = null;
         const preview = () => { const ps = partsOf(m), ix = +inp.dataset.g, a = amtOf(ps[ix]), v = num(inp.value); if (!a) return null; if (!isFinite(v) || v <= 0) return null; ps[ix] = regram(ps[ix], v); return ps; };
         inp.addEventListener("input", () => { const ps = preview(); if (ps){ next = ps; paint(ps); } });
         const go = async () => { const a = amtOf(partsOf(m)[+inp.dataset.g]); if (!next){ if (a) inp.value = nf(a.v, a.v < 10 ? 2 : 0); paint(partsOf(m)); return; } if (busy) return; busy = true; const ps = next; next = null;
           try { m = await saveParts(m, ps); haptic(12); } catch(e) { if (a) inp.value = nf(a.v, a.v < 10 ? 2 : 0); paint(partsOf(m)); say("Ging nicht: " + (e.message || e)); } busy = false; if (next) go(); };
-        inp.addEventListener("change", go); inp.addEventListener("blur", () => { if (next) go(); }); inp.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); inp.blur(); } }); }); }
+        inp.addEventListener("change", go); inp.addEventListener("blur", () => { if (next) go(); }); inp.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); inp.blur(); } }); });
+      /* grams of the whole dish: every part follows by the same share while you type, leaving the field or OK saves it */
+      const tg = q("[data-tg]"); if (tg){ field(tg); let busy = false, next = null; const of = q("[data-tgo]"), show = () => { tg.value = nf(totG(partsOf(m)), 0); };
+        tg.addEventListener("input", () => { const ps = partsOf(m), T = totG(ps), v = num(tg.value); if (!(T > 0) || !isFinite(v) || v <= 0){ next = null; return; } next = scaleAll(ps, v / T); paint(next); });
+        const go = async () => { if (!next){ show(); paint(partsOf(m)); return; } if (busy) return; busy = true; const ps = next; next = null;
+          try { m = await saveParts(m, ps); haptic(12); if (of) of.textContent = `von ${fmt(Math.round(totG(partsOf(m))))} g insgesamt`; } catch(e) { show(); paint(partsOf(m)); say("Ging nicht: " + (e.message || e)); } busy = false; if (next) go(); };
+        tg.addEventListener("change", go); tg.addEventListener("blur", () => { if (next) go(); }); } }
+    const pb = sh.el.querySelector("[data-pub]"); if (pb) pb.onclick = () => { haptic(10); const E = document.activeElement; if (E && sh.el.contains(E)) try { E.blur(); } catch(e) {} sh.close(); recipeSheet(m); };
     const rb = sh.el.querySelector("[data-round]"); if (rb) rb.onclick = () => { haptic(10); sh.close(); KCScan.open({round: m}); };
     sh.el.querySelectorAll("[data-f]").forEach(b => b.onclick = async () => { try { const nm = await saveParts(m, partsOf(m).map(i => scalePart(i, +b.dataset.f))); sh.close(); mealSheet(nm); } catch(e) { say("Ging nicht: " + (e.message || e)); } });
     const del = sh.el.querySelector("[data-kc-del]"); del.onclick = async () => { if (!del.dataset.armed){ del.dataset.armed = 1; del.textContent = "Wirklich löschen?"; return; }
@@ -1471,6 +1531,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-sq input{flex:1;min-width:0;border:0;background:none;color:var(--fg);font:800 17px var(--body);padding:12px 0;outline:none;-webkit-appearance:none}
 .kc-sr{display:flex;flex-direction:column;gap:6px;min-height:140px;transition:opacity .15s}.kc-sr.busy{opacity:.5}
 .kc-sres{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;border:0;background:var(--panel-2);color:var(--fg);text-align:left;cursor:pointer;width:100%;-webkit-tap-highlight-color:transparent}.kc-sres:active{transform:scale(.98)}.kc-sres.load{opacity:.55}
+.kc-sph.kc-srec{background:var(--panel-3)}
 .kc-sres img,.kc-sph{width:44px;height:44px;border-radius:10px;object-fit:contain;flex:none;background:#fff;display:flex;align-items:center;justify-content:center;font-size:24px}
 .kc-sn{flex:1;min-width:0;display:flex;flex-direction:column;font:800 15px var(--body);line-height:1.2}.kc-sn small{color:var(--muted);font-weight:700;font-size:12px;margin-top:2px}
 .kc-sres b{display:flex;flex-direction:column;align-items:flex-end;font:900 17px var(--display);white-space:nowrap}.kc-sres b small{font:700 11px var(--body);color:var(--muted)}
@@ -1529,6 +1590,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-items{display:flex;flex-direction:column;gap:4px}
 .kc-items>.kc-irow{display:flex;align-items:stretch;gap:4px;padding:0;background:none}.kc-irow>button{flex:1;min-width:0}
 .kc-gi{flex:none;display:flex;align-items:center;gap:4px;padding:0 10px;border-radius:10px;background:var(--panel-2);border:2px solid var(--line);color:var(--muted);font:800 14px var(--body);cursor:text}
+.kc-tot{display:flex;align-items:stretch;justify-content:space-between;gap:10px;padding:8px 6px 8px 12px;border-radius:12px;border:2px solid var(--go);background:var(--panel-2)}.kc-tot>span{display:flex;flex-direction:column;justify-content:center;font:900 15px var(--body);min-width:0}.kc-tot small{color:var(--muted);font:700 12px var(--body)}.kc-tot .kc-gi{background:var(--panel)}.kc-tot .kc-gi input{width:64px}
 .kc-gi:focus-within{border-color:var(--go)}.kc-gi input{width:52px;border:0!important;background:none!important;color:var(--fg);font:900 17px var(--display);text-align:right;padding:8px 0;outline:none}.kc-gi i{font-style:normal}.kc-items>div{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;background:var(--panel-2);border-radius:10px}.kc-items span{display:flex;flex-direction:column;font:800 14px var(--body)}.kc-items small{color:var(--muted);font-weight:700}.kc-items b{white-space:nowrap;font:900 14px var(--body)}
 .kc-said{margin:0;font-size:13px}.kc-portion{display:flex;flex-direction:column;gap:6px}.kc-portion>div,.kc-chips{display:flex;flex-wrap:wrap;gap:6px}.kc-chips .chip.on{background:var(--go);border-color:var(--go);color:#fff}
 .kc-per{margin:0}.kc-gram{display:flex;align-items:center;gap:8px}.kc-gram .btn{width:52px;flex:none;font-size:22px}.kc-gram label{flex:1;min-width:0;display:flex;align-items:center;gap:6px;font:800 18px var(--body)}.kc-gram input{flex:1;min-width:0;width:100%;box-sizing:border-box;text-align:center;font:900 24px var(--display);padding:8px;border-radius:12px;border:2px solid var(--line);background:var(--panel-2);color:var(--fg)}
