@@ -6,6 +6,7 @@ const SUPABASE_URL = "https://zpsfdpangmvqxbkvzibb.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpwc2ZkcGFuZ212cXhia3Z6aWJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1NDcxMTUsImV4cCI6MjEwOTEyMzExNX0.XvVXgjOsOm0DQyrWCafc-y7LUYHYiX_H6R8g5ajLJpo";
 const MODELS = (process.env.GATEWAY_MODELS || "anthropic/claude-opus-5.5,google/gemini-2.5-flash,google/gemini-2.5-flash-lite").split(",").map(s => s.trim()).filter(Boolean);
 
+const THINK = Number(process.env.KCAL_THINK || 0);
 const num = {type: "number"};
 const SCHEMA = {
   type: "object", additionalProperties: false,
@@ -52,6 +53,8 @@ async function ask(req, text, only){
     const r = await fetch("https://ai-gateway.vercel.sh/v1/chat/completions", {method: "POST",
       headers: {"Content-Type": "application/json", Authorization: "Bearer " + token},
       body: JSON.stringify({model, max_tokens: 3000, temperature: 0.2,
+        /* Gemini thinks for seconds by default; a small budget keeps the answer quick */
+        ...(/^google\//.test(model) ? {providerOptions: {google: {thinkingConfig: {thinkingBudget: THINK}}}} : {}),
         response_format: {type: "json_schema", json_schema: {name: "meal", strict: true, schema: SCHEMA}},
         messages: [{role: "system", content: SYSTEM}, {role: "user", content: `Jetzt ist ${berlinNow()} (Europe/Berlin).\nGesagt: „${text}“`}]})
     }).catch(e => ({ok: false, status: 0, text: async () => String(e)}));
