@@ -19,6 +19,8 @@
       su: {e: "🦘", en: "Leap", de: "Sprungschlag", sen: "Jump in, hits everyone", sde: "Sprung, trifft alle", rg: 300, dmg: 42, dur: 260}},
     fire: {e: "🔥", en: "Fire trail", de: "Flammenspur", sen: "Flames · fire trail", sde: "Flammen · Feuerspur", hp: 170, sp: 1.15, rl: 1250, cd: 380, rg: 205, cone: .42, dmg: 17, burn: 3000, sc: 105,
       su: {e: "⭕", en: "Ring of fire", de: "Feuerring", sen: "Burns everyone around you", sde: "Verbrennt alle um dich", rg: 190, dmg: 30}},
+    bomb: {e: "🧨", en: "Bomber", de: "Bomber", sen: "Throws over walls", sde: "Wirft über Wände", hp: 120, sp: 1, rl: 1750, cd: 480, rg: 430, lob: 680, dmg: 30, splash: 64, sc: 110,
+      su: {e: "☄️", en: "Mega bomb", de: "Megabombe", sen: "Huge blast, knocks back", sde: "Riesen-Knall, stößt weg", dmg: 46, splash: 118, kb: 80, rg: 460}},
     snipe: {e: "🎯", en: "Sniper", de: "Scharfschütze", sen: "Far · harder far away", sde: "Weit · trifft weit stärker", hp: 105, sp: .95, rl: 2000, cd: 450, rg: 780, n: 1, v: 1600, dmg: 15, far: 30, r: 6, sc: 100,
       su: {e: "⚡", en: "Piercer", de: "Durchschuss", sen: "Goes through everyone", sde: "Geht durch alle durch", v: 2300, rg: 980, dmg: 52, r: 9}}};
   const KEYS = Object.keys(CLS);
@@ -136,7 +138,7 @@
     const G = hostG(), mg = hostMg(); if (!G || !mg || mg.done){ stopHost(); return; }
     const A = mg.ar; if (A.ph === "pick"){ if (now() >= A.pickEnd && hostTick(G)) PNet.refresh(); return; }
     if (A.ph !== "fight") return;
-    const dt = .05; botsStep(A, dt); regen(A, dt); botHazards(A, dt);
+    const dt = .05; if (!HB.freeze) botsStep(A, dt); regen(A, dt); botHazards(A, dt);
     if (A.cubes){ if (now() - A.cubeT > 7000 && A.cubes.length < 8){ A.cubeT = now(); cubeRandom(A, gasR(now() - A.fight)); }
       for (const id in HB.bots){ if (A.out.includes(id)) continue; const b = HB.bots[id], c = A.cubes.find(c => Math.hypot(c.x - b.x, c.y - b.y) < 38); if (c) cubeGrab(A, id, c.k); }
       if (HB.cdirty){ HB.cdirty = false; send({t: "acu", c: A.cubes, pw: A.pw}); } }
@@ -167,7 +169,7 @@
       b.rl += dt * 1000; while (b.am < AMMO && b.rl >= cl.rl){ b.am++; b.rl -= cl.rl; } if (b.am >= AMMO) b.rl = 0; b.cd -= dt * 1000;
       if (b.dash){ dashStep(b, id, dt, A); continue; }
       if (b.kb && b.kb.until > now()){ const nx = b.x + b.kb.vx * dt, ny = b.y + b.kb.vy * dt; if (walkA(nx, b.y)) b.x = nx; if (walkA(b.x, ny)) b.y = ny; }
-      let best = null; A.ids.forEach(o => { if (o === id || A.out.includes(o)) return; const q = posOf(o); if (!q || !seenFrom(b, o, q)) return; const d = Math.hypot(q.x - b.x, q.y - b.y), los = d < 900 && clear(b, q), sc = d - (los ? 260 : 0); if (!best || sc < best.sc) best = {id: o, q, d, los, sc}; });
+      let best = null; A.ids.forEach(o => { if (o === id || A.out.includes(o)) return; const q = posOf(o); if (!q || !seenFrom(b, o, q)) return; const d = Math.hypot(q.x - b.x, q.y - b.y), los = d < 900 && (clear(b, q) || (cl.lob && d < cl.rg * 1.05)), sc = d - (los ? 260 : 0); if (!best || sc < best.sc) best = {id: o, q, d, los, sc}; });
       let gx = 0, gy = 0; const outGas = Math.hypot(b.x - GC.x, b.y - GC.y) > gr - 60, low = A.hp[id] / A.mx[id] < .38;
       const go = t => { const w = wayTo(b, t), dx = w.x - b.x, dy = w.y - b.y, d = Math.hypot(dx, dy) || 1; gx = dx / d; gy = dy / d; };
       /* hurt and nobody close: off into the nearest fog to heal */
@@ -187,11 +189,11 @@
       /* against bots alone they react a bit slower and miss a bit more, so a round isn't over in ten seconds */
       const easy = PNet.P && PNet.P.solo && best && best.id === PNet.me;
       if (best && best.los && b.seen && now() - b.seen > (easy ? 600 : 380)){
-        const v = velOf(best.id), aim = sp2 => { const tt = sp2 ? best.d / sp2 : 0, ax = best.q.x + v.x * tt * b.skill, ay = best.q.y + v.y * tt * b.skill; return Math.atan2(ay - b.y, ax - b.x) + (Math.random() - .5) * .34 * (1.35 - b.skill) * (easy ? 1.5 : 1); };
+        const v = velOf(best.id), aim = sp2 => { const tt = cl.lob ? cl.lob / 1000 : sp2 ? best.d / sp2 : 0, ax = best.q.x + v.x * tt * b.skill, ay = best.q.y + v.y * tt * b.skill; return Math.atan2(ay - b.y, ax - b.x) + (Math.random() - .5) * .34 * (1.35 - b.skill) * (easy ? 1.5 : 1); };
         const su = cl.su, inSup = A.cls[id] === "fire" ? best.d < su.rg * .85 : A.cls[id] === "melee" ? best.d < su.rg * .9 : best.d < (su.rg || cl.rg) * .9;
-        if (b.sup >= 1 && inSup && Math.random() < .08){ const a = aim(su.v || cl.v); b.sup = 0; b.a = a; b.f = Math.cos(a) < 0 ? -1 : 1; A.ls[id] = now(); send({t: "as", by: id, k: id.slice(-3) + (++C.seq), c: A.cls[id], s: 1, x: Math.round(b.x), y: Math.round(b.y), a: Math.round(a * 1000) / 1000}); }
+        if (b.sup >= 1 && inSup && Math.random() < .08){ const a = aim(su.v || cl.v); b.sup = 0; b.a = a; b.f = Math.cos(a) < 0 ? -1 : 1; A.ls[id] = now(); send(Object.assign({t: "as", by: id, k: id.slice(-3) + (++C.seq), c: A.cls[id], s: 1, x: Math.round(b.x), y: Math.round(b.y), a: Math.round(a * 1000) / 1000}, cl.lob ? {r: Math.round(best.d + (Math.random() - .5) * 40 * (1.35 - b.skill))} : {})); }
         else if (best.d < cl.rg * (cl.cone ? .95 : .92) && b.am >= 1 && b.cd <= 0){ const a = aim(cl.v); b.am--; b.cd = cl.cd + 200 + Math.random() * 600 + (easy ? 350 : 0); b.a = a; b.f = Math.cos(a) < 0 ? -1 : 1;
-          A.ls[id] = now(); send({t: "as", by: id, k: id.slice(-3) + (++C.seq), c: A.cls[id], x: Math.round(b.x), y: Math.round(b.y), a: Math.round(a * 1000) / 1000}); } }
+          A.ls[id] = now(); send(Object.assign({t: "as", by: id, k: id.slice(-3) + (++C.seq), c: A.cls[id], x: Math.round(b.x), y: Math.round(b.y), a: Math.round(a * 1000) / 1000}, cl.lob ? {r: Math.round(best.d + (Math.random() - .5) * 50 * (1.35 - b.skill))} : {})); } }
       const p = C.AP[id] || (C.AP[id] = {buf: []}); p.dx = b.x; p.dy = b.y; p.a = b.a; p.f = b.f; p.mv = b.mv; p.t = now(); }
   }
   /* fire on the floor, the fire trail and the gas also hurt the bots */
@@ -329,9 +331,9 @@
       if (C.supP && e.pointerId === C.supP.id) st(C.supP, sk); });
     const up = e => { if (C.moveP && e.pointerId === C.moveP.id){ C.moveP = null; joy.classList.remove("on"); }
       if (C.aimP && e.pointerId === C.aimP.id){ const a = C.aimP; C.aimP = null; fb.classList.remove("on"); fb.style.left = fb.style.top = ""; fk.style.transform = "";
-        if (e.type === "pointerup") { if (a.man) fire(Math.atan2(a.dy, a.dx)); else autoFire(); } }
+        if (e.type === "pointerup") { if (a.man) fire(Math.atan2(a.dy, a.dx), false, Math.hypot(a.dx, a.dy)); else autoFire(); } }
       if (C.supP && e.pointerId === C.supP.id){ const a = C.supP; C.supP = null; sb.classList.remove("on"); sk.style.transform = "";
-        if (e.type === "pointerup") { if (a.man) fire(Math.atan2(a.dy, a.dx), true); else autoFire(true); } } };
+        if (e.type === "pointerup") { if (a.man) fire(Math.atan2(a.dy, a.dx), true, Math.hypot(a.dx, a.dy)); else autoFire(true); } } };
     L.addEventListener("pointerup", up); L.addEventListener("pointercancel", up);
     L.addEventListener("click", e => { const b = e.target.closest("[data-arc]"); if (b) return pick(b.dataset.arc); const x = e.target.closest("[data-arx]"); if (!x) return; Sound.tap();
       if (x.dataset.arx === "lobby") NPo().act({a: "tolobby"}); if (x.dataset.arx === "quit") NPo().openPanel && NPo().openPanel("quit"); });
@@ -376,14 +378,17 @@
   }
 
   /* ---- shooting ---- */
-  function nearestEnemy(rg){ let best = null; C.A.ids.forEach(id => { if (id === me() || !alive(id) || !visible(id)) return; const q = pos(id); if (!q) return; const d = Math.hypot(q.x - C.me.x, q.y - C.me.y); if (d > rg) return; if (!clear(C.me, q)) return; if (!best || d < best.d) best = {id, q, d}; }); return best; }
-  function autoFire(su){ if (!fighting()) return; const cl = CLS[C.cls], s2 = su ? cl.su : cl, t = nearestEnemy((s2.rg || cl.rg) * 1.12);
-    if (!t) return fire(C.me.a || 0, su); const v = velOf(t.id), sp = s2.v || cl.v, tt = sp ? t.d / sp : 0; C.autoLine = {x: t.q.x, y: t.q.y, t: now()}; fire(Math.atan2(t.q.y + v.y * tt - C.me.y, t.q.x + v.x * tt - C.me.x), su); }
-  function fire(a, su){
+  function nearestEnemy(rg, lob){ let best = null; C.A.ids.forEach(id => { if (id === me() || !alive(id) || !visible(id)) return; const q = pos(id); if (!q) return; const d = Math.hypot(q.x - C.me.x, q.y - C.me.y); if (d > rg) return; if (!lob && !clear(C.me, q)) return; if (!best || d < best.d) best = {id, q, d}; }); return best; }
+  function autoFire(su){ if (!fighting()) return; const cl = CLS[C.cls], s2 = su ? cl.su : cl, t = nearestEnemy((s2.rg || cl.rg) * 1.12, !!cl.lob);
+    if (!t) return fire(C.me.a || 0, su); const v = velOf(t.id), sp = s2.v || cl.v, tt = cl.lob ? cl.lob / 1000 : sp ? t.d / sp : 0, tx = t.q.x + v.x * tt, ty = t.q.y + v.y * tt; C.autoLine = {x: t.q.x, y: t.q.y, t: now()};
+    fire(Math.atan2(ty - C.me.y, tx - C.me.x), su, cl.lob ? -Math.hypot(tx - C.me.x, ty - C.me.y) : 0); }
+  /* how far a throw goes: the stick's length (or, negative, an exact distance from the auto aim) */
+  const throwDist = (cl, su, len) => { const rg = su && cl.su.rg ? cl.su.rg : cl.rg; if (len < 0) return Math.min(rg, Math.max(70, -len)); return len ? rg * Math.max(.25, Math.min(1, (len - 16) / 70)) : rg * .75; };
+  function fire(a, su, len){
     if (!fighting()) return; const cl = CLS[C.cls];
     if (su){ if (C.sup < 1) return; C.sup = 0; } else { if (C.am < 1 || C.cd > 0){ if (C.am < 1) snd("empty"); return; } C.am--; C.cd = cl.cd; }
     C.me.a = a; C.me.f = Math.cos(a) < 0 ? -1 : 1;
-    send(Object.assign({t: "as", by: me(), k: me().slice(0, 3) + (++C.seq), c: C.cls, x: Math.round(C.me.x), y: Math.round(C.me.y), a: Math.round(a * 1000) / 1000}, su ? {s: 1} : {})); Haptic.go(su ? [15, 20, 25] : 8);
+    send(Object.assign({t: "as", by: me(), k: me().slice(0, 3) + (++C.seq), c: C.cls, x: Math.round(C.me.x), y: Math.round(C.me.y), a: Math.round(a * 1000) / 1000}, su ? {s: 1} : {}, cl.lob ? {r: Math.round(throwDist(cl, su, len || 0))} : {})); Haptic.go(su ? [15, 20, 25] : 8);
   }
   /* a shot happens (ours too): bullets fly, fists and flames hit at once. Whoever fired decides the hits */
   function shot(m){
@@ -397,6 +402,9 @@
     if (su && m.c === "fire"){ snd("fire", from); C.fx.push({k: "ring", x: from.x, y: from.y, t: now(), rg: cl.su.rg});
       if (au) hitList(cl.su.rg).forEach(id => hitOut(id, cl.su.dmg, m.k + ":" + id, by, {burn: 1}));
       for (let i = 0; i < 8; i++){ const aa = i * Math.PI / 4, x = from.x + Math.cos(aa) * cl.su.rg * .7, y = from.y + Math.sin(aa) * cl.su.rg * .7; if (inAr(x, y)) C.fields.push({x, y, r: 46, until: now() + 2200, by, t: now()}); }
+      return; }
+    if (cl.lob){ const s2 = su ? Object.assign({}, cl, cl.su) : cl, d = Math.min(s2.rg, Math.max(40, +m.r || s2.rg * .75)); snd("rock", from);
+      C.proj.push({k: m.k, by, c: m.c, su, lob: 1, x0: from.x, y0: from.y, x1: from.x + Math.cos(a) * d, y1: from.y + Math.sin(a) * d, x: from.x, y: from.y, t: now(), dur: cl.lob * (.6 + .4 * d / s2.rg), au, done: {}});
       return; }
     if (cl.cone){ snd(m.c === "melee" ? "melee" : "fire", from); C.fx.push({k: m.c === "melee" ? "swipe" : "flame", x: from.x, y: from.y, a, t: now(), rg: cl.rg, cone: cl.cone});
       if (au) hitList(cl.rg, cl.cone).forEach(id => hitOut(id, cl.dmg, m.k + ":" + id, by, cl.burn ? {burn: 1} : null));
@@ -494,8 +502,13 @@
     /* the fire-trail class leaves flames where it walks */
     if (A.ph === "fight") A.ids.forEach(id => { if (A.cls[id] !== "fire" || !alive(id)) return; const q = pos(id); if (!q) return; const l = C.lastTr[id]; if (!l || Math.hypot(l.x - q.x, l.y - q.y) > 34){ C.lastTr[id] = {x: q.x, y: q.y}; C.trail.push({x: q.x, y: q.y, by: id, t}); } });
     prune(C.trail, p => t - p.t < 1800); prune(C.fields, f => f.until > t);
+    /* bombs */
+    for (const p of C.proj){ if (!p.lob || p.dead) continue; const k = Math.min(1, (t - p.t) / p.dur); p.x = p.x0 + (p.x1 - p.x0) * k; p.y = p.y0 + (p.y1 - p.y0) * k;
+      if (k >= 1){ p.dead = 1; const cl = CLS[p.c], s2 = p.su ? Object.assign({}, cl, cl.su) : cl; snd("boom", p); C.fx.push({k: "boom", x: p.x1, y: p.y1, t, big: p.su}); C.shake = Math.max(C.shake, C.me && Math.hypot(p.x1 - C.me.x, p.y1 - C.me.y) < 400 ? (p.su ? 14 : 9) : 3);
+        if (p.au) C.A.ids.forEach(id => { if (id === p.by || !alive(id)) return; const q = pos(id); if (!q) return; const dd = Math.hypot(q.x - p.x1, q.y - p.y1); if (dd > s2.splash + BODY * .6) return;
+          const kb = p.su && s2.kb ? {kx: (q.x - p.x1) / (dd || 1) * s2.kb, ky: (q.y - p.y1) / (dd || 1) * s2.kb} : null; hitOut(id, s2.dmg, p.k + ":" + id, p.by, kb); }); } }
     /* bullets */
-    for (const p of C.proj){ if (p.dead) continue; const sp = Math.hypot(p.vx, p.vy) * dt, n = Math.max(1, Math.ceil(sp / 10));
+    for (const p of C.proj){ if (p.dead || p.lob) continue; const sp = Math.hypot(p.vx, p.vy) * dt, n = Math.max(1, Math.ceil(sp / 10));
       for (let i = 0; i < n; i++){ p.x += p.vx * dt / n; p.y += p.vy * dt / n; p.tr += sp / n;
         if (!inAr(p.x, p.y) || shotSolid(p.x, p.y) || p.tr >= p.rg){ p.dead = 1; if (p.c === "rock") boom(p, null); else C.fx.push({k: "spark", x: p.x, y: p.y, t}); break; }
         const id = bodyAt(p); if (id){ p.done[id] = 1; C.hitAt[id] = t;
@@ -578,6 +591,7 @@
     const aimP = C.supP && C.supP.man ? C.supP : C.aimP && C.aimP.man ? C.aimP : null;
     if (fighting() && aimP){ const cl = CLS[C.cls], su = aimP === C.supP, s2 = su ? Object.assign({}, cl, cl.su) : cl, a = C.me.a, x = C.me.x, y = C.me.y - 30; c.save(); c.globalAlpha = .32; c.fillStyle = su ? "#FFD15C" : "#fff"; c.strokeStyle = c.fillStyle;
       if (su && C.cls === "fire"){ c.beginPath(); c.arc(C.me.x, C.me.y, s2.rg, 0, 7); c.fill(); }
+      else if (cl.lob){ const dd = throwDist(cl, su, Math.hypot(aimP.dx, aimP.dy)), lx = C.me.x + Math.cos(a) * dd, ly = C.me.y + Math.sin(a) * dd, sp2 = su ? cl.su.splash : cl.splash; c.lineWidth = 4; c.setLineDash([10, 8]); c.beginPath(); c.moveTo(C.me.x, C.me.y - 30); c.quadraticCurveTo((C.me.x + lx) / 2, (C.me.y + ly) / 2 - 140, lx, ly); c.stroke(); c.setLineDash([]); c.beginPath(); c.ellipse(lx, ly, sp2, sp2 * .62, 0, 0, 7); c.fill(); }
       else if (s2.cone || (s2.n || 1) > 1){ const w = s2.cone || s2.spr * ((s2.n || 1) / 2 + .4); c.beginPath(); c.moveTo(x, y); c.arc(x, y, s2.rg, a - w, a + w); c.closePath(); c.fill(); }
       else { c.lineWidth = (s2.r || 10) * 2.4; c.lineCap = "round"; c.beginPath(); c.moveTo(x, y); c.lineTo(x + Math.cos(a) * s2.rg, y + Math.sin(a) * s2.rg); c.stroke(); if (cl.splash){ c.beginPath(); c.arc(x + Math.cos(a) * s2.rg, y + Math.sin(a) * s2.rg, cl.splash, 0, 7); c.fill(); } } c.restore(); }
     if (C.autoLine && t - C.autoLine.t < 200 && C.me){ c.strokeStyle = "rgba(255,255,255,.5)"; c.lineWidth = 3; c.setLineDash([8, 8]); c.beginPath(); c.moveTo(C.me.x, C.me.y - 30); c.lineTo(C.autoLine.x, C.autoLine.y - 30); c.stroke(); c.setLineDash([]); }
@@ -601,11 +615,14 @@
           if (C.sup >= 1) emoAt(c, CLS[C.cls].su.e, q.x - w / 2 - 15, y + 26, 22); } } });
     /* bullets and bangs */
     C.proj.forEach(p => { const y = p.y - 34;
+      if (p.lob){ const k = Math.min(1, (t - p.t) / p.dur), hgt = Math.sin(k * Math.PI) * (120 + Math.hypot(p.x1 - p.x0, p.y1 - p.y0) * .25), rr2 = p.su ? CLS.bomb.su.splash : CLS.bomb.splash;
+        c.strokeStyle = `rgba(255,90,60,${.35 + k * .4})`; c.lineWidth = 3; c.setLineDash([8, 7]); c.beginPath(); c.ellipse(p.x1, p.y1, rr2, rr2 * .62, 0, 0, 7); c.stroke(); c.setLineDash([]);
+        c.fillStyle = "rgba(0,0,0,.3)"; c.beginPath(); c.ellipse(p.x, p.y, 12, 5, 0, 0, 7); c.fill(); emoAt(c, p.su ? "☄️" : "🧨", p.x, p.y - 30 - hgt, p.su ? 44 : 32); return; }
       if (p.c === "rock"){ c.save(); c.translate(p.x, y); c.rotate(Math.atan2(p.vy, p.vx)); c.fillStyle = "rgba(200,200,200,.35)"; for (let i = 1; i < 5; i++){ c.beginPath(); c.arc(-i * 12, Math.sin(t / 40 + i) * 3, 5 + i, 0, 7); c.fill(); } c.fillStyle = "#E9573F"; rr(c, -14, -7, 28, 14, 7); c.fill(); c.fillStyle = "#FFD15C"; c.beginPath(); c.arc(-16, 0, 5, 0, 7); c.fill(); c.restore(); }
       else if (p.c === "snipe"){ c.strokeStyle = p.su ? "#FFD15C" : "#fff"; c.lineWidth = p.su ? 8 : 4; c.beginPath(); c.moveTo(p.x - p.vx * .025, y - p.vy * .025); c.lineTo(p.x, y); c.stroke(); }
       else { c.fillStyle = p.su ? "#FF9A3C" : "#FFD15C"; c.beginPath(); c.arc(p.x, y, p.su ? 8 : 7, 0, 7); c.fill(); c.fillStyle = "rgba(255,209,92,.35)"; c.beginPath(); c.arc(p.x - p.vx * .012, y - p.vy * .012, 5, 0, 7); c.fill(); } });
     C.fx.forEach(f => { const k = (t - f.t) / 700;
-      if (f.k === "boom"){ const r = 20 + k * 90; c.fillStyle = `rgba(255,170,60,${Math.max(0, .7 * (1 - k))})`; c.beginPath(); c.arc(f.x, f.y - 20, r, 0, 7); c.fill(); if (k < .5){ c.fillStyle = `rgba(255,240,180,${.8 * (1 - k * 2)})`; c.beginPath(); c.arc(f.x, f.y - 20, r * .5, 0, 7); c.fill(); } }
+      if (f.k === "boom"){ const r = (20 + k * 90) * (f.big ? 1.5 : 1); c.fillStyle = `rgba(255,170,60,${Math.max(0, .7 * (1 - k))})`; c.beginPath(); c.arc(f.x, f.y - 20, r, 0, 7); c.fill(); if (k < .5){ c.fillStyle = `rgba(255,240,180,${.8 * (1 - k * 2)})`; c.beginPath(); c.arc(f.x, f.y - 20, r * .5, 0, 7); c.fill(); } }
       else if (f.k === "spark"){ if (k < .5){ c.fillStyle = f.hit ? `rgba(255,255,255,${1 - k * 2})` : `rgba(255,209,92,${1 - k * 2})`; for (let i = 0; i < 5; i++){ const an = i * 1.3 + f.t, r = k * 40; c.beginPath(); c.arc(f.x + Math.cos(an) * r, f.y - 34 + Math.sin(an) * r, 3, 0, 7); c.fill(); } } }
       else if (f.k === "flash"){ if (k < .15){ c.fillStyle = "rgba(255,230,150,.9)"; c.beginPath(); c.arc(f.x, f.y - 34, 14, 0, 7); c.fill(); } }
       else if (f.k === "sup"){ if (k < .6){ c.strokeStyle = `rgba(255,209,92,${.9 * (1 - k / .6)})`; c.lineWidth = 8; c.beginPath(); c.arc(f.x, f.y - 30, 30 + k * 80, 0, 7); c.stroke(); } }
@@ -665,11 +682,13 @@
   PG.onArena = m => onMsg(m);
   if (PG.ART) PG.ART.arena = ["⭐", "#E9A92B"];
   window.__ar = () => ({on: C.on, ph: C.A && C.A.ph, me: C.me && {x: Math.round(C.me.x), y: Math.round(C.me.y)}, hp: C.A && C.A.hp, out: C.A && C.A.out, cls: C.A && C.A.cls, am: C.am, sup: C.sup, proj: C.proj.length, bots: Object.keys(HB.bots).length, fog: C.me ? fogAt(C.me.x, C.me.y) : -1});
-  window.__arFire = (a, su) => a == null ? autoFire(su) : fire(a, su);
+  window.__arFire = (a, su, len) => a == null ? autoFire(su) : fire(a, su, len);
   window.__arMove = (dx, dy) => { C.moveP = dx == null ? null : {dx, dy, id: -1}; };
   window.__arTo = (x, y) => { if (C.me){ C.me.x = x; C.me.y = y; } };
   window.__arSeen = id => { const q = pos(id); return q && {x: Math.round(q.x), y: Math.round(q.y), vis: visible(id)}; };
   window.__arSup = v => { C.sup = v; };
+  window.__arBot = (id, x, y) => { const b = HB.bots[id]; if (b){ b.x = b.px = x; b.y = b.py = y; } };
+  window.__arFreeze = v => { HB.freeze = !!v; };
 
   const css = document.createElement("style"); css.textContent = `
 .np.arena .np-ov,.np.arena .np-bar,.np.arena .np-emob,.np.arena .np-emos,.np.arena .np-mapb,.np.arena .np-btns,.np.arena .np-tasks,.np.arena .np-tbar,.np.arena .np-alert,.np.arena .np-ev,.np.arena .np-joy,.np.arena .np-lob,.np.arena .np-panel:not(.on){display:none!important}
