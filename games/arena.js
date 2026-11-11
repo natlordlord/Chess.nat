@@ -135,7 +135,7 @@
   function cubeGrab(A, id, k){ const i = A.cubes.findIndex(c => c.k === k); if (i < 0 || A.out.includes(id)) return; const c = A.cubes[i], q = posOf(id); if (!q || Math.hypot(q.x - c.x, q.y - c.y) > 90) return;
     A.cubes.splice(i, 1); const was = A.pw[id] || 0, now2 = Math.min(CUBES, was + c.n), base = CLS[A.cls[id]].hp; A.pw[id] = now2; A.mx[id] = Math.round(base * (1 + CUBE * now2)); A.hp[id] = Math.min(A.mx[id], A.hp[id] + base * CUBE * (now2 - was)); HB.dirty = true; HB.cdirty = true; }
   function botsInit(s, A){ HB.bots = {}; (s.bots || []).forEach(b => { if (!A.ids.includes(b.id)) return; const q = C.AP[b.id], p = q && q.dx != null ? {x: q.dx, y: q.dy} : A.sp[b.id];
-    HB.bots[b.id] = {x: p.x, y: p.y, a: 0, f: 1, mv: 0, am: AMMO, rl: 0, cd: 600 + Math.random() * 900, str: Math.random() < .5 ? -1 : 1, strT: 0, seen: 0, skill: .55 + Math.random() * .45, sup: 0, dash: null, kb: null, hide: 0}; }); }
+    HB.bots[b.id] = {x: p.x, y: p.y, a: 0, f: 1, mv: 0, am: AMMO, rl: 0, cd: 600 + Math.random() * 900, str: Math.random() < .5 ? -1 : 1, strT: 0, seen: 0, skill: botSkill(), sup: 0, dash: null, kb: null, hide: 0}; }); }
   function hostLoop(){
     const G = hostG(), mg = hostMg(); if (!G || !mg || mg.done){ stopHost(); return; }
     const A = mg.ar; if (A.ph === "pick"){ if (now() >= A.pickEnd && hostTick(G)) PNet.refresh(); return; }
@@ -148,6 +148,9 @@
     if (HB.dirty && now() - HB.hpT > 200){ HB.dirty = false; HB.hpT = now(); send({t: "ahp", hp: rnd(A.hp), mx: A.mx, out: A.out, f: A.feed.slice(-4)}); }
     if (hostTick(G)) PNet.refresh();
   }
+  /* alone against bots they grow with you: a little sharper the more rounds you have won */
+  const soloLv = () => PNet.P && PNet.P.solo ? Math.min(1, ((PG.st && PG.st.nsWins) || 0) / 30) : .5;
+  const botSkill = () => .47 + soloLv() * .16 + Math.random() * .4;
   const rnd = o => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, Math.round(v)]));
   function hostHit(vic, d, by, k){
     const G = hostG(), mg = hostMg(), A = mg && mg.ar; if (!A || A.ph !== "fight" || !A.ids.includes(vic) || A.out.includes(vic) || !(d > 0)) return;
@@ -195,7 +198,7 @@
         const v = velOf(best.id), aim = sp2 => { const tt = cl.lob ? cl.lob / 1000 : sp2 ? best.d / sp2 : 0, ax = best.q.x + v.x * tt * b.skill, ay = best.q.y + v.y * tt * b.skill; return Math.atan2(ay - b.y, ax - b.x) + (Math.random() - .5) * .34 * (1.35 - b.skill) * (easy ? 1.5 : 1); };
         const su = cl.su, inSup = A.cls[id] === "fire" ? best.d < su.rg * .85 : A.cls[id] === "melee" ? best.d < su.rg * .9 : best.d < (su.rg || cl.rg) * .9;
         if (b.sup >= 1 && inSup && Math.random() < .08){ const a = aim(su.v || cl.v); b.sup = 0; b.a = a; b.f = Math.cos(a) < 0 ? -1 : 1; A.ls[id] = now(); send(Object.assign({t: "as", by: id, k: id.slice(-3) + (++C.seq), c: A.cls[id], s: 1, x: Math.round(b.x), y: Math.round(b.y), a: Math.round(a * 1000) / 1000}, cl.lob ? {r: Math.round(best.d + (Math.random() - .5) * 40 * (1.35 - b.skill))} : {})); }
-        else if (best.d < cl.rg * (cl.cone ? .95 : .92) && b.am >= 1 && b.cd <= 0){ const a = aim(cl.v); b.am--; b.cd = cl.cd + 200 + Math.random() * 600 + (easy ? 350 : 0); b.a = a; b.f = Math.cos(a) < 0 ? -1 : 1;
+        else if (best.d < cl.rg * (cl.cone ? .95 : .92) && b.am >= 1 && b.cd <= 0){ const a = aim(cl.v); b.am--; b.cd = cl.cd + 200 + Math.random() * 600 + (easy ? 420 - soloLv() * 260 : 0); b.a = a; b.f = Math.cos(a) < 0 ? -1 : 1;
           A.ls[id] = now(); send(Object.assign({t: "as", by: id, k: id.slice(-3) + (++C.seq), c: A.cls[id], x: Math.round(b.x), y: Math.round(b.y), a: Math.round(a * 1000) / 1000}, cl.lob ? {r: Math.round(best.d + (Math.random() - .5) * 50 * (1.35 - b.skill))} : {})); } }
       const p = C.AP[id] || (C.AP[id] = {buf: []}); p.dx = b.x; p.dy = b.y; p.a = b.a; p.f = b.f; p.mv = b.mv; p.t = now(); }
   }
