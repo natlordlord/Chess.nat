@@ -2797,7 +2797,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794356008";
+const CHESSNAT_BUILD = "1794356110";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11307,6 +11307,7 @@ Views.home = {
     const weak = weakThemes(1)[0]; const goal = 1600; const start = 400;
     const pct = clamp((S.puzzle.r - start) / (goal - start), 0, 1);
     main.innerHTML = `<div class="page">${siteBanner()}
+      <div class="unit th-home" id="homeTipp" hidden></div>
       <div class="unit home-rank" style="--rk1:${rk.tier.c1};--rk2:${rk.tier.c2}">
         <button class="hr-crest" data-go="me" aria-label="Your profile">${crestSVG(rk.idx, rk.div, 150)}</button>
         <div class="hr-l">${esc(rk.label)}</div>
@@ -11339,6 +11340,7 @@ Views.home = {
         <button class="tile" data-go="review">${icon("review", 40)}<h3>Game Review</h3><p>Brilliant, blunder and everything between.</p></button>
       </div></div>`;
     if (typeof goalWire === "function") goalWire(main);
+    if (typeof window.homeTipp === "function") window.homeTipp(main.querySelector("#homeTipp"));
     $$("[data-go]", main).forEach(b => b.onclick = () => b.dataset.go === "lesson" ? App.go("lesson", {id: b.dataset.l}) : App.go(b.dataset.go));
     /* finished plan items celebrate once and then disappear */
     const pops = $$(".lsn.pop", main); if (pops.length) setTimeout(() => { pops.forEach((b, j) => setTimeout(() => { if (!b.isConnected) return; b.classList.add("popping"); Sound.play(j ? "Move" : "Capture", .7); setTimeout(() => { b.remove(); if (planDone() && j === pops.length - 1) Sound.cheer(2); }, 520); }, j * 260)); }, 700);
@@ -14336,17 +14338,17 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=44"></script>
-<script src="games/imposter.js?v=44"></script>
-<script src="games/werwolf.js?v=44"></script>
-<script src="games/cards.js?v=44"></script>
-<script src="games/heads.js?v=44"></script>
-<script src="games/more.js?v=44"></script>
-<script src="games/net.js?v=44"></script>
-<script src="games/online.js?v=44"></script>
-<script src="games/natposter.js?v=44"></script>
-<script src="games/arena.js?v=44"></script>
-<script src="games/tipp.js?v=44"></script>
+<script src="games/core.js?v=45"></script>
+<script src="games/imposter.js?v=45"></script>
+<script src="games/werwolf.js?v=45"></script>
+<script src="games/cards.js?v=45"></script>
+<script src="games/heads.js?v=45"></script>
+<script src="games/more.js?v=45"></script>
+<script src="games/net.js?v=45"></script>
+<script src="games/online.js?v=45"></script>
+<script src="games/natposter.js?v=45"></script>
+<script src="games/arena.js?v=45"></script>
+<script src="games/tipp.js?v=45"></script>
 <script>boot();</script>
 </body>
 </html>

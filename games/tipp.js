@@ -55,7 +55,7 @@
         c.from("tipp_events").select("id,sport,comp,name,home,away,home_logo,away_logo,start_at,state,clock,score_h,score_a,stats,markets,model,odds_src,result,settled,fav,meta").gte("start_at", from).lte("start_at", to).order("start_at"),
         meId() ? c.from("tipp_tips").select("*").eq("user_id", meId()).order("created_at", {ascending: false}).limit(300) : Promise.resolve({data: []}),
         this.adminChecked ? Promise.resolve(null) : (meId() ? c.from("tipp_admins").select("user_id").eq("user_id", meId()) : Promise.resolve({data: []}))]);
-      if (e.error) throw e.error;
+      if (e.error) throw e.error; this.loadT = Date.now();
       this.ev = (e.data || []).filter(x => x.state !== "canc" || x.markets.length); this.tips = t.data || [];
       if (a){ this.admin = !!(a.data && a.data.length); this.adminChecked = true; }
       if (!this.grpT || Date.now() - this.grpT > 60000){ this.grpT = Date.now(); try { await this.loadGroups(); } catch(e) {} }
@@ -126,7 +126,7 @@
       let jc = arg && arg.join; if (!jc) try { jc = localStorage.getItem("chessnat-tipp-join"); } catch(e) {}
       if (jc && meId()) Tipp.join(jc).then(g => { if (!g) return; toast(`🏆 ${T("You're in", "Du bist dabei:")} „${g.name}“`, 3000); if (navigator.vibrate) try { navigator.vibrate([20, 40, 20]); } catch(e) {} Tipp.tab = "board"; main.querySelectorAll("[data-tab]").forEach(x => x.classList.toggle("on", x.dataset.tab === "board")); this.grpBar(); this.board(); });
       else if (jc) Tipp.join(jc);
-      this.refresh(true); Tipp.claim().then(() => this.balance());
+      this.refresh(true).then(() => { if (App.route !== "tipp" || !arg) return; if (arg.quick && Tipp.ev.some(e => e.id === arg.quick && e.state === "pre")) this.quick(arg.quick); else if (arg.open && Tipp.ev.some(e => e.id === arg.open)) this.openEvent(arg.open); }); Tipp.claim().then(() => this.balance());
       clearInterval(this.iv); this.iv = setInterval(() => { if (App.route !== "tipp") return clearInterval(this.iv); this.refresh(); }, 20000);
     },
     unmount(){ clearInterval(this.iv); },
@@ -425,6 +425,22 @@
   };
   if (typeof TAB_OF !== "undefined") TAB_OF.tipp = "tipp";
   window.Tipp = Tipp;
+  /* on the home screen: my running games and the next big game I haven't tipped yet */
+  function homeHTML(){
+    const now = Date.now(), live = Tipp.ev.filter(e => e.state === "in" && Tipp.myTip(e)).slice(0, 2);
+    const next = Tipp.ev.filter(e => e.state === "pre" && Date.parse(e.start_at) > now + 60e3 && Date.parse(e.start_at) < now + 4 * 864e5 && (e.fav || bay(e.home) || bay(e.away) || e.comp === "nt") && !Tipp.myOn(e.id).length && (e.markets || []).length).slice(0, 3 - live.length);
+    if (!live.length && !next.length) return "";
+    const flag = e => e.comp === "nt" ? "🇩🇪 " : bay(e.home) || bay(e.away) ? "⭐ " : e.sport === "mma" || e.sport === "box" ? "🥊 " : e.sport === "hb" ? "🤾 " : "";
+    const day = t => { const d = new Date(t), n = new Date(); const dd = Math.round((new Date(d.toDateString()) - new Date(n.toDateString())) / 864e5); return dd === 0 ? T("Today", "Heute") : dd === 1 ? T("Tomorrow", "Morgen") : d.toLocaleDateString(de() ? "de-DE" : "en-GB", {weekday: "short"}); };
+    return `<div class="th-h">⚽ ${T("Tipping game", "Tippspiel")}</div>` + live.map(e => { const my = Tipp.myTip(e), ls = my.score && e.sport === "fb" ? liveSt(my.score, +e.score_h, +e.score_a) : null;
+        return `<button class="th-row live" data-th="${h(e.id)}"><span class="th-t">● ${h(e.clock || "LIVE")}</span><span class="th-m">${h(e.home)} <b>${e.score_h ?? "–"}:${e.score_a ?? "–"}</b> ${h(e.away)}</span><span class="th-tip ${ls ? ls.c : ""}">${ls ? ls.l.split(" ")[0] + " " : ""}${h(my.score || my.name)}</span></button>`; }).join("")
+      + next.map(e => `<button class="th-row" data-th="${h(e.id)}" data-q="1"><span class="th-t">${h(day(e.start_at))} ${hm(e.start_at)}</span><span class="th-m">${flag(e)}${h(e.home)} – ${h(e.away)}</span><span class="th-go">${T("Tip", "Tippen")}</span></button>`).join("");
+  }
+  window.homeTipp = async el => {
+    if (!el) return; const fill = () => { if (!el.isConnected) return; const x = homeHTML(); el.innerHTML = x; el.hidden = !x;
+      el.querySelectorAll("[data-th]").forEach(b => b.onclick = () => { Sound.tap(); App.go("tipp", b.dataset.q ? {quick: b.dataset.th} : {open: b.dataset.th}); }); };
+    if (Tipp.ev.length && Date.now() - (Tipp.loadT || 0) < 180000) return fill();
+    try { await Tipp.load(); } catch(e) { return; } fill(); };
 
   const css = document.createElement("style"); css.textContent = `
 .tp-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.tp-bal{display:flex;align-items:center;gap:6px;background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:5px 12px 5px 7px;font:900 16px var(--display)}.tp-bal .natc{width:20px;height:20px}
@@ -478,6 +494,12 @@
 .tp-kr .nm{flex:1;font:800 14px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-kr .nm.r{text-align:right}.tp-kr .d{width:34px;height:38px;display:grid;place-items:center;background:var(--panel);border-radius:9px;font:900 22px var(--display)}.tp-kr i{font-style:normal;font-weight:900;color:var(--muted)}
 .tp-kr.f .nm{flex:none}.tp-kr .w{flex:1;font:900 15px var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-kr small{color:var(--muted);font-weight:700}
 .tp-kr.done{background:color-mix(in srgb,var(--go) 16%,var(--panel-2))}.tp-kr.done .d,.tp-kr.done .w{animation:tpBump .3s cubic-bezier(.3,1.6,.5,1)}
+.th-home{padding:12px 14px!important;display:flex;flex-direction:column;gap:6px}.th-home[hidden]{display:none}.th-h{font:900 13px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.th-row{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:14px;border:0;background:var(--panel-2);color:var(--fg);text-align:left;cursor:pointer;font:inherit}.th-row:active{transform:scale(.98)}
+.th-t{flex:none;font:800 12px var(--body);color:var(--muted);min-width:64px}.th-row.live .th-t{color:#e5484d}
+.th-m{flex:1;min-width:0;font:800 15px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.th-m b{font-family:var(--display);margin:0 2px}
+.th-go{flex:none;background:var(--go);color:#fff;font:900 14px var(--body);padding:7px 12px;border-radius:10px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.2)}
+.th-tip{flex:none;font:900 15px var(--display);padding:6px 10px;border-radius:10px;background:var(--go);color:#fff}.th-tip.ok{background:linear-gradient(180deg,#E9B64A,#c9921f)}.th-tip.out{background:var(--panel-3);color:var(--muted)}
 .tp-grp{flex-wrap:nowrap;overflow-x:auto;margin:12px 0 0;padding:2px 0 4px;scrollbar-width:none;overscroll-behavior-x:contain;touch-action:pan-x}.tp-grp::-webkit-scrollbar{display:none}.tp-grp[hidden]{display:none}
 .tp-grp .chip{flex:none;display:inline-flex;align-items:center;gap:5px}.tp-grp .chip small{font:800 11px var(--body);background:rgba(0,0,0,.18);border-radius:999px;padding:1px 6px}.tp-grp .chip.on{background:#E9A92B;border-color:#E9A92B;color:#2a1d05}.tp-gnew{border-style:dashed!important}
 .tp-gs{display:flex;flex-direction:column;gap:10px}.tp-gs h3{margin:0}.tp-gname{width:100%;font:800 18px var(--body);padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:var(--panel-2);color:var(--fg)}
