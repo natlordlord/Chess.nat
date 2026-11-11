@@ -28,7 +28,8 @@
     chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
     gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
     plus: '<path d="M12 5v14M5 12h14"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>', kb: '<rect x="2" y="6" width="20" height="13" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 15h10"/>',
-    torch: '<path d="M8 2h8l-2 6v13h-4V8z"/><path d="M12 12v2"/>'
+    torch: '<path d="M8 2h8l-2 6v13h-4V8z"/><path d="M12 12v2"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>', pen: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/>'
   };
 
   /* ---------- state ---------- */
@@ -148,10 +149,11 @@
       <button class="kc-num" data-kc-go><b>${fmt(eaten)}</b><span>/ ${fmt(g)} kcal</span></button>
       <div class="kc-bar ${lit ? "done" : ""}"><i style="width:${Math.round(pct * 100)}%"></i></div>
       ${last ? `<div class="kc-last">${h(last.emoji || "🍽️")} ${h(last.title)} · ${fmt(last.kcal)} kcal · ${hhmm(last.ts)}</div>` : ""}
-      <div class="kc-btns"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 30)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 30)}<span>Barcode</span></button></div>${tip}`;
+      <div class="kc-btns"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 28)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 28)}<span>Barcode</span></button><button class="kc-big kc-find" data-kc-find>${svg(IC.search, 28)}<span>Suchen</span></button></div>${tip}`;
     el.querySelectorAll("[data-kc-go]").forEach(b => b.onclick = () => App.go("kcal"));
     el.querySelector("[data-kc-say]").onclick = () => Voice2.open();
     el.querySelector("[data-kc-scan]").onclick = () => KCScan.open();
+    el.querySelector("[data-kc-find]").onclick = () => Search.open();
   }
   window.homeKcal = async el => {
     if (!el) return; homeEl = el;
@@ -169,23 +171,140 @@
     setTimeout(() => { try { sh.close(); } catch(e) {} }, 4000);
   }
 
-  /* ---------- result of a meal ---------- */
+  /* ---------- numbers you type: a tap selects all of it, so typing replaces it; the field never jumps while you type ---------- */
+  const r1 = x => Math.round((Number(x) || 0) * 10) / 10;
+  const num = s => { s = String(s == null ? "" : s).trim().replace(",", "."); const fr = {"¼": .25, "½": .5, "¾": .75}; let m = /^(\d+(?:\.\d+)?)?\s*([¼½¾])$/.exec(s); if (m) return (Number(m[1]) || 0) + fr[m[2]];
+    m = /^(\d+)\s*\/\s*(\d+)$/.exec(s); if (m && +m[2]) return +m[1] / +m[2]; const n = parseFloat(s); return isFinite(n) ? n : NaN; };
+  const nf = (n, d = 1) => { const k = Math.pow(10, d); return String(Math.round((Number(n) || 0) * k) / k).replace(".", ","); };
+  const fracTxt = n => { const w = Math.floor(n + 1e-9), r = Math.round((n - w) * 4); return (w || !r ? String(w || "") : "") + (r === 1 ? "¼" : r === 2 ? "½" : r === 3 ? "¾" : "") || "0"; };
+  function field(inp, onNum){ const sel = () => { try { inp.setSelectionRange(0, inp.value.length); } catch(e) { try { inp.select(); } catch(_) {} } };
+    inp.addEventListener("focus", () => { sel(); setTimeout(sel, 0); setTimeout(sel, 60); });
+    inp.addEventListener("mouseup", e => { if (inp._sel){ inp._sel = 0; e.preventDefault(); } }); inp.addEventListener("mousedown", () => { inp._sel = document.activeElement !== inp; });
+    if (onNum) inp.addEventListener("input", () => { const v = num(inp.value); if (isFinite(v)) onNum(v); });
+    inp.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); inp.blur(); } }); }
+
+  /* ---------- a product (Open Food Facts) and how much of it: grams, or portions (½ slice, 2 slices …) ---------- */
+  const prodOf = (code, p) => { const n = p.nutriments || {}, per = k => Number(n[k + "_100g"] != null ? n[k + "_100g"] : n[k]) || 0, k100 = per("energy-kcal") || (per("energy") ? per("energy") / 4.184 : 0);
+    return {code, name: p.product_name_de || p.product_name || p.generic_name || "Produkt " + code, brand: (Array.isArray(p.brands) ? p.brands[0] || "" : String(p.brands || "").split(",")[0]).trim(), img: p.image_front_small_url || null,
+      k: k100, c: per("carbohydrates"), pr: per("proteins"), f: per("fat"), serving: Math.round(Number(p.serving_quantity) || 0), pack: Math.round(Number(p.product_quantity) || 0)}; };
+  const amtText = (P, g) => { const s = P.serving, n = s ? g / s : 0; return (s && n >= .25 && Math.abs(n - Math.round(n * 4) / 4) < .01 ? fracTxt(n) + (n > 1 ? " Portionen" : " Portion") + " · " : "") + nf(g, g < 10 ? 1 : 0) + " g"; };
+  /* a part of a meal made from a product keeps the values per 100 g, so its amount can be changed later */
+  const itemOf = (P, g) => { const f = g / 100; return {name: P.name + (P.brand ? " (" + P.brand + ")" : ""), amount: amtText(P, g), kcal: Math.round(P.k * f), carbs: r1(P.c * f), protein: r1(P.pr * f), fat: r1(P.f * f), code: P.code || null, g,
+    per: {n: P.name, b: P.brand || "", k: P.k, c: P.c, pr: P.pr, f: P.f, s: P.serving || 0, pk: P.pack || 0, img: P.img || null}}; };
+  const perP = it => ({code: it.code || null, name: it.per.n, brand: it.per.b, img: it.per.img, k: it.per.k, c: it.per.c, pr: it.per.pr, f: it.per.f, serving: it.per.s, pack: it.per.pk});
+  function amountSheet(P, opt = {}){
+    const s = P.serving, chips = [30, 50, 100, 150, 200, 250].map(v => [v, v + " g"]); if (P.pack && P.pack <= 3000 && P.pack !== s) chips.push([P.pack, "Packung"]);
+    let g = opt.g || s || 100;
+    const sh = detailSheet(`<div class="kc-prod" data-notr><div class="kc-ph">${P.img ? `<img src="${h(P.img)}" alt="">` : `<span>📦</span>`}<div><div class="kc-mt">${h(P.name)}</div><div class="muted">${h(P.brand || "")}</div></div></div>
+      <p class="muted kc-per">pro 100 g: ${fmt(P.k)} kcal · ${f1(P.c)} g KH · ${f1(P.pr)} g Protein · ${f1(P.f)} g Fett</p>
+      ${s ? `<div class="kc-amt"><span class="kc-al">Portionen <small class="muted">à ${s} g</small></span><div class="kc-gram"><button class="btn" data-pd="-1">−</button><label><input id="kcn" inputmode="decimal" autocomplete="off" enterkeyhint="done"> ×</label><button class="btn" data-pd="1">+</button></div>
+        <div class="kc-chips">${[[.25, "¼"], [.5, "½"], [1, "1"], [2, "2"], [3, "3"], [4, "4"], [5, "5"]].map(([v, l]) => `<button class="chip" data-n="${v}">${l}</button>`).join("")}</div></div>` : ""}
+      <div class="kc-amt"><span class="kc-al">Gramm</span><div class="kc-gram"><button class="btn" data-d="-1">−</button><label><input id="kcg" inputmode="decimal" autocomplete="off" enterkeyhint="done"> g</label><button class="btn" data-d="1">+</button></div>
+        <div class="kc-chips">${chips.map(([v, l]) => `<button class="chip" data-g="${v}">${l}</button>`).join("")}</div></div>
+      <div class="kc-mk" id="kcpk"></div><button class="btn go big" id="kcadd">${h(opt.btn || "Eintragen")}</button></div>`);
+    const el = sh.el, gi = el.querySelector("#kcg"), ni = el.querySelector("#kcn");
+    const show = from => { const f = g / 100; if (from !== "g") gi.value = nf(g, g < 10 ? 1 : 0); if (ni && from !== "n") ni.value = nf(g / s, 2);
+      el.querySelector("#kcpk").innerHTML = `<b>${fmt(P.k * f)}</b> kcal <small class="muted">· ${f1(P.c * f)} g KH · ${f1(P.pr * f)} g Protein · ${f1(P.f * f)} g Fett</small>`;
+      el.querySelectorAll("[data-g]").forEach(c => c.classList.toggle("on", Math.abs(+c.dataset.g - g) < .05)); el.querySelectorAll("[data-n]").forEach(c => c.classList.toggle("on", Math.abs(+c.dataset.n * s - g) < .05)); };
+    const setG = (v, from) => { g = Math.max(.5, Math.min(5000, Math.round(v * 10) / 10)); show(from); };
+    show();
+    field(gi, v => { if (v > 0) setG(v, "g"); }); gi.addEventListener("blur", () => show());
+    if (ni){ field(ni, v => { if (v > 0) setG(v * s, "n"); }); ni.addEventListener("blur", () => show()); }
+    el.querySelectorAll("[data-g]").forEach(c => c.onclick = () => { haptic(8); setG(+c.dataset.g); });
+    el.querySelectorAll("[data-n]").forEach(c => c.onclick = () => { haptic(8); setG(+c.dataset.n * s); });
+    el.querySelectorAll("[data-d]").forEach(b => b.onclick = () => { const st = g >= 50 ? 10 : 5; setG(+b.dataset.d > 0 ? Math.floor(g / st + 1e-6) * st + st : g <= st ? Math.max(1, g - 1) : Math.ceil(g / st - 1e-6) * st - st); });
+    el.querySelectorAll("[data-pd]").forEach(b => b.onclick = () => { const n = g / s, up = +b.dataset.pd > 0, q = up ? (n < 1 ? Math.floor(n * 4 + 1e-6) / 4 + .25 : Math.floor(n + 1e-6) + 1) : (n <= 1 ? Math.max(.25, Math.ceil(n * 4 - 1e-6) / 4 - .25) : Math.ceil(n - 1e-6) - 1); setG(q * s); });
+    el.querySelector("#kcadd").onclick = async () => { const b = el.querySelector("#kcadd"); if (b.disabled) return; b.disabled = true; recent(P);
+      try { await opt.done(itemOf(P, g), g); sh.close(); } catch(e) { b.disabled = false; say("Ging nicht: " + (e.message || e)); } };
+    return sh;
+  }
+  /* a product picked from the scan or the search becomes a new meal */
+  const addProduct = (P, src) => amountSheet(P, {done: async it => { const m = await K.add({source: src || "barcode", code: it.code, grams: Math.round(it.g), title: P.name.slice(0, 80), emoji: "📦", kcal: it.kcal, carbs: it.carbs, protein: it.protein, fat: it.fat, items: [it], note: "Nährwerte von Open Food Facts"});
+    haptic(15); say(`📦 ${fmt(m.kcal)} kcal eingetragen`); }});
+
+  /* ---------- search: type a name (Open Food Facts via /api/food), pick the product, say how much ---------- */
+  const RK = "chessnat-kcal-recent";
+  const recents = () => { try { return JSON.parse(localStorage.getItem(RK) || "[]"); } catch(e) { return []; } };
+  function recent(P){ try { const key = P.code || P.name, l = recents().filter(x => (x.code || x.name) !== key); l.unshift({code: P.code || null, name: P.name, brand: P.brand || "", img: P.img || null, k: P.k, c: P.c, pr: P.pr, f: P.f, serving: P.serving || 0, pack: P.pack || 0}); localStorage.setItem(RK, JSON.stringify(l.slice(0, 12))); } catch(e) {} }
+  const Search = {
+    open(opt = {}){
+      if (!meId()) return say("Bitte erst anmelden");
+      const sh = detailSheet(`<div class="kc-srch" data-notr><h3>${h(opt.title || "Lebensmittel suchen")}</h3><div class="kc-sq">${svg(IC.search, 18)}<input id="kcq" type="search" enterkeyhint="search" placeholder="z. B. Nutella, Toast, Honey Nut Flakes" autocomplete="off" value="${h(opt.q || "")}"></div>
+        <div class="kc-sr" id="kcsr"></div><button class="btn ghost kc-man-b" id="kcsm">${svg(IC.plus, 16)} Selbst eintragen</button></div>`);
+      const el = sh.el, q = el.querySelector("#kcq"), out = el.querySelector("#kcsr"); let seq = 0, tmr = 0, list = [];
+      const pick = P => { sh.close(); haptic(10); if (opt.pick) opt.pick(P); else addProduct(P, "search"); };
+      const row = (P, i) => `<button class="kc-sres" data-i="${i}">${P.img ? `<img src="${h(P.img)}" alt="" loading="lazy">` : `<span class="kc-sph">📦</span>`}<span class="kc-sn">${h(P.name)}<small>${h(P.brand || "")}${P.serving ? `${P.brand ? " · " : ""}Portion ${P.serving} g` : ""}</small></span><b>${fmt(P.k)}<small>kcal/100 g</small></b></button>`;
+      const draw = (l, head) => { list = l; out.innerHTML = (head ? `<div class="kc-sh muted">${head}</div>` : "") + l.map(row).join(""); out.querySelectorAll("[data-i]").forEach(b => b.onclick = () => pick(list[+b.dataset.i])); };
+      const empty = () => { const r = recents(); if (r.length) draw(r, "Zuletzt"); else out.innerHTML = `<p class="muted kc-sh">Tipp den Namen ein. Die Werte kommen von Open Food Facts.</p>`; };
+      const go = async () => { const v = q.value.trim(), my = ++seq; if (v.length < 2) return empty(); out.classList.add("busy");
+        try { const r = await fetch("/api/food?q=" + encodeURIComponent(v)), j = await r.json().catch(() => ({})); if (my !== seq) return; if (!r.ok || !Array.isArray(j.items)) throw new Error(j.error || "Suche gerade nicht erreichbar");
+          if (!j.items.length) out.innerHTML = `<p class="muted kc-sh">Nichts gefunden. Anders schreiben oder selbst eintragen.</p>`; else draw(j.items); }
+        catch(e) { if (my === seq) out.innerHTML = `<p class="muted kc-sh">⚠️ ${h(e.message || "Keine Verbindung")}</p>`; }
+        finally { if (my === seq) out.classList.remove("busy"); } };
+      q.oninput = () => { clearTimeout(tmr); tmr = setTimeout(go, 380); };
+      q.onkeydown = e => { if (e.key === "Enter"){ e.preventDefault(); clearTimeout(tmr); go(); q.blur(); } };
+      el.querySelector("#kcsm").onclick = () => { sh.close(); (opt.manual || manual)(); };
+      if (q.value.trim().length >= 2) go(); else empty(); setTimeout(() => { if (!opt.q) q.focus(); }, 250);
+      return sh;
+    }
+  };
+
+  /* ---------- a meal and its parts: every part can be changed, swapped for the real product (barcode or search), or removed ---------- */
+  const partsOf = m => Array.isArray(m.items) && m.items.length ? m.items.map(i => Object.assign({}, i)) : [{name: m.title, amount: m.grams ? m.grams + " g" : "", kcal: m.kcal || 0, carbs: m.carbs || 0, protein: m.protein || 0, fat: m.fat || 0, code: m.code || null, g: m.grams || null}];
+  async function saveParts(m, parts){ const sum = k => parts.reduce((s, i) => s + (Number(i[k]) || 0), 0), one = parts.length === 1 ? parts[0] : null;
+    /* one part: the meal is called like it (the product's name without the brand) */
+    const title = one && (!Array.isArray(m.items) || m.items.length <= 1) ? (one.per && one.per.n) || one.name : m.title;
+    return K.update(m.id, {items: parts, kcal: Math.round(sum("kcal")), carbs: r1(sum("carbs")), protein: r1(sum("protein")), fat: r1(sum("fat")), title: String(title || m.title || "Mahlzeit").slice(0, 120), grams: one && one.g ? Math.round(one.g) : null, code: (one && one.code) || null}); }
+  const scalePart = (i, f) => { const o = Object.assign({}, i, {kcal: Math.round((Number(i.kcal) || 0) * f), carbs: r1(i.carbs * f), protein: r1(i.protein * f), fat: r1(i.fat * f)});
+    if (i.per && i.g){ o.g = Math.round(i.g * f * 10) / 10; o.amount = amtText(perP(i), o.g); } else o.amount = (i.amount || "") + ` ×${nf(f, 2)}`; return o; };
+  /* grams in a text like "2 Scheiben (80 g)" */
+  const gramsIn = t => { const m = /(\d+(?:[.,]\d+)?)\s*(g|ml)\b/i.exec(String(t || "")); return m ? num(m[1]) : 0; };
   function mealSheet(m, own = true){
-    const items = Array.isArray(m.items) ? m.items : [];
-    const sh = detailSheet(`<div class="kc-ms" data-notr><div class="kc-mh"><span class="kc-me">${h(m.emoji || "🍽️")}</span><div><div class="kc-mt">${h(m.title)}</div><div class="muted">${dayLabel(m.day)}, ${hhmm(m.ts)}${m.source === "barcode" ? " · Barcode" : m.source === "voice" ? " · gesprochen" : ""}</div></div></div>
+    const items = own ? partsOf(m) : (Array.isArray(m.items) ? m.items : []);
+    const sh = detailSheet(`<div class="kc-ms" data-notr><div class="kc-mh"><span class="kc-me">${h(m.emoji || "🍽️")}</span><div><div class="kc-mt">${h(m.title)}</div><div class="muted">${dayLabel(m.day)}, ${hhmm(m.ts)}${m.source === "barcode" ? " · Barcode" : m.source === "search" ? " · Suche" : m.source === "voice" ? " · gesprochen" : ""}</div></div></div>
       <div class="kc-mk"><b>${fmt(m.kcal)}</b> kcal</div>
-      <div class="kc-macros"><span><b>${f1(m.carbs)} g</b>KH</span><span><b>${f1(m.protein)} g</b>Eiweiß</span><span><b>${f1(m.fat)} g</b>Fett</span></div>
-      ${items.length ? `<div class="kc-items">${items.map(i => `<div><span>${h(i.name)}<small>${h(i.amount || "")}</small></span><b>${fmt(i.kcal)} kcal</b></div>`).join("")}</div>` : ""}
+      <div class="kc-macros"><span><b>${f1(m.carbs)} g</b>KH</span><span><b>${f1(m.protein)} g</b>Protein</span><span><b>${f1(m.fat)} g</b>Fett</span></div>
+      ${items.length ? `${own ? `<div class="kc-ih muted">Antippen zum Ändern</div>` : ""}<div class="kc-items">${items.map((i, ix) => own ? `<button data-it="${ix}"><span>${h(i.name)}<small>${h(i.amount || "")}</small></span><b>${fmt(i.kcal)} kcal</b><em>${svg(IC.pen, 15)}</em></button>` : `<div><span>${h(i.name)}<small>${h(i.amount || "")}</small></span><b>${fmt(i.kcal)} kcal</b></div>`).join("")}</div>` : ""}
+      ${own ? `<button class="btn ghost kc-man-b" data-it="-1">${svg(IC.plus, 16)} Etwas dazu</button>` : ""}
       ${m.said ? `<p class="muted kc-said">„${h(m.said)}“</p>` : ""}${m.note ? `<p class="muted kc-said">${h(m.note)}</p>` : ""}
-      ${own ? `<div class="kc-portion"><span class="muted">Portion anpassen</span><div>${[[.5, "½"], [.75, "¾"], [1.25, "1¼"], [1.5, "1½"], [2, "2×"]].map(([f, l]) => `<button class="chip" data-f="${f}">${l}</button>`).join("")}</div></div>
+      ${own ? `<div class="kc-portion"><span class="muted">Alles mal</span><div>${[[.5, "½"], [.75, "¾"], [1.25, "1¼"], [1.5, "1½"], [2, "2×"], [3, "3×"]].map(([f, l]) => `<button class="chip" data-f="${f}">${l}</button>`).join("")}</div></div>
       <div class="kc-row2"><button class="btn go" data-dclose>Passt</button><button class="btn" data-kc-del>Löschen</button></div>` : ""}</div>`);
     if (!own) return sh;
-    sh.el.querySelectorAll("[data-f]").forEach(b => b.onclick = async () => { const f = +b.dataset.f, r = x => Math.round((Number(x) || 0) * f * 10) / 10;
-      try { const nm = await K.update(m.id, {kcal: Math.round(m.kcal * f), carbs: r(m.carbs), protein: r(m.protein), fat: r(m.fat), grams: m.grams ? Math.round(m.grams * f) : null,
-        items: items.map(i => Object.assign({}, i, {kcal: Math.round(i.kcal * f), carbs: r(i.carbs), protein: r(i.protein), fat: r(i.fat), amount: (i.amount || "") + (f !== 1 ? ` ×${String(f).replace(".", ",")}` : "")}))});
-        sh.close(); mealSheet(nm); } catch(e) { say("Ging nicht: " + (e.message || e)); } });
+    sh.el.querySelectorAll("[data-it]").forEach(b => b.onclick = () => { haptic(8); sh.close(); partSheet(m, +b.dataset.it); });
+    sh.el.querySelectorAll("[data-f]").forEach(b => b.onclick = async () => { try { const nm = await saveParts(m, partsOf(m).map(i => scalePart(i, +b.dataset.f))); sh.close(); mealSheet(nm); } catch(e) { say("Ging nicht: " + (e.message || e)); } });
     const del = sh.el.querySelector("[data-kc-del]"); del.onclick = async () => { if (!del.dataset.armed){ del.dataset.armed = 1; del.textContent = "Wirklich löschen?"; return; }
       try { await K.del(m.id); sh.close(); say("Gelöscht"); } catch(e) { say("Ging nicht: " + (e.message || e)); } };
+    return sh;
+  }
+  function partSheet(m, idx){
+    const parts = partsOf(m), add = idx < 0, w = add ? {name: "", amount: "", kcal: 0, carbs: 0, protein: 0, fat: 0} : Object.assign({}, parts[idx]);
+    /* an older scanned part without the values per 100 g: they are still in this phone's product cache */
+    if (!add && !w.per){ const code = w.code || (parts.length === 1 && m.code); if (code) try { const p = JSON.parse(localStorage.getItem("chessnat-off-" + code) || "null"); if (p){ const P = prodOf(code, p); w.per = itemOf(P, 100).per; w.code = code; w.g = w.g || m.grams || gramsIn(w.amount) || null; } } catch(e) {} }
+    const KS = [["kcal", "kcal"], ["carbs", "KH g"], ["protein", "Protein g"], ["fat", "Fett g"]];
+    const sh = detailSheet(`<div class="kc-form kc-pe" data-notr><h3>${add ? "Etwas dazu" : "Ändern"}</h3>
+      <p class="muted kc-pt">${add ? "Produkt suchen oder scannen:" : "Das echte Produkt nehmen:"}</p>
+      <div class="kc-rep"><button class="btn" data-rep="scan">${svg(IC.code, 18)} Barcode</button><button class="btn" data-rep="search">${svg(IC.search, 18)} Suchen</button></div>
+      ${!add && w.per && w.g ? `<button class="btn kc-amtb" data-rep="amount">Menge ändern <small>${h(w.amount || nf(w.g, 0) + " g")}</small></button>` : ""}
+      <p class="muted kc-pt">Oder selbst eintippen:</p>
+      <label>Was<input id="kpn" maxlength="80" value="${h(w.name || "")}" placeholder="z. B. Honey Nut Flakes"></label>
+      <label>Menge<input id="kpa" maxlength="60" value="${h(w.amount || "")}" placeholder="z. B. 2 Scheiben"></label>
+      <div class="kc-nums">${KS.map(([k, l]) => `<label>${l}<input data-k="${k}" inputmode="decimal" value="${nf(w[k] || 0, k === "kcal" ? 0 : 1)}"></label>`).join("")}</div>
+      ${add ? "" : `<div class="kc-portion"><span class="muted">Mal nehmen</span><div>${[[.25, "¼"], [.5, "½"], [2, "2×"], [3, "3×"], [4, "4×"], [5, "5×"]].map(([f, l]) => `<button class="chip" data-f="${f}">${l}</button>`).join("")}</div></div>`}
+      <div class="kc-row2"><button class="btn go" id="kps">${add ? "Dazu" : "Speichern"}</button>${add ? "" : `<button class="btn" id="kpd">${parts.length > 1 ? "Entfernen" : "Löschen"}</button>`}</div></div>`);
+    const el = sh.el, ins = el.querySelectorAll("[data-k]");
+    ins.forEach(i => field(i)); field(el.querySelector("#kpa")); setTimeout(() => { if (add) el.querySelector("#kpn").focus(); }, 250);
+    const read = () => { w.name = el.querySelector("#kpn").value.trim(); w.amount = el.querySelector("#kpa").value.trim(); ins.forEach(i => { const v = num(i.value); w[i.dataset.k] = isFinite(v) && v >= 0 ? (i.dataset.k === "kcal" ? Math.round(v) : r1(v)) : 0; }); };
+    const fill = () => { el.querySelector("#kpa").value = w.amount || ""; ins.forEach(i => { i.value = nf(w[i.dataset.k] || 0, i.dataset.k === "kcal" ? 0 : 1); }); };
+    el.querySelectorAll("[data-f]").forEach(b => b.onclick = () => { read(); Object.assign(w, scalePart(w, +b.dataset.f)); fill(); haptic(8); el.querySelectorAll("[data-f]").forEach(x => x.classList.toggle("on", x === b)); });
+    const done = async ps => { const nm = await saveParts(m, ps); haptic(15); mealSheet(nm); };
+    /* the real product instead: scanned or searched, then how much */
+    const swap = P => amountSheet(P, {g: (!add && (w.g || gramsIn(w.amount))) || 0, btn: add ? "Dazu" : "Übernehmen", done: async it => { const ps = partsOf(m); if (add) ps.push(it); else ps[idx] = it; await done(ps); }});
+    el.querySelectorAll("[data-rep]").forEach(b => b.onclick = () => { const k = b.dataset.rep; read(); sh.close();
+      if (k === "scan") KCScan.open({pick: swap}); else if (k === "search") Search.open({pick: swap, q: add ? "" : (w.per && w.per.n) || w.name.replace(/\(.*?\)/g, "").trim(), title: add ? "Etwas dazu suchen" : "Echtes Produkt suchen"}); else swap(perP(w)); });
+    el.querySelector("#kps").onclick = async () => { read(); if (!w.name) return say("Wie heißt es?"); const ps = partsOf(m); if (add) ps.push(w); else ps[idx] = w;
+      try { sh.close(); await done(ps); } catch(e) { say("Ging nicht: " + (e.message || e)); } };
+    const del = el.querySelector("#kpd"); if (del) del.onclick = async () => { if (!del.dataset.armed){ del.dataset.armed = 1; del.textContent = parts.length > 1 ? "Wirklich entfernen?" : "Wirklich löschen?"; return; }
+      try { sh.close(); if (parts.length > 1){ const ps = partsOf(m); ps.splice(idx, 1); await done(ps); } else { await K.del(m.id); say("Gelöscht"); } } catch(e) { say("Ging nicht: " + (e.message || e)); } };
     return sh;
   }
 
@@ -311,9 +430,11 @@
       ov.querySelector("[data-x]").onclick = close;
       ov.querySelector("#kcman").onsubmit = e => { e.preventDefault(); const c = ov.querySelector("#kccode").value.replace(/\D/g, ""); if (c.length < 6) return say("Die Nummer ist zu kurz"); ov.querySelector("#kccode").blur(); got(c); };
     }
-    async function open(){
+    /* pick: what to do with the product (swap a part of a meal); without it the product becomes a new meal */
+    let pickCb = null;
+    async function open(opt){
       if (!meId()) return say("Bitte erst anmelden");
-      if (ov) close(); ui(); scanning = true; frame = 0; torchOn = false;
+      if (ov) close(); pickCb = opt && opt.pick || null; ui(); scanning = true; frame = 0; torchOn = false;
       const hint = t => { if (ov) ov.querySelector("#kchint").textContent = t; };
       try {
         const [s] = await Promise.all([getCam(), engine()]);
@@ -364,34 +485,8 @@
         if (p) try { localStorage.setItem(cacheKey(code), JSON.stringify(p)); } catch(e) {}
       } catch(e) {}
       if (!ov) return;
-      if (!p){ ov.querySelector("#kchint").textContent = "Nicht in der Datenbank 🤷 Sag’s lieber per Sprache."; setTimeout(() => { if (ov){ close(); Voice2.open(); } }, 1500); return; }
-      close(); product(code, p);
-    }
-    function product(code, p){
-      const n = p.nutriments || {}, per = k => Number(n[k + "_100g"] != null ? n[k + "_100g"] : n[k]) || 0;
-      const k100 = per("energy-kcal") || (per("energy") ? per("energy") / 4.184 : 0);
-      const P = {code, name: p.product_name_de || p.product_name || p.generic_name || "Produkt " + code, brand: (p.brands || "").split(",")[0].trim(), img: p.image_front_small_url,
-        k: k100, c: per("carbohydrates"), pr: per("proteins"), f: per("fat"), serving: Math.round(Number(p.serving_quantity) || 0), pack: Math.round(Number(p.product_quantity) || 0)};
-      const chips = []; if (P.serving) chips.push([P.serving, "1 Portion (" + P.serving + " g)"]);
-      [30, 50, 100, 150, 200, 250].forEach(g => { if (g !== P.serving) chips.push([g, g + " g"]); });
-      if (P.pack && P.pack !== P.serving && P.pack <= 3000) chips.push([P.pack, "Ganze Packung"]);
-      let g = P.serving || 100;
-      const sh = detailSheet(`<div class="kc-prod" data-notr><div class="kc-ph">${P.img ? `<img src="${h(P.img)}" alt="">` : `<span>📦</span>`}<div><div class="kc-mt">${h(P.name)}</div><div class="muted">${h(P.brand)}</div></div></div>
-        <p class="muted kc-per">pro 100 g: ${fmt(P.k)} kcal · ${f1(P.c)} g KH · ${f1(P.pr)} g Eiweiß · ${f1(P.f)} g Fett</p>
-        <div class="kc-chips">${chips.map(([v, l]) => `<button class="chip" data-g="${v}">${l}</button>`).join("")}</div>
-        <div class="kc-gram"><button class="btn" data-d="-1">−</button><label><input id="kcg" inputmode="numeric" value="${g}"> g</label><button class="btn" data-d="1">+</button></div>
-        <div class="kc-mk" id="kcpk"></div><button class="btn go big" id="kcadd">Eintragen</button></div>`);
-      const el = sh.el, upd = v => { g = Math.max(1, Math.min(5000, Math.round(Number(v) || 0))); el.querySelector("#kcg").value = g;
-        el.querySelector("#kcpk").innerHTML = `<b>${fmt(P.k * g / 100)}</b> kcal <small class="muted">· ${f1(P.c * g / 100)} g KH · ${f1(P.pr * g / 100)} g Eiweiß · ${f1(P.f * g / 100)} g Fett</small>`;
-        el.querySelectorAll("[data-g]").forEach(c => c.classList.toggle("on", +c.dataset.g === g)); };
-      upd(g);
-      el.querySelectorAll("[data-g]").forEach(c => c.onclick = () => upd(c.dataset.g));
-      el.querySelectorAll("[data-d]").forEach(b => b.onclick = () => upd(g + (+b.dataset.d) * (g >= 50 ? 10 : 5)));
-      el.querySelector("#kcg").oninput = e => upd(e.target.value);
-      el.querySelector("#kcadd").onclick = async () => { const f = g / 100, r = x => Math.round(x * f * 10) / 10;
-        try { const m = await K.add({source: "barcode", code: P.code, grams: g, title: P.name.slice(0, 80), emoji: "📦", kcal: Math.round(P.k * f), carbs: r(P.c), protein: r(P.pr), fat: r(P.f),
-          items: [{name: P.name + (P.brand ? " (" + P.brand + ")" : ""), amount: g + " g", kcal: Math.round(P.k * f), carbs: r(P.c), protein: r(P.pr), fat: r(P.f)}], note: "Nährwerte von Open Food Facts"});
-          sh.close(); haptic(15); say(`${m.emoji} ${fmt(m.kcal)} kcal eingetragen`); } catch(e) { say("Ging nicht: " + (e.message || e)); } };
+      if (!p){ ov.querySelector("#kchint").textContent = "Nicht in der Datenbank. Such es lieber beim Namen."; const cb = pickCb; setTimeout(() => { if (ov){ close(); Search.open(cb ? {pick: cb} : {}); } }, 1500); return; }
+      const cb = pickCb; close(); const P = prodOf(code, p); if (cb) cb(P); else addProduct(P, "barcode");
     }
     /* test hook: decode one picture (a canvas) the same way as a camera frame */
     const decode = async (c, ml) => { await engine(); if (ml) MINLINES = ml; return readFrame(c); };
@@ -469,19 +564,19 @@
     dayBlock(k, own = true){
       const ms = own ? K.dayMeals(k) : [];
       if (!ms.length) return `<p class="muted kc-empty">${k === today() ? "Heute noch nichts eingetragen." : "Nichts eingetragen."}</p>`;
-      return `<div class="kc-list">${ms.map(m => `<button class="kc-meal" data-meal="${h(m.id)}"><span class="kc-tm">${hhmm(m.ts)}</span><span class="kc-em">${h(m.emoji || "🍽️")}</span><span class="kc-mn">${h(m.title)}<small>${f1(m.carbs)} g KH · ${f1(m.protein)} g Eiweiß${m.source === "barcode" ? " · Barcode" : ""}</small></span><b>${fmt(m.kcal)}</b></button>`).join("")}</div>`;
+      return `<div class="kc-list">${ms.map(m => `<button class="kc-meal" data-meal="${h(m.id)}"><span class="kc-tm">${hhmm(m.ts)}</span><span class="kc-em">${h(m.emoji || "🍽️")}</span><span class="kc-mn">${h(m.title)}<small>${f1(m.carbs)} g KH · ${f1(m.protein)} g Protein${m.source === "barcode" ? " · Barcode" : ""}</small></span><b>${fmt(m.kcal)}</b></button>`).join("")}</div>`;
     },
     wireMeals(el){ el.querySelectorAll("[data-meal]").forEach(b => b.onclick = () => { const m = K.meals.find(x => x.id === b.dataset.meal); if (m) mealSheet(m); }); },
     today(el){
       const t = today(), eaten = K.dayKcal(t), g = K.goal(), lit = eaten >= g, ms = K.dayMeals(t), sum = k => ms.reduce((s, m) => s + (Number(m[k]) || 0), 0);
       const miss = g - eaten, i = !lit ? idea(miss) : null;
       el.innerHTML = `<div class="unit kc-sum"><div class="kc-num"><b>${fmt(eaten)}</b><span>/ ${fmt(g)} kcal</span></div><div class="kc-bar ${lit ? "done" : ""}"><i style="width:${Math.round(Math.min(1, eaten / g) * 100)}%"></i></div>
-        <div class="kc-macros"><span><b>${fmt(sum("carbs"))} g</b>KH</span><span><b>${fmt(sum("protein"))} g</b>Eiweiß</span><span><b>${fmt(sum("fat"))} g</b>Fett</span></div>
+        <div class="kc-macros"><span><b>${fmt(sum("carbs"))} g</b>KH</span><span><b>${fmt(sum("protein"))} g</b>Protein</span><span><b>${fmt(sum("fat"))} g</b>Fett</span></div>
         ${lit ? `<div class="kc-tip ok">🔥 Ziel geschafft!</div>` : `<div class="kc-tip">Noch <b>${fmt(miss)} kcal</b>. Zum Beispiel ${h(i.text)} (≈ ${fmt(i.kcal)} kcal)</div>`}
-        <div class="kc-btns"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 28)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 28)}<span>Barcode</span></button></div>
+        <div class="kc-btns"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 28)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 28)}<span>Barcode</span></button><button class="kc-big kc-find" data-kc-find>${svg(IC.search, 28)}<span>Suchen</span></button></div>
         <button class="btn ghost kc-man-b" id="kcmanual">${svg(IC.plus, 16)} Selbst eintragen</button></div>
         <div class="kc-day">Heute</div>${this.dayBlock(t)}`;
-      el.querySelector("[data-kc-say]").onclick = () => Voice2.open(); el.querySelector("[data-kc-scan]").onclick = () => KCScan.open(); el.querySelector("#kcmanual").onclick = manual;
+      el.querySelector("[data-kc-say]").onclick = () => Voice2.open(); el.querySelector("[data-kc-scan]").onclick = () => KCScan.open(); el.querySelector("[data-kc-find]").onclick = () => Search.open(); el.querySelector("#kcmanual").onclick = manual;
       this.wireMeals(el);
     },
     history(el){
@@ -545,9 +640,27 @@
 .kc-num{display:flex;align-items:baseline;gap:6px;border:0;background:none;color:var(--fg);padding:0;cursor:pointer;text-align:left}.kc-num b{font:900 40px/1 var(--display)}.kc-num span{color:var(--muted);font:800 16px var(--body)}
 .kc-bar{height:12px;border-radius:999px;background:var(--panel-3);overflow:hidden}.kc-bar i{display:block;height:100%;border-radius:999px;background:var(--go);transition:width .5s cubic-bezier(.2,.8,.2,1)}.kc-bar.done i{background:linear-gradient(90deg,#ffb347,#ff6a2b)}.kc-bar.sm{height:7px;display:block;margin:4px 0 3px}
 .kc-last{color:var(--muted);font:700 13px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.kc-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:2px}
+.kc-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:2px}
 .kc-big{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:96px;border:0;border-radius:18px;color:#fff;font:900 18px var(--display);cursor:pointer;background:var(--go);box-shadow:inset 0 -5px 0 var(--go-deep);-webkit-tap-highlight-color:transparent}
-.kc-big:active{transform:translateY(2px);box-shadow:inset 0 -2px 0 var(--go-deep)}.kc-scan{background:#5AA3E0;box-shadow:inset 0 -5px 0 #3B7FC0}.kc-scan:active{box-shadow:inset 0 -2px 0 #3B7FC0}
+.kc-big:active{transform:translateY(2px);box-shadow:inset 0 -2px 0 var(--go-deep)}
+.kc-find{background:#E9A92B;box-shadow:inset 0 -5px 0 #B47E18}.kc-find:active{box-shadow:inset 0 -2px 0 #B47E18}
+.kc-amt{display:flex;flex-direction:column;gap:6px}.kc-al{font:800 13px var(--body)}.kc-al small{font-weight:700}
+.kc-srch{display:flex;flex-direction:column;gap:10px}.kc-srch h3{margin:0}
+.kc-sq{display:flex;align-items:center;gap:8px;padding:0 12px;border-radius:14px;border:2px solid var(--line);background:var(--panel-2);color:var(--muted)}.kc-sq:focus-within{border-color:var(--go)}
+.kc-sq input{flex:1;min-width:0;border:0;background:none;color:var(--fg);font:800 17px var(--body);padding:12px 0;outline:none;-webkit-appearance:none}
+.kc-sr{display:flex;flex-direction:column;gap:6px;min-height:140px;transition:opacity .15s}.kc-sr.busy{opacity:.5}
+.kc-sres{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;border:0;background:var(--panel-2);color:var(--fg);text-align:left;cursor:pointer;width:100%;-webkit-tap-highlight-color:transparent}.kc-sres:active{transform:scale(.98)}
+.kc-sres img,.kc-sph{width:44px;height:44px;border-radius:10px;object-fit:contain;flex:none;background:#fff;display:flex;align-items:center;justify-content:center;font-size:24px}
+.kc-sn{flex:1;min-width:0;display:flex;flex-direction:column;font:800 15px var(--body);line-height:1.2}.kc-sn small{color:var(--muted);font-weight:700;font-size:12px;margin-top:2px}
+.kc-sres b{display:flex;flex-direction:column;align-items:flex-end;font:900 17px var(--display);white-space:nowrap}.kc-sres b small{font:700 11px var(--body);color:var(--muted)}
+.kc-sh{font:800 12px var(--body);margin:2px 2px 0}
+.kc-rep{display:grid;grid-template-columns:1fr 1fr;gap:8px}.kc-rep .btn{display:flex;align-items:center;justify-content:center;gap:6px}
+.kc-amtb{display:flex;justify-content:space-between;align-items:center;gap:8px}.kc-amtb small{color:var(--muted);font-weight:800}
+.kc-nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.kc-nums input{text-align:center;padding:10px 2px;min-width:0;width:100%;box-sizing:border-box}
+.kc-pt{margin:2px 0 -2px;font:800 12px var(--body)}.kc-ih{font:800 12px var(--body);margin-bottom:-4px}
+.kc-items>button{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;background:var(--panel-2);border-radius:10px;border:0;width:100%;text-align:left;color:var(--fg);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.kc-items>button span{flex:1;min-width:0}.kc-items>button em{color:var(--muted);display:flex;flex:none}.kc-items>button:active{transform:scale(.98)}
+@media (max-width:380px){.kc-big{height:84px;font-size:15px}}.kc-scan{background:#5AA3E0;box-shadow:inset 0 -5px 0 #3B7FC0}.kc-scan:active{box-shadow:inset 0 -2px 0 #3B7FC0}
 .kc-tip{background:var(--panel-2);border-radius:12px;padding:9px 12px;font:700 13.5px/1.35 var(--body);color:var(--fg)}.kc-tip.ok{background:linear-gradient(90deg,rgba(255,150,60,.22),rgba(255,90,40,.12))}
 .kc-inv .kc-invt{font:800 16px var(--body)}.kc-inv p{margin:0}.kc-row2{display:flex;gap:8px;margin-top:6px}.kc-row2 .btn{flex:1}
 .kc-ov-full{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;background:#141312;color:#fff;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px calc(env(safe-area-inset-bottom,0px) + 16px)}
