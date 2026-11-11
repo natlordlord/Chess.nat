@@ -14,8 +14,10 @@ const SCHEMA = {
   properties: {
     title: {type: "string", description: "Kurzer Name der Mahlzeit, max. 4 Wörter"},
     emoji: {type: "string", description: "Ein passendes Essens-Emoji"},
-    items: {type: "array", items: {type: "object", additionalProperties: false, required: ["name", "amount", "kcal", "carbs", "protein", "fat"],
-      properties: {name: {type: "string"}, amount: {type: "string", description: "Menge, z. B. '2 Scheiben (80 g)'"}, kcal: num, carbs: num, protein: num, fat: num}}},
+    items: {type: "array", items: {type: "object", additionalProperties: false, required: ["name", "amount", "kcal", "carbs", "protein", "fat", "fiber", "sugar", "satfat", "quality"],
+      properties: {name: {type: "string"}, amount: {type: "string", description: "Menge, z. B. '2 Scheiben (80 g)'"}, kcal: num, carbs: num, protein: num, fat: num,
+        fiber: {type: "number", description: "Ballaststoffe in g"}, sugar: {type: "number", description: "Zucker in g"}, satfat: {type: "number", description: "gesättigte Fettsäuren in g"},
+        quality: {type: "integer", description: "Wie gesund ist diese Zutat, 1 bis 5: 5 = Gemüse, Obst, Hülsenfrüchte, Vollkorn, Nüsse, Fisch, mageres Eiweiß (vitamin- und nährstoffreich, wenig verarbeitet); 3 = neutral (Weißbrot, Nudeln, Käse, Wurst in Maßen); 1 = Süßigkeiten, Limo, Frittiertes, Alkohol, stark Verarbeitetes"}}}},
     kcal: num, carbs: num, protein: num, fat: num,
     minutesAgo: {type: "number", description: "Wie viele Minuten her gegessen wurde, falls genannt (z. B. 'vor einer Stunde' = 60), sonst 0"},
     note: {type: "string", description: "Ein kurzer Satz, was geschätzt wurde. Leer, wenn nichts Wichtiges."}
@@ -24,6 +26,7 @@ const SCHEMA = {
 const SYSTEM = `Du bist der Kalorien-Schätzer in einer Tracking-App. Der Nutzer diktiert per Sprache, was er gegessen oder getrunken hat.
 Die Spracherkennung macht Fehler: lies wohlwollend, was gemeint ist.
 Schätze für jede Zutat realistische deutsche Portionen, wenn keine Menge genannt ist, und rechne Kalorien (kcal), Kohlenhydrate (g), Protein (g) und Fett (g) mit typischen Nährwerten (BLS/USDA).
+Gib für jede Zutat außerdem Ballaststoffe, Zucker und gesättigte Fettsäuren (g) an und bewerte mit quality (1–5), wie gesund und nährstoffreich sie ist.
 Die Kalorien sind das Wichtigste: realistisch, nicht zu niedrig. Getränke mit Kalorien sind eigene Zutaten.
 Die Summenfelder müssen der Summe der Zutaten entsprechen. Wenn nichts Essbares erkennbar ist, gib leere items und 0 zurück und erkläre es in note.
 Antworte nur mit JSON nach diesem Schema: ${JSON.stringify(SCHEMA)}`;
@@ -152,7 +155,8 @@ module.exports = async (req, res) => {
     return res.status(502).json({error: e.status === 429 ? "Gerade zu viele Anfragen. Gleich nochmal versuchen." : "Die KI hat gerade nicht geantwortet. Nochmal versuchen."});
   }
   const ago = Math.max(0, Math.min(24 * 60, Number(est.minutesAgo) || 0));
-  const items = (Array.isArray(est.items) ? est.items : []).slice(0, 30).map(i => ({name: String(i.name || "").slice(0, 80), amount: String(i.amount || "").slice(0, 60), kcal: Math.round(Number(i.kcal) || 0), carbs: r1(i.carbs), protein: r1(i.protein), fat: r1(i.fat)}));
+  const items = (Array.isArray(est.items) ? est.items : []).slice(0, 30).map(i => ({name: String(i.name || "").slice(0, 80), amount: String(i.amount || "").slice(0, 60), kcal: Math.round(Number(i.kcal) || 0), carbs: r1(i.carbs), protein: r1(i.protein), fat: r1(i.fat),
+    h: {fi: r1(i.fiber), su: r1(i.sugar), sf: r1(i.satfat), q: Math.max(1, Math.min(5, Math.round(Number(i.quality) || 3)))}}));
   const sum = k => items.reduce((s, i) => s + (Number(i[k]) || 0), 0);
   const meal = {
     title: String(est.title || "Mahlzeit").slice(0, 60), emoji: String(est.emoji || "🍽️").slice(0, 8), items,

@@ -384,7 +384,11 @@
   /* ---------- a product (Open Food Facts) and how much of it: grams, or portions (½ slice, 2 slices …) ---------- */
   const prodOf = (code, p) => { const n = p.nutriments || {}, per = k => Number(n[k + "_100g"] != null ? n[k + "_100g"] : n[k]) || 0, k100 = per("energy-kcal") || (per("energy") ? per("energy") / 4.184 : 0);
     return {code, name: p.product_name_de || p.product_name || p.generic_name || "Produkt " + code, brand: (Array.isArray(p.brands) ? p.brands[0] || "" : String(p.brands || "").split(",")[0]).trim(), img: p.image_front_small_url || null,
-      k: k100, c: per("carbohydrates"), pr: per("proteins"), f: per("fat"), serving: Math.round(Number(p.serving_quantity) || 0), pack: Math.round(Number(p.product_quantity) || 0), ss: String(p.serving_size || "").slice(0, 60)}; };
+      k: k100, c: per("carbohydrates"), pr: per("proteins"), f: per("fat"), serving: Math.round(Number(p.serving_quantity) || 0), pack: Math.round(Number(p.product_quantity) || 0), ss: String(p.serving_size || "").slice(0, 60),
+      /* for the health score: fibre, sugar, saturated fat and salt per 100 g, and the Nutri-Score letter, when the product has them */
+      fi: per("fiber"), su: per("sugars"), sf: per("saturated-fat"), sa: per("salt"), ns: /^[a-e]$/.test(String(p.nutriscore_grade || "").toLowerCase()) ? String(p.nutriscore_grade).toLowerCase() : "", hd: "sugars_100g" in n || "fiber_100g" in n || "saturated-fat_100g" in n ? 1 : 0}; };
+  const nsQ = ns => ({a: 5, b: 4, c: 3, d: 2, e: 1})[ns] || 0;
+  const hOf = (P, f) => P.hd || P.ns ? Object.assign({fi: r1((P.fi || 0) * f), su: r1((P.su || 0) * f), sf: r1((P.sf || 0) * f), sa: Math.round((P.sa || 0) * f * 100) / 100}, P.hd ? {} : {nq: 1}, nsQ(P.ns) ? {q: nsQ(P.ns)} : {}) : null;
   /* pieces instead of grams where that's how you count it: 1 Ei, 2 Eier; 1 Scheibe; else the product's portion */
   const UW = [[/^(scheiben?|slices?)$/i, "Scheibe", "Scheiben"], [/^(stücke?|stk\.?|st\.|pieces?|pcs?)$/i, "Stück", "Stück"], [/^(riegel|bars?)$/i, "Riegel", "Riegel"], [/^(becher|pots?)$/i, "Becher", "Becher"],
     [/^(ei|eier|eggs?)$/i, "Ei", "Eier"], [/^(keks|kekse|cookies?|biscuits?)$/i, "Keks", "Kekse"], [/^(brötchen|rolls?)$/i, "Brötchen", "Brötchen"], [/^(flaschen?|bottles?)$/i, "Flasche", "Flaschen"], [/^(dosen?|cans?)$/i, "Dose", "Dosen"],
@@ -401,9 +405,9 @@
   const cntTxt = (U, g) => { if (!U) return ""; const n = g / U.g; return n >= .25 && Math.abs(n - Math.round(n * 4) / 4) < .01 ? fracTxt(n) + " " + (n > 1 ? U.many : U.one) : ""; };
   const amtText = (P, g) => { const c = cntTxt(unitOf(P), g); return (c ? c + " · " : "") + nf(g, g < 10 ? 1 : 0) + " g"; };
   /* a part of a meal made from a product keeps the values per 100 g, so its amount can be changed later */
-  const itemOf = (P, g) => { const f = g / 100; return {name: P.name + (P.brand ? " (" + P.brand + ")" : ""), amount: amtText(P, g), kcal: Math.round(P.k * f), carbs: r1(P.c * f), protein: r1(P.pr * f), fat: r1(P.f * f), code: P.code || null, g,
-    per: {n: P.name, b: P.brand || "", k: P.k, c: P.c, pr: P.pr, f: P.f, s: P.serving || 0, pk: P.pack || 0, img: P.img || null, ss: P.ss || ""}}; };
-  const perP = it => ({code: it.code || null, name: it.per.n, brand: it.per.b, img: it.per.img, k: it.per.k, c: it.per.c, pr: it.per.pr, f: it.per.f, serving: it.per.s, pack: it.per.pk, ss: it.per.ss || ""});
+  const itemOf = (P, g) => { const f = g / 100; return {name: P.name + (P.brand ? " (" + P.brand + ")" : ""), amount: amtText(P, g), kcal: Math.round(P.k * f), carbs: r1(P.c * f), protein: r1(P.pr * f), fat: r1(P.f * f), code: P.code || null, g, h: hOf(P, f),
+    per: {n: P.name, b: P.brand || "", k: P.k, c: P.c, pr: P.pr, f: P.f, s: P.serving || 0, pk: P.pack || 0, img: P.img || null, ss: P.ss || "", fi: P.fi || 0, su: P.su || 0, sf: P.sf || 0, sa: P.sa || 0, ns: P.ns || "", hd: P.hd ? 1 : 0}}; };
+  const perP = it => ({code: it.code || null, name: it.per.n, brand: it.per.b, img: it.per.img, k: it.per.k, c: it.per.c, pr: it.per.pr, f: it.per.f, serving: it.per.s, pack: it.per.pk, ss: it.per.ss || "", fi: it.per.fi || 0, su: it.per.su || 0, sf: it.per.sf || 0, sa: it.per.sa || 0, ns: it.per.ns || "", hd: it.per.hd ? 1 : 0});
   function amountSheet(P, opt = {}){
     const U = unitOf(P), s = U ? U.g : 0, chips = [30, 50, 100, 150, 200, 250].map(v => [v, v + " g"]); if (P.pack && P.pack <= 3000 && P.pack !== s) chips.push([P.pack, "Packung"]);
     let g = opt.g || s || 100;
@@ -440,7 +444,7 @@
     let p = null; try { p = JSON.parse(localStorage.getItem("chessnat-off-" + code) || "null"); } catch(e) {}
     if (p) return p;
     try { const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), ms || 6000);
-      const r = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=product_name,product_name_de,generic_name,brands,nutriments,serving_quantity,serving_size,image_front_small_url,product_quantity`, {signal: ctl.signal});
+      const r = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=product_name,product_name_de,generic_name,brands,nutriments,serving_quantity,serving_size,image_front_small_url,product_quantity,nutriscore_grade`, {signal: ctl.signal});
       clearTimeout(to); const j = await r.json(); if (j && j.status !== 0 && j.product && j.product.nutriments) p = j.product;
       if (p) try { localStorage.setItem("chessnat-off-" + code, JSON.stringify(p)); } catch(e) {}
     } catch(e) {}
@@ -534,6 +538,7 @@
     const title = one && (!Array.isArray(m.items) || m.items.length <= 1) ? (one.per && one.per.n) || one.name : m.title;
     return K.update(m.id, {items: parts, kcal: Math.round(sum("kcal")), carbs: r1(sum("carbs")), protein: r1(sum("protein")), fat: r1(sum("fat")), title: String(title || m.title || "Mahlzeit").slice(0, 120), grams: one && one.g ? Math.round(one.g) : null, code: (one && one.code) || null}); }
   const scalePart = (i, f) => { const o = Object.assign({}, i, {kcal: Math.round((Number(i.kcal) || 0) * f), carbs: r1(i.carbs * f), protein: r1(i.protein * f), fat: r1(i.fat * f)});
+    if (i.h) o.h = Object.assign({}, i.h, {fi: r1((i.h.fi || 0) * f), su: r1((i.h.su || 0) * f), sf: r1((i.h.sf || 0) * f), sa: Math.round((i.h.sa || 0) * f * 100) / 100});
     if (i.per && i.g){ o.g = Math.round(i.g * f * 10) / 10; o.amount = amtText(perP(i), o.g); } else o.amount = (i.amount || "") + ` ×${nf(f, 2)}`; return o; };
   /* a number that travels to its new value instead of jumping: counts up or down and nudges in that direction, tinted for a moment */
   function tweenNum(el, to, show, dur = 520){ if (!el) return; to = Number(to) || 0; const from = el._cur != null ? el._cur : el._v != null ? el._v : to; el._v = to; cancelAnimationFrame(el._raf);
@@ -545,6 +550,23 @@
   const SUMV = {};
   function animSum(root){ if (!root) return; root.querySelectorAll("[data-cnt]").forEach(el => { const k = el.dataset.cnt, to = Number(el.dataset.v) || 0, was = SUMV[k]; SUMV[k] = to; if (was == null || was === to) return; el._v = was; el.textContent = fmt(Math.round(was)); tweenNum(el, to, x => fmt(Math.round(x)), 700); });
     root.querySelectorAll("[data-bar]").forEach(u => { const k = "b" + u.dataset.bar, to = u.style.width, was = SUMV[k]; SUMV[k] = to; if (was == null || was === to) return; u.style.transition = "none"; u.style.width = was; void u.offsetWidth; u.style.transition = "width .7s cubic-bezier(.22,1,.36,1)"; u.style.width = to; }); }
+  /* ---------- the health score: one number from 0 to 100 for a day ----------
+     Amount (35): calories close to the goal; too little counts against you just like too much. Protein (15): reaching the target.
+     Fibre (15): 14 g per 1000 kcal. Sugar and saturated fat (15): each under a tenth of the calories. Quality (20): how good the
+     foods themselves are (Nutri-Score of products, the estimate for spoken meals). The last three need entries that carry these
+     values; when less than half of a day's calories do, the day is judged on amount and protein, the rest counts as average (part: true) */
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  function dayHealth(ms, goal, protT){ const kcal = ms.reduce((s, m) => s + (Number(m.kcal) || 0), 0); if (!(kcal > 0) || !(goal > 0)) return null;
+    const r = kcal / goal, A = r >= .9 && r <= 1.1 ? 1 : r < .9 ? clamp01((r - .5) / .4) : clamp01((1.5 - r) / .4), P = clamp01(ms.reduce((s, m) => s + (Number(m.protein) || 0), 0) / (protT || goal * .16 / 4));
+    let hk = 0, fi = 0, su = 0, sf = 0, qk = 0, qs = 0, nk = 0; ms.forEach(m => (Array.isArray(m.items) ? m.items : []).forEach(i => { const k = Number(i.kcal) || 0, hh = i.h; if (!hh) return; if (!hh.nq){ nk += k; fi += Number(hh.fi) || 0; su += Number(hh.su) || 0; sf += Number(hh.sf) || 0; } if (hh.q){ qk += k; qs += k * hh.q; } hk += k; }));
+    if (hk / kcal < .5 || !(nk > 0)) return {s: Math.round(A * 35 + P * 15 + 25), A, P, part: true}; /* what can't be judged counts as average: half of the other 50 points */
+    const up = kcal / nk, F = clamp01(fi * up / (14 * goal / 1000)), L = (clamp01((.25 - su * up * 4 / goal) / .15) + clamp01((.2 - sf * up * 9 / goal) / .1)) / 2, Q = qk > 0 ? clamp01((qs / qk - 1) / 4) : L;
+    return {s: Math.round(A * 35 + P * 15 + F * 15 + L * 15 + Q * 20), A, P, F, L, Q}; }
+  /* the last seven finished days that have entries (today only when there is nothing else) */
+  function weekHealth(ms, goal, protT){ const t = today(), by = {}; ms.forEach(m => { (by[m.day] = by[m.day] || []).push(m); });
+    let days = Object.keys(by).filter(d => d < t && d >= addDays(t, -7)); if (!days.length) days = by[t] ? [t] : []; const L = days.map(d => dayHealth(by[d], goal, protT)).filter(Boolean); if (!L.length) return null;
+    const avg = k => { const v = L.filter(x => x[k] != null); return v.length ? v.reduce((s, x) => s + x[k], 0) / v.length : null; };
+    return {s: Math.round(avg("s")), A: avg("A"), P: avg("P"), F: avg("F"), L: avg("L"), Q: avg("Q"), n: L.length, part: L.every(x => x.part)}; }
   /* the weight or volume in a part: from its text ("2 Scheiben (80 g)", "0,5 l") or, without one, its stored grams */
   const amtOf = i => { const m = /(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l)\b/i.exec(String(i.amount || "")); if (m) return {v: num(m[1]), u: m[2].toLowerCase(), m: m[0]}; return Number(i.g) > 0 ? {v: Number(i.g), u: "g", m: ""} : null; };
   /* the same part with another weight: calories, carbs, protein and fat follow, the text shows the new number */
@@ -1082,7 +1104,12 @@
         const lit = eaten >= p.goal, flame = p.me ? K.flame() : (p.flame_day === t || p.flame_day === addDays(t, -1) ? p.flame : 0);
         return {p, eaten, lit, flame};
       }).sort((a, b) => b.flame - a.flame || b.eaten / b.p.goal - a.eaten / a.p.goal);
-      el.innerHTML = `<div class="kc-fr">${rows.map(({p, eaten, lit, flame}) => `<button class="kc-frr ${p.me ? "me" : ""}" data-fr="${h(p.user_id)}"><span class="kc-av">${avatar(p.user_id)}</span><span class="kc-frm"><b>${p.me ? "Du" : h(pname(p.user_id))}</b>
+      /* the health ranking among friends: who ate best over the last days, not who ate most */
+      const HR = rows.map(({p}) => ({p, w: weekHealth(p.me ? K.meals : K.fmeals.filter(m => m.user_id === p.user_id), p.goal, p.me ? K.targets().protein : 0)})).filter(x => x.w).sort((a, b) => b.w.s - a.w.s);
+      const hbar = (l, v) => v == null ? "" : `<span class="kc-hb"><i><u style="width:${Math.round(v * 100)}%"></u></i>${l}</span>`;
+      const hrHTML = HR.length ? `<div class="unit kc-hr"><div class="kc-hrh"><b>Gesundheits-Ranking</b><small>letzte 7 Tage</small></div>${HR.map(({p, w}, i) => `<div class="kc-hrr ${p.me ? "me" : ""}"><span class="r">${i + 1}</span><span class="kc-av">${avatar(p.user_id)}</span><span class="kc-hrm"><b>${p.me ? "Du" : h(pname(p.user_id))}</b><span class="kc-hbs">${hbar("Menge", w.A)}${hbar("Protein", w.P)}${hbar("Ballast", w.F)}${hbar("Zucker/Fett", w.L)}${hbar("Qualität", w.Q)}</span>${w.part ? `<small>nur Menge und Protein, Nährwerte fehlen noch</small>` : ""}</span><b class="kc-hs ${w.s >= 75 ? "g" : w.s >= 50 ? "m" : "b"}">${w.s}</b></div>`).join("")}
+        <small class="muted kc-hrn">0 bis 100. Es zählt: passende Menge (zu wenig ist so schlecht wie zu viel), genug Protein, Ballaststoffe, wenig Zucker und gesättigtes Fett, und wie gut die Lebensmittel selbst sind.</small></div>` : "";
+      el.innerHTML = `${hrHTML}<div class="kc-fr">${rows.map(({p, eaten, lit, flame}) => `<button class="kc-frr ${p.me ? "me" : ""}" data-fr="${h(p.user_id)}"><span class="kc-av">${avatar(p.user_id)}</span><span class="kc-frm"><b>${p.me ? "Du" : h(pname(p.user_id))}</b>
           <span class="kc-bar sm ${lit ? "done" : ""}"><i style="width:${Math.round(Math.min(1, eaten / p.goal) * 100)}%"></i></span><small>${fmt(eaten)} / ${fmt(p.goal)} kcal heute</small></span>${flameChip(flame, lit)}</button>`).join("")}</div>
         ${tracking.length ? "" : `<p class="muted kc-empty">Noch keiner deiner Freunde trackt. Lad sie ein!</p>`}
         ${notYet.length ? `<div class="kc-day">Einladen</div><div class="kc-fr">${notYet.map(id => `<div class="kc-frr"><span class="kc-av">${avatar(id)}</span><span class="kc-frm"><b>${h(pname(id))}</b><small>trackt noch nicht</small></span><button class="btn sm go" data-inv="${h(id)}">Einladen</button></div>`).join("")}</div>` : ""}
@@ -1177,6 +1204,11 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-mc span{font:800 11.5px var(--body);color:var(--muted);letter-spacing:.02em}.kc-mc b{font:900 17px var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kc-mc b small{font:800 11.5px var(--body);color:var(--muted)}
 .kc-mc i{display:block;height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}.kc-mc u{display:block;height:100%;border-radius:3px;background:var(--go);transition:width .4s}.kc-mc.ok u{background:linear-gradient(90deg,#FFD15C,#ff9a3c)}
 .kc-sbar{display:flex;align-items:center;gap:10px;width:100%;padding:13px 14px;border-radius:16px;border:2px solid var(--line);background:var(--panel-2);color:var(--muted);font:800 16px var(--body);cursor:text;text-align:left;-webkit-tap-highlight-color:transparent}.kc-sbar:active{border-color:var(--go)}
+.kc-hr{display:flex;flex-direction:column;gap:8px}.kc-hrh{display:flex;justify-content:space-between;align-items:baseline}.kc-hrh b{font:900 18px var(--display)}.kc-hrh small{color:var(--muted);font:700 12px var(--body)}
+.kc-hrr{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;background:var(--panel-2)}.kc-hrr.me{box-shadow:inset 0 0 0 1.5px rgba(143,196,88,.5)}.kc-hrr .r{width:16px;text-align:center;font:900 14px var(--display);color:var(--muted)}.kc-hrr:first-of-type .r{color:#FFD15C}
+.kc-hrm{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}.kc-hrm>b{font:800 15px var(--body)}.kc-hrm small{color:var(--muted);font:600 11.5px var(--body)}.kc-hbs{display:flex;gap:6px;flex-wrap:wrap}
+.kc-hb{display:flex;flex-direction:column;gap:2px;font:700 10px var(--body);color:var(--muted);width:52px}.kc-hb i{display:block;height:4px;border-radius:2px;background:rgba(255,255,255,.09);overflow:hidden}.kc-hb u{display:block;height:100%;background:#9BE25A;border-radius:2px}
+.kc-hs{font:900 26px var(--display);font-variant-numeric:tabular-nums}.kc-hs.g{color:#9BE25A}.kc-hs.m{color:#F2C23A}.kc-hs.b{color:#EF7A5F}.kc-hrn{line-height:1.35}
 .kc-quick{display:flex;flex-direction:column;gap:6px}.kc-sugg{margin-top:16px}.kc-qh{font:900 12px var(--body);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin:2px 2px 0}
 .kc-q{display:flex;align-items:center;gap:10px;width:100%;padding:8px 8px 8px 12px;border-radius:14px;border:0;background:var(--panel-2);color:var(--fg);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}.kc-q:active{transform:scale(.98)}
 .kc-qe{font-size:24px}.kc-qn{flex:1;min-width:0;display:flex;flex-direction:column;font:800 15px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kc-qn small{color:var(--muted);font-weight:700;font-size:12px}
