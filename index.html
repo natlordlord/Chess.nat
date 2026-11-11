@@ -2797,7 +2797,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794355904";
+const CHESSNAT_BUILD = "1794355928";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -2877,7 +2877,7 @@ const I18N = (() => {
     const ver = typeof CHESSNAT_BUILD !== "undefined" ? CHESSNAT_BUILD : "1";
     if (cached && cached.d){ build(cached.d); watch(); }
     else { document.documentElement.classList.add("i18n-wait"); setTimeout(() => document.documentElement.classList.remove("i18n-wait"), 2500); }
-    if (!cached || cached.v !== ver) fetch("data/i18n_de.json?v=1" + ver).then(r => r.json()).then(d => { try { localStorage.setItem(KEY, JSON.stringify({v: ver, d})); } catch(e) {}
+    if (!cached || cached.v !== ver) fetch("data/i18n_de.json?v=" + ver).then(r => r.json()).then(d => { try { localStorage.setItem(KEY, JSON.stringify({v: ver, d})); } catch(e) {}
       const fresh = !exact; build(d); if (fresh) watch(); else walk(document.body); document.documentElement.classList.remove("i18n-wait"); }).catch(() => document.documentElement.classList.remove("i18n-wait"));
   }
   function set(l){ try { localStorage.setItem("chessnat-lang", l); } catch(e) {} if (typeof S !== "undefined"){ S.settings.lang = l; if (typeof save === "function") save(); } setTimeout(() => location.reload(), 150); }
@@ -3240,7 +3240,7 @@ const Sound = {ac:null, buf:{}, loading:false,
     try { this.ac = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return; }
     if (this.loading) return; this.loading = true;
     ["Move","Capture","Check","Mate","Victory","Defeat","GenericNotify","cheer1","cheer2","cheer3","cheer4"].forEach(n => {
-      fetch("sounds/" + n + ".mp3?v=14").then(r => r.arrayBuffer()).then(b => new Promise((res, rej) => this.ac.decodeAudioData(b, res, rej))).then(d => { this.buf[n] = d; }).catch(() => {});
+      fetch("sounds/" + n + ".mp3?v=4").then(r => r.arrayBuffer()).then(b => new Promise((res, rej) => this.ac.decodeAudioData(b, res, rej))).then(d => { this.buf[n] = d; }).catch(() => {});
     }); },
   /* "Schachmatt!" (Nathan's voice) must be heard clearly: game-end sounds that come right after it wait until it is over */
   afterMate(){ const left = (this._mateT || 0) + 1050 - Date.now(); return left > 30 ? left : 0; },
@@ -3321,7 +3321,7 @@ const Voice = {
     if (!S.settings.voice || !text){ onend && onend(); return; }
     this.stop(); const key = speechKey(text); const go = () => {
       if (!this.have || !this.have.has(key)){ onend && onend(); return; }
-      const a = this.el = new Audio("voice/" + key + ".mp3?v=12"); a.volume = 1; a.playbackRate = S.settings.voiceRate || 1;
+      const a = this.el = new Audio("voice/" + key + ".mp3?v=2"); a.volume = 1; a.playbackRate = S.settings.voiceRate || 1;
       if (onend) a.onended = onend; a.play().catch(() => { onend && onend(); });
     };
     if (this.have) go(); else this.load().then(go);
@@ -12349,7 +12349,7 @@ const LineVoice = (() => {
     if (S.settings.sound === false) return;
     if (line.own){ const src = own !== undefined ? own : (S.ownSnd && S.ownSnd.d);   /* someone else's line never plays my own sound */ if (ownOk(src)){ try { audio = new Audio(src); audio.play().catch(() => {}); } catch(e) {} } return; }
     /* a newer recording uploaded in the app (if there is one), else Nathan's recording shipped with the app. If neither plays: silence. */
-    const bundled = () => { try { const au = new Audio("/sounds/lines/" + line.id + ".mp3?v=13"); au.setAttribute("playsinline", ""); audio = au; au.play().catch(() => {}); } catch(e) {} };
+    const bundled = () => { try { const au = new Audio("/sounds/lines/" + line.id + ".mp3?v=3"); au.setAttribute("playsinline", ""); audio = au; au.play().catch(() => {}); } catch(e) {} };
     const site = window.ChessSite, sb = site && site.sb;
     if (sb && REAL[line.id] !== false){ try { const au = new Audio(sb.storage.from("news").getPublicUrl("lines/" + line.id).data.publicUrl); au.setAttribute("playsinline", ""); audio = au;
       au.onerror = () => { REAL[line.id] = false; if (audio === au) bundled(); }; au.oncanplay = () => { REAL[line.id] = true; };
@@ -14026,7 +14026,7 @@ Views.news = {
       const msg = $("#lrmsg", box);
       $$("[data-lplay]", box).forEach(b => b.onclick = () => { const r = this.lrec[b.dataset.lplay]; new Audio(r.url).play().catch(() => {}); });
       $$("[data-lhear]", box).forEach(b => b.onclick = () => new Audio(url(b.dataset.lhear) + "?t=" + Date.now()).play().catch(() => {}));
-      $$("[data-ldef]", box).forEach(b => b.onclick = () => new Audio("/sounds/lines/" + b.dataset.ldef + ".mp3?v=13").play().catch(() => {}));
+      $$("[data-ldef]", box).forEach(b => b.onclick = () => new Audio("/sounds/lines/" + b.dataset.ldef + ".mp3?v=3").play().catch(() => {}));
       $$("[data-lup]", box).forEach(b => b.onclick = async () => { const id = b.dataset.lup, r = this.lrec[id]; b.disabled = true; msg.textContent = "Lade hoch…";
         let {error} = await sb.storage.from("news").upload("lines/" + id, r.blob, {contentType: r.type, upsert: false});
         /* already recorded once: replace it (works once the replace permission is in) */
@@ -14336,17 +14336,17 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=141"></script>
-<script src="games/imposter.js?v=141"></script>
-<script src="games/werwolf.js?v=141"></script>
-<script src="games/cards.js?v=141"></script>
-<script src="games/heads.js?v=141"></script>
-<script src="games/more.js?v=141"></script>
-<script src="games/net.js?v=141"></script>
-<script src="games/online.js?v=141"></script>
-<script src="games/natposter.js?v=141"></script>
-<script src="games/arena.js?v=141"></script>
-<script src="games/tipp.js?v=141"></script>
+<script src="games/core.js?v=43"></script>
+<script src="games/imposter.js?v=43"></script>
+<script src="games/werwolf.js?v=43"></script>
+<script src="games/cards.js?v=43"></script>
+<script src="games/heads.js?v=43"></script>
+<script src="games/more.js?v=43"></script>
+<script src="games/net.js?v=43"></script>
+<script src="games/online.js?v=43"></script>
+<script src="games/natposter.js?v=43"></script>
+<script src="games/arena.js?v=43"></script>
+<script src="games/tipp.js?v=43"></script>
 <script>boot();</script>
 </body>
 </html>
