@@ -310,7 +310,12 @@
     syncCards(){ const b = this.main && this.main.querySelector("#tpbody"); if (b) b.querySelectorAll(".tp-o[data-ev]").forEach(x => x.classList.toggle("on", Tipp.inSlip(x.dataset.ev, x.dataset.k, x.dataset.p))); },
     tipRow(t, e){ e = e || Tipp.ev.find(x => x.id === t.event_id); const win = Math.round(t.stake * t.odds);
       const st = t.status === "won" ? `<span class="tp-res won">+${fmt(t.payout - t.stake)}</span>` : t.status === "lost" ? `<span class="tp-res lost">−${fmt(t.stake)}</span>` : t.status === "void" ? `<span class="tp-res">↩︎ ${fmt(t.stake)}</span>` : `<span class="tp-res open">${T("to win", "Gewinn")} ${fmt(win)}</span>`;
-      return `<div class="tp-tip ${t.status}" data-open="${h(t.event_id)}"><div class="grow"><div class="tp-tl">${h(t.label || t.market + ": " + t.pick)}</div><div class="tp-ts">${e ? h(e.sport === "fb" ? `${e.home} – ${e.away}` : `${e.home} vs. ${e.away}`) + (e.state !== "pre" && e.sport === "fb" ? ` · ${e.score_h ?? 0}:${e.score_a ?? 0}${e.state === "in" ? " ●" : ""}` : "") : ""} · ${fmt(t.stake)} × ${q2(t.odds)}</div></div>${st}</div>`; },
+      /* a running or finished game, not yet paid out: how the exact score or the winner stands right now */
+      let ls = null; if (t.status === "open" && e && e.sport === "fb" && e.state !== "pre" && e.score_h != null){ const lab = /(\d+):(\d+)\s*$/.exec(t.label || "");
+        if (t.market === "cs") ls = t.pick !== "x" ? liveSt(t.pick.replace("-", ":"), +e.score_h, +e.score_a) : lab ? liveSt(lab[1] + ":" + lab[2], +e.score_h, +e.score_a) : null;
+        else if (t.market === "1x2") ls = liveSt({h: "1", d: "X", a: "2"}[t.pick], +e.score_h, +e.score_a); }
+      const st2 = ls && ls.c === "out" && t.market === "cs" ? `<span class="tp-res lost"><s>${fmt(win)}</s></span>` : st;
+      return `<div class="tp-tip ${t.status}" data-open="${h(t.event_id)}"><div class="grow"><div class="tp-tl">${ls ? `<span class="tp-ls ${ls.c}">${ls.l}</span> ` : ""}${h(t.label || t.market + ": " + t.pick)}</div><div class="tp-ts">${e ? h(e.sport === "fb" ? `${e.home} – ${e.away}` : `${e.home} vs. ${e.away}`) + (e.state !== "pre" && e.sport === "fb" ? ` · ${e.score_h ?? 0}:${e.score_a ?? 0}${e.state === "in" ? " ●" : ""}` : "") : ""} · ${fmt(t.stake)} × ${q2(t.odds)}</div></div>${st2}</div>`; },
     /* ---------- my tips ---------- */
     mineHTML(){
       const by = {}; Tipp.slip.forEach(x => (by[x.ev] = by[x.ev] || []).push(x));
@@ -494,6 +499,7 @@
 .tp-kr .nm{flex:1;font:800 14px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-kr .nm.r{text-align:right}.tp-kr .d{width:34px;height:38px;display:grid;place-items:center;background:var(--panel);border-radius:9px;font:900 22px var(--display)}.tp-kr i{font-style:normal;font-weight:900;color:var(--muted)}
 .tp-kr.f .nm{flex:none}.tp-kr .w{flex:1;font:900 15px var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-kr small{color:var(--muted);font-weight:700}
 .tp-kr.done{background:color-mix(in srgb,var(--go) 16%,var(--panel-2))}.tp-kr.done .d,.tp-kr.done .w{animation:tpBump .3s cubic-bezier(.3,1.6,.5,1)}
+.tp-ls{display:inline-block;font:900 11px var(--body);padding:2px 7px;border-radius:7px;vertical-align:2px;background:var(--go);color:#fff;margin-right:2px}.tp-ls.ok{background:#d9a53a}.tp-ls.out{background:var(--panel-3);color:var(--muted)}
 .th-home{padding:12px 14px!important;display:flex;flex-direction:column;gap:6px}.th-home[hidden]{display:none}.th-h{font:900 13px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .th-row{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:14px;border:0;background:var(--panel-2);color:var(--fg);text-align:left;cursor:pointer;font:inherit}.th-row:active{transform:scale(.98)}
 .th-t{flex:none;font:800 12px var(--body);color:var(--muted);min-width:64px}.th-row.live .th-t{color:#e5484d}
