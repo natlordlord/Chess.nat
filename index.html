@@ -2799,7 +2799,7 @@ html[data-glow="rainbow"] .pc.mine,.np-glow.gl-g-rainbow .pc.mine{animation:pcRa
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794363454";
+const CHESSNAT_BUILD = "1794363494";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -13009,10 +13009,10 @@ const Social = (() => {
     if (st === "incoming") return accept(id);
     if (st !== "none") return;
     const {error} = await sb.from("chess_friends").insert({...k, requested_by: me, status: "pending"});
-    if (error && !/duplicate/i.test(error.message)) return toast("Couldn't send the request: " + error.message, 3500);
+    if (error && !/duplicate/i.test(error.message)) return toast("Couldn't send the request. Try again.", 3500);
     toast("Friend request sent"); await load(true);
   }
-  async function accept(id){ const k = pair(me, id); const {error} = await sb.from("chess_friends").update({status: "accepted"}).eq("a", k.a).eq("b", k.b); if (error) return toast(error.message, 3500); toast("You're friends now!"); Sound.cheer(1); await load(true); }
+  async function accept(id){ const k = pair(me, id); const {error} = await sb.from("chess_friends").update({status: "accepted"}).eq("a", k.a).eq("b", k.b); if (error) return toast("Didn't work. Try again.", 3500); toast("You're friends now!"); Sound.cheer(1); await load(true); }
   async function remove(id){ const k = pair(me, id); await sb.from("chess_friends").delete().eq("a", k.a).eq("b", k.b); await load(true); }
   async function heart(id, kind){
     kind = kind === "poop" ? "poop" : "heart";
@@ -13043,7 +13043,7 @@ const Social = (() => {
   async function invite(id, tc){
     const bm = tc === "battle" ? "sprint" : tc && tc.battle ? tc.battle : null, code = newCode();
     const {error} = await sb.from("chess_invites").insert({from_id: me, to_id: id, code, tc: bm ? (bm === "sprint" ? "battle" : "b:" + bm) : tc.join("+")});
-    if (error){ toast("Couldn't send the invite: " + error.message, 3500); return; }
+    if (error){ toast("Couldn't send the invite. Try again.", 3500); return; }
     if (bm === "duel") App.go("duel", {join: code, host: true}); else if (bm) App.go("battle", {join: code, host: true, mode: bm}); else { Views.friend.cfg = {tc: tc.slice(), color: "r"}; App.go("friend", {join: code, host: true}); }
     toast("Invite sent to " + P(id).name + ". Waiting for them to join…", 3500);
   }
@@ -14348,17 +14348,17 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=84"></script>
-<script src="games/imposter.js?v=84"></script>
-<script src="games/werwolf.js?v=84"></script>
-<script src="games/cards.js?v=84"></script>
-<script src="games/heads.js?v=84"></script>
-<script src="games/more.js?v=84"></script>
-<script src="games/net.js?v=84"></script>
-<script src="games/online.js?v=84"></script>
-<script src="games/natposter.js?v=84"></script>
-<script src="games/arena.js?v=84"></script>
-<script src="games/tipp.js?v=84"></script>
+<script src="games/core.js?v=85"></script>
+<script src="games/imposter.js?v=85"></script>
+<script src="games/werwolf.js?v=85"></script>
+<script src="games/cards.js?v=85"></script>
+<script src="games/heads.js?v=85"></script>
+<script src="games/more.js?v=85"></script>
+<script src="games/net.js?v=85"></script>
+<script src="games/online.js?v=85"></script>
+<script src="games/natposter.js?v=85"></script>
+<script src="games/arena.js?v=85"></script>
+<script src="games/tipp.js?v=85"></script>
 <script>boot();</script>
 </body>
 </html>
