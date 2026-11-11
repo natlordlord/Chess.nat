@@ -336,7 +336,7 @@ Views.lobby = {
     /* a lobby you just left doesn't pull you back in by itself, only a fresh tap on an invite does */
     if (code && !(arg && arg.join) && PG.st.left && PG.st.left.c === code && Date.now() - PG.st.left.t < 3 * 3600e3) code = null;
     if (arg && arg.join && PG.st.left && PG.st.left.c === code){ PG.st.left = null; PG.persist(); }
-    if (arg && arg.host){ PNet.host(arg.game); if (arg.opts) Object.entries(arg.opts).forEach(([k, v]) => PNet.setOpt(k, v)); }
+    if (arg && arg.host){ PNet.host(arg.game); if (arg.opts) Object.entries(arg.opts).forEach(([k, v]) => PNet.setOpt(k, v)); if (arg.invite) PG.inviteSoon(arg.invite, arg.game); }
     else if (code && (!PNet.P || PNet.P.code !== code)){ if (PNet.P) PNet.leave(true); const nm = PNet.myName(); if (!(arg && arg.join) || !nm) return this.ask(code); PNet.join(code, nm); }
     else if (!PNet.P && !PNet.resume()) return this.start();
     this.npSet = false; PNet.refresh(); this.draw();
@@ -453,6 +453,12 @@ PG.qr = (() => { let lib = null;
 
 /* ---- invite friends, right in the lobby: the same invite as for a chess game or a puzzle duel ---- */
 const pgInvited = {};
+/* a lobby opened from a friend's "Play" button: as soon as the lobby has its code, that friend gets the invite */
+PG.inviteSoon = (to, game) => { let n = 0; const go = async () => { const P = PNet.P, code = P && P.code; if (!code){ if (++n < 40) setTimeout(go, 250); return; }
+    if (typeof Social === "undefined" || !Social.me || pgInvited[code + to]) return; pgInvited[code + to] = 1;
+    try { const {error} = await Social.sb.from("chess_invites").insert({from_id: Social.me, to_id: to, code, tc: ("p:" + game).slice(0, 12)}); if (error) throw error;
+      toast(PG.T("Invite sent to ", "Einladung geschickt an ") + Social.P(to).name + " 📨", 2600); PG.vib(15); }
+    catch(e) { delete pgInvited[code + to]; toast(PG.T("Couldn't invite: ", "Einladen ging nicht: ") + (e.message || e), 3500); } }; go(); };
 PG.friendList = (box, code, game, inLobby) => {
   const {T, h} = PG; if (typeof Social === "undefined" || !Social.me) return;
   const me = Social.me, ids = Social.data.friends.filter(r => r.status === "accepted").map(r => r.a === me ? r.b : r.a).filter(id => !inLobby.includes(id));

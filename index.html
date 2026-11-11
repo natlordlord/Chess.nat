@@ -2836,6 +2836,7 @@ h1.h-title{letter-spacing:-.02em}
 }
 @media (hover:hover) and (pointer:fine){.tile:hover{transform:translateY(-2px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.11),0 8px 22px rgba(0,0,0,.25)}.tile:active{transform:scale(.985)}}
 @media (prefers-reduced-motion:reduce){#main>.page,#main>.stage,.toast{animation:none!important}}
+.ps-opts.ps-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.ps-grid .ps-o{margin:0;min-width:0;padding-right:8px}.ps-grid .ps-o b{font-size:15px;line-height:1.15;overflow-wrap:anywhere;min-width:0}
 </style>
 </head>
 <body>
@@ -2844,7 +2845,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794418520";
+const CHESSNAT_BUILD = "1794418828";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11298,7 +11299,7 @@ function renderTabs(){
   if (kh){ tabs = tabs.map(x => x[0] === "puzzles" ? ["chess", I18N.lang === "de" ? "Schach" : "Chess", "knight"] : x); if (cur === "puzzles" || ["chess", "journey", "jlevel"].includes(App.route)) cur = "chess"; if (App.route === "kcal") cur = "home"; }
   const fb = Views.friends && typeof friendsPending === "function" ? friendsPending() + (typeof Chat !== "undefined" ? Chat.total() : 0) : 0, fo = Views.friends && typeof friendsOnline === "function" ? friendsOnline() : 0;
   t.innerHTML = tabs.map(([k, n, ic]) => `<button class="${cur === k ? "on" : ""}" data-t="${k}">${icon(ic, 24)}<span>${n}</span>${(k === "puzzles" || k === "chess") && dailyOpen ? `<i class="dot"></i>` : ""}${k === "friends" ? (fb ? `<i class="tbadge">${fb}</i>` : fo ? `<i class="dot on"></i>` : "") : ""}</button>`).join("");
-  $$("[data-t]", t).forEach(b => b.onclick = () => (Sound.tap(), 0) || b.dataset.t === "more" ? openSheet() : App.go(b.dataset.t, b.dataset.t === "friends" ? {tab: "friends"} : undefined));
+  $$("[data-t]", t).forEach(b => b.onclick = () => (Sound.tap(), 0) || b.dataset.t === "more" ? openSheet() : App.go(b.dataset.t === "chess" ? "puzzles" : b.dataset.t, b.dataset.t === "friends" ? {tab: "friends"} : undefined));
 }
 function openSheet(){
   const sh = $("#sheet"); const rk = rankOf(S.puzzle.r);
@@ -11381,8 +11382,6 @@ Views.home = {
     main.innerHTML = `<div class="page">${siteBanner()}
       <div class="unit kc-home" id="homeKcal" hidden></div>
       <div class="unit th-home" id="homeTipp" hidden></div>
-      <div class="unit" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><div style="min-width:180px"><div class="muted" style="font-weight:800;font-size:13px;letter-spacing:.06em">TODAY'S PLAN</div><div style="font:900 22px var(--display)">${planDone() ? "Done for today ✓" : PLAN.filter(([k, n]) => planVal(k) >= n).length + " / " + PLAN.length}</div><div class="dim" style="font-size:12.5px">${icon("flame", 14)} ${S.plan.streak} day streak · best ${S.plan.best}</div></div>
-        <div style="flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">${PLAN.filter(([k, n]) => !(planVal(k) >= n && popped[k] && !toPop.includes(k))).map(([k, n, t]) => { const v = Math.min(n, planVal(k)); return `<button class="lsn ${v >= n ? "done" : ""} ${toPop.includes(k) ? "pop" : ""}" data-plan="${k}"><span class="n">${v >= n ? "✓" : v}</span><span><div class="t">${t}</div><div class="s">${v} / ${n}</div></span></button>`; }).join("")}</div></div>
       ${typeof goalCardHTML === "function" ? goalCardHTML() : ""}
       ${typeof homeDailyHTML === "function" ? homeDailyHTML() : ""}
       <div class="unit home-rank" style="--rk1:${rk.tier.c1};--rk2:${rk.tier.c2}">
@@ -13357,8 +13356,23 @@ function playSheet(id){
   let tc = (S.invTc && S.invTc.slice()) || [10, 2]; const inc = () => S.invInc !== false;
   const sh = detailSheet(`<div class="ps-h">${Social.face(p, 46)}<div><div class="muted" style="font:800 11px var(--body);letter-spacing:.06em">PLAY WITH</div><div style="font:900 21px var(--display)">${esc(p.name)}</div></div></div><div id="psb"></div>`);
   const body = sh.el.querySelector("#psb");
-  const step1 = () => { body.innerHTML = `<div class="ps-opts"><button class="ps-o go" data-k="game"><span class="ps-ic">${icon("knight", 30)}</span><b>Live game</b><small>A real game, you against ${esc(p.name)}</small></button>
+  /* first: what to play. Chess leads on to live game or puzzle battle; Natposter, Nat Stars and the party games open their lobby
+     with this friend invited already */
+  const de = I18N.lang === "de", PGok = typeof PG !== "undefined" && PG.online && typeof PNet !== "undefined", onl = id2 => PGok && !!PG.online[id2] && PG.games.some(g => g.id === id2);
+  const hostWith = (game, opts) => { sh.close(); App.go("lobby", {host: true, game, opts, invite: id}); };
+  const party = () => PGok ? PG.games.filter(g => PG.online[g.id] && g.id !== "natposter" && g.id !== "arena") : [];
+  const step0 = () => { const np = onl("natposter");
+    body.innerHTML = `<div class="ps-opts" data-notr><button class="ps-o go" data-k="chess"><span class="ps-ic">${icon("knight", 30)}</span><b>${de ? "Schach" : "Chess"}</b><small>${de ? "Live-Partie oder Puzzle-Battle" : "Live game or Puzzle Battle"}</small></button>
+      ${np ? `<button class="ps-o" data-k="np"><span class="ps-ic" style="font-size:26px">🚀</span><b>Natposter</b><small>${de ? "Raumstation, Aufgaben, ein Verräter" : "Space station, tasks, a traitor"}</small></button>
+      <button class="ps-o" data-k="ns"><span class="ps-ic" style="font-size:26px">⭐</span><b>Nat Stars</b><small>${de ? "Ballern, verstecken, gewinnen" : "Shoot, hide, win"}</small></button>` : ""}
+      ${party().length ? `<button class="ps-o" data-k="party"><span class="ps-ic" style="font-size:26px">🎲</span><b>${de ? "Partyspiele" : "Party games"}</b><small>${party().slice(0, 3).map(g => esc(PG.T(g.name[0], g.name[1]))).join(", ")} …</small></button>` : ""}</div>`;
+    const on = (k, fn) => { const b = body.querySelector(`[data-k="${k}"]`); if (b) b.onclick = () => { Sound.play("Move", .5); fn(); }; };
+    on("chess", step1); on("np", () => hostWith("natposter", {mode: "np"})); on("ns", () => hostWith("natposter", {mode: "arena"})); on("party", stepP); };
+  const stepP = () => { body.innerHTML = `<button class="ps-back" data-back>‹ ${de ? "Zurück" : "Back"}</button><div class="ps-lbl" data-notr>${de ? "Welches Spiel?" : "Which game?"}</div><div class="ps-opts ps-grid" data-notr>${party().map(g => { const a = (PG.ART && PG.ART[g.id]) || ["🎲"]; return `<button class="ps-o" data-pg="${g.id}"><span class="ps-ic" style="font-size:26px">${a[0]}</span><b>${esc(PG.T(g.name[0], g.name[1]))}</b></button>`; }).join("")}</div>`;
+    body.querySelector("[data-back]").onclick = step0; body.querySelectorAll("[data-pg]").forEach(b => b.onclick = () => { Sound.play("Move", .5); hostWith(b.dataset.pg); }); };
+  const step1 = () => { body.innerHTML = `<button class="ps-back" data-back0>‹ Back</button><div class="ps-opts"><button class="ps-o go" data-k="game"><span class="ps-ic">${icon("knight", 30)}</span><b>Live game</b><small>A real game, you against ${esc(p.name)}</small></button>
       <button class="ps-o" data-k="battle"><span class="ps-ic">${icon("bolt", 30)}</span><b>Puzzle Battle</b><small>Duel, Sprint or Survival. The same puzzles for both of you.</small></button></div>`;
+    body.querySelector("[data-back0]").onclick = step0;
     body.querySelector('[data-k="game"]').onclick = () => { Sound.play("Move", .5); step2(); };
     body.querySelector('[data-k="battle"]').onclick = () => { Sound.play("Move", .5); stepB(); }; };
   /* which battle: the three modes */
@@ -13373,7 +13387,7 @@ function playSheet(id){
     body.querySelectorAll("[data-m]").forEach(b => b.onclick = () => { tc = [+b.dataset.m, tc[1]]; S.invTc = tc.slice(); save(); Sound.play("Move", .4); step2(); });
     body.querySelector("[data-inc]").onclick = () => { S.invInc = !inc(); save(); step2(); };
     body.querySelector("[data-send]").onclick = () => { S.invTc = tc.slice(); save(); sh.close(); Social.invite(id, tc); }; };
-  step1();
+  step0();
 }
 /* a friend's own page: who they are, how strong, your games against each other; removing lives behind ⋯ */
 Views.fprofile = {
@@ -14451,7 +14465,7 @@ const Ranks = {
 <script src="games/cards.js?v=128"></script>
 <script src="games/heads.js?v=128"></script>
 <script src="games/more.js?v=128"></script>
-<script src="games/net.js?v=128"></script>
+<script src="games/net.js?v=129"></script>
 <script src="games/online.js?v=128"></script>
 <script src="games/natposter.js?v=128"></script>
 <script src="games/arena.js?v=128"></script>
