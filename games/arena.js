@@ -708,8 +708,8 @@
 .ar-pick{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(6,7,12,.82);padding:calc(var(--st,0px) + 10px) calc(var(--sr,0px) + 10px) calc(var(--sb,0px) + 10px) calc(var(--sl,0px) + 10px)}
 .ar-pick.on{display:flex}
 .ar-pt{font:900 24px var(--display);color:#fff}
-.ar-cards{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;max-width:100%}
-.ar-card{width:min(128px,18vw);min-width:96px;padding:10px 6px 8px;border-radius:16px;background:var(--panel,#1e1d1b);border:3px solid rgba(255,255,255,.06);display:flex;flex-direction:column;align-items:center;gap:3px;color:#fff;font:800 14px var(--body);transition:transform .15s,border-color .15s}
+.ar-cards{display:flex;gap:8px;justify-content:center;flex-wrap:nowrap;max-width:100%}
+.ar-card{width:min(124px,14.8vw);min-width:0;flex:0 1 auto;padding:10px 6px 8px;border-radius:16px;background:var(--panel,#1e1d1b);border:3px solid rgba(255,255,255,.06);display:flex;flex-direction:column;align-items:center;gap:3px;color:#fff;font:800 14px var(--body);transition:transform .15s,border-color .15s}
 .ar-card .e{font-size:38px;line-height:1.1}.ar-card small{color:var(--muted,#aaa);font-weight:700;font-size:11px;line-height:1.2;text-align:center;min-height:26px}
 .ar-card em{font-style:normal;font-size:11px;font-weight:800;color:#FFD15C;text-align:center;line-height:1.15}
 .ar-card .hp{font-style:normal;font-size:12px;color:#ff8a78}.ar-card .who{display:flex;gap:2px;min-height:24px}.ar-card .who .np-hd{width:24px;height:24px;overflow:hidden;border-radius:50%}.ar-card .who svg{width:100%;height:100%;display:block}
@@ -754,7 +754,9 @@
 .ar-rv{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.ar-rv button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px;border-radius:12px;background:rgba(255,255,255,.06);color:#fff;border:2px solid rgba(255,255,255,.08)}
 .ar-rbox:has(.two){width:min(660px,100%)}.ar-rl.two{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px}
 .np.arena .ar-l:has(.ar-res.on) .ar-feed{display:none}
-@media (max-height:420px){.ar-card{padding:6px 4px}.ar-card .e{font-size:30px}.ar-card small{display:none}.ar-pt{font-size:20px}.ar-pk{padding:7px 8px}.ar-pk span{font-size:24px}.ar-pq{margin:2px 0 6px}.ar-rbox{padding:10px 12px;gap:6px}.ar-rl>div{padding:3px 8px}}
+.np.rot .ar-card{width:min(124px,14.8vh)}.ar-card b,.ar-card em{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:420px){.np.rot .ar-card{padding:6px 4px}.np.rot .ar-card .e{font-size:30px}.np.rot .ar-card small{display:none}.np.rot .ar-pt{font-size:20px}.np.rot .ar-card b{font-size:13px}}
+@media (max-height:420px){.ar-card{padding:6px 4px}.ar-card .e{font-size:30px}.ar-card small{display:none}.ar-card b{font-size:13px}.ar-pt{font-size:20px}.ar-pk{padding:7px 8px}.ar-pk span{font-size:24px}.ar-pq{margin:2px 0 6px}.ar-rbox{padding:10px 12px;gap:6px}.ar-rl>div{padding:3px 8px}}
 .np-duel:has(.ar-pks) .du-rank>div:nth-child(n+4),.np-duel:has(.ar-rv) .du-rank>div:nth-child(n+4){display:none}
 `; document.head.appendChild(css);
 })();
