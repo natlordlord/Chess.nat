@@ -117,7 +117,7 @@
     const A = mg.ar; let ch = false;
     if (!HB.int) HB.int = setInterval(() => { try { hostLoop(); } catch(e) { console.error(e); } }, 50);
     if (A.ph === "pick" && now() >= A.pickEnd){ A.ph = "fight"; A.fight = now(); A.end = now() + FIGHT; mg.end = A.end;
-      A.ids.forEach(id => { if (!CLS[A.cls[id]]) A.cls[id] = KEYS[Math.floor(Math.random() * KEYS.length)]; A.mx[id] = A.hp[id] = CLS[A.cls[id]].hp; A.dmg[id] = 0; A.kills[id] = 0; A.lh[id] = A.ls[id] = 0; });
+      A.ids.forEach(id => { if (!CLS[A.cls[id]]) A.cls[id] = KEYS[Math.floor(Math.random() * KEYS.length)]; A.mx[id] = A.hp[id] = Math.round(CLS[A.cls[id]].hp * hpF(A, id)); A.dmg[id] = 0; A.kills[id] = 0; A.lh[id] = A.ls[id] = 0; });
       botsInit(s, A); A.cubes = []; A.pw = {}; A.cseq = 0; A.cubeT = now(); for (let i = 0; i < Math.min(8, 3 + A.ids.length); i++) cubeRandom(A, 99999); ch = true; }
     /* a new host after a handover takes the bots over where they were */
     if (A.ph === "fight" && !Object.keys(HB.bots).length && (s.bots || []).some(b => A.ids.includes(b.id))) botsInit(s, A);
@@ -133,7 +133,7 @@
   function cubeRandom(A, gr){ const L = areas(); for (let i = 0; i < 40; i++){ const a = L[Math.floor(Math.random() * L.length)], x = a.x + 30 + Math.random() * (a.w - 60), y = a.y + 60 + Math.random() * (a.h - 90);
     if (walkA(x, y) && Math.hypot(x - GC.x, y - GC.y) < gr - 80 && !A.cubes.some(c => Math.hypot(c.x - x, c.y - y) < 140) && !A.ids.some(id => { const q = posOf(id); return q && Math.hypot(q.x - x, q.y - y) < 90; })) return cubeAdd(A, x, y, 1); } }
   function cubeGrab(A, id, k){ const i = A.cubes.findIndex(c => c.k === k); if (i < 0 || A.out.includes(id)) return; const c = A.cubes[i], q = posOf(id); if (!q || Math.hypot(q.x - c.x, q.y - c.y) > 90) return;
-    A.cubes.splice(i, 1); const was = A.pw[id] || 0, now2 = Math.min(CUBES, was + c.n), base = CLS[A.cls[id]].hp; A.pw[id] = now2; A.mx[id] = Math.round(base * (1 + CUBE * now2)); A.hp[id] = Math.min(A.mx[id], A.hp[id] + base * CUBE * (now2 - was)); HB.dirty = true; HB.cdirty = true; }
+    A.cubes.splice(i, 1); const was = A.pw[id] || 0, now2 = Math.min(CUBES, was + c.n), base = Math.round(CLS[A.cls[id]].hp * hpF(A, id)); A.pw[id] = now2; A.mx[id] = Math.round(base * (1 + CUBE * now2)); A.hp[id] = Math.min(A.mx[id], A.hp[id] + base * CUBE * (now2 - was)); HB.dirty = true; HB.cdirty = true; }
   function botsInit(s, A){ HB.bots = {}; (s.bots || []).forEach(b => { if (!A.ids.includes(b.id)) return; const q = C.AP[b.id], p = q && q.dx != null ? {x: q.dx, y: q.dy} : A.sp[b.id];
     HB.bots[b.id] = {x: p.x, y: p.y, a: 0, f: 1, mv: 0, am: AMMO, rl: 0, cd: 600 + Math.random() * 900, str: Math.random() < .5 ? -1 : 1, strT: 0, seen: 0, skill: botSkill(), sup: 0, dash: null, kb: null, hide: 0}; }); }
   function hostLoop(){
@@ -151,6 +151,8 @@
   /* alone against bots they grow with you: a little sharper the more rounds you have won */
   const soloLv = () => PNet.P && PNet.P.solo ? Math.min(1, ((PG.st && PG.st.nsWins) || 0) / 30) : .5;
   const botSkill = () => .47 + soloLv() * .16 + Math.random() * .4;
+  /* together against bots: when the bots outnumber the people, each bot is a bit softer */
+  const hpF = (A, id) => { if (!A.team || !isBot(id)) return 1; const nb = A.ids.filter(isBot).length, nh = A.ids.length - nb; return nb ? Math.max(.7, Math.min(1, nh / nb + .2)) : 1; };
   const rnd = o => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, Math.round(v)]));
   function hostHit(vic, d, by, k){
     const G = hostG(), mg = hostMg(), A = mg && mg.ar; if (!A || A.ph !== "fight" || !A.ids.includes(vic) || A.out.includes(vic) || !(d > 0)) return;
