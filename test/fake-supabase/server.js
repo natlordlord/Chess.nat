@@ -105,18 +105,26 @@ function pgChange({table, type, row, old, pk, cols}){
 /* ---------- the real Vercel functions, with the outside world replaced ---------- */
 const FOODS = [["4000000000017", "Vollmilch 3,5 %", "Weihenstephan", 64, 4.8, 3.3, 3.5, 0, "250 ml", 250, 1000], ["4000000000024", "Bananen", "", 93, 20, 1, .3, 2, "1 Stück (120 g)", 120, 0], ["4000000000031", "Eier Größe M", "Landliebe", 137, 1.5, 11.9, 9.3, 0, "1 Ei (58 g)", 58, 580],
   ["4000000000048", "Weizenbrötchen", "Golden Toast", 277, 55, 9, 1.8, 3, "1 Brötchen (60 g)", 60, 0], ["4000000000055", "Haferflocken zart", "Kölln", 361, 56, 14, 6.7, 11, "40 g", 40, 500], ["4000000000062", "Skyr Natur", "Arla", 63, 4, 11, .2, 0, "150 g", 150, 450],
-  ["4000000000079", "Nutella", "Ferrero", 539, 57.5, 6.3, 30.9, 0, "15 g", 15, 450], ["4000000000086", "Hähnchenbrustfilet", "Wiesenhof", 106, 0, 24, 1, 0, "", 0, 400]];
+  ["4000000000079", "Nutella", "Ferrero", 539, 57.5, 6.3, 30.9, 0, "15 g", 15, 450], ["4000000000086", "Hähnchenbrustfilet", "Wiesenhof", 106, 0, 24, 1, 0, "", 0, 400],
+  ["4000000000093", "Spaghetti No. 5", "Barilla", 359, 71.2, 12.5, 2, 3, "80 g", 80, 500], ["4000000000109", "Basmati Reis", "Oryza", 349, 77, 8, .7, 1, "62,5 g", 62.5, 500], ["4000000000116", "Reiswaffeln", "Alnatura", 385, 81, 8, 2.8, 3, "1 Stück (7 g)", 7, 100]];
 const offHit = f => ({code: f[0], product_name: f[1], product_name_de: f[1], brands: f[2], nutriments: {"energy-kcal_100g": f[3], carbohydrates_100g: f[4], proteins_100g: f[5], fat_100g: f[6], fiber_100g: f[7], sugars_100g: Math.round(f[4] * .4), "saturated-fat_100g": Math.round(f[6] * 4) / 10, salt_100g: .1},
   serving_quantity: f[9], serving_size: f[8], product_quantity: f[10], image_front_small_url: null, countries_tags: ["en:germany"], nutriscore_grade: f[3] > 400 ? "e" : f[3] > 200 ? "c" : "a"});
 function ai(req){
   const kind = req.response_format.json_schema.name, user = req.messages[1].content, said = (/Gesagt: „([\s\S]*)“/.exec(user) || [0, user])[1];
-  const it = (name, amount, kcal, carbs, protein, fat) => ({name, amount, kcal, carbs, protein, fat, fiber: 2, sugar: Math.round(carbs * .3), satfat: Math.round(fat * .4), quality: kcal > 300 ? 2 : 4});
+  const it = (name, amount, kcal, carbs, protein, fat) => ({name, amount, grams: 0, ref: "", state: "", kcal, carbs, protein, fat, fiber: 2, sugar: Math.round(carbs * .3), satfat: Math.round(fat * .4), quality: kcal > 300 ? 2 : 4});
   if (kind === "shop"){ const words = said.split(/,| und /).map(s => s.trim()).filter(Boolean), dish = words.filter(w => /lasagne|chili|kuchen|pizza/i.test(w));
     return {products: words.filter(w => !dish.includes(w)).map(w => { const m = /^(\d+\s*(?:l|liter|g|kg|stück|x)?)\s+(.+)$/i.exec(w); return {name: m ? m[2] : w, amount: m ? m[1] : ""}; }),
       dishes: dish.map(d => ({name: d, items: [{name: "Hackfleisch", amount: "500 g"}, {name: "Passierte Tomaten", amount: "2 Dosen"}, {name: "Lasagneplatten", amount: "1 Packung"}]}))}; }
   if (kind === "dish") return {title: "Hähnchen-Reis-Pfanne", emoji: "🍗", why: "Viel Protein, füllt die fehlenden Kalorien.", items: [{name: "Hähnchenbrust", grams: 200, kcal: 212, carbs: 0, protein: 48, fat: 2}, {name: "Reis (roh)", grams: 100, kcal: 350, carbs: 78, protein: 7, fat: 1}, {name: "Paprika", grams: 150, kcal: 45, carbs: 9, protein: 1.5, fat: .5}],
     steps: ["Reis kochen.", "Hähnchen anbraten.", "Paprika dazu, alles mischen."], tip: "Mit Sojasauce abschmecken."};
   if (kind === "week") return {headline: "Solide Woche", mood: "ok", summary: "Du hast dein Kalorienziel an 4 von 7 Tagen erreicht.", good: ["Genug Protein"], better: ["Mehr Gemüse"], focus: "Jeden Tag frühstücken."};
+  /* noodles, rice, chicken: the stand-in "AI" names the table food and the grams, and deliberately guesses different calories
+     every time (that was the complaint: the same food, different values). The server has to ignore its numbers. */
+  const tab = [[/nudeln|spaghetti|pasta/i, "pasta", "Nudeln"], [/reis/i, "reis", "Reis"], [/hähnchen/i, "haehnchen", "Hähnchenbrust"], [/pesto/i, "pesto", "Pesto"]].filter(t => t[0].test(said));
+  if (tab.length) { const wild = () => Math.round(100 + Math.random() * 400), dry = /trocken|\broh|ungekocht/i.test(said);
+    const items = tab.map(([re, ref, name]) => { const m = new RegExp("(\\d+)\\s*(?:g|gramm)\\s+(?:\\S+\\s+)?" + re.source, "i").exec(said), g = m ? +m[1] : ref === "pesto" ? 30 : 200;
+      return Object.assign(it(name, g + " g", wild(), wild() / 10, wild() / 20, wild() / 40), {grams: g, ref, state: ref === "pesto" ? "" : dry ? "dry" : "cooked"}); });
+    return {title: said.split(/\s+/).slice(0, 4).join(" "), emoji: "🍝", items, kcal: 0, carbs: 0, protein: 0, fat: 0, minutesAgo: 0, note: ""}; }
   return {title: said.split(/\s+/).slice(0, 4).join(" ") || "Mahlzeit", emoji: "🥐", items: [it("Brötchen", "2 Stück (120 g)", 332, 66, 10.8, 2.2), it("Nutella", "30 g", 162, 17.3, 1.9, 9.3), it("Kakao", "1 Glas (250 ml)", 180, 24, 8.5, 5.5)], kcal: 674, carbs: 107.3, protein: 21.2, fat: 17, minutesAgo: 0, note: ""};
 }
 const realFetch = global.fetch, json = (o, status = 200) => new Response(JSON.stringify(o), {status, headers: {"content-type": "application/json"}});

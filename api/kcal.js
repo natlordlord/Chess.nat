@@ -6,6 +6,9 @@ const SUPABASE_URL = "https://zpsfdpangmvqxbkvzibb.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpwc2ZkcGFuZ212cXhia3Z6aWJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1NDcxMTUsImV4cCI6MjEwOTEyMzExNX0.XvVXgjOsOm0DQyrWCafc-y7LUYHYiX_H6R8g5ajLJpo";
 const MODELS = (process.env.GATEWAY_MODELS || "anthropic/claude-opus-5.5,google/gemini-2.5-flash,google/gemini-2.5-flash-lite").split(",").map(s => s.trim()).filter(Boolean);
 
+/* the fixed food table (data/foods.js, the same file the phone loads): for a food in it the values per 100 g come from there,
+   the AI only says which food it is and how many grams. If the file is missing the AI's own numbers are used, as before. */
+let FOODS = {list: [], byId: {}}; try { FOODS = require("../data/foods.js"); } catch(e) { console.log("kcal: food table not loaded", String(e && e.message)); }
 const THINK = Number(process.env.KCAL_THINK || 0);
 const num = {type: "number"};
 const SCHEMA = {
@@ -14,8 +17,12 @@ const SCHEMA = {
   properties: {
     title: {type: "string", description: "Kurzer Name der Mahlzeit, max. 4 Wörter"},
     emoji: {type: "string", description: "Ein passendes Essens-Emoji"},
-    items: {type: "array", items: {type: "object", additionalProperties: false, required: ["name", "amount", "kcal", "carbs", "protein", "fat", "fiber", "sugar", "satfat", "quality"],
-      properties: {name: {type: "string"}, amount: {type: "string", description: "Menge, z. B. '2 Scheiben (80 g)'"}, kcal: num, carbs: num, protein: num, fat: num,
+    items: {type: "array", items: {type: "object", additionalProperties: false, required: ["name", "amount", "grams", "ref", "state", "kcal", "carbs", "protein", "fat", "fiber", "sugar", "satfat", "quality"],
+      properties: {name: {type: "string"}, amount: {type: "string", description: "Menge, z. B. '2 Scheiben (80 g)'"},
+        grams: {type: "number", description: "Gewicht dieser Zutat in Gramm (bei Getränken ml), so wie gegessen. Immer angeben, auch geschätzt."},
+        ref: {type: "string", enum: [""].concat(FOODS.list.map(f => f.id)), description: "Kennung aus der Liste TABELLE, wenn die Zutat genau dieses Lebensmittel ist, sonst leer"},
+        state: {type: "string", enum: ["", "cooked", "dry"], description: "Nur bei Zutaten aus der TABELLE mit zwei Zuständen: bezieht sich grams auf das fertig gekochte/gebratene Gewicht ('cooked') oder auf das Trocken- bzw. Rohgewicht ('dry')?"},
+        kcal: num, carbs: num, protein: num, fat: num,
         fiber: {type: "number", description: "Ballaststoffe in g"}, sugar: {type: "number", description: "Zucker in g"}, satfat: {type: "number", description: "gesättigte Fettsäuren in g"},
         quality: {type: "integer", description: "Wie gesund ist diese Zutat, 1 bis 5: 5 = Gemüse, Obst, Hülsenfrüchte, Vollkorn, Nüsse, Fisch, mageres Eiweiß (vitamin- und nährstoffreich, wenig verarbeitet); 3 = neutral (Weißbrot, Nudeln, Käse, Wurst in Maßen); 1 = Süßigkeiten, Limo, Frittiertes, Alkohol, stark Verarbeitetes"}}}},
     kcal: num, carbs: num, protein: num, fat: num,
@@ -29,6 +36,9 @@ Schätze für jede Zutat realistische deutsche Portionen, wenn keine Menge genan
 Gib für jede Zutat außerdem Ballaststoffe, Zucker und gesättigte Fettsäuren (g) an und bewerte mit quality (1–5), wie gesund und nährstoffreich sie ist.
 Die Kalorien sind das Wichtigste: realistisch, nicht zu niedrig. Getränke mit Kalorien sind eigene Zutaten.
 Die Summenfelder müssen der Summe der Zutaten entsprechen. Wenn nichts Essbares erkennbar ist, gib leere items und 0 zurück und erkläre es in note.
+TABELLE: Für diese Lebensmittel rechnet die App die Nährwerte selbst aus einer festen Tabelle, damit dasselbe Essen bei jedem dieselben Werte hat. Ist eine Zutat genau eines davon (auch als Teil eines Gerichts, z. B. die Nudeln in „Nudeln mit Pesto“), setze ref auf die Kennung und grams auf das Gewicht; zerlege Gerichte dafür in ihre Zutaten. Nimm ref nur, wenn es wirklich dieses Lebensmittel ist (Nudelsalat, Reiswaffeln, Milchreis, Käsekuchen sind es nicht): dann ref leer.
+${FOODS.list.map(f => f.id + " = " + f.n + (f.cf ? " (zwei Zustände: " + f.st[0] + " / " + f.st[1] + ")" : "")).join("; ")}
+Zustand: Nudeln, Reis, Couscous, Bulgur, Quinoa, Linsen, Kichererbsen und Bohnen werden gekocht schwerer, Fleisch wird gebraten leichter. Sagt der Nutzer „gekocht“, „gebraten“, „auf dem Teller“ oder nichts dazu, ist grams das fertige Gewicht: state = "cooked". Sagt er „trocken“, „roh“, „ungekocht“ oder nennt er das Gewicht aus der Packung, ist state = "dry". Rechne das Gewicht nie selbst um.
 Antworte nur mit JSON nach diesem Schema: ${JSON.stringify(SCHEMA)}`;
 
 /* "Was soll ich kochen?": one dish from what is at home that fills the day's gap */
@@ -88,7 +98,7 @@ function berlinNow(){
   return new Intl.DateTimeFormat("de-DE", {timeZone: "Europe/Berlin", weekday: "long", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"}).format(new Date());
 }
 async function ask(req, text, only, cfg){
-  cfg = cfg || {system: SYSTEM, schema: SCHEMA, name: "meal", user: `Jetzt ist ${berlinNow()} (Europe/Berlin).\nGesagt: „${text}“`, max: 3000, temp: .2};
+  cfg = cfg || {system: SYSTEM, schema: SCHEMA, name: "meal", user: `Jetzt ist ${berlinNow()} (Europe/Berlin).\nGesagt: „${text}“`, max: 3000, temp: 0};
   const key = String(process.env.AI_GATEWAY_API_KEY || process.env.AI_KEY || "").trim();
   const token = key || req.headers["x-vercel-oidc-token"] || process.env.VERCEL_OIDC_TOKEN;
   if (!token) throw Object.assign(new Error("no ai credentials"), {status: 500});
@@ -111,6 +121,19 @@ async function ask(req, text, only, cfg){
     if (![400, 401, 402, 403, 404, 429].includes(r.status) && r.status !== 0) break;
   }
   throw last || new Error("no model");
+}
+/* A food from the table: the numbers are worked out here from its values per 100 g and the grams, not taken from the AI.
+   Weighed cooked, the grams are first turned back into dry (or raw) weight with the food's cooking factor. */
+function fromTable(it, i){
+  const F = FOODS.byId && FOODS.byId[String(i.ref || "")], g = Number(i.grams);
+  if (!F || !(g > 0) || g > 5000) return it;
+  const cooked = !!F.cf && i.state !== "dry", f = g / 100 / (cooked ? F.cf : 1), kcal = Math.round(F.k * f);
+  if (!(kcal >= 0)) return it;
+  const gt = Math.round(g) + " g", st = F.cf ? (cooked ? F.st[1] : F.st[0]) : "";
+  return Object.assign(it, {kcal, carbs: r1(F.c * f), protein: r1(F.p * f), fat: r1(F.f * f), h: {fi: r1(F.fi * f), su: r1(F.su * f), sf: r1(F.sf * f), q: F.q},
+    /* the amount always names the grams and how it was weighed, so it can be checked and changed */
+    amount: ((new RegExp("\\b" + Math.round(g) + "\\s*(g|ml)\\b").test(it.amount) ? it.amount : (it.amount ? it.amount + " · " : "") + gt) + (st && !new RegExp(st, "i").test(it.amount) ? " " + st : "")).slice(0, 60),
+    ref: F.id, st: F.cf ? (cooked ? "cooked" : "dry") : undefined});
 }
 const SELFTEST_HASH = "1e09bcb6a579162e0bd707a6b896a71c9034ab0e2e9d5f409f480a590774375d";
 const r1 = n => Math.round((Number(n) || 0) * 10) / 10;
@@ -167,8 +190,10 @@ module.exports = async (req, res) => {
     return res.status(502).json({error: e.status === 429 ? "Gerade zu viele Anfragen. Gleich nochmal versuchen." : "Die KI hat gerade nicht geantwortet. Nochmal versuchen."});
   }
   const ago = Math.max(0, Math.min(24 * 60, Number(est.minutesAgo) || 0));
-  const items = (Array.isArray(est.items) ? est.items : []).slice(0, 30).map(i => ({name: String(i.name || "").slice(0, 80), amount: String(i.amount || "").slice(0, 60), kcal: Math.round(Number(i.kcal) || 0), carbs: r1(i.carbs), protein: r1(i.protein), fat: r1(i.fat),
-    h: {fi: r1(i.fiber), su: r1(i.sugar), sf: r1(i.satfat), q: Math.max(1, Math.min(5, Math.round(Number(i.quality) || 3)))}}));
+  const items = (Array.isArray(est.items) ? est.items : []).slice(0, 30).map(i => {
+    const it = {name: String(i.name || "").slice(0, 80), amount: String(i.amount || "").slice(0, 60), kcal: Math.round(Number(i.kcal) || 0), carbs: r1(i.carbs), protein: r1(i.protein), fat: r1(i.fat),
+      h: {fi: r1(i.fiber), su: r1(i.sugar), sf: r1(i.satfat), q: Math.max(1, Math.min(5, Math.round(Number(i.quality) || 3)))}};
+    return fromTable(it, i); });
   const sum = k => items.reduce((s, i) => s + (Number(i[k]) || 0), 0);
   const meal = {
     title: String(est.title || "Mahlzeit").slice(0, 60), emoji: String(est.emoji || "🍽️").slice(0, 8), items,

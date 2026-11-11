@@ -19,8 +19,8 @@ async function open(browser, who, {route = "", desktop = false, app = true, seas
   page.on("console", m => { if (m.type() === "error" && !/Failed to load resource/.test(m.text())) bad.push({kind: "Konsole", text: m.text().slice(0, 400)}); });
   page.on("response", r => { const u = r.url(); if (r.status() >= 400 && u.startsWith(BASE) && !/favicon|apple-touch/.test(u)) bad.push({kind: "Anfrage " + r.status(), text: r.request().method() + " " + decodeURIComponent(u.slice(BASE.length)).slice(0, 300)}); });
   /* the barcode lookup goes straight to Open Food Facts from the phone: answer it from the stand-in */
-  await page.route(/world\.openfoodfacts\.org\/api\/v2\/product\//, async r => { const code = /product\/(\d+)/.exec(r.request().url())[1]; const j = await (await fetch(BASE + "/__fake/off?code=" + code)).text(); r.fulfill({status: 200, contentType: "application/json", body: j}); });
   await page.route(/^https?:\/\/(?!localhost)/, r => r.abort());   /* nothing leaves the machine */
+  await page.route(/world\.openfoodfacts\.org\/api\/v2\/product\//, async r => { const code = /product\/(\d+)/.exec(r.request().url())[1]; const j = await (await fetch(BASE + "/__fake/off?code=" + code)).text(); r.fulfill({status: 200, contentType: "application/json", body: j}); });
   if (who){ const s = await (await fetch(BASE + "/__fake/session?u=" + who)).json(); await ctx.addInitScript(v => { try { if (!sessionStorage.getItem("fake-out")) localStorage.setItem("sb-localhost-auth-token", v); } catch(e) {} }, JSON.stringify(s)); }
   /* on the phone it runs from the home screen: say so, otherwise the "add to home screen" page covers everything */
   if (!desktop && app) await ctx.addInitScript(() => { try { Object.defineProperty(Navigator.prototype, "standalone", {get: () => true}); } catch(e) {} });

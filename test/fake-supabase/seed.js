@@ -15,8 +15,9 @@ module.exports = db => {
 
   /* calorie tracker: Nat Tester and Mila track and share, Jonas doesn't track yet (can be invited) */
   db.seed("kcal_profile", [{user_id: tester, enabled: true, goal: 3000, protein: 125, carbs: 380, fat: 95, ice: 1}, {user_id: mila, enabled: true, goal: 2000, protein: 90, carbs: 230, fat: 70}]);
-  db.seed("kcal_body", {user_id: tester, aim: "muscle", sex: "m", born: 2001, height: 183, weight: 78, activity: 1.55, weigh_min: 480, setup_at: at(-20, 9).toISOString()});
-  db.seed("kcal_weights", [{user_id: tester, ts: at(-9, 8).toISOString(), day: dayOf(at(-9, 8)), kg: 77.2, fasted: true}, {user_id: tester, ts: at(-2, 8).toISOString(), day: dayOf(at(-2, 8)), kg: 78, fasted: true}]);
+  db.seed("kcal_body", [{user_id: tester, aim: "muscle", sex: "m", born: 2001, height: 183, weight: 78, activity: 1.55, weigh_min: 480, setup_at: at(-20, 9).toISOString()},
+    {user_id: mila, aim: "keep", sex: "f", born: 2002, height: 168, weight: 60, activity: 1.4, weigh_min: 450, setup_at: at(-12, 9).toISOString()}]);
+  db.seed("kcal_weights", [{user_id: tester, ts: at(-9, 8).toISOString(), day: dayOf(at(-9, 8)), kg: 77.2, fasted: true}, {user_id: tester, ts: at(-2, 8).toISOString(), day: dayOf(at(-2, 8)), kg: 78, fasted: true}, {user_id: mila, ts: at(-1, 8).toISOString(), day: dayOf(at(-1, 8)), kg: 60.2, fasted: true}]);
   const meal = (user_id, when, title, emoji, kcal, carbs, protein, fat, source = "voice", items = null) => ({user_id, day: dayOf(when), ts: when.toISOString(), title, emoji, source, kcal, carbs, protein, fat, items});
   const h = new Date(now).getHours(), early = k => at(0, Math.max(0, Math.min(h, k)), k > h ? 0 : 10);
   db.seed("kcal_meals", [
