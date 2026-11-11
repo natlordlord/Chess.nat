@@ -850,7 +850,8 @@
       const g = c.createRadialGradient(o.x, o.y, 10, o.x, o.y, r); g.addColorStop(0, col(.46)); g.addColorStop(.75, col(.2)); g.addColorStop(1, col(.06));
       c.beginPath(); c.moveTo(o.x, o.y); pts.forEach(p => c.lineTo(p[0], p[1])); c.closePath(); c.fillStyle = g; c.fill();
       c.strokeStyle = col(.55); c.lineWidth = 2.5; c.beginPath(); c.moveTo(o.x, o.y); c.lineTo(pts[0][0], pts[0][1]); c.moveTo(o.x, o.y); c.lineTo(pts[N2][0], pts[N2][1]); c.stroke();
-      c.strokeStyle = col(.75); c.lineWidth = 3.5; c.beginPath(); pts.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.stroke();
+      /* the bright rim only where the shot reaches its full range, so a wall doesn't get a jagged outline */
+      c.strokeStyle = col(.75); c.lineWidth = 3.5; c.beginPath(); let pen = false; pts.forEach(p => { const full = Math.hypot(p[0] - o.x, p[1] - o.y) > r - 14; if (full){ pen ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]); } pen = full; }); c.stroke();
       /* one line per pellet, faint, so you see how the shot spreads */
       if ((s2.n || 1) > 1 && !s2.cone){ c.strokeStyle = col(.16); c.lineWidth = 2; for (let i = 0; i < s2.n; i++){ const an = a + (i - (s2.n - 1) / 2) * s2.spr, e = rayTo(o, an, r, thru); c.beginPath(); c.moveTo(o.x + Math.cos(an) * 30, o.y + Math.sin(an) * 30); c.lineTo(e.x, e.y); c.stroke(); } }
       for (let k = 0; k < 3; k++){ const f = ((k / 3 + run) % 1), d = 40 + f * (r - 60); chev(c, o.x + Math.cos(a) * d, o.y + Math.sin(a) * d, a, 9, col(.55 * Math.sin(f * Math.PI))); } }
@@ -1050,7 +1051,7 @@
 .ar-pick.on{display:flex}
 .ar-pt{font:900 24px var(--display);color:#fff;letter-spacing:-.01em}
 .ar-cards{display:flex;gap:8px;justify-content:center;flex-wrap:nowrap;max-width:100%;padding-top:8px}
-.ar-card{--c:#8FC458;position:relative;width:min(132px,calc((100vw - var(--sl,0px) - var(--sr,0px) - 76px) / 7));min-width:0;flex:0 1 auto;padding:10px 5px 9px;border-radius:18px;background:linear-gradient(180deg,color-mix(in srgb,var(--c) 22%,#262420) 0%,#1e1d1b 62%);border:2px solid rgba(255,255,255,.08);display:flex;flex-direction:column;align-items:center;gap:3px;color:#fff;font:800 14px var(--body);box-shadow:0 5px 0 rgba(0,0,0,.45);transition:transform .14s cubic-bezier(.3,1.6,.5,1),box-shadow .14s,border-color .15s,background .15s;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.ar-card{--c:#8FC458;position:relative;width:min(140px,calc((100vw - var(--sl,0px) - var(--sr,0px) - 66px) / 6));min-width:0;flex:0 1 auto;padding:10px 5px 9px;border-radius:18px;background:linear-gradient(180deg,color-mix(in srgb,var(--c) 22%,#262420) 0%,#1e1d1b 62%);border:2px solid rgba(255,255,255,.08);display:flex;flex-direction:column;align-items:center;gap:3px;color:#fff;font:800 14px var(--body);box-shadow:0 5px 0 rgba(0,0,0,.45);transition:transform .14s cubic-bezier(.3,1.6,.5,1),box-shadow .14s,border-color .15s,background .15s;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .ar-card .ar-pic{width:min(66px,86%);aspect-ratio:1;display:block;filter:drop-shadow(0 4px 0 rgba(0,0,0,.35));transition:transform .2s cubic-bezier(.3,1.6,.5,1)}.ar-card .ar-pic svg{width:100%;height:100%;display:block}
 .ar-card.press,.ar-card:active{transform:translateY(4px) scale(.96);box-shadow:0 1px 0 rgba(0,0,0,.45)}
 .ar-card.sel{border-color:var(--c);background:linear-gradient(180deg,color-mix(in srgb,var(--c) 50%,#262420) 0%,#1e1d1b 74%);box-shadow:0 5px 0 color-mix(in srgb,var(--c) 50%,#000),0 0 28px color-mix(in srgb,var(--c) 45%,transparent);transform:translateY(-6px)}
@@ -1104,8 +1105,35 @@
 .ar-rv{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.ar-rv button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px;border-radius:12px;background:rgba(255,255,255,.06);color:#fff;border:2px solid rgba(255,255,255,.08)}
 .ar-rw{text-align:center;font:900 14px var(--body);color:#9BE25A;margin:-2px 0 8px}.ar-rbox:has(.two){width:min(660px,100%)}.ar-rl.two{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px}
 .np.arena .ar-l:has(.ar-res.on) .ar-feed{display:none}
+/* polish: frosted HUD chips, glossy sticks, a result box and fighter cards that match the rest of the app */
+.ar-hud span,.ar-feed div,.ar-emb,.ar-emp{-webkit-backdrop-filter:blur(10px) saturate(1.3);backdrop-filter:blur(10px) saturate(1.3);box-shadow:inset 0 0 0 1px rgba(255,255,255,.09),0 4px 14px rgba(0,0,0,.25)}
+.ar-hud span{background:rgba(20,19,17,.62);border-radius:14px;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.ar-hud .ar-rd{background:linear-gradient(180deg,#F6C24A,#E9A92B);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 4px 14px rgba(0,0,0,.25)}
+.ar-hud .ar-gas{background:linear-gradient(180deg,#3E9A43,#2f7a33)}
+.ar-feed div{background:rgba(20,19,17,.58);animation:arFeed .28s cubic-bezier(.3,1.5,.5,1) both}@keyframes arFeed{from{opacity:0;transform:translateX(18px)}}
+.ar-emb{background:rgba(20,19,17,.62);transition:transform .12s}.ar-emb:active{transform:scale(.9)}
+.ar-emp{background:rgba(20,19,17,.8);animation:arIn .16s ease-out}
+.ar-pick{background:radial-gradient(ellipse at 50% 22%,rgba(58,62,44,.94),rgba(10,11,14,.95) 70%)}
+.ar-pt{font-size:26px;text-shadow:0 3px 0 rgba(0,0,0,.35)}
+.ar-card{border-color:rgba(255,255,255,.1);box-shadow:0 5px 0 rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.1)}
+.ar-pbar{height:8px;border-radius:4px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}.ar-pbar i{border-radius:4px;background:linear-gradient(90deg,#7FB24A,#B8F07A)}
+.ar-joy{background:radial-gradient(circle,rgba(244,242,238,.04) 40%,rgba(244,242,238,.12));border-color:rgba(244,242,238,.26);box-shadow:0 0 0 6px rgba(0,0,0,.08)}
+.ar-joy i{background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.75),rgba(244,242,238,.32));box-shadow:0 4px 10px rgba(0,0,0,.3)}
+.ar-fire{background:radial-gradient(circle,color-mix(in srgb,var(--c) 10%,transparent) 45%,color-mix(in srgb,var(--c) 26%,transparent));transition:background-color .12s}
+.ar-fire b{background:radial-gradient(circle at 35% 28%,color-mix(in srgb,var(--c) 70%,#fff),var(--c) 58%,color-mix(in srgb,var(--c) 70%,#000));box-shadow:0 5px 0 rgba(0,0,0,.32),inset 0 2px 0 rgba(255,255,255,.3);transition:transform .08s}
+.ar-fire.on b{box-shadow:0 2px 0 rgba(0,0,0,.32),inset 0 2px 0 rgba(255,255,255,.3)}
+.ar-am i{box-shadow:inset 0 0 0 1px rgba(0,0,0,.35);height:9px}.ar-am i.full u{background:linear-gradient(180deg,#FFC457,#F2A33A)}
+.ar-sup{background:rgba(20,19,17,.5);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.ar-sup.ready b{background:radial-gradient(circle at 35% 28%,#FFE59A,#E9A92B 60%,#B97C12);box-shadow:0 4px 0 rgba(0,0,0,.3),inset 0 2px 0 rgba(255,255,255,.4)}
+.ar-tip span{border-radius:13px}
+.ar-res{-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.ar-rbox{border-radius:22px;padding:16px;box-shadow:0 18px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.08)}
+.ar-rt{font-size:22px;letter-spacing:-.01em}.ar-rw{display:inline-block;align-self:center;background:rgba(155,226,90,.12);border-radius:999px;padding:4px 12px;margin:-2px 0 4px}
+.ar-rl>div{padding:6px 10px;border-radius:13px}.ar-rl>div.me{box-shadow:inset 0 0 0 1.5px rgba(143,196,88,.5)}
+.ar-rl>div:first-child .r{color:#FFD15C}
+.ar-pk,.ar-rv button{transition:transform .12s,border-color .15s}
 .np-rules .ar-ri{display:block;width:40px;height:40px;margin:0 auto 4px}.np-rules .ar-ri svg{width:100%;height:100%;display:block}
-.np.rot .ar-card{width:min(124px,calc((100vh - 76px) / 7))}
+.np.rot .ar-card{width:min(132px,calc((100vh - 66px) / 6))}
 @media (max-width:760px),(max-height:420px){.ar-cards{gap:5px}.ar-card{border-width:2px;border-radius:15px}}
 @media (max-width:420px){.np.rot .ar-card{padding:6px 3px}.np.rot .ar-card small{display:none}.np.rot .ar-pt{font-size:20px}.np.rot .ar-card b{font-size:min(12px,1.75vmax)}}
 @media (max-height:400px){.ar-fire{width:92px;height:92px;right:calc(var(--sr,0px) + 20px);bottom:calc(var(--sb,0px) + 28px)}.ar-fire b{width:52px;height:52px}.ar-fire b svg{width:34px;height:34px}.ar-sup{width:64px;height:64px;right:calc(var(--sr,0px) + 124px);bottom:calc(var(--sb,0px) + 20px)}.ar-sup b{width:44px;height:44px}
