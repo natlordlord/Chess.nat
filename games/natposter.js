@@ -473,7 +473,7 @@
       this.cv.addEventListener("pointermove", e => { if (this.joy && e.pointerId === this.joy.pid){ const l = LOC(e); moveJ(l.x, l.y); } });
       ["pointerup", "pointercancel"].forEach(t => this.cv.addEventListener(t, e => { if (this.joy && e.pointerId === this.joy.pid) endJ();
         if (t === "pointerup" && this.tap0 && now() - this.tap0.t < 280){ const l = LOC(e); if (Math.hypot(l.x - this.tap0.x, l.y - this.tap0.y) < 14){ if (this.mapOpen){ this.mapOpen = false; this.hud(); } else if (this.mini && this.mini.walk) this.closeMini(); } } this.tap0 = null; }));
-      this.kd = e => { if (/^(Arrow|Key[WASD])/.test(e.code)){ this.keys[e.code] = 1; e.preventDefault(); } if (e.code === "KeyE" || e.code === "Space") { const b = this.el && this.el.querySelector(".np-act.main"); if (b) b.click(); } if (e.code === "KeyQ"){ const b = this.el && this.el.querySelector('[data-x="kill"]'); if (b) b.click(); } };
+      this.kd = e => { const tg = e.target; if (!this.el || !this.el.isConnected || (tg && (/^(INPUT|TEXTAREA|SELECT)$/.test(tg.tagName || "") || tg.isContentEditable))) return; if (/^(Arrow|Key[WASD])/.test(e.code)){ this.keys[e.code] = 1; e.preventDefault(); } if (e.code === "KeyE" || e.code === "Space") { const b = this.el && this.el.querySelector(".np-act.main"); if (b) b.click(); } if (e.code === "KeyQ"){ const b = this.el && this.el.querySelector('[data-x="kill"]'); if (b) b.click(); } };
       this.ku = e => { delete this.keys[e.code]; };
       window.addEventListener("keydown", this.kd); window.addEventListener("keyup", this.ku);
       const FAST = ".np-btns,.np-top,.np-lob";

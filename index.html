@@ -2826,13 +2826,13 @@ select:focus,input:not([type=range]):not([type=checkbox]):not([type=radio]):focu
 .toast{border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.45),inset 0 0 0 1px var(--hair);animation:toastIn .26s var(--spring) both}
 @keyframes toastIn{from{opacity:0;transform:translate(-50%,12px) scale(.96)}}
 /* a new screen fades in instead of snapping (opacity only: fixed children keep their place) */
-#main>.page,#main>.stage{animation:pageIn .2s var(--ease) both}
+#main.pg-in{animation:pageIn .2s var(--ease)}
 @keyframes pageIn{from{opacity:0}}
 h1.h-title{letter-spacing:-.02em}
 @media (max-width:900px){
 }
 @media (hover:hover) and (pointer:fine){.tile:hover{transform:translateY(-2px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.11),0 8px 22px rgba(0,0,0,.25)}.tile:active{transform:scale(.985)}}
-@media (prefers-reduced-motion:reduce){#main>.page,#main>.stage,.toast{animation:none!important}}
+@media (prefers-reduced-motion:reduce){#main.pg-in,.toast{animation:none!important}}
 .ps-opts.ps-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.ps-grid .ps-o{margin:0;min-width:0;padding-right:8px}.ps-grid .ps-o b{font-size:15px;line-height:1.15;overflow-wrap:anywhere;min-width:0}
 #nmusfix{position:fixed;top:calc(env(safe-area-inset-top,0px) + 4px);z-index:45;width:40px;height:38px;margin:0;border-radius:12px;box-shadow:none;background:var(--panel-2)}#nmusfix.on{background:color-mix(in srgb,var(--go) 16%,var(--panel-2))}
 .fb-ov .fb-t{flex:1;font:900 20px var(--display)}.fb-ov #fbtx{width:100%;box-sizing:border-box;padding:14px;border-radius:16px;border:2px solid var(--go);background:#2A2825;color:var(--fg);font:700 16px var(--body);resize:none}
@@ -2847,7 +2847,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794423913";
+const CHESSNAT_BUILD = "1794425262";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11358,6 +11358,7 @@ const App = {
   go(r, arg, back){
     if (!Views[r]) r = "home";
     if (r === "kcal" && kcalHome()) r = "home";
+    const cameFrom = this.view ? this.route : null;
     /* remember where you came from, so a swipe (or back) returns there */
     if (!back && this.view && this.route !== r){ this.stack.push({r: this.route, arg: this.arg}); if (this.stack.length > 30) this.stack.shift(); }
     if (TAB_OF && ["home", "chess", "learn", "puzzles", "play", "games"].includes(r) && !back) this.stack = this.stack.filter(x => x.r !== r);
@@ -11369,6 +11370,9 @@ const App = {
     /* every screen is a history entry, so Android's back button and gesture step back inside the app */
     try { if (location.hash !== "#" + r){ if (!back && this.view && !this._popping) history.pushState({r}, "", "#" + r); else history.replaceState({r}, "", "#" + r); } } catch(e) {}
     const main = $("#main"); main.innerHTML = ""; main.scrollTop = 0; window.scrollTo(0, 0);
+    /* the fade belongs to the change of screen, not to the page element: a screen that rebuilds itself a moment later
+       (fresh data arrived) must not fade in a second time, that is what made Home flicker */
+    if (cameFrom !== r){ main.classList.remove("pg-in"); void main.offsetWidth; main.classList.add("pg-in"); if (!main._pgIn){ main._pgIn = 1; main.addEventListener("animationend", e => { if (e.target === main) main.classList.remove("pg-in"); }); } }
     document.body.classList.toggle("busy", this.busy()); renderRail(); renderTabs(); const sh = $("#sheet"); if (sh) sh.hidden = true; sizeBoard();
     this.view.mount(main, arg); setTimeout(fitPanel, 30);
     /* going back: land where you were on that page */
@@ -14502,10 +14506,10 @@ const Ranks = {
 <script src="games/more.js?v=128"></script>
 <script src="games/net.js?v=129"></script>
 <script src="games/online.js?v=128"></script>
-<script src="games/natposter.js?v=128"></script>
-<script src="games/arena.js?v=128"></script>
+<script src="games/natposter.js?v=129"></script>
+<script src="games/arena.js?v=129"></script>
 <script src="games/tipp.js?v=128"></script>
-<script src="games/kcal.js?v=151"></script>
+<script src="games/kcal.js?v=152"></script>
 <script>boot();</script>
 </body>
 </html>

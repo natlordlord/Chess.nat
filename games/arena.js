@@ -463,7 +463,13 @@
     L.addEventListener("pointerup", up); L.addEventListener("pointercancel", up);
     L.addEventListener("click", e => { const b = e.target.closest("[data-arc]"); if (b) return pick(b.dataset.arc); const x = e.target.closest("[data-arx]"); if (!x) return; Sound.tap();
       if (x.dataset.arx === "lobby") NPo().act({a: "tolobby"}); if (x.dataset.arx === "quit") NPo().openPanel && NPo().openPanel("quit"); });
-    if (!C.kd){ C.kd = e => { if (!C.on) return; if (/^(Arrow|Key[WASD])/.test(e.code)){ C.keys[e.code] = 1; e.preventDefault(); }
+    if (!C.kd){ C.kd = e => { if (!C.on) return;
+        /* the keys belong to the game only while the arena is on screen. Once the round is left (door, Beenden, back) the layer is gone:
+           clean up, so W A S D E Q and the space bar can be typed again in the chat, the shopping list and everywhere else.
+           And a text field always gets its own keys. */
+        if (!C.L || !C.L.isConnected){ C.on = false; C.L = null; C.keys = {}; C.moveP = C.aimP = C.supP = null; C.chg = null; return; }
+        const tg = e.target; if (tg && (/^(INPUT|TEXTAREA|SELECT)$/.test(tg.tagName || "") || tg.isContentEditable)) return;
+        if (/^(Arrow|Key[WASD])/.test(e.code)){ C.keys[e.code] = 1; e.preventDefault(); }
         if (e.code === "Space"){ e.preventDefault(); if (!e.repeat){ if (C.cls === "snipe") startChg(); else autoFire(); } } if (e.code === "KeyE" || e.code === "KeyQ"){ e.preventDefault(); autoFire(true); }
         /* on the pick screen, 1–7 picks a fighter */
         const dg = /^Digit([1-9])$/.exec(e.code); if (dg && C.A && C.A.ph === "pick" && KEYS[+dg[1] - 1] && !/INPUT|TEXTAREA/.test((document.activeElement || {}).tagName || "")) pick(KEYS[+dg[1] - 1]); };

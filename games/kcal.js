@@ -1171,7 +1171,9 @@
       if (!meId()){ main.innerHTML = `<div class="page kc-page"><h1 class="h-title">Kalorien</h1><div class="unit"><p>Bitte melde dich an, um den Kalorien-Tracker zu nutzen.</p><button class="btn go" id="kcsign">Anmelden</button></div></div>`;
         main.querySelector("#kcsign").onclick = () => App.go(typeof Views.account === "object" ? "account" : "settings"); return; }
       K.fromCache(); this.draw();
-      K.load(true).then(() => this.draw()).catch(() => {});
+      /* fresh data from the server: build the page again only if something is different from what is already showing */
+      const sig = () => { try { return JSON.stringify([K.prof, K.meals, K.body, K.weights, K.ice, K.invites]); } catch(e) { return ""; } }, was = K.loaded ? sig() : null;
+      K.load(true).then(() => { if (was && was === sig()) return; this.draw(); }).catch(() => {});
       K.loadFriends().then(() => { if (this.tab === "friends") this.draw(); }).catch(() => {});
     },
     draw(){
