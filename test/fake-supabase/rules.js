@@ -58,12 +58,17 @@ module.exports = db => {
   const isAdmin = uid => db.admins.includes(uid);
   const own = col => ({all: (r, u) => r[col] === u});
   const T = () => true;
+  const homeOwns = (u, g) => R.home_groups.some(x => x.id === g && x.owner === u), homeCan = (u, g) => homeOwns(u, g) || R.home_members.some(m => m.group_id === g && m.user_id === u);
 
   /* Row level security. select/delete: USING; insert: WITH CHECK; update: {using, check}; "all" covers every command.
      A command without a policy is not allowed at all, exactly like in Postgres. Every policy is for signed-in users. */
   const POLICIES = {
     kv: own("user_id"), chess_push: own("user_id"), kcal_body: own("user_id"), kcal_weights: own("user_id"),
     chess_players: {select: T, insert: (r, u) => r.id === u, update: {using: (r, u) => r.id === u, check: (r, u) => r.id === u}},
+    home_groups: {select: (r, u) => r.owner === u || homeCan(u, r.id), insert: (r, u) => r.owner === u, update: {using: (r, u) => r.owner === u, check: (r, u) => r.owner === u}, delete: (r, u) => r.owner === u},
+    home_members: {select: (r, u) => homeCan(u, r.group_id), insert: (r, u) => homeOwns(u, r.group_id), delete: (r, u) => homeOwns(u, r.group_id) || r.user_id === u},
+    home_tasks: {select: (r, u) => homeCan(u, r.group_id), insert: (r, u) => homeCan(u, r.group_id) && r.created_by === u, delete: (r, u) => r.created_by === u || homeOwns(u, r.group_id)},
+    home_log: {select: (r, u) => homeCan(u, r.group_id)},
     chess_now: {select: (r, u) => r.user_id === u || friends(r.user_id, u), insert: (r, u) => r.user_id === u, update: {using: (r, u) => r.user_id === u, check: (r, u) => r.user_id === u}, delete: (r, u) => r.user_id === u},
     chess_friends: {select: (r, u) => r.a === u || r.b === u, delete: (r, u) => r.a === u || r.b === u, insert: (r, u) => r.requested_by === u && r.status === "pending",
       update: {using: (r, u) => (r.a === u || r.b === u) && r.requested_by !== u, check: r => r.status === "accepted"}},
@@ -126,7 +131,30 @@ module.exports = db => {
   const player = id => R.chess_players.find(p => p.id === id);
 
   /* the functions behind /rest/v1/rpc. Anything in the real database that the app doesn't call answers with a plain default. */
+  /* the household functions of supabase/schema_home.sql, in the same order of thought. The real database starts the asking in an
+     insert trigger and a cron job; here the test calls home_tick() for that. */
+  const homePeople = g => { const x = R.home_groups.find(y => y.id === g); return x ? [x.owner].concat(R.home_members.filter(m => m.group_id === g && m.user_id !== x.owner).map(m => m.user_id)) : []; };
+  const homeLog = (t, u, what) => R.home_log.push({id: R.home_log.length + 1, group_id: t.group_id, task_id: t.id, title: t.title, emoji: t.emoji, user_id: u, what, at: db.now()});
+  const homeAsk = t => { if (["done", "skipped", "taken"].includes(t.state)) return; const L = R.home_log.filter(l => l.group_id === t.group_id), lastDone = u => Math.max(0, ...L.filter(l => l.user_id === u && l.what === "done").map(l => Date.parse(l.at)));
+    const owes = u => { const mine = L.filter(l => l.user_id === u), d = mine.map(l => l.what).lastIndexOf("done"); return mine.slice(d + 1).some(l => l.what !== "done"); };
+    const done = u => L.filter(l => l.user_id === u && l.what === "done").length;
+    const c = homePeople(t.group_id).filter(u => !(t.passed || []).includes(u)).sort((a, b) => (owes(b) ? 1 : 0) - (owes(a) ? 1 : 0) || done(a) - done(b) || lastDone(a) - lastDone(b));
+    if (!c.length) Object.assign(t, {state: "open", asked: null, asked_at: db.now()}); else Object.assign(t, {state: "asked", asked: c[0], asked_at: db.now()}); };
+  const homeStart = t => { if (t.state !== "wait") return; if (t.everyone) Object.assign(t, {state: "open", asked_at: db.now()}); else homeAsk(t); };
+  const homeTask = (u, id) => { if (!u) raise("not signed in"); const t = R.home_tasks.find(x => x.id === id); if (!t || !homeCan(u, t.group_id)) raise("no such task"); return t; };
   const RPC = {
+    home_can: (u, a) => homeCan(u, a.g), home_owns: (u, a) => homeOwns(u, a.g),
+    home_tick(){ R.home_tasks.filter(t => t.state === "wait" && Date.parse(t.ask_at) <= Date.now()).forEach(homeStart); return null; },
+    home_answer(u, {p_task, p_yes}){ const t = homeTask(u, p_task); if (["done", "skipped"].includes(t.state)) return "closed";
+      if (p_yes){ if (t.state === "taken") return t.taken_by === u ? "taken" : "gone"; Object.assign(t, {state: "taken", taken_by: u, taken_at: db.now(), asked: null, reminded_at: null}); return "taken"; }
+      if (t.state === "taken" && t.taken_by === u){ homeLog(t, u, "pass"); Object.assign(t, {state: "wait", taken_by: null, taken_at: null, passed: (t.passed || []).concat(u)}); homeAsk(t); return "passed"; }
+      if (t.state === "asked" && t.asked === u){ homeLog(t, u, "pass"); t.passed = (t.passed || []).concat(u); homeAsk(t); return "passed"; }
+      if (t.state === "open"){ if (!(t.passed || []).includes(u)) t.passed = (t.passed || []).concat(u); return "passed"; }
+      return "not yours"; },
+    home_done(u, {p_task}){ const t = homeTask(u, p_task); if (t.state === "done") return "done"; Object.assign(t, {state: "done", done_by: u, done_at: db.now(), asked: null}); homeLog(t, u, "done");
+      if (t.kind === "repeat" && t.every_days){ let na = Date.parse(t.ask_at) + t.every_days * 864e5; while (na <= Date.now()) na += t.every_days * 864e5;
+        R.home_tasks.push(Object.assign({}, t, {id: require("crypto").randomUUID(), state: "wait", asked: null, asked_at: null, passed: [], taken_by: null, taken_at: null, reminded_at: null, done_by: null, done_at: null, img: null, ask_at: new Date(na).toISOString(), created_at: db.now()})); }
+      return "done"; },
     kcal_can_see: (u, a) => kcalCanSee(u, a.owner), shop_can: (u, a) => shopCan(u, a.l), shop_owns: (u, a) => shopOwns(u, a.l),
     news_is_admin: u => isAdmin(u), push_config: () => ({}), events_summary: () => [],
     /* public.kcal_foods_lookup: reads the checked foods by name, never writes */

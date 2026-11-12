@@ -8,6 +8,10 @@ chess_duels|id|id:text:!: ; white:uuid:!: ; black:uuid:!: ; result:text:!: ; rea
 chess_events|id|id:int8:!:@identity ; user_id:uuid:!:@uid ; session:text:?: ; kind:text:!: ; name:text:?: ; meta:jsonb:?: ; device:text:?: ; created_at:timestamptz:!:@now
 chess_feedback|id|id:uuid:!:@uuid ; user_id:uuid:!:@uid ; name:text:?: ; body:text:!: ; img:text:?: ; info:text:?: ; created_at:timestamptz:!:@now
 chess_fixes|user_id,id|id:text:!: ; user_id:uuid:!: ; xp:int4:!:0 ; pz:int4:!:0 ; note:text:?: ; created_at:timestamptz:!:@now ; puzzle:jsonb:?:
+home_groups|id|id:uuid:!:@uuid ; owner:uuid:!:@uid ; name:text:!:'Zuhause' ; created_at:timestamptz:!:@now ; ort:text:?: ; strasse:text:?:
+home_members|group_id,user_id|group_id:uuid:!: ; user_id:uuid:!: ; created_at:timestamptz:!:@now
+home_tasks|id|id:uuid:!:@uuid ; group_id:uuid:!: ; title:text:!: ; emoji:text:!:'🧹' ; note:text:?: ; img:text:?: ; kind:text:!:'once' ; every_days:int4:?: ; everyone:bool:!:false ; due_at:timestamptz:?: ; ask_at:timestamptz:!:@now ; state:text:!:'wait' ; asked:uuid:?: ; asked_at:timestamptz:?: ; passed:_text:!:{} ; taken_by:uuid:?: ; taken_at:timestamptz:?: ; reminded_at:timestamptz:?: ; done_by:uuid:?: ; done_at:timestamptz:?: ; created_by:uuid:!:@uid ; created_at:timestamptz:!:@now
+home_log|id|id:int8:!:@identity ; group_id:uuid:!: ; task_id:uuid:?: ; title:text:!: ; emoji:text:?: ; user_id:uuid:!: ; what:text:!: ; at:timestamptz:!:@now
 chess_now|user_id|user_id:uuid:!:@uid ; what:jsonb:!: ; updated_at:timestamptz:!:@now
 chess_friends|a,b|a:uuid:!: ; b:uuid:!: ; requested_by:uuid:!: ; status:text:!:'pending' ; created_at:timestamptz:!:@now
 chess_gifts|id|id:int8:!:@identity ; from_id:uuid:!:@uid ; to_id:uuid:!: ; kind:text:!:'heart' ; created_at:timestamptz:!:@now
@@ -57,14 +61,17 @@ const RPCS = {
   tipp_event_picks: ["p_event"], tipp_event_tips: ["p_event"], tipp_final: ["p_event"], tipp_group_save: ["p_id", "p_name", "p_comps"], tipp_groups_mine: [],
   tipp_join: ["p_code"], tipp_leave: ["p_id"], tipp_lines: ["p_event", "p_final"], tipp_live: ["p_event", "p_title"], tipp_notify: ["p_event", "p_title", "p_body"],
   tipp_pick: ["p_event", "p_h?", "p_a?", "p_w?"], tipp_place: ["p_event", "p_market", "p_pick", "p_stake", "p_score?"], tipp_remind: ["p_event", "p_title", "p_body"],
-  tipp_settle: ["p_event", "p_res"], tipp_table: []
+  tipp_settle: ["p_event", "p_res"], tipp_table: [],
+  home_can: ["g"], home_owns: ["g"], home_answer: ["p_task", "p_yes"], home_done: ["p_task"],
+  home_tick: [] /* not callable in the real database (there a trigger and a cron job do this); the tests use it to let time pass */
 };
 
 /* Tables in the supabase_realtime publication: only these send live changes. */
-const REALTIME = ["chess_friends", "chess_duels", "chess_gifts", "chess_invites", "chess_messages", "kcal_meals", "shop_items", "shop_asks", "shop_answers"];
+const REALTIME = ["chess_friends", "chess_duels", "chess_gifts", "chess_invites", "chess_messages", "kcal_meals", "shop_items", "shop_asks", "shop_answers", "home_tasks"];
 
 /* Foreign keys that matter for behaviour (the rest point at auth.users). [table, column, target table, target column, on delete] */
 const FKS = [
+  ["home_members", "group_id", "home_groups", "id", "cascade"], ["home_tasks", "group_id", "home_groups", "id", "cascade"], ["home_log", "group_id", "home_groups", "id", "cascade"],
   ["shop_members", "list_id", "shop_lists", "id", "cascade"], ["shop_items", "list_id", "shop_lists", "id", "cascade"], ["shop_items", "parent", "shop_items", "id", "cascade"],
   ["shop_asks", "list_id", "shop_lists", "id", "cascade"], ["shop_asks", "item_id", "shop_items", "id", "cascade"], ["shop_answers", "ask_id", "shop_asks", "id", "cascade"],
   ["tipp_picks", "event_id", "tipp_events", "id", "restrict"], ["tipp_tips", "event_id", "tipp_events", "id", "restrict"], ["tipp_members", "group_id", "tipp_groups", "id", "cascade"]

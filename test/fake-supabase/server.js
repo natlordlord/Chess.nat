@@ -177,6 +177,8 @@ const server = http.createServer((req, res) => {
       if (p.startsWith("/rest/v1/")){
         const uid = uidOf(req.headers.authorization), name = p.slice(9); db.calls.push({uid, label, body: raw.length && raw.length < 4000 ? raw.toString() : undefined});
         const r = name.startsWith("rpc/") ? db.rpc(name.slice(4), req.method === "GET" ? Object.fromEntries(q) : body(), uid) : db.rest(req.method, name, q, raw.length ? body() : null, req.headers, uid);
+        /* a function that returns text answers with a JSON string, like PostgREST does */
+        if (name.startsWith("rpc/") && typeof r.body === "string") r.body = JSON.stringify(r.body);
         return send(r.status, req.method === "HEAD" ? null : r.body, r.total != null ? {"content-range": (r.count ? "0-" + (r.count - 1) : "*") + "/" + r.total} : {});
       }
       if (p.startsWith("/auth/v1/")){ const r = auth(req.method, p.slice(9), q, body(), req.headers); if (r.status >= 400) db.note(label, r); return send(r.status, r.body); }
@@ -191,6 +193,10 @@ const server = http.createServer((req, res) => {
       if (p === "/api/kcal") return await vercel("kcal.js", req, res, q, raw);
       if (p === "/api/food") return await vercel("food.js", req, res, q, raw);
       if (p === "/api/foods") return await vercel("foods.js", req, res, q, raw);
+      /* api/muell.js with the district's calendar replaced by a fixed one: two towns, a few streets, collections on the next days */
+      if (p === "/api/muell"){ const ort = q.get("ort"), str = q.get("strasse"), day = n => { const d = new Date(Date.now() + n * 864e5); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+        const out = !ort ? {orte: ["Freising", "Moosburg", "Wang"]} : !str ? {ort, strassen: ["Ahornstraße", "Geiglbergstraße", "Ziegelbergstraße"]} : {ort, strasse: str, termine: [{d: day(1), was: ["Restabfall", "Gelber Sack"], zusatz: ""}, {d: day(8), was: ["BIO", "Papier"], zusatz: "BIO nur 240"}, {d: day(15), was: ["Restabfall", "Gelber Sack"], zusatz: ""}, {d: day(90), was: ["Papier"], zusatz: ""}]};
+        res.writeHead(200, {"content-type": "application/json"}); return res.end(JSON.stringify(out)); }
       if (p === "/__fake/off-cats"){ global.__offCats = q.get("on") === "1"; return send(200, {on: global.__offCats}); }
       /* ---- test helpers ---- */
       if (p === "/__fake/reset"){ reset.pending = q.get("pending") === "1"; reset(); return send(200, {ok: true}); }

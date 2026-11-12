@@ -435,6 +435,44 @@ const PARTS = {
     await clean([a, b], "Zuschauen");
   },
 
+  /* ---------- household: bin plan from the address, whose turn, "can't" passes it on, tick box on the start page ---------- */
+  async haus(browser){
+    const a = await L.open(browser, "tester"), b = await L.open(browser, "mila"), tick = () => a.evaluate(() => ChessSite.sb.rpc("home_tick")), tasks = q => L.table("home_tasks", q || "");
+    await a.evaluate(() => App.go("home")); await sleep(1200);
+    ok(/Haushalt/.test(await txt(a, "#kchaus")), "Startseite: große Kachel „Haushalt“", await txt(a, "#kchaus")); await a.tap("#kchaus"); await sleep(1800);
+    const g = (await L.table("home_groups", "owner=eq." + ID.tester))[0]; ok(!!g, "erstes Öffnen legt den Haushalt an"); ok(/allein/.test(await txt(a, ".hs-ov")), "Hinweis: noch allein, Mitbewohner hinzufügen"); await a.shot("haus-leer");
+    await a.tap(".hs-ov [data-share]"); await sleep(600); await a.tap(`.kc-frr:has-text("Mila") [data-m]`); await sleep(900); await a.tap(".dsheet [data-dclose], .kc-shop [data-dclose]"); await sleep(1200);
+    ok((await L.table("home_members", "group_id=eq." + g.id)).some(m => m.user_id === ID.mila), "Mila wohnt jetzt mit im Haushalt");
+    /* the address: town, street, and the dates come in by themselves */
+    await a.tap(".hs-ov [data-addr]"); await sleep(900); ok(await a.evaluate(() => document.activeElement && document.activeElement.id === "hsai"), "Adresse: das Feld hat sofort den Cursor (Tastatur geht auf)");
+    await a.fill("#hsai", "wa"); await sleep(400); await a.tap('#hsal [data-v="Wang"]'); await sleep(900); await a.fill("#hsai", "geiglbergstr"); await sleep(400); ok(/Geiglbergstraße/.test(await txt(a, "#hsal")), "„geiglbergstr“ findet die Geiglbergstraße", await txt(a, "#hsal"));
+    await a.tap('#hsal [data-v="Geiglbergstraße"]'); await sleep(2500);
+    const g2 = (await L.table("home_groups", "id=eq." + g.id))[0], plan = (await tasks("kind=eq.plan")).sort((x, y) => x.due_at < y.due_at ? -1 : 1);
+    ok(g2.ort === "Wang" && g2.strasse === "Geiglbergstraße", "die Adresse ist gespeichert"); ok(plan.length === 3 && plan[0].title === "Schwarze Tonne + Gelber Sack" && plan[1].title === "Biotonne + Papiertonne", "drei Abholungen der nächsten 8 Wochen sind eingetragen, Tonnen eines Tages zusammen (die in 90 Tagen noch nicht)", JSON.stringify(plan.map(p => p.title)));
+    ok(/Geiglbergstraße, Wang/.test(await txt(a, "#hsaddr")) && /Abholung morgen/.test(await txt(a, "#hsplan")), "der Müllplan zeigt die Adresse und „Abholung morgen“", (await txt(a, "#hsplan")).slice(0, 160)); await a.shot("haus-plan");
+    await a.evaluate(() => Haus.sync()); await sleep(1200); ok((await tasks("kind=eq.plan")).length === 3, "nochmal laden trägt nichts doppelt ein");
+    /* the evening before: one person is asked; "can't" passes it on */
+    await L.stage("PATCH", "home_tasks", "id=eq." + plan[0].id, {ask_at: new Date(Date.now() - 60000).toISOString()}); /* it is 5 pm on the evening before */
+    await tick(); await a.evaluate(() => Haus.load()); await sleep(1500);
+    ok(/Du bist dran/.test(await txt(a, ".kc-askc")) && /Schwarze Tonne/.test(await txt(a, ".kc-askc")), "du bekommst die Frage als Karte: „Du bist dran“", (await txt(a, ".kc-askc").catch(() => "")).slice(0, 120)); await a.shot("haus-frage");
+    await a.tap(".kc-askc [data-n]"); await sleep(1500); let t1 = (await tasks("id=eq." + plan[0].id))[0]; ok(t1.state === "asked" && t1.asked === ID.mila, "„Kann nicht“: jetzt ist Mila gefragt", JSON.stringify([t1.state, t1.asked]));
+    await b.evaluate(() => { App.go("home"); }); await sleep(1200); await b.evaluate(() => Haus.load()); await sleep(1500);
+    ok(/Du bist dran/.test(await txt(b, ".kc-askc")), "Mila bekommt die Karte"); await b.tap(".kc-askc [data-y]"); await sleep(1800);
+    ok(/Schwarze Tonne/.test(await txt(b, "#hsslot .hs-todo")), "„Mach ich“: die Aufgabe steht als Kästchen oben auf Milas Startseite", JSON.stringify((await tasks("id=eq." + plan[0].id)).map(t => [t.state, t.asked, t.taken_by])) + " " + await b.evaluate(() => JSON.stringify([document.querySelectorAll(".kc-askc").length, Haus.tasks.map(t => [t.state, t.taken_by === Social.me])]))); await b.shot("haus-todo");
+    await b.tap("#hsslot .hs-todo"); await sleep(2200); t1 = (await tasks("id=eq." + plan[0].id))[0]; ok(t1.state === "done" && t1.done_by === ID.mila, "ein Tipp hakt ab: erledigt von Mila"); ok(!(await has(b, "#hsslot .hs-todo")), "das Kästchen ist wieder weg");
+    const log = await L.table("home_log", "group_id=eq." + g.id); ok(log.some(l => l.user_id === ID.tester && l.what === "pass") && log.some(l => l.user_id === ID.mila && l.what === "done"), "im Protokoll: du hast abgegeben, Mila hat es gemacht");
+    /* next time the one who passed is first */
+    await a.evaluate(() => Haus.load()); await sleep(800); await a.tap('.hs-ov [data-q="1"]'); await sleep(200); await a.tap("#hsadd"); await sleep(1200); await tick(); await a.evaluate(() => Haus.load()); await sleep(1500);
+    const bad = (await tasks("title=eq.Bad putzen"))[0]; ok(bad && bad.state === "asked" && bad.asked === ID.tester && bad.emoji === "🚿", "neue Aufgabe „Bad putzen“: weil du vorher abgegeben hast, bist du jetzt als Erster dran", JSON.stringify(bad && [bad.state, bad.asked]));
+    await a.tap(".kc-askc [data-y]"); await sleep(1500); ok(/machst das/.test(await txt(a, "#hsopen")) && /Erledigt/.test(await txt(a, "#hsopen")), "angenommen: in der Liste steht „Du machst das“ mit „Erledigt ✓“", (await txt(a, "#hsopen")).slice(0, 160));
+    /* something urgent for everyone, with the first to say yes taking it */
+    await a.fill("#hsti", "Küche ist dreckig"); await a.tap('.hs-ov [data-seg="who"] [data-v="all"]'); await a.tap("#hsadd"); await sleep(1200); await tick(); await b.evaluate(() => Haus.load()); await sleep(1500);
+    ok(/Wer übernimmt das/.test(await txt(b, ".kc-askc")) && /Küche ist dreckig/.test(await txt(b, ".kc-askc")), "„Alle fragen“: Mila bekommt „Nat Tester fragt: Wer übernimmt das?“", (await txt(b, ".kc-askc").catch(() => "")).slice(0, 120));
+    await b.tap(".kc-askc [data-y]"); await sleep(1500); const ku = (await tasks("title=eq.Küche ist dreckig"))[0]; ok(ku.state === "taken" && ku.taken_by === ID.mila && ku.emoji === "🍳", "Mila übernimmt sie");
+    await a.evaluate(() => Haus.load()); await sleep(1200); ok(/Mila/.test(await txt(a, "#hsstat")) && /abgegeben/.test(await txt(a, "#hsstat")), "Statistik: wer wie viel gemacht hat, und wer abgegeben hat", (await txt(a, "#hsstat")).slice(0, 160)); await a.shot("haus-voll");
+    await clean([a, b], "Haushalt");
+  },
+
   async feedback(browser){
     const page = await L.open(browser, "tester"); await page.evaluate(() => openSheet()); await sleep(400); await page.locator('#sheet [data-s="__feedback"]').tap(); await sleep(600);
     ok(await has(page, "#fbtx"), "Mehr → Feedback öffnet das Formular"); await page.fill("#fbtx", "Test: die Einkaufsliste ist super"); await page.tap("#fbs"); await sleep(1000);

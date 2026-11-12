@@ -1343,6 +1343,166 @@
         const r = on ? await sb().from("shop_members").delete().eq("list_id", id).eq("user_id", f) : await sb().from("shop_members").insert({list_id: id, user_id: f}); b.disabled = false; if (r.error) return say("Ging nicht: " + r.error.message);
         this.mem = on ? this.mem.filter(x => x !== f) : this.mem.concat(f); b.textContent = on ? "Hinzufügen" : "Dabei ✓"; b.classList.toggle("go", on); haptic(8); }); } };
   (function w(n){ try { if (meId() && sb()) return Shop.watch(); } catch(e) {} if (n < 90) setTimeout(() => w(n + 1), 2000); })(0);
+
+  /* ===== Household: chores and the bin plan. One household (home_groups) with the people who live there; things to do
+     (home_tasks) are asked of whoever's turn it is ("Mach ich" / "Kann nicht", the database passes it on and remembers who
+     passed) or of everyone at once; whoever takes one has it as a tick box at the top of their start page, and ticking it
+     tells the others. All changes of state run in the database (home_answer, home_done), which also sends the pushes. ===== */
+  const Haus = { g: null, mem: [], tasks: [], log: [], sh: null, seen: {}, loaded: false,
+    COLS: "id,group_id,title,emoji,note,kind,every_days,everyone,due_at,ask_at,state,asked,asked_at,passed,taken_by,taken_at,done_by,done_at,created_by,created_at",
+    QUICK: [["🗑️", "Müll rausbringen"], ["🚿", "Bad putzen"], ["🍳", "Küche aufräumen"], ["🍽️", "Spülmaschine ausräumen"], ["🧹", "Staubsaugen"], ["🧺", "Wäsche machen"]],
+    BINS: [["⚫", "Schwarze Tonne"], ["🟡", "Gelbe Tonne"], ["🟤", "Biotonne"], ["🔵", "Papiertonne"]],
+    people(){ return this.g ? [this.g.owner].concat(this.mem.filter(x => x !== this.g.owner)) : []; },
+    who(id){ return id === meId() ? "Du" : pname(id); },
+    emojiFor(t){ const x = t.toLowerCase(); return /müll|tonne|abfall|papier|glas/.test(x) ? "🗑️" : /bad|dusch|klo|toilet|wc/.test(x) ? "🚿" : /küche|herd|kochen/.test(x) ? "🍳" : /spül|geschirr|abwasch/.test(x) ? "🍽️" : /saug|wisch|boden|fegen/.test(x) ? "🧹" : /wäsche|wasch/.test(x) ? "🧺" : /einkauf/.test(x) ? "🛒" : /pflanz|gieß|blume/.test(x) ? "🪴" : "🧹"; },
+    day(d){ const a = new Date(d), t0 = new Date(); t0.setHours(0, 0, 0, 0); const n = Math.round((new Date(a.getFullYear(), a.getMonth(), a.getDate()) - t0) / 864e5);
+      return n === 0 ? "heute" : n === 1 ? "morgen" : n === -1 ? "gestern" : a.toLocaleDateString("de-DE", {weekday: "short", day: "2-digit", month: "2-digit"}); },
+    when(t){ return t.kind === "plan" && t.due_at ? "Abholung " + this.day(t.due_at) : t.kind === "repeat" ? (t.every_days === 1 ? "täglich" : t.every_days === 7 ? "wöchentlich" : "alle " + t.every_days + " Tage") : ""; },
+    async load(){ if (!meId() || !sb()) return; const my = this.lseq = (this.lseq || 0) + 1;
+      const gr = await sb().from("home_groups").select("*").order("created_at"); if (gr.error || my !== this.lseq) return; this.loaded = true; this.g = (gr.data || [])[0] || null;
+      if (!this.g){ this.mem = []; this.tasks = []; this.log = []; this.paint(); if (this.sh) this.draw(); return; }
+      const id = this.g.id, [m, t, l] = await Promise.all([sb().from("home_members").select("user_id").eq("group_id", id),
+        sb().from("home_tasks").select(this.COLS).eq("group_id", id).in("state", ["wait", "asked", "open", "taken"]).order("ask_at").order("id"),
+        sb().from("home_log").select("user_id,what,title,emoji,at").eq("group_id", id).gte("at", new Date(Date.now() - 30 * 864e5).toISOString()).order("at", {ascending: false}).limit(400)]);
+      if (my !== this.lseq) return; this.mem = (m.data || []).map(x => x.user_id); this.tasks = t.data || []; this.log = l.data || []; this.paint(); if (this.sh) this.draw(); this.cards();
+      /* with an address saved, new collection dates come in by themselves (looked up at most every twelve hours) */
+      if (this.g.ort && this.g.strasse){ let last = 0; try { last = +localStorage.getItem("chessnat-muell") || 0; } catch(e) {} if (Date.now() - last > 12 * 3600e3) this.sync().then(n => { if (n > 0) this.load(); }); } },
+    /* what concerns me right now: asked of me (or of everyone and I haven't said no), and what I took */
+    asks(){ const me = meId(); return this.tasks.filter(t => (t.state === "asked" && t.asked === me) || (t.state === "open" && !(t.passed || []).includes(me))); },
+    todos(){ const me = meId(); return this.tasks.filter(t => t.state === "taken" && t.taken_by === me); },
+    /* the start page: questions and my tick boxes at the very top, and the next collection on the tile */
+    paint(){ const el = document.querySelector("#hsslot"); if (el){ const a = this.asks(), d = this.todos();
+        const x = a.map(t => `<div class="hs-ask"><span class="hs-e">${h(t.emoji)}</span><span class="hs-tx"><b>${t.state === "open" ? "Wer übernimmt das?" : "Du bist dran"}</b>${h(t.title)}${this.when(t) ? `<small>${h(this.when(t))}</small>` : ""}</span><button class="btn sm go" data-hs-yes="${h(t.id)}">Mach ich</button><button class="btn sm" data-hs-no="${h(t.id)}">Kann nicht</button></div>`).join("")
+          + d.map(t => `<button class="hs-todo" data-hs-done="${h(t.id)}"><i class="hs-box"></i><span class="hs-e">${h(t.emoji)}</span><span class="hs-tx">${h(t.title)}${this.when(t) ? `<small>${h(this.when(t))}</small>` : ""}</span></button>`).join("");
+        if (el._x !== x){ el._x = x; el.innerHTML = x; } }
+      const sm = document.querySelector("#hsnext"); if (sm){ const n = this.tasks.filter(t => t.kind === "plan" && t.due_at).sort((a, b) => Date.parse(a.due_at) - Date.parse(b.due_at))[0], o = this.tasks.filter(t => t.kind !== "plan" && t.state !== "wait").length;
+        sm.textContent = n ? `${n.emoji} ${n.title} · ${this.day(n.due_at)}` : o ? `${o} offen` : "Müllplan & Aufgaben"; } },
+    async answer(id, yes){ const t = this.tasks.find(x => x.id === id); const r = await sb().rpc("home_answer", {p_task: id, p_yes: !!yes}); if (r.error) return say("Ging nicht: " + r.error.message);
+      haptic(yes ? [10, 30, 10] : 10); say(r.data === "gone" ? "Das hat schon jemand übernommen" : r.data === "closed" ? "Ist schon erledigt" : yes ? "Steht jetzt oben auf deiner Startseite ✓" : t && t.state === "open" ? "Alles klar" : "Alles klar, der Nächste wird gefragt"); this.load(); },
+    async done(id, el){ const t = this.tasks.find(x => x.id === id); if (el){ el.classList.add("ok"); el.disabled = true; } haptic([10, 40, 20]); try { Sound.play("GenericNotify", .6); } catch(e) {}
+      const r = await sb().rpc("home_done", {p_task: id}); if (r.error){ if (el){ el.classList.remove("ok"); el.disabled = false; } return say("Ging nicht: " + r.error.message); }
+      say(`✅ ${t ? t.title : "Erledigt"}: ${this.people().length > 1 ? "alle wissen Bescheid" : "abgehakt"}`); setTimeout(() => this.load(), el ? 500 : 0); },
+    /* a question comes in while the app is open: a card to answer right there (with the photo, if there is one) */
+    async cards(){ const me = meId(); for (const t of this.asks()){ const k = t.id + t.state + (t.asked_at || ""); if (this.seen[k] || t.created_by === me && t.state === "open") continue; this.seen[k] = 1;
+        let img = null; try { const r = await sb().from("home_tasks").select("img").eq("id", t.id).maybeSingle(); img = r.data && r.data.img; } catch(e) {}
+        const sh = detailSheet(`<div class="kc-askc" data-notr><div class="kc-aske">${h(t.emoji)}</div><h3>${t.state === "open" ? h(this.who(t.created_by)) + " fragt: Wer übernimmt das?" : "Du bist dran"}</h3><p class="kc-askq"><b>${h(t.title)}</b></p>${this.when(t) ? `<p class="kc-askn">${h(this.when(t))}</p>` : ""}${t.note ? `<p class="kc-askn">„${h(t.note)}“</p>` : ""}${img && /^data:image\//.test(img) ? `<img class="hs-img" src="${img}" alt="">` : ""}<div class="kc-askb"><button class="btn go big" data-y>Mach ich</button><button class="btn big" data-n>Kann nicht</button></div></div>`);
+        sh.el.style.zIndex = 330; try { Sound.play("GenericNotify", .7); } catch(e) {} haptic([10, 30, 10]);
+        sh.el.querySelector("[data-y]").onclick = () => { sh.close(); this.answer(t.id, true); }; sh.el.querySelector("[data-n]").onclick = () => { sh.close(); this.answer(t.id, false); }; } },
+    watch(){ if (this.watching) return; this.watching = 1; const me = meId(); let tm = 0; const again = () => { clearTimeout(tm); tm = setTimeout(() => this.load(), 350); };
+      sb().channel("home-" + me).on("postgres_changes", {event: "*", schema: "public", table: "home_tasks"}, p => { const n = p.new, o = p.old || {};
+        if (n && n.state === "done" && n.done_by && n.done_by !== me && !this.seen["d" + n.id]){ this.seen["d" + n.id] = 1; say(`✅ ${pname(n.done_by)} hat erledigt: ${n.emoji || ""} ${n.title}`, 4200); haptic(10); }
+        else if (n && n.state === "taken" && n.taken_by && n.taken_by !== me && o.state !== "taken" && !this.seen["t" + n.id + n.taken_at]){ this.seen["t" + n.id + n.taken_at] = 1; say(`${n.emoji || ""} ${pname(n.taken_by)} übernimmt: ${n.title}`, 3600); }
+        again(); })
+        .on("postgres_changes", {event: "*", schema: "public", table: "home_members"}, again).subscribe();
+      setInterval(() => { if (!document.hidden && (this.g || this.sh)) this.load(); }, 90000); document.addEventListener("visibilitychange", () => { if (!document.hidden) this.load(); });
+      document.addEventListener("click", e => { const c = e.target.closest && e.target.closest("[data-hs-yes],[data-hs-no],[data-hs-done],[data-hs-take]"); if (!c) return; e.preventDefault(); e.stopPropagation(); const d = c.dataset;
+        if (d.hsYes || d.hsTake) this.answer(d.hsYes || d.hsTake, true); else if (d.hsNo) this.answer(d.hsNo, false); else this.done(d.hsDone, c); }, true);
+      this.load(); },
+
+    /* ---- the household screen ---- */
+    async open(){ if (!meId() || !sb()) return say("Bitte erst anmelden");
+      const ov = document.createElement("div"); ov.className = "kc-sov hs-ov"; ov.setAttribute("data-notr", ""); ov.lang = "de";
+      ov.innerHTML = `<div class="kc-sovt"><b class="kc-shtt"><span style="font-size:22px">🏠</span><span>Haushalt</span></b><button class="kc-sx" id="hsx">Fertig</button></div><div class="kc-sovb" id="hsb"><p class="muted">Lädt …</p></div>`;
+      document.body.appendChild(ov); document.documentElement.classList.add("kc-sopen"); const body = this.box = ov.querySelector("#hsb"); let closed = false;
+      const vv = window.visualViewport, fit = () => { if (!vv || closed) return; const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop); body.style.paddingBottom = (kb + 24) + "px"; ov.style.transform = vv.offsetTop ? `translateY(${vv.offsetTop}px)` : ""; };
+      if (vv){ vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); fit(); }
+      const close = () => { if (closed) return; closed = true; if (vv){ vv.removeEventListener("resize", fit); vv.removeEventListener("scroll", fit); } try { document.activeElement && document.activeElement.blur(); } catch(e) {} document.documentElement.classList.remove("kc-sopen"); this.sh = null; this.built = false;
+        if (ov.animate){ const an = ov.animate([{opacity: 1}, {opacity: 0}], {duration: 160, easing: "ease-in"}); an.onfinish = () => ov.remove(); } else ov.remove(); };
+      ov.querySelector("#hsx").onclick = close; this.sh = {el: ov, close}; this.built = false; this.form = {emoji: null, who: "turn", rep: 0, img: null, bin: 0};
+      if (ov.animate) ov.animate([{opacity: 0}, {opacity: 1}], {duration: 200, easing: "ease-out"});
+      await this.load();
+      if (!this.g){ const r = await sb().from("home_groups").insert({owner: meId(), name: "Zuhause"}).select().single(); if (r.error){ body.innerHTML = `<p class="muted">Ging nicht: ${h(r.error.message)}</p>`; return; } await this.load(); } },
+    /* the form at the top is built once (typing is never interrupted); the lists below it are redrawn */
+    draw(){ if (!this.sh || !this.g) return; const B = this.box, me = meId(), F = this.form;
+      if (!this.built){ this.built = true; const d0 = new Date(Date.now() + 864e5), iso = d0.getFullYear() + "-" + String(d0.getMonth() + 1).padStart(2, "0") + "-" + String(d0.getDate()).padStart(2, "0");
+        B.innerHTML = `<div id="hsme"></div>
+          <div class="hs-card"><div class="hs-h">Neue Aufgabe</div><input id="hsti" maxlength="80" placeholder="Was ist zu tun? z. B. Küche aufräumen" enterkeyhint="done" autocomplete="off">
+            <div class="kc-chips hs-quick">${this.QUICK.map((q, i) => `<button class="chip" data-q="${i}">${q[0]} ${h(q[1])}</button>`).join("")}</div>
+            <div class="hs-seg" data-seg="who"><button data-v="turn" class="on">Wer dran ist</button><button data-v="all">Alle fragen</button></div>
+            <div class="hs-seg" data-seg="rep"><button data-v="0" class="on">Einmalig</button><button data-v="1">Täglich</button><button data-v="7">Wöchentlich</button><button data-v="14">Alle 2 Wochen</button></div>
+            <div class="hs-row"><label class="btn hs-pic"><input type="file" accept="image/*" id="hsf" hidden>📷 Foto</label><button class="btn go" id="hsadd">Anlegen</button></div><div id="hsprev"></div></div>
+          <div id="hsopen"></div>
+          <div class="hs-card"><div class="hs-h">Müllplan</div><div id="hsaddr"></div><div id="hsplan"></div><div class="hs-h">Termin von Hand</div>
+            <div class="kc-chips hs-bins">${this.BINS.map((b, i) => `<button class="chip ${i === 0 ? "on" : ""}" data-bin="${i}">${b[0]} ${h(b[1])}</button>`).join("")}</div>
+            <div class="hs-row"><input type="date" id="hspd" value="${iso}"><button class="btn go" id="hspadd">Termin eintragen</button></div></div>
+          <div class="hs-card"><div class="hs-h">Wer hat wie viel gemacht · 30 Tage</div><div id="hsstat"></div></div>
+          <div class="hs-card"><div class="hs-h">Wer wohnt hier</div><div id="hsmem"></div></div>`;
+        const q = x => B.querySelector(x), ti = q("#hsti");
+        B.querySelectorAll("[data-q]").forEach(b => b.onclick = () => { const Q = this.QUICK[+b.dataset.q]; ti.value = Q[1]; F.emoji = Q[0]; haptic(6); });
+        ti.oninput = () => { F.emoji = null; };
+        B.querySelectorAll(".hs-seg").forEach(sg => sg.querySelectorAll("button").forEach(b => b.onclick = () => { sg.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); F[sg.dataset.seg] = sg.dataset.seg === "rep" ? +b.dataset.v : b.dataset.v; haptic(6); }));
+        B.querySelectorAll("[data-bin]").forEach(b => b.onclick = () => { F.bin = +b.dataset.bin; B.querySelectorAll("[data-bin]").forEach(x => x.classList.toggle("on", x === b)); haptic(6); });
+        /* a photo is shrunk on the phone (longest side 900 px, JPEG) so it fits into the task */
+        q("#hsf").onchange = e => { const f = e.target.files && e.target.files[0]; if (!f) return; const im = new Image(), url = URL.createObjectURL(f); im.onload = () => { const k = Math.min(1, 900 / Math.max(im.width, im.height)), c = document.createElement("canvas"); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+            let d = c.toDataURL("image/jpeg", .55); if (d.length > 380000) d = c.toDataURL("image/jpeg", .3); URL.revokeObjectURL(url); if (d.length > 380000) return say("Das Bild ist zu groß"); F.img = d; q("#hsprev").innerHTML = `<div class="hs-prev"><img src="${d}" alt=""><button class="btn sm" id="hsrm">Entfernen</button></div>`; q("#hsrm").onclick = () => { F.img = null; q("#hsprev").innerHTML = ""; }; };
+          im.onerror = () => say("Das Bild ließ sich nicht lesen"); im.src = url; };
+        const add = async () => { const t = ti.value.trim(); if (!t){ ti.focus(); return say("Schreib kurz, was zu tun ist"); } const b = q("#hsadd"); b.disabled = true;
+          const r = await sb().from("home_tasks").insert({group_id: this.g.id, title: t.slice(0, 80), emoji: F.emoji || this.emojiFor(t), kind: F.rep ? "repeat" : "once", every_days: F.rep || null, everyone: F.who === "all", img: F.img, created_by: me}); b.disabled = false;
+          if (r.error) return say("Ging nicht: " + r.error.message); ti.value = ""; F.emoji = null; F.img = null; q("#hsprev").innerHTML = ""; try { ti.blur(); } catch(e) {} haptic([10, 30, 10]);
+          say(this.people().length < 2 ? "Angelegt ✓" : F.who === "all" ? "Alle werden gefragt ✓" : "Wer dran ist, wird gefragt ✓"); this.load(); };
+        q("#hsadd").onclick = add; ti.onkeydown = e => { if (e.key === "Enter"){ e.preventDefault(); add(); } };
+        q("#hspadd").onclick = async () => { const v = q("#hspd").value, m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v); if (!m) return say("Wähl ein Datum"); const bin = this.BINS[F.bin];
+          const due = new Date(+m[1], +m[2] - 1, +m[3], 6, 0, 0), ask = new Date(+m[1], +m[2] - 1, +m[3] - 1, 17, 0, 0); if (due.getTime() < Date.now() - 12 * 3600e3) return say("Der Tag ist schon vorbei");
+          const r = await sb().from("home_tasks").insert({group_id: this.g.id, title: bin[1], emoji: bin[0], kind: "plan", due_at: due.toISOString(), ask_at: new Date(Math.max(ask.getTime(), Date.now())).toISOString(), created_by: me});
+          if (r.error) return say("Ging nicht: " + r.error.message); haptic(10); say(`${bin[0]} ${bin[1]} · ${this.day(due)} eingetragen ✓`); this.load(); }; }
+      const set = (id, x) => { const el = B.querySelector(id); if (el && el._x !== x){ el._x = x; el.innerHTML = x; } }, mine = t => t.created_by === me || this.g.owner === me;
+      const status = t => t.state === "taken" ? `${this.who(t.taken_by)} ${t.taken_by === me ? "machst" : "macht"} das` : t.state === "asked" ? `${this.who(t.asked)} ${t.asked === me ? "bist" : "ist"} gefragt` : t.state === "open" ? "Alle sind gefragt" : "Gefragt wird " + this.day(t.ask_at) + ", " + new Date(t.ask_at).toLocaleTimeString("de-DE", {hour: "2-digit", minute: "2-digit"}) + " Uhr";
+      const row = t => `<div class="hs-t"><span class="hs-e">${h(t.emoji)}</span><span class="hs-tx">${h(t.title)}<small>${h([this.when(t), status(t)].filter(Boolean).join(" · "))}</small></span>${t.state === "taken" && t.taken_by === me ? `<button class="btn sm go" data-hs-done="${h(t.id)}">Erledigt ✓</button>` : t.state === "taken" ? "" : `<button class="btn sm" data-hs-take="${h(t.id)}">Ich mach's</button>`}${mine(t) ? `<button class="hs-del" data-del="${h(t.id)}" aria-label="Löschen">✕</button>` : ""}</div>`;
+      const a = this.asks(), d = this.todos();
+      set("#hsme", !this.mem.length && this.g.owner === me ? `<div class="hs-hint">Noch wohnst du hier allein. Füg unten deine Mitbewohner hinzu, dann werden Aufgaben reihum verteilt.</div>` : "");
+      const open = this.tasks.filter(t => t.kind !== "plan"), plan = this.tasks.filter(t => t.kind === "plan").sort((x, y) => Date.parse(x.due_at) - Date.parse(y.due_at));
+      set("#hsopen", `<div class="hs-card"><div class="hs-h">Aufgaben${open.length ? " · " + open.length : ""}</div>${open.map(row).join("") || `<p class="muted">Gerade ist nichts offen.</p>`}</div>`);
+      set("#hsaddr", this.g.ort && this.g.strasse ? `<div class="hs-adr"><span><b>📍 ${h(this.g.strasse)}, ${h(this.g.ort)}</b><small>Die Abholtermine kommen von selbst.</small></span>${this.g.owner === me ? `<button class="btn sm" data-addr>Ändern</button>` : ""}</div>`
+        : this.g.owner === me ? `<button class="btn go" data-addr>📍 Adresse eintragen, Termine kommen von selbst</button><p class="muted hs-sm">Geht für den Landkreis Freising. Sonst trag die Termine unten von Hand ein.</p>` : "");
+      const ad = B.querySelector("[data-addr]"); if (ad) ad.onclick = () => this.addr();
+      set("#hsplan", plan.map(row).join("") || `<p class="muted">Noch keine Termine. Am Abend vor jeder Abholung um 17 Uhr wird gefragt, wer die Tonne rausstellt.</p>`);
+      const P = this.people(), cnt = P.map(u => ({u, n: this.log.filter(l => l.user_id === u && l.what === "done").length, p: this.log.filter(l => l.user_id === u && l.what !== "done").length})).sort((x, y) => y.n - x.n), mx = Math.max(1, ...cnt.map(c => c.n));
+      set("#hsstat", cnt.map(c => `<div class="hs-st"><span class="hs-sn">${h(this.who(c.u))}</span><span class="hs-bar"><i style="width:${Math.round(c.n / mx * 100)}%"></i></span><b>${c.n}</b>${c.p ? `<small>${c.p}× abgegeben</small>` : ""}</div>`).join("")
+        + (this.log.filter(l => l.what === "done").slice(0, 6).map(l => `<div class="hs-lg">${h(l.emoji || "✅")} ${h(this.who(l.user_id))}: ${h(l.title)} <small>${h(this.day(l.at))}</small></div>`).join("")));
+      set("#hsmem", `<div class="hs-who">${P.map(u => `<span class="chip">${h(this.who(u))}${u === this.g.owner ? " · Gründer" : ""}</span>`).join("")}</div>${this.g.owner === me ? `<button class="btn" data-share>Mitbewohner hinzufügen</button>` : `<button class="btn" data-leave>Haushalt verlassen</button>`}`);
+      B.querySelectorAll("[data-del]").forEach(b => b.onclick = async e => { e.stopPropagation(); const r = await sb().from("home_tasks").delete().eq("id", b.dataset.del); if (r.error) return say("Ging nicht: " + r.error.message); haptic(8); this.load(); });
+      const sh = B.querySelector("[data-share]"); if (sh) sh.onclick = () => this.share(); const lv = B.querySelector("[data-leave]"); if (lv) lv.onclick = async () => { await sb().from("home_members").delete().eq("group_id", this.g.id).eq("user_id", me); this.sh.close(); this.load(); }; },
+    /* the address, on a screen of its own with the one field at the very top (so the keyboard never covers it): first the town,
+       then the street, each picked from the district's own list; then the dates come in by themselves */
+    addr(){ const ov = document.createElement("div"); ov.className = "kc-sov hs-ov"; ov.style.zIndex = 310; ov.setAttribute("data-notr", ""); ov.lang = "de";
+      ov.innerHTML = `<div class="kc-sovt"><b class="kc-shtt"><span style="font-size:22px">📍</span><span id="hsat">In welchem Ort?</span></b><button class="kc-sx" id="hsax">Abbrechen</button></div><div class="hs-abar"><input id="hsai" maxlength="80" placeholder="Ort suchen …" enterkeyhint="search" autocomplete="off" autocorrect="off"></div><div class="kc-sovb" id="hsal"><p class="muted">Lädt …</p></div>`;
+      document.body.appendChild(ov); const inp = ov.querySelector("#hsai"), list = ov.querySelector("#hsal"); let all = [], ort = null, closed = false;
+      const vv = window.visualViewport, fit = () => { if (!vv || closed) return; const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop); list.style.paddingBottom = (kb + 24) + "px"; ov.style.transform = vv.offsetTop ? `translateY(${vv.offsetTop}px)` : ""; };
+      if (vv){ vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); fit(); }
+      const close = () => { if (closed) return; closed = true; if (vv){ vv.removeEventListener("resize", fit); vv.removeEventListener("scroll", fit); } try { inp.blur(); } catch(e) {} if (ov.animate){ const an = ov.animate([{opacity: 1}, {opacity: 0}], {duration: 160, easing: "ease-in"}); an.onfinish = () => ov.remove(); } else ov.remove(); };
+      ov.querySelector("#hsax").onclick = close; if (ov.animate) ov.animate([{opacity: 0}, {opacity: 1}], {duration: 200, easing: "ease-out"});
+      const norm = t => t.toLowerCase().replace(/ß/g, "ss").replace(/str\.?(\s|$)/g, "strasse$1").replace(/[^a-z0-9äöü]/g, "");
+      const draw = () => { const q = norm(inp.value), L = all.filter(x => !q || norm(x).includes(q)).sort((a, b) => (norm(b).startsWith(q) ? 1 : 0) - (norm(a).startsWith(q) ? 1 : 0)).slice(0, 60);
+        list.innerHTML = L.map(x => `<button class="hs-ai" data-v="${h(x)}">${h(x)}</button>`).join("") || `<p class="muted">${all.length ? "Nichts gefunden. Der Plan geht nur für den Landkreis Freising." : "Lädt …"}</p>`;
+        list.querySelectorAll("[data-v]").forEach(b => b.onclick = () => pick(b.dataset.v)); };
+      const get = async qs => { const r = await fetch("/api/muell" + qs); const j = await r.json(); if (!r.ok) throw new Error(j.error || "HTTP " + r.status); return j; };
+      const fail = e => { list.innerHTML = `<p class="muted">Die Termine sind gerade nicht erreichbar (${h(e.message || String(e))}). Probier es später nochmal oder trag sie von Hand ein.</p>`; };
+      const pick = async v => { haptic(8); if (!ort){ ort = v; all = []; inp.value = ""; inp.placeholder = "Straße suchen …"; ov.querySelector("#hsat").textContent = "Welche Straße in " + v + "?"; draw(); try { inp.focus(); } catch(e) {}
+          try { all = (await get("?ort=" + encodeURIComponent(v))).strassen || []; draw(); } catch(e) { fail(e); } return; }
+        list.innerHTML = `<p class="muted">Hole die Termine …</p>`; const r = await sb().from("home_groups").update({ort, strasse: v}).eq("id", this.g.id); if (r.error){ say("Ging nicht: " + r.error.message); return close(); }
+        this.g.ort = ort; this.g.strasse = v; const n = await this.sync(); close(); if (n >= 0) say(n ? `📍 ${n} Abholtermine eingetragen ✓` : "📍 Adresse gespeichert, alle Termine sind schon drin ✓", 3600); this.load(); };
+      inp.oninput = draw; inp.onkeydown = e => { if (e.key === "Enter"){ e.preventDefault(); const b = list.querySelector("[data-v]"); if (b) b.click(); } };
+      try { inp.focus(); } catch(e) {} /* the keyboard opens right away: one tap less */
+      get("").then(j => { all = j.orte || []; draw(); }, fail); },
+    /* the collections of the next eight weeks for the saved address, entered as plan tasks (what is already there is left alone) */
+    FRAK: {restabfall: ["⚫", "Schwarze Tonne"], restmüll: ["⚫", "Schwarze Tonne"], "gelber sack": ["🟡", "Gelber Sack"], "gelbe tonne": ["🟡", "Gelbe Tonne"], bio: ["🟤", "Biotonne"], bioabfall: ["🟤", "Biotonne"], papier: ["🔵", "Papiertonne"]},
+    async sync(){ const g = this.g; if (!g || !g.ort || !g.strasse || this.syncing) return -1; this.syncing = true;
+      try { const r = await fetch("/api/muell?ort=" + encodeURIComponent(g.ort) + "&strasse=" + encodeURIComponent(g.strasse)), j = await r.json(); if (!r.ok) throw new Error(j.error || "HTTP " + r.status);
+        const lim = Date.now() + 56 * 864e5, have = await sb().from("home_tasks").select("title,due_at").eq("group_id", g.id).eq("kind", "plan").gte("due_at", new Date(Date.now() - 864e5).toISOString()), seen = {}; (have.data || []).forEach(x => { seen[x.title + "|" + new Date(x.due_at).toDateString()] = 1; });
+        const rows = []; for (const t of j.termine || []){ const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(t.d); if (!m) continue; const due = new Date(+m[1], +m[2] - 1, +m[3], 6, 0, 0), ask = new Date(+m[1], +m[2] - 1, +m[3] - 1, 17, 0, 0); if (due.getTime() > lim || due.getTime() < Date.now()) continue;
+          const F = (t.was || []).map(w => this.FRAK[String(w).toLowerCase()] || ["🗑️", String(w)]), title = F.map(f => f[1]).join(" + ").slice(0, 80); if (!title || seen[title + "|" + due.toDateString()]) continue;
+          rows.push({group_id: g.id, title, emoji: F.length === 1 ? F[0][0] : "🗑️", note: t.zusatz ? String(t.zusatz).slice(0, 300) : null, kind: "plan", due_at: due.toISOString(), ask_at: new Date(Math.max(ask.getTime(), Date.now())).toISOString(), created_by: meId()}); }
+        let n = 0; if (rows.length){ const ins = await sb().from("home_tasks").insert(rows); if (!ins.error) n = rows.length; else for (const x of rows){ const one = await sb().from("home_tasks").insert(x); if (!one.error) n++; } }
+        try { localStorage.setItem("chessnat-muell", String(Date.now())); } catch(e) {} return n; }
+      catch(e) { return -1; } finally { this.syncing = false; } },
+    /* the founder picks who lives here from their friends */
+    share(){ const me = meId(), fr = (typeof Social !== "undefined" ? Social.data.friends : []).filter(r => r.status === "accepted").map(r => r.a === me ? r.b : r.a), id = this.g.id;
+      const s2 = detailSheet(`<div class="kc-shop" data-notr><h3>Wer wohnt hier?</h3>${fr.length ? `<div class="kc-fr">${fr.map(f => `<div class="kc-frr"><span class="kc-av">${avatar(f)}</span><span class="kc-frm"><b>${h(pname(f))}</b></span><button class="btn sm ${this.mem.includes(f) ? "" : "go"}" data-m="${h(f)}">${this.mem.includes(f) ? "Dabei ✓" : "Hinzufügen"}</button></div>`).join("")}</div>` : `<p class="muted">Füg erst unter Freunde jemanden hinzu.</p>`}<button class="btn go big" data-dclose style="margin-top:10px">Fertig</button></div>`, () => this.load()); s2.el.style.zIndex = 320;
+      s2.el.querySelectorAll("[data-m]").forEach(b => b.onclick = async () => { const f = b.dataset.m, on = this.mem.includes(f); b.disabled = true;
+        const r = on ? await sb().from("home_members").delete().eq("group_id", id).eq("user_id", f) : await sb().from("home_members").insert({group_id: id, user_id: f}); b.disabled = false; if (r.error) return say("Ging nicht: " + r.error.message);
+        this.mem = on ? this.mem.filter(x => x !== f) : this.mem.concat(f); b.textContent = on ? "Hinzufügen" : "Dabei ✓"; b.classList.toggle("go", on); haptic(8); }); } };
+  (function w(n){ try { if (meId() && sb()) return Haus.watch(); } catch(e) {} if (n < 90) setTimeout(() => w(n + 1), 2000); })(0);
+  try { window.Haus = Haus; } catch(e) {}
   Views.kcal = {
     tab: "today", sel: null,
     mount(main, arg){
@@ -1426,14 +1586,14 @@
     wireMeals(el){ el.querySelectorAll("[data-meal]").forEach(b => b.onclick = () => { const m = K.meals.find(x => x.id === b.dataset.meal); if (m) mealSheet(m); }); },
     today(el){
       const t = today(), g = K.goal(), eaten = K.dayKcal(t), lit = eaten >= g, miss = g - eaten, i = !lit ? idea(miss) : null;
-      el.innerHTML = `<div class="unit kc-sum">${sumHTML(t, false)}
+      el.innerHTML = `<div id="hsslot" data-notr></div><div class="unit kc-sum">${sumHTML(t, false)}
         <div class="kc-btns two"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 32)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 32)}<span>Barcode</span></button></div>
         <button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Lebensmittel suchen …</span></button>
-        <div class="kc-btns two"><button class="kc-tile shop" id="kcshop">${svg(IC.list, 24)}<span><b>Einkaufsliste</b><small>mit Freunden</small></span></button><button class="kc-tile cook" id="kccook">${svg(IC.chef, 24)}<span><b>Kochen</b><small>Was hast du da?</small></span></button></div>
+        <div class="kc-btns two"><button class="kc-tile shop" id="kcshop">${svg(IC.list, 24)}<span><b>Einkaufsliste</b><small>mit Freunden</small></span></button><button class="kc-tile cook" id="kccook">${svg(IC.chef, 24)}<span><b>Kochen</b><small>Was hast du da?</small></span></button><button class="kc-tile haus" id="kchaus" data-notr><span class="hs-ti">🏠</span><span><b>Haushalt</b><small id="hsnext">Müllplan &amp; Aufgaben</small></span></button></div>
         ${setupCard()}</div>
         <div class="kc-lh"><span>Heute</span>${heads()}</div>${this.dayBlock(t)}
         <button class="kc-link" id="kcmanual">${svg(IC.plus, 15)} Selbst eintragen</button>
-        ${(q => q ? `<div class="unit kc-sum kc-sugg">${q}</div>` : "")(quickHTML())}`; el.querySelector("#kcshop").onclick = () => Shop.open(); el.querySelector("#kccook").onclick = () => Cook.open();
+        ${(q => q ? `<div class="unit kc-sum kc-sugg">${q}</div>` : "")(quickHTML())}`; el.querySelector("#kcshop").onclick = () => Shop.open(); el.querySelector("#kccook").onclick = () => Cook.open(); el.querySelector("#kchaus").onclick = () => Haus.open(); Haus.paint();
       wireDay(el); animSum(el); el.querySelector("#kcmanual").onclick = () => manual();
       this.wireMeals(el);
     },
@@ -1572,7 +1732,28 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-btns.two{grid-template-columns:1fr 1fr;gap:10px}
 .kc-tile{display:flex;align-items:center;gap:8px;height:76px;padding:0 12px;border:0;border-radius:20px;color:#fff;text-align:left;cursor:pointer;min-width:0;-webkit-tap-highlight-color:transparent}
 .kc-tile svg{flex:none}.kc-tile span{display:flex;flex-direction:column;min-width:0}.kc-tile b{font:900 16px var(--display);white-space:nowrap}.kc-tile small{font:700 11.5px var(--body);opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.kc-tile.shop{background:#D9952A;box-shadow:inset 0 -5px 0 #A86E16}.kc-tile.cook{background:#E0694E;box-shadow:inset 0 -5px 0 #B04A32}
+.kc-tile.shop{background:#D9952A;box-shadow:inset 0 -5px 0 #A86E16}
+.kc-tile.haus{grid-column:1/-1;height:64px;background:#3B8C88;box-shadow:inset 0 -5px 0 #276562}.hs-ti{font-size:24px;line-height:1}
+#hsslot{display:flex;flex-direction:column;gap:8px}#hsslot:empty{display:none}#hsslot:not(:empty){margin-bottom:10px}
+.hs-ask,.hs-todo,.hs-t{display:flex;align-items:center;gap:10px;min-width:0}
+.hs-ask{padding:10px 12px;border-radius:16px;background:rgba(59,140,136,.22);box-shadow:inset 0 0 0 1.5px rgba(96,196,190,.55);animation:hsIn .35s cubic-bezier(.2,.8,.2,1)}
+.hs-todo{width:100%;padding:12px;border:0;border-radius:16px;background:var(--panel-2);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.1);color:var(--fg);text-align:left;cursor:pointer;animation:hsIn .35s cubic-bezier(.2,.8,.2,1);transition:opacity .4s,transform .4s}
+.hs-todo.ok{opacity:.5;transform:scale(.98)}.hs-todo.ok .hs-tx{text-decoration:line-through}
+.hs-box{width:26px;height:26px;border-radius:8px;box-shadow:inset 0 0 0 2.5px var(--muted);flex:none;transition:background .2s,box-shadow .2s;position:relative}
+.hs-todo.ok .hs-box{background:var(--go);box-shadow:none}.hs-todo.ok .hs-box::after{content:"";position:absolute;left:9px;top:4px;width:6px;height:12px;border:solid #fff;border-width:0 3px 3px 0;transform:rotate(45deg)}
+@keyframes hsIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.hs-e{font-size:22px;flex:none}.hs-tx{flex:1;min-width:0;display:flex;flex-direction:column;font:800 15px var(--body);overflow-wrap:anywhere}.hs-tx b{font:900 11px var(--body);letter-spacing:.06em;text-transform:uppercase;color:#7FD6D0}.hs-tx small{font:700 12px var(--body);color:var(--muted)}
+.hs-card{background:var(--panel);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px}.hs-h{font:900 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.hs-card input:not([type=file]){width:100%;box-sizing:border-box;padding:13px;border-radius:14px;border:2px solid var(--line);background:#2A2825;color:var(--fg);font:700 16px var(--body)}
+.hs-row{display:flex;gap:8px;align-items:center}.hs-row .btn{flex:1}.hs-row input[type=date]{flex:1.2;min-width:0}
+.hs-seg{display:flex;background:#2A2825;border-radius:12px;padding:3px;gap:3px}.hs-seg button{flex:1;border:0;border-radius:9px;padding:9px 4px;background:none;color:var(--muted);font:800 12.5px var(--body);cursor:pointer}.hs-seg button.on{background:var(--go);color:#fff}
+.hs-t{padding:8px 0;border-top:1px solid rgba(255,255,255,.07)}.hs-t:first-of-type{border-top:0}.hs-del{border:0;background:none;color:var(--muted);font-size:15px;padding:8px 4px;cursor:pointer;flex:none}
+.hs-prev{display:flex;gap:8px;align-items:flex-start}.hs-prev img{width:96px;border-radius:10px}.hs-img{width:100%;max-height:38vh;object-fit:cover;border-radius:14px}
+.hs-st{display:flex;align-items:center;gap:8px;font:800 14px var(--body)}.hs-sn{width:84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hs-bar{flex:1;height:10px;border-radius:5px;background:#2A2825;overflow:hidden}.hs-bar i{display:block;height:100%;background:var(--go);border-radius:5px;transition:width .6s}.hs-st small{font:700 11px var(--body);color:var(--muted)}
+.hs-lg{font:700 13px var(--body);color:var(--muted)}.hs-sm{font-size:12.5px;margin:0}
+.hs-adr{display:flex;align-items:center;gap:10px}.hs-adr span{flex:1;min-width:0;display:flex;flex-direction:column;font:700 15px var(--body)}.hs-adr small{font:700 12px var(--body);color:var(--muted)}
+.hs-abar{padding:10px 0 4px}.hs-abar input{width:100%;box-sizing:border-box;padding:14px;border-radius:14px;border:2px solid var(--line);background:#2A2825;color:var(--fg);font:700 17px var(--body)}
+.hs-ai{display:block;width:100%;text-align:left;border:0;border-radius:12px;padding:14px;background:var(--panel);color:var(--fg);font:800 16px var(--body);cursor:pointer;flex:none}.hs-who{display:flex;flex-wrap:wrap;gap:6px}.hs-hint{padding:12px;border-radius:14px;background:rgba(59,140,136,.2);font:700 14px var(--body)}.kc-tile.cook{background:#E0694E;box-shadow:inset 0 -5px 0 #B04A32}
 .kc-tile:active{transform:translateY(2px);box-shadow:inset 0 -2px 0 rgba(0,0,0,.3)}.kc-btns.two .kc-big{height:112px;font-size:19px;border-radius:22px}
 .kc-num em{margin-left:auto;align-self:center;font:900 13px var(--body);color:var(--muted);background:var(--panel-2);border-radius:999px;padding:4px 10px;font-style:normal}.kc-num em.ok{color:#fff;background:linear-gradient(180deg,#ff9a3c,#e9573f)}.kc-num{width:100%}
 .kc-mac{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.kc-mc{background:var(--panel-2);border-radius:14px;padding:8px 10px;display:flex;flex-direction:column;gap:3px;min-width:0}
