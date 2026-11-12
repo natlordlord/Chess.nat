@@ -15,7 +15,7 @@ home_tasks|id|id:uuid:!:@uuid ; group_id:uuid:!: ; title:text:!: ; emoji:text:!:
 home_thanks|task_id,user_id|task_id:uuid:!: ; user_id:uuid:!:@uid ; created_at:timestamptz:!:@now
 chess_ideas|id|id:uuid:!:@uuid ; user_id:uuid:!:@uid ; name:text:?: ; title:text:!: ; body:text:?: ; status:text:!:open ; created_at:timestamptz:!:@now
 chess_idea_votes|idea_id,user_id|idea_id:uuid:!: ; user_id:uuid:!:@uid ; created_at:timestamptz:!:@now
-kcal_own_products|id|id:uuid:!:@uuid ; user_id:uuid:!:@uid ; code:text:!: ; name:text:!: ; brand:text:!: ; unit:text:!:g ; k:numeric:!: ; c:numeric:!: ; p:numeric:!: ; f:numeric:!: ; fi:numeric:!:0 ; su:numeric:!:0 ; sf:numeric:!:0 ; sa:numeric:!:0 ; img:text:?: ; status:text:!:new ; created_at:timestamptz:!:@now
+kcal_own_products|id|id:uuid:!:@uuid ; user_id:uuid:!:@uid ; author:text:?: ; code:text:!: ; name:text:!: ; brand:text:!: ; unit:text:!:g ; k:numeric:!: ; c:numeric:!: ; p:numeric:!: ; f:numeric:!: ; fi:numeric:!:0 ; su:numeric:!:0 ; sf:numeric:!:0 ; sa:numeric:!:0 ; img:text:?: ; status:text:!:new ; created_at:timestamptz:!:@now
 home_log|id|id:int8:!:@identity ; group_id:uuid:!: ; task_id:uuid:?: ; title:text:!: ; emoji:text:?: ; user_id:uuid:!: ; what:text:!: ; at:timestamptz:!:@now
 chess_now|user_id|user_id:uuid:!:@uid ; what:jsonb:!: ; updated_at:timestamptz:!:@now
 chess_friends|a,b|a:uuid:!: ; b:uuid:!: ; requested_by:uuid:!: ; status:text:!:'pending' ; created_at:timestamptz:!:@now

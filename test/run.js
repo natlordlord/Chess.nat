@@ -171,6 +171,15 @@ const PARTS = {
       await page.evaluate(() => localStorage.removeItem("chessnat-off-4999999999993"));
       await page.tap("#main [data-kc-scan]"); await page.waitForSelector("#kccode", {timeout: 6000}).catch(() => {}); await page.fill("#kccode", "4999999999993"); await page.locator("#kcman button").tap(); await page.waitForSelector("#kcadd", {timeout: 6000}).catch(() => {});
       ok(/Skyr/.test(await txt(page, ".dsheet")), "nochmal gescannt: wird ohne Foto gefunden", (await txt(page, ".dsheet")).slice(0, 120)); }
+    /* everybody else gets it too, at once: by its barcode and in the search, with the name of who photographed it */
+    { const b2 = await L.open(browser, "mila");
+      await b2.tap("#main [data-kc-scan]"); await b2.waitForSelector("#kccode", {timeout: 6000}).catch(() => {}); await b2.fill("#kccode", "4999999999993"); await b2.locator("#kcman button").tap(); await b2.waitForSelector("#kcadd", {timeout: 6000}).catch(() => {});
+      ok(/Skyr/.test(await txt(b2, ".dsheet")) && /76 kcal/.test(await txt(b2, ".dsheet")), "Foto-Produkt: eine andere Person findet es per Barcode, ohne selbst zu fotografieren", (await txt(b2, ".dsheet")).slice(0, 160));
+      await closeSheets(b2); if (await has(b2, ".kc-scanov, .kc-ov-full")) await b2.evaluate(() => document.querySelectorAll(".kc-ov-full [data-x], .kc-ov-full .kc-x").forEach(x => x.click()));
+      await b2.tap("[data-kc-find]"); await b2.waitForSelector("#kcq", {timeout: 6000}).catch(() => {});
+      await b2.fill("#kcq", "Skyr Vanille"); await sleep(1800);
+      const hit = await txt(b2, "#kcsr"); ok(/Milbona Skyr Vanille/.test(hit) && /Foto von Nat Tester/.test(hit), "Foto-Produkt: steht bei anderen in der Suche, mit dem Namen des Fotografen", hit.slice(0, 300)); await b2.shot("kcal-foto-suche");
+      await clean(b2, "Foto-Produkt für alle"); await b2.context().close(); }
     await closeSheets(page); if (await has(page, ".kc-scanov, .kc-ov-full")) await page.evaluate(() => document.querySelectorAll(".kc-ov-full [data-x], .kc-ov-full .kc-x").forEach(b => b.click()));
     await clean(page, "Etikett");
 

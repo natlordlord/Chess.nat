@@ -72,7 +72,7 @@ module.exports = db => {
     home_plan_wishes: {insert: (r, u) => r.user_id === u},
     chess_ideas: {select: () => true, insert: (r, u) => r.user_id === u},
     chess_idea_votes: {select: () => true, insert: (r, u) => r.user_id === u, delete: (r, u) => r.user_id === u},
-    kcal_own_products: {select: (r, u) => r.user_id === u || r.status === "ok", insert: (r, u) => r.user_id === u && r.status === "new", update: (r, u) => r.user_id === u},
+    kcal_own_products: {select: (r, u) => r.user_id === u || r.status !== "bad", insert: (r, u) => r.user_id === u && r.status === "new", update: (r, u) => r.user_id === u},
     home_thanks: {select: (r, u) => R.home_tasks.some(t => t.id === r.task_id && homeCan(u, t.group_id)), insert: (r, u) => r.user_id === u && R.home_tasks.some(t => t.id === r.task_id && homeCan(u, t.group_id) && t.state === "done" && t.done_by !== u)},
     chess_now: {select: (r, u) => r.user_id === u || friends(r.user_id, u), insert: (r, u) => r.user_id === u, update: {using: (r, u) => r.user_id === u, check: (r, u) => r.user_id === u}, delete: (r, u) => r.user_id === u},
     chess_friends: {select: (r, u) => r.a === u || r.b === u, delete: (r, u) => r.a === u || r.b === u, insert: (r, u) => r.requested_by === u && r.status === "pending",
@@ -124,6 +124,8 @@ module.exports = db => {
     kcal_meals: (op, n, o) => kcalRecalc((n || o).user_id),
     /* private.kcal_recipe_stamp: who published it comes from the players table, never from the phone */
     kcal_recipes: (op, n) => { if (n){ const p = R.chess_players.find(x => x.id === n.user_id); n.author = (p && p.name) || "A friend"; } },
+    /* private.kcal_own_stamp: who photographed it comes from the players table */
+    kcal_own_products: (op, n) => { if (n){ const p = R.chess_players.find(x => x.id === n.user_id); n.author = (p && p.name) || "A friend"; } },
     kcal_profile: (op, n, o) => { if (op === "INSERT" || (op === "UPDATE" && n.goal !== o.goal)) kcalRecalc(n.user_id); }
   };
 
