@@ -75,7 +75,7 @@ h1 b,h2 b{color:var(--go-hi)}
 /* S0 Hook */
 #s0{justify-content:center;background:radial-gradient(90% 60% at 50% 10%,rgba(127,178,74,.3),transparent 60%),var(--stage)}
 #s0 .pawn{width:380px;height:380px;margin:0 auto;filter:drop-shadow(0 30px 60px rgba(0,0,0,.6))}
-.on #s0-t1{animation:rise .6s var(--ease) .2s forwards}
+#s0.on #s0-t1{animation:rise .6s var(--ease) .2s forwards}
 #s0 .who{display:flex;align-items:center;gap:24px;background:rgba(0,0,0,.3);border-radius:30px;padding:26px 30px}
 #s0 .who .av{width:96px;height:96px;border-radius:26px;background:var(--info);display:grid;place-items:center;font:900 44px var(--display);color:#fff;overflow:hidden;flex:none}
 #s0 .who .av svg{width:100%;height:100%}
@@ -261,14 +261,14 @@ h1 b,h2 b{color:var(--go-hi)}
 /* S9 Kostenlos */
 #s9{background:var(--go);color:#fff;justify-content:center;align-items:center;text-align:center}
 #s9 .zero{font:900 560px/0.85 var(--display);letter-spacing:-.06em;transform:scale(0);color:#fff;text-shadow:0 30px 0 var(--go-deep)}
-.on #s9 .zero{animation:zero .7s var(--ease) .2s forwards}
+#s9.on .zero{animation:zero .7s var(--ease) .2s forwards}
 @keyframes zero{from{transform:scale(0) rotate(-20deg)}70%{transform:scale(1.1) rotate(3deg)}to{transform:scale(1) rotate(0)}}
 #s9 .eur{font:900 150px var(--display);margin-top:-40px}
 #s9 .strike{display:grid;gap:10px;font:800 38px var(--display);color:rgba(255,255,255,.85)}
 #s9 .strike span{text-decoration:line-through;text-decoration-thickness:6px;text-decoration-color:#1E1C1A;opacity:0}
-.on #s9 .strike span{animation:rise .4s var(--ease) var(--d) forwards}
+#s9.on .strike span{animation:rise .4s var(--ease) var(--d) forwards}
 #s9 .no{font:900 54px var(--display);color:#1E1C1A;opacity:0}
-.on #s9 .no{animation:rise .5s var(--ease) 2.2s forwards}
+#s9.on .no{animation:rise .5s var(--ease) 2.2s forwards}
 
 /* S10 CTA */
 #s10{background:radial-gradient(100% 60% at 50% 100%,rgba(127,178,74,.35),transparent 60%),var(--stage);justify-content:flex-end;padding-bottom:140px}
@@ -297,7 +297,7 @@ h1 b,h2 b{color:var(--go-hi)}
 #start .logo svg{width:70px;height:70px}
 #start .logo b{color:var(--go-hi)}
 #start.gone{display:none}
-@media (prefers-reduced-motion:reduce){.on .rise,.on .vote,.on .fr,.on .role,.on .phones i,.on .rank,.on .cook,.on .founder,.on .match,.on .miniboard,.on #s9 .strike span,.on #s9 .no{animation:none;opacity:1;transform:none}.on .sticker,.on .brill,.on .tag,.on .build,.on .macro .chk,.on #s9 .zero{animation:none;transform:none}#start .play,.on .cta,.on .trophy{animation:none}}
+@media (prefers-reduced-motion:reduce){.on .rise,.on .vote,.on .fr,.on .role,.on .phones i,.on .rank,.on .cook,.on .founder,.on .match,.on .miniboard,#s9.on .strike span,#s9.on .no{animation:none;opacity:1;transform:none}.on .sticker,.on .brill,.on .tag,.on .build,.on .macro .chk,#s9.on .zero{animation:none;transform:none}#start .play,.on .cta,.on .trophy{animation:none}}
 </style>
 </head>
 <body>
