@@ -11630,13 +11630,16 @@ function boot(){
   /* the first screen only once the saved sign-in is back (usually a few ms, never more than 0.35 s; after that the saved sign-in stands in):
      so it opens with your calorie card, your tips and no "save your progress" box that vanishes again */
   const site = window.ChessSite; let went = false;
-  const first = () => { if (went) return; went = true; document.documentElement.classList.remove("booting"); if (!App.view) firstRoute(); };
+  /* the invite film (?ref=<handle>#invite) starts in any case once the app stands, even if some screen was opened before the first route */
+  const wantInvite = (location.hash || "") === "#invite";
+  const startInvite = () => { if (!wantInvite || typeof Invite === "undefined" || document.querySelector(".inv")) return; let r = ""; try { r = new URLSearchParams(location.search).get("ref") || localStorage.getItem("chessnat-ref") || ""; } catch(e) {} if (!App.view) App.go("home"); Invite.start(r); };
+  const first = () => { if (went) return; went = true; document.documentElement.classList.remove("booting"); if (!App.view) firstRoute(); startInvite(); };
   if (site && site.ready && site.sessionReady && !site.getSession()){ document.documentElement.classList.add("booting"); site.sessionReady.then(() => setTimeout(first, 0), first); setTimeout(first, 350); }
   else first();
   function firstRoute(){
     const h = (location.hash || "").slice(1);
     /* the invite film (?ref=<handle>#invite): the app loads underneath, the film runs on top and hands over at the end */
-    if (h === "invite" && typeof Invite !== "undefined"){ App.go("home"); let r = ""; try { r = new URLSearchParams(location.search).get("ref") || localStorage.getItem("chessnat-ref") || ""; } catch(e) {} Invite.start(r); return; }
+    if (h === "invite"){ App.go("home"); return; }
     if (h.startsWith("m-")) App.go("linkgame", {hash: h});
     else if (h.startsWith("g-") && Views.friend) App.go("friend", {join: h.slice(2)});
     else if (h.startsWith("battle-") && h.length > 7) App.go("battle", {join: h.slice(7)});
