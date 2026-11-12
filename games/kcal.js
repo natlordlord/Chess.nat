@@ -1512,7 +1512,7 @@
           list.innerHTML = items.map((x, i) => `<button class="hs-ai" data-i="${i}"><b>${h(x.street)}${x.hnr ? " " + h(x.hnr) : ""}</b><small>${h([x.plz, x.city].filter(Boolean).join(" "))}${x.county ? " · " + h(x.county) : ""}</small></button>`).join("") || `<p class="muted">Nichts gefunden. Schreib erst die Straße, dann die Hausnummer, dann den Ort.</p>`;
           list.querySelectorAll("[data-i]").forEach(b => b.onclick = () => choose(items[+b.dataset.i])); }
         catch(e) { if (my === seq) msg("Die Adresssuche ist gerade nicht erreichbar. Probier es gleich nochmal."); } };
-      const choose = async a => { haptic(8); seq++; try { inp.blur(); } catch(e) {} msg(`Suche den Abfuhrplan für ${h(a.label)} …`);
+      const choose = async a => { haptic(8); seq++; try { inp.blur(); } catch(e) {} msg(`Suche den Abfuhrplan für ${h(a.label)} … Das kann bis zu einer Minute dauern.`);
         let n; try { n = await this.fetchPlan(a); } catch(e) { n = {err: "net"}; }
         if (n.err){ if (n.err === "unsupported" || n.err === "empty"){ try { sb().from("home_plan_wishes").insert({user_id: meId(), city: a.city, county: a.county, state: a.state, why: n.err}).then(() => {}, () => {}); } catch(e) {} }
           list.innerHTML = `<div class="hs-hint">${n.err === "street" ? `Im Abfuhrkalender von ${h(a.county || a.city)} steht die ${h(a.street)} nicht. Probier eine Nachbarstraße oder den Ortsteil.` : n.err === "net" ? "Der Abfuhrkalender ist gerade nicht erreichbar. Probier es später nochmal." : `Für ${h(a.county || a.city)} ist noch kein Abfuhrkalender angebunden. Ich habe den Wunsch notiert. Bis dahin kannst du die Termine von Hand eintragen.`}</div>`; return; }
@@ -1523,7 +1523,10 @@
       try { inp.focus(); } catch(e) {} /* the keyboard opens right away: one tap less */ },
     /* the dates for an address: {termine} or {err: "unsupported" | "street" | "empty" | "net"} */
     async fetchPlan(a){ const qs = a.street != null ? ["street", "hnr", "plz", "city", "district", "county", "state", "alt"].map(k => k + "=" + encodeURIComponent(a[k] || "")).join("&") : "ort=" + encodeURIComponent(a.ort) + "&strasse=" + encodeURIComponent(a.strasse);
-      const r = await fetch("/api/muell?" + qs), j = await r.json().catch(() => ({})); if (!r.ok) return {err: "net"}; if (j.error) return {err: j.error}; return (j.termine || []).length ? {termine: j.termine} : {err: "empty"}; },
+      const r = await fetch("/api/muell?" + qs), j = await r.json().catch(() => ({})); if (!r.ok) return {err: "net"}; if ((j.termine || []).length) return {termine: j.termine};
+      /* no connector of our own for this region: the big collection of German calendars is asked (it takes its time, up to a minute) */
+      if (a.street != null && a.city){ try { const r2 = await fetch("/api/abfall?" + qs), j2 = await r2.json().catch(() => ({})); if (r2.ok && (j2.termine || []).length) return {termine: j2.termine}; if (r2.ok && j2.error === "street") return {err: "street"}; } catch(e) {} }
+      return {err: j.error || "empty"}; },
     /* the address a household saved: the full one, or (until the database has that column) rebuilt from "85368 Wang" and "Geiglbergstraße 2a"; the first version saved town and street only */
     where(){ const g = this.g; if (!g) return null; if (g.addr && g.addr.street) return g.addr; const m = /^(\d{5}) (.+)$/.exec(g.ort || ""); if (m && g.strasse){ const n = /^(.*?)\s+(\d+\s?[a-zA-Z]?)$/.exec(g.strasse) || [0, g.strasse, ""]; return {street: n[1], hnr: n[2], plz: m[1], city: m[2]}; }
       return g.ort && g.strasse ? {ort: g.ort, strasse: g.strasse} : null; },

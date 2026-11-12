@@ -194,6 +194,7 @@ const server = http.createServer((req, res) => {
       if (p === "/api/food") return await vercel("food.js", req, res, q, raw);
       if (p === "/api/foods") return await vercel("foods.js", req, res, q, raw);
       /* api/muell.js with the district's calendar replaced by a fixed one: two towns, a few streets, collections on the next days */
+      if (p === "/api/abfall"){ res.writeHead(200, {"content-type": "application/json"}); return res.end(JSON.stringify({error: "unsupported"})); }
       if (p === "/api/muell"){ const day = n => { const d = new Date(Date.now() + n * 864e5); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }, J = (o, st) => { res.writeHead(st || 200, {"content-type": "application/json"}); return res.end(JSON.stringify(o)); };
         const termine = [{d: day(1), was: ["Gelber Sack", "Restabfall"], zusatz: ""}, {d: day(8), was: ["BIO", "Papier"], zusatz: "BIO nur 240"}, {d: day(15), was: ["Restmülltonne 14-tägl.", "Wertstofftonne (LVP)"], zusatz: ""}, {d: day(90), was: ["Papier"], zusatz: ""}];
         if (q.get("suggest") != null){ const t = q.get("suggest").toLowerCase(), nr = (/\b(\d+\s?[a-z]?)\b/.exec(t) || [])[1] || "";

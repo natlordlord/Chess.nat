@@ -1,0 +1,10 @@
+# for api/abfall.py only (the German waste calendar connectors in wcs/)
+requests
+beautifulsoup4
+lxml
+icalendar
+icalevents>=0.2.1
+python-dateutil
+pypdf
+pycryptodome
+curl_cffi>=0.7.0
