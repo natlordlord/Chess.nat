@@ -463,6 +463,16 @@ const PARTS = {
     ok(/Schwarze Tonne/.test(await txt(b, "#hsslot .hs-todo")), "„Mach ich“: die Aufgabe steht als Kästchen oben auf Milas Startseite", JSON.stringify((await tasks("id=eq." + plan[0].id)).map(t => [t.state, t.asked, t.taken_by])) + " " + await b.evaluate(() => JSON.stringify([document.querySelectorAll(".kc-askc").length, Haus.tasks.map(t => [t.state, t.taken_by === Social.me])]))); await b.shot("haus-todo");
     await b.tap("#hsslot .hs-todo"); await sleep(2200); t1 = (await tasks("id=eq." + plan[0].id))[0]; ok(t1.state === "done" && t1.done_by === ID.mila, "ein Tipp hakt ab: erledigt von Mila"); ok(!(await has(b, "#hsslot .hs-todo")), "das Kästchen ist wieder weg");
     const log = await L.table("home_log", "group_id=eq." + g.id); ok(log.some(l => l.user_id === ID.tester && l.what === "pass") && log.some(l => l.user_id === ID.mila && l.what === "done"), "im Protokoll: du hast abgegeben, Mila hat es gemacht");
+    /* the others say thank you: a heart to hold down until it is full */
+    await a.evaluate(() => Haus.load()); await sleep(1500);
+    ok(/Mila hat das erledigt/i.test(await txt(a, ".hs-hov")) && /Herz gedrückt/.test(await txt(a, ".hs-hov")), "du bekommst die Karte mit dem leeren Herz: „Mila hat das erledigt“", (await txt(a, ".hs-hov").catch(() => "")).slice(0, 120)); await a.shot("haus-herz-leer");
+    { const r = await a.locator(".hs-heart").boundingBox(), x = r.x + r.width / 2, y = r.y + r.height / 2;
+      await a.mouse.move(x, y); await a.mouse.down(); await sleep(1200); await a.mouse.up(); await sleep(250);
+      ok(await has(a, ".hs-hov") && !(await L.table("home_thanks", "")).length && /Nicht loslassen/.test(await txt(a, "#hstx")), "zu früh losgelassen: die Karte bleibt, noch kein Dank gespeichert", await txt(a, "#hstx")); await a.shot("haus-herz-halb");
+      await sleep(1300); ok(await a.evaluate(() => +document.querySelector("#hsfill").getAttribute("y") > 90), "das Herz läuft wieder leer", String(await a.evaluate(() => document.querySelector("#hsfill").getAttribute("y"))));
+      await a.mouse.down(); await sleep(3300); ok(/Dankeschön, Mila/.test(await txt(a, ".hs-hov")), "drei Sekunden gehalten: das Herz ist voll, „Dankeschön, Mila!“", await txt(a, "#hstx").catch(() => "")); await a.shot("haus-herz-voll"); await a.mouse.up(); await sleep(2200); }
+    const th = await L.table("home_thanks", ""); ok(th.length === 1 && th[0].user_id === ID.tester && th[0].task_id === plan[0].id, "der Dank ist gespeichert", JSON.stringify(th)); ok(!(await has(a, ".hs-hov")), "erst jetzt schließt sich die Karte");
+    await a.evaluate(() => Haus.load()); await sleep(1200); ok(!(await has(a, ".hs-hov")), "und sie kommt nicht noch einmal");
     /* next time the one who passed is first */
     await a.evaluate(() => Haus.load()); await sleep(800); await a.tap('.hs-ov [data-q="1"]'); await sleep(200); await a.tap("#hsadd"); await sleep(1200); await tick(); await a.evaluate(() => Haus.load()); await sleep(1500);
     const bad = (await tasks("title=eq.Bad putzen"))[0]; ok(bad && bad.state === "asked" && bad.asked === ID.tester && bad.emoji === "🚿", "neue Aufgabe „Bad putzen“: weil du vorher abgegeben hast, bist du jetzt als Erster dran", JSON.stringify(bad && [bad.state, bad.asked]));

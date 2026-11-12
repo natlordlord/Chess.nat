@@ -12,6 +12,7 @@ home_groups|id|id:uuid:!:@uuid ; owner:uuid:!:@uid ; name:text:!:'Zuhause' ; cre
 home_plan_wishes|id|id:int8:!:@identity ; user_id:uuid:!:@uid ; city:text:?: ; county:text:?: ; state:text:?: ; why:text:?: ; created_at:timestamptz:!:@now
 home_members|group_id,user_id|group_id:uuid:!: ; user_id:uuid:!: ; created_at:timestamptz:!:@now
 home_tasks|id|id:uuid:!:@uuid ; group_id:uuid:!: ; title:text:!: ; emoji:text:!:'🧹' ; note:text:?: ; img:text:?: ; kind:text:!:'once' ; every_days:int4:?: ; everyone:bool:!:false ; due_at:timestamptz:?: ; ask_at:timestamptz:!:@now ; state:text:!:'wait' ; asked:uuid:?: ; asked_at:timestamptz:?: ; passed:_text:!:{} ; taken_by:uuid:?: ; taken_at:timestamptz:?: ; reminded_at:timestamptz:?: ; done_by:uuid:?: ; done_at:timestamptz:?: ; created_by:uuid:!:@uid ; created_at:timestamptz:!:@now
+home_thanks|task_id,user_id|task_id:uuid:!: ; user_id:uuid:!:@uid ; created_at:timestamptz:!:@now
 home_log|id|id:int8:!:@identity ; group_id:uuid:!: ; task_id:uuid:?: ; title:text:!: ; emoji:text:?: ; user_id:uuid:!: ; what:text:!: ; at:timestamptz:!:@now
 chess_now|user_id|user_id:uuid:!:@uid ; what:jsonb:!: ; updated_at:timestamptz:!:@now
 chess_friends|a,b|a:uuid:!: ; b:uuid:!: ; requested_by:uuid:!: ; status:text:!:'pending' ; created_at:timestamptz:!:@now
@@ -68,11 +69,11 @@ const RPCS = {
 };
 
 /* Tables in the supabase_realtime publication: only these send live changes. */
-const REALTIME = ["chess_friends", "chess_duels", "chess_gifts", "chess_invites", "chess_messages", "kcal_meals", "shop_items", "shop_asks", "shop_answers", "home_tasks"];
+const REALTIME = ["chess_friends", "chess_duels", "chess_gifts", "chess_invites", "chess_messages", "kcal_meals", "shop_items", "shop_asks", "shop_answers", "home_tasks", "home_thanks"];
 
 /* Foreign keys that matter for behaviour (the rest point at auth.users). [table, column, target table, target column, on delete] */
 const FKS = [
-  ["home_members", "group_id", "home_groups", "id", "cascade"], ["home_tasks", "group_id", "home_groups", "id", "cascade"], ["home_log", "group_id", "home_groups", "id", "cascade"],
+  ["home_members", "group_id", "home_groups", "id", "cascade"], ["home_tasks", "group_id", "home_groups", "id", "cascade"], ["home_log", "group_id", "home_groups", "id", "cascade"], ["home_thanks", "task_id", "home_tasks", "id", "cascade"],
   ["shop_members", "list_id", "shop_lists", "id", "cascade"], ["shop_items", "list_id", "shop_lists", "id", "cascade"], ["shop_items", "parent", "shop_items", "id", "cascade"],
   ["shop_asks", "list_id", "shop_lists", "id", "cascade"], ["shop_asks", "item_id", "shop_items", "id", "cascade"], ["shop_answers", "ask_id", "shop_asks", "id", "cascade"],
   ["tipp_picks", "event_id", "tipp_events", "id", "restrict"], ["tipp_tips", "event_id", "tipp_events", "id", "restrict"], ["tipp_members", "group_id", "tipp_groups", "id", "cascade"]

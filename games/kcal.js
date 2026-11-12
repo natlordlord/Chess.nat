@@ -1364,7 +1364,7 @@
       const id = this.g.id, [m, t, l] = await Promise.all([sb().from("home_members").select("user_id").eq("group_id", id),
         sb().from("home_tasks").select(this.COLS).eq("group_id", id).in("state", ["wait", "asked", "open", "taken"]).order("ask_at").order("id"),
         sb().from("home_log").select("user_id,what,title,emoji,at").eq("group_id", id).gte("at", new Date(Date.now() - 30 * 864e5).toISOString()).order("at", {ascending: false}).limit(400)]);
-      if (my !== this.lseq) return; this.mem = (m.data || []).map(x => x.user_id); this.tasks = t.data || []; this.log = l.data || []; this.paint(); if (this.sh) this.draw(); this.cards();
+      if (my !== this.lseq) return; this.mem = (m.data || []).map(x => x.user_id); this.tasks = t.data || []; this.log = l.data || []; this.paint(); if (this.sh) this.draw(); this.cards(); this.hearts();
       /* with an address saved, new collection dates come in by themselves (looked up at most every twelve hours) */
       if (this.where()){ let last = 0; try { last = +localStorage.getItem("chessnat-muell") || 0; } catch(e) {} if (Date.now() - last > 12 * 3600e3) this.sync().then(n => { if (n > 0) this.load(); }); } },
     /* what concerns me right now: asked of me (or of everyone and I haven't said no), and what I took */
@@ -1388,12 +1388,39 @@
         const sh = detailSheet(`<div class="kc-askc" data-notr><div class="kc-aske">${h(t.emoji)}</div><h3>${t.state === "open" ? h(this.who(t.created_by)) + " fragt: Wer übernimmt das?" : "Du bist dran"}</h3><p class="kc-askq"><b>${h(t.title)}</b></p>${this.when(t) ? `<p class="kc-askn">${h(this.when(t))}</p>` : ""}${t.note ? `<p class="kc-askn">„${h(t.note)}“</p>` : ""}${img && /^data:image\//.test(img) ? `<img class="hs-img" src="${img}" alt="">` : ""}<div class="kc-askb"><button class="btn go big" data-y>Mach ich</button><button class="btn big" data-n>Kann nicht</button></div></div>`);
         sh.el.style.zIndex = 330; try { Sound.play("GenericNotify", .7); } catch(e) {} haptic([10, 30, 10]);
         sh.el.querySelector("[data-y]").onclick = () => { sh.close(); this.answer(t.id, true); }; sh.el.querySelector("[data-n]").onclick = () => { sh.close(); this.answer(t.id, false); }; } },
+    /* a heart as a thank-you: for everything someone else ticked off in the last 24 hours that I haven't thanked for yet, a card
+       with an empty heart. It fills while you hold it (three seconds, a tick of vibration at every eighth), runs empty again when
+       you let go early, and only a full heart closes the card; then the one who did it hears "… sagt Danke". */
+    async hearts(){ const me = meId(); if (!this.g || this.hearting) return;
+      const d = await sb().from("home_tasks").select("id,title,emoji,done_by,done_at").eq("group_id", this.g.id).eq("state", "done").neq("done_by", me).gte("done_at", new Date(Date.now() - 864e5).toISOString()).order("done_at", {ascending: false}).limit(3); if (d.error || !(d.data || []).length) return;
+      const th = await sb().from("home_thanks").select("task_id").eq("user_id", me).in("task_id", d.data.map(x => x.id)); if (th.error) return; const got = (th.data || []).map(x => x.task_id);
+      const q = d.data.filter(x => !got.includes(x.id) && !this.seen["h" + x.id]).reverse(); if (!q.length || this.hearting) return; this.hearting = true;
+      const next = () => { const t = q.shift(); if (!t){ this.hearting = false; return; } this.seen["h" + t.id] = 1; this.heart(t, next); }; next(); },
+    heart(t, after){ const who = pname(t.done_by), ov = document.createElement("div"); ov.className = "hs-hov"; ov.setAttribute("data-notr", ""); ov.lang = "de";
+      const P = "M50 88 C 20 66, 6 50, 6 31 C 6 16, 17 7, 29 7 C 38 7, 46 12, 50 20 C 54 12, 62 7, 71 7 C 83 7, 94 16, 94 31 C 94 50, 80 66, 50 88 Z";
+      ov.innerHTML = `<div class="hs-hc"><small>${h(who)} hat das erledigt</small><b>${h(t.emoji || "")} ${h(t.title)}</b>
+        <div class="hs-heart" role="button" aria-label="Herz gedrückt halten"><svg viewBox="0 0 100 96"><defs><clipPath id="hsclip"><rect id="hsfill" x="0" y="96" width="100" height="96"/></clipPath></defs><path d="${P}" fill="rgba(255,255,255,.06)" stroke="#FF6B8A" stroke-width="4" stroke-linejoin="round"/><path d="${P}" fill="#FF4D73" clip-path="url(#hsclip)"/></svg></div>
+        <p id="hstx">Halte das Herz gedrückt, um Danke zu sagen</p></div>`;
+      document.body.appendChild(ov); if (ov.animate) ov.animate([{opacity: 0}, {opacity: 1}], {duration: 220, easing: "ease-out"});
+      const el = ov.querySelector(".hs-heart"), fill = ov.querySelector("#hsfill"), tx = ov.querySelector("#hstx"); let p = 0, hold = false, done = false, last = 0, step = 0, raf = 0;
+      const frame = now => { raf = 0; const dt = Math.min(64, now - (last || now)); last = now; if (done) return;
+        p = Math.max(0, Math.min(1, p + (hold ? dt / 3000 : -dt / 700))); fill.setAttribute("y", String(96 - 96 * p)); el.style.transform = `scale(${1 + p * .12})`;
+        const s8 = Math.floor(p * 8); if (hold && s8 > step){ haptic(10 + s8 * 3); try { Sound.tap(); } catch(e) {} } step = s8;
+        if (p >= 1) return finish(); if (hold || p > 0) raf = requestAnimationFrame(frame); else last = 0; };
+      const down = e => { e.preventDefault(); if (done) return; hold = true; tx.textContent = "Weiter halten …"; if (!raf){ last = 0; raf = requestAnimationFrame(frame); } };
+      const up = () => { if (done || !hold) return; hold = false; tx.textContent = "Nicht loslassen. Halte das Herz, bis es voll ist"; };
+      const finish = () => { done = true; hold = false; haptic([20, 50, 20, 50, 70]); try { Sound.play("GenericNotify", .8); } catch(e) {} el.classList.add("full"); el.style.transform = ""; tx.innerHTML = `<b>Dankeschön, ${h(who)}!</b>`;
+        sb().from("home_thanks").insert({task_id: t.id, user_id: meId()}).then(() => {}, () => {});
+        setTimeout(() => { const end = () => { ov.remove(); after && after(); }; if (ov.animate){ const an = ov.animate([{opacity: 1}, {opacity: 0}], {duration: 240, easing: "ease-in"}); an.onfinish = end; } else end(); }, 1500); };
+      el.addEventListener("pointerdown", down); ["pointerup", "pointercancel", "pointerleave"].forEach(k => el.addEventListener(k, up)); el.addEventListener("contextmenu", e => e.preventDefault()); },
     watch(){ if (this.watching) return; this.watching = 1; const me = meId(); let tm = 0; const again = () => { clearTimeout(tm); tm = setTimeout(() => this.load(), 350); };
       sb().channel("home-" + me).on("postgres_changes", {event: "*", schema: "public", table: "home_tasks"}, p => { const n = p.new, o = p.old || {};
-        if (n && n.state === "done" && n.done_by && n.done_by !== me && !this.seen["d" + n.id]){ this.seen["d" + n.id] = 1; say(`✅ ${pname(n.done_by)} hat erledigt: ${n.emoji || ""} ${n.title}`, 4200); haptic(10); }
-        else if (n && n.state === "taken" && n.taken_by && n.taken_by !== me && o.state !== "taken" && !this.seen["t" + n.id + n.taken_at]){ this.seen["t" + n.id + n.taken_at] = 1; say(`${n.emoji || ""} ${pname(n.taken_by)} übernimmt: ${n.title}`, 3600); }
+        if (n && n.state === "taken" && n.taken_by && n.taken_by !== me && o.state !== "taken" && !this.seen["t" + n.id + n.taken_at]){ this.seen["t" + n.id + n.taken_at] = 1; say(`${n.emoji || ""} ${pname(n.taken_by)} übernimmt: ${n.title}`, 3600); }
         again(); })
-        .on("postgres_changes", {event: "*", schema: "public", table: "home_members"}, again).subscribe();
+        .on("postgres_changes", {event: "*", schema: "public", table: "home_members"}, again)
+        .on("postgres_changes", {event: "INSERT", schema: "public", table: "home_thanks"}, async p => { const n = p.new; if (!n || n.user_id === me || this.seen["th" + n.task_id + n.user_id]) return; this.seen["th" + n.task_id + n.user_id] = 1;
+          const r = await sb().from("home_tasks").select("title,emoji,done_by").eq("id", n.task_id).maybeSingle(); if (!r.data || r.data.done_by !== me) return; say(`❤️ ${pname(n.user_id)} sagt Danke: ${r.data.emoji || ""} ${r.data.title}`, 4600); haptic([15, 40, 15]); try { Sound.play("GenericNotify", .7); } catch(e) {} })
+        .subscribe();
       setInterval(() => { if (!document.hidden && (this.g || this.sh)) this.load(); }, 90000); document.addEventListener("visibilitychange", () => { if (!document.hidden) this.load(); });
       document.addEventListener("click", e => { const c = e.target.closest && e.target.closest("[data-hs-yes],[data-hs-no],[data-hs-done],[data-hs-take]"); if (!c) return; e.preventDefault(); e.stopPropagation(); const d = c.dataset;
         if (d.hsYes || d.hsTake) this.answer(d.hsYes || d.hsTake, true); else if (d.hsNo) this.answer(d.hsNo, false); else this.done(d.hsDone, c); }, true);
@@ -1765,6 +1792,13 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .hs-prev{display:flex;gap:8px;align-items:flex-start}.hs-prev img{width:96px;border-radius:10px}.hs-img{width:100%;max-height:38vh;object-fit:cover;border-radius:14px}
 .hs-st{display:flex;align-items:center;gap:8px;font:800 14px var(--body)}.hs-sn{width:84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hs-bar{flex:1;height:10px;border-radius:5px;background:#2A2825;overflow:hidden}.hs-bar i{display:block;height:100%;background:var(--go);border-radius:5px;transition:width .6s}.hs-st small{font:700 11px var(--body);color:var(--muted)}
 .hs-lg{font:700 13px var(--body);color:var(--muted)}.hs-sm{font-size:12.5px;margin:0}
+.hs-hov{position:fixed;inset:0;z-index:340;background:rgba(10,9,8,.86);display:flex;align-items:center;justify-content:center;padding:24px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.hs-hc{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;color:#fff;max-width:340px}.hs-hc small{font:900 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:#FF9DB2}.hs-hc>b{font:900 22px var(--display);overflow-wrap:anywhere}
+.hs-hc p{margin:6px 0 0;font:800 15px var(--body);color:rgba(255,255,255,.8);min-height:22px}.hs-hc p b{font:900 22px var(--display);color:#fff}
+.hs-heart{width:190px;height:182px;margin:18px 0 6px;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:pointer;transition:transform .12s ease-out;-webkit-tap-highlight-color:transparent}
+.hs-heart svg{width:100%;height:100%;display:block;overflow:visible;pointer-events:none;filter:drop-shadow(0 10px 26px rgba(255,77,115,.35))}
+.hs-heart.full{animation:hsBeat .7s cubic-bezier(.2,.8,.2,1) 2}@keyframes hsBeat{0%{transform:scale(1.12)}35%{transform:scale(1.32)}100%{transform:scale(1.12)}}
+@media (prefers-reduced-motion: reduce){.hs-heart.full{animation:none}}
 .hs-adr{display:flex;align-items:center;gap:10px}.hs-adr span{flex:1;min-width:0;display:flex;flex-direction:column;font:700 15px var(--body)}.hs-adr small{font:700 12px var(--body);color:var(--muted)}
 .hs-abar{padding:10px 0 4px}.hs-abar input{width:100%;box-sizing:border-box;padding:14px;border-radius:14px;border:2px solid var(--line);background:#2A2825;color:var(--fg);font:700 17px var(--body)}
 .hs-ai{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;border:0;border-radius:12px;padding:12px 14px;background:var(--panel);color:var(--fg);font:800 16px var(--body);cursor:pointer;flex:none;animation:hsIn .25s cubic-bezier(.2,.8,.2,1)}.hs-ai small{font:700 12.5px var(--body);color:var(--muted)}.hs-who{display:flex;flex-wrap:wrap;gap:6px}.hs-hint{padding:12px;border-radius:14px;background:rgba(59,140,136,.2);font:700 14px var(--body)}.kc-tile.cook{background:#E0694E;box-shadow:inset 0 -5px 0 #B04A32}

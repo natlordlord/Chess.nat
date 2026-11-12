@@ -229,3 +229,28 @@ alter table public.home_plan_wishes enable row level security;
 drop policy if exists home_plan_wishes_add on public.home_plan_wishes;
 create policy home_plan_wishes_add on public.home_plan_wishes for insert to authenticated with check (user_id = (select auth.uid()));
 grant insert on public.home_plan_wishes to authenticated;
+
+-- A heart as a thank-you: when someone ticked a task off, the others get a card with an empty heart to hold down until it is
+-- full; that writes a row here (once per task and person) and the one who did the task hears about it.
+create table if not exists public.home_thanks (
+  task_id uuid not null references public.home_tasks(id) on delete cascade,
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (task_id, user_id)
+);
+alter table public.home_thanks enable row level security;
+drop policy if exists home_thanks_read on public.home_thanks;
+create policy home_thanks_read on public.home_thanks for select to authenticated using (exists (select 1 from public.home_tasks t where t.id = home_thanks.task_id and public.home_can(t.group_id)));
+drop policy if exists home_thanks_add on public.home_thanks;
+create policy home_thanks_add on public.home_thanks for insert to authenticated with check (user_id = (select auth.uid()) and exists (select 1 from public.home_tasks t where t.id = home_thanks.task_id and public.home_can(t.group_id) and t.state = 'done' and t.done_by is distinct from (select auth.uid())));
+grant select, insert on public.home_thanks to authenticated;
+create or replace function private.home_thanks_ai() returns trigger language plpgsql security definer set search_path = '' as $$
+declare t public.home_tasks;
+begin
+  select * into t from public.home_tasks where id = new.task_id;
+  if found and t.done_by is not null then perform private.push(t.done_by, 'home', '❤️ ' || private.home_name(new.user_id) || ' sagt Danke', t.emoji || ' ' || t.title, '/#home'); end if;
+  return null;
+end $$;
+drop trigger if exists home_thanks_ai on public.home_thanks;
+create trigger home_thanks_ai after insert on public.home_thanks for each row execute function private.home_thanks_ai();
+do $$ begin if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'home_thanks') then alter publication supabase_realtime add table public.home_thanks; end if; end $$;
