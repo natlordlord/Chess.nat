@@ -51,7 +51,7 @@ den App-Modus ein (kein Zoomen, kein Gummiband-Scrollen) und zeigt in Safari den
 | `platform.js` | Anbindung an Supabase (Login, Speichern, Live-Räume) |
 | `config.js` | Supabase-Schlüssel |
 | `pwa.js`, `sw.js`, `icons/` | Home-Bildschirm-App (iPhone, Android) |
-| `invite.html`, `invite/` | Einladungsfilm `/invite?ref=<handle>`: läuft hochkant wie ein Spot von selbst durch (Schach-App → Natposter → Kalorien → Nat Stars → Einkaufsliste → Partyspiele → Tippen → Community → Versprechen → 0 € → Einladung), Nathans Sprüche aus `sounds/lines/` als echte Stimme, Erzählspur je Szene aus `invite/voice/s<N>.mp3` (Skript in `invite/VOICE.md`). Der Einladen-Knopf teilt diesen Link; der Film merkt sich `ref` und führt in die App |
+| `invite.js`, `invite/` | Einladungsfilm `/?ref=<handle>#invite`: läuft hochkant wie ein Spot von selbst durch, gebaut aus den echten Teilen der App (Brett mit Figuren, Avatare, Rang-Wappen, Kalorien-Kacheln, Spiele-Kacheln, Freunde-Zeile, Ideen, Trophäe). Erzählstimme `invite/voice/s<N>.mp3` mit wortgenauen Untertiteln aus `invite/voice/timing.json`, beides erzeugt `python invite/narrate.py` (edge-tts, deutsche Neural-Stimme); Nathans Sprüche aus `sounds/lines/` als Ausrufe. Der Einladen-Knopf teilt diesen Link, der Film merkt sich `ref`, nennt den Einlader (`invite_who`) und übergibt am Ende an die App. `invite.html` leitet alte Links um |
 | Ideen | Mehr → „Ideen & Feedback“: jeder schlägt vor, alle stimmen ab, was oben steht wird gebaut (`supabase/schema_ideas.sql`: `chess_ideas`, `chess_idea_votes`; Status setzt ein News-Admin). `invite_who(handle)` nennt dem Film den Einlader ohne Konto |
 | `puzzles/` | Lichess-Puzzle-Datenbank (CC0), nach Rating in 100er-Schritten |
 | `engine/sf.js` | Stockfish 10 (GPL) |

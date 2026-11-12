@@ -11635,6 +11635,8 @@ function boot(){
   else first();
   function firstRoute(){
     const h = (location.hash || "").slice(1);
+    /* the invite film (?ref=<handle>#invite): the app loads underneath, the film runs on top and hands over at the end */
+    if (h === "invite" && typeof Invite !== "undefined"){ App.go("home"); let r = ""; try { r = new URLSearchParams(location.search).get("ref") || localStorage.getItem("chessnat-ref") || ""; } catch(e) {} Invite.start(r); return; }
     if (h.startsWith("m-")) App.go("linkgame", {hash: h});
     else if (h.startsWith("g-") && Views.friend) App.go("friend", {join: h.slice(2)});
     else if (h.startsWith("battle-") && h.length > 7) App.go("battle", {join: h.slice(7)});
@@ -13098,8 +13100,8 @@ const Social = (() => {
   async function refId(){ let h = null; try { h = localStorage.getItem(REF_KEY); } catch(e) {} if (!h || !sb) return null;
     const {data} = await sb.from("chess_players").select("id").eq("handle", h).maybeSingle(); try { localStorage.removeItem(REF_KEY); } catch(e) {}
     return data && data.id !== me ? data.id : null; }
-  /* the link opens the invite film (/invite), which hands the ref on to the app */
-  function inviteLink(){ return location.origin + "/invite?ref=" + encodeURIComponent((player && player.handle) || ""); }
+  /* the link opens the app with the invite film on top (invite.js), which hands the ref on */
+  function inviteLink(){ return location.origin + "/?ref=" + encodeURIComponent((player && player.handle) || "") + "#invite"; }
   async function shareInvite(){
     if (!player || !player.handle){ requireId && requireId(); return; }
     const url = inviteLink(), text = I18N.lang === "de" ? `Ich lade dich zu Chess.nat ein: Schach, Natposter, Partyspiele, Kalorien, alles kostenlos. Meine ID ist @${player.handle}.` : `I'm inviting you to Chess.nat: chess, Natposter, party games, calories, all free. My ID is @${player.handle}.`;
@@ -14596,6 +14598,7 @@ const Ranks = {
 <script src="games/now.js?v=2"></script>
 <script src="data/foods.js?v=3"></script>
 <script src="games/kcal.js?v=165"></script>
+<script src="invite.js?v=6"></script>
 <script>boot();</script>
 </body>
 </html>
