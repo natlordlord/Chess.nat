@@ -1490,7 +1490,7 @@
       inp.oninput = () => { clearTimeout(tm); tm = setTimeout(() => find(false), 280); }; inp.onkeydown = e => { if (e.key === "Enter"){ e.preventDefault(); const b = list.querySelector("[data-i]"); if (b) b.click(); else { clearTimeout(tm); find(true); } } };
       try { inp.focus(); } catch(e) {} /* the keyboard opens right away: one tap less */ },
     /* the dates for an address: {termine} or {err: "unsupported" | "street" | "empty" | "net"} */
-    async fetchPlan(a){ const qs = a.street != null ? ["street", "hnr", "plz", "city", "district", "county", "state"].map(k => k + "=" + encodeURIComponent(a[k] || "")).join("&") : "ort=" + encodeURIComponent(a.ort) + "&strasse=" + encodeURIComponent(a.strasse);
+    async fetchPlan(a){ const qs = a.street != null ? ["street", "hnr", "plz", "city", "district", "county", "state", "alt"].map(k => k + "=" + encodeURIComponent(a[k] || "")).join("&") : "ort=" + encodeURIComponent(a.ort) + "&strasse=" + encodeURIComponent(a.strasse);
       const r = await fetch("/api/muell?" + qs), j = await r.json().catch(() => ({})); if (!r.ok) return {err: "net"}; if (j.error) return {err: j.error}; return (j.termine || []).length ? {termine: j.termine} : {err: "empty"}; },
     /* the address a household saved: the full one, or (until the database has that column) rebuilt from "85368 Wang" and "Geiglbergstraße 2a"; the first version saved town and street only */
     where(){ const g = this.g; if (!g) return null; if (g.addr && g.addr.street) return g.addr; const m = /^(\d{5}) (.+)$/.exec(g.ort || ""); if (m && g.strasse){ const n = /^(.*?)\s+(\d+\s?[a-zA-Z]?)$/.exec(g.strasse) || [0, g.strasse, ""]; return {street: n[1], hnr: n[2], plz: m[1], city: m[2]}; }
