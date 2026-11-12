@@ -156,7 +156,7 @@ def best(sugg, wants):
     return None
 
 
-def run(mod, dp, a, deadline):
+def run(mod, dp, a, deadline, log=None):
     from waste_collection_schedule import exceptions as X  # noqa: PLC0415
 
     m = importlib.import_module("waste_collection_schedule.source." + mod)
@@ -171,6 +171,8 @@ def run(mod, dp, a, deadline):
         if vals and (required or name in STREET | HNR | CITY | PLZ):
             kw[name] = vals[0]
         elif required:
+            if log is not None:
+                log.append("needs " + name)
             return None, "args"
     street_missing = False
     for _ in range(5):
@@ -181,6 +183,8 @@ def run(mod, dp, a, deadline):
             return rows, None
         except (X.SourceArgumentNotFoundWithSuggestions, X.SourceArgumentRequiredWithSuggestions, X.SourceArgAmbiguousWithSuggestions) as e:
             arg = e.argument
+            if log is not None:
+                log.append(arg + "=" + str(kw.get(arg))[:30] + " not in " + str(list(e.suggestions or [])[:6])[:160])
             choice = best(list(e.suggestions or []), values(arg, a) or ([a["city"], a["district"]] + a["alt"]))
             if arg in STREET or arg in HNR:
                 street_missing = True
@@ -194,12 +198,15 @@ def run(mod, dp, a, deadline):
                 return None, "street" if street_missing else "city"
             kw[arg] = choice
         except (X.SourceArgumentNotFound, X.SourceArgumentRequired, X.SourceArgumentException) as e:
+            if log is not None:
+                log.append(type(e).__name__ + " " + str(getattr(e, "argument", "")) + " " + str(e)[:120] + " kw=" + str({k: str(v)[:20] for k, v in kw.items()})[:200])
             return None, "street" if getattr(e, "argument", "") in STREET | HNR else "city"
     return None, "city"
 
 
-def lookup(a):
+def lookup(a, debug=False):
     t0, deadline = time.time(), time.time() + 48
+    trace = []
     cand = candidates(a)
     if not cand:
         return {"error": "unsupported"}
@@ -213,15 +220,17 @@ def lookup(a):
 
         def work(mod=mod, dp=dp, box=box):
             try:
-                box["rows"], box["miss"] = run(mod, dp, a, deadline)
+                box["log"] = []
+                box["rows"], box["miss"] = run(mod, dp, a, deadline, box["log"])
             except Exception as e:  # noqa: BLE001
                 box["miss"] = "down"
-                box["err"] = repr(e)[:200]
+                box["err"] = repr(e)[:300]
 
         th = threading.Thread(target=work, daemon=True)
         th.start()
         th.join(min(16, left))
         rows = box.get("rows")
+        trace.append({"mod": mod, "title": title, "miss": box.get("miss"), "err": box.get("err"), "log": box.get("log"), "n": len(rows) if rows else 0, "alive": th.is_alive()})
         if rows:
             days = {}
             for c in rows:
@@ -242,7 +251,10 @@ def lookup(a):
             miss = "empty"
         elif box.get("miss") == "street":
             miss = "street"
-    return {"error": miss, "tried": [c[2] + ":" + c[1] for c in cand]}
+    out = {"error": miss, "tried": [c[2] + ":" + c[1] for c in cand]}
+    if debug:
+        out["trace"] = trace
+    return out
 
 
 class handler(BaseHTTPRequestHandler):
@@ -252,7 +264,7 @@ class handler(BaseHTTPRequestHandler):
         a = {"street": g("street"), "hnr": g("hnr", 12), "plz": g("plz", 5), "city": g("city"), "district": g("district"), "county": g("county"), "state": g("state"),
              "alt": [x.strip() for x in g("alt", 200).split("|") if x.strip()]}
         try:
-            out = lookup(a) if a["city"] else {"error": "unsupported"}
+            out = lookup(a, "debug" in q) if a["city"] else {"error": "unsupported"}
             code = 200
         except Exception as e:  # noqa: BLE001
             out, code = {"error": "net", "detail": repr(e)[:200]}, 502
