@@ -1,0 +1,24 @@
+name: BLS-Daten holen
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['tools/bls_import.py', '.github/workflows/bls.yml']
+permissions:
+  contents: write
+jobs:
+  bls:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install requests openpyxl
+      - run: python tools/bls_import.py || true
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/bls.json data/bls.log 2>/dev/null || git add data/bls.log
+          git diff --cached --quiet || git commit -m "BLS 4.0: Daten vom Max Rubner-Institut geholt (automatischer Lauf)"
+          git pull --rebase origin main && git push origin HEAD:main
