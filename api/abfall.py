@@ -156,12 +156,30 @@ def best(sugg, wants):
     return None
 
 
+def in_range(sugg, hnr):
+    """'5_15_19_37 (5–15 und 19–37 )', '17 (Nr. 17 )': the entry whose house numbers include ours."""
+    try:
+        n = int(re.sub(r"\D.*$", "", hnr))
+    except ValueError:
+        return None
+    for s in sugg:
+        t = str(s)
+        t = t[t.find("(") + 1:] if "(" in t else t
+        for lo, hi in re.findall(r"(\d+)\s*[–-]\s*(\d+)", t):
+            if int(lo) <= n <= int(hi):
+                return s
+        if re.search(r"(?<!\d)" + str(n) + r"(?!\d)", re.sub(r"\d+\s*[–-]\s*\d+", " ", t)):
+            return s
+    return None
+
+
 def run(mod, dp, a, deadline, log=None):
     from waste_collection_schedule import exceptions as X  # noqa: PLC0415
 
     m = importlib.import_module("waste_collection_schedule.source." + mod)
     sig = inspect.signature(m.Source.__init__)
-    kw = dict(dp)
+    # the project's list carries fill-in-the-blank values ("REPLACE_WITH_YOUR_STREET"): those are blanks
+    kw = {k: v for k, v in dp.items() if not (isinstance(v, str) and re.search(r"REPLACE|YOUR_|^<.*>$", v))}
     for name, p in list(sig.parameters.items())[1:]:
         if name in kw or p.kind in (p.VAR_KEYWORD, p.VAR_POSITIONAL):
             continue
@@ -185,7 +203,10 @@ def run(mod, dp, a, deadline, log=None):
             arg = e.argument
             if log is not None:
                 log.append(arg + "=" + str(kw.get(arg))[:30] + " not in " + str(list(e.suggestions or [])[:6])[:160])
-            choice = best(list(e.suggestions or []), values(arg, a) or ([a["city"], a["district"]] + a["alt"]))
+            sugg = list(e.suggestions or [])
+            choice = best(sugg, values(arg, a) or ([a["city"], a["district"]] + a["alt"]))
+            if choice is None and arg not in STREET | CITY | PART and a["hnr"]:
+                choice = in_range(sugg, a["hnr"])
             if arg in STREET or arg in HNR:
                 street_missing = True
             if choice is None or kw.get(arg) == choice:
@@ -257,9 +278,27 @@ def lookup(a, debug=False):
     return out
 
 
+def check_imports():
+    bad = {}
+    for mod in sorted({x[1] for x in IDX}):
+        try:
+            importlib.import_module("waste_collection_schedule.source." + mod)
+        except Exception as e:  # noqa: BLE001
+            bad[mod] = repr(e)[:120]
+    return {"modules": len({x[1] for x in IDX}), "failed": bad}
+
+
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         q = {k: v[0] for k, v in urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query).items()}
+        if "imports" in q:
+            body = json.dumps(check_imports(), ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(body)
+            return
         g = lambda k, n=80: re.sub(r"\s+", " ", str(q.get(k, ""))).strip()[:n]  # noqa: E731
         a = {"street": g("street"), "hnr": g("hnr", 12), "plz": g("plz", 5), "city": g("city"), "district": g("district"), "county": g("county"), "state": g("state"),
              "alt": [x.strip() for x in g("alt", 200).split("|") if x.strip()]}

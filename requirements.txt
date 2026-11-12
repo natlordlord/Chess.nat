@@ -8,3 +8,4 @@ python-dateutil
 pypdf
 pycryptodome
 curl_cffi>=0.7.0
+jinja2
