@@ -69,6 +69,7 @@ module.exports = db => {
     home_members: {select: (r, u) => homeCan(u, r.group_id), insert: (r, u) => homeOwns(u, r.group_id), delete: (r, u) => homeOwns(u, r.group_id) || r.user_id === u},
     home_tasks: {select: (r, u) => homeCan(u, r.group_id), insert: (r, u) => homeCan(u, r.group_id) && r.created_by === u, delete: (r, u) => r.created_by === u || homeOwns(u, r.group_id)},
     home_log: {select: (r, u) => homeCan(u, r.group_id)},
+    home_plan_wishes: {insert: (r, u) => r.user_id === u},
     chess_now: {select: (r, u) => r.user_id === u || friends(r.user_id, u), insert: (r, u) => r.user_id === u, update: {using: (r, u) => r.user_id === u, check: (r, u) => r.user_id === u}, delete: (r, u) => r.user_id === u},
     chess_friends: {select: (r, u) => r.a === u || r.b === u, delete: (r, u) => r.a === u || r.b === u, insert: (r, u) => r.requested_by === u && r.status === "pending",
       update: {using: (r, u) => (r.a === u || r.b === u) && r.requested_by !== u, check: r => r.status === "accepted"}},

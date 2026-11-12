@@ -445,11 +445,13 @@ const PARTS = {
     ok((await L.table("home_members", "group_id=eq." + g.id)).some(m => m.user_id === ID.mila), "Mila wohnt jetzt mit im Haushalt");
     /* the address: town, street, and the dates come in by themselves */
     await a.tap(".hs-ov [data-addr]"); await sleep(900); ok(await a.evaluate(() => document.activeElement && document.activeElement.id === "hsai"), "Adresse: das Feld hat sofort den Cursor (Tastatur geht auf)");
-    await a.fill("#hsai", "wa"); await sleep(400); await a.tap('#hsal [data-v="Wang"]'); await sleep(900); await a.fill("#hsai", "geiglbergstr"); await sleep(400); ok(/Geiglbergstraße/.test(await txt(a, "#hsal")), "„geiglbergstr“ findet die Geiglbergstraße", await txt(a, "#hsal"));
-    await a.tap('#hsal [data-v="Geiglbergstraße"]'); await sleep(2500);
+    await a.fill("#hsai", "geibelstr 5 berlin"); await sleep(900); await a.tap('#hsal .hs-ai:has-text("Berlin")'); await sleep(1500);
+    ok(/noch kein Abfuhrkalender angebunden/.test(await txt(a, "#hsal")), "eine Adresse ohne angebundenen Kalender (Berlin): klare Auskunft statt Fehler", (await txt(a, "#hsal")).slice(0, 140)); ok((await L.table("home_plan_wishes", "")).some(w => w.city === "Berlin"), "und der Wunsch ist notiert");
+    await a.fill("#hsai", "geiglbergstr 2a wang"); await sleep(900); const sug = await txt(a, "#hsal"); ok(/Geiglbergstraße 2a/.test(sug) && /85368 Wang/.test(sug) && /Landkreis Freising/.test(sug), "„geiglbergstr 2a wang“ schlägt die ganze Adresse vor: Straße, Hausnummer, PLZ, Ort", sug.slice(0, 120)); await a.shot("haus-adresse");
+    await a.tap('#hsal .hs-ai:has-text("Geiglbergstraße")'); await sleep(2500);
     const g2 = (await L.table("home_groups", "id=eq." + g.id))[0], plan = (await tasks("kind=eq.plan")).sort((x, y) => x.due_at < y.due_at ? -1 : 1);
-    ok(g2.ort === "Wang" && g2.strasse === "Geiglbergstraße", "die Adresse ist gespeichert"); ok(plan.length === 3 && plan[0].title === "Schwarze Tonne + Gelber Sack" && plan[1].title === "Biotonne + Papiertonne", "drei Abholungen der nächsten 8 Wochen sind eingetragen, Tonnen eines Tages zusammen (die in 90 Tagen noch nicht)", JSON.stringify(plan.map(p => p.title)));
-    ok(/Geiglbergstraße, Wang/.test(await txt(a, "#hsaddr")) && /Abholung morgen/.test(await txt(a, "#hsplan")), "der Müllplan zeigt die Adresse und „Abholung morgen“", (await txt(a, "#hsplan")).slice(0, 160)); await a.shot("haus-plan");
+    ok(g2.ort === "85368 Wang" && g2.strasse === "Geiglbergstraße 2a" && g2.addr && g2.addr.hnr === "2a", "die Adresse ist gespeichert, mit Hausnummer und PLZ", JSON.stringify([g2.ort, g2.strasse])); ok(plan.length === 3 && plan[0].title === "Gelber Sack + Schwarze Tonne" && plan[1].title === "Biotonne + Papiertonne" && plan[2].title === "Restmüll + Wertstofftonne", "drei Abholungen der nächsten 8 Wochen sind eingetragen, Tonnen eines Tages zusammen (die in 90 Tagen noch nicht)", JSON.stringify(plan.map(p => p.title)));
+    ok(/Geiglbergstraße 2a, 85368 Wang/.test(await txt(a, "#hsaddr")) && /Abholung morgen/.test(await txt(a, "#hsplan")), "der Müllplan zeigt die Adresse und „Abholung morgen“", (await txt(a, "#hsplan")).slice(0, 160)); await a.shot("haus-plan");
     await a.evaluate(() => Haus.sync()); await sleep(1200); ok((await tasks("kind=eq.plan")).length === 3, "nochmal laden trägt nichts doppelt ein");
     /* the evening before: one person is asked; "can't" passes it on */
     await L.stage("PATCH", "home_tasks", "id=eq." + plan[0].id, {ask_at: new Date(Date.now() - 60000).toISOString()}); /* it is 5 pm on the evening before */

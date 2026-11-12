@@ -215,3 +215,17 @@ do $$ begin if not exists (select 1 from pg_publication_tables where pubname = '
 -- enters them as 'plan' tasks; the unique index keeps two phones from entering the same collection twice.
 alter table public.home_groups add column if not exists ort text check (ort is null or char_length(ort) <= 80), add column if not exists strasse text check (strasse is null or char_length(strasse) <= 80);
 create unique index if not exists home_tasks_plan_once on public.home_tasks (group_id, title, due_at) where kind = 'plan';
+
+-- The full address (street, house number, town, district, state, as picked from the suggestions): api/muell.js finds the
+-- region's calendar from it. home_plan_wishes: regions people asked for that no calendar is connected for yet (insert only).
+alter table public.home_groups add column if not exists addr jsonb check (addr is null or pg_column_size(addr) < 2000);
+create table if not exists public.home_plan_wishes (
+  id bigint generated always as identity primary key,
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  city text check (char_length(city) <= 80), county text check (char_length(county) <= 80), state text check (char_length(state) <= 80), why text check (char_length(why) <= 40),
+  created_at timestamptz not null default now()
+);
+alter table public.home_plan_wishes enable row level security;
+drop policy if exists home_plan_wishes_add on public.home_plan_wishes;
+create policy home_plan_wishes_add on public.home_plan_wishes for insert to authenticated with check (user_id = (select auth.uid()));
+grant insert on public.home_plan_wishes to authenticated;

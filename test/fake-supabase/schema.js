@@ -8,7 +8,8 @@ chess_duels|id|id:text:!: ; white:uuid:!: ; black:uuid:!: ; result:text:!: ; rea
 chess_events|id|id:int8:!:@identity ; user_id:uuid:!:@uid ; session:text:?: ; kind:text:!: ; name:text:?: ; meta:jsonb:?: ; device:text:?: ; created_at:timestamptz:!:@now
 chess_feedback|id|id:uuid:!:@uuid ; user_id:uuid:!:@uid ; name:text:?: ; body:text:!: ; img:text:?: ; info:text:?: ; created_at:timestamptz:!:@now
 chess_fixes|user_id,id|id:text:!: ; user_id:uuid:!: ; xp:int4:!:0 ; pz:int4:!:0 ; note:text:?: ; created_at:timestamptz:!:@now ; puzzle:jsonb:?:
-home_groups|id|id:uuid:!:@uuid ; owner:uuid:!:@uid ; name:text:!:'Zuhause' ; created_at:timestamptz:!:@now ; ort:text:?: ; strasse:text:?:
+home_groups|id|id:uuid:!:@uuid ; owner:uuid:!:@uid ; name:text:!:'Zuhause' ; created_at:timestamptz:!:@now ; ort:text:?: ; strasse:text:?: ; addr:jsonb:?:
+home_plan_wishes|id|id:int8:!:@identity ; user_id:uuid:!:@uid ; city:text:?: ; county:text:?: ; state:text:?: ; why:text:?: ; created_at:timestamptz:!:@now
 home_members|group_id,user_id|group_id:uuid:!: ; user_id:uuid:!: ; created_at:timestamptz:!:@now
 home_tasks|id|id:uuid:!:@uuid ; group_id:uuid:!: ; title:text:!: ; emoji:text:!:'🧹' ; note:text:?: ; img:text:?: ; kind:text:!:'once' ; every_days:int4:?: ; everyone:bool:!:false ; due_at:timestamptz:?: ; ask_at:timestamptz:!:@now ; state:text:!:'wait' ; asked:uuid:?: ; asked_at:timestamptz:?: ; passed:_text:!:{} ; taken_by:uuid:?: ; taken_at:timestamptz:?: ; reminded_at:timestamptz:?: ; done_by:uuid:?: ; done_at:timestamptz:?: ; created_by:uuid:!:@uid ; created_at:timestamptz:!:@now
 home_log|id|id:int8:!:@identity ; group_id:uuid:!: ; task_id:uuid:?: ; title:text:!: ; emoji:text:?: ; user_id:uuid:!: ; what:text:!: ; at:timestamptz:!:@now

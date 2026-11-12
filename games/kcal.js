@@ -1366,7 +1366,7 @@
         sb().from("home_log").select("user_id,what,title,emoji,at").eq("group_id", id).gte("at", new Date(Date.now() - 30 * 864e5).toISOString()).order("at", {ascending: false}).limit(400)]);
       if (my !== this.lseq) return; this.mem = (m.data || []).map(x => x.user_id); this.tasks = t.data || []; this.log = l.data || []; this.paint(); if (this.sh) this.draw(); this.cards();
       /* with an address saved, new collection dates come in by themselves (looked up at most every twelve hours) */
-      if (this.g.ort && this.g.strasse){ let last = 0; try { last = +localStorage.getItem("chessnat-muell") || 0; } catch(e) {} if (Date.now() - last > 12 * 3600e3) this.sync().then(n => { if (n > 0) this.load(); }); } },
+      if (this.where()){ let last = 0; try { last = +localStorage.getItem("chessnat-muell") || 0; } catch(e) {} if (Date.now() - last > 12 * 3600e3) this.sync().then(n => { if (n > 0) this.load(); }); } },
     /* what concerns me right now: asked of me (or of everyone and I haven't said no), and what I took */
     asks(){ const me = meId(); return this.tasks.filter(t => (t.state === "asked" && t.asked === me) || (t.state === "open" && !(t.passed || []).includes(me))); },
     todos(){ const me = meId(); return this.tasks.filter(t => t.state === "taken" && t.taken_by === me); },
@@ -1453,7 +1453,7 @@
       const open = this.tasks.filter(t => t.kind !== "plan"), plan = this.tasks.filter(t => t.kind === "plan").sort((x, y) => Date.parse(x.due_at) - Date.parse(y.due_at));
       set("#hsopen", `<div class="hs-card"><div class="hs-h">Aufgaben${open.length ? " · " + open.length : ""}</div>${open.map(row).join("") || `<p class="muted">Gerade ist nichts offen.</p>`}</div>`);
       set("#hsaddr", this.g.ort && this.g.strasse ? `<div class="hs-adr"><span><b>📍 ${h(this.g.strasse)}, ${h(this.g.ort)}</b><small>Die Abholtermine kommen von selbst.</small></span>${this.g.owner === me ? `<button class="btn sm" data-addr>Ändern</button>` : ""}</div>`
-        : this.g.owner === me ? `<button class="btn go" data-addr>📍 Adresse eintragen, Termine kommen von selbst</button><p class="muted hs-sm">Geht für den Landkreis Freising. Sonst trag die Termine unten von Hand ein.</p>` : "");
+        : this.g.owner === me ? `<button class="btn go" data-addr>📍 Adresse eintragen, Termine kommen von selbst</button>` : "");
       const ad = B.querySelector("[data-addr]"); if (ad) ad.onclick = () => this.addr();
       set("#hsplan", plan.map(row).join("") || `<p class="muted">Noch keine Termine. Am Abend vor jeder Abholung um 17 Uhr wird gefragt, wer die Tonne rausstellt.</p>`);
       const P = this.people(), cnt = P.map(u => ({u, n: this.log.filter(l => l.user_id === u && l.what === "done").length, p: this.log.filter(l => l.user_id === u && l.what !== "done").length})).sort((x, y) => y.n - x.n), mx = Math.max(1, ...cnt.map(c => c.n));
@@ -1462,35 +1462,47 @@
       set("#hsmem", `<div class="hs-who">${P.map(u => `<span class="chip">${h(this.who(u))}${u === this.g.owner ? " · Gründer" : ""}</span>`).join("")}</div>${this.g.owner === me ? `<button class="btn" data-share>Mitbewohner hinzufügen</button>` : `<button class="btn" data-leave>Haushalt verlassen</button>`}`);
       B.querySelectorAll("[data-del]").forEach(b => b.onclick = async e => { e.stopPropagation(); const r = await sb().from("home_tasks").delete().eq("id", b.dataset.del); if (r.error) return say("Ging nicht: " + r.error.message); haptic(8); this.load(); });
       const sh = B.querySelector("[data-share]"); if (sh) sh.onclick = () => this.share(); const lv = B.querySelector("[data-leave]"); if (lv) lv.onclick = async () => { await sb().from("home_members").delete().eq("group_id", this.g.id).eq("user_id", me); this.sh.close(); this.load(); }; },
-    /* the address, on a screen of its own with the one field at the very top (so the keyboard never covers it): first the town,
-       then the street, each picked from the district's own list; then the dates come in by themselves */
+    /* the address, on a screen of its own with the one field at the very top (so the keyboard never covers it): type street, house
+       number and town in one go, complete addresses come up as suggestions (like at a checkout), one tap picks it and the
+       region's calendar is found from it */
     addr(){ const ov = document.createElement("div"); ov.className = "kc-sov hs-ov"; ov.style.zIndex = 310; ov.setAttribute("data-notr", ""); ov.lang = "de";
-      ov.innerHTML = `<div class="kc-sovt"><b class="kc-shtt"><span style="font-size:22px">📍</span><span id="hsat">In welchem Ort?</span></b><button class="kc-sx" id="hsax">Abbrechen</button></div><div class="hs-abar"><input id="hsai" maxlength="80" placeholder="Ort suchen …" enterkeyhint="search" autocomplete="off" autocorrect="off"></div><div class="kc-sovb" id="hsal"><p class="muted">Lädt …</p></div>`;
-      document.body.appendChild(ov); const inp = ov.querySelector("#hsai"), list = ov.querySelector("#hsal"); let all = [], ort = null, closed = false;
+      ov.innerHTML = `<div class="kc-sovt"><b class="kc-shtt"><span style="font-size:22px">📍</span><span>Wo wohnt ihr?</span></b><button class="kc-sx" id="hsax">Abbrechen</button></div><div class="hs-abar"><input id="hsai" maxlength="80" placeholder="Straße, Hausnummer, Ort" enterkeyhint="search" autocomplete="street-address" autocorrect="off" spellcheck="false"></div><div class="kc-sovb" id="hsal"><p class="muted">Tipp eure Adresse ein, z. B. „Geiglbergstr 2a Wang“.</p></div>`;
+      document.body.appendChild(ov); const inp = ov.querySelector("#hsai"), list = ov.querySelector("#hsal"); let closed = false, seq = 0, tm = 0, items = [];
       const vv = window.visualViewport, fit = () => { if (!vv || closed) return; const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop); list.style.paddingBottom = (kb + 24) + "px"; ov.style.transform = vv.offsetTop ? `translateY(${vv.offsetTop}px)` : ""; };
       if (vv){ vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); fit(); }
-      const close = () => { if (closed) return; closed = true; if (vv){ vv.removeEventListener("resize", fit); vv.removeEventListener("scroll", fit); } try { inp.blur(); } catch(e) {} if (ov.animate){ const an = ov.animate([{opacity: 1}, {opacity: 0}], {duration: 160, easing: "ease-in"}); an.onfinish = () => ov.remove(); } else ov.remove(); };
+      const close = () => { if (closed) return; closed = true; clearTimeout(tm); if (vv){ vv.removeEventListener("resize", fit); vv.removeEventListener("scroll", fit); } try { inp.blur(); } catch(e) {} if (ov.animate){ const an = ov.animate([{opacity: 1}, {opacity: 0}], {duration: 160, easing: "ease-in"}); an.onfinish = () => ov.remove(); } else ov.remove(); };
       ov.querySelector("#hsax").onclick = close; if (ov.animate) ov.animate([{opacity: 0}, {opacity: 1}], {duration: 200, easing: "ease-out"});
-      const norm = t => t.toLowerCase().replace(/ß/g, "ss").replace(/str\.?(\s|$)/g, "strasse$1").replace(/[^a-z0-9äöü]/g, "");
-      const draw = () => { const q = norm(inp.value), L = all.filter(x => !q || norm(x).includes(q)).sort((a, b) => (norm(b).startsWith(q) ? 1 : 0) - (norm(a).startsWith(q) ? 1 : 0)).slice(0, 60);
-        list.innerHTML = L.map(x => `<button class="hs-ai" data-v="${h(x)}">${h(x)}</button>`).join("") || `<p class="muted">${all.length ? "Nichts gefunden. Der Plan geht nur für den Landkreis Freising." : "Lädt …"}</p>`;
-        list.querySelectorAll("[data-v]").forEach(b => b.onclick = () => pick(b.dataset.v)); };
-      const get = async qs => { const r = await fetch("/api/muell" + qs); const j = await r.json(); if (!r.ok) throw new Error(j.error || "HTTP " + r.status); return j; };
-      const fail = e => { list.innerHTML = `<p class="muted">Die Termine sind gerade nicht erreichbar (${h(e.message || String(e))}). Probier es später nochmal oder trag sie von Hand ein.</p>`; };
-      const pick = async v => { haptic(8); if (!ort){ ort = v; all = []; inp.value = ""; inp.placeholder = "Straße suchen …"; ov.querySelector("#hsat").textContent = "Welche Straße in " + v + "?"; draw(); try { inp.focus(); } catch(e) {}
-          try { all = (await get("?ort=" + encodeURIComponent(v))).strassen || []; draw(); } catch(e) { fail(e); } return; }
-        list.innerHTML = `<p class="muted">Hole die Termine …</p>`; const r = await sb().from("home_groups").update({ort, strasse: v}).eq("id", this.g.id); if (r.error){ say("Ging nicht: " + r.error.message); return close(); }
-        this.g.ort = ort; this.g.strasse = v; const n = await this.sync(); close(); if (n >= 0) say(n ? `📍 ${n} Abholtermine eingetragen ✓` : "📍 Adresse gespeichert, alle Termine sind schon drin ✓", 3600); this.load(); };
-      inp.oninput = draw; inp.onkeydown = e => { if (e.key === "Enter"){ e.preventDefault(); const b = list.querySelector("[data-v]"); if (b) b.click(); } };
-      try { inp.focus(); } catch(e) {} /* the keyboard opens right away: one tap less */
-      get("").then(j => { all = j.orte || []; draw(); }, fail); },
+      const msg = t => { list.innerHTML = `<p class="muted">${t}</p>`; };
+      const find = async () => { const t = inp.value.trim(), my = ++seq; if (t.length < 3) return msg("Tipp eure Adresse ein, z. B. „Geiglbergstr 2a Wang“.");
+        try { const r = await fetch("/api/muell?suggest=" + encodeURIComponent(t)), j = await r.json(); if (my !== seq || closed) return; if (!r.ok) throw new Error(j.error || "HTTP " + r.status); items = j.list || [];
+          list.innerHTML = items.map((x, i) => `<button class="hs-ai" data-i="${i}"><b>${h(x.street)}${x.hnr ? " " + h(x.hnr) : ""}</b><small>${h([x.plz, x.city].filter(Boolean).join(" "))}${x.county ? " · " + h(x.county) : ""}</small></button>`).join("") || `<p class="muted">Nichts gefunden. Schreib Straße und Ort aus.</p>`;
+          list.querySelectorAll("[data-i]").forEach(b => b.onclick = () => choose(items[+b.dataset.i])); }
+        catch(e) { if (my === seq) msg("Die Adresssuche ist gerade nicht erreichbar. Probier es gleich nochmal."); } };
+      const choose = async a => { haptic(8); seq++; try { inp.blur(); } catch(e) {} msg(`Suche den Abfuhrplan für ${h(a.label)} …`);
+        let n; try { n = await this.fetchPlan(a); } catch(e) { n = {err: "net"}; }
+        if (n.err){ if (n.err === "unsupported" || n.err === "empty"){ try { sb().from("home_plan_wishes").insert({user_id: meId(), city: a.city, county: a.county, state: a.state, why: n.err}).then(() => {}, () => {}); } catch(e) {} }
+          list.innerHTML = `<div class="hs-hint">${n.err === "street" ? `Im Abfuhrkalender von ${h(a.county || a.city)} steht die ${h(a.street)} nicht. Probier eine Nachbarstraße oder den Ortsteil.` : n.err === "net" ? "Der Abfuhrkalender ist gerade nicht erreichbar. Probier es später nochmal." : `Für ${h(a.county || a.city)} ist noch kein Abfuhrkalender angebunden. Ich habe den Wunsch notiert. Bis dahin kannst du die Termine von Hand eintragen.`}</div>`; return; }
+        const two = {ort: ((a.plz ? a.plz + " " : "") + a.city).slice(0, 80), strasse: (a.street + (a.hnr ? " " + a.hnr : "")).slice(0, 80)};
+        const r = await sb().from("home_groups").update(two).eq("id", this.g.id); if (r.error){ say("Ging nicht: " + r.error.message); return close(); }
+        sb().from("home_groups").update({addr: a}).eq("id", this.g.id).then(() => {}, () => {}); Object.assign(this.g, two, {addr: a}); const k = await this.sync(n.termine); close(); say(k > 0 ? `📍 ${k} Abholtermine eingetragen ✓` : "📍 Adresse gespeichert, alle Termine sind schon drin ✓", 3600); this.load(); };
+      inp.oninput = () => { clearTimeout(tm); tm = setTimeout(find, 280); }; inp.onkeydown = e => { if (e.key === "Enter"){ e.preventDefault(); const b = list.querySelector("[data-i]"); if (b) b.click(); else { clearTimeout(tm); find(); } } };
+      try { inp.focus(); } catch(e) {} /* the keyboard opens right away: one tap less */ },
+    /* the dates for an address: {termine} or {err: "unsupported" | "street" | "empty" | "net"} */
+    async fetchPlan(a){ const qs = a.street != null ? ["street", "hnr", "plz", "city", "district", "county", "state"].map(k => k + "=" + encodeURIComponent(a[k] || "")).join("&") : "ort=" + encodeURIComponent(a.ort) + "&strasse=" + encodeURIComponent(a.strasse);
+      const r = await fetch("/api/muell?" + qs), j = await r.json().catch(() => ({})); if (!r.ok) return {err: "net"}; if (j.error) return {err: j.error}; return (j.termine || []).length ? {termine: j.termine} : {err: "empty"}; },
+    /* the address a household saved: the full one, or (until the database has that column) rebuilt from "85368 Wang" and "Geiglbergstraße 2a"; the first version saved town and street only */
+    where(){ const g = this.g; if (!g) return null; if (g.addr && g.addr.street) return g.addr; const m = /^(\d{5}) (.+)$/.exec(g.ort || ""); if (m && g.strasse){ const n = /^(.*?)\s+(\d+\s?[a-zA-Z]?)$/.exec(g.strasse) || [0, g.strasse, ""]; return {street: n[1], hnr: n[2], plz: m[1], city: m[2]}; }
+      return g.ort && g.strasse ? {ort: g.ort, strasse: g.strasse} : null; },
     /* the collections of the next eight weeks for the saved address, entered as plan tasks (what is already there is left alone) */
     FRAK: {restabfall: ["⚫", "Schwarze Tonne"], restmüll: ["⚫", "Schwarze Tonne"], "gelber sack": ["🟡", "Gelber Sack"], "gelbe tonne": ["🟡", "Gelbe Tonne"], bio: ["🟤", "Biotonne"], bioabfall: ["🟤", "Biotonne"], papier: ["🔵", "Papiertonne"]},
-    async sync(){ const g = this.g; if (!g || !g.ort || !g.strasse || this.syncing) return -1; this.syncing = true;
-      try { const r = await fetch("/api/muell?ort=" + encodeURIComponent(g.ort) + "&strasse=" + encodeURIComponent(g.strasse)), j = await r.json(); if (!r.ok) throw new Error(j.error || "HTTP " + r.status);
+    /* every region names its bins differently: the known names first, then by what the word contains */
+    frak(w){ const x = String(w).toLowerCase(), k = this.FRAK[x]; if (k) return k; const short = String(w).replace(/\s*\(.*?\)\s*/g, " ").replace(/\s+/g, " ").trim().slice(0, 28);
+      return /bio|grün|gruen|garten/.test(x) ? ["🟤", /bio/.test(x) ? "Biotonne" : short] : /papier|pappe|altpapier|blau/.test(x) ? ["🔵", "Papiertonne"] : /gelb|wertstoff|leichtverp|lvp|verpackung/.test(x) ? ["🟡", /sack/.test(x) ? "Gelber Sack" : /gelb/.test(x) ? "Gelbe Tonne" : "Wertstofftonne"] : /rest|hausm|grau|schwarz/.test(x) ? ["⚫", "Restmüll"] : ["🗑️", short || "Abholung"]; },
+    async sync(given){ const g = this.g, w = this.where(); if (!g || !w || this.syncing) return -1; this.syncing = true;
+      try { let j = {termine: given}; if (!given){ const f = await this.fetchPlan(w); if (f.err) throw new Error(f.err); j = f; }
         const lim = Date.now() + 56 * 864e5, have = await sb().from("home_tasks").select("title,due_at").eq("group_id", g.id).eq("kind", "plan").gte("due_at", new Date(Date.now() - 864e5).toISOString()), seen = {}; (have.data || []).forEach(x => { seen[x.title + "|" + new Date(x.due_at).toDateString()] = 1; });
         const rows = []; for (const t of j.termine || []){ const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(t.d); if (!m) continue; const due = new Date(+m[1], +m[2] - 1, +m[3], 6, 0, 0), ask = new Date(+m[1], +m[2] - 1, +m[3] - 1, 17, 0, 0); if (due.getTime() > lim || due.getTime() < Date.now()) continue;
-          const F = (t.was || []).map(w => this.FRAK[String(w).toLowerCase()] || ["🗑️", String(w)]), title = F.map(f => f[1]).join(" + ").slice(0, 80); if (!title || seen[title + "|" + due.toDateString()]) continue;
+          const F = []; (t.was || []).forEach(w => { const f = this.frak(w); if (!F.some(x => x[1] === f[1])) F.push(f); }); const title = F.map(f => f[1]).join(" + ").slice(0, 80); if (!title || seen[title + "|" + due.toDateString()]) continue;
           rows.push({group_id: g.id, title, emoji: F.length === 1 ? F[0][0] : "🗑️", note: t.zusatz ? String(t.zusatz).slice(0, 300) : null, kind: "plan", due_at: due.toISOString(), ask_at: new Date(Math.max(ask.getTime(), Date.now())).toISOString(), created_by: meId()}); }
         let n = 0; if (rows.length){ const ins = await sb().from("home_tasks").insert(rows); if (!ins.error) n = rows.length; else for (const x of rows){ const one = await sb().from("home_tasks").insert(x); if (!one.error) n++; } }
         try { localStorage.setItem("chessnat-muell", String(Date.now())); } catch(e) {} return n; }
@@ -1753,7 +1765,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .hs-lg{font:700 13px var(--body);color:var(--muted)}.hs-sm{font-size:12.5px;margin:0}
 .hs-adr{display:flex;align-items:center;gap:10px}.hs-adr span{flex:1;min-width:0;display:flex;flex-direction:column;font:700 15px var(--body)}.hs-adr small{font:700 12px var(--body);color:var(--muted)}
 .hs-abar{padding:10px 0 4px}.hs-abar input{width:100%;box-sizing:border-box;padding:14px;border-radius:14px;border:2px solid var(--line);background:#2A2825;color:var(--fg);font:700 17px var(--body)}
-.hs-ai{display:block;width:100%;text-align:left;border:0;border-radius:12px;padding:14px;background:var(--panel);color:var(--fg);font:800 16px var(--body);cursor:pointer;flex:none}.hs-who{display:flex;flex-wrap:wrap;gap:6px}.hs-hint{padding:12px;border-radius:14px;background:rgba(59,140,136,.2);font:700 14px var(--body)}.kc-tile.cook{background:#E0694E;box-shadow:inset 0 -5px 0 #B04A32}
+.hs-ai{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;border:0;border-radius:12px;padding:12px 14px;background:var(--panel);color:var(--fg);font:800 16px var(--body);cursor:pointer;flex:none;animation:hsIn .25s cubic-bezier(.2,.8,.2,1)}.hs-ai small{font:700 12.5px var(--body);color:var(--muted)}.hs-who{display:flex;flex-wrap:wrap;gap:6px}.hs-hint{padding:12px;border-radius:14px;background:rgba(59,140,136,.2);font:700 14px var(--body)}.kc-tile.cook{background:#E0694E;box-shadow:inset 0 -5px 0 #B04A32}
 .kc-tile:active{transform:translateY(2px);box-shadow:inset 0 -2px 0 rgba(0,0,0,.3)}.kc-btns.two .kc-big{height:112px;font-size:19px;border-radius:22px}
 .kc-num em{margin-left:auto;align-self:center;font:900 13px var(--body);color:var(--muted);background:var(--panel-2);border-radius:999px;padding:4px 10px;font-style:normal}.kc-num em.ok{color:#fff;background:linear-gradient(180deg,#ff9a3c,#e9573f)}.kc-num{width:100%}
 .kc-mac{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.kc-mc{background:var(--panel-2);border-radius:14px;padding:8px 10px;display:flex;flex-direction:column;gap:3px;min-width:0}
