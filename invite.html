@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Chess.nat · Du bist eingeladen</title>
+<meta name="robots" content="noindex">
+<meta property="og:title" content="Du bist zu Chess.nat eingeladen">
+<meta property="og:description" content="Die Schach-App, die vergessen hat aufzuhören. 60 Sekunden, dann spielst du.">
+<meta name="theme-color" content="#141312">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@600;800;900&family=JetBrains+Mono:wght@700&display=swap">
+<style>
+/* Einladungsfilm: eine feste Bühne 1080×1920 (Handy hochkant), die in jedes Fenster skaliert wird.
+   Läuft wie ein Spot von selbst durch: Szene für Szene, Nathans echte Stimme (sounds/lines) als Ausrufe,
+   Erzählspur je Szene aus invite/voice/s<N>.mp3, wenn vorhanden. Tippen rechts = weiter, links = zurück. */
+:root{
+  --bg:#141312; --stage:#2B2926; --card:#33302C; --card-2:#3D3A35; --line:#4A463F;
+  --fg:#F4F2EE; --muted:#BAB5AC; --dim:#8C867C;
+  --go:#7FB24A; --go-hi:#8FC458; --go-deep:#4F7A2A;
+  --warn:#E9B64A; --bad:#E2523E; --info:#5AA3E0; --pink:#E06CA0; --brill:#26C2A3;
+  --sq-l:#EEEED2; --sq-d:#769656;
+  --display:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --ease:cubic-bezier(.2,.8,.2,1);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:var(--display);overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+#app{position:fixed;inset:0}
+#stage{position:absolute;left:50%;top:50%;width:1080px;height:1920px;transform:translate(-50%,-50%) scale(var(--s,1));transform-origin:50% 50%;background:var(--stage);overflow:hidden;border-radius:44px;box-shadow:0 0 0 1px #000,0 40px 120px rgba(0,0,0,.7)}
+@media (max-aspect-ratio: 9/16){#stage{border-radius:0;box-shadow:none}}
+
+/* Fortschritt wie bei Stories */
+#bars{position:absolute;left:36px;right:36px;top:calc(28px + env(safe-area-inset-top,0px));display:flex;gap:8px;z-index:30}
+#bars i{flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.22);overflow:hidden}
+#bars i b{display:block;height:100%;width:0;background:#fff;border-radius:4px}
+#bars i.done b{width:100%}
+#brand{position:absolute;left:36px;top:calc(56px + env(safe-area-inset-top,0px));z-index:30;display:flex;align-items:center;gap:14px;font:900 40px var(--display);letter-spacing:-.02em;text-shadow:0 2px 8px rgba(0,0,0,.4)}
+#brand svg{width:52px;height:52px}
+#brand b{color:var(--go-hi)}
+#mute{position:absolute;right:36px;top:calc(50px + env(safe-area-inset-top,0px));z-index:30;width:72px;height:72px;border-radius:50%;border:0;background:rgba(0,0,0,.35);color:#fff;display:grid;place-items:center;cursor:pointer}
+#mute svg{width:36px;height:36px}
+#skip{position:absolute;right:36px;bottom:calc(44px + env(safe-area-inset-bottom,0px));z-index:30;border:0;background:rgba(0,0,0,.35);color:#fff;font:800 26px var(--display);padding:16px 26px;border-radius:999px;cursor:pointer}
+#tap{position:absolute;inset:0;z-index:20;display:grid;grid-template-columns:1fr 2fr}
+#tap div{cursor:pointer}
+
+/* Szenen */
+.sc{position:absolute;inset:0;padding:260px 72px 180px;display:flex;flex-direction:column;justify-content:center;gap:40px;opacity:0;visibility:hidden;transition:opacity .35s ease,visibility 0s .35s}
+.sc.on{opacity:1;visibility:visible;transition:opacity .35s ease}
+.sc.out{opacity:0;transform:scale(1.04);transition:opacity .3s ease,transform .3s ease,visibility 0s .3s}
+.sc .bg{position:absolute;inset:0;z-index:-1}
+h1,h2{margin:0;font-weight:900;letter-spacing:-.03em;line-height:.98;text-wrap:balance}
+h1{font-size:150px}
+h2{font-size:112px}
+h1 b,h2 b{color:var(--go-hi)}
+.beat{font:800 38px var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--go-hi);display:flex;align-items:center;gap:16px}
+.beat::before{content:"";width:44px;height:5px;background:var(--go);border-radius:3px}
+.thought{font:600 46px/1.25 var(--display);color:var(--muted);font-style:italic;display:flex;gap:18px;align-items:flex-start}
+.thought::before{content:"„";font:900 110px/0.55 var(--display);color:var(--go);font-style:normal;margin-top:18px}
+.cap{font:600 44px/1.3 var(--display);color:var(--muted);max-width:30ch}
+.cap b{color:var(--fg);font-weight:800}
+.sticker{position:absolute;padding:14px 28px;border-radius:999px;font:900 34px var(--display);color:#fff;transform:rotate(-6deg) scale(0);box-shadow:0 10px 30px rgba(0,0,0,.4);z-index:5}
+.on .sticker{animation:stick .5s var(--ease) var(--d,1.2s) forwards}
+@keyframes stick{from{transform:rotate(-14deg) scale(0)}70%{transform:rotate(-4deg) scale(1.12)}to{transform:rotate(-6deg) scale(1)}}
+.rise{opacity:0;transform:translateY(60px)}
+.on .rise{animation:rise .7s var(--ease) var(--d,0s) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+.art{position:relative;min-height:600px;display:flex;align-items:center;justify-content:center}
+.pill{display:inline-flex;align-items:center;gap:10px;padding:12px 26px;border-radius:999px;font:800 30px var(--display);background:var(--card-2);color:var(--muted)}
+.pill.go{background:rgba(127,178,74,.2);color:var(--go-hi)}
+.row{display:flex;gap:16px;flex-wrap:wrap}
+
+/* S0 Hook */
+#s0{justify-content:center;background:radial-gradient(90% 60% at 50% 10%,rgba(127,178,74,.3),transparent 60%),var(--stage)}
+#s0 .pawn{width:380px;height:380px;margin:0 auto;filter:drop-shadow(0 30px 60px rgba(0,0,0,.6))}
+.on #s0-t1{animation:rise .6s var(--ease) .2s forwards}
+#s0 .who{display:flex;align-items:center;gap:24px;background:rgba(0,0,0,.3);border-radius:30px;padding:26px 30px}
+#s0 .who .av{width:96px;height:96px;border-radius:26px;background:var(--info);display:grid;place-items:center;font:900 44px var(--display);color:#fff;overflow:hidden;flex:none}
+#s0 .who .av svg{width:100%;height:100%}
+#s0 .who .t{font:900 42px var(--display);line-height:1.1}
+#s0 .who .s{font:600 30px var(--display);color:var(--muted)}
+
+/* S1 Schach */
+.board{width:860px;height:860px;display:grid;grid-template-columns:repeat(8,1fr);border-radius:16px;overflow:hidden;position:relative;box-shadow:0 40px 90px rgba(0,0,0,.55);transform:rotate(-3deg)}
+.board span{display:block;background:var(--sq-d)}
+.board span.l{background:var(--sq-l)}
+.pc{position:absolute;width:12.5%;height:12.5%;display:grid;place-items:center;font-size:92px;line-height:1;filter:drop-shadow(0 6px 4px rgba(0,0,0,.4))}
+.pc.w{color:#fff;text-shadow:0 0 2px #000,0 0 3px #000}
+.pc.b{color:#1E1C1A}
+.hl{position:absolute;width:12.5%;height:12.5%;background:rgba(255,255,51,.5);opacity:0}
+.on .pc.knight{animation:knight 1s var(--ease) 1.4s forwards}
+@keyframes knight{to{transform:translate(100%,-200%)}}
+.on .hl.a,.on .hl.b{animation:hlin .3s ease 1.4s forwards}
+@keyframes hlin{to{opacity:1}}
+.on .pc.queen{animation:queen .9s var(--ease) 2.9s forwards}
+@keyframes queen{to{transform:translate(100%,100%);opacity:0}}
+.brill{position:absolute;right:-30px;top:-30px;width:150px;height:150px;border-radius:50%;background:var(--brill);color:#fff;font:900 64px var(--display);display:grid;place-items:center;box-shadow:0 10px 40px rgba(0,0,0,.5);transform:scale(0)}
+.on .brill{animation:pop .5s var(--ease) 2.5s forwards}
+@keyframes pop{from{transform:scale(0)}70%{transform:scale(1.2)}to{transform:scale(1)}}
+.rankup{position:absolute;left:50%;bottom:-40px;transform:translate(-50%,40px);background:#fff;color:#1E1C1A;border-radius:24px;padding:18px 30px;font:900 40px var(--display);display:flex;align-items:center;gap:16px;opacity:0;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.on .rankup{animation:rankup .6s var(--ease) 3.6s forwards}
+@keyframes rankup{to{opacity:1;transform:translate(-50%,0)}}
+.rankup i{width:52px;height:52px;border-radius:50%;background:linear-gradient(160deg,#FFE08A,#C9A227);display:grid;place-items:center;font-style:normal;font-size:28px}
+
+/* S2 Natposter */
+#s2{background:radial-gradient(80% 50% at 50% 100%,rgba(90,163,224,.25),transparent 60%),#1A1E2A}
+.station{position:relative;width:100%;height:620px;border-radius:40px;background:linear-gradient(180deg,#232A3A,#171B26);overflow:hidden;box-shadow:inset 0 0 0 3px rgba(255,255,255,.06)}
+.station::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 2px,transparent 2px),linear-gradient(90deg,rgba(255,255,255,.05) 2px,transparent 2px);background-size:80px 80px}
+.bean{position:absolute;width:120px;height:150px;border-radius:60px 60px 48px 48px;box-shadow:inset -16px -12px 0 rgba(0,0,0,.2)}
+.bean::before{content:"";position:absolute;left:26px;top:26px;width:80px;height:36px;border-radius:24px;background:#9DD6F0;box-shadow:inset 0 6px 0 #fff}
+.bean::after{content:"";position:absolute;left:-20px;top:60px;width:30px;height:60px;border-radius:16px;background:inherit;box-shadow:inset -8px -6px 0 rgba(0,0,0,.2)}
+.on .bean{animation:walk 2.4s ease-in-out infinite}
+@keyframes walk{0%,100%{transform:translateX(0)}50%{transform:translateX(var(--dx,40px))}}
+.bean.sus{--dx:-60px}
+.tag{position:absolute;left:50%;top:-70px;transform:translateX(-50%) scale(0);white-space:nowrap;font:900 30px var(--display);background:var(--bad);color:#fff;padding:10px 22px;border-radius:999px}
+.on .tag{animation:pop .4s var(--ease) 2.6s forwards}
+.wordcard{position:absolute;left:40px;top:40px;background:#fff;color:#1E1C1A;border-radius:28px;padding:22px 34px;font:900 54px var(--display);box-shadow:0 20px 50px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:4px}
+.wordcard small{font:800 24px var(--display);color:#8C867C;letter-spacing:.12em;text-transform:uppercase}
+.alarm{position:absolute;inset:0;background:rgba(226,82,62,.0);pointer-events:none}
+.on .alarm{animation:alarm 1.2s ease 2.4s 2}
+@keyframes alarm{50%{background:rgba(226,82,62,.28)}}
+
+/* S3 Kalorien */
+#s3{background:radial-gradient(80% 50% at 50% 0%,rgba(233,182,74,.22),transparent 60%),var(--stage)}
+.macros{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.macro{background:var(--card);border-radius:30px;padding:30px;position:relative;overflow:hidden}
+.macro .l{font:800 26px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.macro .v{font:900 72px var(--display);font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:10px;margin-top:6px}
+.macro .v small{font:700 30px var(--display);color:var(--muted)}
+.macro .bar{height:18px;border-radius:9px;background:var(--card-2);margin-top:22px;overflow:hidden}
+.macro .bar b{display:block;height:100%;width:0;background:var(--warn);border-radius:9px}
+.on .macro .bar b{animation:fill 1.6s var(--ease) .6s forwards}
+@keyframes fill{to{width:var(--w)}}
+.macro.full .bar b{background:var(--go-hi)}
+.on .macro.full{animation:green .4s ease 2.1s forwards}
+@keyframes green{to{background:rgba(127,178,74,.28)}}
+.macro .chk{position:absolute;right:24px;top:24px;width:56px;height:56px;border-radius:50%;background:var(--go);color:#fff;display:grid;place-items:center;font:900 32px var(--display);transform:scale(0)}
+.on .macro.full .chk{animation:pop .4s var(--ease) 2.2s forwards}
+.rank{background:#fff;color:#1E1C1A;border-radius:30px;padding:26px 34px;display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:center;transform:translateY(40px);opacity:0}
+.on .rank{animation:rise .6s var(--ease) 2.8s forwards}
+.rank .n{font:900 56px var(--mono)}
+.rank .who{font:900 44px var(--display)}
+.rank .who small{display:block;font:600 28px var(--display);color:#8C867C}
+.rank .pct{font:900 60px var(--display);color:var(--go-deep);font-variant-numeric:tabular-nums}
+.mic{position:absolute;right:40px;top:-60px;width:140px;height:140px;border-radius:50%;background:var(--bad);display:grid;place-items:center;box-shadow:0 0 0 0 rgba(226,82,62,.5)}
+.on .mic{animation:ping 1.4s ease-out .4s 3}
+@keyframes ping{to{box-shadow:0 0 0 50px rgba(226,82,62,0)}}
+.mic svg{width:70px;height:70px}
+
+/* S4 Nat Stars */
+#s4{background:radial-gradient(80% 50% at 50% 100%,rgba(224,108,160,.28),transparent 60%),#241A26}
+.arena{position:relative;width:100%;height:640px;border-radius:40px;background:linear-gradient(180deg,#3A2A3C,#241A26);overflow:hidden;box-shadow:inset 0 0 0 3px rgba(255,255,255,.08)}
+.arena::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.06) 2px,transparent 2px),linear-gradient(90deg,rgba(255,255,255,.06) 2px,transparent 2px);background-size:90px 90px}
+.fog{position:absolute;left:52%;top:0;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(120,110,130,.75) 25%);}
+.star{position:absolute;width:120px;height:120px;border-radius:50%;display:grid;place-items:center;font:900 48px var(--display);color:#fff;box-shadow:0 14px 30px rgba(0,0,0,.45)}
+.star.a{background:var(--pink);left:12%;top:50%}
+.star.b{background:var(--info);right:12%;top:26%}
+.star.c{background:var(--warn);color:#2A1E05;left:46%;top:66%}
+.on .star.a{animation:dashA 2.6s ease-in-out .3s infinite}
+.on .star.b{animation:dashB 2.6s ease-in-out .3s infinite}
+.on .star.c{animation:dashC 2.6s ease-in-out .3s infinite}
+@keyframes dashA{0%,100%{transform:translate(0,0)}30%{transform:translate(160px,-120px)}60%{transform:translate(60px,90px)}}
+@keyframes dashB{0%,100%{transform:translate(0,0)}35%{transform:translate(-140px,120px)}65%{transform:translate(-260px,-20px)}}
+@keyframes dashC{0%,100%{transform:translate(0,0)}40%{transform:translate(-80px,-170px)}70%{transform:translate(120px,-60px)}}
+.shot{position:absolute;width:26px;height:26px;border-radius:50%;background:var(--go-hi);left:18%;top:56%;opacity:0}
+.on .shot{animation:shot 1.2s linear .8s infinite}
+@keyframes shot{0%{transform:translate(0,0);opacity:1}100%{transform:translate(600px,-200px);opacity:0}}
+.crown{position:absolute;left:50%;top:30px;transform:translateX(-50%);font:900 30px var(--display);background:rgba(0,0,0,.4);padding:12px 26px;border-radius:999px;color:var(--warn);white-space:nowrap}
+
+/* S5 Einkaufsliste */
+#s5{background:radial-gradient(80% 50% at 50% 0%,rgba(127,178,74,.2),transparent 60%),var(--stage)}
+.list{background:#FBF8EF;color:#1E1C1A;border-radius:36px;padding:40px 44px;box-shadow:0 30px 80px rgba(0,0,0,.5);transform:rotate(2deg)}
+.list h4{margin:0 0 20px;font:900 48px var(--display)}
+.list ul{list-style:none;margin:0;padding:0;display:grid;gap:18px}
+.list li{display:flex;align-items:center;gap:22px;font:700 40px var(--display)}
+.list li i{width:52px;height:52px;border-radius:16px;border:5px solid #1E1C1A;display:grid;place-items:center;font-style:normal;font-size:30px;color:#fff;flex:none}
+.list li span{position:relative}
+.list li span::after{content:"";position:absolute;left:0;right:0;top:55%;height:6px;background:#1E1C1A;transform:scaleX(0);transform-origin:left;transition:transform .35s ease-out}
+.list li.done i{background:var(--go);border-color:var(--go)}
+.list li.done span::after{transform:scaleX(1)}
+.list li.done span{color:#8C867C}
+.cook{display:flex;align-items:center;gap:24px;background:var(--go);color:#fff;border-radius:30px;padding:30px 36px;font:900 46px var(--display);box-shadow:inset 0 -8px 0 var(--go-deep);transform:translateY(40px);opacity:0}
+.on .cook{animation:rise .6s var(--ease) 3.2s forwards}
+.cook svg{width:64px;height:64px;flex:none}
+
+/* S6 Party */
+#s6{background:radial-gradient(70% 40% at 70% 10%,rgba(90,163,224,.25),transparent 60%),#15171F}
+.moon{width:360px;height:360px;border-radius:50%;background:#F4F2EE;box-shadow:inset -60px -30px 0 #CFCBC2,0 0 120px rgba(244,242,238,.35);position:relative;margin:0 auto}
+.on .moon{animation:glow 3s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:inset -60px -30px 0 #CFCBC2,0 0 220px rgba(244,242,238,.55)}}
+.wolf{position:absolute;bottom:-60px;right:-100px;width:240px;height:200px}
+.roles{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.role{background:var(--card);border-radius:24px;padding:20px 28px;font:800 34px var(--display);display:flex;gap:16px;align-items:center;opacity:0;transform:translateY(30px)}
+.on .role{animation:rise .5s var(--ease) var(--d) forwards}
+.role i{width:22px;height:22px;border-radius:50%;display:inline-block}
+.phones{display:flex;gap:14px;justify-content:center}
+.phones i{width:70px;height:120px;border-radius:16px;background:var(--card-2);box-shadow:inset 0 0 0 4px var(--line);display:block;opacity:0}
+.on .phones i{animation:rise .4s var(--ease) var(--d) forwards}
+
+/* S7 Live */
+#s7{background:radial-gradient(80% 50% at 50% 0%,rgba(90,163,224,.22),transparent 60%),var(--stage)}
+.fr{display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:center;background:var(--card);border-radius:30px;padding:24px 28px;opacity:0;transform:translateY(30px)}
+.on .fr{animation:rise .5s var(--ease) var(--d) forwards}
+.fr .av{width:96px;height:96px;border-radius:26px;display:grid;place-items:center;font:900 44px var(--display);color:#fff;position:relative}
+.fr .av::after{content:"";position:absolute;right:-6px;bottom:-6px;width:28px;height:28px;border-radius:50%;background:var(--go-hi);border:5px solid var(--card)}
+.fr .nm{font:900 40px var(--display)}
+.fr .st{font:600 30px var(--display);color:var(--muted);display:flex;align-items:center;gap:12px}
+.fr .st b{color:var(--go-hi)}
+.live{width:18px;height:18px;border-radius:50%;background:var(--bad);display:inline-block;animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.3}}
+.fr .act{font:900 30px var(--display);background:var(--card-2);padding:18px 26px;border-radius:20px;white-space:nowrap}
+.fr .act.go{background:var(--go);color:#fff}
+.miniboard{position:relative;width:100%;height:300px;border-radius:30px;overflow:hidden;background:repeating-conic-gradient(var(--sq-d) 0 25%,var(--sq-l) 0 50%) 0 0/150px 150px;opacity:0;transform:translateY(30px)}
+.on .miniboard{animation:rise .5s var(--ease) 1.6s forwards}
+.miniboard svg{position:absolute;inset:0;width:100%;height:100%}
+.miniboard path{stroke-dasharray:900;stroke-dashoffset:900}
+.on .miniboard path{animation:draw .8s ease 2.3s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.match{background:var(--card);border-radius:30px;padding:28px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:20px;opacity:0;transform:translateY(30px)}
+.on .match{animation:rise .5s var(--ease) .3s forwards}
+.team{text-align:center}
+.team .badge{width:110px;height:110px;border-radius:30px;margin:0 auto 14px;display:grid;place-items:center;font:900 34px var(--display);color:#fff}
+.team .nm{font:900 34px var(--display)}
+.team .pick{margin-top:12px;font:800 28px var(--display);color:var(--go-hi);opacity:0}
+.on .team .pick{animation:rise .4s ease 1.2s forwards}
+.vs{font:900 34px var(--mono);color:var(--dim)}
+
+/* S8 Voting */
+#s8{background:radial-gradient(80% 50% at 50% 100%,rgba(127,178,74,.3),transparent 60%),var(--stage)}
+.votes{display:grid;gap:18px}
+.vote{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;background:var(--card);border-radius:30px;padding:26px 30px;position:relative;opacity:0;transform:translateY(30px)}
+.on .vote{animation:rise .5s var(--ease) var(--d) forwards}
+.vote .cnt{width:130px;display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--card-2);border-radius:22px;padding:18px 0;font:900 48px var(--display);font-variant-numeric:tabular-nums}
+.vote .cnt small{font:800 22px var(--display);color:var(--muted);letter-spacing:.08em}
+.vote .cnt svg{width:34px;height:34px;color:var(--go-hi)}
+.vote .t{font:900 40px var(--display);line-height:1.1}
+.vote .s{font:600 28px var(--display);color:var(--muted);margin-top:6px}
+.vote.top{box-shadow:inset 0 0 0 0 var(--go)}
+.on .vote.top{animation:rise .5s var(--ease) var(--d) forwards,ring .4s ease 2.6s forwards}
+@keyframes ring{to{box-shadow:inset 0 0 0 6px var(--go)}}
+.vote .build{position:absolute;right:26px;top:-26px;font:900 28px var(--display);background:var(--go);color:#fff;padding:12px 24px;border-radius:999px;transform:scale(0)}
+.on .vote.top .build{animation:pop .5s var(--ease) 2.7s forwards}
+.founder{display:grid;grid-template-columns:auto 1fr;gap:26px;align-items:center;background:#fff;color:#1E1C1A;border-radius:30px;padding:26px 30px;opacity:0;transform:translateY(30px)}
+.on .founder{animation:rise .5s var(--ease) 3.4s forwards}
+.founder .cam{width:110px;height:110px;border-radius:28px;background:var(--bad);display:grid;place-items:center;position:relative}
+.founder .cam::after{content:"LIVE";position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);font:900 20px var(--display);background:#1E1C1A;color:#fff;padding:4px 12px;border-radius:999px;letter-spacing:.1em}
+.founder .cam svg{width:60px;height:60px}
+.founder .t{font:900 38px var(--display);line-height:1.1}
+.founder .s{font:600 28px var(--display);color:#8C867C;margin-top:6px}
+
+/* S11 Community: Laufband aller Dinge, die schon drin sind */
+#s11{background:radial-gradient(90% 50% at 50% 50%,rgba(127,178,74,.25),transparent 60%),#1C1A17}
+.ticker{overflow:hidden;width:calc(100% + 144px);margin-left:-72px;padding:10px 0;mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+.tk{display:flex;gap:16px;width:max-content}
+.on .tk{animation:tk 14s linear infinite}
+@keyframes tk{to{transform:translateX(-50%)}}
+.tk span{flex:none;padding:16px 28px;border-radius:999px;background:var(--card);font:800 32px var(--display);white-space:nowrap}
+.tk span.g{background:var(--go);color:#fff}
+/* S9 Kostenlos */
+#s9{background:var(--go);color:#fff;justify-content:center;align-items:center;text-align:center}
+#s9 .zero{font:900 560px/0.85 var(--display);letter-spacing:-.06em;transform:scale(0);color:#fff;text-shadow:0 30px 0 var(--go-deep)}
+.on #s9 .zero{animation:zero .7s var(--ease) .2s forwards}
+@keyframes zero{from{transform:scale(0) rotate(-20deg)}70%{transform:scale(1.1) rotate(3deg)}to{transform:scale(1) rotate(0)}}
+#s9 .eur{font:900 150px var(--display);margin-top:-40px}
+#s9 .strike{display:grid;gap:10px;font:800 38px var(--display);color:rgba(255,255,255,.85)}
+#s9 .strike span{text-decoration:line-through;text-decoration-thickness:6px;text-decoration-color:#1E1C1A;opacity:0}
+.on #s9 .strike span{animation:rise .4s var(--ease) var(--d) forwards}
+#s9 .no{font:900 54px var(--display);color:#1E1C1A;opacity:0}
+.on #s9 .no{animation:rise .5s var(--ease) 2.2s forwards}
+
+/* S10 CTA */
+#s10{background:radial-gradient(100% 60% at 50% 100%,rgba(127,178,74,.35),transparent 60%),var(--stage);justify-content:flex-end;padding-bottom:140px}
+.reward{display:grid;grid-template-columns:auto 1fr;gap:26px;align-items:center;background:var(--card);border-radius:30px;padding:28px 30px}
+.trophy{width:120px;height:120px;border-radius:30px;background:linear-gradient(160deg,#FFE08A,#C9A227);display:grid;place-items:center}
+.trophy svg{width:64px;height:64px}
+.on .trophy{animation:wiggle 2.4s ease-in-out 1s infinite}
+@keyframes wiggle{0%,80%,100%{transform:rotate(0)}85%{transform:rotate(-8deg)}90%{transform:rotate(8deg)}95%{transform:rotate(-4deg)}}
+.reward .t{font:900 38px var(--display);line-height:1.1}
+.reward .s{font:600 30px var(--display);color:var(--muted);margin-top:6px}
+.reward .s b{color:var(--warn);font-weight:900}
+.cta{display:flex;align-items:center;justify-content:center;gap:20px;background:var(--go);color:#fff;border-radius:30px;padding:40px;font:900 56px var(--display);text-decoration:none;box-shadow:inset 0 -10px 0 var(--go-deep),0 30px 70px rgba(0,0,0,.45)}
+.cta:active{transform:translateY(4px);box-shadow:inset 0 -6px 0 var(--go-deep)}
+.on .cta{animation:ctapulse 1.6s ease-in-out 1.2s infinite}
+@keyframes ctapulse{50%{transform:scale(1.025)}}
+.again{text-align:center;font:800 30px var(--display);color:var(--muted);cursor:pointer}
+.fine{text-align:center;font:600 26px var(--display);color:var(--dim)}
+
+/* Startbild */
+#start{position:absolute;inset:0;z-index:40;background:var(--stage);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px;padding:80px;text-align:center;cursor:pointer}
+#start .play{width:220px;height:220px;border-radius:50%;background:var(--go);display:grid;place-items:center;box-shadow:0 0 0 0 rgba(127,178,74,.6);animation:ping 1.6s ease-out infinite}
+#start .play svg{width:100px;height:100px;margin-left:14px}
+#start h1{font-size:120px}
+#start p{margin:0;font:600 40px var(--display);color:var(--muted)}
+#start .logo{display:flex;align-items:center;gap:16px;font:900 56px var(--display)}
+#start .logo svg{width:70px;height:70px}
+#start .logo b{color:var(--go-hi)}
+#start.gone{display:none}
+@media (prefers-reduced-motion:reduce){.on .rise,.on .vote,.on .fr,.on .role,.on .phones i,.on .rank,.on .cook,.on .founder,.on .match,.on .miniboard,.on #s9 .strike span,.on #s9 .no{animation:none;opacity:1;transform:none}.on .sticker,.on .brill,.on .tag,.on .build,.on .macro .chk,.on #s9 .zero{animation:none;transform:none}#start .play,.on .cta,.on .trophy{animation:none}}
+</style>
+</head>
+<body>
+<div id="app"><div id="stage">
+  <div id="bars" aria-hidden="true"></div>
+  <div id="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="8" r="5" fill="#7FB24A"/><path d="M10.5 15h11l-1.6 6.5h-7.8z" fill="#7FB24A"/><path d="M8 27c0-2.8 2.2-4.5 4.4-4.5h7.2c2.2 0 4.4 1.7 4.4 4.5v1H8z" fill="#7FB24A"/></svg><span>Chess<b>.nat</b></span></div>
+  <button id="mute" aria-label="Ton aus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
+  <button id="skip">Überspringen</button>
+  <div id="tap"><div data-dir="-1" aria-label="Zurück"></div><div data-dir="1" aria-label="Weiter"></div></div>
+
+  <!-- 0 Hook -->
+  <section class="sc" id="s0">
+    <svg class="pawn rise" viewBox="0 0 50 50" aria-hidden="true"><path fill="#F0F0F0" stroke="#3C3C3C" stroke-linejoin="round" stroke-width="1.2" d="M21.5 27.6h7M19 17.5a6.35 6.35 0 0 0 2 4.6l-3.7 2.1.4 3.4h4.3c-.8 3.6-2.8 7.3-5 8.6s-5.3 3.1-4.9 8.2h25.7c.5-5.1-2.5-6.9-4.8-8.2s-4.3-5-5.1-8.6h4.3l.4-3.4-3.6-2.1a6.35 6.35 0 0 0 2-4.6c0-3.4-2.6-5.9-6-5.9s-6 2.5-6 5.9z"/></svg>
+    <h1 class="rise" id="s0-t1" style="--d:.2s">Das hier war mal eine <b>Schach-App.</b></h1>
+    <p class="cap rise" style="--d:.35s">Ehrlich. Nur Schach. <b>Das hat ungefähr zwei Wochen gehalten.</b></p>
+    <div class="who rise" style="--d:.5s" id="who"><div class="av" id="who-av">?</div><div><div class="t" id="who-t">Jemand lädt dich ein</div><div class="s">70 Sekunden. Dann spielst du.</div></div></div>
+  </section>
+
+  <!-- 1 Schach -->
+  <section class="sc" id="s1">
+    <div class="beat rise">Kapitel 1</div>
+    <h2 class="rise" style="--d:.1s">Puzzles. Bots. <b>Ränge.</b></h2>
+    <div class="art rise" style="--d:.2s;min-height:900px">
+      <div class="board" id="board">
+        <div class="hl a" style="left:12.5%;top:87.5%"></div><div class="hl b" style="left:25%;top:62.5%"></div>
+        <div class="pc b queen" style="left:37.5%;top:50%">♛</div>
+        <div class="pc b" style="left:50%;top:0">♚</div>
+        <div class="pc w" style="left:50%;top:87.5%">♔</div>
+        <div class="pc w" style="left:75%;top:75%">♙</div>
+        <div class="pc w knight" style="left:12.5%;top:87.5%">♘</div>
+        <div class="brill">!!</div>
+        <div class="rankup"><i>🏆</i> Eisen IV → Bronze I</div>
+      </div>
+    </div>
+    <p class="cap rise" style="--d:.3s">35 Bots, 200.000 Puzzles, Ränge wie in League. Alles normal. <b>Dann hat Wolf verloren und wollte was anderes spielen.</b></p>
+  </section>
+
+  <!-- 2 Natposter -->
+  <section class="sc" id="s2">
+    <div class="thought rise">Eigentlich wollen wir gerade lieber Imposter spielen.</div>
+    <h2 class="rise" style="--d:.15s">Also haben wir <b>Imposter nachgebaut.</b></h2>
+    <div class="station rise" style="--d:.3s">
+      <div class="wordcard"><small>Aufgabe</small>Reaktor</div>
+      <div class="bean" style="background:#E2523E;left:12%;top:50%;--dx:50px"></div>
+      <div class="bean" style="background:#5AA3E0;left:34%;top:62%;--dx:-30px"></div>
+      <div class="bean sus" style="background:#7FB24A;left:58%;top:44%"><span class="tag">Imposter!</span></div>
+      <div class="bean" style="background:#E9B64A;left:78%;top:60%;--dx:30px"></div>
+      <div class="alarm"></div>
+    </div>
+    <p class="cap rise" style="--d:.4s">Natposter: Raumstation, Sabotage, Sprachchat. <b>Adri war dreimal hintereinander der Imposter. Dreimal.</b></p>
+    <div class="sticker" style="right:40px;top:300px;background:var(--bad);--d:2.8s">sus 🤨</div>
+  </section>
+
+  <!-- 3 Kalorien -->
+  <section class="sc" id="s3">
+    <div class="thought rise">Moment. Kalorien tracken kostet 10 € im Monat?!</div>
+    <h2 class="rise" style="--d:.15s">Nö. <b>Eingebaut.</b></h2>
+    <div class="art rise" style="--d:.3s;flex-direction:column;align-items:stretch;gap:20px;min-height:0">
+      <div class="macros" style="position:relative">
+        <div class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></div>
+        <div class="macro full" style="--w:100%"><div class="l">Kalorien</div><div class="v">3.100<small>/ 3.100</small></div><div class="bar"><b></b></div><div class="chk">✓</div></div>
+        <div class="macro full" style="--w:100%"><div class="l">Protein</div><div class="v">182<small>/ 180 g</small></div><div class="bar"><b></b></div><div class="chk">✓</div></div>
+        <div class="macro" style="--w:74%"><div class="l">Carbs</div><div class="v">281<small>/ 380 g</small></div><div class="bar"><b></b></div></div>
+        <div class="macro" style="--w:62%"><div class="l">Fett</div><div class="v">64<small>/ 103 g</small></div><div class="bar"><b></b></div></div>
+      </div>
+      <div class="rank"><span class="n">1</span><span class="who">Adri<small>Ranking „Einhaltung“</small></span><span class="pct">100 %</span></div>
+    </div>
+    <p class="cap rise" style="--d:.4s">Wie Yazio, nur mit deinen Freunden im Ranking. <b>Adri: 3.860 von 3.100 kcal. Trotzdem Platz 1. Lange Geschichte.</b></p>
+  </section>
+
+  <!-- 4 Nat Stars -->
+  <section class="sc" id="s4">
+    <div class="thought rise">wtf. Wir haben einfach Brawl Stars nachgebaut.</div>
+    <h2 class="rise" style="--d:.15s"><b>Nat Stars.</b> Weil wir Bock hatten.</h2>
+    <div class="arena rise" style="--d:.3s">
+      <div class="fog"></div>
+      <div class="crown">★ Letzter steht gewinnt</div>
+      <div class="star a">N</div><div class="star b">W</div><div class="star c">A</div>
+      <div class="shot"></div>
+    </div>
+    <p class="cap rise" style="--d:.4s">Ballern, im Nebel verstecken, gewinnen. <b>„Bock haben“ reicht hier als Grund.</b></p>
+    <div class="sticker" style="left:40px;bottom:380px;background:var(--pink);--d:2.2s">kein Download 🙅</div>
+  </section>
+
+  <!-- 5 Einkaufsliste -->
+  <section class="sc" id="s5">
+    <div class="thought rise">Im Supermarkt. Ohne Liste. Zum vierten Mal diese Woche.</div>
+    <h2 class="rise" style="--d:.15s">Also: <b>Einkaufsliste</b> und <b>Kochen.</b></h2>
+    <div class="art rise" style="--d:.3s;flex-direction:column;align-items:stretch;gap:30px;min-height:0">
+      <div class="list" id="shoplist"><h4>Einkauf Samstag</h4><ul>
+        <li><i>✓</i><span>Hähnchenbrust 1 kg</span></li>
+        <li><i>✓</i><span>Reis</span></li>
+        <li><i>✓</i><span>Brokkoli</span></li>
+        <li><i>✓</i><span>Magerquark</span></li>
+      </ul></div>
+      <div class="cook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16v2a7 7 0 0 1-7 7h-2a7 7 0 0 1-7-7z"/><path d="M8 4c0 1.5 1 1.5 1 3M12 3c0 1.5 1 1.5 1 3M16 4c0 1.5 1 1.5 1 3"/></svg>Kochen: Was geht mit dem, was da ist?</div>
+    </div>
+    <p class="cap rise" style="--d:.4s">Geteilt mit der WG. „Kochen“ guckt, was da ist, und sagt, was geht. <b>Gegessen? Ein Tipp, steht in den Kalorien.</b></p>
+  </section>
+
+  <!-- 6 Party -->
+  <section class="sc" id="s6">
+    <div class="thought rise">Und wenn zehn Leute auf der Couch sitzen?</div>
+    <h2 class="rise" style="--d:.15s"><b>Partyspiele.</b> Ein Handy reicht.</h2>
+    <div class="art rise" style="--d:.3s;min-height:420px"><div class="moon"><svg class="wolf" viewBox="0 0 70 60" aria-hidden="true"><path d="M8 58 L14 30 L10 8 L24 22 L34 20 L46 22 L60 8 L56 30 L64 58 Z" fill="#15171F"/><circle cx="26" cy="34" r="3" fill="#E9B64A"/><circle cx="44" cy="34" r="3" fill="#E9B64A"/></svg></div></div>
+    <div class="roles">
+      <span class="role" style="--d:.5s"><i style="background:var(--bad)"></i>Werwolf</span>
+      <span class="role" style="--d:.65s"><i style="background:var(--info)"></i>Tabu</span>
+      <span class="role" style="--d:.8s"><i style="background:var(--pink)"></i>Stirnraten</span>
+      <span class="role" style="--d:.95s"><i style="background:var(--warn)"></i>Wahrheit oder Pflicht</span>
+      <span class="role" style="--d:1.1s"><i style="background:var(--go)"></i>Ich hab noch nie</span>
+      <span class="role" style="--d:1.25s"><i style="background:var(--brill)"></i>Tick-Tack-Bumm</span>
+    </div>
+    <div class="phones"><i style="--d:1.5s"></i><i style="--d:1.6s"></i><i style="--d:1.7s"></i><i style="--d:1.8s"></i><i style="--d:1.9s"></i><i style="--d:2s"></i></div>
+    <p class="cap rise" style="--d:.4s">Zehn Spiele. Rollen aufs eigene Handy oder alles auf eins. <b>Niemand muss den Erzähler machen. Niemand.</b></p>
+  </section>
+
+  <!-- 7 Tipp + Live -->
+  <section class="sc" id="s7">
+    <div class="thought rise">Dann wollten wir aufs Worlds-Finale tippen.</div>
+    <h2 class="rise" style="--d:.1s">Also: <b>Tipp-App.</b> Mit deinen Freunden.</h2>
+    <div class="match">
+      <div class="team"><div class="badge" style="background:#B8923A">GEN</div><div class="nm">Gen.G</div><div class="pick">✓ dein Tipp</div></div>
+      <div class="vs">VS</div>
+      <div class="team"><div class="badge" style="background:#2E6FB5">BLG</div><div class="nm">Bilibili</div></div>
+    </div>
+    <div class="fr" style="--d:.8s"><div class="av" style="background:#5C8BB0">W</div><div><div class="nm">Wolf</div><div class="st"><span class="live"></span>spielt <b>Schach</b> gegen Adri</div></div><span class="act go">Zuschauen</span></div>
+    <div class="miniboard"><svg viewBox="0 0 1080 300"><path d="M180 230 L520 230 L520 90 L720 90" fill="none" stroke="#5AA3E0" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/><path d="M700 50 L760 90 L700 130" fill="none" stroke="#5AA3E0" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <p class="cap rise" style="--d:.4s">Und du siehst, wer gerade spielt. Reinschauen, Zug vorschlagen, <b>reinquatschen.</b></p>
+  </section>
+
+  <!-- 8 Community -->
+  <section class="sc" id="s11">
+    <div class="beat rise">Der Kern</div>
+    <h1 class="rise" style="--d:.1s">Das ist keine App. Das ist eine <b>Community.</b></h1>
+    <div class="ticker rise" style="--d:.3s" aria-hidden="true"><div class="tk" id="tk"></div></div>
+    <p class="cap rise" style="--d:.4s">Ein Abo für tausend Apps? Nein. <b>Eine App für alles.</b> Was auch immer du brauchst: Wir bauen es rein. Und es steht nie still.</p>
+    <div class="sticker" style="right:50px;top:260px;background:var(--warn);color:#2A1E05;--d:1.4s">steht nie still ⚡</div>
+  </section>
+
+  <!-- 8 Voting -->
+  <section class="sc" id="s8">
+    <div class="beat rise">Unser Versprechen</div>
+    <h2 class="rise" style="--d:.1s">Der <b>Top-Kommentar</b> gewinnt. Und wird gebaut. Egal was.</h2>
+    <div class="votes">
+      <div class="vote top" style="--d:.4s"><div class="cnt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg><span data-count="47">0</span><small>STIMMEN</small></div><div><div class="t">Nat Stars: Teams 2 gegen 2</div><div class="s">von Wolf · vor 2 Tagen</div></div><span class="build">wird gebaut</span></div>
+      <div class="vote" style="--d:.55s"><div class="cnt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg><span data-count="31">0</span><small>STIMMEN</small></div><div><div class="t">Kalorien per Foto</div><div class="s">von Adri · vor 5 Tagen</div></div></div>
+      <div class="vote" style="--d:.7s"><div class="cnt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg><span data-count="19">0</span><small>STIMMEN</small></div><div><div class="t">Schach-Turnier am Wochenende</div><div class="s">von Mia · gestern</div></div></div>
+    </div>
+    <div class="founder"><div class="cam"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="3"/><path d="M16 10l5-3v10l-5-3z"/></svg></div><div><div class="t">Jeden Tag ein Update vom Gründer. Live.</div><div class="s">Was ihr vorgeschlagen habt, was heute drin ist. Du gestaltest das hier mit.</div></div></div>
+  </section>
+
+  <!-- 9 Kostenlos -->
+  <section class="sc" id="s9">
+    <div class="zero">0</div>
+    <div class="eur">Euro.</div>
+    <div class="strike"><span style="--d:1.1s">Yazio 9,99 €/Monat</span><span style="--d:1.3s">Schach-Premium 14,99 €/Monat</span><span style="--d:1.5s">Partyspiele-Bundle 4,99 €</span><span style="--d:1.7s">die App, die du nie geöffnet hast</span></div>
+    <div class="no">Kein Abo für tausend Apps. Eine App für alles.</div>
+  </section>
+
+  <!-- 10 CTA -->
+  <section class="sc" id="s10">
+    <h1 class="rise" id="cta-h">Komm rein. <b>Spiel eine Runde.</b></h1>
+    <p class="cap rise" style="--d:.2s">Wir wissen nicht, was nächste Woche drin ist. <b>Das entscheidet ihr.</b></p>
+    <div class="reward rise" style="--d:.3s"><div class="trophy"><svg viewBox="0 0 24 24" fill="none" stroke="#5A4300" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3"/></svg></div><div><div class="t" id="rw-t">Wer dich eingeladen hat, freut sich doppelt</div><div class="s">Annehmen, einmal gegeneinander spielen: <b>+250 NatCoins</b> für den Einlader. Für dich: alles.</div></div></div>
+    <a class="cta rise" style="--d:.5s" id="cta" href="/">Einladung annehmen →</a>
+    <div class="again rise" style="--d:.7s" id="again">Noch mal von vorn</div>
+    <div class="fine rise" style="--d:.8s">Konto in 20 Sekunden. Kostenlos, ohne Werbung.</div>
+  </section>
+
+  <div id="start">
+    <div class="logo"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="8" r="5" fill="#7FB24A"/><path d="M10.5 15h11l-1.6 6.5h-7.8z" fill="#7FB24A"/><path d="M8 27c0-2.8 2.2-4.5 4.4-4.5h7.2c2.2 0 4.4 1.7 4.4 4.5v1H8z" fill="#7FB24A"/></svg><span>Chess<b>.nat</b></span></div>
+    <div class="play"><svg viewBox="0 0 24 24" fill="#fff"><path d="M6 4l14 8-14 8z"/></svg></div>
+    <h1 id="start-h">Du bist <b>eingeladen.</b></h1>
+    <p id="start-p">Tippen. Ton an. 60 Sekunden.</p>
+  </div>
+</div></div>
+
+<script src="config.js"></script>
+<script>
+(function(){
+  "use strict";
+  const $ = s => document.querySelector(s), $$ = s => Array.from(document.querySelectorAll(s));
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* Bühne ins Fenster skalieren */
+  const stage = $("#stage");
+  function fit(){ const s = Math.min(innerWidth / 1080, innerHeight / 1920); stage.style.setProperty("--s", s.toFixed(4)); }
+  addEventListener("resize", fit); fit();
+
+  /* Einlader */
+  const ref = (() => { try { const r = new URLSearchParams(location.search).get("ref"); return r && /^[a-z0-9_]{3,20}$/i.test(r) ? r.toLowerCase() : ""; } catch(e){ return ""; } })();
+  if (ref){ try { localStorage.setItem("chessnat-ref", ref); } catch(e) {} $("#cta").href = "/?ref=" + encodeURIComponent(ref); }
+  async function who(){
+    if (!ref || !window.CHESSNAT_CONFIG) return;
+    try {
+      const c = window.CHESSNAT_CONFIG, r = await fetch(c.supabaseUrl + "/rest/v1/rpc/invite_who", {method: "POST", headers: {"Content-Type": "application/json", apikey: c.supabaseAnonKey, Authorization: "Bearer " + c.supabaseAnonKey}, body: JSON.stringify({h: ref})});
+      const d = await r.json(); const p = Array.isArray(d) ? d[0] : d; if (!p || !p.name) return;
+      const n = String(p.name).slice(0, 24);
+      $("#who-t").textContent = n + " lädt dich ein"; $("#who-av").textContent = n[0].toUpperCase();
+      $("#start-h").innerHTML = esc(n) + " lädt dich <b>ein.</b>";
+      $("#rw-t").textContent = n + " freut sich doppelt";
+      $("#cta-h").innerHTML = "Komm rein. <b>Spiel gegen " + esc(n) + ".</b>";
+    } catch(e) {}
+  }
+  who();
+
+  /* Szenen: Dauer ohne Erzählspur, Nathans echte Ausrufe (sounds/lines) zu ihrem Moment, Effekte */
+  const LINE = id => "sounds/lines/" + id + ".mp3?v=3";
+  const SCENES = [
+    {id: "s0", dur: 5200, cues: [[300, LINE("l-hallo")]]},
+    {id: "s1", dur: 6800, cues: [[1400, "sounds/Move.mp3"], [2500, LINE("l-brillant")], [2900, "sounds/Capture.mp3"], [3700, LINE("l-levelup")]]},
+    {id: "s2", dur: 6800, cues: [[2600, LINE("l-waswar")], [4300, LINE("l-digger")]]},
+    {id: "s3", dur: 7000, cues: [[2200, "sounds/GenericNotify.mp3"], [3000, LINE("l-platz1")]]},
+    {id: "s4", dur: 6000, cues: [[1600, LINE("l-geilo")], [3600, LINE("l-verpiss")]]},
+    {id: "s5", dur: 7000, cues: [[3300, LINE("l-sahne")]], run: tickList},
+    {id: "s6", dur: 6500, cues: [[1900, LINE("l-istdasgut")]]},
+    {id: "s7", dur: 7000, cues: [[1300, LINE("l-dran")], [2500, LINE("l-schach")]]},
+    {id: "s11", dur: 7500, cues: [[600, LINE("l-carlsen")]], run: ticker},
+    {id: "s8", dur: 8000, cues: [[2700, LINE("l-frei")], [3500, LINE("l-richtig")]], run: countVotes},
+    {id: "s9", dur: 5600, cues: [[400, "sounds/cheer2.mp3"], [900, LINE("l-ohyeah")]]},
+    {id: "s10", dur: 0, cues: [[500, LINE("l-gg")]]}
+  ];
+  /* Erzählspur: invite/voice/s<N>.mp3, wenn vorhanden. Dann dauert die Szene so lang wie die Aufnahme (+ 600 ms). */
+  /* invite/voice/index.json nennt die vorhandenen Aufnahmen, z. B. [0, 1, 2]; ohne die Datei gibt es keine Erzählspur. */
+  fetch("invite/voice/index.json", {cache: "no-cache"}).then(r => r.ok ? r.json() : []).then(list => (Array.isArray(list) ? list : []).forEach(i => { const s = SCENES[i]; if (!s) return;
+    const a = new Audio("invite/voice/s" + i + ".mp3"); a.preload = "auto"; a.setAttribute("playsinline", "");
+    a.addEventListener("loadedmetadata", () => { if (isFinite(a.duration) && a.duration > 1) s.voice = a; });
+    a.addEventListener("error", () => { s.voice = null; }); })).catch(() => {});
+
+  /* Ton */
+  let muted = false; const playing = new Set();
+  function sfx(src, vol){ if (muted) return null; try { const a = new Audio(src); a.volume = vol == null ? 1 : vol; a.setAttribute("playsinline", ""); a.play().catch(() => {}); playing.add(a); a.onended = () => playing.delete(a); return a; } catch(e){ return null; } }
+  function hush(){ playing.forEach(a => { try { a.pause(); } catch(e) {} }); playing.clear(); }
+  $("#mute").onclick = e => { e.stopPropagation(); muted = !muted; if (muted) hush(); $("#mute").innerHTML = muted ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>` : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>`; $("#mute").setAttribute("aria-label", muted ? "Ton an" : "Ton aus"); };
+
+  /* Fortschritt */
+  const bars = $("#bars"); SCENES.forEach(() => { const i = document.createElement("i"); i.innerHTML = "<b></b>"; bars.appendChild(i); });
+  const barEls = $$("#bars i");
+
+  /* Ablauf */
+  let cur = -1, t0 = 0, raf = 0, timers = [], done = false, dur = 0;
+  function clear(){ timers.forEach(clearTimeout); timers = []; cancelAnimationFrame(raf); hush(); }
+  function show(i){
+    clear(); if (i < 0) i = 0; if (i >= SCENES.length) i = SCENES.length - 1;
+    const prev = cur; cur = i; const s = SCENES[i], el = $("#" + s.id);
+    $$(".sc").forEach(x => { if (x !== el){ if (x.classList.contains("on")) { x.classList.add("out"); setTimeout(() => x.classList.remove("on", "out"), 320); } } });
+    /* Neustart der Animationen: Element kurz aus dem Baum */
+    el.classList.remove("on", "out"); void el.offsetWidth; el.classList.add("on");
+    barEls.forEach((b, k) => { b.classList.toggle("done", k < i); b.querySelector("b").style.width = k < i ? "100%" : "0"; });
+    $("#skip").hidden = i === SCENES.length - 1;
+    const voice = s.voice && !muted ? s.voice : null;
+    dur = voice ? Math.round(voice.duration * 1000) + 600 : s.dur;
+    if (voice){ try { voice.currentTime = 0; voice.volume = 1; voice.play().catch(() => {}); playing.add(voice); } catch(e) {} }
+    s.cues.forEach(([at, src]) => timers.push(setTimeout(() => sfx(src, src.includes("/lines/") ? 1 : .6), at)));
+    if (s.run) s.run(el);
+    t0 = performance.now();
+    if (dur){ const tick = now => { const p = Math.min(1, (now - t0) / dur); barEls[i].querySelector("b").style.width = (p * 100).toFixed(1) + "%"; if (p >= 1){ show(i + 1); return; } raf = requestAnimationFrame(tick); }; raf = requestAnimationFrame(tick); }
+    else barEls[i].querySelector("b").style.width = "100%";
+  }
+  function tickList(el){ el.querySelectorAll("#shoplist li").forEach((li, k) => { li.classList.remove("done"); timers.push(setTimeout(() => { li.classList.add("done"); sfx("sounds/Move.mp3", .5); }, 1300 + k * 450)); }); }
+  const THINGS = ["Schach", "200.000 Puzzles", "Puzzle Rush", "35 Bots", "Natposter", "Nat Stars", "Werwolf", "Tabu", "Stirnraten", "Kalorien", "Einkaufsliste", "Kochen", "Tippspiel", "Worlds-Finale", "Zuschauen", "Sprachchat", "Trophäen", "Battle Pass", "Freunde", "Käfig", "Partieanalyse", "Endspiele", "Daily Puzzle", "Chat", "Sprüche", "…und was du dir wünschst"];
+  function ticker(el){ const tk = el.querySelector("#tk"); if (tk.childElementCount) return; const one = THINGS.map((t, i) => `<span class="${i % 5 === 4 ? "g" : ""}">${esc(t)}</span>`).join(""); tk.innerHTML = one + one; }
+  function countVotes(el){ el.querySelectorAll("[data-count]").forEach(x => { const to = +x.dataset.count; x.textContent = "0"; const start = performance.now() + 700; const step = now => { if (now < start){ requestAnimationFrame(step); return; } const p = Math.min(1, (now - start) / 1300); x.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(step); }; requestAnimationFrame(step); }); }
+
+  /* Tippen: rechts weiter, links zurück; Pfeiltasten; Leertaste = Pause */
+  let paused = false, pausedAt = 0;
+  $$("#tap div").forEach(d => d.onclick = () => { const dir = +d.dataset.dir; if (cur < 0) return; if (dir > 0 && cur === SCENES.length - 1) return; show(cur + dir); });
+  function pause(){ if (paused || !dur) return; paused = true; pausedAt = performance.now() - t0; cancelAnimationFrame(raf); timers.forEach(clearTimeout); timers = []; playing.forEach(a => { try { a.pause(); } catch(e) {} }); }
+  function resume(){ if (!paused) return; paused = false; t0 = performance.now() - pausedAt; playing.forEach(a => { try { a.play().catch(() => {}); } catch(e) {} });
+    const tick = now => { const p = Math.min(1, (now - t0) / dur); barEls[cur].querySelector("b").style.width = (p * 100).toFixed(1) + "%"; if (p >= 1){ show(cur + 1); return; } raf = requestAnimationFrame(tick); }; raf = requestAnimationFrame(tick); }
+  document.addEventListener("keydown", e => { if (cur < 0) return; if (e.key === "ArrowRight") show(cur + 1); if (e.key === "ArrowLeft") show(cur - 1); if (e.key === " "){ e.preventDefault(); paused ? resume() : pause(); } });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) pause(); else resume(); });
+  $("#skip").onclick = e => { e.stopPropagation(); show(SCENES.length - 1); };
+  $("#again").onclick = () => show(0);
+
+  /* Start erst nach einem Tipp: Handys spielen Ton nur nach einer Berührung */
+  const start = $("#start");
+  start.onclick = () => { start.classList.add("gone"); try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch(e) {} show(0); };
+  if (reduced){ SCENES.forEach(s => s.dur = Math.max(s.dur, 9000)); }
+})();
+</script>
+</body>
+</html>

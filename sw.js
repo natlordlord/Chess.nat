@@ -7,7 +7,7 @@
    Caches live across updates (PAGE for the app itself, STATIC for everything else), so an update never
    leaves the phone without a copy to start from; a new VERSION only makes the phone pick up this file.
    Bump STATIC only to throw away every static file. */
-const VERSION = "chessnat-v141";
+const VERSION = "chessnat-v142";
 const PAGE = "chessnat-page", STATIC = "chessnat-static-1";
 const SHELL = [
   "/", "/config.js", "/platform.js", "/pwa.js", "/manifest.webmanifest", "/favicon.svg",
@@ -96,6 +96,8 @@ self.addEventListener("fetch", e => {
   const url = new URL(req.url);
 
   if (url.origin === location.origin){
+    /* the invite film is its own page: straight from the network, never stored as the app's "/" */
+    if (url.pathname === "/invite" || url.pathname === "/invite.html" || url.pathname.startsWith("/invite/")) return;
     if (req.mode === "navigate") return e.respondWith(networkFirst(req, "/", 4000));
     if (url.pathname === "/sw.js" || url.pathname.startsWith("/voice/") && url.pathname.endsWith(".mp3")) return;
     if (FRESH.test(url.pathname)) return e.respondWith(networkFirst(req));

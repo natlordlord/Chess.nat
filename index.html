@@ -2837,6 +2837,13 @@ h1.h-title{letter-spacing:-.02em}
 .ps-opts.ps-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.ps-grid .ps-o{margin:0;min-width:0;padding-right:8px}.ps-grid .ps-o b{font-size:15px;line-height:1.15;overflow-wrap:anywhere;min-width:0}
 #nmusfix{position:fixed;top:calc(env(safe-area-inset-top,0px) + 4px);z-index:45;width:40px;height:38px;margin:0;border-radius:12px;box-shadow:none;background:var(--panel-2)}#nmusfix.on{background:color-mix(in srgb,var(--go) 16%,var(--panel-2))}
 .fb-ov .fb-t{flex:1;font:900 20px var(--display)}.fb-ov #fbtx{width:100%;box-sizing:border-box;padding:14px;border-radius:16px;border:2px solid var(--go);background:#2A2825;color:var(--fg);font:700 16px var(--body);resize:none}
+.fb-tabs{display:flex;gap:6px;background:var(--panel-2);border-radius:14px;padding:4px}.fb-tabs button{flex:1;border:0;background:none;color:var(--muted);font:800 15px var(--body);padding:10px;border-radius:11px;cursor:pointer}.fb-tabs button.on{background:var(--panel-3);color:var(--fg)}
+.fb-rule{margin:4px 2px;color:var(--muted);font-size:14px}.fb-rule b{color:var(--go-hi)}
+#idf input{flex:1;min-width:0;padding:12px 14px;border-radius:14px;border:2px solid var(--go);background:#2A2825;color:var(--fg);font:700 16px var(--body)}#idf .btn{flex:none}
+#idl{display:flex;flex-direction:column;gap:8px}
+.id-i{display:flex;gap:12px;align-items:flex-start;background:var(--panel-2);border-radius:14px;padding:12px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}.id-i.top{box-shadow:inset 0 0 0 2px var(--go)}.id-i.done,.id-i.closed{opacity:.55}
+.id-v{flex:none;width:54px;border:0;border-radius:12px;background:var(--panel-3);color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0;cursor:pointer;font:900 16px var(--body)}.id-v svg{width:18px;height:18px}.id-v.on{background:var(--go);color:#fff}
+.id-t{font:800 15.5px var(--body)}.id-m{color:var(--muted);font:600 12px var(--body);margin-top:2px}.id-st{color:var(--go-hi);font-weight:800}.id-i p{margin:6px 0 0;font-size:14px;color:var(--muted)}.id-i select{flex:none;font-size:12px;padding:4px;max-width:92px}
 .fb-row{display:flex;gap:8px}.fb-row .btn{flex:1;padding:14px}.fb-prev{display:flex;align-items:flex-start;gap:8px}.fb-prev img{max-width:110px;max-height:160px;border-radius:10px}
 .fb-h{font:800 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:12px 2px 6px}#fbl{display:flex;flex-direction:column;gap:8px}
 .fb-i{background:var(--panel-2);border-radius:14px;padding:12px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}.fb-m{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.fb-m b{font:800 15px var(--body)}.fb-m small{color:var(--muted);font:600 11.5px var(--body);text-align:right}.fb-i p{margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}.fb-i img{display:block;max-width:100%;border-radius:10px;margin-top:8px}
@@ -11349,12 +11356,42 @@ function renderTabs(){
    People see what they sent themselves, the app owner sees everything, newest first. A full screen like the food search,
    so the field stays above the keyboard. ===== */
 const Feedback = {
-  async open(){ const sb = window.ChessSite && window.ChessSite.sb, me = typeof Social !== "undefined" && Social.me; if (!sb || !me){ toast("Please sign in first"); return; }
+  open(t){ return t === "report" ? this.report() : this.ideas(); },
+  tabs(cur){ const de = I18N.lang === "de"; return `<div class="fb-tabs">${[["ideas", de ? "Ideen" : "Ideas"], ["report", de ? "Melden" : "Report"]].map(([k, n]) => `<button type="button" class="${k === cur ? "on" : ""}" data-fbt="${k}">${n}</button>`).join("")}</div>`; },
+  wire(ov, cur){ ov.querySelectorAll("[data-fbt]").forEach(b => b.onclick = () => { if (b.dataset.fbt === cur) return; ov.querySelector(".kc-sx").click(); this.open(b.dataset.fbt); }); },
+  /* Ideen: jeder schlägt vor, alle stimmen ab, was oben steht wird gebaut (chess_ideas + chess_idea_votes). Status setzt nur ein News-Admin. */
+  async ideas(){ const sb = window.ChessSite && window.ChessSite.sb, me = typeof Social !== "undefined" && Social.me, de = I18N.lang === "de"; if (!sb || !me){ toast(de ? "Bitte zuerst anmelden" : "Please sign in first"); return; }
+    const ov = document.createElement("div"); ov.className = "kc-sov fb-ov"; let closed = false;
+    ov.innerHTML = `<div class="kc-sovt"><b class="fb-t">${de ? "Ideen" : "Ideas"}</b><button class="kc-sx" id="fbx">${de ? "Fertig" : "Done"}</button></div><div class="kc-sovb" id="fbb">${this.tabs("ideas")}
+      <p class="fb-rule">${de ? "Du schlägst vor, alle stimmen ab. <b>Was oben steht, wird gebaut.</b> Egal was." : "You suggest, everyone votes. <b>Whatever is on top gets built.</b> No matter what."}</p>
+      <form id="idf" class="fb-row"><input type="text" id="idt" maxlength="120" placeholder="${de ? "Was fehlt dir?" : "What's missing?"}" autocomplete="off"><button class="btn go" type="submit">${de ? "Vorschlagen" : "Suggest"}</button></form>
+      <div id="idl"><p class="muted">${de ? "Lädt …" : "Loading …"}</p></div></div>`;
+    document.body.appendChild(ov); document.documentElement.classList.add("kc-sopen"); const body = ov.querySelector("#fbb"), q = x => ov.querySelector(x); this.wire(ov, "ideas");
+    const vv = window.visualViewport, fit = () => { if (!vv || closed) return; const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop); body.style.paddingBottom = (kb + 24) + "px"; ov.style.transform = vv.offsetTop ? `translateY(${vv.offsetTop}px)` : ""; };
+    if (vv){ vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); fit(); }
+    q("#fbx").onclick = () => { closed = true; if (vv){ vv.removeEventListener("resize", fit); vv.removeEventListener("scroll", fit); } document.documentElement.classList.remove("kc-sopen"); ov.remove(); };
+    const adm = typeof News !== "undefined" && News.admin, ST = {open: "", building: de ? "wird gebaut" : "being built", done: de ? "fertig ✓" : "done ✓", closed: de ? "nicht geplant" : "not planned"};
+    const when = t => new Date(t).toLocaleDateString(de ? "de-DE" : "en-GB", {day: "2-digit", month: "2-digit"});
+    const UP = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>`;
+    const load = async () => { const [a, b] = await Promise.all([sb.from("chess_ideas").select("*").limit(300), sb.from("chess_idea_votes").select("idea_id,user_id").limit(5000)]); if (closed) return;
+      if (a.error){ q("#idl").innerHTML = `<p class="muted">${esc(a.error.message)}</p>`; return; }
+      const V = {}, mine = {}; (b.data || []).forEach(v => { V[v.idea_id] = (V[v.idea_id] || 0) + 1; if (v.user_id === me) mine[v.idea_id] = 1; });
+      const over = i => i.status === "done" || i.status === "closed";
+      const L = (a.data || []).map(i => Object.assign(i, {n: V[i.id] || 0})).sort((x, y) => over(x) - over(y) || y.n - x.n || new Date(y.created_at) - new Date(x.created_at));
+      const top = L.find(i => !over(i));
+      q("#idl").innerHTML = L.length ? L.map(i => `<div class="id-i ${i === top ? "top" : ""} ${i.status}"><button type="button" class="id-v ${mine[i.id] ? "on" : ""}" data-v="${i.id}" aria-label="${de ? "Stimme" : "Vote"}">${UP}<b>${i.n}</b></button><div class="grow"><div class="id-t">${esc(i.title)}</div><div class="id-m">${esc(i.user_id === me ? (de ? "Du" : "You") : i.name || "?")} · ${when(i.created_at)}${i === top ? ` · <span class="id-st">${de ? "wird gebaut" : "gets built"}</span>` : ST[i.status] ? ` · <span class="id-st">${ST[i.status]}</span>` : ""}</div>${i.body ? `<p>${esc(i.body)}</p>` : ""}</div>${adm ? `<select data-st="${i.id}" aria-label="Status">${["open", "building", "done", "closed"].map(s => `<option value="${s}" ${i.status === s ? "selected" : ""}>${s}</option>`).join("")}</select>` : ""}</div>`).join("") : `<p class="muted">${de ? "Noch keine Idee. Deine zuerst?" : "No ideas yet. Yours first?"}</p>`;
+      ov.querySelectorAll("[data-v]").forEach(b => b.onclick = async () => { const id = b.dataset.v; b.disabled = true; const r = mine[id] ? await sb.from("chess_idea_votes").delete().eq("idea_id", id).eq("user_id", me) : await sb.from("chess_idea_votes").insert({idea_id: id}); if (r.error) toast(r.error.message, 3000); else { try { Sound.tap(); } catch(e) {} } load(); });
+      ov.querySelectorAll("[data-st]").forEach(s => s.onchange = async () => { const r = await sb.from("chess_ideas").update({status: s.value}).eq("id", s.dataset.st); if (r.error) toast(r.error.message, 3000); load(); }); };
+    q("#idf").onsubmit = async e => { e.preventDefault(); const t = q("#idt").value.trim(); if (t.length < 3){ toast(de ? "Ein paar Worte mehr" : "A few more words"); return; } let name = ""; try { name = Social.P(me).name || ""; } catch(e) {}
+      const r = await sb.from("chess_ideas").insert({title: t.slice(0, 120), name: name.slice(0, 60) || null}).select().single(); if (r.error){ toast(r.error.message, 3500); return; }
+      await sb.from("chess_idea_votes").insert({idea_id: r.data.id}); q("#idt").value = ""; toast(de ? "Drin! Jetzt sammeln sich Stimmen." : "In! Now collect votes."); try { Sound.play("GenericNotify", .5); } catch(e) {} load(); };
+    load(); },
+  async report(){ const sb = window.ChessSite && window.ChessSite.sb, me = typeof Social !== "undefined" && Social.me; if (!sb || !me){ toast("Please sign in first"); return; }
     const ov = document.createElement("div"); ov.className = "kc-sov fb-ov"; let img = null, closed = false;
-    ov.innerHTML = `<div class="kc-sovt"><b class="fb-t">Feedback</b><button class="kc-sx" id="fbx">Done</button></div><div class="kc-sovb" id="fbb">
+    ov.innerHTML = `<div class="kc-sovt"><b class="fb-t">Feedback</b><button class="kc-sx" id="fbx">Done</button></div><div class="kc-sovb" id="fbb">${this.tabs("report")}
       <textarea id="fbtx" maxlength="2000" rows="4" placeholder="What went wrong? What should be better?"></textarea>
       <div class="fb-row"><label class="btn fb-pic"><input type="file" accept="image/*" id="fbf" hidden>Add screenshot</label><button class="btn go" id="fbs">Send</button></div><div id="fbp"></div><div id="fbl"><p class="muted">Loading …</p></div></div>`;
-    document.body.appendChild(ov); document.documentElement.classList.add("kc-sopen"); const body = ov.querySelector("#fbb"), tx = ov.querySelector("#fbtx"), q = x => ov.querySelector(x);
+    document.body.appendChild(ov); document.documentElement.classList.add("kc-sopen"); const body = ov.querySelector("#fbb"), tx = ov.querySelector("#fbtx"), q = x => ov.querySelector(x); this.wire(ov, "report");
     const vv = window.visualViewport, fit = () => { if (!vv || closed) return; const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop); body.style.paddingBottom = (kb + 24) + "px"; ov.style.transform = vv.offsetTop ? `translateY(${vv.offsetTop}px)` : ""; };
     if (vv){ vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); fit(); }
     q("#fbx").onclick = () => { closed = true; if (vv){ vv.removeEventListener("resize", fit); vv.removeEventListener("scroll", fit); } document.documentElement.classList.remove("kc-sopen"); ov.remove(); };
@@ -11372,7 +11409,7 @@ const Feedback = {
     load(); } };
 function openSheet(){
   const sh = $("#sheet"); const rk = rankOf(S.puzzle.r);
-  const items = [["__feedback", "Feedback", "chat"], ...(window.ChessInstall && ChessInstall.can() ? [["__install", "Get the app", "download"]] : []), ...(typeof News !== "undefined" && News.admin ? [["news", "News senden", "bell"]] : []), ...(typeof Kcal !== "undefined" && Kcal.on() ? [["kcal", "Kalorien", "flame"]] : []), ["learn", "Learn", "book"], ["journey", "Journey", "map"], ["theory", "Theory", "scroll"], ["blitz", "Blitz & Battle", "flame"], ["shop", "Shop & Battle Pass", "coin"], ["awards", "Trophies", "trophy"], ["me", "Profile", "user"], ["endgames", "Endgames", "crown"], ["rush", "Puzzle Rush", "bolt"], ["battle", "Puzzle Battle", "swords"], ["daily", "Daily Puzzle", "calendar"], ["train", "Train", "target"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"], ["coords", "Coordinates", "board"], ["settings", "Settings", "gear"], ["account", "Account", "users"]];
+  const items = [["__feedback", I18N.lang === "de" ? "Ideen & Feedback" : "Ideas & Feedback", "chat"], ...(window.ChessInstall && ChessInstall.can() ? [["__install", "Get the app", "download"]] : []), ...(typeof News !== "undefined" && News.admin ? [["news", "News senden", "bell"]] : []), ...(typeof Kcal !== "undefined" && Kcal.on() ? [["kcal", "Kalorien", "flame"]] : []), ["learn", "Learn", "book"], ["journey", "Journey", "map"], ["theory", "Theory", "scroll"], ["blitz", "Blitz & Battle", "flame"], ["shop", "Shop & Battle Pass", "coin"], ["awards", "Trophies", "trophy"], ["me", "Profile", "user"], ["endgames", "Endgames", "crown"], ["rush", "Puzzle Rush", "bolt"], ["battle", "Puzzle Battle", "swords"], ["daily", "Daily Puzzle", "calendar"], ["train", "Train", "target"], ["friend", "Play a Friend", "users"], ["review", "Game Review", "review"], ["analysis", "Analysis", "board"], ["stats", "Stats", "chart"], ["coords", "Coordinates", "board"], ["settings", "Settings", "gear"], ["account", "Account", "users"]];
   sh.innerHTML = `<div class="panelx" role="dialog" aria-label="More"><div class="grab"></div><button class="rk" data-s="me">${emblem(rk, 36)}<span style="text-align:left"><div style="font-weight:900">${esc(rk.label)}</div><div class="muted" style="font-size:12px">${S.puzzle.r} puzzle rating · ${Cloud.status === "on" ? "synced to your account" : "saved on this device"}</div></span></button>${items.map(([k, n, ic]) => `<button data-s="${k}">${icon(ic, 26)}<span>${n}</span></button>`).join("")}</div>`;
   sh.hidden = false; sh.classList.remove("closing"); const px = $(".panelx", sh); px.style.transform = ""; px.classList.add("opening"); setTimeout(() => px.classList.remove("opening"), 300);
   const close = () => { if (sh.hidden || sh.classList.contains("closing")) return; sh.classList.add("closing"); px.style.transform = ""; setTimeout(() => { sh.hidden = true; sh.classList.remove("closing"); }, 220); };
@@ -13061,10 +13098,11 @@ const Social = (() => {
   async function refId(){ let h = null; try { h = localStorage.getItem(REF_KEY); } catch(e) {} if (!h || !sb) return null;
     const {data} = await sb.from("chess_players").select("id").eq("handle", h).maybeSingle(); try { localStorage.removeItem(REF_KEY); } catch(e) {}
     return data && data.id !== me ? data.id : null; }
-  function inviteLink(){ return location.origin + "/?ref=" + encodeURIComponent((player && player.handle) || ""); }
+  /* the link opens the invite film (/invite), which hands the ref on to the app */
+  function inviteLink(){ return location.origin + "/invite?ref=" + encodeURIComponent((player && player.handle) || ""); }
   async function shareInvite(){
     if (!player || !player.handle){ requireId && requireId(); return; }
-    const url = inviteLink(), text = `Play chess with me on Chess.nat! My ID is @${player.handle}.`;
+    const url = inviteLink(), text = I18N.lang === "de" ? `Ich lade dich zu Chess.nat ein: Schach, Natposter, Partyspiele, Kalorien, alles kostenlos. Meine ID ist @${player.handle}.` : `I'm inviting you to Chess.nat: chess, Natposter, party games, calories, all free. My ID is @${player.handle}.`;
     try { if (navigator.share){ await navigator.share({title: "Chess.nat", text, url}); return; } } catch(e){ if (e && e.name === "AbortError") return; }
     try { await navigator.clipboard.writeText(text + " " + url); toast("Invite link copied. Send it to a friend!", 3000); } catch(e){ prompt("Copy your invite link:", url); }
   }
