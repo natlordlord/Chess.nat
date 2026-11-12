@@ -11631,7 +11631,7 @@ function boot(){
      so it opens with your calorie card, your tips and no "save your progress" box that vanishes again */
   const site = window.ChessSite; let went = false;
   /* the invite film (?ref=<handle>#invite) starts in any case once the app stands, even if some screen was opened before the first route */
-  const wantInvite = (location.hash || "") === "#invite";
+  const wantInvite = (location.hash || "") === "#invite" || (() => { try { return new URLSearchParams(location.search).get("film") === "1"; } catch(e) { return false; } })();
   const startInvite = () => { if (!wantInvite || typeof Invite === "undefined" || document.querySelector(".inv")) return; let r = ""; try { r = new URLSearchParams(location.search).get("ref") || localStorage.getItem("chessnat-ref") || ""; } catch(e) {} if (!App.view) App.go("home"); Invite.start(r); };
   const first = () => { if (went) return; went = true; document.documentElement.classList.remove("booting"); if (!App.view) firstRoute(); startInvite(); };
   if (site && site.ready && site.sessionReady && !site.getSession()){ document.documentElement.classList.add("booting"); site.sessionReady.then(() => setTimeout(first, 0), first); setTimeout(first, 350); }
@@ -13104,7 +13104,7 @@ const Social = (() => {
     const {data} = await sb.from("chess_players").select("id").eq("handle", h).maybeSingle(); try { localStorage.removeItem(REF_KEY); } catch(e) {}
     return data && data.id !== me ? data.id : null; }
   /* the link opens the app with the invite film on top (invite.js), which hands the ref on */
-  function inviteLink(){ return location.origin + "/?ref=" + encodeURIComponent((player && player.handle) || "") + "#invite"; }
+  function inviteLink(){ return location.origin + "/?ref=" + encodeURIComponent((player && player.handle) || "") + "&film=1#invite"; }
   async function shareInvite(){
     if (!player || !player.handle){ requireId && requireId(); return; }
     const url = inviteLink(), text = I18N.lang === "de" ? `Ich lade dich zu Chess.nat ein: Schach, Natposter, Partyspiele, Kalorien, alles kostenlos. Meine ID ist @${player.handle}.` : `I'm inviting you to Chess.nat: chess, Natposter, party games, calories, all free. My ID is @${player.handle}.`;
