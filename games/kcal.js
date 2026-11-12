@@ -518,18 +518,26 @@
       clearTimeout(to); const j = await r.json(); if (j && j.status !== 0 && j.product && j.product.nutriments) p = j.product;
       if (p) try { localStorage.setItem("chessnat-off-" + code, JSON.stringify(p)); } catch(e) {}
     } catch(e) {}
-    /* Open Food Facts doesn't know it: a pack whose nutrition table was photographed (mine, or one the operator has checked) */
-    if (!p) try { const r = await sb().from("kcal_own_products").select("user_id,code,name,brand,unit,k,c,p,f,fi,su,sf,sa,status").eq("code", String(code)).limit(20);
-      const rows = r.data || [], o = rows.find(x => x.user_id === meId()) || rows.find(x => x.status === "ok");
+    /* Open Food Facts doesn't know it: a pack whose nutrition table somebody photographed (mine first, else the first one anybody made) */
+    if (!p) try { const r = await sb().from("kcal_own_products").select(Label.COLS).eq("code", String(code)).order("created_at").limit(20);
+      const o = Label.best(r.data || [])[0];
       if (o){ p = Label.asOff(o); try { localStorage.setItem("chessnat-off-" + code, JSON.stringify(p)); } catch(e) {} } } catch(e) {}
     return p;
   }
   /* ---------- a pack nobody knows: photograph its nutrition table ----------
      The printed numbers per 100 g are read off the photo (/api/kcal, mode "label"; nothing is estimated) and shown next to the
-     picture. Only "Stimmt" keeps them, and then only for this person (kcal_own_products, status "new"): everybody else gets
-     the product once the operator has compared photo and numbers. */
+     picture. Only "Stimmt" keeps them (kcal_own_products), and from then on the product is there for everybody: by its
+     barcode and in the search, marked with who photographed it. The operator can take a wrong one out (status "bad"). */
   const Label = {
-    asOff: o => ({product_name: o.name, brands: o.brand || "", own: 1, nutriments: {"energy-kcal_100g": +o.k, carbohydrates_100g: +o.c, proteins_100g: +o.p, fat_100g: +o.f, fiber_100g: +o.fi || 0, sugars_100g: +o.su || 0, "saturated-fat_100g": +o.sf || 0, salt_100g: +o.sa || 0}}),
+    COLS: "user_id,author,code,name,brand,unit,k,c,p,f,fi,su,sf,sa,status,created_at",
+    /* one entry per barcode: mine, else one the operator has checked, else the oldest */
+    best(rows){ const by = {}; rows.filter(x => x.status !== "bad").forEach(x => { const a = by[x.code], rank = y => y.user_id === meId() ? 0 : y.status === "ok" ? 1 : 2; if (!a || rank(x) < rank(a)) by[x.code] = x; }); return Object.values(by); },
+    /* photographed products whose name fits what was typed, as products for the search */
+    async find(q){ const c = sb(); q = String(q || "").replace(/[%_\\,()]/g, " ").trim(); if (!c || !meId() || q.length < 2) return [];
+      try { const r = await c.from("kcal_own_products").select(this.COLS).ilike("name", "%" + q + "%").order("created_at").limit(24); if (r.error) return [];
+        return this.best(r.data || []).slice(0, 8).map(o => { const p = this.asOff(o); try { if (!localStorage.getItem("chessnat-off-" + o.code)) localStorage.setItem("chessnat-off-" + o.code, JSON.stringify(p)); } catch(e) {}
+          return Object.assign(prodOf(String(o.code), p), {brand: p.by ? "Foto von " + p.by : "Dein Foto der Packung", own: 1}); }); } catch(e) { return []; } },
+    asOff: o => ({product_name: o.name, brands: o.brand || "", own: 1, by: o.user_id && o.user_id !== meId() ? String(o.author || "jemand anderem") : "", nutriments: {"energy-kcal_100g": +o.k, carbohydrates_100g: +o.c, proteins_100g: +o.p, fat_100g: +o.f, fiber_100g: +o.fi || 0, sugars_100g: +o.su || 0, "saturated-fat_100g": +o.sf || 0, salt_100g: +o.sa || 0}}),
     /* the camera opens at once (one tap); the picture is made small enough to send */
     shoot(){ return new Promise(ok => { const i = document.createElement("input"); i.type = "file"; i.accept = "image/*"; i.setAttribute("capture", "environment"); i.style.cssText = "position:fixed;left:-99px;top:0;width:1px;height:1px;opacity:0"; i.id = "kclabf";
       document.body.appendChild(i); let done = false; const fin = v => { if (done) return; done = true; i.remove(); ok(v); };
@@ -548,7 +556,7 @@
       if (!L){ const sh = detailSheet(`<div class="kc-form kc-lab" data-notr><img class="kc-labi" src="${shot.thumb}" alt=""><h3>Das hat nicht geklappt</h3><p class="muted">${h(err || "Die Nährwerte waren nicht zu lesen.")}</p><button class="btn go big" id="kclagain">Nochmal fotografieren</button></div>`);
         sh.el.querySelector("#kclagain").onclick = () => { sh.close(); this.start(code, cb); }; return; }
       const none = L.none || [], row = (a, v, u, key) => none.includes(key) ? "" : `<div class="kc-labr"><span>${a}</span><b>${String(v).replace(".", ",")} ${u}</b></div>`;
-      const sh = detailSheet(`<div class="kc-form kc-lab" data-notr><h3>Stimmt das mit der Packung?</h3><p class="muted">Abgelesen pro 100 ${L.unit}. Vergleich die Zahlen kurz mit dem Foto.</p>
+      const sh = detailSheet(`<div class="kc-form kc-lab" data-notr><h3>Stimmt das mit der Packung?</h3><p class="muted">Abgelesen pro 100 ${L.unit}. Vergleich die Zahlen kurz mit dem Foto: Danach finden alle das Produkt per Barcode und in der Suche.</p>
         <img class="kc-labi" src="${shot.thumb}" alt="">
         <div class="kc-labt">${row("Energie", L.k, "kcal")}${row("Fett", L.f, "g")}${row("davon gesättigt", L.sf, "g", "sf")}${row("Kohlenhydrate", L.c, "g")}${row("davon Zucker", L.su, "g", "su")}${row("Ballaststoffe", L.fi, "g", "fi")}${row("Eiweiß", L.p, "g")}${row("Salz", L.sa, "g", "sa")}</div>
         ${L.odd ? `<p class="kc-labw">Energie und Nährwerte passen nicht ganz zusammen. Schau genau hin oder fotografier nochmal.</p>` : ""}
@@ -608,9 +616,10 @@
       const empty = () => { const r = recents(), my = seq; recs = []; if (r.length) draw(r, "Zuletzt"); else out.innerHTML = `<p class="muted kc-sh">Tipp den Namen ein, z. B. Eier, Toast, Nutella.</p>`;
         if (!opt.pick) Recipes.find("").then(R => { if (closed || my !== seq || !R.length || q.value.trim().length >= 2) return; recs = R; draw(recents(), "Zuletzt"); }); };
       const go = async () => { const v = q.value.trim(), my = ++seq; if (v.length < 2) return empty(); out.classList.add("busy");
-        try { const rq = opt.pick ? Promise.resolve([]) : Recipes.find(v), r = await fetch("/api/food?q=" + encodeURIComponent(v)).catch(e => e), j = r && r.json ? await r.json().catch(() => ({})) : {}, R = await rq; if (my !== seq) return; recs = R;
+        try { const rq = opt.pick ? Promise.resolve([]) : Recipes.find(v), oq = Label.find(v), r = await fetch("/api/food?q=" + encodeURIComponent(v)).catch(e => e), j = r && r.json ? await r.json().catch(() => ({})) : {}, R = await rq, own = await oq; if (my !== seq) return; recs = R;
           /* the foods of the table come first ("Nudeln, gekocht" is the same for everybody), then the products */
-          const loc = tabFind(v);
+          /* then packs somebody photographed (Open Food Facts doesn't know those) */
+          const loc = tabFind(v).concat(own);
           if (!r.ok || !Array.isArray(j.items)){ if (R.length || loc.length) return draw(loc); throw new Error(j.error || (r.ok === false ? "Suche gerade nicht erreichbar" : "Keine Verbindung")); }
           if (!j.items.length && !R.length && !loc.length) out.innerHTML = `<p class="muted kc-sh">Nichts gefunden. Anders schreiben oder selbst eintragen.</p>`; else draw(loc.concat(j.items)); }
         catch(e) { if (my === seq) out.innerHTML = `<p class="muted kc-sh">⚠️ ${h(e.message || "Keine Verbindung")}</p>`; }
@@ -648,7 +657,7 @@
           const st = g >= 50 ? 10 : 5; setG(up ? Math.floor(g / st + 1e-6) * st + st : g <= st ? Math.max(1, g - 1) : Math.ceil(g / st - 1e-6) * st - st); });
         cookWire(pn, P, P2 => { pickG = g; b.classList.remove("open"); pn.remove(); pick(P2, b); });
         pn.querySelector("[data-add]").onclick = async e2 => { const ab = e2.currentTarget; if (ab.disabled) return; if (P.cfood && !P.ck){ say("Erst wählen: " + P.cfood.st[1] + " oder " + P.cfood.st[0] + " gewogen?"); const c = pn.querySelector(".kc-ck"); if (c){ c.classList.remove("shake"); void c.offsetWidth; c.classList.add("shake"); } return; } ab.disabled = true; recent(P.base || P); const it = itemOf(P, g);
-          try { const m = await K.add({source: "search", code: it.code, grams: Math.round(g), title: P.name.slice(0, 80), emoji: "📦", kcal: it.kcal, carbs: it.carbs, protein: it.protein, fat: it.fat, items: [it], note: P.tab ? tabSrc(P.tab) : "Nährwerte von Open Food Facts"});
+          try { const m = await K.add({source: "search", code: it.code, grams: Math.round(g), title: P.name.slice(0, 80), emoji: "📦", kcal: it.kcal, carbs: it.carbs, protein: it.protein, fat: it.fat, items: [it], note: P.tab ? tabSrc(P.tab) : P.own ? "Nährwerte vom Foto der Packung" : "Nährwerte von Open Food Facts"});
             haptic(15); close(); say(`✓ ${P.name.slice(0, 30)} · ${brief(m)}`); } catch(err) { ab.disabled = false; say("Ging nicht: " + (err.message || err)); } };
         requestAnimationFrame(() => { try { pn.scrollIntoView({block: "nearest", behavior: "smooth"}); } catch(e) {} }); };
       if (q.value.trim().length >= 2) go(); else empty();
@@ -732,8 +741,9 @@
      the pack, db = the checked database, est = the AI's estimate */
   const srcOf = (i, m) => { if (!i) return {k: "est", t: "KI-Schätzung", l: "Von der KI geschätzt, nicht aus einer Datenbank."};
     const id = i.ref || (i.per && i.per.tab), F = id && TAB.byId[id], code = i.code || (m && partsOf(m).length === 1 && m.code);
-    if (code){ let own = 0; try { own = (JSON.parse(localStorage.getItem("chessnat-off-" + code) || "null") || {}).own; } catch(e) {}
-      return own ? {k: "own", t: "Dein Foto der Packung", l: "Von der Nährwerttabelle der Packung abgelesen, die du fotografiert hast."} : {k: "off", t: "Packung · Open Food Facts", l: "Genau dieses Produkt (Barcode " + code + ") aus Open Food Facts."}; }
+    if (code){ let own = 0, by = ""; try { const c = JSON.parse(localStorage.getItem("chessnat-off-" + code) || "null") || {}; own = c.own; by = c.by || ""; } catch(e) {}
+      return own && by ? {k: "own", t: "Foto der Packung · von " + by, l: "Von der Nährwerttabelle der Packung abgelesen, die " + by + " fotografiert hat. Nicht nachgeprüft."}
+        : own ? {k: "own", t: "Dein Foto der Packung", l: "Von der Nährwerttabelle der Packung abgelesen, die du fotografiert hast."} : {k: "off", t: "Packung · Open Food Facts", l: "Genau dieses Produkt (Barcode " + code + ") aus Open Food Facts."}; }
     if (F && F.src && F.src.bls) return {k: "bls", t: "Bundeslebensmittelschlüssel", l: "Amtlicher Wert aus dem Bundeslebensmittelschlüssel 4.0 (Max Rubner-Institut): " + F.src.name + "."};
     if (F && F.src) return {k: "off", t: "Open Food Facts · Mittel aus " + F.src.n + " Produkten", l: "Mittelwert aus " + F.src.n + " echten Produkten bei Open Food Facts."};
     if (F) return {k: "off", t: "Nährwert-Tabelle", l: "Fester Wert aus der Nährwert-Tabelle der App."};
