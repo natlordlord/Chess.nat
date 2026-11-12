@@ -3,6 +3,9 @@
      heinz      Landkreis Freising (abfallkalender.heinz-entsorgung.de)
      awido      AWIDO Online, about 50 districts and towns, mostly Bavaria, Hesse, Thuringia (awido.cubefour.de)
      abfallnavi regio iT "AbfallNavi", about 30 districts and towns, mostly North Rhine-Westphalia (…-abfallapp.regioit.de)
+     jumomind   Jumomind / "MyMüll", about 60 districts and towns all over Germany (….jumomind.com); MyMüll is also asked for any
+                town no other entry fits, because it knows by itself which towns it has
+     ctrace     C-Trace, about a dozen (Bremen, Landkreis Augsburg, Kreis Segeberg, …): an iCal file per address (….c-trace.de)
    which region belongs to which system is the table REG below (from the open-source project hacs_waste_collection_schedule).
    GET /api/muell?suggest=Geiglbergstr 2a Wang   → {list: [{label, street, hnr, plz, city, district, county, state}]}  complete addresses while typing (OpenStreetMap via photon.komoot.io);
                                                     {list: [], slow: true} when that search is down; with &go=1 (the user tapped "search") Nominatim steps in
@@ -65,6 +68,31 @@ async function navi(a, id){
   return group((await getJSON(B + path + "/termine?" + fq)).map(r => ({d: r.datum, was: types[r.bezirk && r.bezirk.fraktionId] || "Abholung"})));
 }
 
+/* ---- Jumomind / MyMüll: town → street (→ house number) → area → dates ---- */
+async function jumo(a, id){
+  const B = `https://${id}.jumomind.com/mmapp/api.php?r=`, cities = await getJSON(B + "cities_web"); if (!Array.isArray(cities) || !cities.length) throw new Miss("city");
+  const c = place(cities, a, x => x.name) || place(cities, a, x => x._name) || (cities.length === 1 ? cities[0] : null); if (!c) throw new Miss("city"); let area = c.area_id;
+  if (c.has_streets){ const strs = await getJSON(B + "streets&city_id=" + encodeURIComponent(c.id)), s = pick(strs, a.street, x => x.name) || pick(strs, a.street, x => x._name) || (strs.length === 1 ? strs[0] : null); if (!s) throw new Miss("street"); area = s.area_id;
+    if (Array.isArray(s.houseNumbers) && s.houseNumbers.length){ const n = norm(a.hnr).replace(/^0+/, ""), h = s.houseNumbers.find(x => norm(x[0]).replace(/^0+/, "") === n) || s.houseNumbers.find(x => norm(x[0]).replace(/[a-z]/g, "").replace(/^0+/, "") === n.replace(/[a-z]/g, "")); if (h) area = h[1]; else if (area == null) area = s.houseNumbers[0][1]; } }
+  const q = "&city_id=" + encodeURIComponent(c.id) + "&area_id=" + encodeURIComponent(area), bins = {}; (await getJSON(B + "trash" + q)).forEach(b => { bins[b.name] = b.title; if (!(b._name in bins)) bins[b._name] = b.title; });
+  return group((await getJSON(B + "dates/0" + q + "&ws=3")).map(e => ({d: e.day, was: bins[e.trash_name] || e.trash_name})));
+}
+
+/* ---- C-Trace: a session path first, then the calendar of one address as an iCal file ---- */
+async function ctrace(a, svc, sub, file){
+  const base = `https://${sub || "web"}.c-trace.de/${svc}/`, ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 7000); let sid = "";
+  try { const r = await fetch(base + "Abfallkalender", {redirect: "manual", headers: UA, signal: ctl.signal}); sid = ((r.headers.get("location") || "").split("/")[2] || ""); } finally { clearTimeout(to); }
+  const nr = (/^\d+/.exec(a.hnr || "") || [""])[0], tries = names(a).slice(0, 3), all = Array.from({length: 120}, (_, i) => i).join("|");
+  for (const ort of tries){
+    const u = base + (sid ? sid + "/" : "") + "abfallkalender/" + (file || "cal") + "?Ort=" + encodeURIComponent(ort) + "&Gemeinde=" + encodeURIComponent(a.city || ort) + "&Strasse=" + encodeURIComponent(a.street) + "&Hausnr=" + encodeURIComponent(nr || a.hnr || "") + "&Abfall=" + encodeURIComponent(all);
+    const c2 = new AbortController(), t2 = setTimeout(() => c2.abort(), 7000); let ics = "";
+    try { const r = await fetch(u, {headers: UA, signal: c2.signal}); if (r.ok) ics = await r.text(); } catch(e) {} finally { clearTimeout(t2); }
+    const rows = []; ics.replace(/\r?\n[ \t]/g, "").split("BEGIN:VEVENT").slice(1).forEach(ev => { const d = /DTSTART[^:\n]*:(\d{4})(\d{2})(\d{2})/.exec(ev), su = /SUMMARY[^:\n]*:(.*)/.exec(ev); if (d && su) rows.push({d: d[1] + "-" + d[2] + "-" + d[3], was: su[1].replace(/\\,/g, ",").replace(/^Abfuhr:\s*/i, "").trim()}); });
+    const t = group(rows); if (t.length) return t;
+  }
+  throw new Miss("street");
+}
+
 /* ---- which region is in which system. c: the district's name (as OpenStreetMap writes it, compared with norm()),
         s: a town that has its own calendar; an entry with only c must not catch the town of the same name (Stadt ≠ Landkreis) ---- */
 const REG = [
@@ -77,14 +105,21 @@ const REG = [
   ...[["unterhaching", "unterhaching"], ["kaufbeuren", "kaufbeuren"], ["pullach", "pullach"], ["unterschleissheim", "unterschleissheim"], ["memmingen", "memmingen"], ["^regensburg$", "regensburg"], ["^fulda$", "fulda-stadt"], ["koenigstein", "koenigstein"], ["^ulm$", "ebu"]].map(([s, id]) => ({s: new RegExp(s), f: a => awido(a, id)})),
   ...[["warendorf|guetersloh", "krwaf"], ["oberbergisch|rheinischbergisch", "bav"], ["coesfeld", "coe"], ["borken", "wml2"], ["heinsberg", "krhs"], ["pinneberg", "pi"], ["unna", "unna"], ["viersen", "viersen"], ["lippe$", "awvlippe"], ["dueren|staedteregionaachen", "zew2"]].map(([c, id]) => ({c: new RegExp(c), f: a => navi(a, id), lk: true})),
   ...[["^aachen$", "aachen"], ["^nuernberg$", "nuernberg"], ["bergischgladbach", "aw-bgl2"], ["^cottbus", "cottbus"], ["dinslaken", "din"], ["dorsten", "dorsten"], ["^halver$", "hlv"], ["kronberg", "kronberg"], ["muelheimanderruhr", "muelheim"], ["norderstedt", "nds"], ["roetgen", "roe"],
-      ["solingen", "solingen"], ["luedenscheid", "stl"], ["oberhausen", "oberhausen"], ["cuxhaven", "cux"], ["frankenthal", "frankenthal"], ["kranenburg", "kranenburg"], ["portawestfalica", "portawestfalica"]].map(([s, id]) => ({s: new RegExp(s), f: a => navi(a, id)}))
+      ["solingen", "solingen"], ["luedenscheid", "stl"], ["oberhausen", "oberhausen"], ["cuxhaven", "cux"], ["frankenthal", "frankenthal"], ["kranenburg", "kranenburg"], ["portawestfalica", "portawestfalica"]].map(([s, id]) => ({s: new RegExp(s), f: a => navi(a, id)})),
+  ...[["darmstadtdieburg", "zaw"], ["altoetting", "aoe"], ["aurich", "lka"], ["barnim", "bdg"], ["rheinhunsrueck", "rhe"], ["uckermark", "udg"], ["celle", "zac"], ["grafschaftbentheim", "ben"], ["^harz$", "enwi"], ["hoexter", "hox"], ["mainkinzig", "mkk"], ["wolfenbuettel", "wol"]].map(([c, id]) => ({c: new RegExp(c), f: a => jumo(a, id), lk: true})),
+  ...[["badhomburg", "hom"], ["hattersheim", "hat"], ["^ingolstadt$", "ingol"], ["luebbecke", "lue"], ["^minden$", "sbm"], ["^recklinghausen$", "ksr"], ["neustadtanderweinstr", "esn"], ["^langen", "kbl"], ["rosbach", "ros"]].map(([s, id]) => ({s: new RegExp(s), f: a => jumo(a, id)})),
+  ...[["^augsburg$", "augsburglandkreis"], ["segeberg", "segebergwzv-abfallkalender"], ["maintauber", "maintauberkreis-abfallkalender"], ["rheingautaunus", "rheingauleerungen"], ["grossgerau", "grossgeraulandkreis-abfallkalender"]].map(([c, id]) => ({c: new RegExp(c), f: a => ctrace(a, id), lk: true})),
+  ...[["^bremen$", "bremenabfallkalender", "web", "cal"], ["dietzenbach", "dietzenbach", "web", "cal"], ["^bayreuth$", "bayreuthstadt-abfallkalender", "web", "cal"], ["^arnsberg$", "arnsberg-abfallkalender", "web", "cal"], ["landauinderpfalz|^landau$", "web.landau", "apps", "downloadcal"],
+      ["sanktwendel|stwendel", "web.stwendel", "apps", "downloadcal"], ["oberursel", "web.oberursel", "apps", "cal"]].map(([s, id, sub, file]) => ({s: new RegExp(s), f: a => ctrace(a, id, sub, file)})),
+  /* MyMüll serves some sixty towns and districts and tells by itself whether a town is one of them: asked last, for any address */
+  {any: true, f: a => jumo(a, "mymuell")}
 ];
 async function lookup(a){
   const city = norm(a.city), county = norm(a.county).replace(/^(landkreis|kreis)/, ""), isLk = /kreis|region/i.test(a.county || "") && norm(a.county).replace(/^(landkreis|kreis)/, "") !== "" ;
   /* towns with their own calendar first, then the district (only when the address really lies in a district, or town and district differ) */
   const cand = REG.filter(r => r.s && r.s.test(city)).concat(REG.filter(r => r.c && county && r.c.test(county) && (isLk || county !== city || !REG.some(x => x.s && x.s.test(city)))));
-  if (!cand.length) throw new Miss("unsupported");
-  let miss = "city"; for (const r of cand.slice(0, 4)){ try { const t = await r.f(a); if (t.length) return t; miss = "empty"; } catch(e) { if (!e.miss) throw e; if (e.miss === "street") miss = "street"; } }
+  REG.filter(r => r.any).forEach(r => cand.push(r));
+  let miss = "city"; for (const r of cand.slice(0, 5)){ try { const t = await r.f(a); if (t.length) return t; if (miss === "city") miss = "empty"; } catch(e) { if (e.miss === "street") miss = "street"; /* a calendar that is down counts like one that doesn't know the place */ } }
   throw new Miss(miss === "city" ? "unsupported" : miss);
 }
 

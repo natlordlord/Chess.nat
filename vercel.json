@@ -6,6 +6,9 @@
   "functions": {
     "api/foods.js": {
       "maxDuration": 60
+    },
+    "api/muell.js": {
+      "maxDuration": 30
     }
   },
   "headers": [
