@@ -123,14 +123,28 @@ async function lookup(a){
   throw new Miss(miss === "city" ? "unsupported" : miss);
 }
 
-/* ---- complete addresses for what was typed so far. While typing: Photon (made for search-as-you-type), with a short
-        patience. When it doesn't answer, the app shows a "search" button instead, and only that explicit search (go) may ask
-        Nominatim, whose rules don't allow search-as-you-type. Both are OpenStreetMap. ---- */
+/* ---- complete addresses for what was typed so far. While typing: the German street directory, then Photon (OpenStreetMap,
+        made for search-as-you-type), each with a short patience. When neither answers, the app shows a "search" button, and only
+        that explicit search (go) may ask Nominatim, whose rules don't allow search-as-you-type. ---- */
 const typedNr = text => ((/(?:^|\s)(\d{1,4}\s?[a-zA-Z]?)(?=\s|,|$)/.exec(text.replace(/\b\d{5}\b/g, " ")) || [])[1] || "").replace(/\s+/g, "");
 function addrList(rows, text){ const nr = typedNr(text), seen = {}, list = [];
   for (const p of rows){ if (!p.street || !p.city) continue; const o = {street: clean(p.street), hnr: clean(p.hnr || nr).replace(/\s+/g, ""), plz: clean(p.plz), city: clean(p.city), district: clean(p.district), county: clean(p.county), state: clean(p.state), alt: String(p.alt || "").slice(0, 200)};
     o.label = o.street + (o.hnr ? " " + o.hnr : "") + ", " + (o.plz ? o.plz + " " : "") + o.city; const k = norm(o.label); if (seen[k]) continue; seen[k] = 1; list.push(o); if (list.length >= 6) break; }
   return list; }
+/* the German street directory (openplzapi.org): every street with its postcode, town, district and state; it answers in a few
+   dozen milliseconds and takes prefixes, so it is asked first. It writes "Geiglbergstr." and has no house numbers: the number
+   that was typed is kept, and the name is spelled out again. */
+const rx = t => t.replace(/[.*+?^${}()|[\]\\]/g, " ").replace(/stra(ß|ss)e/gi, "str").replace(/str\.?(?=\s|$)/gi, "str").replace(/\s+/g, " ").trim();
+async function openplz(text){
+  const plz = (/\b\d{5}\b/.exec(text) || [""])[0], t = text.replace(/\b\d{5}\b/g, " ").replace(/,/g, " ").replace(/\s+/g, " ").trim(), m = /^(.*?\D)\s*(\d{1,4}\s?[a-zA-Z]?)(?:\s+(.*))?$/.exec(t), tries = [];
+  if (m) tries.push([m[1], m[3] || ""]); else { const w = t.split(" "); if (w.length > 1) tries.push([w.slice(0, -1).join(" "), w[w.length - 1]]); tries.push([t, ""]); if (w.length > 2) tries.push([w.slice(0, -2).join(" "), w.slice(-2).join(" ")]); }
+  for (const [st, loc] of tries){ const name = rx(st); if (name.length < 3) continue;
+    const j = await getJSON("https://openplzapi.org/de/Streets?page=1&pageSize=8&name=" + encodeURIComponent("^" + name) + (loc && rx(loc) ? "&locality=" + encodeURIComponent("^" + rx(loc)) : "") + (plz ? "&postalCode=" + plz : ""), null, 2500);
+    const l = addrList((Array.isArray(j) ? j : []).map(x => ({street: String(x.name || "").replace(/str\.$/, "straße").replace(/Str\.$/, "Straße"), plz: x.postalCode, city: x.locality, district: x.suburb || x.borough,
+      county: x.district && /^(Land)?kreis/i.test(x.district.type || "") ? (/^Landkreis/i.test(x.district.type) ? "Landkreis " : "Kreis ") + x.district.name : "", state: x.federalState && x.federalState.name, alt: [x.municipality && x.municipality.name, x.borough, x.suburb].filter(Boolean).join("|")})), text);
+    if (l.length) return l; }
+  return [];
+}
 async function photon(text){
   const j = await getJSON("https://photon.komoot.io/api/?lang=de&limit=8&bbox=5.8,47.2,15.1,55.1&layer=house&layer=street&q=" + encodeURIComponent(text), null, 2500);
   return addrList((j.features || []).map(f => f.properties || {}).filter(p => p.countrycode === "DE").map(p => ({street: p.street || (p.type === "street" ? p.name : ""), hnr: p.housenumber, plz: p.postcode, city: p.city || p.town || p.village || p.locality || p.district, district: p.district || p.locality, county: p.county, state: p.state})), text);
@@ -145,7 +159,10 @@ async function nominatim(text){
     return {street: a.road || a.pedestrian || a.footway || a.hamlet || "", hnr: a.house_number, plz: a.postcode, city: said || a.city || a.town || a.village || a.municipality, district: a.village || a.suburb || a.hamlet || a.city_district, county: a.county, state: a.state, alt: locs.join("|")}; }), text);
 }
 async function suggest(text, go){
-  try { const l = await photon(text); if (l.length || !go) return {list: l}; } catch(e) { if (!go) return {list: [], slow: true}; }
+  let down = 0;
+  try { const l = await openplz(text); if (l.length) return {list: l}; } catch(e) { down++; }
+  try { const l = await photon(text); if (l.length) return {list: l}; } catch(e) { down++; }
+  if (!go) return down > 1 ? {list: [], slow: true} : {list: []};
   return {list: await nominatim(text)};
 }
 

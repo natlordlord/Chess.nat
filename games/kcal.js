@@ -1504,7 +1504,7 @@
       const find = async go => { const t = inp.value.trim(), my = ++seq; if (t.length < 3) return msg("Tipp eure Adresse ein, z. B. „Geiglbergstr 2a Wang“."); if (go) msg("Suche …");
         try { const r = await fetch("/api/muell?suggest=" + encodeURIComponent(t) + (go ? "&go=1" : "")), j = await r.json(); if (my !== seq || closed) return; if (!r.ok) throw new Error(j.error || "HTTP " + r.status); items = j.list || [];
           if (j.slow || (!items.length && !go)){ list.innerHTML = `<button class="btn go big" id="hsgo">Adresse suchen</button><p class="muted">Schreib Straße, Hausnummer und Ort aus, dann tippe auf „Adresse suchen“.</p>`; list.querySelector("#hsgo").onclick = () => find(true); return; }
-          list.innerHTML = items.map((x, i) => `<button class="hs-ai" data-i="${i}"><b>${h(x.street)}${x.hnr ? " " + h(x.hnr) : ""}</b><small>${h([x.plz, x.city].filter(Boolean).join(" "))}${x.county ? " · " + h(x.county) : ""}</small></button>`).join("") || `<p class="muted">Nichts gefunden. Schreib Straße und Ort aus.</p>`;
+          list.innerHTML = items.map((x, i) => `<button class="hs-ai" data-i="${i}"><b>${h(x.street)}${x.hnr ? " " + h(x.hnr) : ""}</b><small>${h([x.plz, x.city].filter(Boolean).join(" "))}${x.county ? " · " + h(x.county) : ""}</small></button>`).join("") || `<p class="muted">Nichts gefunden. Schreib erst die Straße, dann die Hausnummer, dann den Ort.</p>`;
           list.querySelectorAll("[data-i]").forEach(b => b.onclick = () => choose(items[+b.dataset.i])); }
         catch(e) { if (my === seq) msg("Die Adresssuche ist gerade nicht erreichbar. Probier es gleich nochmal."); } };
       const choose = async a => { haptic(8); seq++; try { inp.blur(); } catch(e) {} msg(`Suche den Abfuhrplan für ${h(a.label)} …`);
@@ -1514,7 +1514,7 @@
         const two = {ort: ((a.plz ? a.plz + " " : "") + a.city).slice(0, 80), strasse: (a.street + (a.hnr ? " " + a.hnr : "")).slice(0, 80)};
         const r = await sb().from("home_groups").update(two).eq("id", this.g.id); if (r.error){ say("Ging nicht: " + r.error.message); return close(); }
         sb().from("home_groups").update({addr: a}).eq("id", this.g.id).then(() => {}, () => {}); Object.assign(this.g, two, {addr: a}); const k = await this.sync(n.termine); close(); say(k > 0 ? `📍 ${k} Abholtermine eingetragen ✓` : "📍 Adresse gespeichert, alle Termine sind schon drin ✓", 3600); this.load(); };
-      inp.oninput = () => { clearTimeout(tm); tm = setTimeout(() => find(false), 280); }; inp.onkeydown = e => { if (e.key === "Enter"){ e.preventDefault(); const b = list.querySelector("[data-i]"); if (b) b.click(); else { clearTimeout(tm); find(true); } } };
+      inp.oninput = () => { clearTimeout(tm); tm = setTimeout(() => find(false), 140); }; inp.onkeydown = e => { if (e.key === "Enter"){ e.preventDefault(); const b = list.querySelector("[data-i]"); if (b) b.click(); else { clearTimeout(tm); find(true); } } };
       try { inp.focus(); } catch(e) {} /* the keyboard opens right away: one tap less */ },
     /* the dates for an address: {termine} or {err: "unsupported" | "street" | "empty" | "net"} */
     async fetchPlan(a){ const qs = a.street != null ? ["street", "hnr", "plz", "city", "district", "county", "state", "alt"].map(k => k + "=" + encodeURIComponent(a[k] || "")).join("&") : "ort=" + encodeURIComponent(a.ort) + "&strasse=" + encodeURIComponent(a.strasse);
