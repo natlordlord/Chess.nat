@@ -4,15 +4,16 @@
      awido      AWIDO Online, about 50 districts and towns, mostly Bavaria, Hesse, Thuringia (awido.cubefour.de)
      abfallnavi regio iT "AbfallNavi", about 30 districts and towns, mostly North Rhine-Westphalia (…-abfallapp.regioit.de)
    which region belongs to which system is the table REG below (from the open-source project hacs_waste_collection_schedule).
-   GET /api/muell?suggest=Geiglbergstr 2a Wang   → {list: [{label, street, hnr, plz, city, district, county, state}]}  complete addresses (OpenStreetMap via photon.komoot.io)
+   GET /api/muell?suggest=Geiglbergstr 2a Wang   → {list: [{label, street, hnr, plz, city, district, county, state}]}  complete addresses while typing (OpenStreetMap via photon.komoot.io);
+                                                    {list: [], slow: true} when that search is down; with &go=1 (the user tapped "search") Nominatim steps in
    GET /api/muell?street=…&hnr=…&city=…&district=…&county=…&state=…&plz=…
         → {via, termine: [{d: "2026-11-13", was: ["Restabfall", "Gelber Sack"], zusatz: ""}]}   from today on, one entry per day
         → {error: "unsupported"} when the region is not in the table, {error: "street"} when the street was not found there
    GET /api/muell, ?ort=…, ?ort=…&strasse=…      the first version (Landkreis Freising only): towns, streets, dates
    Nothing is stored here; answers are kept at the edge for half a day. */
 const UA = {"User-Agent": "ChessNat/1.0 (chess-nat.vercel.app)"};
-async function getJSON(url, headers){
-  const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 7000);
+async function getJSON(url, headers, ms){
+  const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), ms || 7000);
   try { const r = await fetch(url, {headers: Object.assign({}, UA, headers || {}), signal: ctl.signal}); if (!r.ok) throw new Error("HTTP " + r.status); return await r.json(); } finally { clearTimeout(to); }
 }
 const clean = s => String(s || "").replace(/\s+/g, " ").trim().slice(0, 80);
@@ -84,23 +85,34 @@ async function lookup(a){
   throw new Miss(miss === "city" ? "unsupported" : miss);
 }
 
-/* ---- complete addresses for what was typed so far ---- */
-async function suggest(text){
-  const j = await getJSON("https://photon.komoot.io/api/?lang=de&limit=8&bbox=5.8,47.2,15.1,55.1&layer=house&layer=street&q=" + encodeURIComponent(text));
-  const typedNr = (/(?:^|\s)(\d{1,4}\s?[a-zA-Z]?)(?=\s|,|$)/.exec(text.replace(/\b\d{5}\b/g, " ")) || [])[1], seen = {}, list = [];
-  for (const f of j.features || []){ const p = f.properties || {}; if (p.countrycode !== "DE") continue; const street = p.street || (p.type === "street" ? p.name : ""), city = p.city || p.town || p.village || p.locality || p.district || ""; if (!street || !city) continue;
-    const hnr = clean(p.housenumber || typedNr || "").replace(/\s+/g, ""), o = {street: clean(street), hnr, plz: clean(p.postcode), city: clean(city), district: clean(p.district || p.locality || ""), county: clean(p.county || ""), state: clean(p.state || "")};
+/* ---- complete addresses for what was typed so far. While typing: Photon (made for search-as-you-type), with a short
+        patience. When it doesn't answer, the app shows a "search" button instead, and only that explicit search (go) may ask
+        Nominatim, whose rules don't allow search-as-you-type. Both are OpenStreetMap. ---- */
+const typedNr = text => ((/(?:^|\s)(\d{1,4}\s?[a-zA-Z]?)(?=\s|,|$)/.exec(text.replace(/\b\d{5}\b/g, " ")) || [])[1] || "").replace(/\s+/g, "");
+function addrList(rows, text){ const nr = typedNr(text), seen = {}, list = [];
+  for (const p of rows){ if (!p.street || !p.city) continue; const o = {street: clean(p.street), hnr: clean(p.hnr || nr).replace(/\s+/g, ""), plz: clean(p.plz), city: clean(p.city), district: clean(p.district), county: clean(p.county), state: clean(p.state)};
     o.label = o.street + (o.hnr ? " " + o.hnr : "") + ", " + (o.plz ? o.plz + " " : "") + o.city; const k = norm(o.label); if (seen[k]) continue; seen[k] = 1; list.push(o); if (list.length >= 6) break; }
-  return list;
+  return list; }
+async function photon(text){
+  const j = await getJSON("https://photon.komoot.io/api/?lang=de&limit=8&bbox=5.8,47.2,15.1,55.1&layer=house&layer=street&q=" + encodeURIComponent(text), null, 2500);
+  return addrList((j.features || []).map(f => f.properties || {}).filter(p => p.countrycode === "DE").map(p => ({street: p.street || (p.type === "street" ? p.name : ""), hnr: p.housenumber, plz: p.postcode, city: p.city || p.town || p.village || p.locality || p.district, district: p.district || p.locality, county: p.county, state: p.state})), text);
+}
+async function nominatim(text){
+  const j = await getJSON("https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&countrycodes=de&accept-language=de&limit=8&q=" + encodeURIComponent(text), {"User-Agent": "ChessNat/1.0 (https://chess-nat.vercel.app; household bin plan, one lookup per saved address)"}, 6000);
+  return addrList((Array.isArray(j) ? j : []).map(x => x.address || {}).map(a => ({street: a.road || a.pedestrian || a.footway || a.hamlet || "", hnr: a.house_number, plz: a.postcode, city: a.city || a.town || a.village || a.municipality, district: a.suburb || a.village || a.hamlet || a.city_district, county: a.county, state: a.state})), text);
+}
+async function suggest(text, go){
+  try { const l = await photon(text); if (l.length || !go) return {list: l}; } catch(e) { if (!go) return {list: [], slow: true}; }
+  return {list: await nominatim(text)};
 }
 
 module.exports = async (req, res) => {
   const q = req.query || {}, ok = (o, age) => { res.setHeader("Cache-Control", `public, s-maxage=${age || 43200}, stale-while-revalidate=86400`); res.status(200).json(o); };
   try {
-    if (q.suggest != null){ const t = clean(q.suggest); return ok({list: t.length < 3 ? [] : await suggest(t)}, 86400); }
+    if (q.suggest != null){ const t = clean(q.suggest); if (t.length < 3) return ok({list: []}, 86400); const o = await suggest(t, q.go != null); return ok(o, o.slow ? 60 : 86400); }
     if (q.street != null || q.city != null){ const a = {street: clean(q.street), hnr: clean(q.hnr), plz: clean(q.plz), city: clean(q.city), district: clean(q.district), county: clean(q.county), state: clean(q.state)};
       /* the district is not always sent along (an address saved in the first version): then it is looked up from street and town */
-      if (!a.county && a.city){ try { const g = (await suggest([a.street, a.hnr, a.plz, a.city].filter(Boolean).join(" "))).find(x => norm(x.city) === norm(a.city)) || {}; a.county = g.county || ""; a.state = a.state || g.state || ""; a.district = a.district || g.district || ""; } catch(e) {} }
+      if (!a.county && a.city){ try { const g = (await suggest([a.street, a.hnr, a.plz, a.city].filter(Boolean).join(" "), true)).list.find(x => norm(x.city) === norm(a.city)) || {}; a.county = g.county || ""; a.state = a.state || g.state || ""; a.district = a.district || g.district || ""; } catch(e) {} }
       try { return ok({termine: await lookup(a)}); } catch(e) { if (!e.miss) throw e; return ok({error: e.miss, county: a.county}, 3600); } }
     const ort = clean(q.ort), strasse = clean(q.strasse);
     if (!ort) return ok({orte: (await heinzAsk("orte", {landkreis: LK})).map(x => x.ort).filter(Boolean)});
