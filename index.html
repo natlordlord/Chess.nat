@@ -2855,7 +2855,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794438813";
+const CHESSNAT_BUILD = "1794509738";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -3889,11 +3889,14 @@ function PuzzleRunner(board, hooks = {}){
       /* with the engine at hand the wrong move waits for its answer (at most 2.2 s); without it the board goes back at once as before */
       const p0 = R.p, fenAfter = R.g.fen(), delay = hooks.fast ? 500 : !Engine.failed && !R.g.game_over() ? 2200 : 800;
       /* the engine's answer goes into the panel text; the board snaps back quickly, and touching the board snaps it back at once */
-      if (!hooks.fast && !Engine.failed && !R.g.game_over()) Engine.run({fen: fenAfter, depth: 8}).then(r => { if (!r || !r.best || R.p !== p0) return; R.refute = {played: m.san, reply: sanOf(fenAfter, r.best)}; hooks.onRefute && hooks.onRefute(R);
-        /* show it on the board too: a red arrow for the opponent's answer, and the wrong move stays a moment longer so there is time to see it */
-        if (R.g.fen() === fenAfter && !R.done && (hooks.noRetry || R.pendingReset === back)){ board.setArrows([[r.best.slice(0, 2), r.best.slice(2, 4), "r"]]); clearTimeout(R.resetT); R.resetT = setTimeout(reset, 1700); } });
-      const back = () => { if (R.p !== p0 || R.pendingReset !== back) return; R.pendingReset = null; R.snap = false; clearTimeout(R.resetT); if (R.g.fen() === fenAfter) R.g.undo(); const h = R.g.history({verbose: true}); const l = h[h.length - 1]; board.set(R.g, l ? {from: l.from, to: l.to} : null); board.mark({}); board.setArrows([]); if (!hooks.noRetry) R.locked = false; };
-      R.pendingReset = hooks.noRetry ? null : back; const reset = () => { if (hooks.noRetry){ if (R.p === p0 && R.g.fen() === fenAfter){ R.g.undo(); const h = R.g.history({verbose: true}); const l = h[h.length - 1]; board.set(R.g, l ? {from: l.from, to: l.to} : null); board.mark({}); board.setArrows([]); } } else back(); };
+      if (!hooks.fast && !Engine.failed && !R.g.game_over()) Engine.run({fen: fenAfter, depth: 8}).then(r => { if (!r || !r.best || R.p !== p0) return; R.refute = {played: m.san, reply: sanOf(fenAfter, r.best)};
+        /* show it on the board too: a red arrow for the opponent's answer, and the wrong move stays a moment longer so there is time to see it.
+           R.refute.arrow says whether the arrow is on the board right now, so the text only points to it while it can be seen */
+        if (R.g.fen() === fenAfter && !R.done && (hooks.noRetry || R.pendingReset === back)){ board.setArrows([[r.best.slice(0, 2), r.best.slice(2, 4), "r"]]); R.refute.arrow = true; clearTimeout(R.resetT); R.resetT = setTimeout(reset, 3000); }
+        hooks.onRefute && hooks.onRefute(R); });
+      const arrowGone = () => { if (R.refute) R.refute.arrow = false; document.querySelectorAll(".rf-arrow").forEach(n => { n.textContent = "."; }); };
+      const back = () => { if (R.p !== p0 || R.pendingReset !== back) return; R.pendingReset = null; R.snap = false; clearTimeout(R.resetT); if (R.g.fen() === fenAfter) R.g.undo(); const h = R.g.history({verbose: true}); const l = h[h.length - 1]; board.set(R.g, l ? {from: l.from, to: l.to} : null); board.mark({}); board.setArrows([]); arrowGone(); if (!hooks.noRetry) R.locked = false; };
+      R.pendingReset = hooks.noRetry ? null : back; const reset = () => { if (hooks.noRetry){ if (R.p === p0 && R.g.fen() === fenAfter){ R.g.undo(); const h = R.g.history({verbose: true}); const l = h[h.length - 1]; board.set(R.g, l ? {from: l.from, to: l.to} : null); board.mark({}); board.setArrows([]); arrowGone(); } } else back(); };
       R.resetT = setTimeout(reset, delay);
     }
   };
@@ -4090,7 +4093,7 @@ Views.puzzles = {
     const focus = !this.review && p && BR.focus && BR.focus.id === p.id && ["solved", "done", "solution"].includes(state) ? `<div class="pz-focus">${icon("target", 15)} Picked for your weak spot: <b>${esc(themeKeyLabel(BR.focus.k))}</b></div>` : "";
     if (this.review && p && (state === "load" || state === "play")){ const it = srsList().find(x => x.p[0] === p.id); msg = `<div class="msg hint"><div class="ic">↺</div><div><h4>Review</h4><p>You missed this one before. Solve it again to lock the idea in. ${sideToMoveText(R.user)}. Not rated.</p></div></div>`; }
     else if (state === "play") msg = `<div class="msg"><div class="ic" style="background:${R.user === "w" ? "#fff" : "#262421"};color:${R.user === "w" ? "#262421" : "#fff"}">${R.user === "w" ? "♔" : "♚"}</div><div><h4>${tm}</h4><p>Find the best move.</p></div></div>`;
-    if (state === "wrong") msg = `<div class="msg no"><div class="ic">✕</div><div><h4>Incorrect</h4><p>${R.refute ? `After ${esc(R.refute.played)}, your opponent answers <b>${esc(R.refute.reply)}</b> (red arrow). ` : ""}Try again, or look at the solution.</p></div></div>`;
+    if (state === "wrong") msg = `<div class="msg no"><div class="ic">✕</div><div><h4>Incorrect</h4><p>${R.refute ? `After ${esc(R.refute.played)}, your opponent answers <b>${esc(R.refute.reply)}</b>${R.refute.arrow ? `<span class="rf-arrow"> (red arrow).</span>` : "."} ` : ""}Try again, or look at the solution.</p></div></div>`;
     if (state === "hint") msg = `<div class="msg hint"><div class="ic">?</div><div><h4>Hint</h4><p>${R.hint === 1 ? "The highlighted piece is the one to move." : "Follow the arrow."} Hints count as a miss.</p></div></div>`;
     if (state === "solution") msg = `<div class="msg hint"><div class="ic">!</div><div><h4>Solution</h4><p>Watch the line. This puzzle goes into your review list.</p></div></div>`;
     if (state === "solved") msg = `<div class="msg ok"><div class="ic">✓</div><div><h4>Correct! ${this.delta ? `<span style="color:var(--go-hi)">${this.delta > 0 ? "+" : ""}${this.delta}</span>` : ""}</h4><p>Solved in <b>${this.speed ? fmtSec(this.speed.ms) : "?"}</b>${this.speed && Math.abs(this.speed.f - 1) >= .05 ? ` (${this.speed.f > 1 ? "speed bonus" : "slower"} ×${this.speed.f.toFixed(2)})` : ""}. This puzzle was rated <b>${p ? p.r : ""}</b>${p && p.r > S.puzzle.r - this.delta ? `, ${p.r - (S.puzzle.r - this.delta)} above you` : ""}. ${p ? themeNames(p).slice(0, 3).map(esc).join(" · ") : ""}</p></div></div>`;
