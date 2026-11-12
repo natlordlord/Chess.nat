@@ -7,7 +7,7 @@ Es wird nichts gerechnet oder geschätzt: aus der amtlichen Excel-Datei werden j
 Energie (kcal), Kohlenhydrate, Eiweiß, Fett, Ballaststoffe, Zucker, gesättigte Fettsäuren und Salz übernommen (pro 100 g).
 Fehlt eine der vier Hauptangaben, bleibt das Lebensmittel draußen. Alles, was der Lauf sieht, steht in data/bls.log.
 """
-import io, json, re, sys, time
+import html as H, io, json, re, sys, time
 import requests
 from openpyxl import load_workbook
 
@@ -24,7 +24,8 @@ def get(u):
 def links(html, base):
     out = []
     for h in re.findall(r'(?:href|action)="([^"]+)"', html):
-        h = h.replace("&amp;", "&")
+        h = H.unescape(h)
+        if h.startswith(("#", "mailto:", "javascript:")): continue
         out.append(h if h.startswith("http") else BASE + (h if h.startswith("/") else "/" + h))
     return out
 
@@ -42,6 +43,9 @@ for _ in range(25):
         if re.search(r"Daten", name, re.I) or len(r.content) > 3000000: xlsx = r.content; break
         continue
     if "html" not in (r.headers.get("content-type") or ""): continue
+    cand = [l for l in links(r.text, u) if re.search(r"download|xlsx|csv|zip", l, re.I)]
+    log("  Kandidaten:", [c.split("?")[0] for c in cand][:20])
+    if "download" in u: log("  Seite:", re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", r.text))[:1500])
     for l in links(r.text, u):
         if "blsdb.de" not in l or l in seen: continue
         if re.search(r"Daten[^/]*\.xlsx", l, re.I): todo.insert(0, l)

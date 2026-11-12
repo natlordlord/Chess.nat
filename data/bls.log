@@ -1,5 +1,0 @@
-GET https://blsdb.de/search 200 text/html;charset=UTF-8 13662
-GET https://blsdb.de/&#47;download 404 text/html;charset=UTF-8 68
-GET https://blsdb.de/ 200 text/html;charset=UTF-8 11726
-GET https://blsdb.de/bls 200 text/html;charset=UTF-8 66447
-Keine Datendatei gefunden.
