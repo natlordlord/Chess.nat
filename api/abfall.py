@@ -14,9 +14,11 @@ removed, so the project's keys are not visible to it.
 """
 import os
 
-_KEEP = ("AWS_LAMBDA", "AWS_EXECUTION", "AWS_REGION", "AWS_DEFAULT_REGION", "LAMBDA_", "VERCEL_REGION", "VERCEL_ENV", "VERCEL_URL", "PATH", "PYTHON", "LANG", "LC_", "TZ", "HOME", "TMPDIR", "LD_", "_HANDLER", "NOW_REGION")
+# what the platform itself sets stays (the runtime needs some of it), minus everything that looks like a credential;
+# everything the project added (its keys) goes
+_KEEP = ("AWS_", "LAMBDA_", "VERCEL", "NOW_", "PATH", "PYTHON", "LANG", "LC_", "TZ", "HOME", "TMPDIR", "LD_", "_", "PWD", "SHLVL", "NODE_")
 for _k in list(os.environ):
-    if not _k.startswith(_KEEP) or any(w in _k.upper() for w in ("TOKEN", "SECRET", "KEY", "PASSW", "CREDENTIAL")):
+    if not _k.startswith(_KEEP) or any(w in _k.upper() for w in ("TOKEN", "SECRET", "KEY", "PASSW", "CREDENTIAL", "BYPASS")):
         del os.environ[_k]
 
 import datetime
