@@ -769,7 +769,8 @@ class AppAbfallplusDe:
             "id_bezirk": self._bezirk_id,
             "id_kommune": self._kommune_id,
             "id_kommune_qry": self._kommune_id,
-            "strasse_qry": self._strasse_search,
+            # Chess.nat: "Friedrichstr. (10117)" is searched as "Friedrichstr." – the server finds nothing with the postcode
+            "strasse_qry": (self._strasse_search or "").split(" (")[0] or self._strasse_search,
         }
 
         r = self._request("strasse/", data=data)
