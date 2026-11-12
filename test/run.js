@@ -78,8 +78,17 @@ const PARTS = {
     m = (await L.table("kcal_meals", "title=eq.Haferflocken mit Banane"))[0];
     ok(m.kcal === 810 && m.items[0].kcal === 580, "beim Verlassen des Felds gespeichert (810 kcal, Haferflocken 580)", m.kcal + " / " + JSON.stringify(m.items.map(i => i.kcal)));
     ok(await has(page, ".dsheet"), "der Dialog bleibt dabei offen");
+    /* "2×" only shows what it would be; × leaves the meal as it was, "Passt" keeps it */
+    const openHafer = async () => { await page.locator("#main [data-meal]", {hasText: "Haferflocken"}).first().tap(); await sleep(700); };
     await page.locator('.dsheet [data-f="2"]').tap(); await sleep(900);
-    m = (await L.table("kcal_meals", "title=eq.Haferflocken mit Banane"))[0]; ok(m.kcal === 1620, "„2ד verdoppelt den Eintrag (1.620 kcal)", m.kcal);
+    m = (await L.table("kcal_meals", "title=eq.Haferflocken mit Banane"))[0];
+    ok(m.kcal === 810 && /1\.620/.test(await txt(page, ".dsheet")) && /Erst „Passt“/.test(await txt(page, ".dsheet")), "„2ד zeigt nur die Vorschau (1.620 kcal) mit Hinweis, gespeichert ist noch nichts", m.kcal + " / " + (await txt(page, ".dsheet")).slice(0, 120)); await page.shot("kcal-mal2");
+    await page.locator(".dsheet .dx").last().tap(); await sleep(700);
+    m = (await L.table("kcal_meals", "title=eq.Haferflocken mit Banane"))[0]; ok(m.kcal === 810 && !(await has(page, ".dsheet")), "mit × geschlossen: der Eintrag bleibt bei 810 kcal", m.kcal);
+    await openHafer(); ok(/810/.test(await txt(page, ".dsheet .kc-mk")), "wieder geöffnet: zeigt den alten Wert", await txt(page, ".dsheet .kc-mk"));
+    await page.locator('.dsheet [data-f="2"]').tap(); await sleep(500); await page.locator(".dsheet .kc-row2 .btn.go").tap(); await sleep(1000);
+    m = (await L.table("kcal_meals", "title=eq.Haferflocken mit Banane"))[0]; ok(m.kcal === 1620 && !(await has(page, ".dsheet")), "„2ד und dann „Passt“ verdoppelt den Eintrag (1.620 kcal)", m.kcal);
+    await openHafer();
     await page.locator(".dsheet [data-pin]").tap(); await sleep(700);
     ok((await L.table("kcal_profile", "user_id=eq." + ID.tester))[0].pins.length === 1, "Anpinnen wird im Profil gespeichert");
     await closeSheets(page); await sleep(300);

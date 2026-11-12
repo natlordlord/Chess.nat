@@ -727,6 +727,19 @@
   /* an ingredient with checked values: from the fixed table (ref / per.tab), the checked database (food) or a real product (barcode).
      Only such ingredients may go into a recipe for everyone; what the AI merely estimated may not */
   const isChecked = i => !!(i && (i.ref || i.food || i.code || (i.per && i.per.tab)));
+  /* where the numbers of an ingredient come from, said in a few words: nobody should have to wonder whether a value is made up.
+     k = kind (for the colour): bls = official table, off = a real product or the mean of real products, own = your photo of
+     the pack, db = the checked database, est = the AI's estimate */
+  const srcOf = (i, m) => { if (!i) return {k: "est", t: "KI-Schätzung", l: "Von der KI geschätzt, nicht aus einer Datenbank."};
+    const id = i.ref || (i.per && i.per.tab), F = id && TAB.byId[id], code = i.code || (m && partsOf(m).length === 1 && m.code);
+    if (code){ let own = 0; try { own = (JSON.parse(localStorage.getItem("chessnat-off-" + code) || "null") || {}).own; } catch(e) {}
+      return own ? {k: "own", t: "Dein Foto der Packung", l: "Von der Nährwerttabelle der Packung abgelesen, die du fotografiert hast."} : {k: "off", t: "Packung · Open Food Facts", l: "Genau dieses Produkt (Barcode " + code + ") aus Open Food Facts."}; }
+    if (F && F.src && F.src.bls) return {k: "bls", t: "Bundeslebensmittelschlüssel", l: "Amtlicher Wert aus dem Bundeslebensmittelschlüssel 4.0 (Max Rubner-Institut): " + F.src.name + "."};
+    if (F && F.src) return {k: "off", t: "Open Food Facts · Mittel aus " + F.src.n + " Produkten", l: "Mittelwert aus " + F.src.n + " echten Produkten bei Open Food Facts."};
+    if (F) return {k: "off", t: "Nährwert-Tabelle", l: "Fester Wert aus der Nährwert-Tabelle der App."};
+    if (i.food) return {k: "db", t: "Geprüfte Datenbank", l: "Geprüfter Wert aus der gemeinsamen Datenbank."};
+    return {k: "est", t: "KI-Schätzung", l: "Von der KI geschätzt, nicht aus einer Datenbank. Tausch es gegen das echte Produkt, wenn du es genau willst."}; };
+  const srcTag = (i, m) => { const o = srcOf(i, m); return `<small class="kc-src ${o.k}">${h(o.t)}</small>`; };
   function recipeSheet(m){ const ps = partsOf(m), T = sumOf(ps), g = totG(ps), bad = ps.filter(i => !isChecked(i)); let sent = false;
     const list = `<div class="kc-items">${ps.map(i => `<div><span>${h(nice(i.name))}<small>${h(i.amount || "")}${isChecked(i) ? "" : ` · <u class="kc-est">nur geschätzt</u>`}</small></span><b>${fmt(i.kcal)} kcal</b></div>`).join("")}</div>`;
     if (bad.length){ const sh = detailSheet(`<div class="kc-form" data-notr><h3>Noch nicht für alle</h3><p class="muted">Ein Rezept für alle darf nur aus Zutaten mit geprüften Werten bestehen. ${bad.length === 1 ? "Eine Zutat ist" : bad.length + " Zutaten sind"} nur geschätzt:</p>${list}
@@ -750,16 +763,18 @@
       <div class="kc-mk"><b data-t="kcal">${fmt(m.kcal)}</b> kcal</div>
       <div class="kc-macros"><span><b data-t="carbs">${f1(m.carbs)} g</b>KH</span><span><b data-t="protein">${f1(m.protein)} g</b>Protein</span><span><b data-t="fat">${f1(m.fat)} g</b>Fett</span></div>
       ${own && totOK(items) ? totHTML(items, "Davon gegessen") : ""}
-      ${items.length ? `${own ? `<div class="kc-ih muted">Menge antippen und neu eintippen, alles rechnet mit</div>` : ""}<div class="kc-items">${items.map((i, ix) => { const a = own && amtOf(i); return own ? `<div class="kc-irow"><button data-it="${ix}"><span>${h(i.name)}<small data-ra="${ix}">${h(i.amount || "")}</small></span><b data-rk="${ix}">${fmt(i.kcal)} kcal</b>${a ? "" : `<em>${svg(IC.pen, 15)}</em>`}</button>${a ? `<label class="kc-gi"><input data-g="${ix}" inputmode="decimal" enterkeyhint="done" value="${nf(a.v, a.v < 10 ? 2 : 0)}" aria-label="Menge"><i>${a.u}</i></label>` : ""}</div>` : `<div><span>${h(i.name)}<small>${h(i.amount || "")}</small></span><b>${fmt(i.kcal)} kcal</b></div>`; }).join("")}</div>` : ""}
+      ${items.length ? `${own ? `<div class="kc-ih muted">Menge antippen und neu eintippen, alles rechnet mit</div>` : ""}<div class="kc-items">${items.map((i, ix) => { const a = own && amtOf(i); return own ? `<div class="kc-irow"><button data-it="${ix}"><span>${h(i.name)}<small data-ra="${ix}">${h(i.amount || "")}</small>${srcTag(i, m)}</span><b data-rk="${ix}">${fmt(i.kcal)} kcal</b>${a ? "" : `<em>${svg(IC.pen, 15)}</em>`}</button>${a ? `<label class="kc-gi"><input data-g="${ix}" inputmode="decimal" enterkeyhint="done" value="${nf(a.v, a.v < 10 ? 2 : 0)}" aria-label="Menge"><i>${a.u}</i></label>` : ""}</div>` : `<div><span>${h(i.name)}<small>${h(i.amount || "")}</small>${srcTag(i, m)}</span><b>${fmt(i.kcal)} kcal</b></div>`; }).join("")}</div>` : ""}
       ${own && items.length ? `<button class="kc-roundb" data-round>${svg(IC.code, 22)}<b>Packungen scannen<small>Für genaue Werte: alles scannen, was du gegessen hast, in beliebiger Reihenfolge</small></b></button>` : ""}
       ${own ? `<button class="btn ghost kc-man-b" data-it="-1">${svg(IC.plus, 16)} Etwas dazu</button>` : ""}
       ${own && totOK(items) ? `<button class="btn ghost kc-man-b" data-pub>📖 Als Rezept für alle speichern</button>` : ""}
       ${m.said ? `<p class="muted kc-said">„${h(m.said)}“</p>` : ""}${m.note ? `<p class="muted kc-said">${h(m.note)}</p>` : ""}
-      ${own ? `<div class="kc-portion"><span class="muted">Alles mal</span><div>${[[.5, "½"], [.75, "¾"], [1.25, "1¼"], [1.5, "1½"], [2, "2×"], [3, "3×"]].map(([f, l]) => `<button class="chip" data-f="${f}">${l}</button>`).join("")}</div></div>
+      ${own ? `<div class="kc-portion"><span class="muted">Alles mal nehmen</span><div>${[[.5, "½"], [.75, "¾"], [1.25, "1¼"], [1.5, "1½"], [2, "2×"], [3, "3×"]].map(([f, l]) => `<button type="button" class="kc-fx" data-f="${f}">${l}</button>`).join("")}</div><small class="kc-fxh" id="kcfxh" hidden></small></div>
       <div class="kc-row2">${m.draft ? `<button class="btn go" data-commit>Passt</button><button class="btn" data-kc-del>Verwerfen</button>` : `<button class="btn go" data-dclose>Passt</button><button class="btn" data-kc-del>Löschen</button>`}</div>${m.draft ? `<p class="muted kc-drn">Noch nicht eingetragen. Erst „Passt“ speichert es.</p>` : ""}` : ""}</div>`);
     /* a draft is entered by "Passt": first let a field that is still being typed in finish, then save what the draft is now */
+    /* "Alles mal 2": tapping only shows what it would be. "Passt" keeps it; ×, "Schließen" or swiping away leaves the meal as it was */
+    let pendF = 0, paintAll = null; const scaled = () => partsOf(m).map(i => scalePart(i, pendF));
     { const cb = sh.el.querySelector("[data-commit]"); if (cb) cb.onclick = async () => { if (cb.disabled) return; cb.disabled = true; const E = document.activeElement; if (E && sh.el.contains(E)) try { E.blur(); } catch(e) {}
-        await new Promise(r => setTimeout(r, 60)); try { const saved = await K.commit(m.id); sh.close(); haptic(15); say(`✓ ${brief(saved)} eingetragen`); } catch(e) { cb.disabled = false; say("Ging nicht: " + (e.message || e)); } }; }
+        await new Promise(r => setTimeout(r, 60)); try { if (pendF){ m = await saveParts(m, scaled()); pendF = 0; } const saved = await K.commit(m.id); sh.close(); haptic(15); say(`✓ ${brief(saved)} eingetragen`); } catch(e) { cb.disabled = false; say("Ging nicht: " + (e.message || e)); } }; }
     if (!own) return sh;
     wirePin(sh.el, m);
     sh.el.querySelectorAll("[data-it]").forEach(b => b.onclick = () => { haptic(8); sh.close(); partSheet(m, +b.dataset.it); });
@@ -769,6 +784,13 @@
       const prime = () => { const ps = partsOf(m), T = sumOf(ps); Object.keys(SH).forEach(k => { const el = q(`[data-t="${k}"]`); if (el) el._v = el._cur = T[k]; }); ps.forEach((i, ix) => { const el = q(`[data-rk="${ix}"]`); if (el) el._v = el._cur = Number(i.kcal) || 0; }); }; prime();
       const paint = ps => { const T = sumOf(ps); Object.keys(SH).forEach(k => tweenNum(q(`[data-t="${k}"]`), T[k], SH[k])); ps.forEach((i, ix) => { tweenNum(q(`[data-rk="${ix}"]`), i.kcal, x => fmt(Math.round(x)) + " kcal"); const a = q(`[data-ra="${ix}"]`); if (a && a.textContent !== (i.amount || "")) a.textContent = i.amount || ""; const g = q(`[data-g="${ix}"]`), w = g && amtOf(i); if (w && document.activeElement !== g) g.value = nf(w.v, w.v < 10 ? 2 : 0); });
         const tg = q("[data-tg]"); if (tg && document.activeElement !== tg) tg.value = nf(totG(ps), 0); };
+      paintAll = paint;
+      const fxShow = () => { E.querySelectorAll("[data-f]").forEach(b => b.classList.toggle("on", +b.dataset.f === pendF)); const hn = q("#kcfxh"); if (hn){ hn.hidden = !pendF; hn.textContent = pendF ? "Noch nicht gespeichert. Erst „Passt“ übernimmt es." : ""; } const ok = q(".kc-row2 .btn.go"); if (ok) ok.classList.toggle("pulse", !!pendF); };
+      E.querySelectorAll("[data-f]").forEach(b => b.onclick = () => { const f = +b.dataset.f; pendF = pendF === f ? 0 : f; haptic(10); fxShow(); paint(pendF ? scaled() : partsOf(m)); });
+      /* typing a weight is its own change: the chosen factor is dropped so the two don't mix */
+      E.querySelectorAll("[data-g],[data-tg]").forEach(inp => inp.addEventListener("input", () => { if (pendF){ pendF = 0; fxShow(); } }, true));
+      /* "Passt" on a meal that is already entered: keep the factor, then the sheet closes as always */
+      { const okb = q(".kc-row2 [data-dclose]"); if (okb) okb.addEventListener("click", async () => { if (!pendF) return; const ps = scaled(), f = pendF; pendF = 0; try { await saveParts(m, ps); haptic(15); say("✓ Menge mal " + String(f).replace(".", ",") + " gespeichert"); } catch(e) { say("Ging nicht: " + (e.message || e)); } }); }
       E.querySelectorAll("[data-g]").forEach(inp => { field(inp); let busy = false, next = null;
         const preview = () => { const ps = partsOf(m), ix = +inp.dataset.g, a = amtOf(ps[ix]), v = num(inp.value); if (!a) return null; if (!isFinite(v) || v <= 0) return null; ps[ix] = regram(ps[ix], v); return ps; };
         inp.addEventListener("input", () => { const ps = preview(); if (ps){ next = ps; paint(ps); } });
@@ -783,7 +805,6 @@
         tg.addEventListener("change", go); tg.addEventListener("blur", () => { if (next) go(); }); } }
     const pb = sh.el.querySelector("[data-pub]"); if (pb) pb.onclick = () => { haptic(10); const E = document.activeElement; if (E && sh.el.contains(E)) try { E.blur(); } catch(e) {} sh.close(); recipeSheet(m); };
     const rb = sh.el.querySelector("[data-round]"); if (rb) rb.onclick = () => { haptic(10); sh.close(); KCScan.open({round: m}); };
-    sh.el.querySelectorAll("[data-f]").forEach(b => b.onclick = async () => { try { const nm = await saveParts(m, partsOf(m).map(i => scalePart(i, +b.dataset.f))); sh.close(); mealSheet(nm); } catch(e) { say("Ging nicht: " + (e.message || e)); } });
     const del = sh.el.querySelector("[data-kc-del]"); del.onclick = async () => { if (!m.draft && !del.dataset.armed){ del.dataset.armed = 1; del.textContent = "Wirklich löschen?"; return; }
       try { await K.del(m.id); sh.close(); say(m.draft ? "Verworfen" : "Gelöscht"); } catch(e) { say("Ging nicht: " + (e.message || e)); } };
     return sh;
@@ -794,6 +815,7 @@
     if (!add && !w.per){ const code = w.code || (parts.length === 1 && m.code); if (code) try { const p = JSON.parse(localStorage.getItem("chessnat-off-" + code) || "null"); if (p){ const P = prodOf(code, p); w.per = itemOf(P, 100).per; w.code = code; w.g = w.g || m.grams || gramsIn(w.amount) || null; } } catch(e) {} }
     const KS = [["kcal", "kcal"], ["carbs", "KH g"], ["protein", "Protein g"], ["fat", "Fett g"]];
     const sh = detailSheet(`<div class="kc-form kc-pe" data-notr><h3>${add ? "Etwas dazu" : "Ändern"}</h3>
+      ${add ? "" : (o => `<div class="kc-srcb ${o.k}"><b>Woher die Werte kommen</b>${h(o.l)}</div>`)(srcOf(w, m))}
       <p class="muted kc-pt">${add ? "Produkt suchen oder scannen:" : "Das echte Produkt nehmen:"}</p>
       <div class="kc-rep"><button class="btn" data-rep="scan">${svg(IC.code, 18)} Barcode</button><button class="btn" data-rep="search">${svg(IC.search, 18)} Suchen</button></div>
       ${!add && w.per && w.g ? `<button class="btn kc-amtb" data-rep="amount">Menge ändern <small>${h(w.amount || nf(w.g, 0) + " g")}</small></button>` : ""}
@@ -1938,6 +1960,9 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-sr{display:flex;flex-direction:column;gap:6px;min-height:140px;transition:opacity .15s}.kc-sr.busy{opacity:.5}
 .kc-sres{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;border:0;background:var(--panel-2);color:var(--fg);text-align:left;cursor:pointer;width:100%;-webkit-tap-highlight-color:transparent}.kc-sres:active{transform:scale(.98)}.kc-sres.load{opacity:.55}
 .kc-est{text-decoration:none;color:#FF9A88;font-weight:800}
+.kc-items small.kc-src{font:800 11px var(--body);color:#8FC98A;letter-spacing:.01em}.kc-items small.kc-src.bls{color:#7FD6D0}.kc-items small.kc-src.own{color:#E8C56A}.kc-items small.kc-src.est{color:#FF9A88}
+.kc-srcb{display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:12px;background:rgba(143,201,138,.12);box-shadow:inset 0 0 0 1.5px rgba(143,201,138,.35);font:700 13.5px var(--body);line-height:1.35}.kc-srcb b{font:900 11px var(--body);letter-spacing:.06em;text-transform:uppercase;color:#8FC98A}
+.kc-srcb.bls{background:rgba(96,196,190,.12);box-shadow:inset 0 0 0 1.5px rgba(96,196,190,.4)}.kc-srcb.bls b{color:#7FD6D0}.kc-srcb.own{background:rgba(232,197,106,.12);box-shadow:inset 0 0 0 1.5px rgba(232,197,106,.4)}.kc-srcb.own b{color:#E8C56A}.kc-srcb.est{background:rgba(255,154,136,.12);box-shadow:inset 0 0 0 1.5px rgba(255,154,136,.4)}.kc-srcb.est b{color:#FF9A88}
 .kc-sph.kc-srec{background:var(--panel-3)}
 .kc-sres img,.kc-sph{width:44px;height:44px;border-radius:10px;object-fit:contain;flex:none;background:#fff;display:flex;align-items:center;justify-content:center;font-size:24px}
 .kc-sn{flex:1;min-width:0;display:flex;flex-direction:column;font:800 15px var(--body);line-height:1.2}.kc-sn small{color:var(--muted);font-weight:700;font-size:12px;margin-top:2px}
@@ -2002,7 +2027,10 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-gi{flex:none;display:flex;align-items:center;gap:4px;padding:0 10px;border-radius:10px;background:var(--panel-2);border:2px solid var(--line);color:var(--muted);font:800 14px var(--body);cursor:text}
 .kc-tot{display:flex;align-items:stretch;justify-content:space-between;gap:10px;padding:8px 6px 8px 12px;border-radius:12px;border:2px solid var(--go);background:var(--panel-2)}.kc-tot>span{display:flex;flex-direction:column;justify-content:center;font:900 15px var(--body);min-width:0}.kc-tot small{color:var(--muted);font:700 12px var(--body)}.kc-tot .kc-gi{background:var(--panel)}.kc-tot .kc-gi input{width:64px}
 .kc-gi:focus-within{border-color:var(--go)}.kc-gi input{width:52px;border:0!important;background:none!important;color:var(--fg);font:900 17px var(--display);text-align:right;padding:8px 0;outline:none}.kc-gi i{font-style:normal}.kc-items>div{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;background:var(--panel-2);border-radius:10px}.kc-items span{display:flex;flex-direction:column;font:800 14px var(--body)}.kc-items small{color:var(--muted);font-weight:700}.kc-items b{white-space:nowrap;font:900 14px var(--body)}
-.kc-said{margin:0;font-size:13px}.kc-portion{display:flex;flex-direction:column;gap:6px}.kc-portion>div,.kc-chips{display:flex;flex-wrap:wrap;gap:6px}.kc-chips .chip.on{background:var(--go);border-color:var(--go);color:#fff}
+.kc-said{margin:0;font-size:13px}.kc-portion{display:flex;flex-direction:column;gap:8px}.kc-portion>div{display:grid!important;grid-template-columns:repeat(3,1fr);gap:8px}
+.kc-fx{min-height:54px;border:0;border-radius:16px;background:var(--panel-2);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.1),0 3px 0 rgba(0,0,0,.25);color:var(--fg);font:900 20px var(--display);cursor:pointer;transition:transform .12s,background .18s,box-shadow .18s;-webkit-tap-highlight-color:transparent}
+.kc-fx:active{transform:translateY(2px) scale(.97)}.kc-fx.on{background:var(--go);color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.25),0 3px 0 rgba(0,0,0,.3)}
+.kc-fxh{font:800 12.5px var(--body);color:#E8C56A;text-align:center}.kc-row2 .btn.go.pulse{animation:kcFxP 1.4s ease-in-out infinite}@keyframes kcFxP{0%,100%{filter:brightness(1)}50%{filter:brightness(1.18)}}.kc-portion>div,.kc-chips{display:flex;flex-wrap:wrap;gap:6px}.kc-chips .chip.on{background:var(--go);border-color:var(--go);color:#fff}
 .kc-per{margin:0}.kc-gram{display:flex;align-items:center;gap:8px}.kc-gram .btn{width:52px;flex:none;font-size:22px}.kc-gram label{flex:1;min-width:0;display:flex;align-items:center;gap:6px;font:800 18px var(--body)}.kc-gram input{flex:1;min-width:0;width:100%;box-sizing:border-box;text-align:center;font:900 24px var(--display);padding:8px;border-radius:12px;border:2px solid var(--line);background:var(--panel-2);color:var(--fg)}
 .kc-form label{display:flex;flex-direction:column;gap:4px;font:700 13px var(--body);color:var(--muted)}.kc-form input{font:700 17px var(--body);padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg)}
 .kc-goal{display:flex;align-items:center;gap:8px;margin:8px 0 6px;font:800 14px var(--body)}.kc-goal input{width:90px;text-align:center;font:900 18px var(--display);padding:6px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg)}
