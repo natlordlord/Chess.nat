@@ -125,8 +125,19 @@ def candidates(a):
     return out[:6]
 
 
-def best(sugg, wants):
+def best(sugg, wants, plz=""):
     sugg = [s for s in sugg if s is not None]
+
+    def one(hit):
+        """Several entries fit ("Friedrichstr. (10117)", "Friedrichstr. (10969)"): the postcode decides, otherwise none."""
+        if len(hit) == 1:
+            return hit[0]
+        if plz:
+            withplz = [s for s in hit if plz in str(s)]
+            if len(withplz) == 1:
+                return withplz[0]
+        return None
+
     table = [(norm(s), s) for s in sugg]
     for w in wants:
         n = norm(w)
@@ -140,19 +151,15 @@ def best(sugg, wants):
         if len(n) < 3:
             continue
         hit = [s for sn, s in table if sn and (sn.startswith(n) or n.startswith(sn))]
-        if len(hit) == 1:
-            return hit[0]
         if hit:
-            return None  # "Einbeck (Bezirk 1)" or "(Bezirk 2)"? Not to be guessed
+            return one(hit)  # "Einbeck (Bezirk 1)" or "(Bezirk 2)"? Not to be guessed
     for w in wants:
         n = norm(w)
         if len(n) < 4:
             continue
         hit = [s for sn, s in table if n in sn]
-        if len(hit) == 1:
-            return hit[0]
         if hit:
-            return None
+            return one(hit)
     return None
 
 
@@ -204,7 +211,7 @@ def run(mod, dp, a, deadline, log=None):
             if log is not None:
                 log.append(arg + "=" + str(kw.get(arg))[:30] + " not in " + str(list(e.suggestions or [])[:6])[:160])
             sugg = list(e.suggestions or [])
-            choice = best(sugg, values(arg, a) or ([a["city"], a["district"]] + a["alt"]))
+            choice = best(sugg, values(arg, a) or ([a["city"], a["district"]] + a["alt"]), a["plz"])
             if choice is None and arg not in STREET | CITY | PART and a["hnr"]:
                 choice = in_range(sugg, a["hnr"])
             if arg in STREET or arg in HNR:
