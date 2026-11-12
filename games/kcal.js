@@ -518,8 +518,52 @@
       clearTimeout(to); const j = await r.json(); if (j && j.status !== 0 && j.product && j.product.nutriments) p = j.product;
       if (p) try { localStorage.setItem("chessnat-off-" + code, JSON.stringify(p)); } catch(e) {}
     } catch(e) {}
+    /* Open Food Facts doesn't know it: a pack whose nutrition table was photographed (mine, or one the operator has checked) */
+    if (!p) try { const r = await sb().from("kcal_own_products").select("user_id,code,name,brand,unit,k,c,p,f,fi,su,sf,sa,status").eq("code", String(code)).limit(20);
+      const rows = r.data || [], o = rows.find(x => x.user_id === meId()) || rows.find(x => x.status === "ok");
+      if (o){ p = Label.asOff(o); try { localStorage.setItem("chessnat-off-" + code, JSON.stringify(p)); } catch(e) {} } } catch(e) {}
     return p;
   }
+  /* ---------- a pack nobody knows: photograph its nutrition table ----------
+     The printed numbers per 100 g are read off the photo (/api/kcal, mode "label"; nothing is estimated) and shown next to the
+     picture. Only "Stimmt" keeps them, and then only for this person (kcal_own_products, status "new"): everybody else gets
+     the product once the operator has compared photo and numbers. */
+  const Label = {
+    asOff: o => ({product_name: o.name, brands: o.brand || "", own: 1, nutriments: {"energy-kcal_100g": +o.k, carbohydrates_100g: +o.c, proteins_100g: +o.p, fat_100g: +o.f, fiber_100g: +o.fi || 0, sugars_100g: +o.su || 0, "saturated-fat_100g": +o.sf || 0, salt_100g: +o.sa || 0}}),
+    /* the camera opens at once (one tap); the picture is made small enough to send */
+    shoot(){ return new Promise(ok => { const i = document.createElement("input"); i.type = "file"; i.accept = "image/*"; i.setAttribute("capture", "environment"); i.style.cssText = "position:fixed;left:-99px;top:0;width:1px;height:1px;opacity:0"; i.id = "kclabf";
+      document.body.appendChild(i); let done = false; const fin = v => { if (done) return; done = true; i.remove(); ok(v); };
+      i.onchange = () => { const f = i.files && i.files[0]; if (!f) return fin(null); const u = URL.createObjectURL(f), im = new Image();
+        im.onload = () => { const m = 1500 / Math.max(im.naturalWidth, im.naturalHeight, 1500), c = document.createElement("canvas"); c.width = Math.round(im.naturalWidth * m); c.height = Math.round(im.naturalHeight * m);
+          c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(u);
+          const t = document.createElement("canvas"), tm = 520 / Math.max(c.width, c.height, 520); t.width = Math.round(c.width * tm); t.height = Math.round(c.height * tm); t.getContext("2d").drawImage(c, 0, 0, t.width, t.height);
+          fin({img: c.toDataURL("image/jpeg", .82), thumb: t.toDataURL("image/jpeg", .6)}); };
+        im.onerror = () => { URL.revokeObjectURL(u); fin(null); }; im.src = u; };
+      i.addEventListener("cancel", () => fin(null)); i.click(); }); },
+    async start(code, cb){
+      const shot = await this.shoot(); if (!shot) return;
+      const wait = detailSheet(`<div class="kc-form kc-lab" data-notr><img class="kc-labi" src="${shot.thumb}" alt=""><h3>Lese die Nährwerte …</h3><p class="muted">Einen Moment.</p></div>`);
+      let L = null, err = ""; try { const j = await api({mode: "label", img: shot.img}); if (j.ok) L = j.label; else err = j.error || ""; } catch(e) { err = e.message || String(e); }
+      wait.close();
+      if (!L){ const sh = detailSheet(`<div class="kc-form kc-lab" data-notr><img class="kc-labi" src="${shot.thumb}" alt=""><h3>Das hat nicht geklappt</h3><p class="muted">${h(err || "Die Nährwerte waren nicht zu lesen.")}</p><button class="btn go big" id="kclagain">Nochmal fotografieren</button></div>`);
+        sh.el.querySelector("#kclagain").onclick = () => { sh.close(); this.start(code, cb); }; return; }
+      const none = L.none || [], row = (a, v, u, key) => none.includes(key) ? "" : `<div class="kc-labr"><span>${a}</span><b>${String(v).replace(".", ",")} ${u}</b></div>`;
+      const sh = detailSheet(`<div class="kc-form kc-lab" data-notr><h3>Stimmt das mit der Packung?</h3><p class="muted">Abgelesen pro 100 ${L.unit}. Vergleich die Zahlen kurz mit dem Foto.</p>
+        <img class="kc-labi" src="${shot.thumb}" alt="">
+        <div class="kc-labt">${row("Energie", L.k, "kcal")}${row("Fett", L.f, "g")}${row("davon gesättigt", L.sf, "g", "sf")}${row("Kohlenhydrate", L.c, "g")}${row("davon Zucker", L.su, "g", "su")}${row("Ballaststoffe", L.fi, "g", "fi")}${row("Eiweiß", L.p, "g")}${row("Salz", L.sa, "g", "sa")}</div>
+        ${L.odd ? `<p class="kc-labw">Energie und Nährwerte passen nicht ganz zusammen. Schau genau hin oder fotografier nochmal.</p>` : ""}
+        <label class="kc-labn">Wie heißt das Produkt?<input id="kcln" maxlength="80" autocomplete="off" enterkeyhint="done" placeholder="z. B. Skyr Vanille (Lidl)" value="${h([L.brand, L.name].filter(Boolean).join(" ").slice(0, 80))}"></label>
+        <button class="btn go big" id="kclok">Stimmt, speichern</button><button class="btn ghost" id="kclagain">Nochmal fotografieren</button></div>`);
+      const el = sh.el, ni = el.querySelector("#kcln");
+      el.querySelector("#kclagain").onclick = () => { sh.close(); this.start(code, cb); };
+      el.querySelector("#kclok").onclick = async () => { const b = el.querySelector("#kclok"), name = ni.value.trim(); if (name.length < 2){ say("Gib dem Produkt kurz einen Namen."); ni.focus(); return; } if (b.disabled) return; b.disabled = true;
+        const o = {code: String(code), name: name.slice(0, 80), brand: "", unit: L.unit, k: L.k, c: L.c, p: L.p, f: L.f, fi: L.fi, su: L.su, sf: L.sf, sa: L.sa};
+        try { const r = await sb().from("kcal_own_products").upsert(Object.assign({user_id: meId(), img: shot.thumb, status: "new"}, o), {onConflict: "user_id,code"}); if (r.error) throw r.error;
+          const p = this.asOff(o); try { localStorage.setItem("chessnat-off-" + code, JSON.stringify(p)); } catch(e) {}
+          sh.close(); haptic([12, 25, 12]); const P = prodOf(String(code), p); if (cb) cb(P); else addProduct(P, "barcode"); }
+        catch(e) { b.disabled = false; say("Ging nicht: " + (e.message || e)); } };
+    }
+  };
   /* ---------- search: type a name (Open Food Facts via /api/food), pick the product, say how much ---------- */
   const RK = "chessnat-kcal-recent";
   const recents = () => { try { return JSON.parse(localStorage.getItem(RK) || "[]"); } catch(e) { return []; } };
@@ -1038,7 +1082,11 @@
       ov.classList.add("found"); ov.querySelector("#kchint").textContent = "Gefunden: " + code + " … suche Produkt";
       const p = await offGet(code, 9000);
       if (!ov) return;
-      if (!p){ ov.querySelector("#kchint").textContent = "Nicht in der Datenbank. Such es lieber beim Namen."; const cb = pickCb; setTimeout(() => { if (ov){ close(); Search.open(cb ? {pick: cb} : {}); } }, 1500); return; }
+      if (!p){ const cb = pickCb, bot = ov.querySelector(".kc-sbot"); haptic(20);
+        bot.innerHTML = `<div class="kc-hint">Dieses Produkt kennt die Datenbank noch nicht.</div><button class="btn go big" id="kclab" style="width:100%;max-width:420px">📷 Nährwerte abfotografieren</button><button class="btn ghost" id="kcname" style="width:100%;max-width:420px;color:#fff">Beim Namen suchen</button>`;
+        bot.querySelector("#kclab").onclick = () => { close(); Label.start(code, cb); };
+        bot.querySelector("#kcname").onclick = () => { close(); Search.open(cb ? {pick: cb} : {}); };
+        return; }
       const cb = pickCb; close(); const P = prodOf(code, p); if (cb) cb(P); else addProduct(P, "barcode");
     }
     /* test hook: decode one picture (a canvas) the same way as a camera frame */
@@ -1932,6 +1980,9 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-frame i{position:absolute;width:42px;height:42px;border:5px solid #fff;border-radius:6px}.kc-frame i:nth-child(1){left:-3px;top:-3px;border-right:0;border-bottom:0;border-top-left-radius:22px}.kc-frame i:nth-child(2){right:-3px;top:-3px;border-left:0;border-bottom:0;border-top-right-radius:22px}
 .kc-frame i:nth-child(3){left:-3px;bottom:-3px;border-right:0;border-top:0;border-bottom-left-radius:22px}.kc-frame i:nth-child(4){right:-3px;bottom:-3px;border-left:0;border-top:0;border-bottom-right-radius:22px}
 .kc-laser{position:absolute;left:8%;right:8%;top:50%;height:2px;background:#ff4b4b;box-shadow:0 0 10px #ff4b4b;animation:kcLaser 1.6s ease-in-out infinite}@keyframes kcLaser{0%,100%{top:18%}50%{top:82%}}
+.kc-lab{text-align:center}.kc-labi{max-width:100%;max-height:30vh;object-fit:contain;border-radius:12px;align-self:center}.kc-labt{display:flex;flex-direction:column;border:1px solid var(--line,rgba(128,128,128,.25));border-radius:12px;overflow:hidden;text-align:left}
+.kc-labr{display:flex;justify-content:space-between;gap:12px;padding:8px 12px;font:600 15px var(--body)}.kc-labr+.kc-labr{border-top:1px solid var(--line,rgba(128,128,128,.25))}.kc-labw{color:#e8590c;font:700 14px var(--body);margin:0}
+.kc-labn{display:flex;flex-direction:column;gap:6px;text-align:left;font:700 14px var(--body)}.kc-labn input{border-radius:12px;border:1px solid var(--line,rgba(128,128,128,.35));background:transparent;color:inherit;font:600 17px var(--body);padding:12px}
 .kc-scanov.found .kc-frame i{border-color:var(--go)}.kc-scanov.found .kc-laser{display:none}
 .kc-sbot{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);display:flex;flex-direction:column;gap:10px;align-items:center}
 .kc-hint{font:800 15px var(--body);text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.6)}.kc-man{display:flex;gap:8px;width:100%;max-width:420px}.kc-man input{flex:1;min-width:0;border-radius:12px;border:0;background:rgba(255,255,255,.14);color:#fff;font:700 17px var(--body);padding:12px}

@@ -143,6 +143,28 @@ const PARTS = {
     await closeSheets(page); if (await has(page, ".kc-scanov, .kc-ov-full")) await page.evaluate(() => document.querySelectorAll(".kc-ov-full [data-x], .kc-ov-full .kc-x").forEach(b => b.click()));
     await clean(page, "Barcode");
 
+    /* a pack Open Food Facts doesn't know: photograph the nutrition table, confirm, and it is mine from then on */
+    await page.tap("#main [data-kc-scan]"); await page.waitForSelector("#kccode", {timeout: 6000}).catch(() => {});
+    await page.fill("#kccode", "4999999999993"); await page.locator("#kcman button").tap(); await page.waitForSelector("#kclab", {timeout: 6000}).catch(() => {});
+    if (ok(await has(page, "#kclab") && await has(page, "#kcname"), "Unbekannte Packung: bietet „Nährwerte abfotografieren“ und „Beim Namen suchen“ an")){ await page.shot("kcal-unbekannt");
+      const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mP8z8BQz0AEYBxVSF+FABJADveWkH6oAAAAAElFTkSuQmCC", "base64");
+      const [fc] = await Promise.all([page.waitForEvent("filechooser", {timeout: 6000}), page.tap("#kclab")]); await fc.setFiles({name: "tabelle.png", mimeType: "image/png", buffer: png});
+      await page.waitForSelector("#kclok", {timeout: 8000}).catch(() => {}); await sleep(900);
+      const top = () => page.evaluate(() => { const l = [...document.querySelectorAll(".dsheet")]; return l.length ? l[l.length - 1].innerText.replace(/\s+/g, " ") : ""; });
+      ok(/Stimmt das mit der Packung/.test(await top()) && /76 kcal/.test(await top()) && /9,4 g/.test(await top()) && !/Ballaststoffe/.test(await top()), "Foto der Nährwerttabelle: zeigt die abgelesenen Werte zum Bestätigen (nicht Gedrucktes fehlt)", (await top()).slice(0, 300)); await page.shot("kcal-etikett");
+      ok(/Milbona Skyr Vanille/.test(await page.inputValue("#kcln")), "Name vom Etikett ist vorausgefüllt");
+      await page.tap("#kclok"); await page.waitForSelector("#kcadd", {timeout: 6000}).catch(() => {}); await sleep(900);
+      const own = await L.table("kcal_own_products"); ok(own.length === 1 && own[0].code === "4999999999993" && Number(own[0].k) === 76 && own[0].status === "new" && own[0].user_id === ID.tester && (own[0].img || "").startsWith("data:image/jpeg"), "gespeichert: nur für mich, mit Foto zum Prüfen", JSON.stringify(own.map(o => [o.code, o.k, o.status])));
+      ok(/Skyr/.test(await top()) && /76 kcal/.test(await top()), "danach gleich die Menge wählen", (await top()).slice(0, 200));
+      if (await has(page, "#kcadd")){ await page.tap("#kcadd"); await sleep(1000); m = (await meals("tester", "&limit=1"))[0]; ok(m.code === "4999999999993" && m.kcal > 0, "Mahlzeit mit dem eigenen Produkt eingetragen", JSON.stringify([m.title, m.kcal, m.grams])); }
+      await closeSheets(page);
+      /* scanned again (also on a fresh phone): found without a photo */
+      await page.evaluate(() => localStorage.removeItem("chessnat-off-4999999999993"));
+      await page.tap("#main [data-kc-scan]"); await page.waitForSelector("#kccode", {timeout: 6000}).catch(() => {}); await page.fill("#kccode", "4999999999993"); await page.locator("#kcman button").tap(); await page.waitForSelector("#kcadd", {timeout: 6000}).catch(() => {});
+      ok(/Skyr/.test(await txt(page, ".dsheet")), "nochmal gescannt: wird ohne Foto gefunden", (await txt(page, ".dsheet")).slice(0, 120)); }
+    await closeSheets(page); if (await has(page, ".kc-scanov, .kc-ov-full")) await page.evaluate(() => document.querySelectorAll(".kc-ov-full [data-x], .kc-ov-full .kc-x").forEach(b => b.click()));
+    await clean(page, "Etikett");
+
     /* delete with two taps */
     await page.locator("#main [data-meal]", {hasText: "Proteinshake"}).first().tap(); await sleep(500); await page.tap(".dsheet [data-kc-del]"); await sleep(200);
     ok(/Wirklich/.test(await txt(page, ".dsheet [data-kc-del]")), "Löschen fragt erst nach"); await page.tap(".dsheet [data-kc-del]"); await sleep(900);
@@ -490,7 +512,15 @@ const PARTS = {
 
   async feedback(browser){
     const page = await L.open(browser, "tester"); await page.evaluate(() => openSheet()); await sleep(400); await page.locator('#sheet [data-s="__feedback"]').tap(); await sleep(600);
-    ok(await has(page, "#fbtx"), "Mehr → Feedback öffnet das Formular"); await page.fill("#fbtx", "Test: die Einkaufsliste ist super"); await page.tap("#fbs"); await sleep(1000);
+    /* ideas come first: a long wish is kept whole */
+    if (!(await has(page, "#idt")) && await has(page, '.fb-ov [data-fbt="ideas"]')){ await page.locator('.fb-ov [data-fbt="ideas"]').tap(); await sleep(500); }
+    const long = "Ich und Wolf haben das Problem, dass gewisse Produkte nicht erkannt werden. Falls das nicht geht, bitte eine Fotofunktion einbauen, mit der man die Nährwerte abfotografieren kann, damit sie gespeichert werden.";
+    if (ok(await has(page, "#idt"), "Mehr → Feedback öffnet die Ideen")){ await page.fill("#idt", long); await page.locator("#idf button").tap(); await sleep(1200);
+      const ideas = await L.table("chess_ideas"); ok(ideas.length === 1 && ideas[0].body === long && ideas[0].title.length <= 120 && /…$/.test(ideas[0].title), "lange Idee: ganzer Text gespeichert, Titel ist der Anfang", JSON.stringify(ideas.map(i => [i.title.length, (i.body || "").length])));
+      ok((await txt(page, "#idl")).includes("abfotografieren kann, damit sie gespeichert werden."), "die Liste zeigt den ganzen Text", (await txt(page, "#idl")).slice(0, 200)); await page.shot("ideen"); }
+    await clean(page, "Ideen");
+    await page.locator('.fb-ov [data-fbt="report"]').tap(); await sleep(600);
+    ok(await has(page, "#fbtx"), "Melden öffnet das Formular"); await page.fill("#fbtx", "Test: die Einkaufsliste ist super"); await page.tap("#fbs"); await sleep(1000);
     const f = await L.table("chess_feedback"); ok(f.length === 1 && f[0].name === "Nat Tester" && /Start|home/.test(f[0].info || ""), "Feedback mit Name und Geräte-Info gespeichert", JSON.stringify(f));
     ok(/die Einkaufsliste ist super/.test(await txt(page, "#fbl")), "es steht danach im eigenen Feedback-Log"); await page.shot("feedback"); await clean(page, "Feedback"); await page.context().close();
   },

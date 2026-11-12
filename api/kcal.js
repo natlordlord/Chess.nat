@@ -238,6 +238,31 @@ module.exports = async (req, res) => {
         dishes: (Array.isArray(o.dishes) ? o.dishes : []).slice(0, 8).map(d => ({name: clip(d.name, 80).trim(), items: (Array.isArray(d.items) ? d.items : []).slice(0, 20).map(ln).filter(x => x.name)})).filter(d => d.name)});
     } catch(e) { return fail(e); }
   }
+  /* a photo of the nutrition table on a pack: the printed numbers per 100 g are read off, nothing is estimated.
+     What cannot be read stays empty (-1); a picture without a nutrition table is turned down. The phone shows the numbers
+     next to the photo and only the person's "Stimmt" keeps them. */
+  if (b.mode === "label"){
+    const img = String(b.img || ""); if (!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(img) || img.length > 3500000) return res.status(400).json({error: "Das Foto konnte nicht gelesen werden."});
+    const n = {type: "number"}, LABEL = {type: "object", additionalProperties: false, required: ["readable", "name", "brand", "unit", "kcal", "kj", "fat", "satfat", "carbs", "sugar", "fiber", "protein", "salt"],
+      properties: {readable: {type: "boolean", description: "true nur, wenn eine Nährwerttabelle mit Angaben pro 100 g oder 100 ml zu sehen und lesbar ist"},
+        name: {type: "string", description: "Produktname, nur wenn er auf dem Foto gedruckt steht; sonst leer"}, brand: {type: "string", description: "Marke, nur wenn auf dem Foto gedruckt; sonst leer"},
+        unit: {type: "string", enum: ["g", "ml"]}, kcal: n, kj: n, fat: n, satfat: n, carbs: n, sugar: n, fiber: n, protein: n, salt: n}};
+    const sys = "Du liest die Nährwerttabelle von einem Foto einer Lebensmittelpackung ab. Gib NUR die gedruckten Zahlen aus der Spalte „pro 100 g“ bzw. „pro 100 ml“ wieder (nicht pro Portion, nicht % Tagesbedarf). Schätze nichts und rechne nichts um: Ein Wert, der nicht dasteht oder nicht sicher lesbar ist, ist -1. Komma ist Dezimaltrennzeichen. „<0,5“ wird 0.5, „Spuren“ wird 0. kcal und kJ getrennt, so wie gedruckt. Ist keine Nährwerttabelle pro 100 g/ml zu erkennen oder das Foto zu unscharf: readable=false und alle Zahlen -1.";
+    try { const o = await ask(req, "", null, {system: sys, schema: LABEL, name: "label", user: [{type: "text", text: "Lies die Nährwerte pro 100 g/ml von diesem Foto ab."}, {type: "image_url", image_url: {url: img}}], max: 600, temp: 0});
+      const v = x => { x = Number(x); return isFinite(x) && x >= 0 ? Math.round(x * 10) / 10 : null; };
+      let k = v(o.kcal); const kj = v(o.kj), c = v(o.carbs), p = v(o.protein), f = v(o.fat);
+      /* only kJ printed: that is the same printed number in another unit (1 kcal = 4.184 kJ), not an estimate */
+      if (k == null && kj != null) k = Math.round(kj / 4.184);
+      if (!o.readable || k == null || c == null || p == null || f == null || k > 900 || c > 100 || p > 100 || f > 100 || c + p + f > 101)
+        return res.status(200).json({ok: false, error: "Die Nährwerte waren nicht sicher zu lesen. Halte die Tabelle gerade, nah und ohne Spiegelung ins Bild."});
+      const fi = v(o.fiber) || 0, calc = 4 * c + 4 * p + 9 * f + 2 * fi;
+      return res.status(200).json({ok: true, label: {name: clip(o.name, 80).trim(), brand: clip(o.brand, 40).trim(), unit: o.unit === "ml" ? "ml" : "g", k: Math.round(k), c, p, f, fi, su: Math.min(c, v(o.sugar) || 0), sf: Math.min(f, v(o.satfat) || 0), sa: v(o.salt) || 0,
+        /* what is not printed on the pack is not shown as a number */
+        none: ["fiber", "sugar", "satfat", "salt"].filter(key => v(o[key]) == null).map(key => ({fiber: "fi", sugar: "su", satfat: "sf", salt: "sa"})[key]),
+        /* the printed energy and the printed macros should fit together; if not, something was probably misread */
+        odd: Math.abs(calc - k) > Math.max(30, k * .2)}});
+    } catch(e) { return fail(e); }
+  }
   if (b.mode === "cook"){
     const have = clip(b.have, 800).trim(); if (have.length < 3) return res.status(400).json({error: "Schreib kurz, was du da hast."});
     const m = b.missing || {}, usual = (Array.isArray(b.usual) ? b.usual : []).slice(0, 12).map(x => clip(x, 60)).join(", ");

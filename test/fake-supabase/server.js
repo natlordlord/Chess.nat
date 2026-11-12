@@ -112,6 +112,8 @@ const offHit = f => ({code: f[0], product_name: f[1], product_name_de: f[1], bra
 function ai(req){
   const kind = req.response_format.json_schema.name, user = req.messages[1].content, said = (/Gesagt: „([\s\S]*)“/.exec(user) || [0, user])[1];
   const it = (name, amount, kcal, carbs, protein, fat) => ({name, amount, grams: 0, brand: "none", product: "none", ref: "", state: "", kcal, carbs, protein, fat, fiber: 2, sugar: Math.round(carbs * .3), satfat: Math.round(fat * .4), quality: kcal > 300 ? 2 : 4});
+  /* a photographed nutrition table: the numbers "printed" on the test pack */
+  if (kind === "label") return {readable: true, name: "Skyr Vanille", brand: "Milbona", unit: "g", kcal: 76, kj: 322, fat: 0.2, satfat: 0.1, carbs: 9.4, sugar: 9.1, fiber: -1, protein: 9.0, salt: 0.13};
   if (kind === "shop"){ const words = said.split(/,| und /).map(s => s.trim()).filter(Boolean), dish = words.filter(w => /lasagne|chili|kuchen|pizza/i.test(w));
     return {products: words.filter(w => !dish.includes(w)).map(w => { const m = /^(\d+\s*(?:l|liter|g|kg|stück|x)?)\s+(.+)$/i.exec(w); return {name: m ? m[2] : w, amount: m ? m[1] : ""}; }),
       dishes: dish.map(d => ({name: d, items: [{name: "Hackfleisch", amount: "500 g"}, {name: "Passierte Tomaten", amount: "2 Dosen"}, {name: "Lasagneplatten", amount: "1 Packung"}]}))}; }
