@@ -141,7 +141,7 @@ async function openplz(text){
   for (const [st, loc] of tries){ const name = rx(st); if (name.length < 3) continue;
     const j = await getJSON("https://openplzapi.org/de/Streets?page=1&pageSize=8&name=" + encodeURIComponent("^" + name) + (loc && rx(loc) ? "&locality=" + encodeURIComponent("^" + rx(loc)) : "") + (plz ? "&postalCode=" + plz : ""), null, 2500);
     const l = addrList((Array.isArray(j) ? j : []).map(x => ({street: String(x.name || "").replace(/str\.$/, "straße").replace(/Str\.$/, "Straße"), plz: x.postalCode, city: x.locality, district: x.suburb || x.borough,
-      county: x.district && /^(Land)?kreis/i.test(x.district.type || "") ? (/^Landkreis/i.test(x.district.type) ? "Landkreis " : "Kreis ") + x.district.name : "", state: x.federalState && x.federalState.name, alt: [x.municipality && x.municipality.name, x.borough, x.suburb].filter(Boolean).join("|")})), text);
+      county: x.district && /^(Land)?kreis$/i.test(String(x.district.type || "").trim()) ? (/^Landkreis/i.test(x.district.type) ? "Landkreis " : "Kreis ") + x.district.name : "", state: x.federalState && x.federalState.name, alt: [x.municipality && x.municipality.name, x.borough, x.suburb].filter(Boolean).join("|")})), text);
     if (l.length) return l; }
   return [];
 }
