@@ -99,7 +99,7 @@ async function photon(text){
 }
 async function nominatim(text){
   const j = await getJSON("https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&countrycodes=de&accept-language=de&limit=8&q=" + encodeURIComponent(text), {"User-Agent": "ChessNat/1.0 (https://chess-nat.vercel.app; household bin plan, one lookup per saved address)"}, 6000);
-  return addrList((Array.isArray(j) ? j : []).map(x => x.address || {}).map(a => ({street: a.road || a.pedestrian || a.footway || a.hamlet || "", hnr: a.house_number, plz: a.postcode, city: a.city || a.town || a.village || a.municipality, district: a.suburb || a.village || a.hamlet || a.city_district, county: a.county, state: a.state})), text);
+  return addrList((Array.isArray(j) ? j : []).map(x => x.address || {}).map(a => ({street: a.road || a.pedestrian || a.footway || a.hamlet || "", hnr: a.house_number, plz: a.postcode, city: a.city || a.town || a.municipality || a.village, district: a.village || a.suburb || a.hamlet || a.city_district, county: a.county, state: a.state})), text);
 }
 async function suggest(text, go){
   try { const l = await photon(text); if (l.length || !go) return {list: l}; } catch(e) { if (!go) return {list: [], slow: true}; }
