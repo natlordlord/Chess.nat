@@ -3594,7 +3594,7 @@ function makeBoard(wrap, opts = {}){
   }
   function sqEl(sq){ return el.querySelector(`.sq[data-sq="${sq}"]`); }
   function place(p, sq){ const [x, y] = sqXY(sq, B.o); p.style.transform = `translate(${x * 100}%, ${y * 100}%)`; }
-  B.flip = o => { B.o = o || (B.o === "w" ? "b" : "w"); buildSquares(); Object.entries(B.pieces).forEach(([sq, p]) => place(p.el, sq)); B.paint(); };
+  B.flip = o => { B.o = o || (B.o === "w" ? "b" : "w"); buildSquares(); Object.entries(B.pieces).forEach(([sq, p]) => place(p.el, sq)); B.paint(); try { if (typeof Watch !== "undefined") Watch.poke(B); } catch(e) {} };
   B.setOrientation = o => { if (o !== B.o) B.flip(o); };
   /* a soft glow on one side's pieces: "these are yours" at the start of a puzzle. null switches it off. */
   B.glow = c => { B.glowC = c || null; for (const sq in B.pieces) B.pieces[sq].el.classList.toggle("mine", !!B.glowC && B.pieces[sq].code[0] === B.glowC); };
@@ -3738,6 +3738,8 @@ function makeBoard(wrap, opts = {}){
   el.addEventListener("pointerdown", e => {
     Sound.init();
     const sq = sqFromPoint(e.clientX, e.clientY); if (!sq) return;
+    /* draw mode (B.onDraw set): every drag is an arrow, whoever is to move; a tap reports the square alone */
+    if (B.onDraw){ if (e.button !== 0 && e.pointerType === "mouse") return; rdrag = {from: sq, c: "b", draw: true}; try { el.setPointerCapture(e.pointerId); } catch(_) {} e.preventDefault(); return; }
     /* right mouse: draw an arrow (drag) or highlight a square (click); also cancels a premove */
     if (e.pointerType === "mouse" && e.button === 2){ B.cancelPremove(); rdrag = {from: sq, c: ARROW_COLOR(e)}; try { el.setPointerCapture(e.pointerId); } catch(_) {} return; }
     if (e.button !== 0 && e.pointerType === "mouse") return;
@@ -3766,6 +3768,7 @@ function makeBoard(wrap, opts = {}){
   });
   function endDrag(e){
     if (rdrag){ const r = rdrag; rdrag = null; arrowPreview = null; const to = e ? sqFromPoint(e.clientX, e.clientY) : null;
+      if (r.draw){ drawArrows(); if (e && B.onDraw) B.onDraw(r.from, to && to !== r.from ? to : null); return; }
       if (to && to === r.from){ const c = r.c || "r"; if (B.userMarks[to] === c) delete B.userMarks[to]; else B.userMarks[to] = c; }
       else if (to){ const c = r.c || "y"; const i = B.userArrows.findIndex(a => a[0] === r.from && a[1] === to); if (i >= 0 && B.userArrows[i][2] === c) B.userArrows.splice(i, 1); else { if (i >= 0) B.userArrows.splice(i, 1); B.userArrows.push([r.from, to, c]); } }
       B.paint(); return; }
@@ -14598,7 +14601,7 @@ const Ranks = {
 <script src="games/natposter.js?v=129"></script>
 <script src="games/arena.js?v=129"></script>
 <script src="games/tipp.js?v=129"></script>
-<script src="games/now.js?v=2"></script>
+<script src="games/now.js?v=3"></script>
 <script src="data/foods.js?v=3"></script>
 <script src="games/kcal.js?v=165"></script>
 <script src="invite.js?v=6"></script>

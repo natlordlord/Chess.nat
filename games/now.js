@@ -6,7 +6,7 @@ const Now = (() => {
   const sb = () => window.ChessSite && window.ChessSite.sb, me = () => (typeof Social !== "undefined" && Social.me) || null;
   const de = () => typeof I18N === "undefined" || I18N.lang === "de", T = (en, dg) => de() ? dg : en;
   const h = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
-  const PUZ = ["puzzles", "rush", "daily", "jlevel", "endgames", "coords", "repdrill", "lesson"], CHESS = ["bots", "friend", "local", "linkgame", "blitz"], DUEL = ["duel", "battle"];
+  const PUZ = ["puzzles", "rush", "daily", "train", "jlevel", "endgames", "coords", "repdrill", "lesson"], CHESS = ["bots", "friend", "local", "linkgame", "blitz"], DUEL = ["duel", "battle"];
   const FRESH = 90000;
   /* what this phone is doing: a party lobby counts first, then the screen you're on */
   function mine(){
@@ -14,9 +14,10 @@ const Now = (() => {
     if (P && P.game){ if (P.solo) return {k: "solo", g: P.game};
       return {k: "party", g: P.game, c: P.code, run: P.isHost ? !!P.G : !!(P.msg && !P.msg.lobby), n: ((P.isHost ? P.roster : P.msg && P.msg.players) || []).length}; }
     const r = typeof App !== "undefined" ? App.route : "";
-    if (r === "online" && App.view && !App.view.searching) return {k: "chess"};
-    if (PUZ.includes(r)) return {k: "puzzle"}; if (CHESS.includes(r)) return {k: "chess"}; if (DUEL.includes(r)) return {k: "duel"};
-    return null;
+    /* a chess screen only counts once its board is up (most of them start with a menu) */
+    if (r === "watch" || typeof Watch === "undefined" || !Watch.hasBoard()) return null;
+    if (PUZ.includes(r)) return {k: "puzzle"}; if (DUEL.includes(r)) return {k: "duel"}; if (CHESS.includes(r) || r === "online") return {k: "chess"};
+    return typeof App !== "undefined" && App.busy && App.busy() ? {k: "chess"} : null;
   }
   const gname = g => { const x = typeof PG !== "undefined" && PG.games ? PG.games.find(y => y.id === g) : null; return x ? T(x.name[0], x.name[1]) : String(g || ""); };
   const text = w => !w ? "" : w.k === "party" ? (w.run ? T("Playing ", "Spielt gerade ") : T("In the lobby: ", "In der Lobby: ")) + gname(w.g) : w.k === "solo" ? T("Practising ", "Übt ") + gname(w.g)
@@ -115,20 +116,31 @@ const Watch = (() => {
 
   /* ---- my board is being watched ---- */
   let pub = null, cur = null, lastKey = "", ws = {}, sugs = {}, lastSug = "";
-  const state = () => cur && cur.B.el.isConnected ? {t: "st", id: pid(), fen: cur.fen, last: cur.last, o: cur.B.o, k: (Now.mine() || {}).k || null} : {t: "st", id: pid(), fen: null};
+  const big = B => !!(B && B.el && B.el.isConnected && B.el.offsetWidth >= 220);
+  const state = () => cur && big(cur.B) ? {t: "st", id: pid(), fen: cur.fen, last: cur.last, o: cur.B.o === "b" ? "b" : "w", k: (Now.mine() || {}).k || null} : {t: "st", id: pid(), fen: null};
+  /* every board tells us its position; the one that counts is the big one on screen (small preview boards are skipped) */
   function note(B, fen, last){
     if (typeof App !== "undefined" && App.route === "watch") return;
+    if (!big(B) && cur && cur.B !== B && big(cur.B)) return;
     const l = last && SQ.test(last.from) && SQ.test(last.to) ? {from: last.from, to: last.to} : null, key = fen + (l ? l.from + l.to : "");
-    cur = {B, fen, last: l}; if (key === lastKey) return; lastKey = key; sugs = {}; lastSug = ""; if (B.sug && B.sug.length) B.sug = [];
+    const other = !cur || cur.B !== B; cur = {B, fen, last: l}; if (key === lastKey && !other) return; lastKey = key; sugs = {}; lastSug = ""; if (B.sug && B.sug.length) B.sug = [];
     if (pub) pub.send(state()); pill();
   }
+  /* the board was turned round: the watchers turn with it */
+  function poke(B){ if (pub && cur && cur.B === B) pub.send(state()); }
   const paintSug = () => { if (cur && cur.B.setSug && cur.B.el.isConnected) cur.B.setSug(Object.values(sugs)); };
   function onPub(m){
     if (!pub || !m || !m.id || m.id === pid()) return;
     if (m.t === "hi"){ const fresh = !ws[m.id]; ws[m.id] = {name: String(m.name || "?").replace(/\s+/g, " ").trim().slice(0, 16) || "?", t: Date.now()}; pub.send(state());
       if (fresh){ toast(`👀 ${ws[m.id].name} ${T("is watching you", "schaut dir zu")}`, 2600); vib([10, 30, 10]); } pill(); }
     else if (m.t === "bye"){ delete ws[m.id]; delete sugs[m.id]; paintSug(); pill(); }
-    else if (m.t === "sug"){ if (!ws[m.id] || !cur || m.fen !== cur.fen || !SQ.test(m.from) || !SQ.test(m.to)) return; sugs[m.id] = [m.from, m.to, "b"]; lastSug = ws[m.id].name; paintSug(); vib(8); pill(); }
+    else if (m.t === "sug"){
+      /* an arrow from a watcher: shown whatever the position was when it was drawn, until the next move; from: null takes it back */
+      if (!ws[m.id]) ws[m.id] = {name: String(m.name || "?").replace(/\s+/g, " ").trim().slice(0, 16) || "?", t: Date.now()}; else ws[m.id].t = Date.now();
+      if (!m.from){ delete sugs[m.id]; paintSug(); pill(); return; }
+      if (!SQ.test(m.from) || !SQ.test(m.to) || m.from === m.to) return;
+      sugs[m.id] = [m.from, m.to, "b"]; lastSug = ws[m.id].name; paintSug(); vib([12, 40, 12]); try { Sound.play("GenericNotify", .35); } catch(e) {}
+      pub.send({t: "ack", id: pid(), to: m.id, n: m.n, shown: !!(cur && big(cur.B) && cur.B.ply == null)}); pill(); }
     else if (m.t === "rtc"){ if (voice) PVoice.onMsg(m); }
   }
   const watchable = () => { const w = Now.mine(); return !!(w && /^(puzzle|chess|duel)$/.test(w.k)) && !document.hidden && !!me() && !!sb(); };
@@ -136,7 +148,9 @@ const Watch = (() => {
     const want = watchable();
     if (want && !pub) pub = chan("chessnat-watch-" + me(), onPub, () => pub && pub.send(state()));
     else if (!want && pub){ try { pub.send({t: "end", id: pid()}); } catch(e) {} voiceOff(); const p = pub; pub = null; setTimeout(() => p.close(), 250); ws = {}; sugs = {}; cur = null; lastKey = ""; }
-    if (pub){ const now = Date.now(); let gone = false; Object.keys(ws).forEach(id => { if (now - ws[id].t > 16000){ delete ws[id]; delete sugs[id]; gone = true; } }); if (gone){ paintSug(); if (!Object.keys(ws).length) voiceOff(); } }
+    if (pub){ const now = Date.now(); let gone = false; Object.keys(ws).forEach(id => { if (now - ws[id].t > 16000){ delete ws[id]; delete sugs[id]; gone = true; } }); if (gone){ paintSug(); if (!Object.keys(ws).length) voiceOff(); }
+      /* while someone watches: the position (and which way round the board is) goes out again every few seconds, in case one got lost */
+      if (Object.keys(ws).length){ pub.send(state()); paintSug(); } }
     pill();
   }
   /* "Mila is watching" with the microphone button, while someone is */
@@ -157,14 +171,19 @@ const Watch = (() => {
       if (!V.id || !sb() || !me()){ main.innerHTML = `<div class="page"><p class="muted">${T("Sign in to watch.", "Melde dich an, um zuzuschauen.")}</p></div>`; return; }
       main.innerHTML = stageHTML(); main.firstElementChild.setAttribute("data-notr", "");
       $("#topbar").innerHTML = `<span class="pill">👀 ${h(V.name)}</span><span class="pill" id="wst">${T("Connecting …", "Verbinde …")}</span>`;
-      $("#botbar").innerHTML = `<span class="watch-hint" id="whint">${T("Drag a piece to suggest a move.", "Zieh eine Figur, um einen Zug vorzuschlagen.")}</span>`;
+      $("#botbar").innerHTML = `<span class="watch-hint" id="whint">${T("Draw an arrow: drag from square to square.", "Zeichne einen Pfeil: von Feld zu Feld ziehen.")}</span>`;
       $("#sp").innerHTML = `<div class="watch-side"><h3>${T("You're watching", "Du schaust zu")}</h3><p class="muted">${h(V.name)} ${T("sees your suggestion as a blue arrow. Only", "sieht deinen Vorschlag als blauen Pfeil. Ziehen kann nur")} ${h(V.name)}${T(" can move.", ".")}</p></div>`;
       $("#sf").innerHTML = `<div class="watch-foot"><button class="btn" id="wmic">${T("🔇 Voice chat", "🔇 Sprachchat")}</button><button class="btn ghost" id="wleave">${T("Leave", "Verlassen")}</button></div>`;
-      const B = V.board = makeBoard($("#bw"), {history: false}); V.g = new Chess();
-      B.canPick = sq => { if (!V.fen) return false; const pc = V.g.get(sq); return !!pc && pc.color === V.g.turn(); };
-      B.dests = sq => V.fen ? gameDests(V.g)(sq) : [];
-      B.onMove = (from, to) => { B.set(V.g, V.last); B.setArrows([[from, to, "b"]]); V.ch.send({t: "sug", id: pid(), fen: V.fen, from, to}); vib(10); try { Sound.tap(); } catch(e) {}
-        const hn = $("#whint"); if (hn) hn.textContent = T("Suggestion sent ✓", "Vorschlag gesendet ✓"); };
+      const B = V.board = makeBoard($("#bw"), {history: false}); V.g = new Chess(); V.n = 0; V.sel = null;
+      B.canPick = () => false; B.dests = () => [];
+      const hint = t => { const hn = $("#whint"); if (hn) hn.textContent = t; };
+      /* an arrow can always be drawn, whoever is to move: drag from square to square, or tap the two squares one after the other */
+      V.suggest = (from, to) => { V.sel = null; B.userMarks = {}; B.setArrows([[from, to, "b"]]); const n = ++V.n; V.ch.send({t: "sug", id: pid(), name: myName(), n, from, to}); vib(10); try { Sound.tap(); } catch(e) {}
+        hint(T("Sending …", "Wird gesendet …")); clearTimeout(V.ackT); V.ackT = setTimeout(() => { if (V.n === n && V.ch){ V.ch.send({t: "sug", id: pid(), name: myName(), n, from, to}); hint(T("Not there yet, trying again …", "Noch nicht angekommen, ich versuche es nochmal …")); } }, 2500); };
+      B.onDraw = (from, to) => { if (!V.fen) return; if (to) return V.suggest(from, to);
+        if (V.sel && V.sel !== from) return V.suggest(V.sel, from);
+        if (V.sel === from){ V.sel = null; B.userMarks = {}; B.paint(); return; }
+        V.sel = from; B.userMarks = {[from]: "b"}; B.paint(); hint(T("Now tap the target square.", "Jetzt das Zielfeld antippen.")); };
       V.ch = chan("chessnat-watch-" + V.id, m => V.on(m), () => V.hi());
       V.hiT = setInterval(() => V.hi(), 5000);
       V.waitT = setTimeout(() => { if (!V.got && $("#wst")) $("#wst").textContent = T("No board open right now", "Gerade kein Brett offen"); }, 7000);
@@ -176,17 +195,19 @@ const Watch = (() => {
     on(m){
       const V = this; if (!m || !m.id || m.id === pid()) return;
       if (m.t === "rtc"){ if (voice) PVoice.onMsg(m); return; }
+      if (m.t === "ack"){ if (m.to === pid() && m.n === V.n){ clearTimeout(V.ackT); const hn = $("#whint"); if (hn) hn.textContent = m.shown ? `✓ ${V.name} ${T("sees your arrow", "sieht deinen Pfeil")}` : `✓ ${T("Arrived", "Angekommen")}`; } return; }
       const st = $("#wst"); if (!st) return;
       if (m.t === "end" || (m.t === "st" && !m.fen)){ V.fen = null; st.textContent = m.t === "end" ? `${V.name} ${T("has finished", "ist fertig")}` : T("Between two boards …", "Gerade zwischen zwei Brettern …"); V.board.setArrows([]); return; }
       if (m.t !== "st" || typeof m.fen !== "string" || m.fen.length > 100) return;
       V.got = true; const lb = LBL[m.k] || LBL.chess; st.textContent = `${V.name} ${T(lb[0], lb[1])}`;
       const last = m.last && SQ.test(m.last.from) && SQ.test(m.last.to) ? {from: m.last.from, to: m.last.to} : null;
-      if (m.fen === V.fen && V.board.o === (m.o === "b" ? "b" : "w")) return;
+      if (V.board.o !== (m.o === "b" ? "b" : "w")) V.board.setOrientation(m.o === "b" ? "b" : "w");
+      if (m.fen === V.fen) return;
       let g; try { g = new Chess(m.fen); } catch(e) { return; } if (!g.fen || g.fen().split(" ")[0] !== m.fen.split(" ")[0]) return;
-      V.fen = m.fen; V.g = g; V.last = last; V.board.setOrientation(m.o === "b" ? "b" : "w"); V.board.setArrows([]); V.board.set(g, last);
-      const hn = $("#whint"); if (hn) hn.textContent = T("Drag a piece to suggest a move.", "Zieh eine Figur, um einen Zug vorzuschlagen.");
+      V.fen = m.fen; V.g = g; V.last = last; V.sel = null; V.n++; clearTimeout(V.ackT); V.board.userMarks = {}; V.board.setArrows([]); V.board.set(g, last);
+      const hn = $("#whint"); if (hn) hn.textContent = T("Draw an arrow: drag from square to square.", "Zeichne einen Pfeil: von Feld zu Feld ziehen.");
     },
-    unmount(){ clearInterval(this.hiT); clearTimeout(this.waitT); if (!this.ch) return; try { this.ch.send({t: "bye", id: pid()}); } catch(e) {} voiceOff(); const c = this.ch; this.ch = null; setTimeout(() => c.close(), 250); }
+    unmount(){ clearInterval(this.hiT); clearTimeout(this.waitT); clearTimeout(this.ackT); if (!this.ch) return; try { this.ch.send({t: "bye", id: pid()}); } catch(e) {} voiceOff(); const c = this.ch; this.ch = null; setTimeout(() => c.close(), 250); }
   };
 
   function start(){
@@ -205,5 +226,5 @@ const Watch = (() => {
 .watch-foot{display:grid;grid-template-columns:1fr 1fr;gap:10px}`; document.head.appendChild(st);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
-  return {note, get watchers(){ return Object.values(ws).map(w => w.name); }, get voice(){ return voice; }};
+  return {note, poke, hasBoard: () => !!(cur && big(cur.B)), get watchers(){ return Object.values(ws).map(w => w.name); }, get voice(){ return voice; }};
 })();

@@ -409,14 +409,25 @@ const PARTS = {
     const fenB = await b.evaluate(() => App.view.board && App.view.board.live ? App.view.board.live.g.fen() : null), fenA = await a.evaluate(() => Views.watch.fen);
     ok(!!fenA && fenA === fenB, "du siehst dieselbe Stellung wie Mila", JSON.stringify([fenA, fenB])); await a.shot("watch-zuschauer");
     ok(/Nat Tester/.test(await txt(b, ".watch-pill")), "bei Mila steht, dass du zuschaust", await txt(b, ".watch-pill").catch(() => ""));
-    const mv = await a.evaluate(() => { const V = Views.watch, m = V.g.moves({verbose: true})[0]; V.board.onMove(m.from, m.to); return m.from + m.to; }); await sleep(1500);
-    ok(await b.evaluate(() => (App.view.board.sug || []).map(x => x[0] + x[1]).join()) === mv, "dein Vorschlag kommt bei Mila als Pfeil an", mv);
+    ok(await a.evaluate(() => Views.watch.board.o) === await b.evaluate(() => App.view.board.o), "dein Brett steht so herum wie Milas");
+    await b.evaluate(() => App.view.board.flip()); await sleep(1200);
+    ok(await a.evaluate(() => Views.watch.board.o) === await b.evaluate(() => App.view.board.o), "Mila dreht ihr Brett: deins dreht sich mit", JSON.stringify([await a.evaluate(() => Views.watch.board.o), await b.evaluate(() => App.view.board.o)]));
+    await b.evaluate(() => App.view.board.flip()); await sleep(1200);
+    /* an arrow between any two squares, also for the side that is not to move: dragged with the finger */
+    const box = async sq => { const r = await a.locator(`#bw .sq[data-sq="${sq}"]`).boundingBox(); return [r.x + r.width / 2, r.y + r.height / 2]; };
+    const dragArrow = async (f, t) => { const [x1, y1] = await box(f), [x2, y2] = await box(t); await a.mouse.move(x1, y1); await a.mouse.down(); await a.mouse.move((x1 + x2) / 2, (y1 + y2) / 2, {steps: 4}); await a.mouse.move(x2, y2, {steps: 4}); await a.mouse.up(); };
+    const sugB = () => b.evaluate(() => (App.view.board.sug || []).map(x => x[0] + x[1]).join());
+    await dragArrow("a8", "h3"); await sleep(1500);
+    ok(await sugB() === "a8h3", "ein frei gezogener Pfeil (kein legaler Zug, Gegner-Seite) kommt bei Mila an", await sugB());
     ok(await b.evaluate(() => /#003088/i.test(document.querySelector("#bw .arrows").innerHTML)), "der Pfeil ist blau auf ihrem Brett gezeichnet"); ok(/Vorschlag von Nat Tester/.test(await txt(b, ".watch-pill")), "und sie sieht, von wem er kommt"); await b.shot("watch-spieler");
+    ok(/Mila sieht deinen Pfeil/.test(await txt(a, "#whint")), "bei dir steht die Bestätigung „Mila sieht deinen Pfeil“", await txt(a, "#whint"));
     ok(await b.evaluate(() => App.view.board.live.g.fen()) === fenB, "an Milas Stellung ändert der Vorschlag nichts");
-    { const m2 = await a.evaluate(() => { const V = Views.watch, L = V.g.moves({verbose: true}).filter(m => !m.promotion); const m = L[L.length - 1]; return {from: m.from, to: m.to, before: Object.keys(V.board.pieces).sort().join()}; });
-      await a.tap(`#bw .sq[data-sq="${m2.from}"]`); await sleep(300); await a.tap(`#bw .sq[data-sq="${m2.to}"]`); await sleep(1500);
-      ok(await b.evaluate(() => (App.view.board.sug || []).map(x => x[0] + x[1]).join()) === m2.from + m2.to, "mit dem Finger getippt: der neue Vorschlag ersetzt den alten", m2.from + m2.to);
-      ok(await a.evaluate(() => Object.keys(Views.watch.board.pieces).sort().join()) === m2.before, "auf deinem Brett bleibt die Stellung stehen (nur der Pfeil)"); await a.shot("watch-vorschlag"); }
+    { const before = await a.evaluate(() => Object.keys(Views.watch.board.pieces).sort().join());
+      await a.tap('#bw .sq[data-sq="d1"]'); await sleep(300); await a.tap('#bw .sq[data-sq="d7"]'); await sleep(1500);
+      ok(await sugB() === "d1d7", "zwei Felder nacheinander angetippt: der neue Pfeil ersetzt den alten", await sugB());
+      ok(await a.evaluate(() => Object.keys(Views.watch.board.pieces).sort().join()) === before, "auf deinem Brett bleibt die Stellung stehen (nur der Pfeil)"); await a.shot("watch-vorschlag"); }
+    for (const [f, t] of [["e2", "e4"], ["g8", "f6"], ["h1", "a8"], ["c3", "c3x"]].slice(0, 3)){ await dragArrow(f, t); await sleep(900); }
+    ok(await sugB() === "h1a8", "drei Pfeile schnell hintereinander: der letzte steht bei Mila", await sugB());
     await a.tap("#wmic"); await sleep(800); await b.tap(".watch-pill [data-watch-mic]"); await sleep(7000);
     ok(await a.evaluate(() => Watch.voice && PVoice.peers().length === 1) && await b.evaluate(() => Watch.voice && PVoice.peers().length === 1), "Sprachchat: beide schalten das Mikrofon ein und sind verbunden", JSON.stringify([await a.evaluate(() => [Watch.voice, PVoice.on, Object.values(PVoice._pcs).map(x => x.pc.connectionState)]), await b.evaluate(() => [Watch.voice, PVoice.on, Object.values(PVoice._pcs).map(x => x.pc.connectionState)])]));
     await a.evaluate(() => App.go("friends")); await sleep(1500); ok(!(await has(b, ".watch-pill")), "du gehst: der Hinweis bei Mila verschwindet");
