@@ -1523,7 +1523,10 @@
       try { inp.focus(); } catch(e) {} /* the keyboard opens right away: one tap less */ },
     /* the dates for an address: {termine} or {err: "unsupported" | "street" | "empty" | "net"} */
     async fetchPlan(a){ const qs = a.street != null ? ["street", "hnr", "plz", "city", "district", "county", "state", "alt"].map(k => k + "=" + encodeURIComponent(a[k] || "")).join("&") : "ort=" + encodeURIComponent(a.ort) + "&strasse=" + encodeURIComponent(a.strasse);
-      const r = await fetch("/api/muell?" + qs), j = await r.json().catch(() => ({})); if (!r.ok) return {err: "net"}; if ((j.termine || []).length) return {termine: j.termine};
+      let r = await fetch("/api/muell?" + qs), j = await r.json().catch(() => ({}));
+      /* the region's calendar didn't answer: once more after a moment, before anything else is said */
+      if (!r.ok || j.error === "net"){ await new Promise(z => setTimeout(z, 1500)); r = await fetch("/api/muell?" + qs + "&r=" + Date.now()); j = await r.json().catch(() => ({})); if (!r.ok || j.error === "net") return {err: "net"}; }
+      if ((j.termine || []).length) return {termine: j.termine};
       /* no connector of our own for this region: the big collection of German calendars is asked (it takes its time, up to a minute) */
       if (a.street != null && a.city){ try { const r2 = await fetch("/api/abfall?" + qs), j2 = await r2.json().catch(() => ({})); if (r2.ok && (j2.termine || []).length) return {termine: j2.termine}; if (r2.ok && j2.error === "street") return {err: "street"}; } catch(e) {} }
       return {err: j.error || "empty"}; },

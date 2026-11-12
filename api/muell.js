@@ -119,7 +119,9 @@ async function lookup(a){
   /* towns with their own calendar first, then the district (only when the address really lies in a district, or town and district differ) */
   const cand = REG.filter(r => r.s && r.s.test(city)).concat(REG.filter(r => r.c && county && r.c.test(county) && (isLk || county !== city || !REG.some(x => x.s && x.s.test(city)))));
   REG.filter(r => r.any).forEach(r => cand.push(r));
-  let miss = "city"; for (const r of cand.slice(0, 5)){ try { const t = await r.f(a); if (t.length) return t; if (miss === "city") miss = "empty"; } catch(e) { if (e.miss === "street") miss = "street"; /* a calendar that is down counts like one that doesn't know the place */ } }
+  let miss = "city", down = false; for (const r of cand.slice(0, 5)){ try { const t = await r.f(a); if (t.length) return t; if (miss === "city") miss = "empty"; } catch(e) { if (e.miss === "street") miss = "street"; else if (!e.miss && !r.any) down = true; } }
+  /* a calendar that should know this region didn't answer: that is "try again", not "we don't have your region" */
+  if (down && miss !== "street") throw new Miss("net");
   throw new Miss(miss === "city" ? "unsupported" : miss);
 }
 
@@ -173,7 +175,7 @@ module.exports = async (req, res) => {
     if (q.street != null || q.city != null){ const a = {street: clean(q.street), hnr: clean(q.hnr), plz: clean(q.plz), city: clean(q.city), district: clean(q.district), county: clean(q.county), state: clean(q.state), alt: String(q.alt || "").slice(0, 200)};
       /* the district is not always sent along (an address saved in the first version): then it is looked up from street and town */
       if (!a.county && a.city){ try { const L = (await suggest([a.street, a.hnr, a.plz, a.city].filter(Boolean).join(" "), true)).list, g = L.find(x => norm(x.city) === norm(a.city)) || L.find(x => !a.plz || x.plz === a.plz) || {}; a.county = g.county || ""; a.state = a.state || g.state || ""; a.district = a.district || g.district || ""; a.alt = a.alt || g.alt || ""; } catch(e) {} }
-      try { return ok({termine: await lookup(a)}); } catch(e) { if (!e.miss) throw e; return ok({error: e.miss, county: a.county}, 3600); } }
+      try { return ok({termine: await lookup(a)}); } catch(e) { if (!e.miss) throw e; if (e.miss === "net"){ res.setHeader("Cache-Control", "no-store"); return res.status(200).json({error: "net"}); } return ok({error: e.miss, county: a.county}, 300); } }
     const ort = clean(q.ort), strasse = clean(q.strasse);
     if (!ort) return ok({orte: (await heinzAsk("orte", {landkreis: LK})).map(x => x.ort).filter(Boolean)});
     if (!strasse) return ok({ort, strassen: (await heinzAsk("strassen", {landkreis: LK, ort})).map(x => x.strasse).filter(Boolean)});
