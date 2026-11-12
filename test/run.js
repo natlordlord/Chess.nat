@@ -482,6 +482,9 @@ const PARTS = {
     ok(/Wer übernimmt das/.test(await txt(b, ".kc-askc")) && /Küche ist dreckig/.test(await txt(b, ".kc-askc")), "„Alle fragen“: Mila bekommt „Nat Tester fragt: Wer übernimmt das?“", (await txt(b, ".kc-askc").catch(() => "")).slice(0, 120));
     await b.tap(".kc-askc [data-y]"); await sleep(1500); const ku = (await tasks("title=eq.Küche ist dreckig"))[0]; ok(ku.state === "taken" && ku.taken_by === ID.mila && ku.emoji === "🍳", "Mila übernimmt sie");
     await a.evaluate(() => Haus.load()); await sleep(1200); ok(/Mila/.test(await txt(a, "#hsstat")) && /abgegeben/.test(await txt(a, "#hsstat")), "Statistik: wer wie viel gemacht hat, und wer abgegeben hat", (await txt(a, "#hsstat")).slice(0, 160)); await a.shot("haus-voll");
+    /* housemates who aren't friends with each other still see each other's names (not "Player") */
+    await L.stage("POST", "home_members", "", {group_id: g.id, user_id: ID.jonas}); await b.evaluate(() => Haus.load()); await sleep(1200); await b.evaluate(() => Haus.open()); await sleep(1800);
+    const who = await txt(b, "#hsmem"); ok(!/Player|Mitbewohner<|Freund\b/.test(who) && await b.evaluate(id => Haus.nm(id) !== "Player" && Haus.nm(id) !== "Mitbewohner" && Haus.nm(id).length > 1, ID.jonas), "Mila sieht den Namen eines Mitbewohners, mit dem sie nicht befreundet ist", who.slice(0, 160) + " | " + await b.evaluate(id => Haus.nm(id), ID.jonas));
     await clean([a, b], "Haushalt");
   },
 

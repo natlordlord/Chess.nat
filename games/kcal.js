@@ -1353,7 +1353,11 @@
     QUICK: [["🗑️", "Müll rausbringen"], ["🚿", "Bad putzen"], ["🍳", "Küche aufräumen"], ["🍽️", "Spülmaschine ausräumen"], ["🧹", "Staubsaugen"], ["🧺", "Wäsche machen"]],
     BINS: [["⚫", "Schwarze Tonne"], ["🟡", "Gelbe Tonne"], ["🟤", "Biotonne"], ["🔵", "Papiertonne"]],
     people(){ return this.g ? [this.g.owner].concat(this.mem.filter(x => x !== this.g.owner)) : []; },
-    who(id){ return id === meId() ? "Du" : pname(id); },
+    /* the people of a household needn't all be friends with each other, and the app only knows the names of friends: the
+       household looks its members' names up itself */
+    names: {},
+    nm(id){ if (this.names[id]) return this.names[id]; if (id === meId()){ try { if (Social.player && Social.player.name) return Social.player.name; } catch(e) {} } const n = pname(id); return n && n !== "Player" ? n : "Mitbewohner"; },
+    who(id){ return id === meId() ? "Du" : this.nm(id); },
     emojiFor(t){ const x = t.toLowerCase(); return /müll|tonne|abfall|papier|glas/.test(x) ? "🗑️" : /bad|dusch|klo|toilet|wc/.test(x) ? "🚿" : /küche|herd|kochen/.test(x) ? "🍳" : /spül|geschirr|abwasch/.test(x) ? "🍽️" : /saug|wisch|boden|fegen/.test(x) ? "🧹" : /wäsche|wasch/.test(x) ? "🧺" : /einkauf/.test(x) ? "🛒" : /pflanz|gieß|blume/.test(x) ? "🪴" : "🧹"; },
     day(d){ const a = new Date(d), t0 = new Date(); t0.setHours(0, 0, 0, 0); const n = Math.round((new Date(a.getFullYear(), a.getMonth(), a.getDate()) - t0) / 864e5);
       return n === 0 ? "heute" : n === 1 ? "morgen" : n === -1 ? "gestern" : a.toLocaleDateString("de-DE", {weekday: "short", day: "2-digit", month: "2-digit"}); },
@@ -1364,7 +1368,8 @@
       const id = this.g.id, [m, t, l] = await Promise.all([sb().from("home_members").select("user_id").eq("group_id", id),
         sb().from("home_tasks").select(this.COLS).eq("group_id", id).in("state", ["wait", "asked", "open", "taken"]).order("ask_at").order("id"),
         sb().from("home_log").select("user_id,what,title,emoji,at").eq("group_id", id).gte("at", new Date(Date.now() - 30 * 864e5).toISOString()).order("at", {ascending: false}).limit(400)]);
-      if (my !== this.lseq) return; this.mem = (m.data || []).map(x => x.user_id); this.tasks = t.data || []; this.log = l.data || []; this.paint(); if (this.sh) this.draw(); this.cards(); this.hearts();
+      if (my !== this.lseq) return; this.mem = (m.data || []).map(x => x.user_id);
+      { const ids = [this.g.owner].concat(this.mem).filter(x => !this.names[x]); if (ids.length){ const pl = await sb().from("chess_players").select("id,name").in("id", ids); if (my !== this.lseq) return; (pl.data || []).forEach(x => { if (x.name) this.names[x.id] = x.name; }); } } this.tasks = t.data || []; this.log = l.data || []; this.paint(); if (this.sh) this.draw(); this.cards(); this.hearts();
       /* with an address saved, new collection dates come in by themselves (looked up at most every twelve hours) */
       if (this.where()){ let last = 0; try { last = +localStorage.getItem("chessnat-muell") || 0; } catch(e) {} if (Date.now() - last > 12 * 3600e3) this.sync().then(n => { if (n > 0) this.load(); }); } },
     /* what concerns me right now: asked of me (or of everyone and I haven't said no), and what I took */
@@ -1396,7 +1401,7 @@
       const th = await sb().from("home_thanks").select("task_id").eq("user_id", me).in("task_id", d.data.map(x => x.id)); if (th.error) return; const got = (th.data || []).map(x => x.task_id);
       const q = d.data.filter(x => !got.includes(x.id) && !this.seen["h" + x.id]).reverse(); if (!q.length || this.hearting) return; this.hearting = true;
       const next = () => { const t = q.shift(); if (!t){ this.hearting = false; return; } this.seen["h" + t.id] = 1; this.heart(t, next); }; next(); },
-    heart(t, after){ const who = pname(t.done_by), ov = document.createElement("div"); ov.className = "hs-hov"; ov.setAttribute("data-notr", ""); ov.lang = "de";
+    heart(t, after){ const who = Haus.nm(t.done_by), ov = document.createElement("div"); ov.className = "hs-hov"; ov.setAttribute("data-notr", ""); ov.lang = "de";
       const P = "M50 88 C 20 66, 6 50, 6 31 C 6 16, 17 7, 29 7 C 38 7, 46 12, 50 20 C 54 12, 62 7, 71 7 C 83 7, 94 16, 94 31 C 94 50, 80 66, 50 88 Z";
       ov.innerHTML = `<div class="hs-hc"><small>${h(who)} hat das erledigt</small><b>${h(t.emoji || "")} ${h(t.title)}</b>
         <div class="hs-heart" role="button" aria-label="Herz gedrückt halten"><svg viewBox="0 0 100 96"><defs><clipPath id="hsclip"><rect id="hsfill" x="0" y="96" width="100" height="96"/></clipPath></defs><path d="${P}" fill="rgba(255,255,255,.06)" stroke="#FF6B8A" stroke-width="4" stroke-linejoin="round"/><path d="${P}" fill="#FF4D73" clip-path="url(#hsclip)"/></svg></div>
@@ -1415,11 +1420,11 @@
       el.addEventListener("pointerdown", down); ["pointerup", "pointercancel", "pointerleave"].forEach(k => el.addEventListener(k, up)); el.addEventListener("contextmenu", e => e.preventDefault()); },
     watch(){ if (this.watching) return; this.watching = 1; const me = meId(); let tm = 0; const again = () => { clearTimeout(tm); tm = setTimeout(() => this.load(), 350); };
       sb().channel("home-" + me).on("postgres_changes", {event: "*", schema: "public", table: "home_tasks"}, p => { const n = p.new, o = p.old || {};
-        if (n && n.state === "taken" && n.taken_by && n.taken_by !== me && o.state !== "taken" && !this.seen["t" + n.id + n.taken_at]){ this.seen["t" + n.id + n.taken_at] = 1; say(`${n.emoji || ""} ${pname(n.taken_by)} übernimmt: ${n.title}`, 3600); }
+        if (n && n.state === "taken" && n.taken_by && n.taken_by !== me && o.state !== "taken" && !this.seen["t" + n.id + n.taken_at]){ this.seen["t" + n.id + n.taken_at] = 1; say(`${n.emoji || ""} ${Haus.nm(n.taken_by)} übernimmt: ${n.title}`, 3600); }
         again(); })
         .on("postgres_changes", {event: "*", schema: "public", table: "home_members"}, again)
         .on("postgres_changes", {event: "INSERT", schema: "public", table: "home_thanks"}, async p => { const n = p.new; if (!n || n.user_id === me || this.seen["th" + n.task_id + n.user_id]) return; this.seen["th" + n.task_id + n.user_id] = 1;
-          const r = await sb().from("home_tasks").select("title,emoji,done_by").eq("id", n.task_id).maybeSingle(); if (!r.data || r.data.done_by !== me) return; say(`❤️ ${pname(n.user_id)} sagt Danke: ${r.data.emoji || ""} ${r.data.title}`, 4600); haptic([15, 40, 15]); try { Sound.play("GenericNotify", .7); } catch(e) {} })
+          const r = await sb().from("home_tasks").select("title,emoji,done_by").eq("id", n.task_id).maybeSingle(); if (!r.data || r.data.done_by !== me) return; say(`❤️ ${Haus.nm(n.user_id)} sagt Danke: ${r.data.emoji || ""} ${r.data.title}`, 4600); haptic([15, 40, 15]); try { Sound.play("GenericNotify", .7); } catch(e) {} })
         .subscribe();
       setInterval(() => { if (!document.hidden && (this.g || this.sh)) this.load(); }, 90000); document.addEventListener("visibilitychange", () => { if (!document.hidden) this.load(); });
       document.addEventListener("click", e => { const c = e.target.closest && e.target.closest("[data-hs-yes],[data-hs-no],[data-hs-done],[data-hs-take]"); if (!c) return; e.preventDefault(); e.stopPropagation(); const d = c.dataset;
