@@ -282,7 +282,7 @@ h1 b,h2 b{color:var(--go-hi)}
 .reward .s b{color:var(--warn);font-weight:900}
 .cta{display:flex;align-items:center;justify-content:center;gap:20px;background:var(--go);color:#fff;border-radius:30px;padding:40px;font:900 56px var(--display);text-decoration:none;box-shadow:inset 0 -10px 0 var(--go-deep),0 30px 70px rgba(0,0,0,.45)}
 .cta:active{transform:translateY(4px);box-shadow:inset 0 -6px 0 var(--go-deep)}
-.on .cta{animation:ctapulse 1.6s ease-in-out 1.2s infinite}
+.on .cta{animation:rise .7s var(--ease) .5s forwards,ctapulse 1.6s ease-in-out 1.4s infinite}
 @keyframes ctapulse{50%{transform:scale(1.025)}}
 .again{text-align:center;font:800 30px var(--display);color:var(--muted);cursor:pointer}
 .fine{text-align:center;font:600 26px var(--display);color:var(--dim)}
