@@ -7,7 +7,7 @@ Es wird nichts gerechnet oder geschätzt: aus der amtlichen Excel-Datei werden j
 Energie (kcal), Kohlenhydrate, Eiweiß, Fett, Ballaststoffe, Zucker, gesättigte Fettsäuren und Salz übernommen (pro 100 g).
 Fehlt eine der vier Hauptangaben, bleibt das Lebensmittel draußen. Alles, was der Lauf sieht, steht in data/bls.log.
 """
-import html as H, io, json, re, sys, time
+import html as H, io, json, re, sys, time, zipfile
 import requests
 from openpyxl import load_workbook
 
@@ -37,6 +37,11 @@ for _ in range(25):
     seen.add(u)
     try: r = get(u)
     except Exception as e: log("  fehlgeschlagen:", e); continue
+    if r.content[:2] == b"PK" and u.lower().split("?")[0].endswith(".zip"):
+        z = zipfile.ZipFile(io.BytesIO(r.content)); log("  im Paket:", [(i.filename, i.file_size) for i in z.infolist()])
+        pick = [i for i in z.infolist() if re.search(r"Daten.*\.xlsx$", i.filename, re.I)] or [i for i in z.infolist() if i.filename.lower().endswith(".xlsx")]
+        if pick: xlsx = z.read(max(pick, key=lambda i: i.file_size)); break
+        continue
     if r.content[:2] == b"PK" and len(r.content) > 500000:
         name = r.headers.get("content-disposition", "") + " " + u
         log("  Datei:", name[:200])
@@ -48,7 +53,7 @@ for _ in range(25):
     if "download" in u: log("  Seite:", re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", r.text))[:1500])
     for l in links(r.text, u):
         if "blsdb.de" not in l or l in seen: continue
-        if re.search(r"Daten[^/]*\.xlsx", l, re.I): todo.insert(0, l)
+        if re.search(r"BLS_4[^/]*\.zip", l, re.I) or re.search(r"Daten[^/]*\.xlsx", l, re.I): todo.insert(0, l)
         elif re.search(r"download", l, re.I): todo.insert(0, l) if ".xlsx" not in l else todo.append(l)
         elif l.lower().split("?")[0].endswith(".xlsx") and "mapping" not in l.lower(): todo.append(l)
     time.sleep(1)
