@@ -149,11 +149,11 @@ global.fetch = async (url, init = {}) => {
     /* like Gemini: an empty string in an enum makes the whole request fail (that took "Sprechen" down on 2026-11-11) */
     { const bad = []; (function walk(o, p){ if (!o || typeof o !== "object") return; if (Array.isArray(o.enum) && o.enum.some(v => v === "")) bad.push(p); for (const k in o) walk(o[k], p + "." + k); })(((JSON.parse(init.body).response_format || {}).json_schema || {}).schema, "schema");
       if (bad.length) return json({error: {message: bad.map(b => "* GenerateContentRequest.generation_config.response_" + b + ".enum[0]: cannot be empty").join("\n"), type: "AI_APICallError"}}, 400); } return json({choices: [{message: {content: JSON.stringify(ai(JSON.parse(init.body)))}}]}); }
-  /* a category question from api/foods.js ("all dry pastas"): off unless a test turns it on; then 30 packs of noodles around 352 kcal
+  /* a category question from api/foods.js ("all green pestos"): off unless a test turns it on; then 30 jars of pesto around 472 kcal
      (one of them a mislabelled ready meal that the kcal window has to throw out), and nothing for every other category */
   if (/search\.openfoodfacts\.org/.test(url) && /categories_tags/.test(new URL(url).searchParams.get("q") || "")){ const q = new URL(url).searchParams.get("q");
-    if (!global.__offCats || !/en:dry-pastas/.test(q)) return json({hits: []});
-    return json({hits: Array.from({length: 30}, (_, i) => ({code: "p" + i, nutriments: i === 7 ? {"energy-kcal_100g": 131, carbohydrates_100g: 20, proteins_100g: 5, fat_100g: 3} : {"energy-kcal_100g": 347 + (i % 11), carbohydrates_100g: 69 + (i % 4), proteins_100g: 12 + (i % 3) * .8, fat_100g: 1.5 + (i % 3) * .3, fiber_100g: 3, sugars_100g: 3.2, "saturated-fat_100g": .4}}))}); }
+    if (!global.__offCats || !/en:green-pestos/.test(q)) return json({hits: []});
+    return json({hits: Array.from({length: 30}, (_, i) => ({code: "p" + i, nutriments: i === 7 ? {"energy-kcal_100g": 131, carbohydrates_100g: 20, proteins_100g: 5, fat_100g: 3} : {"energy-kcal_100g": 467 + (i % 11), carbohydrates_100g: 6 + (i % 4), proteins_100g: 5 + (i % 3) * .8, fat_100g: 46 + (i % 3) * .3, fiber_100g: 2, sugars_100g: 3.2, "saturated-fat_100g": 6.4}}))}); }
   if (/search\.openfoodfacts\.org/.test(url)){ const q = new URL(url).searchParams.get("q").toLowerCase(); return json({hits: FOODS.filter(f => q.split(/\s+/).some(w => w.length > 1 && (f[1] + " " + f[2]).toLowerCase().includes(w.slice(0, 4)))).map(offHit)}); }
   return realFetch(url, init);
 };

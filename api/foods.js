@@ -39,7 +39,7 @@ async function one(F){
 }
 
 module.exports = async (req, res) => {
-  const debug = !!(req.query && req.query.debug), todo = TABLE.list.filter(F => F.off), foods = {}, miss = [], whys = {};
+  const debug = !!(req.query && req.query.debug), todo = TABLE.list.filter(F => F.off && !F.bls), foods = {}, miss = [], whys = {};
   /* a few at a time, to be gentle with Open Food Facts */
   for (let i = 0; i < todo.length; i += 5) await Promise.all(todo.slice(i, i + 5).map(async F => { const r = await one(F).catch(e => ({why: [String(e.message || e)]})); if (r.ok) foods[F.id] = r.ok; else miss.push(F.id); whys[F.id] = r.why; }));
   const good = Object.keys(foods).length;

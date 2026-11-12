@@ -184,18 +184,18 @@ const PARTS = {
     /* the stand-in AI guesses wildly different calories for the noodles each time; the table has to win */
     const m1 = await say(a, "tester", "250 g gekochte Nudeln mit Pesto"), m2 = await say(b, "mila", "180 Gramm gekochte Nudeln mit Pesto");
     const n1 = m1.items.find(i => /Nudeln/.test(i.name)), n2 = m2.items.find(i => /Nudeln/.test(i.name)), per = (i, g) => Math.round(i.kcal / g * 1000) / 10;
-    ok(n1.kcal === 390 && n2.kcal === 281, "„gekochte Nudeln“: du 250 g = 390 kcal, die andere Person 180 g = 281 kcal", JSON.stringify([n1, n2]));
-    ok(Math.abs(per(n1, 250) - per(n2, 180)) < .3 && Math.abs(per(n1, 250) - 156) < .5, "bei beiden derselbe Wert pro 100 g gekocht (156 kcal), egal was die KI schätzt", per(n1, 250) + " vs " + per(n2, 180));
+    ok(n1.kcal === 376 && n2.kcal === 271, "„gekochte Nudeln“: du 250 g = 376 kcal, die andere Person 180 g = 271 kcal", JSON.stringify([n1, n2]));
+    ok(Math.abs(per(n1, 250) - per(n2, 180)) < .3 && Math.abs(per(n1, 250) - 150.4) < .5, "bei beiden derselbe Wert pro 100 g gekocht (150 kcal), egal was die KI schätzt", per(n1, 250) + " vs " + per(n2, 180));
     ok(m1.items.find(i => /Pesto/.test(i.name)).kcal === m2.items.find(i => /Pesto/.test(i.name)).kcal, "auch das Pesto hat bei beiden denselben Wert");
     ok(/gekocht/.test(n1.amount) && n1.ref === "pasta" && n1.st === "cooked", "die Position merkt sich „250 g gekocht“", JSON.stringify(n1));
     await closeSheets(a); await closeSheets(b);
-    const m3 = await say(a, "tester", "100 g Nudeln trocken"); ok(m3.items[0].kcal === 359 && /trocken/.test(m3.items[0].amount), "„100 g Nudeln trocken“ = 359 kcal (Trockengewicht)", JSON.stringify(m3.items[0])); await closeSheets(a);
+    const m3 = await say(a, "tester", "100 g Nudeln trocken"); ok(m3.items[0].kcal === 346 && /trocken/.test(m3.items[0].amount), "„100 g Nudeln trocken“ = 346 kcal (Trockengewicht)", JSON.stringify(m3.items[0])); await closeSheets(a);
     /* a named product: exactly that product from Open Food Facts, not the value of the category */
     const m5 = await say(a, "tester", "250 g Barilla Spaghetti gekocht"), bs = m5.items[0];
     ok(/Spaghetti No\. 5 \(Barilla\)/.test(bs.name) && bs.code === "4000000000093", "Marke genannt („Barilla Spaghetti“): genau dieses Produkt aus Open Food Facts wird genommen", JSON.stringify([bs.name, bs.code]));
     ok(bs.kcal === 390 && bs.carbs === 77.4 && bs.per.ck === "cooked" && /250 g gekocht/.test(bs.amount), "mit den Werten der Packung (71,2 g KH trocken), umgerechnet auf 250 g gekocht", JSON.stringify([bs.kcal, bs.carbs, bs.amount, bs.per.k])); await closeSheets(a);
     const m6 = await say(a, "tester", "250 g Dingsbums Spaghetti gekocht");
-    ok(m6.items[0].kcal === 390 && !m6.items[0].code && /Dingsbums Spaghetti.*nicht in Open Food Facts gefunden/.test(m6.note || ""), "unbekanntes Produkt: der allgemeine Wert wird genommen und das steht im Eintrag", JSON.stringify([m6.items[0].name, m6.items[0].kcal, m6.note])); await closeSheets(a);
+    ok(m6.items[0].kcal === 376 && !m6.items[0].code && /Dingsbums Spaghetti.*nicht in Open Food Facts gefunden/.test(m6.note || ""), "unbekanntes Produkt: der allgemeine Wert wird genommen und das steht im Eintrag", JSON.stringify([m6.items[0].name, m6.items[0].kcal, m6.note])); await closeSheets(a);
     await clean([a, b], "Sprechen mit Tabelle");
 
     /* scan the pack over what was said: 250 g cooked stay 250 g cooked, with the pack's values */
@@ -222,9 +222,9 @@ const PARTS = {
 
     /* the table in the search */
     await a.tap("#main [data-kc-find]"); await sleep(400); await a.keyboard.type("nudeln", {delay: 20}); await a.waitForFunction(() => /Standardwert/.test((document.querySelector(".kc-sov") || {}).innerText || ""), null, {timeout: 5000}).catch(() => {});
-    const first = await txt(a, ".kc-sres"); ok(/Nudeln, gekocht/.test(first) && /Standardwert/.test(first) && /156/.test(first), "Suche „nudeln“: zuerst „Nudeln, gekocht“ als Standardwert mit 156 kcal", first); await a.shot("nudeln-suche");
+    const first = await txt(a, ".kc-sres"); ok(/Nudeln, gekocht/.test(first) && /Bundeslebensmittelschlüssel/.test(first) && /150/.test(first), "Suche „nudeln“: zuerst „Nudeln, gekocht“ aus dem Bundeslebensmittelschlüssel mit 150 kcal", first); await a.shot("nudeln-suche");
     await a.tap(".kc-sres"); await sleep(500); await a.locator(".kc-sadd input").fill("200"); await a.locator(".kc-sadd input").blur(); await a.tap(".kc-sadd [data-add]"); await sleep(1100);
-    m = (await meals("tester", "&limit=1"))[0]; ok(m.kcal === 312 && m.items[0].per.tab === "pasta", "200 g aus der Tabelle = 312 kcal", JSON.stringify([m.title, m.kcal, m.items[0].amount]));
+    m = (await meals("tester", "&limit=1"))[0]; ok(m.kcal === 301 && m.items[0].per.tab === "pasta", "200 g aus der Tabelle = 301 kcal", JSON.stringify([m.title, m.kcal, m.items[0].amount]));
     await clean(a, "Tabelle in der Suche"); await a.context().close(); await b.context().close();
   },
 
@@ -551,20 +551,22 @@ const PARTS = {
   /* ---------- die Tabellenwerte kommen aus Open Food Facts (Median der Kategorie). Muss der letzte Teil sein: er stellt die Tabelle um ---------- */
   async quelle(browser){
     await fetch(L.BASE + "/__fake/off-cats?on=1");
-    const j = await (await fetch(L.BASE + "/api/foods?debug=1")).json(), pa = j.foods.pasta;
-    ok(pa && pa.k === 351 && pa.n === 29, "/api/foods: Nudeln = Median aus 29 Packungen der Kategorie (351 kcal), das falsch einsortierte Fertiggericht fliegt raus", JSON.stringify(pa));
-    ok(j.miss.includes("reis") && !j.foods.reis, "ein Lebensmittel ohne genug Produkte wird als fehlend gemeldet und behält seinen Tabellenwert", JSON.stringify(j.miss).slice(0, 120));
+    const j = await (await fetch(L.BASE + "/api/foods?debug=1")).json(), pe = j.foods.pesto;
+    ok(pe && pe.k === 471 && pe.n === 29, "/api/foods: Pesto = Median aus 29 Gläsern der Kategorie (471 kcal), das falsch einsortierte Produkt fliegt raus", JSON.stringify(pe));
+    ok(j.miss.includes("nutella") && !j.foods.nutella, "ein Lebensmittel ohne genug Produkte wird als fehlend gemeldet und behält seinen Tabellenwert", JSON.stringify(j.miss).slice(0, 120));
+    ok(!j.foods.pasta && !j.miss.includes("pasta") && !j.foods.reis, "was der Bundeslebensmittelschlüssel führt (Nudeln, Reis), wird bei Open Food Facts gar nicht mehr gefragt", JSON.stringify(Object.keys(j.foods)));
     const hear = () => { class SR { start(){ SR.cur = this; } stop(){ setTimeout(() => this.onend && this.onend(), 20); } abort(){ this.stop(); } }
       window.SpeechRecognition = window.webkitSpeechRecognition = SR; window.__hear = t => { const r = SR.cur; if (r && r.onresult) r.onresult({resultIndex: 0, results: Object.assign([Object.assign([{transcript: t, confidence: .9}], {isFinal: true})], {length: 1})}); }; };
     const page = await L.open(browser, "tester", {before: hear}); await page.evaluate(() => KCAL_FOODS.ready);
-    ok(await page.evaluate(() => KCAL_FOODS.byId.pasta.k === 351 && KCAL_FOODS.byId.pasta.src.n === 29 && KCAL_FOODS.byId.reis.k === 351), "die App übernimmt die Werte von /api/foods (Nudeln 351), der Rest bleibt");
-    await page.tap("#main [data-kc-find]"); await sleep(400); await page.keyboard.type("nudeln", {delay: 20}); await page.waitForFunction(() => /Open Food Facts/.test((document.querySelector(".kc-sov") || {}).innerText || ""), null, {timeout: 5000}).catch(() => {});
-    const first = await txt(page, ".kc-sres"); ok(/Nudeln, gekocht/.test(first) && /Open Food Facts · Mittel aus 29 Produkten/.test(first) && /153/.test(first), "Suche nennt die Quelle: „Open Food Facts · Mittel aus 29 Produkten“, 153 kcal gekocht", first); await page.shot("quelle-suche"); await page.tap("#kcsx"); await sleep(400);
+    ok(await page.evaluate(() => KCAL_FOODS.byId.pesto.k === 471 && KCAL_FOODS.byId.pesto.src.n === 29), "die App übernimmt die Werte von /api/foods (Pesto 471)");
+    ok(await page.evaluate(() => { const p = KCAL_FOODS.byId.pasta, b = KCAL_BLS.pasta; return p.k === 346 && p.c === 68.8 && p.src.bls === "E401000" && b.code === "E401000" && KCAL_FOODS.byId.apfel.k === 58 && KCAL_FOODS.byId.nutella.k === 539 && !KCAL_FOODS.byId.nutella.bls; }), "Nudeln und Apfel haben die Werte des Bundeslebensmittelschlüssels (346 und 58 kcal), Nutella bleibt wie es war");
+    await page.tap("#main [data-kc-find]"); await sleep(400); await page.keyboard.type("nudeln", {delay: 20}); await page.waitForFunction(() => /Bundeslebensmittel/.test((document.querySelector(".kc-sov") || {}).innerText || ""), null, {timeout: 5000}).catch(() => {});
+    const first = await txt(page, ".kc-sres"); ok(/Nudeln, gekocht/.test(first) && /Bundeslebensmittelschlüssel/.test(first) && /150/.test(first), "Suche nennt die Quelle: „Bundeslebensmittelschlüssel“, 150 kcal gekocht", first); await page.shot("quelle-suche"); await page.tap("#kcsx"); await sleep(400);
     const n = (await meals("tester")).length; await page.tap("#main [data-kc-say]"); await sleep(700); await page.evaluate(() => window.__hear("250 g gekochte Nudeln")); await sleep(400);
     if (await page.locator("#kcmic").isVisible().catch(() => false)){ await page.tap("#kcmic"); await sleep(300); } if (await page.locator("#kcvdone").isVisible().catch(() => false)) await page.tap("#kcvdone");
     await page.waitForSelector(".dsheet [data-commit]", {timeout: 8000}); await page.tap(".dsheet [data-commit]");
     for (let i = 0; i < 30 && (await meals("tester")).length === n; i++) await sleep(200); const m = (await meals("tester", "&limit=1"))[0];
-    ok(m.items[0].kcal === 382, "Sprechen rechnet mit demselben Wert: 250 g gekocht = 382 kcal (351 ÷ 2,3 × 2,5)", JSON.stringify(m.items[0]));
+    ok(m.items[0].kcal === 376, "Sprechen rechnet mit demselben Wert: 250 g gekocht = 376 kcal (346 ÷ 2,3 × 2,5)", JSON.stringify(m.items[0]));
     await fetch(L.BASE + "/__fake/off-cats?on=0"); await clean(page, "Quelle Open Food Facts"); await page.context().close();
   }
 };

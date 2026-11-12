@@ -12,7 +12,8 @@
      scan = which products from the barcode scan or the search are this food (the pack is always dry/raw weight)
      not  = names that look like it but aren't · kr = plausible kcal per 100 g on such a pack
    The cooked values are never stored: they are the dry values divided by cf, so both ways of weighing give the same result.
-   Sources: Bundeslebensmittelschlüssel / USDA FoodData Central, typical supermarket products; cooking factors are kitchen averages. */
+   Sources: Bundeslebensmittelschlüssel 4.0 (Max Rubner-Institut, 2025, CC BY 4.0) for every food it lists (see below),
+   Open Food Facts for the rest; cooking factors are kitchen averages. */
 (function(root){
   const F = (id, n, al, k, c, p, f, fi, su, sf, q, more) => Object.assign({id, n, al, k, c, p, f, fi, su, sf, q}, more || {});
   const DRY = ["trocken", "gekocht"], RAW = ["roh", "gebraten"], NOPE = "waffel|drink|milch|mehl|pudding|flocken|chips|cracker|riegel|sirup|essig|papier|salat|suppe|instant|ramen|cup|fertig|pfanne|bolognese|carbonara|sauce|soße|auflauf|gericht|express|vorgekocht|mikrowelle|minute|dose|glas|konserve|aufstrich|bratling|burger";
@@ -89,8 +90,13 @@
     lachs: ["en:salmons", "en:salmon-fillets"], thunfisch: ["en:tunas-in-brine", "en:canned-tunas"], nutella: ["en:cocoa-and-hazelnuts-spreads", "en:hazelnut-spreads"], erdnussbutter: "en:peanut-butters", honig: "en:honeys", zucker: ["en:white-sugars", "en:sugars"], marmelade: ["en:jams", "en:strawberry-jams"],
     mandeln: "en:almonds", whey: ["en:whey-proteins", "en:protein-powders"], cola: "en:colas", osaft: "en:orange-juices", bier: "en:beers"};
   FOODS.forEach(f => { if (OFF[f.id]) f.off = OFF[f.id]; });
+  /* first choice: the official German nutrient database (Bundeslebensmittelschlüssel 4.0, Max Rubner-Institut, CC BY 4.0).
+     Where it lists exactly this food, its values per 100 g are taken (data/foods_bls.js, generated from the official file),
+     and Open Food Facts is not asked for that food any more. */
+  let BLS = {}; try { BLS = (typeof module !== "undefined" && module.exports ? require("./foods_bls.js") : root.KCAL_BLS) || {}; } catch(e) {}
+  FOODS.forEach(f => { const b = BLS[f.id]; if (!b || !(Number(b.k) >= 0)) return; for (const key of ["k", "c", "p", "f", "fi", "su", "sf"]) if (b[key] != null) f[key] = b[key]; f.bls = b.code; f.src = {bls: b.code, name: b.name}; });
   const apply = data => { let n = 0; if (!data || !data.foods) return n;
-    for (const f of FOODS){ const v = data.foods[f.id]; if (!v || !(Number(v.k) > 0)) continue; for (const key of ["k", "c", "p", "f", "fi", "su", "sf"]) if (v[key] != null && isFinite(Number(v[key]))) f[key] = Number(v[key]); f.src = {n: v.n, cat: v.cat, at: data.at}; n++; }
+    for (const f of FOODS){ const v = data.foods[f.id]; if (f.bls || !v || !(Number(v.k) > 0)) continue; for (const key of ["k", "c", "p", "f", "fi", "su", "sf"]) if (v[key] != null && isFinite(Number(v[key]))) f[key] = Number(v[key]); f.src = {n: v.n, cat: v.cat, at: data.at}; n++; }
     return n; };
   /* the values of a food in the state it was weighed in: per 100 g cooked = per 100 g dry ÷ cf */
   const per100 = (f, cooked) => { const d = f.cf && cooked ? f.cf : 1, r = v => Math.round(v / d * 10) / 10; return {k: r(f.k), c: r(f.c), p: r(f.p), f: r(f.f), fi: r(f.fi), su: r(f.su), sf: r(f.sf), q: f.q}; };
