@@ -65,7 +65,16 @@
       if (c && c.who === me && Date.now() - c.t < 36 * 3600e3 && Array.isArray(c.ev)){ this.ev = c.ev; this.picks = Object.assign({}, c.picks || {}, this.pending || {}); this.who = me; this.loaded = true; this.loadT = 0; return true; } } catch(e) {} return false; },
     /* the old Natcoin bets are gone: their open stakes come back once */
     async claim(){ const c = sb(); if (!c || !meId()) return; try { const {data} = await c.rpc("tipp_claim"); if (data && data.sum > 0 && typeof natEarn === "function"){ natEarn(data.sum); toast(T(`💰 Your old stakes are back: +${data.sum} Natcoins`, `💰 Deine alten Einsätze sind zurück: +${data.sum} Natcoins`), 3600); } } catch(e) {} },
-    async loadTable(){ const c = sb(); if (!c) return; const {data, error} = await c.rpc("tipp_table"); if (!error) this.table = data || []; },
+    /* the table counts finished games; a game that is running counts with its current score on top ("live"), so the order moves while it is played */
+    async loadTable(){ const c = sb(); if (!c) return; const {data, error} = await c.rpc("tipp_table"); if (error) return;
+      const rows = (data || []).map(r => Object.assign({}, r, {live: 0})), live = this.ev.filter(e => e.state === "in" && !isW(e));
+      if (live.length && meId()){ const key = r => r.uid || "bot:" + (r.bot || "");
+        const got = await Promise.all(live.map(e => c.rpc("tipp_event_picks", {p_event: e.id}).then(x => x.data || []).catch(() => [])));
+        got.flat().forEach(p => { if (p.pts == null) return; let r = rows.find(x => key(x) === key(p));
+          if (!r){ r = {uid: p.uid, bot: p.bot, name: p.name, avatar: p.avatar, pts: 0, exact: 0, n: 0, open: 0, live: 0}; rows.push(r); }
+          r.live += p.pts; });
+        rows.forEach(r => r.pts += r.live); rows.sort((a, b) => b.pts - a.pts || b.exact - a.exact || a.n - b.n); }
+      this.table = rows; },
     myRow(){ return this.table.find(r => r.uid && r.uid === meId()); },
     mine(id){ return this.picks[id] || null; },
     /* save right away; the newest change wins, a slow answer for an older one is ignored */
@@ -108,6 +117,8 @@
       if (App.route !== "tipp" || !this.main || !this.main.isConnected) return;
       if (!first && Tipp.tab === "tip" && Date.now() - (this.busyT || 0) < 8000) return;
       this.render(first && !this.pre); this.pre = false;
+      /* while a game runs, the table follows the score */
+      if (!first && Tipp.ev.some(e => e.state === "in")) this.loadTable();
       if (first && (this.arg.open || this.arg.quick)) this.focus(this.arg.open || this.arg.quick);
     },
     async loadTable(){ await Tipp.loadTable(); if (App.route !== "tipp") return; this.pill(); if (Tipp.tab === "table") this.render(); },
@@ -167,7 +178,7 @@
     tableHTML(){
       const B = Tipp.table, me = meId();
       const head = r => { if (r.bot === "ki") return `<span class="tp-av ki">🤖</span>`; try { if (r.uid && typeof Social !== "undefined" && Social.data && Social.data.players && Social.data.players[r.uid]) return `<span class="tp-av">${Social.face(Social.P(r.uid), 40)}</span>`; if (typeof avatarSVG === "function") return `<span class="tp-av">${avatarSVG(Object.assign({}, r.avatar || {}, {aura: "none", pet: "none"}), {head: true, size: 40})}</span>`; } catch(e) {} return `<span class="tp-av"></span>`; };
-      const rows = B.length ? B.map((r, i) => `<div class="tp-br ${r.uid && r.uid === me ? "me" : ""}"><span class="tp-rk">${i < 3 && r.pts > 0 ? ["🥇", "🥈", "🥉"][i] : i + 1}</span>${head(r)}<div class="grow"><b>${h(r.bot === "ki" ? "Nat-KI" : r.name)}${r.uid && r.uid === me ? ` <span class="pill go">${T("You", "Du")}</span>` : ""}</b><small>${r.n ? `${r.n} ${T("tipped", "getippt")}${r.exact ? ` · 🎯 ${r.exact}× ${T("exact", "genau")}` : ""}` : T("waiting for the first result", "wartet aufs erste Ergebnis")}</small></div><span class="tp-bp">${r.pts}<small>${T("pts", "P.")}</small></span></div>`).join("")
+      const rows = B.length ? B.map((r, i) => `<div class="tp-br ${r.uid && r.uid === me ? "me" : ""}"><span class="tp-rk">${i < 3 && r.pts > 0 ? ["🥇", "🥈", "🥉"][i] : i + 1}</span>${head(r)}<div class="grow"><b>${h(r.bot === "ki" ? "Nat-KI" : r.name)}${r.uid && r.uid === me ? ` <span class="pill go">${T("You", "Du")}</span>` : ""}</b><small>${r.n ? `${r.n} ${T("tipped", "getippt")}${r.exact ? ` · 🎯 ${r.exact}× ${T("exact", "genau")}` : ""}` : T("waiting for the first result", "wartet aufs erste Ergebnis")}</small></div><span class="tp-bp">${r.live ? `<i class="tp-lv">+${r.live} live</i>` : ""}${r.pts}<small>${T("pts", "P.")}</small></span></div>`).join("")
         : `<div class="tp-empty">${T("No tips yet.", "Noch keine Tipps.")}</div>`;
       return `<div class="tp-board">${rows}</div><div class="tp-rules big">🎯 ${T("Exact score", "Genaues Ergebnis")} <b>4</b><br>${T("Right goal difference", "Richtige Tordifferenz")} <b>3</b><br>${T("Right winner or draw", "Richtiger Sieger oder Unentschieden")} <b>2</b><br>🥊 ${T("UFC: right winner", "UFC: richtiger Sieger")} <b>3</b></div>
         <div class="tp-inv"><button class="btn ghost sm" data-share>📨 ${T("Invite friends", "Freunde einladen")}</button></div>`;
@@ -296,6 +307,7 @@
 .tp-rk{width:26px;text-align:center;font:900 15px var(--display);color:var(--muted);flex:none}
 .tp-av{width:40px;height:40px;display:grid;place-items:center;flex:none;font-size:26px;overflow:hidden;border-radius:50%}
 .tp-bp{font:900 22px var(--display);flex:none}.tp-bp small{font:800 12px var(--body);color:var(--muted);margin-left:3px}
+.tp-lv{font:900 11px var(--body);font-style:normal;color:#fff;background:#E5484D;border-radius:999px;padding:2px 7px;margin-right:6px;vertical-align:4px;animation:tpDot 2s ease-in-out infinite}
 .tp-inv{display:flex;justify-content:center;margin-top:12px}
 .tp-others{margin:6px 0 4px}.tp-ot{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;background:var(--panel-2);margin-top:5px}.tp-ot.me{outline:2px solid color-mix(in srgb,var(--go) 70%,transparent)}
 .tp-ot b{flex:1;min-width:0;font:800 14px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-otip{font:900 17px var(--display);min-width:44px;text-align:right}
