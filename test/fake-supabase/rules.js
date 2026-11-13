@@ -70,6 +70,7 @@ module.exports = db => {
     home_tasks: {select: (r, u) => homeCan(u, r.group_id), insert: (r, u) => homeCan(u, r.group_id) && r.created_by === u, delete: (r, u) => r.created_by === u || homeOwns(u, r.group_id)},
     home_log: {select: (r, u) => homeCan(u, r.group_id)},
     home_plan_wishes: {insert: (r, u) => r.user_id === u},
+    chess_fairplay: {select: (r, u) => r.user_id === u},
     chess_ideas: {select: () => true, insert: (r, u) => r.user_id === u},
     chess_idea_votes: {select: () => true, insert: (r, u) => r.user_id === u, delete: (r, u) => r.user_id === u},
     kcal_own_products: {select: (r, u) => r.user_id === u || r.status !== "bad", insert: (r, u) => r.user_id === u && r.status === "new", update: (r, u) => r.user_id === u},
@@ -168,6 +169,7 @@ module.exports = db => {
     kcal_foods_lookup(u, {names}){ if (!u) raise("Bitte anmelden"); if (!Array.isArray(names) || names.length > 40) return [];
       const key = t => String(t || "").replace(/\(.*?\)/g, " ").toLowerCase().replace(/[äöüßéèêàáâíóúñç]/g, ch => "aouseeeaaaiounc"["äöüßéèêàáâíóúñç".indexOf(ch)]).replace(/[^a-z0-9]+/g, " ").trim().slice(0, 60);
       return names.map(n => R.kcal_foods.find(x => x.key === key(n)) || null); },
+    fairplay_sorry(u, a){ const f = R.chess_fairplay.find(x => x.id === a.fid && x.user_id === u && x.status === "open"); if (!f) return false; f.status = "sorry"; f.sorry_at = new Date().toISOString(); return true; },
     kcal_buy_ice(u){ if (!u) raise("Bitte anmelden"); const k = R.kcal_profile.find(p => p.user_id === u); if (!k || k.ice >= 2) raise("Du hast schon zwei"); k.ice++; return k.ice; },
     kcal_invite(u, {target}){
       if (!u || !target || target === u) return "invalid"; if (!friends(u, target)) return "not_friends";

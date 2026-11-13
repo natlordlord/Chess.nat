@@ -13,6 +13,7 @@ home_plan_wishes|id|id:int8:!:@identity ; user_id:uuid:!:@uid ; city:text:?: ; c
 home_members|group_id,user_id|group_id:uuid:!: ; user_id:uuid:!: ; created_at:timestamptz:!:@now
 home_tasks|id|id:uuid:!:@uuid ; group_id:uuid:!: ; title:text:!: ; emoji:text:!:'🧹' ; note:text:?: ; img:text:?: ; kind:text:!:'once' ; every_days:int4:?: ; everyone:bool:!:false ; due_at:timestamptz:?: ; ask_at:timestamptz:!:@now ; state:text:!:'wait' ; asked:uuid:?: ; asked_at:timestamptz:?: ; passed:_text:!:{} ; taken_by:uuid:?: ; taken_at:timestamptz:?: ; reminded_at:timestamptz:?: ; done_by:uuid:?: ; done_at:timestamptz:?: ; created_by:uuid:!:@uid ; created_at:timestamptz:!:@now
 home_thanks|task_id,user_id|task_id:uuid:!: ; user_id:uuid:!:@uid ; created_at:timestamptz:!:@now
+chess_fairplay|id|id:uuid:!:@uuid ; user_id:uuid:!: ; quote:text:!: ; status:text:!:open ; created_at:timestamptz:!:@now ; sorry_at:timestamptz:?:
 chess_ideas|id|id:uuid:!:@uuid ; user_id:uuid:!:@uid ; name:text:?: ; title:text:!: ; body:text:?: ; status:text:!:open ; created_at:timestamptz:!:@now
 chess_idea_votes|idea_id,user_id|idea_id:uuid:!: ; user_id:uuid:!:@uid ; created_at:timestamptz:!:@now
 kcal_own_products|id|id:uuid:!:@uuid ; user_id:uuid:!:@uid ; author:text:?: ; code:text:!: ; name:text:!: ; brand:text:!: ; unit:text:!:g ; k:numeric:!: ; c:numeric:!: ; p:numeric:!: ; f:numeric:!: ; fi:numeric:!:0 ; su:numeric:!:0 ; sf:numeric:!:0 ; sa:numeric:!:0 ; img:text:?: ; status:text:!:new ; created_at:timestamptz:!:@now
@@ -58,7 +59,7 @@ kcal_claps|from_id,to_id,day|from_id:uuid:!:@uid ; to_id:uuid:!: ; day:date:!: ;
 
 /* Functions callable through /rest/v1/rpc, with their argument names ("?" = has a default). */
 const RPCS = {
-  chess_gift_send: ["targets", "gift"], events_summary: ["days?"], kcal_buy_ice: [], kcal_foods_lookup: ["names"], kcal_can_see: ["owner"], kcal_invite: ["target"],
+  chess_gift_send: ["targets", "gift"], events_summary: ["days?"], kcal_buy_ice: [], fairplay_sorry: ["fid"], kcal_foods_lookup: ["names"], kcal_can_see: ["owner"], kcal_invite: ["target"],
   news_broadcast: ["nid"], news_delete: ["nid"], news_is_admin: [], news_post: ["t", "b", "a?"], news_post_v: ["t", "b", "a?", "v?"], news_reshow: ["nid"],
   nudge_turn: ["target", "code"], push_config: [], ranked_leave: [], ranked_lobby: [], ranked_me: [], ranked_queue: ["tc", "hint?"],
   ranked_report: ["mid", "res", "why?"], ranked_top: ["c", "n?"], shop_can: ["l"], shop_owns: ["l"],
