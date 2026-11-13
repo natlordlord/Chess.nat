@@ -24,3 +24,26 @@ begin
 end $$;
 revoke all on function public.fairplay_sorry(uuid) from public, anon;
 grant execute on function public.fairplay_sorry(uuid) to authenticated;
+
+-- Melden (Migration "chess_fairplay_report"): Der Betreiber tippt in der App bei einem Feedback oder einer Idee auf „Melden“.
+-- Der Eintrag wird gelöscht und für den Verfasser ein Fall mit genau diesem Satz angelegt (außer er hat schon einen offenen).
+-- Antwort: 'warned' = Fall angelegt, 'already' = offener Fall war schon da, 'removed' = nur gelöscht (Eintrag ohne Verfasser).
+-- „Mit Schande“ (shame): Vor der Entschuldigung sagt eine Stimme „Schande!“ und die Person muss viermal die Glocke läuten.
+alter table public.chess_fairplay add column if not exists shame boolean not null default false;
+create or replace function public.fairplay_report(src text, rid uuid, shame boolean default false) returns text language plpgsql security definer set search_path = '' as $$
+declare uid uuid; q text;
+begin
+  if not public.news_is_admin() then raise exception 'not allowed'; end if;
+  if src = 'idea' then select user_id, coalesce(body, title) into uid, q from public.chess_ideas where id = rid;
+  elsif src = 'feedback' then select user_id, body into uid, q from public.chess_feedback where id = rid;
+  else raise exception 'unknown source'; end if;
+  if not found then raise exception 'not found'; end if;
+  if uid = auth.uid() then raise exception 'own entry'; end if;
+  if src = 'idea' then delete from public.chess_ideas where id = rid; else delete from public.chess_feedback where id = rid; end if;
+  if uid is null then return 'removed'; end if;
+  if exists (select 1 from public.chess_fairplay where user_id = uid and status = 'open') then return 'already'; end if;
+  insert into public.chess_fairplay (user_id, quote, shame) values (uid, left(btrim(q), 300), coalesce(fairplay_report.shame, false));
+  return 'warned';
+end $$;
+revoke all on function public.fairplay_report(text, uuid, boolean) from public, anon;
+grant execute on function public.fairplay_report(text, uuid, boolean) to authenticated;

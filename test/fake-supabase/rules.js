@@ -171,6 +171,12 @@ module.exports = db => {
     kcal_foods_lookup(u, {names}){ if (!u) raise("Bitte anmelden"); if (!Array.isArray(names) || names.length > 40) return [];
       const key = t => String(t || "").replace(/\(.*?\)/g, " ").toLowerCase().replace(/[äöüßéèêàáâíóúñç]/g, ch => "aouseeeaaaiounc"["äöüßéèêàáâíóúñç".indexOf(ch)]).replace(/[^a-z0-9]+/g, " ").trim().slice(0, 60);
       return names.map(n => R.kcal_foods.find(x => x.key === key(n)) || null); },
+    /* public.fairplay_report: operator only; deletes the idea/feedback and opens a case for its author (unless one is open) */
+    fairplay_report(u, {src, rid, shame}){ if (!isAdmin(u)) raise("not allowed"); const T = src === "idea" ? "chess_ideas" : src === "feedback" ? "chess_feedback" : null; if (!T) raise("unknown source");
+      const r = R[T].find(x => x.id === rid); if (!r) raise("not found"); if (r.user_id === u) raise("own entry");
+      if (T === "chess_ideas") R.chess_idea_votes.filter(v => v.idea_id === rid).forEach(v => db.remove("chess_idea_votes", v)); db.remove(T, r);
+      if (!r.user_id) return "removed"; if (R.chess_fairplay.some(f => f.user_id === r.user_id && f.status === "open")) return "already";
+      R.chess_fairplay.push({id: require("crypto").randomUUID(), user_id: r.user_id, quote: String(src === "idea" ? r.body || r.title : r.body).trim().slice(0, 300), status: "open", created_at: db.now(), sorry_at: null, shame: !!shame}); return "warned"; },
     fairplay_sorry(u, a){ const f = R.chess_fairplay.find(x => x.id === a.fid && x.user_id === u && x.status === "open"); if (!f) return false; f.status = "sorry"; f.sorry_at = new Date().toISOString(); return true; },
     kcal_buy_ice(u){ if (!u) raise("Bitte anmelden"); const k = R.kcal_profile.find(p => p.user_id === u); if (!k || k.ice >= 2) raise("Du hast schon zwei"); k.ice++; return k.ice; },
     kcal_invite(u, {target}){

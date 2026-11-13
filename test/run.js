@@ -573,6 +573,37 @@ const PARTS = {
     await m.locator(".fpx2 .newsx-ok").tap(); await sleep(500); await m.reload(); await sleep(4500);
     ok(!(await has(m, ".fpx")) && await m.evaluate(() => natBal()) === 5000, "Fair Play: danach kommt der Hinweis nicht wieder, die NatCoins bleiben");
     await clean(m, "Fair Play"); await m.context().close();
+
+    /* Melden: only the operator sees "Melden" on ideas and feedback. Two taps remove the entry and open a case for its author. */
+    await L.stage("DELETE", "chess_fairplay", "id=not.is.null"); await L.stage("DELETE", "chess_ideas", "id=not.is.null"); await L.stage("DELETE", "chess_feedback", "id=not.is.null");
+    await L.stage("POST", "chess_ideas", "", {user_id: ID.mila, name: "Mila", title: "Bitte den User Jonas aus der App entfernen"});
+    await L.stage("POST", "chess_feedback", "", {user_id: ID.jonas, name: "Jonas", body: "Mila nervt"});
+    { const j = await L.open(browser, "jonas"); await j.evaluate(() => openSheet()); await sleep(400); await j.locator('#sheet [data-s="__feedback"]').tap(); await sleep(900);
+      if (await has(j, '.fb-ov [data-fbt="ideas"]')){ await j.locator('.fb-ov [data-fbt="ideas"]').tap(); await sleep(700); }
+      ok(/Jonas aus der App/.test(await txt(j, "#idl")) && !(await has(j, "[data-rep]")), "Melden: wer nicht Betreiber ist, sieht keinen Melden-Knopf"); await j.context().close(); }
+    await fetch(L.BASE + "/__fake/admin?on=1&u=" + ID.tester);
+    const ad = await L.open(browser, "tester"); await ad.evaluate(() => News.isAdmin()); await ad.evaluate(() => openSheet()); await sleep(400); await ad.locator('#sheet [data-s="__feedback"]').tap(); await sleep(900);
+    if (await has(ad, '.fb-ov [data-fbt="ideas"]')){ await ad.locator('.fb-ov [data-fbt="ideas"]').tap(); await sleep(700); }
+    if (ok(await has(ad, '#idl [data-rep^="idea:"]'), "Melden: der Betreiber sieht den Knopf an der Idee")){
+      await ad.locator('#idl [data-rep^="idea:"]').tap(); await sleep(500);
+      ok(/Wirklich/.test(await txt(ad, '#idl [data-rep^="idea:"]')) && (await L.table("chess_ideas")).length === 1, "Melden: ein Tipp fragt erst nach, es passiert noch nichts"); await ad.shot("melden-sicher");
+      await ad.locator('#idl [data-rep^="idea:"]').tap(); await sleep(1200);
+      const fp = await L.table("chess_fairplay"); ok(!(await L.table("chess_ideas")).length && !/Jonas aus der App/.test(await txt(ad, "#idl")), "Melden: die Idee ist weg, auch aus der Liste");
+      ok(fp.length === 1 && fp[0].user_id === ID.mila && fp[0].quote === "Bitte den User Jonas aus der App entfernen" && fp[0].status === "open", "Melden: Mila bekommt einen Fall mit genau ihrem Satz", JSON.stringify(fp)); }
+    await ad.locator('.fb-ov [data-fbt="report"]').tap(); await sleep(900);
+    if (ok(await has(ad, '#fbl [data-rep^="feedback:"]'), "Melden: der Knopf steht auch am Feedback")){
+      await ad.locator('#fbl [data-rep^="feedback:"]').tap(); await sleep(300); ok(await ad.locator('#fbl [data-shame]').isVisible(), "Melden: beim Nachfragen steht auch „Mit Schande“"); await ad.shot("melden-schande-wahl");
+      await ad.locator('#fbl [data-shame]').tap(); await sleep(1200);
+      const fp = await L.table("chess_fairplay"); ok(!(await L.table("chess_feedback")).length && fp.length === 2 && fp.some(f => f.user_id === ID.jonas && f.quote === "Mila nervt" && f.shame === true) && fp.some(f => f.user_id === ID.mila && !f.shame), "Melden: Feedback weg, Jonas bekommt einen Fall mit Schande (Mila ohne)", JSON.stringify(fp)); }
+    await clean(ad, "Melden"); await ad.context().close(); await fetch(L.BASE + "/__fake/admin?on=0&u=" + ID.tester);
+    /* Schande: before the apology Jonas has to ring the bell four times, each time after "Schande!" */
+    { const j = await L.open(browser, "jonas", {before: () => { window.__said = []; const sp = {speak: u => window.__said.push(u.text), cancel(){}}; Object.defineProperty(window, "speechSynthesis", {get: () => sp}); }}); await j.evaluate(() => FairPlay.check()); await sleep(1500);
+      if (ok(await has(j, "#fpbell") && !(await j.locator("#fphold").isVisible()), "Schande: erst die Glocke, der Entschuldigen-Knopf ist noch nicht da")){
+        await j.shot("schande");
+        for (let i = 0; i < 4; i++){ await sleep(1300); await j.locator("#fpbell").tap(); }
+        await sleep(1700); ok(await j.evaluate(() => window.__said.filter(t => t === "Schande!").length) === 4, "Schande: die Stimme sagt viermal „Schande!“", await j.evaluate(() => JSON.stringify(window.__said)));
+        ok(await j.locator("#fphold").isVisible() && !(await has(j, "#fpbell")), "Schande: nach viermal Klingeln kommt der Entschuldigen-Knopf"); await j.shot("schande-fertig"); }
+      await clean(j, "Schande"); await j.context().close(); }
   },
 
   /* ---------- jede Seite einmal öffnen, am Handy und am PC ---------- */
