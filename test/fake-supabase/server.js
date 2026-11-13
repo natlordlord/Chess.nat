@@ -110,7 +110,8 @@ const FOODS = [["4000000000017", "Vollmilch 3,5 %", "Weihenstephan", 64, 4.8, 3.
 const offHit = f => ({code: f[0], product_name: f[1], product_name_de: f[1], brands: f[2], nutriments: {"energy-kcal_100g": f[3], carbohydrates_100g: f[4], proteins_100g: f[5], fat_100g: f[6], fiber_100g: f[7], sugars_100g: Math.round(f[4] * .4), "saturated-fat_100g": Math.round(f[6] * 4) / 10, salt_100g: .1},
   serving_quantity: f[9], serving_size: f[8], product_quantity: f[10], image_front_small_url: null, countries_tags: ["en:germany"], nutriscore_grade: f[3] > 400 ? "e" : f[3] > 200 ? "c" : "a"});
 function ai(req){
-  const kind = req.response_format.json_schema.name, user = req.messages[1].content, said = (/Gesagt: „([\s\S]*)“/.exec(user) || [0, user])[1];
+  const kind = req.response_format.json_schema.name, c0 = req.messages[1].content, photo = Array.isArray(c0) && c0.some(x => x && x.type === "image_url");
+  const user = Array.isArray(c0) ? c0.filter(x => x && x.type === "text").map(x => x.text).join("\n") : c0, said = (/Gesagt: „([\s\S]*)“/.exec(user) || [0, user])[1];
   const it = (name, amount, kcal, carbs, protein, fat) => ({name, amount, grams: 0, brand: "none", product: "none", ref: "", state: "", kcal, carbs, protein, fat, fiber: 2, sugar: Math.round(carbs * .3), satfat: Math.round(fat * .4), quality: kcal > 300 ? 2 : 4});
   /* a photographed nutrition table: the numbers "printed" on the test pack */
   if (kind === "label") return {readable: true, name: "Skyr Vanille", brand: "Milbona", unit: "g", kcal: 76, kj: 322, fat: 0.2, satfat: 0.1, carbs: 9.4, sugar: 9.1, fiber: -1, protein: 9.0, salt: 0.13};
@@ -119,6 +120,12 @@ function ai(req){
       dishes: dish.map(d => ({name: d, items: [{name: "Hackfleisch", amount: "500 g"}, {name: "Passierte Tomaten", amount: "2 Dosen"}, {name: "Lasagneplatten", amount: "1 Packung"}]}))}; }
   if (kind === "dish") return {title: "Hähnchen-Reis-Pfanne", emoji: "🍗", why: "Viel Protein, füllt die fehlenden Kalorien.", items: [{name: "Hähnchenbrust", grams: 200, kcal: 212, carbs: 0, protein: 48, fat: 2}, {name: "Reis (roh)", grams: 100, kcal: 350, carbs: 78, protein: 7, fat: 1}, {name: "Paprika", grams: 150, kcal: 45, carbs: 9, protein: 1.5, fat: .5}],
     steps: ["Reis kochen.", "Hähnchen anbraten.", "Paprika dazu, alles mischen."], tip: "Mit Sojasauce abschmecken."};
+  /* the products scanned before (FRÜHER): oat flakes said without a brand are the scanned Kölln ones */
+  const fr = ((/FRÜHER: (.*)/.exec(user) || [])[1] || "").split("; ").map(x => x.replace(/^\d+ = /, ""));
+  if (kind === "meal" && /haferflocken/i.test(said)){ const u = fr.findIndex(x => /haferflocken/i.test(x));
+    return {title: "Haferflocken mit Milch", emoji: "🥣", items: [Object.assign(it("Haferflocken", "60 g", 220, 36, 8, 4), {grams: 60, usual: u}), Object.assign(it("Milch", "200 ml", 128, 9.6, 6.6, 7), {grams: 200, usual: -1})], kcal: 348, carbs: 45.6, protein: 14.6, fat: 11, minutesAgo: 0, note: ""}; }
+  /* a photo of the plate: the stand-in "AI" sees a plate of spaghetti bolognese */
+  if (kind === "meal" && photo) return {title: "Spaghetti Bolognese", emoji: "🍝", items: [Object.assign(it("Spaghetti Bolognese", "1 Teller (400 g)", 560, 70, 24, 18), {grams: 400, usual: -1})], kcal: 560, carbs: 70, protein: 24, fat: 18, minutesAgo: 0, note: "Menge vom Foto geschätzt."};
   if (kind === "week") return {headline: "Solide Woche", mood: "ok", summary: "Du hast dein Kalorienziel an 4 von 7 Tagen erreicht.", good: ["Genug Protein"], better: ["Mehr Gemüse"], focus: "Jeden Tag frühstücken."};
   /* noodles, rice, chicken: the stand-in "AI" names the table food and the grams, and deliberately guesses different calories
      every time (that was the complaint: the same food, different values). The server has to ignore its numbers. */

@@ -209,7 +209,7 @@
     el.innerHTML = `<div class="kc-hd"><button class="kc-ttl" data-kc-go>Kalorien heute</button>${flameChip(n, lit, myIce())}<button class="kc-ov" data-kc-go>${svg(IC.chart, 16)} Übersicht</button></div>
       ${sumHTML(t, true)}
       <div class="kc-btns two"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 32)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 32)}<span>Barcode</span></button></div>
-      <button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Lebensmittel suchen …</span></button>
+      <div class="kc-srow"><button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Lebensmittel suchen …</span></button><button class="kc-phb" data-kc-photo aria-label="Foto vom Essen">📷<small>Foto</small></button></div>
       ${setupCard()}${quickHTML()}${tip}`;
     wireDay(el); animSum(el);
     if (K.loaded){ Weigh.check(); Wrap.check(); }
@@ -403,7 +403,7 @@
   function wireDay(el){
     el.querySelectorAll("[data-kc-go]").forEach(b => b.onclick = () => App.go("kcal"));
     const w = (s2, f) => el.querySelectorAll(s2).forEach(b => b.onclick = f);
-    w("[data-kc-say]", () => Voice2.open()); w("[data-kc-scan]", () => KCScan.open()); w("[data-kc-find]", e => Search.open({}, e.currentTarget)); w("[data-kc-fl]", () => iceSheet()); w("[data-kc-setup]", () => Setup.open());
+    w("[data-kc-say]", () => Voice2.open()); w("[data-kc-photo]", () => Voice2.photo()); w("[data-kc-scan]", () => KCScan.open()); w("[data-kc-find]", e => Search.open({}, e.currentTarget)); w("[data-kc-fl]", () => iceSheet()); w("[data-kc-setup]", () => Setup.open());
     el.querySelectorAll("[data-qadd]").forEach(b => b.onclick = e => { e.stopPropagation(); quickAdd(QL[+b.dataset.qadd], b); });
     el.querySelectorAll("[data-qi]").forEach(r => { r.onclick = () => { const q = QL[+r.dataset.qi]; if (q){ haptic(8); entrySheet(q.m); } }; r.onkeydown = e => { if (e.key === "Enter") r.onclick(); }; });
   }
@@ -782,7 +782,7 @@
     if (F) return {k: "off", t: "Nährwert-Tabelle", l: "Fester Wert aus der Nährwert-Tabelle der App."};
     if (i.food) return {k: "db", t: "Geprüfte Datenbank", l: "Geprüfter Wert aus der gemeinsamen Datenbank."};
     return {k: "est", t: "KI-Schätzung", l: "Von der KI geschätzt, nicht aus einer Datenbank. Tausch es gegen das echte Produkt, wenn du es genau willst."}; };
-  const srcTag = (i, m) => { const o = srcOf(i, m); return `<small class="kc-src ${o.k}">${h(o.t)}</small>`; };
+  const srcTag = (i, m) => { const o = srcOf(i, m); return (i && i.last ? `<small class="kc-src last">↺ Wie letztes Mal</small>` : "") + `<small class="kc-src ${o.k}">${h(o.t)}</small>`; };
   function recipeSheet(m){ const ps = partsOf(m), T = sumOf(ps), g = totG(ps), bad = ps.filter(i => !isChecked(i)); let sent = false;
     const list = `<div class="kc-items">${ps.map(i => `<div><span>${h(nice(i.name))}<small>${h(i.amount || "")}${isChecked(i) ? "" : ` · <u class="kc-est">nur geschätzt</u>`}</small></span><b>${fmt(i.kcal)} kcal</b></div>`).join("")}</div>`;
     if (bad.length){ const sh = detailSheet(`<div class="kc-form" data-notr><h3>Noch nicht für alle</h3><p class="muted">Ein Rezept für alle darf nur aus Zutaten mit geprüften Werten bestehen. ${bad.length === 1 ? "Eine Zutat ist" : bad.length + " Zutaten sind"} nur geschätzt:</p>${list}
@@ -802,7 +802,7 @@
     return sh; }
   function mealSheet(m, own = true){
     const items = own ? partsOf(m) : (Array.isArray(m.items) ? m.items : []);
-    const sh = detailSheet(`<div class="kc-ms" data-notr><div class="kc-mh"><span class="kc-me">${h(m.emoji || "🍽️")}</span><div><div class="kc-mt">${h(m.title)}</div><div class="muted">${dayLabel(m.day)}, ${hhmm(m.ts)}${m.source === "barcode" ? " · Barcode" : m.source === "search" ? " · Suche" : m.source === "voice" ? " · gesprochen" : ""}</div></div>${own ? pinHTML(m) : ""}</div>
+    const sh = detailSheet(`<div class="kc-ms" data-notr><div class="kc-mh"><span class="kc-me">${h(m.emoji || "🍽️")}</span><div><div class="kc-mt">${h(m.title)}</div><div class="muted">${dayLabel(m.day)}, ${hhmm(m.ts)}${m.source === "barcode" ? " · Barcode" : m.source === "search" ? " · Suche" : m.source === "voice" ? (/^📷/.test(m.said || "") ? " · Foto" : " · gesprochen") : ""}</div></div>${own ? pinHTML(m) : ""}</div>
       <div class="kc-mk"><b data-t="kcal">${fmt(m.kcal)}</b> kcal</div>
       <div class="kc-macros"><span><b data-t="carbs">${f1(m.carbs)} g</b>KH</span><span><b data-t="protein">${f1(m.protein)} g</b>Protein</span><span><b data-t="fat">${f1(m.fat)} g</b>Fett</span></div>
       ${own && totOK(items) ? totHTML(items, "Davon gegessen") : ""}
@@ -907,6 +907,22 @@
     return sh;
   }
 
+  /* ---------- "the same as last time" (Idee von Adri): products this person scanned or picked before ----------
+     Their names go with what was said; the AI says which ingredient is one of them, and then that product's own values are taken
+     (with the grams of now). The meal says so, and each such ingredient can be tapped to scan or pick something else. */
+  function usualProducts(){ const out = [], seen = {}, since = addDays(today(), -60);
+    for (const m of K.meals){ if (m.draft || m.day < since) continue; for (const i of (Array.isArray(m.items) ? m.items : [])){
+      if (!i || !i.per || !i.per.n || (!i.code && !i.per.tab)) continue; const key = i.code || ("t:" + i.per.tab); if (seen[key]) continue; seen[key] = 1;
+      out.push({label: (i.per.n + (i.per.b && !i.per.tab ? " (" + i.per.b + ")" : "")).slice(0, 80), item: i}); if (out.length >= 40) return out; } }
+    return out; }
+  function sameAsLast(meal, U){ const used = [];
+    const items = (meal.items || []).map(it => { const o = it.u != null && U[it.u]; if (!o) return it;
+      const g = Number(it.g) || gramsIn(it.amount) || Number(o.item.g) || 0; if (!(g > 0)) return it;
+      const n = Object.assign(itemOf(perP(o.item), g), {last: 1}); if (o.item.per && o.item.per.ck) n.st = o.item.st; used.push(n.name); return n; });
+    if (!used.length) return meal; const T = sumOf(items);
+    return Object.assign({}, meal, {items, kcal: Math.round(T.kcal), carbs: r1(T.carbs), protein: r1(T.protein), fat: r1(T.fat),
+      note: ("Wie letztes Mal: " + used.join(", ") + ". Anderes Produkt? Zutat antippen und neu scannen. " + (meal.note || "")).trim().slice(0, 300)}); }
+
   /* ---------- voice: tap = record, tap again = done. It never stops by itself: when the phone's speech
      recognition ends after a pause, it starts again at once and keeps what was said. While recording nothing
      pops up (Focus.hush), a live voice band and a timer show that it really records. No sounds. ---------- */
@@ -917,17 +933,18 @@
     function ui(){
       ov = document.createElement("div"); ov.className = "kc-ov-full kc-voice"; ov.setAttribute("data-notr", "");
       ov.innerHTML = `<div class="kc-vtop"><button class="kc-x" data-x aria-label="Schließen">${svg(IC.x, 22)}</button><span class="kc-vtime" id="kcvtime"></span><span style="width:44px"></span></div>
-        <div class="kc-vmid"><div class="kc-vt" id="kcvt">Ich höre zu</div><div class="kc-heard dim" id="kcheard">„Zwei Brötchen mit Nutella und ein Kakao …“</div>
+        <div class="kc-vmid"><img class="kc-vph" id="kcvph" alt="" hidden><div class="kc-vt" id="kcvt">Ich höre zu</div><div class="kc-heard dim" id="kcheard">„Zwei Brötchen mit Nutella und ein Kakao …“</div>
           <canvas class="kc-wave" id="kcwave"></canvas>
           <button class="kc-mic" id="kcmic" aria-label="Aufnahme"><i class="kc-ring"></i><span class="kc-mi">${svg(IC.mic, 54)}</span><span class="kc-ms2"></span></button><div class="kc-vh muted" id="kcvh"></div>
           <button class="btn go big kc-vdone" id="kcvdone" hidden>Fertig, rechnen</button>
           <form class="kc-type" id="kctype" hidden><textarea id="kctext" rows="3" placeholder="Was hast du gegessen?"></textarea><button class="btn go big">Rechnen</button></form></div>
-        <div class="kc-vbot"><button class="btn ghost" id="kckb">${svg(IC.kb, 18)} Tippen</button></div>`;
+        <div class="kc-vbot"><button class="btn ghost" id="kckb">${svg(IC.kb, 18)} Tippen</button><button class="btn ghost" id="kcph">📷 Foto vom Essen</button></div>`;
       document.body.appendChild(ov);
       ov.querySelector("[data-x]").onclick = close;
       ov.querySelector("#kcmic").onclick = () => { if (mode === "listening") finish(); else if (mode === "idle" || mode === "paused") listen(mode === "paused"); };
       ov.querySelector("#kcvdone").onclick = () => { if (heard) analyze(heard); };
       ov.querySelector("#kckb").onclick = () => typeMode();
+      ov.querySelector("#kcph").onclick = () => photo();
       ov.querySelector("#kctype").onsubmit = e => { e.preventDefault(); const v = ov.querySelector("#kctext").value.trim(); if (!v) return say("Schreib kurz, was du gegessen hast"); ov.querySelector("#kctext").blur(); analyze(v); };
       draw();
     }
@@ -938,6 +955,7 @@
       ov.querySelector("#kcvh").textContent = hint || "";
       ov.querySelector("#kctype").hidden = state !== "typing"; ov.querySelector("#kcmic").hidden = state === "typing"; ov.querySelector("#kcwave").hidden = state === "typing";
       ov.querySelector("#kckb").hidden = state === "typing" || state === "thinking" || state === "finishing" || state === "listening";
+      ov.querySelector("#kcph").hidden = state === "thinking" || state === "finishing" || state === "listening";
       ov.querySelector("#kcvdone").hidden = !(state === "paused" && heard);
     }
     function open(){
@@ -996,25 +1014,30 @@
     }
     function typeMode(hint){ stop(); set("typing", hint || ""); const t = ov.querySelector("#kctext"); t.value = heard || ""; setTimeout(() => t.focus(), 60); }
     function close(){ stop(); mode = "idle"; cancelAnimationFrame(raf); if (ov){ ov.remove(); ov = null; } }
-    async function analyze(text){
-      set("thinking", ""); const hd = ov.querySelector("#kcheard"); hd.textContent = text; hd.classList.remove("dim");
-      const at = Date.now();
+    async function analyze(text, shot){
+      set("thinking", shot ? "Ich schau mir das Foto an" : ""); const hd = ov.querySelector("#kcheard"); hd.textContent = text || ""; hd.classList.toggle("dim", !text);
+      ov.classList.toggle("photo", !!shot); const ph = ov.querySelector("#kcvph"); if (ph){ ph.hidden = !shot; if (shot) ph.src = shot.thumb; }
+      const at = Date.now(), U = usualProducts();
       try {
         const s = window.ChessSite && window.ChessSite.getSession();
-        const res = await fetch("/api/kcal", {method: "POST", headers: {"Content-Type": "application/json", Authorization: "Bearer " + (s ? s.access_token : "")}, body: JSON.stringify({text})});
+        const res = await fetch("/api/kcal", {method: "POST", headers: {"Content-Type": "application/json", Authorization: "Bearer " + (s ? s.access_token : "")}, body: JSON.stringify(Object.assign({text, usual: U.map(x => x.label)}, shot ? {img: shot.img} : {}))});
         const j = await res.json().catch(() => ({}));
         if (!res.ok || !j.meal) throw new Error(j.error || "Das hat nicht geklappt.");
-        const m = j.meal;
+        const m = sameAsLast(j.meal, U);
         if (!m.items.length && !m.kcal) throw new Error(m.note || "Da hab ich nichts Essbares erkannt.");
-        const ts = new Date(at - (m.minutesAgo || 0) * 60000).toISOString();
-        const saved = await K.add({draft: true, source: "voice", said: text, ts, day: dayOf(ts), title: m.title, emoji: m.emoji, kcal: m.kcal, carbs: m.carbs, protein: m.protein, fat: m.fat, items: m.items, note: m.note});
+        const ts = new Date(at - (m.minutesAgo || 0) * 60000).toISOString(), said = shot ? ("📷 Foto" + (text ? ": " + text : "")) : text;
+        const saved = await K.add({draft: true, source: "voice", said, ts, day: dayOf(ts), title: m.title, emoji: m.emoji, kcal: m.kcal, carbs: m.carbs, protein: m.protein, fat: m.fat, items: m.items, note: m.note});
         close(); haptic(15); mealSheet(saved);
       } catch(e) {
         if (!ov) return say("Konnte nicht rechnen: " + (e.message || e));
-        set("typing", "⚠️ " + (e.message || "Keine Verbindung. Nochmal versuchen?")); ov.querySelector("#kctext").value = text;
+        ov.classList.remove("photo"); { const ph = ov.querySelector("#kcvph"); if (ph) ph.hidden = true; }
+        set("typing", "⚠️ " + (e.message || "Keine Verbindung. Nochmal versuchen?")); ov.querySelector("#kctext").value = text || "";
       }
     }
-    return {open, close};
+    /* a photo of the plate (Idee von Adri): the camera opens at once; what is said or typed before counts on top */
+    async function photo(home){ const keep = home ? "" : mode === "typing" ? (ov.querySelector("#kctext").value || "").trim() : heard; stop(); const shot = await Label.shoot();
+      if (!shot){ if (home) close(); else if (ov) set(keep ? "paused" : "idle", ""); return; } if (!ov) ui(); analyze(keep, shot); }
+    return {open, close, photo: () => { if (!meId()) return say("Bitte erst anmelden"); if (ov) close(); heard = base = ""; bars.length = 0; ui(); set("idle", ""); return photo(true); }};
   })();
 
   /* ---------- barcode: fast, any angle ---------- */
@@ -1753,7 +1776,7 @@
       const t = today(), g = K.goal(), eaten = K.dayKcal(t), lit = eaten >= g, miss = g - eaten, i = !lit ? idea(miss) : null;
       el.innerHTML = `<div id="hsslot" data-notr></div><div class="unit kc-sum">${sumHTML(t, false)}
         <div class="kc-btns two"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 32)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 32)}<span>Barcode</span></button></div>
-        <button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Lebensmittel suchen …</span></button>
+        <div class="kc-srow"><button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Lebensmittel suchen …</span></button><button class="kc-phb" data-kc-photo aria-label="Foto vom Essen">📷<small>Foto</small></button></div>
         <div class="kc-btns two"><button class="kc-tile shop" id="kcshop">${svg(IC.list, 24)}<span><b>Einkaufsliste</b><small>mit Freunden</small></span></button><button class="kc-tile cook" id="kccook">${svg(IC.chef, 24)}<span><b>Kochen</b><small>Was hast du da?</small></span></button><button class="kc-tile haus" id="kchaus" data-notr><span class="hs-ti">🏠</span><span><b>Haushalt</b><small id="hsnext">Müllplan &amp; Aufgaben</small></span></button></div>
         ${setupCard()}</div>
         <div class="kc-lh"><span>Heute</span>${heads()}</div>${this.dayBlock(t)}
@@ -1932,6 +1955,10 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-mac{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.kc-mc{background:var(--panel-2);border-radius:14px;padding:8px 10px;display:flex;flex-direction:column;gap:3px;min-width:0}
 .kc-mc span{font:800 11.5px var(--body);color:var(--muted);letter-spacing:.02em}.kc-mc b{font:900 17px var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kc-mc b small{font:800 11.5px var(--body);color:var(--muted)}
 .kc-mc i{display:block;height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}.kc-mc u{display:block;height:100%;border-radius:3px;background:var(--go);transition:width .4s}.kc-mc.ok{background:rgba(127,178,74,.2)}.kc-mc.ok u{background:linear-gradient(90deg,#7FB24A,#9BE25A)}.kc-mc.ok b{color:#9BE25A}
+.kc-srow{display:flex;gap:8px;align-items:stretch}.kc-srow .kc-sbar{flex:1;min-width:0}
+.kc-phb{flex:none;width:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border-radius:16px;border:2px solid var(--line);background:var(--panel-2);color:var(--fg);font-size:22px;line-height:1;cursor:pointer;-webkit-tap-highlight-color:transparent}.kc-phb small{font:800 11px var(--body);color:var(--muted)}.kc-phb:active{border-color:var(--go)}
+.kc-vph{width:min(62vw,240px);aspect-ratio:1;object-fit:cover;border-radius:22px;margin:0 auto 14px;display:block;box-shadow:0 8px 30px rgba(0,0,0,.4)}.kc-vph[hidden]{display:none}.kc-voice.photo .kc-wave,.kc-voice.photo .kc-mic{display:none}
+.kc-src.last{background:rgba(127,184,74,.18);color:var(--go-hi,var(--go))}
 .kc-sbar{display:flex;align-items:center;gap:10px;width:100%;padding:13px 14px;border-radius:16px;border:2px solid var(--line);background:var(--panel-2);color:var(--muted);font:800 16px var(--body);cursor:text;text-align:left;-webkit-tap-highlight-color:transparent}.kc-sbar:active{border-color:var(--go)}
 .kc-hr{display:flex;flex-direction:column;gap:8px}.kc-hrh{display:flex;justify-content:space-between;align-items:baseline}.kc-hrh b{font:900 18px var(--display)}.kc-hrh small{color:var(--muted);font:700 12px var(--body)}
 .kc-clap{align-self:flex-end;margin:-2px 0 4px;border:0;border-radius:12px;padding:9px 14px;background:linear-gradient(180deg,var(--go-hi),var(--go));color:#fff;font:800 14px var(--body);box-shadow:inset 0 -3px 0 var(--go-deep);cursor:pointer}.kc-clap:active{transform:translateY(2px)}.kc-clap.on{background:var(--panel-3);box-shadow:none;color:var(--muted)}.kc-clapd{margin:-2px 4px 4px;font:700 13px var(--body);color:var(--go-hi)}.kc-hrt{display:flex;gap:6px;overflow-x:auto;scroll-snap-type:x proximity;margin:0 -4px;padding:0 4px}.kc-hrt .chip{flex:none;scroll-snap-align:center;font-size:14px;padding:8px 14px}.kc-hrl{display:flex;flex-direction:column;gap:8px}.kc-hs em{font:700 12px var(--body);font-style:normal;color:var(--muted);margin-left:3px}.kc-hrr{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;background:var(--panel-2)}.kc-hrr.me{box-shadow:inset 0 0 0 1.5px rgba(143,196,88,.5)}.kc-hrr .r{width:16px;text-align:center;font:900 14px var(--display);color:var(--muted)}.kc-hrr:first-of-type .r{color:#FFD15C}
@@ -2036,7 +2063,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 @keyframes kcPulse{0%{box-shadow:0 0 0 0 rgba(226,59,59,.55),inset 0 -6px 0 #a52525}70%{box-shadow:0 0 0 26px rgba(226,59,59,0),inset 0 -6px 0 #a52525}100%{box-shadow:0 0 0 0 rgba(226,59,59,0),inset 0 -6px 0 #a52525}}
 @keyframes kcSpin{50%{transform:scale(.92)}}
 .kc-type{width:100%;display:flex;flex-direction:column;gap:10px}.kc-type textarea{width:100%;box-sizing:border-box;border-radius:14px;border:2px solid #3F3B36;background:#211F1C;color:#fff;font:600 18px var(--body);padding:12px}
-.kc-vbot{display:flex;justify-content:center}.kc-vbot .btn{color:rgba(255,255,255,.7)}
+.kc-vbot{display:flex;justify-content:center;flex-wrap:wrap;gap:8px}.kc-vbot .btn{color:rgba(255,255,255,.7)}
 .kc-scanov:has(.kc-rp) .kc-frame{top:30%;width:min(62vw,280px)}.kc-rp{width:100%;max-width:460px;display:flex;flex-direction:column;gap:8px;background:rgba(20,19,17,.88);border-radius:20px;padding:12px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .kc-rl{display:flex;flex-direction:column;gap:4px;max-height:30vh;overflow:auto}.kc-rl>div{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:12px;background:rgba(255,255,255,.06)}.kc-rl>div.ok{background:rgba(127,178,74,.22)}
 .kc-rl i{width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.35);display:grid;place-items:center;font:900 13px var(--body);font-style:normal;flex:none}.kc-rl .ok i{background:var(--go);border-color:var(--go)}

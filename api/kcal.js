@@ -17,10 +17,11 @@ const SCHEMA = {
   properties: {
     title: {type: "string", description: "Kurzer Name der Mahlzeit, max. 4 Wörter"},
     emoji: {type: "string", description: "Ein passendes Essens-Emoji"},
-    items: {type: "array", items: {type: "object", additionalProperties: false, required: ["name", "food", "brand", "product", "amount", "grams", "ref", "state", "kcal", "carbs", "protein", "fat", "fiber", "sugar", "satfat", "quality"],
+    items: {type: "array", items: {type: "object", additionalProperties: false, required: ["name", "food", "brand", "product", "usual", "amount", "grams", "ref", "state", "kcal", "carbs", "protein", "fat", "fiber", "sugar", "satfat", "quality"],
       properties: {name: {type: "string"}, food: {type: "string", description: "Name aus der Liste BEKANNT, wenn die Zutat genau dieses Lebensmittel ist, exakt so geschrieben; sonst leer"},
         brand: {type: "string", description: "Die Marke oder der Händler, den der Nutzer zu dieser Zutat genannt hat (z. B. 'Barilla', 'Aldi', 'Rewe', 'Ja', 'Milka', 'Arla'). Nichts genannt: 'none'"},
         product: {type: "string", description: "Nur wenn der Nutzer ein bestimmtes Produkt oder eine Marke nennt: Marke und Produktname, so wie man es im Supermarkt sucht (z. B. 'Barilla Pesto Genovese', 'Nutella', 'Ja Vollmilch 3,5'). Nennt er nur das Lebensmittel (Nudeln, Pesto, Milch): 'none'"},
+        usual: {type: "integer", description: "Nummer aus der Liste FRÜHER, wenn diese Zutat genau dieses früher eingetragene Produkt ist (dasselbe Lebensmittel, auch wenn die Marke jetzt nicht gesagt wurde); sonst -1"},
         amount: {type: "string", description: "Menge, z. B. '2 Scheiben (80 g)'"},
         grams: {type: "number", description: "Gewicht dieser Zutat in Gramm (bei Getränken ml), so wie gegessen. Immer angeben, auch geschätzt."},
         /* no empty string in an enum: Gemini refuses the whole request then ("enum[0]: cannot be empty"), so "none" stands for "not from the table" */
@@ -45,6 +46,8 @@ ${FOODS.list.map(f => f.id + " = " + f.n + (f.cf ? " (zwei Zustände: " + f.st[0
 PRODUKT (wichtig): Nennt der Nutzer zu einer Zutat eine Marke, einen Händler oder ein bestimmtes Produkt, schreib die Marke bzw. den Händler in brand und Marke plus Produktname in product. Beispiel: „250 g Barilla Spaghetti mit Pesto alla Genovese von Aldi“ → Spaghetti: brand "Barilla", product "Barilla Spaghetti"; Pesto: brand "Aldi", product "Aldi Pesto Genovese". Weitere: „Nutella“ → brand "Nutella"; „Skyr von Arla“ → brand "Arla", product "Arla Skyr". Die App sucht dann genau dieses Produkt in Open Food Facts und nimmt dessen Werte statt der Tabelle. ref und state trotzdem setzen, wenn es zur TABELLE gehört. Erfinde keine Marke, die nicht gesagt wurde: dann product = "none".
 Zustand: Nudeln, Reis, Couscous, Bulgur, Quinoa, Linsen, Kichererbsen und Bohnen werden gekocht schwerer, Fleisch wird gebraten leichter. Sagt der Nutzer „gekocht“, „gebraten“, „auf dem Teller“ oder nichts dazu, ist grams das fertige Gewicht: state = "cooked". Sagt er „trocken“, „roh“, „ungekocht“ oder nennt er das Gewicht aus der Packung, ist state = "dry". Rechne das Gewicht nie selbst um.
 DATENBANK: Zusätzlich gibt es eine geprüfte Datenbank mit festen Werten pro 100 g. Ihre Namen stehen unter BEKANNT. Ist eine Zutat, die nicht in der TABELLE steht, genau eines dieser Lebensmittel (auch anders geschrieben, in der Mehrzahl oder mit Marke), setze food exakt auf diesen Namen und grams auf das echte Gewicht: die App nimmt dann die geprüften Werte. Passt keiner wirklich, bleibt food leer; erfinde keine Namen und nimm nichts nur Ähnliches.
+FRÜHER: Darunter stehen Produkte, die dieser Nutzer früher gescannt oder ausgesucht hat, mit Nummer. Ist eine Zutat genau eines davon (z. B. „Schokomüsli“ und früher „Kölln Schoko Müsli“; „Nougat Bits“ und früher „Nougat Bits (Kellogg's)“), setze usual auf diese Nummer: die App nimmt dann die Werte dieses Produkts. Nur bei wirklich demselben Lebensmittel, nicht bei bloß Ähnlichem (Vollmilch ist nicht Hafermilch). Sonst usual = -1. Sagt der Nutzer ausdrücklich eine andere Marke, ist es nicht dasselbe.
+FOTO: Kommt ein Foto mit, zeigt es das Essen. Erkenne darauf jede Zutat und schätze ihr Gewicht aus Teller, Besteck, Glas oder Packung. Was dazu gesagt wurde, geht vor (Menge, Marke, was nicht zu sehen ist). Ist auf dem Foto nichts Essbares, gib leere items zurück und sag es in note.
 Antworte nur mit JSON nach diesem Schema: ${JSON.stringify(SCHEMA)}`;
 
 /* "Was soll ich kochen?": one dish from what is at home that fills the day's gap */
@@ -186,7 +189,7 @@ async function fromProducts(items, raw){
   const miss = [];
   await Promise.all(items.map(async (it, ix) => { const i = raw[ix] || {}, clean = v => { v = String(v || "").trim(); return /^(none|null|keine?|-)?$/i.test(v) || v.length > 80 ? "" : v; }, br = clean(i.brand), g = Number(i.grams);
     /* what to look for: the product as the AI wrote it, else the brand that was said plus the name of the ingredient */
-    const asks = [clean(i.product), br ? br + " " + String(i.name || "") : ""].filter((v, k, A) => v && A.indexOf(v) === k); if (!asks.length || !(g > 0 && g <= 5000)) return;
+    const asks = [clean(i.product), br ? br + " " + String(i.name || "") : ""].filter((v, k, A) => v && A.indexOf(v) === k); if (it.u != null || !asks.length || !(g > 0 && g <= 5000)) return;
     let P = null; for (const a of asks){ P = await offProduct(a).catch(() => null); if (P) break; }
     console.log("kcal product", JSON.stringify({asks, found: P && [P.name, P.brand, P.code, P.k]}));
     const pn = asks[0]; if (!P){ miss.push(pn); return; }
@@ -282,10 +285,16 @@ module.exports = async (req, res) => {
     } catch(e) { return fail(e); }
   }
   const text = String(b.text || "").trim().slice(0, 1500);
-  if (!text) return res.status(400).json({error: "Nichts zu rechnen."});
+  /* a photo of the plate (Idee von Adri): the AI sees the food and estimates the grams; what was said on top wins */
+  const img = String(b.img || ""), hasImg = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(img) && img.length <= 3500000;
+  if (b.img && !hasImg) return res.status(400).json({error: "Das Foto konnte nicht gelesen werden."});
+  if (!text && !hasImg) return res.status(400).json({error: "Nichts zu rechnen."});
+  /* the products this person scanned or picked before: the AI says when an ingredient is one of them, the phone then takes that product's values */
+  const usual = (Array.isArray(b.usual) ? b.usual : []).slice(0, 40).map(x => clip(x, 80).replace(/[\n;]/g, " ").trim()).filter(Boolean);
   let est;
   const known = await knownFoods(req);
-  try { est = await ask(req, text, null, {system: SYSTEM, schema: SCHEMA, name: "meal", user: `Jetzt ist ${berlinNow()} (Europe/Berlin).\nBEKANNT: ${known.join("; ").slice(0, 12000) || "(leer)"}\nGesagt: „${text}“`, max: 3000, temp: 0}); }
+  const said = `Jetzt ist ${berlinNow()} (Europe/Berlin).\nBEKANNT: ${known.join("; ").slice(0, 12000) || "(leer)"}\nFRÜHER: ${usual.map((u, n) => n + " = " + u).join("; ") || "(leer)"}\nGesagt: „${text || (hasImg ? "nichts, nur das Foto" : "")}“`;
+  try { est = await ask(req, text, null, {system: SYSTEM, schema: SCHEMA, name: "meal", user: hasImg ? [{type: "text", text: said + "\nDazu ein Foto des Essens."}, {type: "image_url", image_url: {url: img}}] : said, max: 3000, temp: 0}); }
   catch(e){
     console.log("kcal ai failed", e.status, e.model, String(e.message).slice(0, 300));
     return res.status(502).json({error: e.status === 429 ? "Gerade zu viele Anfragen. Gleich nochmal versuchen." : "Die KI hat gerade nicht geantwortet. Nochmal versuchen."});
@@ -295,6 +304,7 @@ module.exports = async (req, res) => {
   const items = (Array.isArray(est.items) ? est.items : []).slice(0, 30).map(i => {
     const it = {name: String(i.name || "").slice(0, 80), amount: String(i.amount || "").slice(0, 60), kcal: Math.round(Number(i.kcal) || 0), carbs: r1(i.carbs), protein: r1(i.protein), fat: r1(i.fat),
       h: {fi: r1(i.fiber), su: r1(i.sugar), sf: r1(i.satfat), q: Math.max(1, Math.min(5, Math.round(Number(i.quality) || 3)))}};
+    const u = Math.round(Number(i.usual)); if (u >= 0 && u < usual.length){ it.u = u; if (Number(i.grams) > 0) it.g = Math.round(Number(i.grams) * 10) / 10; }
     return fromTable(it, i); });
   const pmiss = await fromProducts(items, (Array.isArray(est.items) ? est.items : []).slice(0, 30)).catch(() => []);
   await fromChecked(req, items, (Array.isArray(est.items) ? est.items : []).slice(0, 30));

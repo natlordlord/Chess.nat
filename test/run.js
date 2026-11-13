@@ -264,7 +264,28 @@ const PARTS = {
     const first = await txt(a, ".kc-sres"); ok(/Nudeln, gekocht/.test(first) && /Bundeslebensmittelschlüssel/.test(first) && /150/.test(first), "Suche „nudeln“: zuerst „Nudeln, gekocht“ aus dem Bundeslebensmittelschlüssel mit 150 kcal", first); await a.shot("nudeln-suche");
     await a.tap(".kc-sres"); await sleep(500); await a.locator(".kc-sadd input").fill("200"); await a.locator(".kc-sadd input").blur(); await a.tap(".kc-sadd [data-add]"); await sleep(1100);
     m = (await meals("tester", "&limit=1"))[0]; ok(m.kcal === 301 && m.items[0].per.tab === "pasta", "200 g aus der Tabelle = 301 kcal", JSON.stringify([m.title, m.kcal, m.items[0].amount]));
-    await clean(a, "Tabelle in der Suche"); await a.context().close(); await b.context().close();
+    await clean(a, "Tabelle in der Suche");
+
+    /* "wie letztes Mal" (Idee von Adri): oat flakes were scanned yesterday; said today without a brand, the scanned pack's values are taken */
+    { const y = new Date(Date.now() - 864e5), day = y.getFullYear() + "-" + String(y.getMonth() + 1).padStart(2, "0") + "-" + String(y.getDate()).padStart(2, "0");
+      await L.stage("POST", "kcal_meals", "", {user_id: ID.tester, day, ts: y.toISOString(), title: "Haferflocken", emoji: "🥣", source: "barcode", kcal: 144, carbs: 22.4, protein: 5.6, fat: 2.7, code: "4000000000055",
+        items: [{name: "Haferflocken zart (Kölln)", amount: "40 g", kcal: 144, carbs: 22.4, protein: 5.6, fat: 2.7, code: "4000000000055", g: 40, per: {n: "Haferflocken zart", b: "Kölln", k: 361, c: 56, pr: 14, f: 6.7, s: 40, pk: 500, img: null, ss: "40 g", fi: 11, su: 0, sf: 0, sa: 0, ns: "", hd: 0}}]});
+      await a.reload(); await a.waitForFunction(() => window.Kcal && Kcal.meals && Kcal.meals.some(m => m.code === "4000000000055"), null, {timeout: 10000}).catch(() => {}); await sleep(800);
+      const m2 = await say(a, "tester", "60 g Haferflocken mit Milch"), oat = (m2.items || [])[0] || {};
+      ok(/Kölln/.test(oat.name) && oat.kcal === 217 && oat.code === "4000000000055" && oat.last === 1, "„Haferflocken“ ohne Marke gesagt: die gestern gescannten von Kölln, 60 g = 217 kcal", JSON.stringify([oat.name, oat.kcal, oat.code]));
+      ok(/Wie letztes Mal: Haferflocken zart \(Kölln\)/.test(m2.note || ""), "der Eintrag sagt „Wie letztes Mal“ und wie man es ändert", m2.note);
+      ok(m2.items[1] && !m2.items[1].last && !m2.items[1].code, "die Milch (nie gescannt) bleibt eine Schätzung", JSON.stringify(m2.items[1])); }
+    await clean(a, "Wie letztes Mal");
+
+    /* a photo of the plate (Idee von Adri): the camera opens, the AI sees the food, "Passt" enters it */
+    { const n0 = (await meals("tester")).length, png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", "base64");
+      const fc = a.waitForEvent("filechooser", {timeout: 5000}).catch(() => null); await a.tap("#main [data-kc-photo]"); const ch = await fc;
+      ok(!!ch, "Foto-Knopf öffnet sofort die Kamera"); if (ch) await ch.setFiles({name: "teller.png", mimeType: "image/png", buffer: png});
+      await a.waitForSelector(".dsheet [data-commit]", {timeout: 8000}).catch(() => {}); const st = await txt(a, ".dsheet"); await a.shot("kcal-foto-essen");
+      ok(/Spaghetti Bolognese/.test(st) && /560/.test(st), "Foto vom Teller: die KI erkennt Spaghetti Bolognese, 560 kcal, erst „Passt“ speichert", st.slice(0, 160));
+      if (await has(a, ".dsheet [data-commit]")) await a.tap(".dsheet [data-commit]"); for (let i = 0; i < 30 && (await meals("tester")).length === n0; i++) await sleep(200);
+      const mp = (await meals("tester", "&limit=1"))[0] || {}; ok(/^📷 Foto/.test(mp.said || "") && mp.kcal === 560, "eingetragen, mit „📷 Foto“ als Herkunft", JSON.stringify([mp.title, mp.said, mp.kcal])); }
+    await clean(a, "Foto vom Essen"); await a.context().close(); await b.context().close();
   },
 
   /* ---------- Kalorien: Reiter, Einstellungen, Ziel, Wiegen, Kochen, Wochen-Rückblick, Flamme ---------- */
