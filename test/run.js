@@ -162,8 +162,13 @@ const PARTS = {
       const top = () => page.evaluate(() => { const l = [...document.querySelectorAll(".dsheet")]; return l.length ? l[l.length - 1].innerText.replace(/\s+/g, " ") : ""; });
       ok(/Stimmt das mit der Packung/.test(await top()) && /76 kcal/.test(await top()) && /9,4 g/.test(await top()) && !/Ballaststoffe/.test(await top()), "Foto der Nährwerttabelle: zeigt die abgelesenen Werte zum Bestätigen (nicht Gedrucktes fehlt)", (await top()).slice(0, 300)); await page.shot("kcal-etikett");
       ok(/Milbona Skyr Vanille/.test(await page.inputValue("#kcln")), "Name vom Etikett ist vorausgefüllt");
-      await page.tap("#kclok"); await page.waitForSelector("#kcadd", {timeout: 6000}).catch(() => {}); await sleep(900);
-      const own = await L.table("kcal_own_products"); ok(own.length === 1 && own[0].code === "4999999999993" && Number(own[0].k) === 76 && own[0].status === "new" && own[0].user_id === ID.tester && (own[0].img || "").startsWith("data:image/jpeg"), "gespeichert: nur für mich, mit Foto zum Prüfen", JSON.stringify(own.map(o => [o.code, o.k, o.status])));
+      /* "Stimmt" opens the camera once more, for the front of the pack; closing it without a picture saves nothing yet */
+      { const [f0] = await Promise.all([page.waitForEvent("filechooser", {timeout: 6000}), page.tap("#kclok")]); await f0.setFiles([]); await page.evaluate(() => { const i = document.querySelector("#kclabf"); if (i) i.dispatchEvent(new Event("cancel")); }); await sleep(500);
+        ok((await L.table("kcal_own_products")).length === 0 && await page.evaluate(() => { const b = document.querySelector("#kclnop"); return !!b && !b.hidden; }), "Vorderseite nicht fotografiert: noch nichts gespeichert, „Ohne Bild speichern“ wird angeboten"); }
+      const [fc2] = await Promise.all([page.waitForEvent("filechooser", {timeout: 6000}), page.tap("#kclok")]); await fc2.setFiles({name: "vorne.png", mimeType: "image/png", buffer: png});
+      await page.waitForSelector("#kcadd", {timeout: 6000}).catch(() => {}); await sleep(900);
+      const own = await L.table("kcal_own_products"); ok(own.length === 1 && own[0].code === "4999999999993" && Number(own[0].k) === 76 && own[0].status === "new" && own[0].user_id === ID.tester && (own[0].img || "").startsWith("data:image/jpeg"), "gespeichert, mit Foto der Tabelle zum Prüfen", JSON.stringify(own.map(o => [o.code, o.k, o.status])));
+      ok((own[0].pic || "").startsWith("data:image/jpeg;base64,") && own[0].pic.length < 60000 && await page.evaluate(() => { const l = [...document.querySelectorAll(".dsheet")], i = l.length && l[l.length - 1].querySelector(".kc-ph img"); return !!i && i.src.startsWith("data:image/jpeg"); }), "Foto der Vorderseite ist gespeichert und steht beim Produkt", String((own[0].pic || "").length));
       ok(/Skyr/.test(await top()) && /76 kcal/.test(await top()), "danach gleich die Menge wählen", (await top()).slice(0, 200));
       if (await has(page, "#kcadd")){ await page.tap("#kcadd"); await sleep(1000); m = (await meals("tester", "&limit=1"))[0]; ok(m.code === "4999999999993" && m.kcal > 0, "Mahlzeit mit dem eigenen Produkt eingetragen", JSON.stringify([m.title, m.kcal, m.grams])); }
       await closeSheets(page);
@@ -178,7 +183,17 @@ const PARTS = {
       await closeSheets(b2); if (await has(b2, ".kc-scanov, .kc-ov-full")) await b2.evaluate(() => document.querySelectorAll(".kc-ov-full [data-x], .kc-ov-full .kc-x").forEach(x => x.click()));
       await b2.tap("[data-kc-find]"); await b2.waitForSelector("#kcq", {timeout: 6000}).catch(() => {});
       await b2.fill("#kcq", "Skyr Vanille"); await sleep(1800);
-      const hit = await txt(b2, "#kcsr"); ok(/Milbona Skyr Vanille/.test(hit) && /Foto von Nat Tester/.test(hit), "Foto-Produkt: steht bei anderen in der Suche, mit dem Namen des Fotografen", hit.slice(0, 300)); await b2.shot("kcal-foto-suche");
+      const hit = await txt(b2, "#kcsr"); ok(/Milbona Skyr Vanille/.test(hit) && /Foto von Nat Tester/.test(hit), "Foto-Produkt: steht bei anderen in der Suche, mit dem Namen des Fotografen", hit.slice(0, 300));
+      ok(await b2.evaluate(() => { const r = [...document.querySelectorAll("#kcsr .kc-sres")].find(x => /Skyr Vanille/.test(x.innerText)), i = r && r.querySelector("img"); return !!i && i.src.startsWith("data:image/jpeg"); }), "Foto-Produkt: in der Suche steht das Bild der Vorderseite statt des Kartons"); await b2.shot("kcal-foto-suche");
+      /* a photographed pack without a picture: anybody adds one with a tap on the camera */
+      await L.stage("PATCH", "kcal_own_products", "code=eq.4999999999993", {pic: null});
+      await b2.fill("#kcq", "Skyr Vanill"); await sleep(1500); await b2.fill("#kcq", "Skyr Vanille"); await sleep(1800);
+      await b2.evaluate(() => { const r = [...document.querySelectorAll("#kcsr .kc-sres")].find(x => /Skyr Vanille/.test(x.innerText)); if (r) r.click(); }); await b2.waitForSelector("#kcpic", {timeout: 6000}).catch(() => {});
+      if (ok(await has(b2, "#kcpic"), "Foto-Produkt ohne Bild: in der Suche steht „Foto der Vorderseite hinzufügen“")){
+        const png2 = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mP8z8BQz0AEYBxVSF+FABJADveWkH6oAAAAAElFTkSuQmCC", "base64");
+        const [f3] = await Promise.all([b2.waitForEvent("filechooser", {timeout: 6000}), b2.tap("#kcpic")]); await f3.setFiles({name: "vorne.png", mimeType: "image/png", buffer: png2}); await sleep(1200);
+        const o2 = await L.table("kcal_own_products"); ok(o2.length === 1 && (o2[0].pic || "").startsWith("data:image/jpeg") && o2[0].user_id === ID.tester && await b2.evaluate(() => { const r = [...document.querySelectorAll("#kcsr .kc-sres")].find(x => /Skyr Vanille/.test(x.innerText)); return !!r && !!r.querySelector("img") && !document.querySelector("#kcpic"); }), "Bild nachgetragen von jemand anderem: gespeichert, das Produkt gehört weiter dem Fotografen", JSON.stringify(o2.map(o => [o.user_id === ID.tester, (o.pic || "").length]))); }
+      await closeSheets(b2);
       await clean(b2, "Foto-Produkt für alle"); await b2.context().close(); }
     await closeSheets(page); if (await has(page, ".kc-scanov, .kc-ov-full")) await page.evaluate(() => document.querySelectorAll(".kc-ov-full [data-x], .kc-ov-full .kc-x").forEach(b => b.click()));
     await clean(page, "Etikett");

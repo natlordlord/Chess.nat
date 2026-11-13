@@ -151,6 +151,8 @@ module.exports = db => {
   const homeStart = t => { if (t.state !== "wait") return; if (t.everyone) Object.assign(t, {state: "open", asked_at: db.now()}); else homeAsk(t); };
   const homeTask = (u, id) => { if (!u) raise("not signed in"); const t = R.home_tasks.find(x => x.id === id); if (!t || !homeCan(u, t.group_id)) raise("no such task"); return t; };
   const RPC = {
+    /* a picture of the front for a photographed pack that has none yet; never replaces one */
+    kcal_own_pic(u, {p_code, p_pic}){ if (!u) raise("not signed in"); const l = R.kcal_own_products.filter(x => x.code === p_code && !x.pic && x.status !== "bad"); l.forEach(x => { x.pic = p_pic; }); return l.length > 0; },
     home_can: (u, a) => homeCan(u, a.g), home_owns: (u, a) => homeOwns(u, a.g),
     home_tick(){ R.home_tasks.filter(t => t.state === "wait" && Date.parse(t.ask_at) <= Date.now()).forEach(homeStart); return null; },
     home_answer(u, {p_task, p_yes}){ const t = homeTask(u, p_task); if (["done", "skipped"].includes(t.state)) return "closed";

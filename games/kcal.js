@@ -482,7 +482,7 @@
     P = cookInit(P);
     const U = unitOf(P), s = U ? U.g : 0, chips = [30, 50, 100, 150, 200, 250].map(v => [v, v + " g"]); if (P.pack && P.pack <= 3000 && P.pack !== s) chips.push([P.pack, "Packung"]);
     let g = opt.g || s || 100;
-    const sh = detailSheet(`<div class="kc-prod" data-notr><div class="kc-ph">${P.img ? `<img src="${h(P.img)}" alt="">` : `<span>📦</span>`}<div><div class="kc-mt">${h(P.name)}</div><div class="muted">${h(P.brand || "")}</div></div>${opt.pin ? pinHTML(opt.pin) : ""}</div>
+    const sh = detailSheet(`<div class="kc-prod" data-notr><div class="kc-ph">${P.img ? `<img src="${h(P.img)}" alt="">` : P.own ? `<button class="kc-addpic" id="kcpic" aria-label="Foto der Vorderseite hinzufügen">📷<small>Foto</small></button>` : `<span>📦</span>`}<div><div class="kc-mt">${h(P.name)}</div><div class="muted">${h(P.brand || "")}</div></div>${opt.pin ? pinHTML(opt.pin) : ""}</div>
       <p class="muted kc-per">pro 100 g${P.ck && P.cfood ? " " + P.cfood.st[P.ck === "cooked" ? 1 : 0] : ""}: ${fmt(P.k)} kcal · ${f1(P.c)} g KH · ${f1(P.pr)} g Protein · ${f1(P.f)} g Fett</p>${cookHTML(P)}
       ${s ? `<div class="kc-amt"><span class="kc-al">${U.many} <small class="muted">à ${nf(s, 0)} g</small></span><div class="kc-gram"><button class="btn" data-pd="-1">−</button><label><input id="kcn" inputmode="decimal" autocomplete="off" enterkeyhint="done"> ×</label><button class="btn" data-pd="1">+</button></div>
         <div class="kc-chips">${[[.25, "¼"], [.5, "½"], [1, "1"], [2, "2"], [3, "3"], [4, "4"], [5, "5"]].filter(x => !(U.one === "Ei" && x[0] < .5)).map(([v, l]) => `<button class="chip" data-n="${v}">${l}</button>`).join("")}</div></div>` : ""}
@@ -490,6 +490,8 @@
         <div class="kc-chips">${chips.map(([v, l]) => `<button class="chip" data-g="${v}">${l}</button>`).join("")}</div></div>
       <div class="kc-mk" id="kcpk"></div><button class="btn go big" id="kcadd">${h(opt.btn || "Eintragen")}</button></div>`);
     const el = sh.el, gi = el.querySelector("#kcg"), ni = el.querySelector("#kcn");
+    /* a photographed pack that has no picture yet: one tap on the camera adds the front of the pack, for everybody */
+    const ap = el.querySelector("#kcpic"); if (ap) ap.onclick = () => Label.addPic(P, pic => { const im = document.createElement("img"); im.src = pic; im.alt = ""; ap.replaceWith(im); });
     const show = from => { const f = g / 100; if (from !== "g") gi.value = nf(g, g < 10 ? 1 : 0); if (ni && from !== "n") ni.value = nf(g / s, 2);
       el.querySelector("#kcpk").innerHTML = vline(P2o(P, f));
       el.querySelectorAll("[data-g]").forEach(c => c.classList.toggle("on", Math.abs(+c.dataset.g - g) < .05)); el.querySelectorAll("[data-n]").forEach(c => c.classList.toggle("on", Math.abs(+c.dataset.n * s - g) < .05)); };
@@ -515,14 +517,15 @@
   /* a product from Open Food Facts by its barcode (kept on the phone once seen) */
   async function offGet(code, ms){
     let p = null; try { p = JSON.parse(localStorage.getItem("chessnat-off-" + code) || "null"); } catch(e) {}
-    if (p) return p;
-    try { const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), ms || 6000);
+    const bare = !!(p && p.own && !p.image_front_small_url);   /* a photographed pack without a picture: somebody may have added one since */
+    if (p && !bare) return p;
+    if (!bare) try { const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), ms || 6000);
       const r = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=product_name,product_name_de,generic_name,brands,nutriments,serving_quantity,serving_size,image_front_small_url,product_quantity,nutriscore_grade`, {signal: ctl.signal});
       clearTimeout(to); const j = await r.json(); if (j && j.status !== 0 && j.product && j.product.nutriments) p = j.product;
       if (p) try { localStorage.setItem("chessnat-off-" + code, JSON.stringify(p)); } catch(e) {}
     } catch(e) {}
     /* Open Food Facts doesn't know it: a pack whose nutrition table somebody photographed (mine first, else the first one anybody made) */
-    if (!p) try { const r = await sb().from("kcal_own_products").select(Label.COLS).eq("code", String(code)).order("created_at").limit(20);
+    if (!p || bare) try { const r = await sb().from("kcal_own_products").select(Label.COLS).eq("code", String(code)).order("created_at").limit(20);
       const o = Label.best(r.data || [])[0];
       if (o){ p = Label.asOff(o); try { localStorage.setItem("chessnat-off-" + code, JSON.stringify(p)); } catch(e) {} } } catch(e) {}
     return p;
@@ -532,15 +535,21 @@
      picture. Only "Stimmt" keeps them (kcal_own_products), and from then on the product is there for everybody: by its
      barcode and in the search, marked with who photographed it. The operator can take a wrong one out (status "bad"). */
   const Label = {
-    COLS: "user_id,author,code,name,brand,unit,k,c,p,f,fi,su,sf,sa,status,created_at",
+    COLS: "user_id,author,code,name,brand,unit,k,c,p,f,fi,su,sf,sa,pic,status,created_at",
     /* one entry per barcode: mine, else one the operator has checked, else the oldest */
-    best(rows){ const by = {}; rows.filter(x => x.status !== "bad").forEach(x => { const a = by[x.code], rank = y => y.user_id === meId() ? 0 : y.status === "ok" ? 1 : 2; if (!a || rank(x) < rank(a)) by[x.code] = x; }); return Object.values(by); },
+    best(rows){ const by = {}; rows.filter(x => x.status !== "bad").forEach(x => { const a = by[x.code], rank = y => y.user_id === meId() ? 0 : y.status === "ok" ? 1 : 2; if (!a || rank(x) < rank(a) || (rank(x) === rank(a) && x.pic && !a.pic)) by[x.code] = x; }); return Object.values(by); },
     /* photographed products whose name fits what was typed, as products for the search */
     async find(q){ const c = sb(); q = String(q || "").replace(/[%_\\,()]/g, " ").trim(); if (!c || !meId() || q.length < 2) return [];
       try { const r = await c.from("kcal_own_products").select(this.COLS).ilike("name", "%" + q + "%").order("created_at").limit(24); if (r.error) return [];
-        return this.best(r.data || []).slice(0, 8).map(o => { const p = this.asOff(o); try { if (!localStorage.getItem("chessnat-off-" + o.code)) localStorage.setItem("chessnat-off-" + o.code, JSON.stringify(p)); } catch(e) {}
+        return this.best(r.data || []).slice(0, 8).map(o => { const p = this.asOff(o); try { const old = JSON.parse(localStorage.getItem("chessnat-off-" + o.code) || "null"); if (!old || old.own) localStorage.setItem("chessnat-off-" + o.code, JSON.stringify(p)); } catch(e) {}
           return Object.assign(prodOf(String(o.code), p), {brand: p.by ? "Foto von " + p.by : "Dein Foto der Packung", own: 1}); }); } catch(e) { return []; } },
-    asOff: o => ({product_name: o.name, brands: o.brand || "", own: 1, by: o.user_id && o.user_id !== meId() ? String(o.author || "jemand anderem") : "", nutriments: {"energy-kcal_100g": +o.k, carbohydrates_100g: +o.c, proteins_100g: +o.p, fat_100g: +o.f, fiber_100g: +o.fi || 0, sugars_100g: +o.su || 0, "saturated-fat_100g": +o.sf || 0, salt_100g: +o.sa || 0}}),
+    asOff: o => ({product_name: o.name, brands: o.brand || "", own: 1, image_front_small_url: o.pic || null, by: o.user_id && o.user_id !== meId() ? String(o.author || "jemand anderem") : "", nutriments: {"energy-kcal_100g": +o.k, carbohydrates_100g: +o.c, proteins_100g: +o.p, fat_100g: +o.f, fiber_100g: +o.fi || 0, sugars_100g: +o.su || 0, "saturated-fat_100g": +o.sf || 0, salt_100g: +o.sa || 0}}),
+    /* the front of a photographed pack that has no picture yet: anybody can add it; it never replaces one that is there */
+    async addPic(P, done){ const shot = await this.shoot(); if (!shot) return;
+      try { const r = await sb().rpc("kcal_own_pic", {p_code: String(P.code), p_pic: shot.pic}); if (r.error) throw r.error;
+        P.img = shot.pic; try { const c = JSON.parse(localStorage.getItem("chessnat-off-" + P.code) || "null"); if (c && c.own){ c.image_front_small_url = shot.pic; localStorage.setItem("chessnat-off-" + P.code, JSON.stringify(c)); } } catch(e) {}
+        if (done) done(shot.pic); haptic(15); say("📷 Danke! Das Bild sehen jetzt alle."); }
+      catch(e) { say("Ging nicht: " + (e.message || e)); } },
     /* the camera opens at once (one tap); the picture is made small enough to send */
     shoot(){ return new Promise(ok => { const i = document.createElement("input"); i.type = "file"; i.accept = "image/*"; i.setAttribute("capture", "environment"); i.style.cssText = "position:fixed;left:-99px;top:0;width:1px;height:1px;opacity:0"; i.id = "kclabf";
       document.body.appendChild(i); let done = false; const fin = v => { if (done) return; done = true; i.remove(); ok(v); };
@@ -548,7 +557,8 @@
         im.onload = () => { const m = 1500 / Math.max(im.naturalWidth, im.naturalHeight, 1500), c = document.createElement("canvas"); c.width = Math.round(im.naturalWidth * m); c.height = Math.round(im.naturalHeight * m);
           c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(u);
           const t = document.createElement("canvas"), tm = 520 / Math.max(c.width, c.height, 520); t.width = Math.round(c.width * tm); t.height = Math.round(c.height * tm); t.getContext("2d").drawImage(c, 0, 0, t.width, t.height);
-          fin({img: c.toDataURL("image/jpeg", .82), thumb: t.toDataURL("image/jpeg", .6)}); };
+          const s = document.createElement("canvas"), sm = 240 / Math.max(c.width, c.height, 240); s.width = Math.round(c.width * sm); s.height = Math.round(c.height * sm); const sx = s.getContext("2d"); sx.fillStyle = "#fff"; sx.fillRect(0, 0, s.width, s.height); sx.drawImage(c, 0, 0, s.width, s.height);
+          fin({img: c.toDataURL("image/jpeg", .82), thumb: t.toDataURL("image/jpeg", .6), pic: s.toDataURL("image/jpeg", .72)}); };
         im.onerror = () => { URL.revokeObjectURL(u); fin(null); }; im.src = u; };
       i.addEventListener("cancel", () => fin(null)); i.click(); }); },
     async start(code, cb){
@@ -559,20 +569,27 @@
       if (!L){ const sh = detailSheet(`<div class="kc-form kc-lab" data-notr><img class="kc-labi" src="${shot.thumb}" alt=""><h3>Das hat nicht geklappt</h3><p class="muted">${h(err || "Die Nährwerte waren nicht zu lesen.")}</p><button class="btn go big" id="kclagain">Nochmal fotografieren</button></div>`);
         sh.el.querySelector("#kclagain").onclick = () => { sh.close(); this.start(code, cb); }; return; }
       const none = L.none || [], row = (a, v, u, key) => none.includes(key) ? "" : `<div class="kc-labr"><span>${a}</span><b>${String(v).replace(".", ",")} ${u}</b></div>`;
-      const sh = detailSheet(`<div class="kc-form kc-lab" data-notr><h3>Stimmt das mit der Packung?</h3><p class="muted">Abgelesen pro 100 ${L.unit}. Vergleich die Zahlen kurz mit dem Foto: Danach finden alle das Produkt per Barcode und in der Suche.</p>
+      const sh = detailSheet(`<div class="kc-form kc-lab" data-notr><h3>Stimmt das mit der Packung?</h3><p class="muted">Abgelesen pro 100 ${L.unit}. Vergleich die Zahlen kurz mit dem Foto. Danach noch ein Foto von der Vorderseite, dann finden alle das Produkt per Barcode und in der Suche.</p>
         <img class="kc-labi" src="${shot.thumb}" alt="">
         <div class="kc-labt">${row("Energie", L.k, "kcal")}${row("Fett", L.f, "g")}${row("davon gesättigt", L.sf, "g", "sf")}${row("Kohlenhydrate", L.c, "g")}${row("davon Zucker", L.su, "g", "su")}${row("Ballaststoffe", L.fi, "g", "fi")}${row("Eiweiß", L.p, "g")}${row("Salz", L.sa, "g", "sa")}</div>
         ${L.odd ? `<p class="kc-labw">Energie und Nährwerte passen nicht ganz zusammen. Schau genau hin oder fotografier nochmal.</p>` : ""}
         <label class="kc-labn">Wie heißt das Produkt?<input id="kcln" maxlength="80" autocomplete="off" enterkeyhint="done" placeholder="z. B. Skyr Vanille (Lidl)" value="${h([L.brand, L.name].filter(Boolean).join(" ").slice(0, 80))}"></label>
-        <button class="btn go big" id="kclok">Stimmt, speichern</button><button class="btn ghost" id="kclagain">Nochmal fotografieren</button></div>`);
+        <button class="btn go big" id="kclok">Stimmt – jetzt die Vorderseite fotografieren</button><button class="btn ghost" id="kclnop" hidden>Ohne Bild speichern</button><button class="btn ghost" id="kclagain">Nochmal fotografieren</button></div>`);
       const el = sh.el, ni = el.querySelector("#kcln");
       el.querySelector("#kclagain").onclick = () => { sh.close(); this.start(code, cb); };
-      el.querySelector("#kclok").onclick = async () => { const b = el.querySelector("#kclok"), name = ni.value.trim(); if (name.length < 2){ say("Gib dem Produkt kurz einen Namen."); ni.focus(); return; } if (b.disabled) return; b.disabled = true;
-        const o = {code: String(code), name: name.slice(0, 80), brand: "", unit: L.unit, k: L.k, c: L.c, p: L.p, f: L.f, fi: L.fi, su: L.su, sf: L.sf, sa: L.sa};
+      /* "Stimmt" opens the camera once more, for the front of the pack: that is the picture everybody sees in the search.
+         The camera has to open inside the tap, so nothing is awaited before it. */
+      const b = el.querySelector("#kclok"), nop = el.querySelector("#kclnop");
+      const keep = async front => { const name = ni.value.trim(); if (b.disabled) return; b.disabled = nop.disabled = true;
+        const o = {code: String(code), name: name.slice(0, 80), brand: "", unit: L.unit, k: L.k, c: L.c, p: L.p, f: L.f, fi: L.fi, su: L.su, sf: L.sf, sa: L.sa}; if (front) o.pic = front.pic;
         try { const r = await sb().from("kcal_own_products").upsert(Object.assign({user_id: meId(), img: shot.thumb, status: "new"}, o), {onConflict: "user_id,code"}); if (r.error) throw r.error;
           const p = this.asOff(o); try { localStorage.setItem("chessnat-off-" + code, JSON.stringify(p)); } catch(e) {}
           sh.close(); haptic([12, 25, 12]); const P = prodOf(String(code), p); if (cb) cb(P); else addProduct(P, "barcode"); }
-        catch(e) { b.disabled = false; say("Ging nicht: " + (e.message || e)); } };
+        catch(e) { b.disabled = nop.disabled = false; say("Ging nicht: " + (e.message || e)); } };
+      const named = () => { if (ni.value.trim().length >= 2) return true; say("Gib dem Produkt kurz einen Namen."); ni.focus(); return false; };
+      b.onclick = async () => { if (b.disabled || !named()) return; const front = await this.shoot();
+        if (!front){ nop.hidden = false; say("Noch ein Foto von der Vorderseite, dann ist es gespeichert."); return; } keep(front); };
+      nop.onclick = () => { if (named()) keep(null); };
     }
   };
   /* ---------- search: type a name (Open Food Facts via /api/food), pick the product, say how much ---------- */
@@ -647,8 +664,9 @@
         const pn = document.createElement("div"); pn.className = "kc-sadd";
         pn.innerHTML = `${cookHTML(P)}<div class="kc-chips">${chips.map(([v, l]) => `<button class="chip" data-g="${v}">${l}</button>`).join("")}</div>
           <div class="kc-srow"><div class="kc-gram"><button class="btn" data-d="-1">−</button><label><input inputmode="decimal" autocomplete="off" enterkeyhint="done"> g</label><button class="btn" data-d="1">+</button></div></div>
-          <div class="kc-sk" id="kcsk"></div><button class="btn go big" data-add>Hinzufügen</button>`;
+          <div class="kc-sk" id="kcsk"></div><button class="btn go big" data-add>Hinzufügen</button>${P.own && !P.img ? `<button class="btn ghost" id="kcpic">📷 Foto der Vorderseite hinzufügen</button>` : ""}`;
         b.after(pn); const gi = pn.querySelector("input");
+        const pb = pn.querySelector("#kcpic"); if (pb) pb.onclick = () => Label.addPic(P, pic => { pb.remove(); const ph = b.querySelector(".kc-sph"); if (ph){ const im = document.createElement("img"); im.src = pic; im.alt = ""; ph.replaceWith(im); } });
         const show = from2 => { const f = g / 100, c = cntTxt(U, g); if (from2 !== "g") gi.value = nf(g, g < 10 ? 1 : 0); pn.querySelector("#kcsk").innerHTML = (c ? `<em>${c}</em>` : "") + vline(P2o(P, f));
           pn.querySelectorAll("[data-g]").forEach(c => c.classList.toggle("on", Math.abs(+c.dataset.g - g) < .05)); };
         const setG = (v, from2) => { g = Math.max(.5, Math.min(5000, Math.round(v * 10) / 10)); show(from2); };
@@ -2031,6 +2049,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-showp{display:flex;flex-direction:column;gap:7px;margin:8px 0 12px}.kc-showp>b{font:900 15px var(--body)}.kc-showp small{font-size:12.5px}.kc-ssub{margin:-8px 0 0;text-align:center}
 .kc-sk em{display:block;font:900 16px var(--body);font-style:normal;color:var(--fg);margin-bottom:3px}.kc-me{font-size:40px}.kc-mt{font:900 20px var(--display)}
 .kc-ph img{width:64px;height:64px;object-fit:contain;border-radius:10px;background:#fff}.kc-ph>span{font-size:44px}
+.kc-addpic{width:64px;height:64px;flex:none;border-radius:10px;border:1.5px dashed var(--line,rgba(128,128,128,.45));background:none;color:inherit;font-size:24px;line-height:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer}.kc-addpic small{font:800 11px var(--body);opacity:.75}
 .kc-mk{font:800 15px var(--body);color:var(--muted)}.kc-mk small{display:block;font:700 13px var(--body);margin-top:2px}.kc-mk b{font:900 32px var(--display);color:var(--fg)}
 .kc-macros{display:flex;gap:8px}.kc-macros span{flex:1;background:var(--panel-2);border-radius:12px;padding:8px;text-align:center;color:var(--muted);font:700 12px var(--body);display:flex;flex-direction:column}.kc-macros b{color:var(--fg);font:900 16px var(--display)}
 .kc-up{animation:kcUp .5s cubic-bezier(.22,1,.36,1)}.kc-dn{animation:kcDn .5s cubic-bezier(.22,1,.36,1)}[data-t],[data-rk],[data-cnt]{display:inline-block;font-variant-numeric:tabular-nums}var[data-cnt]{font:inherit;font-style:normal;color:inherit;letter-spacing:inherit}
