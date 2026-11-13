@@ -54,7 +54,7 @@ begin
   if auth.uid() is null then return new; end if;   -- the operator (SQL editor) may set anything
   new.name := btrim(new.name);
   if tg_op = 'UPDATE' then new.user_id := old.user_id; new.author := old.author; new.status := old.status; new.created_at := old.created_at;
-  else new.user_id := auth.uid(); new.author := left(private.pname(auth.uid()), 40); new.status := 'new'; end if;
+  else new.user_id := auth.uid(); new.author := left(private.public_name(auth.uid()), 40); new.status := 'new'; end if;   -- "Anonym" for hidden players (schema_hidden_players.sql)
   return new;
 end $$;
 create or replace function public.kcal_own_pic(p_code text, p_pic text) returns boolean language plpgsql security definer set search_path = '' as $$
