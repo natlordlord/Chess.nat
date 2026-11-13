@@ -556,6 +556,23 @@ const PARTS = {
     ok(await has(page, "#fbtx"), "Melden öffnet das Formular"); await page.fill("#fbtx", "Test: die Einkaufsliste ist super"); await page.tap("#fbs"); await sleep(1000);
     const f = await L.table("chess_feedback"); ok(f.length === 1 && f[0].name === "Nat Tester" && /Start|home/.test(f[0].info || ""), "Feedback mit Name und Geräte-Info gespeichert", JSON.stringify(f));
     ok(/die Einkaufsliste ist super/.test(await txt(page, "#fbl")), "es steht danach im eigenen Feedback-Log"); await page.shot("feedback"); await clean(page, "Feedback"); await page.context().close();
+
+    /* Fair Play: the owner entered a case for Mila. She gets the screen instead of the app, her NatCoins are gone,
+       and only holding the button (not a tap) brings the app back, with 5,000 NatCoins for the fresh start */
+    await L.stage("POST", "chess_fairplay", "", {user_id: ID.mila, quote: "Bitte den User Tester aus der App entfernen"});
+    const m = await L.open(browser, "mila", {before: () => { try { if (!sessionStorage.getItem("fp-seed")){ sessionStorage.setItem("fp-seed", "1"); const k = "chessnat-v2", st = JSON.parse(localStorage.getItem(k) || "{}"); st.natE = 1234; st.natS = 0; localStorage.setItem(k, JSON.stringify(st)); } } catch(e) {} }});
+    await m.waitForSelector(".fpx", {timeout: 8000}).catch(() => {}); await sleep(500);
+    const fp = await txt(m, ".fpx"); ok(/Das war nicht okay/.test(fp) && /Tester aus der App entfernen/.test(fp) && /Zusammenhalt/.test(fp), "Fair Play: der Hinweis erscheint mit dem eigenen Satz", fp.slice(0, 200)); await m.shot("fairplay");
+    ok(await m.evaluate(() => natBal()) < 1234 && await m.evaluate(() => (S.natS || 0) >= 1234), "Fair Play: die NatCoins von vorher sind weg", JSON.stringify(await m.evaluate(() => [S.natE, S.natS])));
+    await m.locator("#fphold").tap(); await sleep(600); ok(await has(m, ".fpx"), "Fair Play: ein kurzer Tipp reicht nicht");
+    await m.locator("#fphold").dispatchEvent("pointerdown"); await sleep(1500); ok(await has(m, ".fpx") && !(await has(m, ".fpx2")), "Fair Play: nach 1,5 Sekunden noch nicht frei"); await sleep(2200);
+    await m.waitForSelector(".fpx2", {timeout: 5000}).catch(() => {}); await sleep(600);
+    const w = await txt(m, ".fpx2"); ok(/zweite Chancen/.test(w) && /5\.000 NatCoins/.test(w), "Fair Play: nach dem langen Drücken kommt der Neustart mit 5.000 NatCoins", w.slice(0, 200)); await m.shot("fairplay-neustart");
+    ok(await m.evaluate(() => natBal()) === 5000, "Fair Play: 5.000 NatCoins sind da", String(await m.evaluate(() => natBal())));
+    const row = (await L.table("chess_fairplay"))[0]; ok(row && row.status === "sorry" && row.sorry_at, "Fair Play: die Entschuldigung steht in der Datenbank", JSON.stringify(row));
+    await m.locator(".fpx2 .newsx-ok").tap(); await sleep(500); await m.reload(); await sleep(4500);
+    ok(!(await has(m, ".fpx")) && await m.evaluate(() => natBal()) === 5000, "Fair Play: danach kommt der Hinweis nicht wieder, die NatCoins bleiben");
+    await clean(m, "Fair Play"); await m.context().close();
   },
 
   /* ---------- jede Seite einmal öffnen, am Handy und am PC ---------- */

@@ -1,9 +1,9 @@
 /* Test people and their data. Everything is relative to "now", so the tracker always has a today and a past week.
    Sign in as any of them with the password "test1234" (or open /__fake/login?u=<name>). */
 const ID = {tester: "11111111-1111-4111-8111-111111111111", mila: "22222222-2222-4222-8222-222222222222", jonas: "33333333-3333-4333-8333-333333333333", ole: "44444444-4444-4444-8444-444444444444"};
-const p2 = n => String(n).padStart(2, "0"), dayOf = d => d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate());
+const p2 = n => String(n).padStart(2, "0"), dayOf = d => { d = new Date(d.getTime() - 4 * 3600e3); return d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate()); };   /* the tracker's day starts at 4:00 */
 module.exports = db => {
-  const now = Date.now(), at = (days, h, m = 0) => { const d = new Date(now); d.setDate(d.getDate() + days); d.setHours(h, m, 0, 0); return d; }, ago = min => new Date(now - min * 60000);
+  const now = Date.now(), at = (days, h, m = 0) => { const d = new Date(now - 4 * 3600e3); d.setDate(d.getDate() + days); d.setHours(h, m, 0, 0); return d; }, ago = min => new Date(now - min * 60000);
   Object.entries(ID).forEach(([name, id]) => db.users.push({id, name, email: name + "@chessnat.test", password: "test1234", created_at: new Date(now - 40 * 864e5).toISOString()}));
   const {tester, mila, jonas, ole} = ID;
   db.seed("chess_players", [{id: tester, name: "Nat Tester", handle: "nattester", rating: 820, trophies: 12, active_at: new Date(now).toISOString()}, {id: mila, name: "Mila", handle: "mila", rating: 640, active_at: new Date(now).toISOString()},
@@ -19,7 +19,8 @@ module.exports = db => {
     {user_id: mila, aim: "keep", sex: "f", born: 2002, height: 168, weight: 60, activity: 1.4, weigh_min: 450, setup_at: at(-12, 9).toISOString()}]);
   db.seed("kcal_weights", [{user_id: tester, ts: at(-9, 8).toISOString(), day: dayOf(at(-9, 8)), kg: 77.2, fasted: true}, {user_id: tester, ts: at(-2, 8).toISOString(), day: dayOf(at(-2, 8)), kg: 78, fasted: true}, {user_id: mila, ts: at(-1, 8).toISOString(), day: dayOf(at(-1, 8)), kg: 60.2, fasted: true}]);
   const meal = (user_id, when, title, emoji, kcal, carbs, protein, fat, source = "voice", items = null) => ({user_id, day: dayOf(when), ts: when.toISOString(), title, emoji, source, kcal, carbs, protein, fat, items});
-  const h = new Date(now).getHours(), early = k => at(0, Math.max(0, Math.min(h, k)), k > h ? 0 : 10);
+  /* the hour of the tracker's day (4 … 27, the day starts at 4:00): no meal lies in the future, none before the day began */
+  const h = new Date(now - 4 * 3600e3).getHours() + 4, early = k => at(0, Math.max(4, Math.min(h, k)), k > h ? 0 : 10);
   db.seed("kcal_meals", [
     meal(tester, early(8), "Haferflocken mit Banane", "🥣", 520, 82, 18, 11, "voice", [{name: "Haferflocken", amount: "80 g", kcal: 290, carbs: 45, protein: 11, fat: 5.5, h: {fi: 8, su: 1, sf: 1, q: 5}}, {name: "Banane", amount: "1 Stück", kcal: 110, carbs: 25, protein: 1, fat: .3, h: {fi: 2, su: 15, sf: 0, q: 5}}, {name: "Milch", amount: "200 ml", kcal: 120, carbs: 12, protein: 6, fat: 5.2, h: {fi: 0, su: 10, sf: 3, q: 4}}]),
     meal(tester, new Date(early(8).getTime() + 5 * 60000), "Kaffee mit Milch", "☕", 40, 3, 2, 2, "quick"),

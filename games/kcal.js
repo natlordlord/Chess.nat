@@ -13,7 +13,10 @@
   const fmt = n => Math.round(Number(n) || 0).toLocaleString("de-DE");
   const f1 = n => (Math.round((Number(n) || 0) * 10) / 10).toLocaleString("de-DE");
   const pad = n => String(n).padStart(2, "0");
-  const dayOf = d => { d = new Date(d); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); };
+  /* the tracker's day runs from 4 in the morning to 4 in the morning: what is eaten after midnight still belongs to the evening
+     before (the database counts the same way, private.kcal_today) */
+  const DAY_START_H = 4;
+  const dayOf = d => { d = new Date(new Date(d).getTime() - DAY_START_H * 3600e3); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); };
   const today = () => dayOf(Date.now());
   const addDays = (k, n) => { const [y, m, d] = k.split("-").map(Number); return dayOf(new Date(y, m - 1, d + n, 12)); };
   const dayLabel = k => { const t = today(); if (k === t) return "Heute"; if (k === addDays(t, -1)) return "Gestern";

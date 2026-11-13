@@ -1396,6 +1396,12 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 /* the big news screen */
 .newsx{position:fixed;inset:0;z-index:400;display:grid;place-items:center;padding:max(20px,var(--sat,0px)) 18px max(20px,var(--sab,0px));background:radial-gradient(circle at 50% 38%,rgba(255,211,74,.28),rgba(10,9,8,.92) 70%);opacity:0;transition:opacity .25s}
 .newsx.in{opacity:1}.newsx.out{opacity:0}
+/* Fair Play: the same big screen, calm and without gold; the button fills while it is held */
+.newsx.fpx{background:rgba(20,19,17,.97)}.fpx .newsx-in{border-color:rgba(255,154,136,.45)}
+.fpx-badge{background:#ff9a88!important}.fpx-q{margin:0 0 14px;padding:12px 14px;border-radius:14px;background:rgba(0,0,0,.3);border-left:4px solid #ff9a88;font:700 clamp(17px,4.6vw,21px)/1.35 var(--body);color:#fff;text-align:left;overflow-wrap:anywhere}
+.fpx p.fpx-s{color:#ff9a88;font-weight:800}.fpx2 p.fpx-g{margin-top:14px;font-weight:800;color:#ffd970}
+.fpx-hold{position:relative;overflow:hidden;width:100%;margin-top:18px;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;font-size:17px!important;line-height:1.3;padding:16px 14px!important;white-space:normal}
+.fpx-hold i{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(255,255,255,.3);pointer-events:none}.fpx-hold span{position:relative}
 .newsx-cf{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .newsx-flash{position:absolute;left:50%;top:42%;width:40px;height:40px;margin:-20px;border-radius:50%;background:radial-gradient(circle,#fff,rgba(255,211,74,.8) 40%,rgba(255,211,74,0) 70%);animation:nxboom .9s ease-out forwards;pointer-events:none}
 @keyframes nxboom{0%{transform:scale(.2);opacity:1}60%{opacity:.9}100%{transform:scale(28);opacity:0}}
@@ -2855,7 +2861,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794527900";
+const CHESSNAT_BUILD = "1794552861";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -3163,6 +3169,7 @@ function mergeProgress(a, b){
     m.lessons[k] = {done: !!(x.done || y.done), stars: Math.max(x.stars || 0, y.stars || 0), ts: Math.max(x.ts || 0, y.ts || 0)}; });
   m.xp = Math.max(a.xp || 0, b.xp || 0); m.xpMinus = Math.max(a.xpMinus || 0, b.xpMinus || 0);
   m.fixIds = [...new Set([...(a.fixIds || []), ...(b.fixIds || [])])];
+  { const fp = [...new Set([...(a.fpT || []), ...(b.fpT || [])])]; if (fp.length) m.fpT = fp; }
   /* NatCoins: earned and spent each only grow, the collection and the chests add up */
   m.natE = Math.max(a.natE || 0, b.natE || 0); m.natS = Math.max(a.natS || 0, b.natS || 0); m.natV = Math.max(a.natV || 0, b.natV || 0) || undefined;
   m.inv = [...new Set([...(a.inv || []), ...(b.inv || [])])];
@@ -14138,6 +14145,64 @@ function newsConfetti(cv){
 setTimeout(() => News.daily(), 1200);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(() => News.daily(), 1500); });
 window.addEventListener("chessnat:route", () => setTimeout(() => News.daily(), 800));
+
+/* ===== Fair Play: somebody wrote something hostile about another player (the owner decides that, case by case, and enters it
+   in chess_fairplay). That person then gets this screen instead of the app: what they wrote, what this place stands for,
+   their NatCoins are gone. It only goes away by holding the button for three seconds: an apology and a promise to keep the
+   rules. Then comes the second chance: a fresh start with 5,000 NatCoins. Nobody else sees this screen. ===== */
+const FairPlay = {
+  HOLD: 3000, GIFT: 5000, busy: false,
+  async check(){
+    if (this.busy || document.hidden || document.querySelector(".fpx")) return;
+    const site = window.ChessSite, sb = site && site.sb; if (!sb || !site.getSession || !site.getSession()) return;
+    if (typeof Onboard !== "undefined" && Onboard.active()) return;
+    if (["friend", "bots", "rush", "battle"].includes(App.route) && App.busy && App.busy()) return;   /* not in the middle of a game */
+    this.busy = true; let row = null; try { const {data} = await sb.from("chess_fairplay").select("id,quote,created_at").eq("status", "open").order("created_at").limit(1); row = data && data[0]; } catch(e) {}
+    this.busy = false; if (row && !document.querySelector(".fpx")) this.show(row);
+  },
+  show(row){
+    /* the coins go once per case, on whichever phone shows it first (the list travels with the progress) */
+    S.fpT = S.fpT || []; if (!S.fpT.includes(row.id)){ const b = natBal(); S.fpT.push(row.id); if (b > 0) natSpend(b); else save(); }
+    const el = document.createElement("div"); el.className = "newsx fpx"; el.setAttribute("data-notr", "");
+    el.innerHTML = `<div class="newsx-in" role="dialog" aria-modal="true" aria-label="Fair Play">
+      <div class="newsx-badge fpx-badge"><span>Fair Play</span></div>
+      <h2>Das war nicht okay</h2>
+      <blockquote class="fpx-q">„${esc(row.quote)}“</blockquote>
+      <p>Das hast du geschrieben. So gehen wir hier nicht miteinander um: Diese App steht für Zusammenhalt und Community, nicht für Anfeindungen.</p>
+      <p class="fpx-s">Deine NatCoins sind erst mal weg.</p>
+      <button class="btn go big fpx-hold" id="fphold"><i></i><span>Gedrückt halten: Ich entschuldige mich und halte mich an die Regeln</span></button>
+      <div class="newsx-hint" id="fphint">Halte den Knopf drei Sekunden lang gedrückt.</div></div>`;
+    document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("in"));
+    const b = el.querySelector("#fphold"), bar = b.querySelector("i"), hint = el.querySelector("#fphint"); let t0 = 0, raf = 0, sent = false;
+    const stop = () => { if (sent) return; cancelAnimationFrame(raf); t0 = 0; bar.style.width = "0%"; };
+    const tick = () => { if (!t0 || sent) return; const f = Math.min(1, (Date.now() - t0) / this.HOLD); bar.style.width = (f * 100) + "%"; if (f >= 1) return done(); raf = requestAnimationFrame(tick); };
+    const start = e => { if (sent) return; e.preventDefault(); t0 = Date.now(); try { Haptic.go(10); } catch(e2) {} tick(); };
+    const done = async () => { sent = true; b.disabled = true; hint.textContent = "Einen Moment …"; let ok = false, err = "";
+      try { const r = await window.ChessSite.sb.rpc("fairplay_sorry", {fid: row.id}); if (r.error) err = r.error.message; else ok = r.data === true; } catch(e) { err = e.message || String(e); }
+      if (err){ sent = false; b.disabled = false; stop(); hint.textContent = "Das ging gerade nicht. Versuch es nochmal."; return; }
+      /* the fresh start is given exactly once: by the phone whose apology the database took */
+      if (ok){ const left = natBal(); if (left > 0) natSpend(left); natEarn(this.GIFT, true); }   /* whatever came in meanwhile goes too: the start is exactly 5,000 */
+      el.classList.add("out"); setTimeout(() => el.remove(), 320); this.welcome(ok); };
+    b.addEventListener("pointerdown", start); ["pointerup", "pointerleave", "pointercancel"].forEach(k => b.addEventListener(k, stop)); b.addEventListener("contextmenu", e => e.preventDefault());
+  },
+  /* the second chance, with confetti like good news */
+  welcome(gift){
+    const el = document.createElement("div"); el.className = "newsx fpx2"; el.setAttribute("data-notr", "");
+    el.innerHTML = `<canvas class="newsx-cf"></canvas><div class="newsx-flash"></div><div class="newsx-in" role="dialog" aria-modal="true" aria-label="Neustart">
+      <div class="newsx-badge"><span>Neustart</span></div>
+      <h2>Danke. Schwamm drüber!</h2>
+      <p>Wir glauben an zweite Chancen. Du gehörst zu uns und bist ein super Beitrag für diese Community.</p>
+      ${gift ? `<p class="fpx-g">${NAT_COIN} <b>${fmtNat(this.GIFT)} NatCoins</b> für deinen neuen Start</p>` : ""}
+      <button class="btn go big newsx-ok">Los geht's</button></div>`;
+    document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("in"));
+    try { Sound.cheer(4); Haptic.go([40, 60, 80]); } catch(e) {}
+    const stopCf = newsConfetti(el.querySelector(".newsx-cf"));
+    el.querySelector(".newsx-ok").onclick = () => { stopCf(); el.classList.add("out"); setTimeout(() => el.remove(), 320); try { natChip(); } catch(e) {} };
+  }
+};
+setTimeout(() => FairPlay.check(), 2500);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(() => FairPlay.check(), 1200); });
+window.addEventListener("chessnat:route", () => setTimeout(() => FairPlay.check(), 600));
 if (window.ChessSite && window.ChessSite.sessionReady) window.ChessSite.sessionReady.then(() => News.isAdmin());
 
 /* gift pictures: long side 1600 px, JPEG */
@@ -14609,7 +14674,7 @@ const Ranks = {
 <script src="games/now.js?v=3"></script>
 <script src="data/foods_bls.js?v=1"></script>
 <script src="data/foods.js?v=4"></script>
-<script src="games/kcal.js?v=181"></script>
+<script src="games/kcal.js?v=182"></script>
 <script src="invite.js?v=6"></script>
 <script>boot();</script>
 </body>
