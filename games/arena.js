@@ -24,8 +24,8 @@
       su: {en: "Body slam", de: "Sprungschlag", at: 1, rg: 340, dmg: 55, splash: 115, kb: 95, dur: 520}},
     gun: {c: "#2FB39A", en: "Revolver", de: "Revolver", sen: "6 shots in a row · far", sde: "6 Schüsse am Stück · weit", hp: 135, sp: 1, rl: 1600, cd: 480, rg: 640, n: 6, gap: 65, v: 1350, dmg: 10, r: 6, sc: 140,
       su: {en: "Bullet storm", de: "Kugelhagel", n: 12, gap: 55, v: 1500, rg: 760, dmg: 13}},
-    rang: {c: "#7FB84A", en: "Boomerang", de: "Bumerang", sen: "Through crates & enemies · back again", sde: "Durch Kisten & Gegner · und zurück", hp: 150, sp: 1.02, rl: 1500, cd: 450, rg: 470, v: 900, dmg: 24, r: 15, sc: 120,
-      su: {en: "Triple", de: "Dreifach", n: 3, spr: .32, dmg: 28, rg: 520}},
+    rang: {c: "#7FB84A", en: "Boomerang", de: "Bumerang", sen: "Through crates & enemies · back again", sde: "Durch Kisten & Gegner · und zurück", hp: 160, sp: 1.02, rl: 1400, cd: 450, rg: 490, v: 900, dmg: 27, r: 15, sc: 120,
+      su: {en: "Triple", de: "Dreifach", n: 3, spr: .32, dmg: 31, rg: 540}},
     zap: {off: 1, c: "#E0B321", en: "Lightning", de: "Blitz", sen: "Jumps to 3 enemies", sde: "Springt auf 3 Gegner", hp: 130, sp: 1, rl: 1650, cd: 450, rg: 440, dmg: 30, jump: 210, chain: [30, 22, 16], sc: 115,
       su: {en: "Thunderstorm", de: "Gewitter", at: 1, rg: 520, splash: 140, dmg: 20, hits: 5, every: 420}}};
   /* the lightning stays in the code (old rounds) but is no longer offered */

@@ -1414,6 +1414,14 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 @keyframes nxin{to{transform:none}}
 .newsx-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px 6px 12px;border-radius:999px;background:#ffd34a;color:#2a2108;font:900 14px var(--body);letter-spacing:.1em;text-transform:uppercase}
 .newsx-badge svg{width:22px;height:22px}
+.pn-badge{background:#7FD3A0;color:#0d2a18}
+.pn-you{margin:10px auto 0;max-width:360px;background:rgba(255,211,74,.16);border:1px solid #ffd34a;color:var(--fg);border-radius:14px;padding:9px 12px;font:800 14px var(--body)}
+.pn-list{list-style:none;margin:14px auto 4px;padding:0;max-width:380px;text-align:left;display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow:auto}
+.pn-list li{display:flex;gap:10px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:9px 12px}
+.pn-list li.mine{border-color:#ffd34a;box-shadow:0 0 0 2px rgba(255,211,74,.35)}
+.pn-k{font-size:20px;line-height:1.2}.pn-a{display:block;color:var(--muted);font:800 11px var(--body);letter-spacing:.06em;text-transform:uppercase}
+.pn-t{font:800 15px/1.3 var(--body);color:var(--fg)}.pn-by{margin-top:3px;font:700 12.5px var(--body);color:var(--muted)}.pn-by b{color:var(--go-hi,var(--go))}
+.pn-list li.mine .pn-by{color:#c9921f;font-weight:900}.pn-foot{margin:8px 0 2px;color:var(--muted);font:700 12.5px var(--body)}
 .newsx h2{font:900 clamp(30px,8vw,46px)/1.1 var(--display);margin:18px 0 12px;color:#fff;text-wrap:balance}
 .newsx p{font:600 clamp(19px,5vw,24px)/1.4 var(--body);color:#f1ece4;margin:0 0 6px;text-wrap:pretty}
 .newsx-voice{display:flex;align-items:center;gap:14px;margin:20px 0 4px;padding:14px;border-radius:20px;background:rgba(0,0,0,.28);text-align:left}
@@ -2867,7 +2875,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794554346";
+const CHESSNAT_BUILD = "1794608036";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -14050,8 +14058,8 @@ const News = {
   show(n, o = {}){
     const el = document.createElement("div"); el.className = "newsx";
     el.innerHTML = `<canvas class="newsx-cf"></canvas><div class="newsx-flash"></div><div class="newsx-in" role="dialog" aria-modal="true" aria-label="Neuigkeit">
-      <div class="newsx-badge">${MEGA_SVG}<span>Neuigkeit</span></div>
-      <h2>${esc(n.title)}</h2>${n.body && ![NEWS_VID, NEWS_VOICE, "📣"].includes(n.body) ? `<p>${esc(n.body)}</p>` : ""}
+      ${Array.isArray(n.patch) && n.patch.length ? News.patchHTML(n) : `<div class="newsx-badge">${MEGA_SVG}<span>Neuigkeit</span></div>
+      <h2>${esc(n.title)}</h2>${n.body && ![NEWS_VID, NEWS_VOICE, "📣"].includes(n.body) ? `<p>${esc(n.body)}</p>` : ""}`}
       ${n.video_url ? `<div class="newsx-vid"><video src="${esc(n.video_url)}" playsinline preload="auto"></video><button class="newsx-vplay" aria-label="Videobotschaft abspielen">${PLAY_SVG}</button><svg class="newsx-vring" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48"/></svg></div>
         ${o.mustListen ? `<div class="newsx-hint">Schau dir die Botschaft bis zum Ende an.</div>` : ""}` : ""}
       ${n.audio_url && !n.video_url ? `<div class="newsx-voice"><button class="newsx-play" aria-label="Sprachnachricht abspielen">${PLAY_SVG}</button><div class="grow"><div class="newsx-vt">Sprachnachricht</div><div class="newsx-bar"><i></i></div><div class="newsx-time">0:00</div></div></div>
@@ -14069,6 +14077,17 @@ const News = {
       /* nobody pressed play within 1.5 s: start by itself, loud */
       setTimeout(() => { if (el.isConnected && !player.started) player.auto(); }, 1500); }
     ok.onclick = () => { if (ok.disabled) return; if (player) player.stop(); stopCf(); el.classList.add("out"); setTimeout(() => el.remove(), 320); o.onOk && o.onOk(); };
+  },
+  /* patch notes: what went live, and who asked for it. Your own wish stands out, so you see what you brought in */
+  patchHTML(n){
+    const me = window.ChessSite && window.ChessSite.storedUid ? window.ChessSite.storedUid() : null;
+    const items = n.patch.filter(x => x && x.t).slice(0, 12), mine = items.filter(x => me && x.uid === me).length;
+    return `<div class="newsx-badge pn-badge">🛠<span>Update</span></div><h2>${esc(String(n.title).replace(/^🛠\uFE0F?\s*/, ""))}</h2>
+      ${mine ? `<div class="pn-you">🙌 ${mine > 1 ? mine + " deiner Wünsche sind" : "Dein Wunsch ist"} dabei. Danke, dass du die App besser machst!</div>` : ""}
+      <ul class="pn-list">${items.map(x => `<li class="${me && x.uid === me ? "mine" : ""}"><span class="pn-k">${x.k === "bug" ? "🐛" : "✨"}</span><div class="grow">
+        ${x.area ? `<small class="pn-a">${esc(x.area)}</small>` : ""}<div class="pn-t">${esc(x.t)}</div>
+        ${x.by ? `<div class="pn-by">${me && x.uid === me ? "Dein Wunsch" : `${x.k === "bug" ? "Gemeldet" : "Gewünscht"} von <b>${esc(x.by)}</b>`}</div>` : ""}</div></li>`).join("")}</ul>
+      <div class="pn-foot">Deine Idee fehlt? Mehr → Ideen &amp; Feedback.</div>`;
   },
   async isAdmin(){ if (this.admin != null) return this.admin; const sb = this.sb(); if (!sb || !window.ChessSite.getSession || !window.ChessSite.getSession()) return false;
     try { const {data} = await sb.rpc("news_is_admin"); this.admin = !!data; } catch(e){ this.admin = false; } return this.admin; }
@@ -14701,12 +14720,12 @@ const Ranks = {
 <script src="games/net.js?v=130"></script>
 <script src="games/online.js?v=128"></script>
 <script src="games/natposter.js?v=129"></script>
-<script src="games/arena.js?v=129"></script>
-<script src="games/tipp.js?v=129"></script>
+<script src="games/arena.js?v=130"></script>
+<script src="games/tipp.js?v=130"></script>
 <script src="games/now.js?v=3"></script>
 <script src="data/foods_bls.js?v=1"></script>
 <script src="data/foods.js?v=4"></script>
-<script src="games/kcal.js?v=182"></script>
+<script src="games/kcal.js?v=183"></script>
 <script src="invite.js?v=6"></script>
 <script>boot();</script>
 </body>

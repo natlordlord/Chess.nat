@@ -119,7 +119,7 @@
       const r = await c.from("kcal_meals").insert(row).select().single();
       if (r.error) throw r.error;
       const before = snap();
-      this.meals.unshift(r.data); this.cache(); refreshHome(); cheer(before);
+      this.meals.unshift(r.data); this.cache(); refreshHome(); cheer(before); clearNudges();
       return r.data;
     },
     async update(id, patch){
@@ -171,6 +171,9 @@
   /* ---------- home card ---------- */
   let homeEl = null;
   const onPage = () => typeof App !== "undefined" && (App.route === "kcal" || (App.route === "home" && Views.home && Views.home.k));
+  /* something was eaten: the reminder on the lock screen ("Zeit für was zu essen", "Du solltest jetzt was essen", "Noch … kcal bis zu deiner Flamme") is done, so it goes away (Wunsch von Adri) */
+  function clearNudges(){ try { if (!navigator.serviceWorker) return; navigator.serviceWorker.getRegistration().then(r => r && r.getNotifications()).then(ns => (ns || []).forEach(n => {
+    if (/^🍽\uFE0F? ?(Zeit für was zu essen|Du solltest jetzt was essen)|^🔥 Noch \d+ kcal/.test(n.title || "")) n.close(); })).catch(() => {}); } catch(e) {} }
   function refreshHome(){ if (homeEl && homeEl.isConnected) fillHome(homeEl); if (onPage()) Views.kcal.draw(); }
   function flameChip(n, lit, ice){ return ice == null ? `<span class="kc-fl ${lit ? "lit" : n ? "" : "off"}" title="${n} Tage Kalorienziel in Folge">🔥<b>${n}</b></span>`
     : `<button class="kc-fl big ${lit ? "lit" : n ? "" : "off"}" data-kc-fl aria-label="${n} Tage in Folge">🔥<b>${n}</b>${ice ? `<i class="kc-ice">${"🧊".repeat(Math.min(2, ice))}</i>` : ""}</button>`; }
