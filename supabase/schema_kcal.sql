@@ -76,9 +76,10 @@ create policy "kcal invites: see mine" on public.kcal_invites for select to auth
 create policy "kcal invites: delete mine" on public.kcal_invites for delete to authenticated using ((select auth.uid()) in (from_id, to_id));
 grant select, delete on public.kcal_invites to authenticated;
 
--- Berlin day of "now"
+-- Berlin day of "now". The tracker's day runs from 4:00 to 4:00 (since 13.11.2026, migration "kcal_day_starts_at_4"):
+-- what is eaten after midnight still counts for the evening before, for flames and reminders too. The app counts the same way (dayOf in games/kcal.js).
 create or replace function private.kcal_today() returns date language sql stable set search_path = '' as $$
-  select (now() at time zone 'Europe/Berlin')::date $$;
+  select ((now() at time zone 'Europe/Berlin') - interval '4 hours')::date $$;
 
 -- flames: consecutive days on which the goal was reached (today counts once reached; until then yesterday's run stays alive)
 create or replace function private.kcal_recalc(uid uuid) returns void language plpgsql security definer set search_path = '' as $$
