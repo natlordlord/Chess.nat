@@ -119,6 +119,12 @@ const PARTS = {
     m = (await meals("tester", "&limit=1"))[0]; ok((await meals("tester")).length === before + 1 && m.source === "quick", "Vorschlag wird als neuer Eintrag gespeichert (Quelle quick)", m.source);
     await closeSheets(page); await clean(page, "Vorschläge");
 
+    /* speaking on Android: after a pause the phone starts a new piece; nothing said before may get lost (Feedback von Adri) */
+    { const R = a => Object.assign(a.map(t => Object.assign([{transcript: t}], {isFinal: true})), {length: a.length});
+      const st = await page.evaluate(([x, y]) => [Kcal.srText(x, true), Kcal.srText(y, true)], [R(["zu Mittag gab's Nudeln", "und zu Abend Pizza", "dazu einen halben Liter Cola"]), R(["zu Mittag", "zu Mittag gab's Nudeln", "zu Mittag gab's Nudeln und zu Abend Pizza"])]);
+      ok(st[0] === "zu Mittag gab's Nudeln und zu Abend Pizza dazu einen halben Liter Cola", "Android, neue Stücke nach Pausen: alles Gesagte bleibt", st[0]);
+      ok(st[1] === "zu Mittag gab's Nudeln und zu Abend Pizza", "Android, Stücke wiederholen das Bisherige: nichts doppelt", st[1]); }
+
     /* speaking */
     await page.tap("#main [data-kc-say]"); await sleep(700); await page.evaluate(() => window.__hear("zwei Brötchen mit Nutella und ein Kakao")); await sleep(500);
     await page.shot("kcal-sprechen");

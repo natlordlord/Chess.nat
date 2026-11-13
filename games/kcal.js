@@ -150,6 +150,15 @@
     }
   };
   window.Kcal = K;
+  /* what the speech recognition heard in this session. Android phones do it in two ways: some repeat everything said so far
+     in each new piece, others start a new piece with only the new words after a pause. Taking only the last piece lost
+     everything before the pause ("zu Mittag gab's …" disappeared when "zu Abend …" came, Feedback von Adri).
+     So the pieces are stitched: a piece that starts with the text so far replaces it, one that is already at its end is
+     skipped, anything else is added */
+  const srText = (results, android) => { const all = Array.from(results || [], x => String((x && x[0] && x[0].transcript) || "").replace(/\s+/g, " ").trim()).filter(Boolean);
+    if (!android) return all.join(" ");
+    let out = ""; for (const t of all){ const o = out.toLowerCase(), n = t.toLowerCase(); if (!out || n.startsWith(o)) out = t; else if (!o.endsWith(n)) out += " " + t; } return out; };
+  K.srText = srText;
 
   /* a meal idea in grams that fills what is missing (same list as the reminder pushes) */
   const IDEAS = {
@@ -947,7 +956,7 @@
       let r; try { r = new SR(); } catch(e) { return first ? typeMode() : pause(); }
       rec = r; r.lang = "de-DE"; r.interimResults = true; r.continuous = true; r.maxAlternatives = 1; const at = Date.now();
       r.onstart = r.onaudiostart = () => { if (rec === r) lastStart = lastStart || Date.now(); };
-      r.onresult = e => { if (rec !== r) return; const sess = /Android/i.test(navigator.userAgent) ? (e.results.length ? e.results[e.results.length - 1][0].transcript : "") : Array.from(e.results).map(x => x[0].transcript).join(" "); heard = (base + " " + sess).replace(/\s+/g, " ").trim(); pulse = 1; show(); };
+      r.onresult = e => { if (rec !== r) return; const sess = srText(e.results, /Android/i.test(navigator.userAgent)); heard = (base + " " + sess).replace(/\s+/g, " ").trim(); pulse = 1; show(); };
       r.onerror = e => { if (rec !== r) return;
         if (e.error === "not-allowed" || e.error === "service-not-allowed"){ if (first && !heard){ stop(); typeMode("Kein Mikrofon-Zugriff. Tipp stattdessen."); } else { rec = null; pause(); } }
         else if (e.error === "audio-capture" && meter){ stopMeter(true); } };
@@ -1345,7 +1354,7 @@
          as long as you haven't pressed OK or the microphone. What was said so far is kept */
       const again = () => setTimeout(() => { if (!want) return; try { listen(); } catch(e) { want = false; mic.classList.remove("on"); say("Das Mikrofon ging nicht mehr an"); } }, 220);
       const listen = () => { const r = this.rec = new SR(), t0 = Date.now(); let cur = "", got = false, bad = ""; r.lang = "de-DE"; r.interimResults = true; r.continuous = !this.oneShot;
-        r.onresult = e => { let t = ""; if (/Android/i.test(navigator.userAgent)) t = e.results.length ? e.results[e.results.length - 1][0].transcript : ""; else for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript; cur = t; got = true; inp.value = (base + " " + t).trim(); };
+        r.onresult = e => { const t = srText(e.results, /Android/i.test(navigator.userAgent)); cur = t; got = true; inp.value = (base + " " + t).trim(); };
         r.onerror = e => { bad = e.error || "?"; if (/not-allowed|service-not-allowed|audio-capture/.test(bad)){ want = false; say("Das Mikrofon ist nicht erlaubt. Nimm das Mikrofon der Tastatur."); } else if (!/no-speech|aborted/.test(bad) && this.oneShot) say("Mikrofon: " + bad); };
         r.onend = () => { base = (base + " " + cur).trim(); this.rec = null; if (!want){ mic.classList.remove("on"); return; }
           /* the long mode ended at once without hearing anything: this phone can't do it, take the one-sentence mode from now on */
@@ -2063,8 +2072,11 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-tot{display:flex;align-items:stretch;justify-content:space-between;gap:10px;padding:8px 6px 8px 12px;border-radius:12px;border:2px solid var(--go);background:var(--panel-2)}.kc-tot>span{display:flex;flex-direction:column;justify-content:center;font:900 15px var(--body);min-width:0}.kc-tot small{color:var(--muted);font:700 12px var(--body)}.kc-tot .kc-gi{background:var(--panel)}.kc-tot .kc-gi input{width:64px}
 .kc-gi:focus-within{border-color:var(--go)}.kc-gi input{width:52px;border:0!important;background:none!important;color:var(--fg);font:900 17px var(--display);text-align:right;padding:8px 0;outline:none}.kc-gi i{font-style:normal}.kc-items>div{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;background:var(--panel-2);border-radius:10px}.kc-items span{display:flex;flex-direction:column;font:800 14px var(--body)}.kc-items small{color:var(--muted);font-weight:700}.kc-items b{white-space:nowrap;font:900 14px var(--body)}
 .kc-said{margin:0;font-size:13px}.kc-portion{display:flex;flex-direction:column;gap:8px}.kc-portion>div{display:grid!important;grid-template-columns:repeat(3,1fr);gap:8px}
-.kc-fx{min-height:54px;border:0;border-radius:16px;background:var(--panel-2);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.1),0 3px 0 rgba(0,0,0,.25);color:var(--fg);font:900 20px var(--display);cursor:pointer;transition:transform .12s,background .18s,box-shadow .18s;-webkit-tap-highlight-color:transparent}
+.kc-fx{min-height:40px;border:0;border-radius:12px;background:var(--panel-2);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.1),0 3px 0 rgba(0,0,0,.25);color:var(--fg);font:900 16px var(--display);cursor:pointer;transition:transform .12s,background .18s,box-shadow .18s;-webkit-tap-highlight-color:transparent}
 .kc-fx:active{transform:translateY(2px) scale(.97)}.kc-fx.on{background:var(--go);color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.25),0 3px 0 rgba(0,0,0,.3)}
+/* the "Alles mal" row is small and on one line; "Passt" is the big button (Wunsch von Wolfsuii) */
+.kc-ms .kc-portion>div{grid-template-columns:repeat(6,1fr);gap:6px}.kc-ms .kc-portion>.muted{font-size:12.5px}
+.kc-ms .kc-row2{margin-top:10px}.kc-ms .kc-row2 .btn.go{flex:2.2;min-height:58px;font-size:20px;border-radius:18px;box-shadow:0 4px 0 rgba(0,0,0,.28),0 0 0 3px rgba(127,184,74,.25)}
 .kc-fxh{font:800 12.5px var(--body);color:#E8C56A;text-align:center}.kc-row2 .btn.go.pulse{animation:kcFxP 1.4s ease-in-out infinite}@keyframes kcFxP{0%,100%{filter:brightness(1)}50%{filter:brightness(1.18)}}.kc-portion>div,.kc-chips{display:flex;flex-wrap:wrap;gap:6px}.kc-chips .chip.on{background:var(--go);border-color:var(--go);color:#fff}
 .kc-per{margin:0}.kc-gram{display:flex;align-items:center;gap:8px}.kc-gram .btn{width:52px;flex:none;font-size:22px}.kc-gram label{flex:1;min-width:0;display:flex;align-items:center;gap:6px;font:800 18px var(--body)}.kc-gram input{flex:1;min-width:0;width:100%;box-sizing:border-box;text-align:center;font:900 24px var(--display);padding:8px;border-radius:12px;border:2px solid var(--line);background:var(--panel-2);color:var(--fg)}
 .kc-form label{display:flex;flex-direction:column;gap:4px;font:700 13px var(--body);color:var(--muted)}.kc-form input{font:700 17px var(--body);padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg)}
