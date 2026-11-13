@@ -44,3 +44,25 @@ drop policy if exists kcal_own_edit on public.kcal_own_products;
 create policy kcal_own_edit on public.kcal_own_products for update to authenticated using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
 update public.kcal_own_products o set author = left(private.pname(o.user_id), 40) where author = '';
 create index if not exists kcal_own_name_idx on public.kcal_own_products (lower(name));
+
+-- Seit 13.11.2026 (Migration "kcal_own_products_pic"): ein kleines Bild der Packungsvorderseite (pic), das in der Suche und beim
+-- Produkt steht. Es entsteht gleich nach dem Foto der Nährwerttabelle. Fehlt es bei einem Produkt, kann es jeder nachtragen
+-- (kcal_own_pic); ein vorhandenes Bild wird dabei nie ersetzt. Wem das Produkt gehört, ändert sich dadurch nicht.
+alter table public.kcal_own_products add column if not exists pic text check (pic is null or (pic like 'data:image/jpeg;base64,%' and char_length(pic) <= 60000));
+create or replace function private.kcal_own_stamp() returns trigger language plpgsql security definer set search_path = '' as $$
+begin
+  if auth.uid() is null then return new; end if;   -- the operator (SQL editor) may set anything
+  new.name := btrim(new.name);
+  if tg_op = 'UPDATE' then new.user_id := old.user_id; new.author := old.author; new.status := old.status; new.created_at := old.created_at;
+  else new.user_id := auth.uid(); new.author := left(private.pname(auth.uid()), 40); new.status := 'new'; end if;
+  return new;
+end $$;
+create or replace function public.kcal_own_pic(p_code text, p_pic text) returns boolean language plpgsql security definer set search_path = '' as $$
+declare n integer;
+begin
+  if auth.uid() is null then raise exception 'not signed in'; end if;
+  update public.kcal_own_products set pic = p_pic where code = p_code and pic is null and status <> 'bad';
+  get diagnostics n = row_count; return n > 0;
+end $$;
+revoke all on function public.kcal_own_pic(text, text) from public, anon;
+grant execute on function public.kcal_own_pic(text, text) to authenticated;

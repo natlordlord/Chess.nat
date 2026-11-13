@@ -15,7 +15,7 @@ home_tasks|id|id:uuid:!:@uuid ; group_id:uuid:!: ; title:text:!: ; emoji:text:!:
 home_thanks|task_id,user_id|task_id:uuid:!: ; user_id:uuid:!:@uid ; created_at:timestamptz:!:@now
 chess_ideas|id|id:uuid:!:@uuid ; user_id:uuid:!:@uid ; name:text:?: ; title:text:!: ; body:text:?: ; status:text:!:open ; created_at:timestamptz:!:@now
 chess_idea_votes|idea_id,user_id|idea_id:uuid:!: ; user_id:uuid:!:@uid ; created_at:timestamptz:!:@now
-kcal_own_products|id|id:uuid:!:@uuid ; user_id:uuid:!:@uid ; author:text:?: ; code:text:!: ; name:text:!: ; brand:text:!: ; unit:text:!:g ; k:numeric:!: ; c:numeric:!: ; p:numeric:!: ; f:numeric:!: ; fi:numeric:!:0 ; su:numeric:!:0 ; sf:numeric:!:0 ; sa:numeric:!:0 ; img:text:?: ; status:text:!:new ; created_at:timestamptz:!:@now
+kcal_own_products|id|id:uuid:!:@uuid ; user_id:uuid:!:@uid ; author:text:?: ; code:text:!: ; name:text:!: ; brand:text:!: ; unit:text:!:g ; k:numeric:!: ; c:numeric:!: ; p:numeric:!: ; f:numeric:!: ; fi:numeric:!:0 ; su:numeric:!:0 ; sf:numeric:!:0 ; sa:numeric:!:0 ; img:text:?: ; pic:text:?: ; status:text:!:new ; created_at:timestamptz:!:@now
 home_log|id|id:int8:!:@identity ; group_id:uuid:!: ; task_id:uuid:?: ; title:text:!: ; emoji:text:?: ; user_id:uuid:!: ; what:text:!: ; at:timestamptz:!:@now
 chess_now|user_id|user_id:uuid:!:@uid ; what:jsonb:!: ; updated_at:timestamptz:!:@now
 chess_friends|a,b|a:uuid:!: ; b:uuid:!: ; requested_by:uuid:!: ; status:text:!:'pending' ; created_at:timestamptz:!:@now
@@ -58,7 +58,7 @@ kcal_claps|from_id,to_id,day|from_id:uuid:!:@uid ; to_id:uuid:!: ; day:date:!: ;
 
 /* Functions callable through /rest/v1/rpc, with their argument names ("?" = has a default). */
 const RPCS = {
-  chess_gift_send: ["targets", "gift"], events_summary: ["days?"], kcal_buy_ice: [], kcal_foods_lookup: ["names"], kcal_can_see: ["owner"], kcal_invite: ["target"],
+  chess_gift_send: ["targets", "gift"], events_summary: ["days?"], kcal_buy_ice: [], kcal_foods_lookup: ["names"], kcal_can_see: ["owner"], kcal_invite: ["target"], kcal_own_pic: ["p_code", "p_pic"],
   news_broadcast: ["nid"], news_delete: ["nid"], news_is_admin: [], news_post: ["t", "b", "a?"], news_post_v: ["t", "b", "a?", "v?"], news_reshow: ["nid"],
   nudge_turn: ["target", "code"], push_config: [], ranked_leave: [], ranked_lobby: [], ranked_me: [], ranked_queue: ["tc", "hint?"],
   ranked_report: ["mid", "res", "why?"], ranked_top: ["c", "n?"], shop_can: ["l"], shop_owns: ["l"],
