@@ -1401,7 +1401,12 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 .fpx-badge{background:#ff9a88!important}.fpx-q{margin:0 0 14px;padding:12px 14px;border-radius:14px;background:rgba(0,0,0,.3);border-left:4px solid #ff9a88;font:700 clamp(17px,4.6vw,21px)/1.35 var(--body);color:#fff;text-align:left;overflow-wrap:anywhere}
 .fpx p.fpx-s{color:#ff9a88;font-weight:800}.fpx2 p.fpx-g{margin-top:14px;font-weight:800;color:#ffd970}
 .fpx-hold{position:relative;overflow:hidden;width:100%;margin-top:18px;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;font-size:17px!important;line-height:1.3;padding:16px 14px!important;white-space:normal}
-.fpx-hold i{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(255,255,255,.3);pointer-events:none}.fpx-hold span{position:relative}
+.fpx-shame{margin-top:16px;text-align:center}.fpx-shw{font:900 clamp(34px,10vw,48px)/1.1 var(--display,var(--body));color:#ff9a88;letter-spacing:.02em}.fpx-shw.hit{animation:fpshw .6s ease-out}
+@keyframes fpshw{0%{transform:scale(1.5);opacity:0}60%{transform:scale(.95);opacity:1}100%{transform:scale(1)}}
+.fpx-bell{display:block;margin:12px auto 6px;width:96px;height:96px;border-radius:50%;border:0;background:rgba(255,217,112,.14);font-size:52px;line-height:96px;cursor:pointer;touch-action:manipulation;transition:opacity .2s}.fpx-bell:disabled{opacity:.35}
+.fpx-bell.wait{box-shadow:0 0 0 0 rgba(255,217,112,.6);animation:fpbw 1.2s infinite}.fpx-bell.ring{animation:fpbr .7s ease-out}
+@keyframes fpbw{0%{box-shadow:0 0 0 0 rgba(255,217,112,.6)}100%{box-shadow:0 0 0 18px rgba(255,217,112,0)}}@keyframes fpbr{0%,100%{transform:rotate(0)}20%{transform:rotate(-22deg)}45%{transform:rotate(18deg)}70%{transform:rotate(-10deg)}}
+.fp-reps{display:inline-flex;flex-wrap:wrap;gap:6px}.fpx-hold i{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(255,255,255,.3);pointer-events:none}.fpx-hold span{position:relative}
 .newsx-cf{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .newsx-flash{position:absolute;left:50%;top:42%;width:40px;height:40px;margin:-20px;border-radius:50%;background:radial-gradient(circle,#fff,rgba(255,211,74,.8) 40%,rgba(255,211,74,0) 70%);animation:nxboom .9s ease-out forwards;pointer-events:none}
 @keyframes nxboom{0%{transform:scale(.2);opacity:1}60%{opacity:.9}100%{transform:scale(28);opacity:0}}
@@ -2850,6 +2855,7 @@ h1.h-title{letter-spacing:-.02em}
 .id-i{display:flex;gap:12px;align-items:flex-start;background:var(--panel-2);border-radius:14px;padding:12px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}.id-i.top{box-shadow:inset 0 0 0 2px var(--go)}.id-i.done,.id-i.closed{opacity:.55}
 .id-v{flex:none;width:54px;border:0;border-radius:12px;background:var(--panel-3);color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0;cursor:pointer;font:900 16px var(--body)}.id-v svg{width:18px;height:18px}.id-v.on{background:var(--go);color:#fff}
 .id-t{font:800 15.5px var(--body)}.id-m{color:var(--muted);font:600 12px var(--body);margin-top:2px}.id-st{color:var(--go-hi);font-weight:800}.id-i p{margin:6px 0 0;font-size:14px;color:var(--muted)}.id-i select{flex:none;font-size:12px;padding:4px;max-width:92px}
+.fp-rep{margin-top:8px;font-size:12px;padding:4px 10px;color:#ff8a80}.fp-rep.sure{background:#c62828;color:#fff}
 .fb-row{display:flex;gap:8px}.fb-row .btn{flex:1;padding:14px}.fb-prev{display:flex;align-items:flex-start;gap:8px}.fb-prev img{max-width:110px;max-height:160px;border-radius:10px}
 .fb-h{font:800 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:12px 2px 6px}#fbl{display:flex;flex-direction:column;gap:8px}
 .fb-i{background:var(--panel-2);border-radius:14px;padding:12px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}.fb-m{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.fb-m b{font:800 15px var(--body)}.fb-m small{color:var(--muted);font:600 11.5px var(--body);text-align:right}.fb-i p{margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}.fb-i img{display:block;max-width:100%;border-radius:10px;margin-top:8px}
@@ -2861,7 +2867,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794552861";
+const CHESSNAT_BUILD = "1794554346";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11392,9 +11398,9 @@ const Feedback = {
       const over = i => i.status === "done" || i.status === "closed";
       const L = (a.data || []).map(i => Object.assign(i, {n: V[i.id] || 0})).sort((x, y) => over(x) - over(y) || y.n - x.n || new Date(y.created_at) - new Date(x.created_at));
       const top = L.find(i => !over(i));
-      q("#idl").innerHTML = L.length ? L.map(i => `<div class="id-i ${i === top ? "top" : ""} ${i.status}"><button type="button" class="id-v ${mine[i.id] ? "on" : ""}" data-v="${i.id}" aria-label="${de ? "Stimme" : "Vote"}">${UP}<b>${i.n}</b></button><div class="grow"><div class="id-t">${esc(i.body || i.title)}</div><div class="id-m">${esc(i.user_id === me ? (de ? "Du" : "You") : i.name || "?")} · ${when(i.created_at)}${i === top ? ` · <span class="id-st">${de ? "wird gebaut" : "gets built"}</span>` : ST[i.status] ? ` · <span class="id-st">${ST[i.status]}</span>` : ""}</div></div>${adm ? `<select data-st="${i.id}" aria-label="Status">${["open", "building", "done", "closed"].map(s => `<option value="${s}" ${i.status === s ? "selected" : ""}>${s}</option>`).join("")}</select>` : ""}</div>`).join("") : `<p class="muted">${de ? "Noch keine Idee. Deine zuerst?" : "No ideas yet. Yours first?"}</p>`;
+      q("#idl").innerHTML = L.length ? L.map(i => `<div class="id-i ${i === top ? "top" : ""} ${i.status}"><button type="button" class="id-v ${mine[i.id] ? "on" : ""}" data-v="${i.id}" aria-label="${de ? "Stimme" : "Vote"}">${UP}<b>${i.n}</b></button><div class="grow"><div class="id-t">${esc(i.body || i.title)}</div><div class="id-m">${esc(i.user_id === me ? (de ? "Du" : "You") : i.name || "?")} · ${when(i.created_at)}${i === top ? ` · <span class="id-st">${de ? "wird gebaut" : "gets built"}</span>` : ST[i.status] ? ` · <span class="id-st">${ST[i.status]}</span>` : ""}</div>${adm && i.user_id !== me ? FairPlay.reportBtn("idea", i.id) : ""}</div>${adm ? `<select data-st="${i.id}" aria-label="Status">${["open", "building", "done", "closed"].map(s => `<option value="${s}" ${i.status === s ? "selected" : ""}>${s}</option>`).join("")}</select>` : ""}</div>`).join("") : `<p class="muted">${de ? "Noch keine Idee. Deine zuerst?" : "No ideas yet. Yours first?"}</p>`;
       ov.querySelectorAll("[data-v]").forEach(b => b.onclick = async () => { const id = b.dataset.v; b.disabled = true; const r = mine[id] ? await sb.from("chess_idea_votes").delete().eq("idea_id", id).eq("user_id", me) : await sb.from("chess_idea_votes").insert({idea_id: id}); if (r.error) toast(r.error.message, 3000); else { try { Sound.tap(); } catch(e) {} } load(); });
-      ov.querySelectorAll("[data-st]").forEach(s => s.onchange = async () => { const r = await sb.from("chess_ideas").update({status: s.value}).eq("id", s.dataset.st); if (r.error) toast(r.error.message, 3000); load(); }); };
+      ov.querySelectorAll("[data-st]").forEach(s => s.onchange = async () => { const r = await sb.from("chess_ideas").update({status: s.value}).eq("id", s.dataset.st); if (r.error) toast(r.error.message, 3000); load(); }); if (adm) FairPlay.wireReport(q("#idl"), load); };
     q("#idt").addEventListener("input", function(){ this.style.height = "auto"; this.style.height = Math.min(160, this.scrollHeight + 4) + "px"; });
     q("#idf").onsubmit = async e => { e.preventDefault(); const t = q("#idt").value.trim(); if (t.length < 3){ toast(de ? "Ein paar Worte mehr" : "A few more words"); return; } let name = ""; try { name = Social.P(me).name || ""; } catch(e) {}
       /* a long wish: the whole text is kept (body), the list line is its beginning */
@@ -11416,7 +11422,7 @@ const Feedback = {
       im.onerror = () => toast("Couldn't read that picture"); im.src = url; };
     const when = t => { const d = new Date(t); return d.toLocaleDateString(I18N.lang === "de" ? "de-DE" : "en-GB", {day: "2-digit", month: "2-digit"}) + ", " + d.toLocaleTimeString("de-DE", {hour: "2-digit", minute: "2-digit"}); };
     const load = async () => { const {data, error} = await sb.from("chess_feedback").select("*").order("created_at", {ascending: false}).limit(100); if (closed) return; const L = data || [], adm = typeof News !== "undefined" && News.admin;
-      q("#fbl").innerHTML = error ? `<p class="muted">Couldn't load: ${esc(error.message)}</p>` : `<div class="fb-h">${adm ? "All feedback" : "What you sent"} · ${L.length}</div>` + (L.map(r => `<div class="fb-i" data-notr><div class="fb-m"><b>${esc(r.user_id === me ? (I18N.lang === "de" ? "Du" : "You") : r.name || "?")}</b><small>${when(r.created_at)}${r.info && adm ? " · " + esc(r.info) : ""}</small></div><p>${esc(r.body)}</p>${r.img && /^data:image\//.test(r.img) ? `<img src="${r.img}" alt="" loading="lazy">` : ""}</div>`).join("") || `<p class="muted">Nothing yet.</p>`); };
+      q("#fbl").innerHTML = error ? `<p class="muted">Couldn't load: ${esc(error.message)}</p>` : `<div class="fb-h">${adm ? "All feedback" : "What you sent"} · ${L.length}</div>` + (L.map(r => `<div class="fb-i" data-notr><div class="fb-m"><b>${esc(r.user_id === me ? (I18N.lang === "de" ? "Du" : "You") : r.name || "?")}</b><small>${when(r.created_at)}${r.info && adm ? " · " + esc(r.info) : ""}</small></div><p>${esc(r.body)}</p>${r.img && /^data:image\//.test(r.img) ? `<img src="${r.img}" alt="" loading="lazy">` : ""}${adm && r.user_id !== me ? FairPlay.reportBtn("feedback", r.id) : ""}</div>`).join("") || `<p class="muted">Nothing yet.</p>`); if (adm) FairPlay.wireReport(q("#fbl"), load); };
     q("#fbs").onclick = async () => { const t = tx.value.trim(); if (!t && !img){ toast("Write a few words first"); return; } const b = q("#fbs"); b.disabled = true; let name = ""; try { name = Social.P(me).name || ""; } catch(e) {}
       const info = [typeof CHESSNAT_BUILD !== "undefined" ? "v" + CHESSNAT_BUILD : "", App.route, innerWidth + "×" + innerHeight, /iPhone|iPad/.test(navigator.userAgent) ? "iOS" : /Android/.test(navigator.userAgent) ? "Android" : "Desktop", document.documentElement.classList.contains("app-mode") ? "App" : "Browser"].filter(Boolean).join(" · ").slice(0, 300);
       const {error} = await sb.from("chess_feedback").insert({body: t || "(Screenshot)", img, name: name.slice(0, 60) || null, info}); b.disabled = false; if (error){ toast("Couldn't send: " + error.message, 3500); return; }
@@ -14152,12 +14158,25 @@ window.addEventListener("chessnat:route", () => setTimeout(() => News.daily(), 8
    rules. Then comes the second chance: a fresh start with 5,000 NatCoins. Nobody else sees this screen. ===== */
 const FairPlay = {
   HOLD: 3000, GIFT: 5000, busy: false,
+  /* Nur der Betreiber (News-Admin): "Melden" an einem Feedback oder einer Idee. Erst ein zweiter Tipp innerhalb von 4 s meldet.
+     fairplay_report löscht den Eintrag und legt für den Verfasser einen Fall an (Hinweis mit seinem Satz, Entschuldigung, Neustart). */
+  reportBtn(src, id){ return `<span class="fp-reps"><button type="button" class="btn sm fp-rep" data-rep="${src}:${id}">Melden</button><button type="button" class="btn sm fp-rep fp-shm" data-shame="${src}:${id}" hidden>🔔 Mit Schande</button></span>`; },
+  wireReport(root, after){ const sb = window.ChessSite && window.ChessSite.sb; if (!sb) return;
+    /* "Mit Schande": the person first has to ring the bell four times, each time after a voice says "Schande!" */
+    const send = async (b, shame) => { const w = b.parentNode, all = w.querySelectorAll("button"); clearTimeout(w._t); all.forEach(x => x.disabled = true); const [src, rid] = (b.dataset.rep || b.dataset.shame).split(":");
+      const {data, error} = await sb.rpc("fairplay_report", {src, rid, shame});
+      if (error){ all.forEach(x => x.disabled = false); toast(error.message, 3500); return; }
+      toast(data === "warned" ? "Gemeldet: Eintrag entfernt, Person wird verwarnt" : data === "already" ? "Eintrag entfernt (Person hat schon eine offene Verwarnung)" : "Eintrag entfernt", 3000); if (after) after(); };
+    root.querySelectorAll("[data-rep]").forEach(b => b.onclick = () => { const w = b.parentNode, sh = w.querySelector("[data-shame]");
+      if (!b.classList.contains("sure")){ b.classList.add("sure"); b.textContent = "Wirklich melden?"; sh.hidden = false; clearTimeout(w._t); w._t = setTimeout(() => { b.classList.remove("sure"); b.textContent = "Melden"; sh.hidden = true; }, 5000); return; }
+      send(b, false); });
+    root.querySelectorAll("[data-shame]").forEach(b => b.onclick = () => send(b, true)); },
   async check(){
     if (this.busy || document.hidden || document.querySelector(".fpx")) return;
     const site = window.ChessSite, sb = site && site.sb; if (!sb || !site.getSession || !site.getSession()) return;
     if (typeof Onboard !== "undefined" && Onboard.active()) return;
     if (["friend", "bots", "rush", "battle"].includes(App.route) && App.busy && App.busy()) return;   /* not in the middle of a game */
-    this.busy = true; let row = null; try { const {data} = await sb.from("chess_fairplay").select("id,quote,created_at").eq("status", "open").order("created_at").limit(1); row = data && data[0]; } catch(e) {}
+    this.busy = true; let row = null; try { const {data} = await sb.from("chess_fairplay").select("*").eq("status", "open").order("created_at").limit(1); row = data && data[0]; } catch(e) {}
     this.busy = false; if (row && !document.querySelector(".fpx")) this.show(row);
   },
   show(row){
@@ -14170,8 +14189,9 @@ const FairPlay = {
       <blockquote class="fpx-q">„${esc(row.quote)}“</blockquote>
       <p>Das hast du geschrieben. So gehen wir hier nicht miteinander um: Diese App steht für Zusammenhalt und Community, nicht für Anfeindungen.</p>
       <p class="fpx-s">Deine NatCoins sind erst mal weg.</p>
-      <button class="btn go big fpx-hold" id="fphold"><i></i><span>Gedrückt halten: Ich entschuldige mich und halte mich an die Regeln</span></button>
-      <div class="newsx-hint" id="fphint">Halte den Knopf drei Sekunden lang gedrückt.</div></div>`;
+      ${row.shame ? `<div class="fpx-shame" id="fpshame"><div class="fpx-shw" id="fpshw">Schande!</div><button class="fpx-bell" id="fpbell" aria-label="Klingeln">🔔</button><div class="newsx-hint" id="fpshc">Klingle die Glocke. Noch 4-mal.</div></div>` : ""}
+      <button class="btn go big fpx-hold" id="fphold" ${row.shame ? "hidden" : ""}><i></i><span>Gedrückt halten: Ich entschuldige mich und halte mich an die Regeln</span></button>
+      <div class="newsx-hint" id="fphint" ${row.shame ? "hidden" : ""}>Halte den Knopf drei Sekunden lang gedrückt.</div></div>`;
     document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("in"));
     const b = el.querySelector("#fphold"), bar = b.querySelector("i"), hint = el.querySelector("#fphint"); let t0 = 0, raf = 0, sent = false;
     const stop = () => { if (sent) return; cancelAnimationFrame(raf); t0 = 0; bar.style.width = "0%"; };
@@ -14184,7 +14204,19 @@ const FairPlay = {
       if (ok){ const left = natBal(); if (left > 0) natSpend(left); natEarn(this.GIFT, true); }   /* whatever came in meanwhile goes too: the start is exactly 5,000 */
       el.classList.add("out"); setTimeout(() => el.remove(), 320); this.welcome(ok); };
     b.addEventListener("pointerdown", start); ["pointerup", "pointerleave", "pointercancel"].forEach(k => b.addEventListener(k, stop)); b.addEventListener("contextmenu", e => e.preventDefault());
+    if (row.shame) this.shame(el, () => { el.querySelector("#fpshame").remove(); b.hidden = false; hint.hidden = false; });
   },
+  /* Schande: a voice says "Schande!", then the bell has to be rung; four times, then the apology button comes */
+  RINGS: 4,
+  say(t){ try { const sp = window.speechSynthesis; if (!sp) return; sp.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = "de-DE"; u.rate = .75; u.pitch = .6; u.volume = 1; sp.speak(u); } catch(e) {} },
+  bell(){ try { const ac = this.ac = this.ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === "suspended") ac.resume(); const t = ac.currentTime, out = ac.createGain(); out.gain.value = .5; out.connect(ac.destination);
+      [[1, 1], [2.76, .5], [5.4, .25], [8.93, .12]].forEach(([k, v]) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = "sine"; o.frequency.value = 520 * k; g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.001, t + 2.4 / Math.sqrt(k)); o.connect(g); g.connect(out); o.start(t); o.stop(t + 2.5); }); } catch(e) {} },
+  shame(el, done){ const bell = el.querySelector("#fpbell"), w = el.querySelector("#fpshw"), c = el.querySelector("#fpshc"); let n = 0, ready = false;
+    const call = () => { ready = false; bell.disabled = true; w.classList.remove("hit"); void w.offsetWidth; w.classList.add("hit"); this.say("Schande!"); try { Haptic.go([60, 40, 60]); } catch(e) {}
+      setTimeout(() => { ready = true; bell.disabled = false; bell.classList.add("wait"); }, 1100); };
+    bell.onclick = () => { if (!ready) return; n++; this.bell(); bell.classList.remove("wait"); bell.classList.remove("ring"); void bell.offsetWidth; bell.classList.add("ring");
+      const left = this.RINGS - n; c.textContent = left ? `Noch ${left}-mal.` : "Gut. Und jetzt:"; if (left) setTimeout(call, 1300); else setTimeout(done, 1400); };
+    setTimeout(call, 700); },
   /* the second chance, with confetti like good news */
   welcome(gift){
     const el = document.createElement("div"); el.className = "newsx fpx2"; el.setAttribute("data-notr", "");

@@ -209,6 +209,8 @@ const server = http.createServer((req, res) => {
       /* ---- test helpers ---- */
       if (p === "/__fake/reset"){ reset.pending = q.get("pending") === "1"; reset(); return send(200, {ok: true}); }
       if (p === "/__fake/problems") return send(200, db.problems);
+      /* /__fake/admin?u=<id>&on=1: makes a test user the operator (news_is_admin) */
+      if (p === "/__fake/admin"){ const id = q.get("u"); db.admins = db.admins.filter(a => a !== id); if (q.get("on") === "1") db.admins.push(id); return send(200, db.admins); }
       if (p === "/__fake/calls") return send(200, db.calls.slice(-Number(q.get("n") || 200)));
       if (p === "/__fake/delay"){ delay = Number(q.get("ms") || 0); return send(200, {delay}); }
       if (p === "/__fake/users") return send(200, db.users.map(x => ({id: x.id, email: x.email, password: x.password, name: x.name})));
