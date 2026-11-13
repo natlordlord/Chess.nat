@@ -110,7 +110,7 @@ module.exports = db => {
   /* private.kcal_recalc: the flame (days in a row with the goal reached), bridged by streak freezes */
   function kcalRecalc(uid){
     const k = R.kcal_profile.find(p => p.user_id === uid); if (!k) return;
-    const today = day(new Date()), sum = d => R.kcal_meals.filter(m => m.user_id === uid && m.day === d).reduce((s, m) => s + m.kcal, 0);
+    const today = day(new Date(Date.now() - 4 * 3600e3)), sum = d => R.kcal_meals.filter(m => m.user_id === uid && m.day === d).reduce((s, m) => s + m.kcal, 0);
     const has = d => R.kcal_meals.some(m => m.user_id === uid && m.day === d);
     const hitToday = sum(today) >= k.goal, oldDay = k.flame_day; let d = hitToday ? today : addDays(today, -1), n = 0, last = null;
     for (let i = 0; i < 3650; i++){
