@@ -443,7 +443,10 @@ const PARTS = {
     await a.evaluate(() => App.go("party", {g: "arena"})); await sleep(900); await a.locator("#main button", {hasText: "Gegen Bots"}).first().tap(); await sleep(6500); await a.shot("natstars");
     ok(await a.evaluate(() => !!document.querySelector(".ar-l")), "Nat Stars startet gegen Bots");
     for (let i = 0; i < 40 && (await a.evaluate(() => __ar().ph)) !== "fight"; i++) await sleep(250);
-    const ar = await a.evaluate(() => __ar()); ok(ar.crates >= 12 && ar.crates <= 28, "Nat Stars: deutlich weniger Kisten (" + ar.crates + " auf der Karte „" + ar.map + "“, vorher 56 bis 68)", JSON.stringify({c: ar.crates, map: ar.map, ph: ar.ph}));
+    const ar = await a.evaluate(() => __ar()); await sleep(1800); const ar2 = await a.evaluate(() => __ar()); await a.shot("natstars-kampf");
+    ok(ar.ph === "fight" && ar.z < ar2.z * .8, "Nat Stars: zum Start kurz die ganze Karte, dann gleitet die Kamera zu dir (Zoom " + (ar.z || 0).toFixed(2) + " → " + (ar2.z || 0).toFixed(2) + ")", JSON.stringify([ar.z, ar2.z]));
+    ok(ar.crates >= 10 && ar.crates <= 18 && ar.crateHp >= 200, "Nat Stars: wenige Kisten, meist einzeln (" + ar.crates + " auf der Karte „" + ar.map + "“, vorher 56 bis 68), jede hält " + ar.crateHp + " aus (vorher 72)", JSON.stringify({c: ar.crates, map: ar.map, hp: ar.crateHp}));
+    await a.evaluate(() => __arAt(80000)); await sleep(600); await a.shot("natstars-gas");
     const pw = await a.evaluate(() => __arGive(15)); ok(pw === 15, "Nat Stars: kein Limit mehr bei 12 Power-Würfeln (15 aufgesammelt, 15 zählen)", String(pw));
     await a.evaluate(() => document.querySelector("#lleave").click()); await sleep(1200);
     await a.evaluate(id => App.go("chat", {id}), ID.mila); await a.waitForSelector("#ctext"); await sleep(600); await a.tap("#ctext"); await a.keyboard.type("was die sache ist", {delay: 20});
