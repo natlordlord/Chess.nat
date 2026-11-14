@@ -464,7 +464,7 @@ PG.inviteSoon = (to, game) => { let n = 0; const go = async () => { const P = PN
 PG.friendList = (box, code, game, inLobby) => {
   const {T, h} = PG; if (typeof Social === "undefined" || !Social.me) return;
   const me = Social.me, ids = Social.data.friends.filter(r => r.status === "accepted").map(r => r.a === me ? r.b : r.a).filter(id => !inLobby.includes(id));
-  ids.sort((a, b) => (Social.isOnline(Social.P(b)) ? 1 : 0) - (Social.isOnline(Social.P(a)) ? 1 : 0));
+  if (typeof friendRank === "function") ids.splice(0, ids.length, ...friendRank(ids)); else ids.sort((a, b) => (Social.isOnline(Social.P(b)) ? 1 : 0) - (Social.isOnline(Social.P(a)) ? 1 : 0));
   box.innerHTML = ids.map(id => { const p = Social.P(id), on = Social.isOnline(p), done = pgInvited[code + id];
     return `<div class="li">${Social.face ? Social.face(p, 34) : ""}<div class="grow"><div class="t">${h(p.name)}</div><div class="s" style="${on ? "color:var(--go-hi)" : ""}">${on ? "● " + T("online", "online") : T("offline", "offline")}</div></div><button class="btn sm ${done ? "" : "go"}" data-inv="${esc(id)}" ${done ? "disabled" : ""}>${done ? T("Invited ✓", "Eingeladen ✓") : T("Invite", "Einladen")}</button></div>`; }).join("")
     || `<p class="muted" style="margin:4px 0">${T("All your friends are here, or you have none yet. Share the link or the QR code.", "Alle deine Freunde sind schon da oder du hast noch keine. Teil den Link oder den QR-Code.")}</p>`;

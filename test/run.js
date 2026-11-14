@@ -296,9 +296,16 @@ const PARTS = {
     ok(/Mila/.test(await txt(page, "#kchrl")), "Freunde: Rankings zeigen Mila und dich");
     for (const k of ["health", "kcal", "prot", "adh"]){ await page.tap(`#main [data-hr="${k}"]`); await sleep(250); }
     ok(await has(page, '#main [data-hr="adh"].on'), "Ranking-Reiter lassen sich umschalten");
+    /* one list, not two (Wunsch von Nathan): every friend once, and every row opens that friend's days */
+    ok(await page.evaluate(() => [...document.querySelectorAll("#main [data-fr]")].filter(b => /Mila/.test(b.innerText)).length === 1), "Mila steht nur einmal da (Ranking und Freundesliste sind eins)");
+    await page.locator("#kchrl [data-fr]", {hasText: "Mila"}).first().tap(); await sleep(600);
+    ok(/Mila/.test(await txt(page, ".dsheet")) && /Ziel/.test(await txt(page, ".dsheet")), "Tipp auf Mila im Ranking „Einhaltung“ öffnet ihre Tage (Deep Dive)", (await txt(page, ".dsheet")).slice(0, 120)); await closeSheets(page); await sleep(300);
+    await page.tap('#main [data-hr="today"]'); await sleep(400);
+    ok(/kcal heute/.test(await txt(page, "#kchrl")) && /heute/.test(await txt(page, "#kchrw")), "Reiter „Heute“: Fortschritt von heute mit Flamme", await txt(page, "#kchrl"));
     ok(await has(page, '#main [data-inv]'), "Jonas (trackt nicht) lässt sich einladen");
     await page.tap("#main [data-inv]"); await sleep(800); ok((await L.table("kcal_invites", "to_id=eq." + ID.jonas)).length === 1, "Einladung landet in der Datenbank");
     /* applause: Mila reached her goal today */
+    if (!(await has(page, '#main [data-hr="today"].on'))){ await page.tap('#main [data-hr="today"]'); await sleep(500); }
     const clap = await has(page, "#main [data-clap]");
     ok(clap, "Applaudieren-Knopf bei Mila (Ziel heute erreicht)", "kein Knopf: fehlt die Tabelle kcal_claps?");
     if (clap){ await page.tap("#main [data-clap]"); await sleep(700); ok((await L.table("kcal_claps")).length === 1, "Applaus wird gespeichert"); }
@@ -603,6 +610,20 @@ const PARTS = {
     process.env.FAKE_AI_DOWN = "1"; t = await search("Fruchtrio", "Schon gegessen"); delete process.env.FAKE_AI_DOWN;
     ok(/Schon gegessen[\s\S]*Buntes Frucht-Trio/.test(t), "ohne KI findet die Suche Bekanntes trotzdem", t.slice(0, 120)); await shut();
     await clean(page, "Suche nach Bedeutung"); await page.context().close();
+  },
+
+  /* ---------- the friends page: the friends that matter most first (Wunsch von Nathan) ---------- */
+  async freunde(browser){
+    const order = async page => { await page.evaluate(() => App.go("friends")); await page.waitForSelector(".fr-list .li", {timeout: 8000}).catch(() => {}); await sleep(1200);
+      return page.evaluate(() => [...document.querySelectorAll(".fr-list .li .t")].map(x => x.innerText.replace(/\(.*\)/, "").trim())); };
+    let page = await L.open(browser, "tester"), o = await order(page);
+    ok(o[0] === "Mila" && o.includes("Jonas"), "ungelesene Nachricht von Mila: Mila steht oben", JSON.stringify(o)); await page.context().close();
+    /* Mila's messages read; with Jonas written just now: Jonas comes first, even though Mila is online */
+    await L.stage("PATCH", "chess_messages", "to_id=eq." + ID.tester, {read_at: new Date().toISOString()});
+    for (let i = 0; i < 3; i++) await L.stage("POST", "chess_messages", "", {from_id: ID.tester, to_id: ID.jonas, body: "Hey Jonas " + i, created_at: new Date(Date.now() - (3 - i) * 60000).toISOString(), read_at: null});
+    page = await L.open(browser, "tester"); o = await order(page); await page.shot("freunde-reihenfolge");
+    ok(o[0] === "Jonas", "zuletzt mit Jonas geschrieben: Jonas steht oben", JSON.stringify(o));
+    await clean(page, "Freunde-Reihenfolge"); await page.context().close();
   },
 
   async feedback(browser){

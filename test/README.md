@@ -31,7 +31,7 @@ geklappt hat, samt jedem Fehler, den Seite oder Datenbank unterwegs gemeldet hab
 
 Teile (`quelle` läuft zuletzt, es stellt die Nährwert-Tabelle auf die Open-Food-Facts-Werte der Attrappe um): `login` · `kcal` (Suche, Mengen, Sprechen, Barcode) · `nudeln` (feste Nährwerte, trocken/gekocht) ·
 `suche` (Tippfehler, andere Schreibweise, Suche nach Bedeutung, Schon gegessen) · `kcal2` (Reiter, Einstellungen, Wiegen, Kochen, Wochen-Rückblick) · `shop` (Einkaufsliste mit zwei Handys) ·
-`chat` (Chat mit zwei Handys, Nat Stars, Freunde) · `tipp` · `feedback` · `seiten` (jede Seite, Handy und PC) · `start` (kein Flackern) · `quelle` (Tabellenwerte aus Open Food Facts)
+`chat` (Chat mit zwei Handys, Nat Stars, Freunde) · `freunde` (Reihenfolge der Freunde: ungelesen, zuletzt geschrieben oder gespielt) · `tipp` · `feedback` · `seiten` (jede Seite, Handy und PC) · `start` (kein Flackern) · `quelle` (Tabellenwerte aus Open Food Facts)
 
 ## Tippen mit Tastatur (iPhone nachgestellt)
 
