@@ -13,6 +13,8 @@ async function start(){
 /* 12 seconds of quiet sound as a WAV file, 8 kHz, 8 bit */
 const WAV = (() => { const n = 8000 * 12, b = Buffer.alloc(44 + n, 128); b.write("RIFF", 0); b.writeUInt32LE(36 + n, 4); b.write("WAVEfmt ", 8); b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20); b.writeUInt16LE(1, 22); b.writeUInt32LE(8000, 24); b.writeUInt32LE(8000, 28); b.writeUInt16LE(1, 32); b.writeUInt16LE(8, 34); b.write("data", 36); b.writeUInt32LE(n, 40);
   for (let i = 0; i < n; i++) b[44 + i] = 128 + Math.round(3 * Math.sin(i / 8)); return b; })();
+/* artists the game has asked for: the library knows their songs too */
+const ARTS = new Set();
 const SONGS = {Queen: [["Bohemian Rhapsody (Remastered 2011)", "1975"], ["Don't Stop Me Now", "1978"], ["Another One Bites the Dust", "1980"], ["We Will Rock You", "1977"], ["Radio Ga Ga", "1984"], ["Under Pressure", "1981"]],
   Nena: [["99 Luftballons", "1983"], ["Irgendwie, irgendwo, irgendwann", "1984"], ["Leuchtturm", "1983"]], "a-ha": [["Take On Me", "1985"], ["The Sun Always Shines on T.V.", "1985"], ["Hunting High and Low", "1985"]]};
 /* a phone (iPhone-sized, touch, German, Berlin time) with that person already signed in; who = null → not signed in */
@@ -32,14 +34,18 @@ async function open(browser, who, {route = "", desktop = false, app = true, seas
     const song = (a, [t, y]) => ({wrapperType: "track", trackId: id(a + t), trackName: t, artistName: a, previewUrl: "https://audio-ssl.itunes.apple.com/fake/" + encodeURIComponent(t) + ".m4a", artworkUrl100: null, artworkUrl60: null, releaseDate: y + "-01-01T08:00:00Z"});
     let results;
     /* an artist's songs (the quiz) */
-    if (u.searchParams.get("attribute") === "artistTerm") results = hits(term).map(x => song(term, x));
+    if (u.searchParams.get("attribute") === "artistTerm"){ ARTS.add(term); results = hits(term).map(x => song(term, x)); }
     else { /* the song library: any song or artist containing the typed text */
-      const q = term.toLowerCase(), m = /^(.+?) hit\b/i.exec(term), cat = Object.keys(SONGS).flatMap(a => SONGS[a].map(x => [a, x])).concat(m ? hits(m[1]).map(x => [m[1], x]) : []);
-      const L = cat.filter(([a, [t]]) => t.toLowerCase().includes(q) || a.toLowerCase().includes(q));
+      const q = term.toLowerCase(), m = /^(.+?) hit\b/i.exec(term), cat = Object.keys(SONGS).flatMap(a => SONGS[a].map(x => [a, x])).concat(m ? hits(m[1]).map(x => [m[1], x]) : []).concat([...ARTS].filter(a => !SONGS[a]).flatMap(a => hits(a).map(x => [a, x])));
+      /* every word of the search somewhere in title or artist ("Bohemian Rhapsody Queen", "Radi") */
+      const W = q.split(/\s+/).filter(Boolean), L = cat.filter(([a, [t]]) => W.every(w => (t + " " + a).toLowerCase().replace(/[^a-z0-9äöü ]/g, "").includes(w.replace(/[^a-z0-9äöü]/g, ""))));
       results = u.searchParams.get("entity") === "musicArtist" ? [...new Set(L.map(x => x[0]).concat(L.length ? [] : [term]))].map(a => ({wrapperType: "artist", artistName: a, artistId: id(a)})) : L.map(([a, x]) => song(a, x)); }
     r.fulfill({status: 200, contentType: "text/javascript", body: cb + "(" + JSON.stringify({resultCount: results.length, results}) + ")"}); });
   /* the previews: 12 quiet seconds (long enough to see a clip start, stop and start again) */
-  await page.route(/audio-ssl\.itunes\.apple\.com\/fake\//, r => r.fulfill({status: 200, contentType: "audio/wav", body: WAV}));
+  /* with byte ranges like the real server, so a player can jump to a point in the song */
+  await page.route(/audio-ssl\.itunes\.apple\.com\/fake\//, r => { const m = /bytes=(\d+)-(\d*)/.exec(r.request().headers().range || "");
+    if (!m) return r.fulfill({status: 200, contentType: "audio/wav", headers: {"accept-ranges": "bytes"}, body: WAV});
+    const a = +m[1], b = m[2] ? Math.min(+m[2], WAV.length - 1) : WAV.length - 1; return r.fulfill({status: 206, contentType: "audio/wav", headers: {"accept-ranges": "bytes", "content-range": `bytes ${a}-${b}/${WAV.length}`}, body: WAV.subarray(a, b + 1)}); });
   await page.route(/world\.openfoodfacts\.org\/api\/v2\/product\//, async r => { const code = /product\/(\d+)/.exec(r.request().url())[1]; const j = await (await fetch(BASE + "/__fake/off?code=" + code)).text(); r.fulfill({status: 200, contentType: "application/json", body: j}); });
   if (who){ const s = await (await fetch(BASE + "/__fake/session?u=" + who)).json(); await ctx.addInitScript(v => { try { if (!sessionStorage.getItem("fake-out")) localStorage.setItem("sb-localhost-auth-token", v); } catch(e) {} }, JSON.stringify(s)); }
   /* on the phone it runs from the home screen: say so, otherwise the "add to home screen" page covers everything */
@@ -58,4 +64,4 @@ async function open(browser, who, {route = "", desktop = false, app = true, seas
 const problems = async () => (await fetch(BASE + "/__fake/problems")).json();
 const table = async (t, q = "") => (await fetch(BASE + "/__fake/table/" + t + (q ? "?" + q : ""))).json();
 const stage = async (method, t, q, body) => (await fetch(BASE + "/__fake/table/" + t + (q ? "?" + q : ""), {method, headers: {"content-type": "application/json"}, body: JSON.stringify(body)})).json();
-module.exports = {start, open, problems, table, stage, BASE, OUT, fake, ID: require("./fake-supabase/seed").ID};
+module.exports = {start, open, problems, table, stage, BASE, OUT, fake, SONGS, ID: require("./fake-supabase/seed").ID};

@@ -135,6 +135,8 @@ document.addEventListener("click", e => { const b = e.target.closest && e.target
 .pg-chip button{border:0;background:var(--panel-3);color:var(--muted);width:24px;height:24px;border-radius:50%;cursor:pointer;font:900 15px var(--body);line-height:1;display:flex;align-items:center;justify-content:center}
 .pg-add{display:flex;gap:8px}.pg-add input{flex:1;min-width:0;font-size:16px}
 .pg-opt{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pg-pkg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.pg-pk{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 11px;border-radius:16px;border:2px solid transparent;background:var(--panel-2);color:inherit;font:inherit;cursor:pointer;min-height:88px}
+.pg-pk .e{font-size:24px;line-height:1}.pg-pk b{font:800 15px var(--body)}.pg-pk small{color:var(--muted);font:600 12.5px/1.3 var(--body)}.pg-pk.on{border-color:var(--go);background:color-mix(in srgb,var(--go) 18%,var(--panel-2))}.pg-pk:active{transform:scale(.98)}
 .pg-sub{color:var(--muted);font-size:13.5px;margin:2px 0 0}
 .pg-stage{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;padding:14px 0 8px}
 .pg-who{color:var(--muted);font:800 13px var(--body);letter-spacing:.06em;text-transform:uppercase}
@@ -223,7 +225,7 @@ Views.games = {
     const list = [tile(`data-go="play"`, `<i class="pc wn" style="width:38px;height:38px;display:block"></i>`, "#7FB24A", T("Chess", "Schach"), T("Online, bots, friends, duel, battle.", "Online, Bots, Freunde, Duell, Battle."))]
       .concat([tile(`data-go="tipp"`, "⚽", "#DC052D", T("Tipping game", "Tippspiel"), T("Tip the score: football and UFC title fights.", "Ergebnis tippen: Fußball und UFC-Titelkämpfe."))])
       .concat(PG.games.some(g => g.id === "natposter") ? [tile(`data-g="natposter"`, "🚀", "#7B5CD6", "Natposter", T("Space station, tasks, a traitor.", "Raumstation, Aufgaben, ein Verräter."))] : [])
-      .concat(PG.games.filter(g => g.id !== "natposter").sort((a, b) => (b.id === "arena") - (a.id === "arena")).map(g => { const a = PG.ART[g.id] || ["🎲", "#7FB24A"]; return tile(`data-g="${g.id}"`, a[0], a[1], h(T(g.name[0], g.name[1])), h(T(g.sub[0], g.sub[1]))); }));
+      .concat(PG.games.filter(g => g.id !== "natposter").sort((a, b) => ({song: 2, arena: 1}[b.id] || 0) - ({song: 2, arena: 1}[a.id] || 0)).map(g => { const a = PG.ART[g.id] || ["🎲", "#7FB24A"]; return tile(`data-g="${g.id}"`, a[0], a[1], h(T(g.name[0], g.name[1])), h(T(g.sub[0], g.sub[1]))); }));
     main.innerHTML = `<div class="page"><h1 class="h-title">${T("Games", "Spiele")}</h1>
       <div id="pgrj" data-notr></div>
       <div class="tiles pg-all" data-notr style="margin-top:12px">${list.join("")}</div>

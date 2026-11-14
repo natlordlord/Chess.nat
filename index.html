@@ -2875,7 +2875,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794684358";
+const CHESSNAT_BUILD = "1794689205";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -14058,6 +14058,8 @@ const News = {
     const wait = NEWS_BOOT + 90000 - Date.now(); if (wait > 0){ clearTimeout(this._t); this._t = setTimeout(() => this.daily(), wait + 500); return; }
     if (typeof Onboard !== "undefined" && Onboard.active()) return;   /* the welcome news waits until the first start is done */
     if (["friend", "bots", "rush", "battle", "lesson", "repdrill"].includes(App.route) && App.busy && App.busy()) return;
+    /* not over a party game or its lobby either (a song round, Nat Stars …): a minute later, once it's over */
+    if (["lobby", "party"].includes(App.route)){ clearTimeout(this._t); this._t = setTimeout(() => this.daily(), 60000); return; }
     this.busy = true; const n = await this.latest(); this.busy = false; if (!n) return;
     /* "show again" from the team (rev) brings it back for everyone, even if they already pressed OK today */
     const day = todayKey(), seen = S.newsSeen || {}, rev = n.rev || 0; if (seen.id === n.id && seen.day === day && (seen.rev || 0) === rev) return;
@@ -14721,15 +14723,15 @@ const Ranks = {
 
 </script>
 <!-- Games: party games for one phone (games/*.js); loaded before boot so #games and #party open directly -->
-<script src="games/core.js?v=128"></script>
+<script src="games/core.js?v=129"></script>
 <script src="games/imposter.js?v=128"></script>
 <script src="games/werwolf.js?v=128"></script>
 <script src="games/cards.js?v=128"></script>
 <script src="games/heads.js?v=128"></script>
 <script src="games/more.js?v=128"></script>
-<script src="games/net.js?v=133"></script>
+<script src="games/net.js?v=134"></script>
 <script src="games/online.js?v=128"></script>
-<script src="games/song.js?v=4"></script>
+<script src="games/song.js?v=6"></script>
 <script src="games/natposter.js?v=130"></script>
 <script src="games/arena.js?v=133"></script>
 <script src="games/tipp.js?v=130"></script>
