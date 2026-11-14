@@ -2875,7 +2875,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794694347";
+const CHESSNAT_BUILD = "1794695903";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -8014,6 +8014,9 @@ const Av3D = (() => {
     const HP = rig.pose === "idle" && POSE[rig.a.pose]; if (HP){ const sw = live ? Math.sin(t * 1.1) * .015 : 0; Object.assign(P, HP); P.rSz += sw; P.lSz -= sw; if (rig.a.pose === "flex" && live){ P.rEz += Math.sin(t * 3) * .05; P.lEz -= Math.sin(t * 3) * .05; } }
     if (rig.pose === "cage"){ const r = (t % 4.2), shake = r > 3.2 ? Math.sin(t * 40) * .025 : 0; P.rSx = -1.2 + (r > 3.2 ? Math.sin(t * 30) * .08 : 0); P.lSx = P.rSx; P.rSz = .08; P.lSz = -.08; P.rEx = -.45; P.lEx = -.45; P.fX = shake; P.hY = Math.sin(t * .7) * .45; P.hX = r > 3.2 ? -.12 : Math.sin(t * .4) * .08; rig.rattle = shake; if ((t % 9) > 8.2) P.fY = Math.abs(Math.sin((t % 9 - 8.2) * 4)) * .12; }
     if (rig.pose === "pet"){ P.fY = .05 + Math.sin(t * 2.4) * .06; P.rSz = -.6 + Math.sin(t * 5) * .15; P.lSz = .6 - Math.sin(t * 5) * .15; P.hY = Math.sin(t * .6) * .3; }
+    /* walking (games): legs step, each arm swings against its leg, the body bobs and twists a little, leaning into the step */
+    if (rig.walk != null){ const s = Math.sin(rig.walk), c2 = Math.cos(rig.walk); P.rLx = s * .72; P.lLx = -s * .72; P.rSx = -s * .62 + .08; P.lSx = s * .62 + .08; P.rSz = -.17; P.lSz = .17; P.rEx = -.55; P.lEx = -.55;
+      P.fY = Math.abs(c2) * .05 - .02; P.tY = s * .13; P.tX = .07; P.hY = -s * .07; P.hX = .03; P.hZ = 0; P.fRz = 0; P.fRy = 0; }
     const e = rig.emote; if (e){ const s = t - e.t0, d = e.d || 2.6; if (s > d) rig.emote = null; else { const w = Math.min(1, s * 4, (d - s) * 4);
       const mix = (key, v) => { P[key] = lerp(P[key], v, w); };
       if (e.k === "wave"){ mix("rSz", -2.5); mix("rSx", .25); mix("rEz", -.5 + Math.sin(s * 14) * .45); mix("hZ", .12); }
@@ -8172,6 +8175,27 @@ const Av3D = (() => {
   function drain(){ qraf = 0; const t0 = performance.now(); while (queue.length && performance.now() - t0 < 12){ try { queue.shift()(); } catch(e){ console.warn(e); } } if (queue.length) qraf = requestAnimationFrame(drain); }
   new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes){ if (n.nodeType !== 1) continue; if (n.matches && n.matches("canvas.av3c")) hydrate(n); else if (n.querySelectorAll) n.querySelectorAll("canvas.av3c").forEach(hydrate); } }).observe(document.documentElement, {childList: true, subtree: true});
 
+  /* ---------- for games: a walk cycle as one strip of pictures ----------
+     n moments of one step and a still picture at the end, the figure turned by yaw and seen from above at an angle, like
+     in Brawl Stars; no stand and no shadow (the game draws its own ground). Made once per outfit, the game then only copies
+     pictures. Also says where the feet are in the picture and how many pixels one unit is, so the game can stand it on the ground */
+  function walk(cfg, o = {}){ const j = walkJob(cfg, o); if (!j) return null; while (!j.next()); return j.res; }
+  /* the same, one picture per call (next() → true when done), so a game can spread the work over its frames */
+  function walkJob(cfg, o = {}){
+    if (!T || dead) return null; const n = o.n || 6, w = o.w || 170, h = o.h || 240, tier = o.tier != null ? o.tier : 2;
+    const spec = {cfg: Object.assign({}, AV_DEFAULT, cfg || {}, {aura: "none", pet: "none"}), tier, mode: "full", pose: "walk", pet: false};
+    const rig = makeRig(spec); rig.base.visible = false; if (rig.shadow) rig.shadow.visible = false; const sc0 = new T.Scene(); lights(sc0); sc0.add(rig.root); setLights(sc0, tier, 0xffffff); rig.root.rotation.y = o.yaw || 0;
+    const el = (o.pitch != null ? o.pitch : 32) * Math.PI / 180, d = o.dist || 6.3, cy = 1.05, cam = new T.PerspectiveCamera(o.fov || 23, w / h, .1, 60);
+    cam.position.set(0, cy + Math.sin(el) * d, Math.cos(el) * d); cam.lookAt(0, cy, 0); cam.updateProjectionMatrix(); cam.updateMatrixWorld();
+    const sheet = document.createElement("canvas"); sheet.width = w * (n + 1); sheet.height = h; const sc = sheet.getContext("2d"), tmp = document.createElement("canvas"); tmp.width = w; tmp.height = h; const tc = tmp.getContext("2d");
+    const pr = v => { const q = v.project(cam); return {x: (q.x + 1) / 2 * w, y: (1 - q.y) / 2 * h}; }, f0 = pr(new T.Vector3(0, .2, 0)), f1 = pr(new T.Vector3(0, 1.2, 0));
+    let i = 0, done = false; const job = {res: null, next(){ if (done) return true;
+      try { if (dead) throw new Error("3D off"); rig.walk = i < n ? i / n * Math.PI * 2 : null; rig.update(0); renderTo(sc0, cam, rig, w, h, tc); sc.drawImage(tmp, i * w, 0); i++; }
+      catch(e) { done = true; sc0.remove(rig.root); disposeRig(rig); throw e; }
+      if (i > n){ done = true; sc0.remove(rig.root); disposeRig(rig); job.res = {sheet, n, w, h, fx: f0.x, fy: f0.y, unit: Math.hypot(f1.x - f0.x, f1.y - f0.y)}; } return done; }};
+    return job;
+  }
+
   /* ---------- public ---------- */
   /* an HTML placeholder; becomes a 3D picture as soon as it lands in the page. fb = fallback drawing while loading */
   function tag(cfg, o = {}){
@@ -8188,7 +8212,7 @@ const Av3D = (() => {
       emote(k){ if (cv._v) cv._v.emote(k); }, focus(m){ if (cv._v) cv._v.focus(m); else { const s = reg.get(cv.dataset.k); if (s) s.mode = m; } }};
   }
   function react(el, k){ const cv = el && (el.matches && el.matches("canvas") ? el : el.querySelector("canvas.av3c")); if (cv && cv._v) cv._v.emote(k); }
-  return {load, tag, stage, react, get ok(){ return !!T && !dead; }, get dead(){ return dead; }};
+  return {load, tag, stage, react, walk, walkJob, get ok(){ return !!T && !dead; }, get dead(){ return dead; }};
 })();
 /* start loading early; pictures fill in as soon as it's there */
 setTimeout(() => { Av3D.load().catch(() => {}); }, 50);
@@ -14734,7 +14758,7 @@ const Ranks = {
 <script src="games/more.js?v=128"></script>
 <script src="games/net.js?v=134"></script>
 <script src="games/online.js?v=128"></script>
-<script src="games/song.js?v=6"></script>
+<script src="games/song.js?v=7"></script>
 <script src="games/natposter.js?v=130"></script>
 <script src="games/arena.js?v=134"></script>
 <script src="games/tipp.js?v=130"></script>

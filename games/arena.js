@@ -754,7 +754,9 @@
     const w0 = NP.cv.width / NP.dpr, h0 = NP.cv.height / NP.dpr, floor = w0 * h0 > 5e5 ? .75 : 1;
     if (avg > 1 / 45 && NP.dpr > floor + .05){ const w = w0, h = h0, d = Math.max(floor, Math.round((NP.dpr - (avg > 1 / 20 ? .75 : avg > 1 / 28 ? .5 : .34)) * 100) / 100); if (!Q.d0) Q.d0 = NP.dpr; NP.cv.width = Math.round(w * d); NP.cv.height = Math.round(h * d); NP.dpr = d; } }
   function step(dt){
-    if (!C.A) return; quality(dt); const A = C.A, t = now(), el = t - C.fightT0, gr = A.ph === "fight" ? gasR(el) : 99999;
+    if (!C.A) return; quality(dt);
+    if (!C.f3w || now() - C.f3w > 1500){ C.f3w = now(); try { NPo().pl().forEach(p => { if (C.A.ids.includes(p.id)) fig3(p); }); } catch(e) {} } fig3Step();
+    const A = C.A, t = now(), el = t - C.fightT0, gr = A.ph === "fight" ? gasR(el) : 99999;
     if (fighting()){ const cl = CLS[C.cls]; let ix = 0, iy = 0;
       if (C.me.dash) dashStep(C.me);
       else {
@@ -1010,6 +1012,21 @@
     for (const k in parts){ const im = new Image(); im.onload = () => { const cv = document.createElement("canvas"); cv.width = 150; cv.height = 192; try { cv.getContext("2d").drawImage(im, 0, 0, 150, 192); } catch(e) { return; } R.cv[k] = cv; if (--left === 0) R.ok = true; };
       im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -20 200 256" width="200" height="256">${typeof AV_DEFS !== "undefined" ? AV_DEFS : ""}${parts[k]}</svg>`); }
     return null; }
+  /* 3D fighters (Nathan): each one's own 3D figure from the app (the same as in the wardrobe), rendered once as a walk cycle,
+     turned three-quarters to the right, once from the front and once from the back (walking up), seen from above at an angle like
+     in Brawl Stars; facing left is the mirror image. Made one figure per frame while the round starts, so nothing stutters;
+     until then (or on phones without 3D) the drawn figure walks */
+  const F3 = {}, F3Q = []; let f3Busy = false;
+  function fig3(p){ if (typeof Av3D === "undefined" || Av3D.dead) return null; const key = JSON.stringify(p.av || {}); let e = F3[p.id];
+    if (e && e.key === key) return e.ok ? e : null; e = F3[p.id] = {key, ok: false, av: p.av || {}}; F3Q.push(p.id); if (!Av3D.ok) Av3D.load().catch(() => {}); return null; }
+  /* one picture per frame: a figure's two walk cycles take 14 frames */
+  function fig3Step(){ if (f3Busy || !F3Q.length || typeof Av3D === "undefined" || !Av3D.ok || !Av3D.walkJob) return; const id = F3Q[0], e = F3[id]; if (!e){ F3Q.shift(); return; }
+    f3Busy = true; try { if (!e.job) e.job = Av3D.walkJob(e.av, {yaw: e.fr ? Math.PI - .78 : .78, w: 210, h: 300}); if (!e.job){ F3Q.shift(); e.dead = 1; return; }
+      if (e.job.next()){ if (!e.fr) e.fr = e.job.res; else { e.bk = e.job.res; e.ok = true; F3Q.shift(); } e.job = null; } }
+    catch(err) { F3Q.shift(); e.dead = 1; e.job = null; } finally { f3Busy = false; } }
+  function drawFig3(c, e, x, y, o, seed, sc){ const S = o.behind ? e.bk : e.fr, t = now(), mv = o.mv && !o.jh;
+    const i = mv ? Math.floor(((t / 105 + seed) / (Math.PI * 2) % 1 + 1) % 1 * S.n) : S.n, k = 54 * sc / S.unit;
+    c.save(); c.translate(x, y); if (o.f < 0) c.scale(-1, 1); c.drawImage(S.sheet, i * S.w, 0, S.w, S.h, -S.fx * k, -S.fy * k, S.w * k, S.h * k); c.restore(); }
   /* one step of the walk: legs lift in turn and swing a little, arms swing against them, the body bobs and leans */
   function drawRig(c, R, x, top, W, H, o, seed, at){ const t = at != null ? at : now(), mv = o.mv && !o.jh ? 1 : 0, ph = t / 105 + seed, s = Math.sin(ph) * mv, X = sx => x - W / 2 + sx / 200 * W, Y = sy => top + (sy + 20) / 256 * H, u = W / 200;
     const bob = mv ? -Math.abs(Math.cos(ph)) * 5 * u : Math.sin(t / 650 + seed) * 1.2 * u, part = (k, px, py, an, dy) => { const cv = R.cv[k]; c.save(); c.translate(X(px), Y(py) + (dy || 0)); if (an) c.rotate(an); c.drawImage(cv, -px / 200 * W, -(py + 20) / 256 * H, W, H); c.restore(); };
@@ -1035,8 +1052,9 @@
     const weapon = () => { if (!im) return; const s = o.k === "punch" ? 30 : o.k === "hammer" ? 50 : 38, hx = bx + Math.cos(a) * 24, hy = by - 36 + Math.sin(a) * 14; c.save(); c.translate(hx, hy); if (o.k === "punch") c.rotate(a + Math.PI / 2); else if (o.k !== "bomb" && o.k !== "zap"){ const l = Math.cos(a) < 0; c.rotate(a + (l ? -swr : swr)); if (l) c.scale(1, -1); } c.drawImage(im, -s / 2, -s / 2, s, s); c.restore(); };
     if (o.glow > 0){ c.globalAlpha = o.glow * .9; c.drawImage(glowSpr(), bx - 70, by - 120, 140, 150); c.globalAlpha = 1; }
     if (behind) weapon();
-    const rg = rigOf(p);
-    if (rg){ c.save(); if (o.f < 0){ c.translate(bx, 0); c.scale(-1, 1); c.translate(-bx, 0); } drawRig(c, rg, bx, by - h * sc + 18, w * sc, h * sc, o, (p.id.charCodeAt(1) || 0) * .7); c.restore(); }
+    const f3 = fig3(p), rg = f3 ? null : rigOf(p);
+    if (f3) drawFig3(c, f3, bx, by + 14, {mv: o.mv, jh: o.jh, f: o.f, behind}, (p.id.charCodeAt(1) || 0) * .7, sc);
+    else if (rg){ c.save(); if (o.f < 0){ c.translate(bx, 0); c.scale(-1, 1); c.translate(-bx, 0); } drawRig(c, rg, bx, by - h * sc + 18, w * sc, h * sc, o, (p.id.charCodeAt(1) || 0) * .7); c.restore(); }
     else if (cv){ if (o.f < 0){ c.save(); c.translate(bx, 0); c.scale(-1, 1); c.drawImage(cv, -w * sc / 2, by - h * sc + 18 + bob, w * sc, h * sc); c.restore(); } else c.drawImage(cv, bx - w * sc / 2, by - h * sc + 18 + bob, w * sc, h * sc); }
     else { c.fillStyle = "#BAB5AC"; c.beginPath(); c.arc(bx, by - 30, 26, 0, 7); c.fill(); }
     if (!behind) weapon();
@@ -1323,6 +1341,8 @@
   window.__arAmmo = n => { C.am = n; C.rl = 0; C.cd = 0; };
   window.__arChg = () => ({chg: chgNow(), wait: !!C.chgWait, am: C.am, feared: blinded()});
   /* for looking at the walk: the fighter's parts drawn big, a few moments of a step side by side */
+  window.__ar3 = () => { const P = NPo().pl(); return C.A ? C.A.ids.map(id => { const e = F3[id]; return [id, e ? (e.ok ? "ok" : e.dead ? "dead" : "wait") : "none"]; }) : []; };
+  window.__ar3Shot = () => { const e = F3[me()]; if (!e || !e.ok) return null; const cv = document.createElement("canvas"); cv.width = e.fr.sheet.width; cv.height = e.fr.h * 2; const c = cv.getContext("2d"); c.fillStyle = "#6EA246"; c.fillRect(0, 0, cv.width, cv.height); c.drawImage(e.fr.sheet, 0, 0); c.drawImage(e.bk.sheet, 0, e.fr.h); return cv.toDataURL(); };
   window.__arRigShot = (n = 6) => { const P = NPo().pl(), p = P.find(x => x.id === me()), R = p && rigOf(p); if (!R) return null; const cv = document.createElement("canvas"), W = 240, H = 310; cv.width = W * n; cv.height = H; const c = cv.getContext("2d"); c.fillStyle = "#6EA246"; c.fillRect(0, 0, cv.width, H);
     const t0 = now(); for (let i = 0; i < n; i++){ c.save(); c.translate(i * W, 0); drawRig(c, R, W / 2, 10, 220, 282, {mv: 1, f: 1}, 0, t0 + i * 105 * Math.PI * 2 / n); c.restore(); } return cv.toDataURL(); };
   window.__arAim = (dx, dy, su) => { const P2 = dx == null ? null : {x0: 0, y0: 0, dx, dy, man: true, id: -2}; if (su) C.supP = P2; else C.aimP = P2; };

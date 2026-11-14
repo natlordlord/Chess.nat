@@ -473,6 +473,8 @@ const PARTS = {
     await sleep(1800); await a.evaluate(() => __arFreeze(true));
     const me = await a.evaluate(() => { const r = __ar(), id = Object.keys(r.cls).find(x => r.cls[x] === "beam" && !/^bot/.test(x)) || Object.keys(r.cls).find(x => !/^bot/.test(x)); return {id, cls: r.cls[id], x: r.me.x, y: r.me.y, bot: Object.keys(r.cls).find(x => /^bot/.test(x) || x !== id)}; });
     ok(me.cls === "beam", "du kämpfst als Lichtstrahl", JSON.stringify(me));
+    let f3 = []; for (let i = 0; i < 30; i++){ f3 = await a.evaluate(() => __ar3()); if (f3.length && f3.every(x => x[1] === "ok")) break; await sleep(250); }
+    ok(f3.length >= 2 && f3.every(x => x[1] === "ok"), "3D-Kämpfer: jeder als eigene 3D-Figur mit Laufbildern (vorn und hinten)", JSON.stringify(f3));
     /* a bot right in front of you, frozen */
     const spot = await a.evaluate(m => { for (let r = 200; r <= 360; r += 40) for (let k = 0; k < 16; k++){ const an = k / 16 * Math.PI * 2, f = __arFree(m.x + Math.cos(an) * r, m.y + Math.sin(an) * r); if (!f) continue; const d = Math.hypot(f.x - m.x, f.y - m.y); if (d > 150 && d < 400 && __arClear(m, f)) return f; } return null; }, me);
     ok(!!spot, "freie Stelle mit Sicht für den Test-Gegner", JSON.stringify(me));
@@ -884,6 +886,18 @@ const PARTS = {
     const ra = await txt(a, "#main"), rb = await txt(b, "#main");
     ok(/\+3/.test(ra) && new RegExp(esc(bareT(cur()))).test(rb), "beide fertig: sofort die Auflösung, du +3 (2 richtig + 1 schnellster), Mila sieht die Lösung", ra.slice(0, 200));
     ok((await audio(a)).on && (await audio(b)).on, "nach der Auflösung läuft der Song weiter", JSON.stringify([await audio(a), await audio(b)]));
+    /* singing along: Mila's phone measures how late your voice arrives; while you sing, her music runs that much later (gently, same pitch) */
+    const aId = await a.evaluate(() => PNet.me); await sleep(2300);
+    const lat = await b.evaluate(id => PG._song.Sing.L[id], aId);
+    ok(lat > 0 && lat < 700, "Mitsingen: Milas Handy misst, wie spät deine Stimme ankommt (" + lat + " ms)", String(lat));
+    await b.evaluate(id => { window.__sing = true; PG._song.Sing.test({talking: x => x === id && window.__sing, lat: {[id]: 220}}); }, aId); await sleep(1900);
+    const s1 = await b.evaluate(() => ({lead: PG._song.Sing.lead, want: PG.songSA.lagWant, rate: PG.songSA.rate, txt: (document.querySelector(".sg-sing") || {}).innerText || ""}));
+    ok(s1.lead === aId && s1.want === 220 && s1.rate < 1 && /singt mit/.test(s1.txt), "du singst: Milas Musik läuft sanft 220 ms später (etwas langsamer, gleiche Tonhöhe), mit Hinweis", JSON.stringify(s1));
+    await sleep(2400); const s2 = await b.evaluate(() => ({lag: PG.songSA.lagMs, rate: PG.songSA.rate}));
+    ok(Math.abs(s2.lag - 220) <= 30 && s2.rate === 1, "nach gut 2 s passt es: 220 ms später, wieder normales Tempo", JSON.stringify(s2));
+    await b.evaluate(() => { window.__sing = false; }); await sleep(2900); const s3 = await b.evaluate(() => ({lead: PG._song.Sing.lead, want: PG.songSA.lagWant, rate: PG.songSA.rate, lag: PG.songSA.lagMs, paused: PG.songSA.au.paused}));
+    ok(s3.lead === null && s3.want === 0 && (s3.rate > 1 || s3.lag < 200), "du hörst auf: nach 2,5 s holt Milas Musik wieder auf", JSON.stringify(s3));
+    await b.evaluate(() => PG._song.Sing.test({talking: null, lat: null}));
     await b.tap('[data-x="nx"]'); await sleep(500); ok(/1\/2/.test(await txt(b, "[data-rdy]")) && await has(b, ".sg-ans"), "Mila tippt „Weiter“: 1/2, der Song läuft noch, bis alle weiter wollen", await txt(b, "[data-rdy]"));
     await a.tap('[data-x="next"]'); await a.waitForSelector("[data-op]", {timeout: 10000}).catch(() => {}); await b.waitForSelector("[data-op]", {timeout: 10000}).catch(() => {}); await sleep(2400);
     /* both "No idea": the answer comes at once */
