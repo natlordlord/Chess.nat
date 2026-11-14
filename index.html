@@ -2875,7 +2875,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794655994";
+const CHESSNAT_BUILD = "1794657729";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -10083,7 +10083,7 @@ Views.battle = {
     $("#bnew").onclick = () => go("room", {code: newCode(), host: true});
     $("#bjoin").onclick = () => { const c = $("#bcode").value.trim().toLowerCase(); if (/^[a-z0-9]{4,12}$/.test(c)) go("room", {code: c, host: false}); else toast("Enter the code your friend sent you."); };
     if (online) Social.load().then(() => { const el = $("#bfr"); if (!el || this.dead) return; const D = Social.data, me = Social.me;
-      const fr = D.friends.filter(r => r.status === "accepted").map(r => r.a === me ? r.b : r.a).sort((x, y) => Social.isOnline(Social.P(y)) - Social.isOnline(Social.P(x)));
+      const fr = friendRank(D.friends.filter(r => r.status === "accepted").map(r => r.a === me ? r.b : r.a));
       el.innerHTML = fr.length ? fr.map(id => { const p = Social.P(id); return `<div class="li fr">${Social.face(p, 36)}<div class="grow"><div class="t">${Social.dot(p)}${esc(p.name)}</div><div class="s">${esc(Social.seen(p))}</div></div><button class="btn sm ${Social.isOnline(p) ? "go" : ""}" data-binv="${id}">Challenge</button></div>`; }).join("") : `<p class="muted" style="margin:0">No friends yet. Add them under Friends.</p>`;
       $$("[data-binv]", el).forEach(b => b.onclick = () => Social.invite(b.dataset.binv, {battle: mode})); });
   },
@@ -11795,7 +11795,7 @@ Views.me = {
     const el = $("#mefr"); if (!el || typeof Social === "undefined") return;
     const site = window.ChessSite; if (!site || !site.ready) return; await site.sessionReady; if (!site.getSession()) return;
     await Social.start(); await Social.load(); if (!el.isConnected) return;
-    const me = Social.me, ids = Social.data.friends.filter(r => r.status === "accepted").map(r => r.a === me ? r.b : r.a).sort((x, y) => Social.isOnline(Social.P(y)) - Social.isOnline(Social.P(x))).slice(0, 8);
+    const me = Social.me, ids = friendRank(Social.data.friends.filter(r => r.status === "accepted").map(r => r.a === me ? r.b : r.a)).slice(0, 8);
     el.innerHTML = `<h2 class="h-sec" style="margin-top:18px">Friends <span class="muted" style="font-weight:600">${friendsOnline()} online</span></h2>${ids.length ? `<div class="mefr">${ids.map(id => { const p = Social.P(id); return `<button class="mf" data-f="${id}">${Social.face(p, 52)}<b>${Social.dot(p)}${esc(p.name)}</b><small>${p.rating ? esc(rankOf(p.rating).label) : ""}</small></button>`; }).join("")}<button class="mf mf-all" data-all>${icon("users", 26)}<b>All friends</b></button></div>` : `<div class="unit"><p class="muted" style="margin:0">No friends yet. <a href="#" data-all>Find friends by player ID</a></p></div>`}`;
     $$("[data-f], [data-all]", el).forEach(b => b.onclick = e => { e.preventDefault(); App.go("friends"); });
     renderTop();
@@ -13431,7 +13431,7 @@ Views.friends = {
     if (!site.getSession()){ this.main.innerHTML = `<div class="page" style="max-width:640px"><h1 class="h-title">Friends</h1><div class="unit" style="margin-top:12px"><h3>Sign in to add friends</h3><p class="muted">With an account you get a player name, can add friends, see who's online, invite them to a game, and lock them up in your Cages when you beat them.</p><button class="btn go" id="fsi">Sign in</button></div></div>`; $("#fsi").onclick = () => App.go("account"); return; }
     await Social.start(); await Social.load(); if (this.sig() !== this._sig) this.draw(); },
   /* what the page shows: when a refresh brings nothing new, the page is left alone (no flicker) */
-  sig(){ const D = Social.data; return JSON.stringify([this.tab, (Social.player || {}).handle, D.friends.map(r => r.a + r.b + r.status), D.duels.length, D.gifts.length, Object.values(D.players).map(p => [p.id, p.name, p.rating, Social.isOnline(p), (p.avatar || {})._lv])]); },
+  sig(){ const D = Social.data; return JSON.stringify([this.tab, typeof Chat !== "undefined" ? Object.keys(Chat.last).join() : "", (Social.player || {}).handle, D.friends.map(r => r.a + r.b + r.status), D.duels.length, D.gifts.length, Object.values(D.players).map(p => [p.id, p.name, p.rating, Social.isOnline(p), (p.avatar || {})._lv])]); },
   draw(){
     const main = this.main; if (!main || App.route !== "friends") return; this._sig = this.sig();
     const me = Social.player, D = Social.data, st = Social.standings();
@@ -13446,7 +13446,7 @@ Views.friends = {
       $("#hd").oninput = e => { const v = Social.cleanHandle(e.target.value).replace(/[^a-z0-9_]/g, ""); if (v !== e.target.value) e.target.value = v; };
       $("#nmf").onsubmit = async e => { e.preventDefault(); const r = me ? await Social.setHandle($("#hd").value) : await Social.create($("#nm").value, $("#hd").value); if (r.error) $("#nmerr").textContent = r.error; else { toast("Saved. Your ID is @" + r.player.handle, 3000); this.draw(); } }; return; }
     const other = r => r.a === me.id ? r.b : r.a;
-    const friends = D.friends.filter(r => r.status === "accepted").map(other).sort((x, y) => (Social.isOnline(Social.P(y)) - Social.isOnline(Social.P(x))) || Social.P(x).name.localeCompare(Social.P(y).name));
+    const friends = friendRank(D.friends.filter(r => r.status === "accepted").map(other));
     const incoming = D.friends.filter(r => r.status === "pending" && r.requested_by !== me.id).map(other), sent = D.friends.filter(r => r.status === "pending" && r.requested_by === me.id).map(other);
     const person = (id, right, tap) => { const p = Social.P(id), o = st[id]; return `<div class="li fr ${tap ? "fr-tap" : ""}" ${tap ? `data-prof="${id}"` : ""}>${Social.face(p, 42)}<div class="grow"><div class="t">${Social.dot(p)}${esc(p.name)}${p.rating ? ` <span class="muted">(${p.rating})</span>` : ""}</div><div class="s">${p.avatar && p.avatar._lv ? `Lv ${p.avatar._lv}${p.avatar._title ? " " + esc(p.avatar._title) : ""} · ` : ""}${esc(Social.seen(p))}${o && o.cage === "mine" ? " · 🔒 in your cage" : o && o.cage === "theirs" ? " · you're in their cage" : ""}</div>${tap && typeof Now !== "undefined" ? Now.slot(id) : ""}</div>${right}</div>`; };
     const tab = ["board", "cages"].includes(this.tab) ? this.tab : "friends";
@@ -13588,12 +13588,14 @@ if (window.ChessSite && window.ChessSite.ready) setTimeout(() => Social.start(),
 /* ===== Chat with friends, push notifications (website only) ===== */
 const VAPID_PUBLIC = "BAGgdFB7J6Tw_i9X37uXHONRKPUyhKog8_jaQp1TrHVtBPEkXElkCESKBJlbkKVlmnTpAet-0EIzEguwpOz2CEs";
 const Chat = (() => {
-  const unread = {}, last = {}; let started = false, ch = null;
+  const unread = {}, last = {}, count = {}; let started = false, ch = null;
   const sb = () => Social.sb, me = () => Social.me;
   async function start(){
     if (started || !sb()) return; await Social.start(); if (!me()) return; started = true;
     const {data} = await sb().from("chess_messages").select("from_id,to_id,body,created_at,read_at").or(`from_id.eq.${me()},to_id.eq.${me()}`).order("created_at", {ascending: false}).limit(300);
-    (data || []).forEach(m => { const o = m.from_id === me() ? m.to_id : m.from_id; if (!last[o]) last[o] = m; if (m.to_id === me() && !m.read_at) unread[o] = (unread[o] || 0) + 1; });
+    (data || []).forEach(m => { const o = m.from_id === me() ? m.to_id : m.from_id; if (!last[o]) last[o] = m; count[o] = (count[o] || 0) + 1; if (m.to_id === me() && !m.read_at) unread[o] = (unread[o] || 0) + 1; });
+    /* the friends page sorts by who you write with: show that order now that the messages are here (not while someone types there) */
+    if (App.route === "friends" && Views.friends.draw && !(document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName))) Views.friends.draw();
     /* your friend opened the chat: your messages turn to "read" (handled in subscribe) */
     subscribe();
     refreshBadges();
@@ -13610,7 +13612,7 @@ const Chat = (() => {
   const gotIds = new Set();
   function incoming(m){
     if (m.id != null){ if (gotIds.has(m.id)) return; gotIds.add(m.id); }
-    const o = m.from_id; last[o] = m;
+    const o = m.from_id; last[o] = m; count[o] = (count[o] || 0) + 1;
     const v = Views.chat; if (App.route === "chat" && v.id === o && !document.hidden){ v.add(m); markRead(o, true); return; }
     unread[o] = (unread[o] || 0) + 1; refreshBadges(); Sound.msgIn();
     Notify.show({key: "chat:" + o, cls: "ntf-chat", icon: Social.face(Social.P(o), 40), label: "Message", title: esc(Social.P(o).name), text: esc(ChatMedia.label(m.body)), ms: 4500, onTap: () => { kbPrime(); App.go("chat", {id: o}); }});
@@ -13621,8 +13623,17 @@ const Chat = (() => {
   async function send(o, body){ body = String(body || "").trim().slice(0, 500); if (!body) return null; const {data, error} = await sb().from("chess_messages").insert({to_id: o, body}).select().single(); if (error){ toast(/row-level/.test(error.message) ? "You can only message friends." : error.message, 3000); return null; } last[o] = data; return data; }
   async function markRead(o, force){ if (!unread[o] && !force) return; unread[o] = 0; refreshBadges(); await sb().from("chess_messages").update({read_at: new Date().toISOString()}).eq("to_id", me()).eq("from_id", o).is("read_at", null); }
   const total = () => Object.values(unread).reduce((a, b) => a + b, 0);
-  return {start, thread, send, markRead, total, unread, last, ready: () => started};
+  return {start, thread, send, markRead, total, unread, last, count, ready: () => started};
 })();
+/* friends in the order that matters to you (Wunsch von Nathan), like a messenger: unread messages first, then whoever you wrote with
+   or played last (the last 30 days), then who is online, then the name */
+function friendRank(ids){
+  const D = typeof Social !== "undefined" ? Social.data : null, C = typeof Chat !== "undefined" ? Chat : null, since = Date.now() - 30 * 864e5;
+  const lastWith = id => { let t = 0; const l = C && C.last[id]; if (l) t = Date.parse(l.created_at) || 0;
+    ((D && D.duels) || []).forEach(d => { if (d.white === id || d.black === id){ const x = Date.parse(d.created_at) || 0; if (x > t) t = x; } }); return t > since ? t : 0; };
+  const key = id => [C && C.unread[id] ? 1 : 0, lastWith(id), typeof Social !== "undefined" && Social.isOnline(Social.P(id)) ? 1 : 0];
+  return ids.map(id => [id, key(id)]).sort((a, b) => b[1][0] - a[1][0] || b[1][1] - a[1][1] || b[1][2] - a[1][2] || String(Social.P(a[0]).name || "").localeCompare(String(Social.P(b[0]).name || ""))).map(x => x[0]);
+}
 
 /* iOS only opens the keyboard when a field gets focus during the tap itself. The chat loads a moment later,
    so the tap focuses an invisible field first and the message field takes over once it is there. */
@@ -13834,8 +13845,7 @@ const ChatMedia = (() => {
   }
   /* share a contact: one of your friends (not the person you're chatting with); they can open the profile and add them */
   function pickContact(friend, done){
-    const D = Social.data, my = Social.me, ids = D.friends.filter(r => r.status === "accepted").map(r => r.a === my ? r.b : r.a).filter(id => id !== friend)
-      .sort((a, b) => (Social.P(a).name || "").localeCompare(Social.P(b).name || ""));
+    const D = Social.data, my = Social.me, ids = friendRank(D.friends.filter(r => r.status === "accepted").map(r => r.a === my ? r.b : r.a).filter(id => id !== friend));
     if (!ids.length){ toast("Add more friends first, then you can share them here.", 3000); return; }
     const row = id => { const p = Social.P(id); return `<button class="li" data-ci="${id}" data-q="${esc(((p.name || "") + " " + (p.handle || "") + " " + (p.realName || "")).toLowerCase())}">${Social.face(p, 40)}<div class="grow"><div class="t" data-notr>${esc(p.name)}</div><div class="s" data-notr>${p.handle ? "@" + esc(p.handle) : ""}</div></div><span class="gp-send">${icon("send", 18)}</span></button>`; };
     const sh = detailSheet(`<div class="gp-h"><h3>Send a contact</h3><small>${ids.length} ${tr(ids.length === 1 ? "friend" : "friends")}</small></div>${ids.length > 6 ? `<input class="inp ct-q" placeholder="${esc(tr("Search"))}" autocomplete="off">` : ""}<div class="list gpick">${ids.map(row).join("")}</div>`);
@@ -14717,7 +14727,7 @@ const Ranks = {
 <script src="games/cards.js?v=128"></script>
 <script src="games/heads.js?v=128"></script>
 <script src="games/more.js?v=128"></script>
-<script src="games/net.js?v=130"></script>
+<script src="games/net.js?v=131"></script>
 <script src="games/online.js?v=128"></script>
 <script src="games/natposter.js?v=129"></script>
 <script src="games/arena.js?v=130"></script>
@@ -14725,7 +14735,7 @@ const Ranks = {
 <script src="games/now.js?v=3"></script>
 <script src="data/foods_bls.js?v=1"></script>
 <script src="data/foods.js?v=4"></script>
-<script src="games/kcal.js?v=187"></script>
+<script src="games/kcal.js?v=188"></script>
 <script src="invite.js?v=6"></script>
 <script>boot();</script>
 </body>
