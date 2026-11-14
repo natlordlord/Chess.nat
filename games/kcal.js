@@ -612,7 +612,7 @@
      "Fruchtrio" finds the "Buntes Frucht-Trio", "jogurt" the "Fruchtjoghurt", "trio frucht" too ---------- */
   const Fz = {
     /* ä and ae, ß and ss count the same */
-    n: t => String(t == null ? "" : t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\u00df/g, "ss").replace(/([aou])e/g, "$1"),
+    n: t => String(t == null ? "" : t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\u00df/g, "ss").replace(/[yj]og?h?o?urt/g, "joghurt").replace(/([aou])e/g, "$1"),
     c: t => Fz.n(t).replace(/[^a-z0-9]+/g, ""),
     /* how many typing errors (a letter wrong, missing, too much, or two swapped) turn q into some piece of t */
     near(q, t){ const n = q.length; let p2 = null, p = Array.from({length: n + 1}, (_, i) => i), best = n;
@@ -660,6 +660,11 @@
     mark: x => Object.assign({}, x.P, {seen: x.n ? x.n + "× gegessen" : "zuletzt gesucht"}),
     ownFind(q){ return (this.own || []).map(P => ({P, s: Fz.score(q, P.name)})).filter(o => o.s >= .6).sort((a, b) => b.s - a.s).slice(0, 6).map(o => o.P); },
     recFind(q){ return (this.recs || []).map(R => ({R, s: Fz.score(q, R.name)})).filter(o => o.s >= .6).sort((a, b) => b.s - a.s).slice(0, 6).map(o => o.R); },
+    /* nothing fits well enough: the closest by spelling anyway (shared groups of three letters), from what you know and the table */
+    closest(q, max = 5){ const tri = t => { const c = "  " + Fz.c(t) + " ", o = new Set(); for (let i = 0; i < c.length - 2; i++) o.add(c.slice(i, i + 3)); return o; }, Q = tri(q); if (Q.size < 3) return [];
+      const sim = t => { const A = tri(t); let n = 0; A.forEach(x => { if (Q.has(x)) n++; }); return 2 * n / (A.size + Q.size); };
+      const L = this.eaten().map(x => ({P: Known.mark(x), s: sim(this.textOf(x.P)) + Math.min(.08, .03 * Math.log2(1 + x.n))})).concat((this.own || []).map(P => ({P, s: sim(P.name)})), TAB.list.map(F => ({P: F.cf ? tabP(F, true) : tabP(F), s: Math.max(...tabNames(F).map(sim))})));
+      return L.filter(o => o.s > .12).sort((a, b) => b.s - a.s).slice(0, max).map(o => o.P); },
     /* foods of the table: the exact names and how people call them first, then forgiving */
     tabFind(q){ const ex = tabFind(q); if (ex.length) return ex; const hit = TAB.list.map(F => ({F, s: Fz.best(q, tabNames(F))})).filter(o => o.s >= .7).sort((a, b) => b.s - a.s).slice(0, 2);
       return hit.flatMap(({F}) => F.cf ? [tabP(F, true), tabP(F, false)] : [tabP(F)]); }
@@ -713,26 +718,28 @@
       const rrow = (R, i) => `<button class="kc-sres" data-rc="${i}"><span class="kc-sph kc-srec">${h(R.emoji || "🍽️")}</span><span class="kc-sn">${h(R.name)}<small>Rezept${R.author ? " von " + h(R.author) : ""} · ${(R.items || []).length} Zutaten · ${fmt(Math.round(R.grams))} g</small></span>${per(Recipes.per(R))}</button>`;
       /* what is shown, in this order: eaten before (forgiving spelling) · the food table and photographed packs · fits by meaning (the embedding model)
          · recipes · products from Open Food Facts. Every product only once. While one is open (amount under it), later results don't redraw the list */
-      let S = {mine: [], local: [], sem: [], recs: [], off: [], ph: "", note: ""};
+      let S = {mine: [], local: [], sem: [], recs: [], off: [], near: [], ph: "", note: ""};
       const render = () => { if (closed || busy || out.querySelector(".kc-sres.open")) return; const seen = new Set(), uniq = l => l.filter(P => { const k = Known.keyOf(P); if (seen.has(k)) return false; seen.add(k); return true; });
-        const mine = uniq(S.mine), local = uniq(S.local), sem = uniq(S.sem), off = uniq(S.off); list = mine.concat(local, sem, off); recs = S.recs.filter((R, i, A) => A.findIndex(x => x.id === R.id) === i);
+        const mine = uniq(S.mine), local = uniq(S.local), sem = uniq(S.sem), off = uniq(S.off), near = uniq(S.near || []); list = mine.concat(local, sem, off, near); recs = S.recs.filter((R, i, A) => A.findIndex(x => x.id === R.id) === i);
         const sec = (head, l, base) => l.length ? `<div class="kc-sh muted">${head} <span>pro 100 g</span></div>` + l.map((P, k) => row(P, base + k)).join("") : "";
         out.innerHTML = sec("Schon gegessen", mine, 0) + sec(S.ph || (mine.length ? "Lebensmittel" : ""), local, mine.length) + sec("Passt vielleicht", sem, mine.length + local.length)
           + (recs.length ? `<div class="kc-sh muted">Rezepte <span>pro 100 g</span></div>` + recs.map(rrow).join("") : "")
-          + sec(mine.length || local.length || sem.length || recs.length ? "Produkte" : "", off, mine.length + local.length + sem.length) + (S.note ? `<p class="muted kc-sh">${S.note}</p>` : "");
+          + sec(mine.length || local.length || sem.length || recs.length ? "Produkte" : "", off, mine.length + local.length + sem.length) + (S.note ? `<p class="muted kc-sh">${S.note}</p>` : "")
+          + sec("Am ehesten", near, mine.length + local.length + sem.length + off.length);
         out.querySelectorAll("[data-i]").forEach(b => b.onclick = () => pick(list[+b.dataset.i], b)); out.querySelectorAll("[data-rc]").forEach(b => b.onclick = () => { const R = recs[+b.dataset.rc]; if (!R) return; haptic(10); close(); entrySheet(Recipes.asMeal(R), {focus: true}); }); };
       const kl = Known.load();
       /* nothing typed: what was picked lately, then what you eat most */
       const empty = () => { const my = seq, r = recents(), often = Known.eaten().filter(x => x.n >= 2).slice(0, 6).map(Known.mark);
-        S = {mine: [], local: r.concat(often), sem: [], recs: [], off: [], ph: r.length ? "Zuletzt" : "Oft gegessen", note: r.length || often.length ? "" : "Tipp den Namen ein, z. B. Eier, Toast, Nutella."}; render();
+        S = {mine: [], local: r.concat(often), sem: [], recs: [], off: [], near: [], ph: r.length ? "Zuletzt" : "Oft gegessen", note: r.length || often.length ? "" : "Tipp den Namen ein, z. B. Eier, Toast, Nutella."}; render();
         if (!opt.pick) Recipes.find("").then(R => { if (closed || my !== seq || !R.length || q.value.trim().length >= 2) return; S.recs = R; render(); }); };
       const semP = c => c.kind === "known" ? Known.mark(c.o) : c.kind === "own" ? c.o : c.kind === "tab" ? (c.o.cf ? tabP(c.o, true) : tabP(c.o)) : null;
       const go = async () => { const v = q.value.trim(), my = ++seq; if (v.length < 2) return empty(); out.classList.add("busy");
         await Promise.race([kl, new Promise(r => setTimeout(r, 1200))]); if (my !== seq) return;
         /* at once, here on the phone: eaten before, recipes, the table ("Nudeln, gekocht" is the same for everybody), photographed packs */
-        const tab = Known.tabFind(v); S = {mine: Known.find(v), local: tab.concat(Known.ownFind(v)), sem: [], recs: opt.pick ? [] : Known.recFind(v), off: [], ph: "", note: ""}; render();
+        const tab = Known.tabFind(v); S = {mine: Known.find(v), local: tab.concat(Known.ownFind(v)), sem: [], recs: opt.pick ? [] : Known.recFind(v), off: [], near: [], ph: "", note: ""}; render();
         let left = 3; const done = () => { if (--left || my !== seq) return; out.classList.remove("busy");
-          if (!S.mine.length && !S.local.length && !S.sem.length && !S.recs.length && !S.off.length && !S.note) S.note = "Nichts gefunden. Anders schreiben oder selbst eintragen."; render(); };
+          /* never an empty list: what comes closest, and a word that it is not exact */
+          if (!S.mine.length && !S.local.length && !S.sem.length && !S.recs.length && !S.off.length){ S.near = Known.closest(v); if (!S.note) S.note = S.near.length ? "Nichts genau so gefunden. Das kommt am nächsten:" : "Nichts gefunden. Anders schreiben oder selbst eintragen."; } render(); };
         /* photographed packs straight from the database too (the newest state, also of a pack added a moment ago) */
         Label.find(v).then(own => { if (my !== seq || !own.length) return; S.local = tab.concat(own, S.local.slice(tab.length)); render(); }).catch(() => {}).finally(done);
         /* Open Food Facts */
@@ -1175,10 +1182,14 @@
       ov = document.createElement("div"); ov.className = "kc-ov-full kc-scanov"; ov.setAttribute("data-notr", "");
       ov.innerHTML = `<video id="kcv" playsinline muted autoplay></video><div class="kc-frame"><i></i><i></i><i></i><i></i><b class="kc-laser"></b></div>
         <div class="kc-vtop"><button class="kc-x" data-x aria-label="Schließen">${svg(IC.x, 22)}</button><button class="kc-x" id="kctorch" hidden aria-label="Licht">${svg(IC.torch, 20)}</button></div>
+        <div class="kc-snapc"><button class="kc-snap" id="kcsnap">${svg(IC.code, 44)}<span>${round ? "Nächste Packung fotografieren" : "Barcode fotografieren"}</span></button><small>Ohne Kamera-Erlaubnis: einfach ein Foto vom Barcode</small></div>
         <div class="kc-sbot"><div class="kc-hint" id="kchint">${round ? "Scann alles, was du gegessen hast. Egal in welcher Reihenfolge." : "Barcode in den Rahmen halten, egal wie gedreht"}</div>
+          <button class="kc-mode" id="kcmode"></button>
           ${round ? `<div class="kc-rp" id="kcrp"></div>` : `<form id="kcman" class="kc-man"><input id="kccode" inputmode="numeric" placeholder="oder Nummer eintippen" autocomplete="off"><button class="btn go">OK</button></form>`}</div>`;
       document.body.appendChild(ov); if (round) roundDraw();
       ov.querySelector("[data-x]").onclick = close;
+      ov.querySelector("#kcsnap").onclick = () => snap();
+      ov.querySelector("#kcmode").onclick = () => { const live = !liveOn(); try { localStorage.setItem(LIVE, live ? "1" : "0"); } catch(e) {} const o = {pick: pickCb, round: round && round.m}; close(); open(o.round ? {round: o.round, pick: o.pick} : o.pick ? {pick: o.pick} : undefined); };
       if (!round) ov.querySelector("#kcman").onsubmit = e => { e.preventDefault(); const c = ov.querySelector("#kccode").value.replace(/\D/g, ""); if (c.length < 6) return say("Die Nummer ist zu kurz"); ov.querySelector("#kccode").blur(); got(c); };
     }
     /* pick: what to do with the product (swap a part of a meal); without it the product becomes a new meal */
@@ -1187,6 +1198,9 @@
       if (!meId()) return say("Bitte erst anmelden");
       if (ov) close(); pickCb = opt && opt.pick || null; round = opt && opt.round ? {m: opt.round, parts: partsOf(opt.round), got: {}, codes: new Set(), busy: 0, msg: ""} : null; ui(); scanning = true; frame = 0; torchOn = false;
       const hint = t => { if (ov) ov.querySelector("#kchint").textContent = t; };
+      const live = liveOn(); ov.classList.toggle("photo", !live); ov.querySelector("#kcmode").textContent = live ? "📷 Lieber Foto machen (ohne Kamera-Erlaubnis)" : "Live scannen (fragt nach der Kamera)";
+      /* the photo: the phone's own camera opens in the same tap, nothing to allow */
+      if (!live){ hint(round ? "Fotografier jede Packung, die du gegessen hast." : "Foto vom Barcode, oder die Nummer eintippen"); snap(); engine().catch(() => {}); return; }
       try {
         const [s] = await Promise.all([getCam(), engine()]);
         if (!ov) return;
@@ -1196,6 +1210,30 @@
         loop(v);
       } catch(e) { hint(e && e.name === "NotAllowedError" ? "Kein Kamera-Zugriff. Nummer unten eintippen." : "Kamera nicht verfügbar. Nummer unten eintippen."); }
     }
+    /* without asking for the camera (Wunsch von Nathan): a photo from the phone's own camera, the code is read from the picture.
+       Live scanning (asks for the camera) is one tap away and is remembered */
+    const LIVE = "chessnat-scan-live", liveOn = () => { try { return localStorage.getItem(LIVE) === "1"; } catch(e) { return false; } };
+    const shot = () => new Promise(ok => { document.querySelectorAll("#kcbcf").forEach(x => x.remove()); const i = document.createElement("input"); i.type = "file"; i.accept = "image/*"; i.setAttribute("capture", "environment"); i.id = "kcbcf";
+      i.style.cssText = "position:fixed;left:-99px;top:0;width:1px;height:1px;opacity:0"; document.body.appendChild(i); let done = false; const fin = v => { if (done) return; done = true; i.remove(); ok(v); };
+      i.onchange = () => fin(i.files && i.files[0] || null); i.addEventListener("cancel", () => fin(null)); i.click(); });
+    async function readPhoto(file){ await engine(); let bmp = null; try { bmp = await createImageBitmap(file); } catch(e) {
+        bmp = await new Promise((ok, bad) => { const u = URL.createObjectURL(file), im = new Image(); im.onload = () => { URL.revokeObjectURL(u); ok(im); }; im.onerror = bad; im.src = u; }); }
+      const W = bmp.width || bmp.naturalWidth, H = bmp.height || bmp.naturalHeight;
+      if (native){ try { const r = await native.detect(bmp); if (r && r[0]) return r[0].rawValue; } catch(e) {} if (!zx) await loadZx().catch(() => {}); if (!zx) return null; }
+      /* the whole picture, then the middle, each also turned by 45° (any angle reads) */
+      const tries = [[0, 0, W, H, false], [W * .15, H * .2, W * .7, H * .6, false], [0, 0, W, H, true], [W * .15, H * .2, W * .7, H * .6, true]];
+      for (const [x, y, w, h, tilt] of tries){ const m = Math.min(1, 1400 / Math.max(w, h)), out = Math.round(Math.max(w, h) * m);
+        if (tilt){ cv.width = out; cv.height = out; cx.save(); cx.fillStyle = "#fff"; cx.fillRect(0, 0, out, out); cx.translate(out / 2, out / 2); cx.rotate(Math.PI / 4); cx.drawImage(bmp, x, y, w, h, -w * m / 2, -h * m / 2, w * m, h * m); cx.restore(); }
+        else { cv.width = Math.round(w * m); cv.height = Math.round(h * m); cx.drawImage(bmp, x, y, w, h, 0, 0, cv.width, cv.height); }
+        try { const r = await zx.readBarcodes(cx.getImageData(0, 0, cv.width, cv.height), {formats: FORMATS_ZX, tryHarder: true, tryRotate: true, tryInvert: false, tryDownscale: true, maxNumberOfSymbols: 1});
+          const ok = r && r.find(z => z.isValid && z.text); if (ok) return ok.text; } catch(e) {} }
+      return null; }
+    let snapping = false;
+    async function snap(){ if (!ov || snapping) return; const hint = t => { if (ov) ov.querySelector("#kchint").textContent = t; };
+      const f = await shot(); if (!ov) return; if (!f){ hint("Foto vom Barcode machen oder die Nummer eintippen."); return; }
+      snapping = true; ov.classList.add("busy"); hint("Lese den Barcode …"); let code = null; try { code = await readPhoto(f); } catch(e) {} snapping = false; if (!ov) return; ov.classList.remove("busy");
+      if (!code){ haptic([20, 40, 20]); hint("Kein Barcode erkannt. Nochmal etwas näher und scharf fotografieren, oder die Nummer eintippen."); return; }
+      if (round){ hint("Gefunden: " + code); roundGot(code); } else got(code); }
     const cv = document.createElement("canvas"), cx = cv.getContext("2d", {willReadFrequently: true});
     /* each frame: the middle of the picture, every second frame turned by 45°, so a code at any angle reads
        (a barcode line still reads when it is tilted up to about 30°; tryRotate covers the right angles) */
@@ -2179,7 +2217,12 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-labn{display:flex;flex-direction:column;gap:6px;text-align:left;font:700 14px var(--body)}.kc-labn input{border-radius:12px;border:1px solid var(--line,rgba(128,128,128,.35));background:transparent;color:inherit;font:600 17px var(--body);padding:12px}
 .kc-scanov.found .kc-frame i{border-color:var(--go)}.kc-scanov.found .kc-laser{display:none}
 .kc-sbot{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);display:flex;flex-direction:column;gap:10px;align-items:center}
-.kc-hint{font:800 15px var(--body);text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.6)}.kc-man{display:flex;gap:8px;width:100%;max-width:420px}.kc-man input{flex:1;min-width:0;border-radius:12px;border:0;background:rgba(255,255,255,.14);color:#fff;font:700 17px var(--body);padding:12px}
+.kc-hint{font:800 15px var(--body);text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.6)}.kc-man{display:flex;gap:8px;width:100%;max-width:420px}
+.kc-snapc{display:none}.kc-scanov.photo video,.kc-scanov.photo .kc-frame,.kc-scanov.photo #kctorch{display:none}.kc-scanov.found .kc-snapc{display:none}
+.kc-scanov.photo .kc-snapc{position:absolute;left:16px;right:16px;top:26%;display:flex;flex-direction:column;align-items:center;gap:10px;color:rgba(255,255,255,.7);font:700 13px var(--body);text-align:center}
+.kc-snap{display:flex;flex-direction:column;align-items:center;gap:10px;width:min(78vw,320px);padding:26px 16px;border:0;border-radius:24px;background:var(--go);color:#fff;font:900 19px var(--display);box-shadow:inset 0 -5px 0 var(--go-deep);cursor:pointer}
+.kc-snap:active{transform:translateY(2px);box-shadow:inset 0 -2px 0 var(--go-deep)}.kc-scanov.busy .kc-snap{opacity:.6;pointer-events:none}
+.kc-mode{border:0;background:none;color:rgba(255,255,255,.65);font:700 13px var(--body);text-decoration:underline;cursor:pointer;padding:4px}.kc-man input{flex:1;min-width:0;border-radius:12px;border:0;background:rgba(255,255,255,.14);color:#fff;font:700 17px var(--body);padding:12px}
 .kc-ms,.kc-prod,.kc-form{display:flex;flex-direction:column;gap:10px}.kc-mh,.kc-ph{display:flex;align-items:center;gap:12px}.kc-mh>div,.kc-ph>div{min-width:0}
 .kc-pin{margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:5px;border:1.5px solid var(--line);background:none;color:var(--muted);font:800 13px var(--body);padding:7px 11px;border-radius:999px;cursor:pointer;-webkit-tap-highlight-color:transparent}.kc-pin.on{background:var(--go);border-color:var(--go);color:#fff}.kc-pin:active{transform:scale(.96)}
 .kc-pinm{display:inline-flex;vertical-align:-1px;margin-right:6px;color:var(--go-hi,#8FC458);font-style:normal}

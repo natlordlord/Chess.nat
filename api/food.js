@@ -20,9 +20,11 @@ module.exports = async (req, res) => {
   const q = String((req.query && req.query.q) || "").replace(/\s+/g, " ").trim().slice(0, 80);
   if (q.length < 2) return res.status(400).json({error: "Bitte mindestens 2 Buchstaben."});
   try {
-    const norm = t => String(t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\u00df/g, "ss").replace(/([aou])e/g, "$1");
+    const norm = t => String(t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\u00df/g, "ss").replace(/[yj]og?h?o?urt/g, "joghurt").replace(/([aou])e/g, "$1");
     const words = norm(q).split(/[^a-z0-9]+/).filter(w => w.length >= 3);
-    let j = await ask(q);
+    /* "Fruchtyogurt", "Jogurt": the search knows the German spelling best */
+    const qs = q.replace(/[yj]og?h?o?urt/gi, m => /^[YJ]/.test(m) ? "Joghurt" : "joghurt");
+    let j = await ask(qs);
     if (!j) return res.status(502).json({error: "Die Suche ist gerade nicht erreichbar."});
     /* nothing found: once more with the longer words allowed a typo or two ("nutela" → Nutella), if the search takes that */
     if (!(j.hits || []).length && words.some(w => w.length >= 5)){ const j2 = await ask(words.map(w => w.length >= 5 ? w + "~" + okErr(w.length) : w).join(" ")).catch(() => null); if (j2 && Array.isArray(j2.hits)) j = j2; }

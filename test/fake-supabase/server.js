@@ -113,6 +113,11 @@ function ai(req){
   const kind = req.response_format.json_schema.name, c0 = req.messages[1].content, photo = Array.isArray(c0) && c0.some(x => x && x.type === "image_url");
   const user = Array.isArray(c0) ? c0.filter(x => x && x.type === "text").map(x => x.text).join("\n") : c0, said = (/Gesagt: „([\s\S]*)“/.exec(user) || [0, user])[1];
   const it = (name, amount, kcal, carbs, protein, fat) => ({name, amount, grams: 0, brand: "none", product: "none", ref: "", state: "", kcal, carbs, protein, fat, fiber: 2, sugar: Math.round(carbs * .3), satfat: Math.round(fat * .4), quality: kcal > 300 ? 2 : 4});
+  /* the search by meaning without an embedding model: the language model names the entries that share a piece of a word with the search */
+  if (kind === "find"){ global.__findLLM = (global.__findLLM || 0) + 1; const q = (/Gesucht: „(.*)“/.exec(user) || [])[1] || "", n = t => t.toLowerCase().replace(/y?og?h?urt/g, "joghurt").replace(/[^a-zäöüß]/g, "");
+    const parts = []; for (let i = 0; i + 5 <= n(q).length; i++) parts.push(n(q).slice(i, i + 5));
+    const L = (user.split("LISTE:\n")[1] || "").split("\n").map(l => /^(\d+): (.*)$/.exec(l)).filter(Boolean).map(m => [+m[1], parts.filter(p => n(m[2]).includes(p)).length]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]);
+    return {hits: L.slice(0, 5).map(x => x[0])}; }
   /* a photographed nutrition table: the numbers "printed" on the test pack */
   if (kind === "label") return {readable: true, name: "Skyr Vanille", brand: "Milbona", unit: "g", kcal: 76, kj: 322, fat: 0.2, satfat: 0.1, carbs: 9.4, sugar: 9.1, fiber: -1, protein: 9.0, salt: 0.13};
   if (kind === "shop"){ const words = said.split(/,| und /).map(s => s.trim()).filter(Boolean), dish = words.filter(w => /lasagne|chili|kuchen|pizza/i.test(w));
@@ -154,7 +159,10 @@ global.fetch = async (url, init = {}) => {
     try { const r = name.startsWith("rpc/") ? db.rpc(name.slice(4), bd || {}, uid) : db.rest(init.method || "GET", name, U.searchParams, bd, init.headers || {}, uid); return json(r.body, r.status); } catch(e) { return json(e.body || {message: String(e.message || e)}, e.status || 500); } }
   /* the embedding model of the search by meaning: a few fixed "meanings" (dairy, fruit, grain …) instead of a real model, so
      "Fruchtjoghurt" lands near "Buntes Frucht-Trio, Danone" and far from "Haferflocken" */
-  if (/ai-gateway\.vercel\.sh\/v1\/embeddings/.test(url)){ if (process.env.FAKE_AI_DOWN === "1") return json({error: "down"}, 503); global.__embeds = (global.__embeds || 0) + 1;
+  if (/ai-gateway\.vercel\.sh\/v1\/embeddings/.test(url)){ if (process.env.FAKE_AI_DOWN === "1") return json({error: "down"}, 503);
+    /* like the free AI Gateway tier: no embedding model allowed */
+    if (process.env.FAKE_EMBED_DOWN === "1"){ global.__embedNo = (global.__embedNo || 0) + 1; return json({error: {message: "Free tier users do not have access to this model.", type: "no_access"}}, 403); }
+    global.__embeds = (global.__embeds || 0) + 1;
     const M = [/joghurt|jogurt|yogh|frucht-?trio|skyr|quark|pudding|danone|ehrmann/i, /frucht|beere|erdbeer|himbeer|kirsch|pfirsich|banane|apfel|obst/i, /milch|latte|kakao|käse|kase/i,
       /hafer|flocken|müsli|musli|brot|brötchen|toast|nudel|spaghetti|pasta|reis/i, /hähnchen|huhn|fleisch|wurst|schinken|döner/i, /nutella|schoko|kuchen|keks|zucker/i];
     const b = JSON.parse(init.body), inp = Array.isArray(b.input) ? b.input : [b.input];
