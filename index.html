@@ -2021,7 +2021,7 @@ html.i18n-wait body{visibility:hidden}
 /* the sidebar never shows scrollbars: one line per entry, it scrolls by wheel/finger if a screen is very short */
 .rail{overflow-x:hidden;scrollbar-width:none;overscroll-behavior:contain}.rail>:not(.nav){flex-shrink:0}.rail .nav{min-height:20px}
 .rail::-webkit-scrollbar{display:none}
-.rail .nav{white-space:nowrap;min-width:0}
+.rail .nav{white-space:nowrap;min-width:0}.rail .nav-fb{color:var(--go-hi,#8FC458);margin-top:6px}
 .rail .nav > span,.rail .nav{overflow:hidden;text-overflow:ellipsis}
 .rail .me{min-width:0;overflow:hidden}
 .rail .me .nm,.rail .me .nm small,.rail .me .nm span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2875,7 +2875,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794689205";
+const CHESSNAT_BUILD = "1794694347";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -11361,9 +11361,12 @@ function renderRail(){
   const dailyOpen = !S.daily.done[todayKey()];
   rail.innerHTML = `<a class="brand" href="#home">${LOGO}<span>Chess<b>.nat</b></span></a>${typeof railMe === "function" ? railMe() : ""}
     ${NAV.map(([k, t, ic]) => `<button class="nav ${cur === k || (k === "friend" && (cur === "local" || cur === "linkgame")) || (k === "bots" && cur === "trophies") || (k === "battle" && cur === "duel") ? "on" : ""}" data-r="${k}">${icon(ic)}<span>${t}</span>${k === "daily" && dailyOpen ? `<span class="badge">1</span>` : ""}</button>`).join("")}
+    <button class="nav nav-fb" data-fbk data-notr>${icon("chat")}<span>${I18N.lang === "de" ? "Ideen & Feedback" : "Ideas & Feedback"}</span></button>
     <div class="grow"></div>
     ${railAccount()}`;
   $$("[data-r]", rail).forEach(b => b.onclick = () => App.go(b.dataset.r));
+  /* on a laptop there is no "More" sheet: ideas and feedback get their own entry in the rail */
+  $$("[data-fbk]", rail).forEach(b => b.onclick = () => { if (typeof Feedback !== "undefined") Feedback.open(); });
   renderRailStatus(); if (typeof renderTop === "function") renderTop();
 }
 
@@ -14733,7 +14736,7 @@ const Ranks = {
 <script src="games/online.js?v=128"></script>
 <script src="games/song.js?v=6"></script>
 <script src="games/natposter.js?v=130"></script>
-<script src="games/arena.js?v=133"></script>
+<script src="games/arena.js?v=134"></script>
 <script src="games/tipp.js?v=130"></script>
 <script src="games/now.js?v=3"></script>
 <script src="data/foods_bls.js?v=1"></script>

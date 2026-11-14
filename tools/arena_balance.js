@@ -37,9 +37,13 @@ function attack(a, b, d, su){
     if (su){ const land = Math.min(s2.rg, d), tof = s2.dur / 1000; a.x += Math.sign(b.x - a.x) * Math.max(0, land - 40); const u = side(b, tof) * .8; if (u < s2.splash + BODY) hit(a, b, s2.dmg, {delay: tof, kb: s2.kb, su: 1}); return; }
     /* the three punches: each one only lands if the other one is still within reach by then */
     for (let i = 0; i < c.jabs; i++) if (rnd() < .9) hit(a, b, c.dmg, {delay: i * .115, reach: c.rg + BODY}); return; }
+  if (k === "hammer"){
+    /* the earthquake hits everyone around at once; the blow lands after the wind-up if the other one is still within reach */
+    if (su){ if (d <= s2.rg + BODY) hit(a, b, s2.dmg, {delay: .14, kb: s2.kb, su: 1}); return; }
+    if (rnd() < .92) hit(a, b, c.dmg, {delay: c.wind / 1000, reach: c.rg + BODY, kb: 34}); return; }
   if (k === "beam"){
     if (su){ if (d <= s2.rg + BODY && rnd() < .85) hit(a, b, s2.dmg, {fear: s2.fear, su: 1}); return; }
-    if (d > c.rg + BODY || rnd() > .9) return; a.beam = {b, n: 0, t0: T}; return; }
+    if (d > c.rg + BODY || rnd() > .9) return; a.beam = {b, nt: T + c.every / 1000, lost: 0}; return; }
   if (c.lob){ const tof = c.lob / 1000 * (.6 + .4 * Math.min(1, d / s2.rg)), u = side(b, tof) * (rnd() < .5 ? 1 : -1), rr = (s2.splash || 60) + BODY * .6; if (Math.abs(u) < rr) hit(a, b, s2.dmg, {delay: tof, kb: su ? s2.kb : 0, su}); return; }
   if (k === "gun"){ for (let i = 0; i < s2.n; i++){ const tof = d / s2.v, u = side(b, tof + i * s2.gap / 1000) * (rnd() < .5 ? 1 : -1), off = (((i * 37) % 7) - 3) * .007 * d; if (d <= s2.rg && lands(off, c.r, u)) hit(a, b, s2.dmg, {delay: tof + i * s2.gap / 1000, su}); } return; }
   if (k === "rang"){ const n = s2.n || 1; for (let i = 0; i < n; i++){ const off = n > 1 ? (i - (n - 1) / 2) * s2.spr * d : 0, tof = d / c.v; if (d > s2.rg) continue;
@@ -64,18 +68,22 @@ function duel(k1, k2){
       /* health comes back after 3 s without being hit and without shooting */
       if (T - a.lastHit > 3 && T - a.lastShot > 3) a.hp = Math.min(a.mx, a.hp + a.mx * .14 * dt);
       /* a beam ticks while it holds */
-      if (a.beam){ const bm = a.beam; if (b.hp <= 0 || d > CLS.beam.rg * CLS.beam.brk) a.beam = null; else { b.slow = T + .1; while (bm.n < CLS.beam.ticks && T - bm.t0 >= (bm.n + 1) * CLS.beam.every / 1000){ bm.n++; hit(a, b, CLS.beam.dmg, {heal: CLS.beam.heal}); } if (bm.n >= CLS.beam.ticks) a.beam = null; } }
+      /* a beam holds while the other one is in reach; out of reach it waits a second, then it is gone */
+      if (a.beam){ const bm = a.beam, cb = CLS.beam; if (b.hp <= 0 || a.fear > T) a.beam = null; else if (d > cb.rg + BODY){ if (!bm.lost) bm.lost = T; if (T - bm.lost > cb.grace / 1000) a.beam = null; }
+        else { if (bm.lost){ bm.lost = 0; bm.nt = Math.max(bm.nt, T + cb.every / 2000); } b.slow = T + .1; while (T >= bm.nt){ bm.nt += cb.every / 1000; hit(a, b, cb.dmg, {heal: cb.heal}); } } }
       /* moving: blinded runs away; the boxer rushes in; the others keep their distance */
       let mv = 0; const want = c.rg * (WANT[a.k] || .6);
       if (a.fear > T) mv = -1; else if (a.k === "punch" || d > want) mv = 1; else if (d < want * .55) mv = -.8;
+      /* the charge radius: the super fills up while the other one is close */
+      if (c.aura && d < c.aura.r) a.sup = Math.min(1, a.sup + c.aura.rate * dt);
       a.x += mv * dir * SPD * c.sp * a.spd() * dt; a.x = clamp(a.x, 700 - wall / 2, 700 + wall / 2);
       if (Math.abs(b.x - a.x) < BODY) a.x = b.x - dir * BODY;
       if (a.fear > T) continue;
       const d2 = Math.abs(b.x - a.x), su = c.su, sr = su.rg || c.rg;
-      if (a.sup >= 1 && d2 < sr * .9){ a.sup = 0; a.chS = 0; a.lastShot = T; attack(a, b, d2, true); continue; }
+      if (a.sup >= 1 && d2 < sr * (su.ring ? .7 : .9)){ a.sup = 0; a.chS = 0; a.lastShot = T; attack(a, b, d2, true); continue; }
       if (a.k === "snipe" && d2 > 300 && !a.chS && a.am >= 1) a.chS = T;
-      const inR = d2 < (a.k === "punch" ? c.rg + BODY - 4 : c.rg * .95);
-      if (inR && a.am >= 1 && a.cd <= 0 && (a.k !== "snipe" || !a.chS || T - a.chS > CHG / 1000 * .9)){ a.am--; a.cd = c.cd; a.lastShot = T; attack(a, b, d2, false); a.chS = 0; }
+      const inR = d2 < (a.k === "punch" || a.k === "hammer" ? c.rg + BODY - 4 : c.rg * .95);
+      if (inR && a.am >= 1 && a.cd <= 0 && !(a.beam && !a.beam.lost) && (a.k !== "snipe" || !a.chS || T - a.chS > CHG / 1000 * .9)){ a.am--; a.cd = c.cd; a.lastShot = T; attack(a, b, d2, false); a.chS = 0; }
     }
   }
   return A.hp > 0 && B.hp <= 0 ? 1 : B.hp > 0 && A.hp <= 0 ? 0 : .5;
