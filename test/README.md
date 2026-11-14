@@ -31,7 +31,7 @@ geklappt hat, samt jedem Fehler, den Seite oder Datenbank unterwegs gemeldet hab
 
 Teile (`quelle` läuft zuletzt, es stellt die Nährwert-Tabelle auf die Open-Food-Facts-Werte der Attrappe um): `login` · `kcal` (Suche, Mengen, Sprechen, Barcode) · `nudeln` (feste Nährwerte, trocken/gekocht) ·
 `suche` (Tippfehler, andere Schreibweise, Suche nach Bedeutung, Schon gegessen) · `kcal2` (Reiter, Einstellungen, Wiegen, Kochen, Wochen-Rückblick) · `shop` (Einkaufsliste mit zwei Handys) ·
-`chat` (Chat mit zwei Handys, Nat Stars, Freunde) · `freunde` (Reihenfolge der Freunde: ungelesen, zuletzt geschrieben oder gespielt) · `tipp` · `feedback` · `seiten` (jede Seite, Handy und PC) · `start` (kein Flackern) · `quelle` (Tabellenwerte aus Open Food Facts)
+`chat` (Chat mit zwei Handys, Nat Stars, Freunde) · `freunde` (Reihenfolge der Freunde: ungelesen, zuletzt geschrieben oder gespielt) · `tipp` · `song` (Song raten: Genre, eigene Künstler, Eintippen mit Tippfehler, 4 zur Auswahl, zwei Spieler) · `feedback` · `seiten` (jede Seite, Handy und PC) · `start` (kein Flackern) · `quelle` (Tabellenwerte aus Open Food Facts)
 
 ## Tippen mit Tastatur (iPhone nachgestellt)
 
@@ -59,5 +59,5 @@ Hilfsadressen: `/__fake/problems` (alle Datenbank-Fehler), `/__fake/table/<name>
 
 ## Was die Attrappe nicht kann
 
-Echte Push-Nachrichten, die Kamera (Barcodes werden als Nummer eingetippt), echte Spracherkennung (der Test „hört“ einen festen Satz)
+Echte Push-Nachrichten, echte Songs (Apples Suche antwortet aus einer festen Liste in `lib.js`, die Vorschau ist ein Geräusch der App), die Kamera (Barcodes werden als Nummer eingetippt), echte Spracherkennung (der Test „hört“ einen festen Satz)
 und alles, was nur ein echtes iPhone zeigt: Tastatur-Höhe, Safari-Eigenheiten, Vibration.
