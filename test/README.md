@@ -61,3 +61,10 @@ Hilfsadressen: `/__fake/problems` (alle Datenbank-Fehler), `/__fake/table/<name>
 
 Echte Push-Nachrichten, echte Songs (Apples Suche antwortet aus einer festen Liste in `lib.js`, die Vorschau ist ein Geräusch der App), die Kamera (Barcodes werden als Nummer eingetippt), echte Spracherkennung (der Test „hört“ einen festen Satz)
 und alles, was nur ein echtes iPhone zeigt: Tastatur-Höhe, Safari-Eigenheiten, Vibration.
+
+## Nat Stars: Kämpfer ausbalancieren
+
+`node tools/arena_balance.js` lässt jeden Kämpfer viele Duelle gegen jeden anderen fechten (mit den Werten direkt aus `games/arena.js`,
+auf freier Fläche, das Gas zieht sich zu) und zeigt, wer wie oft gewinnt. Ziel: jeder Kämpfer gewinnt im Schnitt etwa die Hälfte.
+`node tools/arena_balance.js --tune` schlägt Werte vor, mit denen das klappt. Echte Runden landen zusätzlich in `chess_events`
+(`kind = 'arena'`: wer mit welchem Kämpfer auf welchem Platz, Kills, Schaden), damit sich das später mit echten Spielen prüfen lässt.

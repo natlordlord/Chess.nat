@@ -459,6 +459,42 @@ const PARTS = {
     await clean([a, b], "Freunde → Spielen"); await a.context().close(); await b.context().close();
   },
 
+  /* ---------- Nat Stars: der Lichtstrahl (neuer Kämpfer) ---------- */
+  async natstars(browser){
+    const a = await L.open(browser, "tester");
+    await a.evaluate(() => App.go("party", {g: "arena"})); await sleep(900); await a.locator("#main button", {hasText: "Gegen Bots"}).first().tap();
+    await a.waitForSelector('.ar-card[data-arc="beam"]', {timeout: 8000}).catch(() => {}); await sleep(400); await a.shot("natstars-auswahl");
+    const cards = await a.$$eval(".ar-card", x => x.map(c => c.dataset.arc + ":" + c.getBoundingClientRect().width));
+    ok(cards.length === 7 && cards.some(c => c.startsWith("beam")), "Auswahl: 7 Kämpfer, neu der Lichtstrahl", JSON.stringify(cards));
+    ok(/Lichtstrahl/.test(await txt(a, '.ar-card[data-arc="beam"]')) && /Blendlicht/.test(await txt(a, '.ar-card[data-arc="beam"]')), "Lichtstrahl-Karte: Name, „Haftet · saugt Leben“, Super „Blendlicht“", await txt(a, '.ar-card[data-arc="beam"]'));
+    await a.tap('.ar-card[data-arc="beam"]');
+    for (let i = 0; i < 60 && (await a.evaluate(() => __ar().ph)) !== "fight"; i++) await sleep(250);
+    await sleep(1800); await a.evaluate(() => __arFreeze(true));
+    const me = await a.evaluate(() => { const r = __ar(), id = Object.keys(r.cls).find(x => r.cls[x] === "beam" && !/^bot/.test(x)) || Object.keys(r.cls).find(x => !/^bot/.test(x)); return {id, cls: r.cls[id], x: r.me.x, y: r.me.y, bot: Object.keys(r.cls).find(x => /^bot/.test(x) || x !== id)}; });
+    ok(me.cls === "beam", "du kämpfst als Lichtstrahl", JSON.stringify(me));
+    /* a bot right in front of you, frozen */
+    const spot = await a.evaluate(m => { for (let r = 200; r <= 360; r += 40) for (let k = 0; k < 16; k++){ const an = k / 16 * Math.PI * 2, f = __arFree(m.x + Math.cos(an) * r, m.y + Math.sin(an) * r); if (!f) continue; const d = Math.hypot(f.x - m.x, f.y - m.y); if (d > 150 && d < 400 && __arClear(m, f)) return f; } return null; }, me);
+    ok(!!spot, "freie Stelle mit Sicht für den Test-Gegner", JSON.stringify(me));
+    await a.evaluate(([id, s]) => __arBot(id, s.x, s.y), [me.bot, spot]); await sleep(300);
+    await a.evaluate(() => __arHurt(60)); await sleep(600);
+    const hp0 = await a.evaluate(() => __ar().hp), b0 = await a.evaluate(id => __arBotS(id), me.bot);
+    await a.evaluate(([m, s]) => __arFire(Math.atan2(s.y - m.y, s.x - m.x)), [me, spot]); await sleep(450);
+    const mid = await a.evaluate(id => ({beams: __arBeams(), b: __arBotS(id)}), me.bot); await a.shot("natstars-lichtstrahl");
+    ok(mid.beams.some(b => b.tg === me.bot && !b.heal) && mid.b.slow < 1, "der Strahl haftet am Gegner und bremst ihn", JSON.stringify(mid));
+    await sleep(1200); const hp1 = await a.evaluate(() => __ar().hp), b1 = await a.evaluate(id => __arBotS(id), me.bot);
+    ok(b0.hp - b1.hp >= 40 && b0.hp - b1.hp <= 60, "5 Treffer à 10: der Gegner verliert " + (b0.hp - b1.hp) + " Leben", JSON.stringify([b0, b1]));
+    ok(hp1[me.id] > hp0[me.id], "und du bekommst Leben zurück (" + hp0[me.id] + " → " + hp1[me.id] + ")", JSON.stringify([hp0[me.id], hp1[me.id]]));
+    /* the super: blinding light, the bot runs away */
+    await a.evaluate(() => __arSup(1)); await a.evaluate(([m, s]) => __arFire(Math.atan2(s.y - m.y, s.x - m.x), true), [me, spot]); await sleep(300); await a.shot("natstars-blendlicht");
+    const b2 = await a.evaluate(id => __arBotS(id), me.bot);
+    ok(b2.fear && b1.hp - b2.hp >= 40, "Blendlicht: Treffer (" + (b1.hp - b2.hp) + ") und der Gegner rennt weg", JSON.stringify(b2));
+    await a.evaluate(() => __arFreeze(false)); await sleep(1200);
+    const b3 = await a.evaluate(id => __arBotS(id), me.bot);
+    ok(Math.hypot(b3.x - me.x, b3.y - me.y) > Math.hypot(spot.x - me.x, spot.y - me.y) + 40, "er läuft wirklich weg (Abstand " + Math.round(Math.hypot(spot.x - me.x, spot.y - me.y)) + " → " + Math.round(Math.hypot(b3.x - me.x, b3.y - me.y)) + ")", JSON.stringify(b3));
+    await a.evaluate(() => document.querySelector("#lleave").click()); await sleep(800);
+    await clean(a, "Nat Stars Lichtstrahl", /AudioContext|play\(\)/); await a.context().close();
+  },
+
   /* ---------- Tippspiel ---------- */
   async tipp(browser){
     const page = await L.open(browser, "tester"); await page.tap('#tabbar [data-t="tipp"]'); await sleep(1500);
