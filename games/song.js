@@ -159,6 +159,145 @@
       setup();
     }});
 
+  /* ================= Online: everyone on their own phone, invited friends, the host's phone runs it =================
+     The host picks the songs; every phone plays the clip itself at the same moment and answers on its own screen.
+     Modes: everyone answers (fastest right answer +1) or the fastest right answer takes it; four or six to pick from,
+     type it yourself, mixed; or guess the year. Voice chat comes from the lobby bar (net.js). */
+  /* the iPhone only plays sound that a tap started: one player, woken up by the first tap in the lobby, plays every clip after that */
+  const SA = (() => { const au = new Audio(); au.preload = "auto"; au.setAttribute("playsinline", ""); let ok = false, stopT = 0, key = null, startT = 0;
+    const silent = (() => { const n = 1600, b = new Uint8Array(44 + n), dv = new DataView(b.buffer), w = (o, str) => [...str].forEach((c, i) => { b[o + i] = c.charCodeAt(0); });
+      w(0, "RIFF"); dv.setUint32(4, 36 + n, true); w(8, "WAVEfmt "); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true); dv.setUint32(24, 8000, true); dv.setUint32(28, 8000, true); dv.setUint16(32, 1, true); dv.setUint16(34, 8, true); w(36, "data"); dv.setUint32(40, n, true); b.fill(128, 44);
+      let bin = ""; b.forEach(x => { bin += String.fromCharCode(x); }); return "data:audio/wav;base64," + btoa(bin); })();
+    return {au, get ok(){ return ok; },
+      unlock(){ if (ok || key) return; try { au.muted = true; au.src = silent; const p = au.play(); Promise.resolve(p).then(() => { au.pause(); au.muted = false; ok = true; }).catch(() => { au.muted = false; }); } catch(e) {} },
+      /* the clip of this question: starts at the moment the host set, stops after the clip; false = this phone needs a tap first */
+      at(k, url, start, secs, onNeed){ if (key === k || !OKURL.test(url)) return; key = k; clearTimeout(startT); clearTimeout(stopT);
+        const go = () => { if (key !== k) return; try { au.muted = false; if (au.src !== url) au.src = url; const off = Math.max(0, (Date.now() - start) / 1000); try { au.currentTime = off; } catch(e) {}
+            const p = au.play(); Promise.resolve(p).then(() => { ok = true; }).catch(() => { onNeed && onNeed(); }); } catch(e) { onNeed && onNeed(); }
+          stopT = setTimeout(() => { if (key === k) try { au.pause(); } catch(e) {} }, Math.max(500, start + secs * 1000 - Date.now())); };
+        startT = setTimeout(go, Math.max(0, start - Date.now())); },
+      /* the tap after "tap to listen": play from where the clip should be now */
+      tap(k, url, start, secs){ key = null; this.at(k, url, start, secs); },
+      /* the answer is out: the rest of the preview plays on */
+      rest(url){ clearTimeout(stopT); try { if (au.src === url && au.paused) au.play().catch(() => {}); } catch(e) {} },
+      stop(){ key = null; clearTimeout(startT); clearTimeout(stopT); try { au.pause(); } catch(e) {} }}; })();
+  document.addEventListener("pointerdown", () => { if (typeof App !== "undefined" && (App.route === "lobby" || App.route === "party")) SA.unlock(); }, true);
+
+  if (PG.online){
+    let OP = null; const now = () => Date.now();
+    const opool = G => { if (!OP || OP.gid !== G.gid){ OP = Pool.make({genre: G.opts.genre}); OP.gid = G.gid; (G.s.used || []).forEach(id => OP.used.add(id)); } return OP; };
+    const live = G => typeof PNet !== "undefined" && PNet.P && PNet.P.G === G;
+    const valOf = (w, x) => w === "both" ? bare(x.title) + " – " + x.artist : w === "artist" ? x.artist : bare(x.title);
+    const kindOf = (G, n) => G.opts.what === "year" ? "year" : G.opts.ans === "mixed" ? (n % 2 ? "pick" : "type") : G.opts.ans === "type" ? "type" : "pick";
+    const secsOf = (G, k) => Math.max(+G.opts.clip, 10) + (k === "pick" ? 6 : 16);
+    const players = G => G.ids.filter(x => !(G.s.out || {})[x]);
+    const sfx = (G, n) => { G.sk = (G.sk || 0) + 1; G.s.snd = {k: "s" + G.sk, n}; };
+    PG.online.song = {min: 2, max: 24, note: ["Every phone plays the song: turn the sound up. Voice chat: the 🎙 at the top.", "Jedes Handy spielt den Song ab: Ton laut machen. Sprachchat: das 🎙 oben."],
+      opts: [{k: "genre", l: ["Genre", "Genre"], d: "mix", c: () => Object.entries(G).filter(([k]) => k !== "own").map(([k, g]) => [k, [g[0] + " " + g[2], g[0] + " " + g[1]]])},
+        {k: "mode", l: ["Mode", "Modus"], d: "all", c: [["all", ["Everyone answers", "Alle antworten"]], ["fast", ["Fastest takes it", "Wer zuerst richtig hat"]]]},
+        {k: "what", l: ["Guess", "Raten"], d: "title", c: [["title", ["Title", "Titel"]], ["artist", ["Artist", "Interpret"]], ["both", ["Both", "Beides"]], ["year", ["Year", "Jahr"]]]},
+        {k: "ans", l: ["Answers", "Antworten"], d: "pick", c: [["pick", ["Pick of 4", "4 zur Auswahl"]], ["pick6", ["Pick of 6", "6 zur Auswahl"]], ["type", ["Type it", "Selbst tippen"]], ["mixed", ["Mixed", "Gemischt"]]]},
+        {k: "clip", l: ["Clip", "Reinhören"], d: 10, c: [[5, "5 s"], [10, "10 s"], [20, "20 s"]]},
+        {k: "rounds", l: ["Songs", "Songs"], d: 10, c: [[5, "5"], [10, "10"], [15, "15"]]}],
+      start(G, api){ G.gid = Math.random().toString(36).slice(2); G.s = {n: 0, pts: {}, phase: "load", log: [], used: (G.s && G.s.used) || [], out: {}}; this.next(G, api); },
+      next(G, api){ const s = G.s; if (s.n >= +G.opts.rounds){ s.phase = "end"; s.until = 0; sfx(G, "cheer"); return; }
+        const P = opool(G), song = P.songs.length ? P.next() : null;
+        if (!song){ s.phase = "load"; if (!s.loading){ s.loading = 1; P.fill(6).then(() => { s.loading = 0; if (!live(G) || G.s !== s || s.phase !== "load") return; if (P.songs.length) this.next(G, api); else s.phase = "fail"; api.push(); }); } return; }
+        s.n++; s.used.push(song.id); s.cur = song; s.kind = kindOf(G, s.n); s.ans = {}; s.win = null; s.first = null; s.phase = "play"; s.t0 = now() + 1800; s.until = s.t0 + secsOf(G, s.kind) * 1000; s.opts = null;
+        if (s.kind === "pick"){ const w = G.opts.what, mine = valOf(w, song), seen = new Set([N(mine)]), cand = PG.shuffle(P.songs.concat(s.log.map(l => l.s))).map(x => valOf(w, x));
+          if (w === "artist") cand.push(...PG.shuffle(artistsOf({genre: G.opts.genre})));
+          const d = cand.filter(v => { const k = N(v); if (!k || seen.has(k)) return false; seen.add(k); return true; }).slice(0, (G.opts.ans === "pick6" ? 6 : 4) - 1);
+          if (d.length >= 2) s.opts = PG.shuffle([mine].concat(d)); else s.kind = "type"; }
+        sfx(G, "go"); },
+      act(G, id, a, api){ const s = G.s, w = G.opts.what;
+        if (a.a === "again" && id === G.host && s.phase === "end"){ G.s = {n: 0, pts: {}, phase: "load", log: [], used: s.used.slice(-300), out: {}}; this.next(G, api); return; }
+        if (a.a === "next" && id === G.host && s.phase === "rev"){ this.next(G, api); return; }
+        if (s.phase !== "play" || s.ans[id] || !players(G).includes(id) || now() < s.t0 - 800 || (G.opts.mode === "fast" && s.win)) return;
+        const c = s.cur, ms = Math.max(0, now() - s.t0); let ok, raw = "";
+        if (a.a === "pick" && s.kind === "pick" && s.opts){ const v = s.opts[+a.v]; if (v == null) return; raw = v; const r = N(v) === N(valOf(w, c)); ok = w === "both" ? [r, r] : [r]; }
+        else if (a.a === "type" && s.kind === "type"){ const f = a.f || {}, t = String(f.t || "").slice(0, 80), r = String(f.r || "").slice(0, 80); raw = [t, r].filter(Boolean).join(" · ");
+          ok = w === "both" ? [titleOk(t, c.title), artistOk(r, c.artist)] : w === "artist" ? [artistOk(t || r, c.artist)] : [titleOk(t, c.title)]; }
+        else if (a.a === "year" && s.kind === "year"){ const y = parseInt(String((a.f || {}).y || "").replace(/\D/g, "").slice(0, 4), 10), d = isNaN(y) ? 99 : Math.abs(y - (+c.year || 0)); raw = isNaN(y) ? "" : String(y); ok = [d <= 5]; s.ans[id] = {raw, ms, ok, d}; return this.check(G); }
+        else return;
+        s.ans[id] = {raw, ms, ok}; if (G.opts.mode === "fast" && ok.every(Boolean)) s.win = id; this.check(G); },
+      check(G){ const s = G.s; if (s.phase === "play" && (s.win || players(G).every(x => s.ans[x]))) this.reveal(G); },
+      reveal(G){ const s = G.s, w = G.opts.what, gain = {}; s.phase = "rev"; s.until = now() + 12000;
+        if (s.kind === "year") G.ids.forEach(x => { const a = s.ans[x]; gain[x] = !a || a.d > 5 ? 0 : a.d === 0 ? 3 : a.d <= 2 ? 2 : 1; });
+        else if (G.opts.mode === "fast") G.ids.forEach(x => { gain[x] = x === s.win ? 3 : 0; });
+        else { const full = G.ids.filter(x => s.ans[x] && s.ans[x].ok.every(Boolean)).sort((a, b) => s.ans[a].ms - s.ans[b].ms);
+          G.ids.forEach(x => { const a = s.ans[x]; gain[x] = a ? a.ok.filter(Boolean).length * (w === "both" ? 1 : 2) : 0; }); if (full.length && full.length < G.ids.length + 1){ s.first = full[0]; gain[full[0]] += 1; } }
+        G.ids.forEach(x => { s.pts[x] = (s.pts[x] || 0) + gain[x]; }); s.gain = gain;
+        s.log.push({s: {title: s.cur.title, artist: s.cur.artist, year: s.cur.year, art: s.cur.art}, best: Object.keys(gain).filter(x => gain[x] > 0 && gain[x] === Math.max(...Object.values(gain)))});
+        sfx(G, Object.values(gain).some(Boolean) ? "xp" : "wrong"); },
+      tick(G, api){ const s = G.s; if (s.phase === "play" && now() >= s.until){ this.reveal(G); return true; } if (s.phase === "rev" && now() >= s.until){ this.next(G, api); return true; } },
+      gone(G, id){ G.s.out = G.s.out || {}; G.s.out[id] = 1; this.check(G); },
+      view(G, id, api){ const s = G.s, base = {custom: "song", host: id === G.host, snd: s.snd || null};
+        if (s.phase === "load") return Object.assign(base, {k: "load" + s.n, ph: "load"});
+        if (s.phase === "fail") return Object.assign(base, {k: "fail", ph: "fail"});
+        const tot = G.ids.map(x => ({n: api.name(x), p: s.pts[x] || 0, me: x === id})).sort((a, b) => b.p - a.p);
+        if (s.phase === "play"){ const me = s.ans[id];
+          return Object.assign(base, {k: "q" + s.n, ph: "play", n: s.n, of: +G.opts.rounds, url: s.cur.url, clip: +G.opts.clip, startIn: s.t0 - now(), left: s.until - now(), kind: s.kind, what: G.opts.what, opts: s.opts, fast: G.opts.mode === "fast",
+            done: !!me, wrong: !!(me && G.opts.mode === "fast" && !me.ok.every(Boolean)), got: players(G).filter(x => s.ans[x]).length, all: players(G).length}); }
+        if (s.phase === "rev") return Object.assign(base, {k: "r" + s.n, ph: "rev", n: s.n, of: +G.opts.rounds, last: s.n >= +G.opts.rounds, title: s.cur.title, artist: s.cur.artist, year: s.cur.year, art: s.cur.art, url: s.cur.url, kind: s.kind, what: G.opts.what, left: s.until - now(), mine: s.gain[id] || 0,
+          rows: G.ids.map(x => ({n: api.name(x), me: x === id, a: (s.ans[x] || {}).raw || "", ok: s.ans[x] ? s.ans[x].ok : null, g: s.gain[x] || 0, top: s.first === x || s.win === x})).sort((a, b) => b.g - a.g), tot});
+        return Object.assign(base, {k: "end", ph: "end", tot, log: s.log.map(l => ({t: l.s.title, a: l.s.artist, art: l.s.art, w: l.best.map(x => api.name(x)).join(", ")}))}); }
+    };
+
+    /* ---- what each phone shows (built here from plain text and Apple's picture links only) ---- */
+    const V = {k: null, ph: null, need: false, tk: 0, end: 0, start: 0, sent: null, snd: null};
+    const SND = {go: () => Sound.play("Capture", .5), xp: () => (Sound.xp ? Sound.xp() : Sound.right()), wrong: () => Sound.wrong(), cheer: () => PG.cheer(3)};
+    const md = x => h(x);
+    PG.custom.song = {
+      stop(){ SA.stop(); clearInterval(V.tk); V.k = null; V.ph = null; },
+      draw(body, v, m, act){
+        if (v.snd && v.snd.k !== V.snd){ V.snd = v.snd.k; try { (SND[v.snd.n] || (() => {}))(); } catch(e) {} }
+        const fresh = V.k !== v.k || !body.querySelector(".sg-on");
+        /* times: taken once per question from what the host said is left (a later update only corrects a big drift) */
+        if (V.k !== v.k){ V.k = v.k; V.ph = v.ph; V.need = false; V.sent = null; if (v.startIn != null) V.start = Date.now() + v.startIn; if (v.left != null) V.end = Date.now() + v.left; }
+        else { if (v.left != null && Math.abs(Date.now() + v.left - V.end) > 1500) V.end = Date.now() + v.left; }
+        const hostBar = v.host ? `<button class="btn ghost sm" data-x="lobby" style="margin-top:12px;opacity:.75">${T("End round · back to the lobby", "Runde beenden · zurück zur Lobby")}</button>` : "";
+        if (v.ph === "load" || v.ph === "fail"){ if (!fresh) return; SA.stop();
+          body.innerHTML = `<div class="pg-stage sg-on"><div class="sg-eq ${v.ph === "load" ? "on" : ""}">${"<i></i>".repeat(5)}</div><p class="muted">${v.ph === "load" ? T("Picking songs…", "Songs werden ausgesucht…") : T("No songs found. Check the connection or pick another genre.", "Keine Songs gefunden. Verbindung prüfen oder anderes Genre wählen.")}</p>${hostBar}</div>`; }
+        else if (v.ph === "play"){
+          if (fresh){ const W = v.what, lab = k => k === "t" ? (W === "artist" ? T("Artist", "Interpret") : T("Title", "Titel")) : T("Artist", "Interpret");
+            body.innerHTML = `<div class="sg-q sg-on"><div class="sg-top"><span class="muted">${T("Song", "Song")} ${v.n} / ${v.of}${v.fast ? " · ⚡ " + T("fastest takes it", "wer zuerst richtig hat") : ""}</span><b class="sg-left" data-left></b></div>
+              <div class="sg-eq on">${"<i></i>".repeat(5)}</div><div class="sg-bar"><i data-bar></i></div><button class="btn go big" data-x="hear" hidden>▶ ${T("Tap to listen", "Tippen zum Hören")}</button>
+              <div class="sg-ask">${v.what === "year" ? `<p class="pg-say" style="margin:0">${T("Which year?", "Aus welchem Jahr?")}</p>` : `<p class="pg-say" style="margin:0">${W === "both" ? T("Title and artist?", "Titel und Interpret?") : W === "artist" ? T("Who sings?", "Wer singt?") : T("Which song?", "Welcher Song?")}</p>`}</div>
+              ${v.kind === "pick" ? `<div class="sg-opts ${v.opts.length > 4 ? "six" : ""}">${v.opts.map((o, i) => `<button class="btn big" data-op="${i}">${md(o)}</button>`).join("")}</div>`
+                : v.kind === "year" ? `<form class="sg-form" data-f="year"><label class="sg-l">${T("Year", "Jahr")}<input type="text" inputmode="numeric" maxlength="4" data-in="y" autocomplete="off" placeholder="z. B. 1985" enterkeyhint="done"></label><button type="submit" class="btn go big">${T("Lock in", "Abgeben")}</button></form>`
+                : `<form class="sg-form" data-f="type">${(W === "both" ? ["t", "r"] : ["t"]).map((k, i, A) => `<label class="sg-l">${lab(k)}<input type="text" data-in="${k}" maxlength="80" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="${i < A.length - 1 ? "next" : "done"}"></label>`).join("")}<button type="submit" class="btn go big">${T("Lock in", "Abgeben")}</button></form>`}
+              <p class="pg-hint" data-st></p>${hostBar}</div>`;
+            const send = a => { V.sent = a.a; act(a); body.querySelectorAll("[data-op], .sg-form input, .sg-form button").forEach(x => { x.disabled = true; }); };
+            body.querySelectorAll("[data-op]").forEach(b => b.onclick = () => { if (V.sent) return; b.classList.add("go"); PG.vib(15); send({a: "pick", v: b.dataset.op}); });
+            const f = body.querySelector(".sg-form"); if (f){ const ins = [...f.querySelectorAll("input")];
+              ins.forEach((inp, i) => inp.addEventListener("keydown", e => { if (e.key === "Enter" && i < ins.length - 1){ e.preventDefault(); ins[i + 1].focus(); } }));
+              f.onsubmit = e => { e.preventDefault(); if (V.sent) return; const o = {}; ins.forEach(i => { o[i.dataset.in] = i.value.trim().slice(0, 80); }); try { document.activeElement.blur(); } catch(x) {} send({a: f.dataset.f, f: o}); };
+              try { ins[0].focus({preventScroll: true}); } catch(e) {} }
+            const hear = body.querySelector('[data-x="hear"]'); hear.onclick = () => { hear.hidden = true; SA.tap(v.k, v.url, V.start, v.clip); };
+            SA.at(v.k, v.url, V.start, v.clip, () => { V.need = true; const b = body.querySelector('[data-x="hear"]'); if (b) b.hidden = false; });
+            const bar = body.querySelector("[data-bar]"), cl = v.clip * 1000; clearInterval(V.tk);
+            const run = () => { if (!bar.isConnected) return clearInterval(V.tk); const t = Date.now(); bar.style.width = Math.max(0, Math.min(100, (t - V.start) / cl * 100)) + "%"; const L = body.querySelector("[data-left]"); if (L){ const sl = Math.max(0, Math.ceil((V.end - t) / 1000)); L.textContent = sl + " s"; L.classList.toggle("low", sl <= 5); } };
+            V.tk = setInterval(run, 200); run(); }
+          if (v.done && !V.sent){ V.sent = "x"; body.querySelectorAll("[data-op], .sg-form input, .sg-form button").forEach(x => { x.disabled = true; }); }
+          const st = body.querySelector("[data-st]"); if (st) st.textContent = v.wrong ? T("Not right. Wait for the others…", "Leider falsch. Warte auf die anderen…") : v.done || V.sent ? T(`Locked in. ${v.got} of ${v.all} have answered.`, `Abgegeben. ${v.got} von ${v.all} haben geantwortet.`) : T(`${v.got} of ${v.all} have answered.`, `${v.got} von ${v.all} haben geantwortet.`); }
+        else if (v.ph === "rev"){
+          if (fresh){ clearInterval(V.tk); SA.rest(v.url); const mk = ok => ok == null ? "<b class=\"sg-mk\">–</b>" : ok.map(x => `<b class="sg-mk ${x ? "ok" : ""}">${x ? "✓" : "✗"}</b>`).join("");
+            body.innerHTML = `<div class="pg-stage pg-pop sg-on"><div class="sg-ans">${v.art && OKURL.test(v.art) ? `<img src="${h(v.art)}" alt="" width="100" height="100">` : `<span class="sg-noart">🎵</span>`}<div><div class="sg-t">${md(v.title)}</div><div class="sg-a">${md(v.artist)}${v.year ? ` · ${md(v.year)}` : ""}</div></div></div>
+              <div class="pg-name" style="font-size:40px">${v.mine ? "+" + v.mine : "0"}</div>
+              <div class="unit" style="width:100%;text-align:left;margin:0"><div class="list">${v.rows.map(r => `<div class="li" style="${r.me ? "box-shadow:inset 0 0 0 1.5px var(--go)" : ""}"><span style="width:${v.what === "both" && v.kind !== "year" ? 44 : 22}px">${mk(r.ok)}</span><div class="grow"><div class="t">${md(r.n)}${r.top ? " ⚡" : ""}</div><div class="s">${md(r.a || "–")}</div></div><b style="font:900 18px var(--display)">${r.g ? "+" + r.g : "0"}</b></div>`).join("")}</div></div>
+              <div class="unit" style="width:100%;text-align:left;margin:0"><h3>${T("Total", "Gesamt")}</h3><div class="list">${v.tot.map((r, i) => `<div class="li"><span class="pg-rank">${i + 1}</span><div class="grow t">${md(r.n)}${r.me ? " (" + T("you", "du") + ")" : ""}</div><b style="font:900 18px var(--display)">${r.p}</b></div>`).join("")}</div></div>
+              ${v.host ? `<button class="btn go big" data-x="next" style="max-width:340px">${v.last ? T("Results", "Ergebnis") : T("Next song", "Nächster Song")}</button>` : `<p class="pg-hint">${T("The next song comes in a moment…", "Gleich kommt der nächste Song…")}</p>`}${hostBar}</div>`; } }
+        else if (v.ph === "end"){
+          if (fresh){ clearInterval(V.tk); SA.stop();
+            body.innerHTML = `<div class="pg-stage pg-pop sg-on"><div class="pg-moon">🏆</div><div class="pg-name">${md(v.tot[0] ? v.tot[0].n : "")}</div><p class="muted" style="margin:0">${T("wins", "gewinnt")}</p>
+              <div class="unit" style="width:100%;text-align:left;margin:0"><div class="list">${v.tot.map((r, i) => `<div class="li"><span class="pg-rank">${i + 1}</span><div class="grow t">${md(r.n)}${r.me ? " (" + T("you", "du") + ")" : ""}</div><b style="font:900 18px var(--display)">${r.p}</b></div>`).join("")}</div></div>
+              <div class="unit" style="width:100%;text-align:left;margin:0"><h3>${T("The songs", "Die Songs")}</h3><div class="list">${v.log.map(l => `<div class="li">${l.art && OKURL.test(l.art) ? `<img src="${h(l.art)}" alt="" width="36" height="36" style="border-radius:6px">` : ""}<div class="grow"><div class="t">${md(l.t)}</div><div class="s">${md(l.a)}${l.w ? " · ⭐ " + md(l.w) : ""}</div></div></div>`).join("")}</div></div>
+              ${v.host ? `<button class="btn go big" data-x="again" style="max-width:340px">${T("New game", "Neues Spiel")}</button><button class="btn ghost" data-x="lobby">${T("Back to the lobby", "Zurück zur Lobby")}</button>` : `<p class="pg-hint">${T("The host starts the next game.", "Der Gastgeber startet das nächste Spiel.")}</p>`}</div>`; } }
+        if (fresh) body.querySelectorAll("[data-x]").forEach(b => { if (b.dataset.x === "hear") return; b.onclick = () => { const x = b.dataset.x; if (x === "lobby" && !b.dataset.armed && v.ph !== "end"){ b.dataset.armed = 1; b.textContent = T("Sure? Tap again", "Sicher? Nochmal tippen"); return; } act({a: x}); }; });
+      }
+    };
+  }
+
   /* ---------- the look ---------- */
   const css = `
 .sg-eq{display:flex;gap:6px;justify-content:center;align-items:flex-end;height:46px;margin:6px 0}
@@ -172,7 +311,7 @@
 .sg-form{display:flex;flex-direction:column;gap:10px}.sg-btns{display:grid;grid-template-columns:1fr 2fr;gap:8px}.sg-btns .btn{white-space:nowrap}
 .sg-l{display:flex;flex-direction:column;gap:5px;font:800 13px var(--body);color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
 .sg-l input{font-size:18px;padding:12px 14px;width:100%;text-transform:none;letter-spacing:0}
-.sg-opts{display:grid;gap:8px}.sg-opts .btn{white-space:normal;line-height:1.2;min-height:56px}
+.sg-opts{display:grid;gap:8px}.sg-opts .btn{white-space:normal;line-height:1.2;min-height:56px}.sg-opts.six{grid-template-columns:1fr 1fr}.sg-opts.six .btn{font-size:15px;min-height:64px}.sg-left{font:900 16px var(--display)}.sg-left.low{color:var(--bad,#E2523E)}
 .sg-ans{display:flex;gap:14px;align-items:center;text-align:left;width:100%;max-width:420px;background:var(--panel-2);border-radius:18px;padding:12px}
 .sg-ans img,.sg-noart{width:84px;height:84px;border-radius:12px;flex:none;object-fit:cover;display:grid;place-items:center;font-size:40px;background:var(--panel-3)}
 .sg-t{font:900 19px/1.2 var(--display)}.sg-a{color:var(--muted);font:700 14px var(--body);margin-top:4px}

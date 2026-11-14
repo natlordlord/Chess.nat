@@ -142,6 +142,7 @@ const PNet = (() => {
         else P.conn && P.conn.send({t: "end", code: P.code, id: me}); }
       else if (!P.isHost) P.conn && P.conn.send({t: "bye", code: P.code, id: me}); } catch(e) {}
     clearInterval(P.beat); const c = P.conn; P = null; setTimeout(() => c && c.close(), 300);
+    try { if (typeof PVoice !== "undefined" && PVoice.on && !PVoice.viaSet) PVoice.stop(); } catch(e) {}
     try { sessionStorage.removeItem("chessnat-party-host"); } catch(e) {}
     PG.awake(false); if (PG.custom) Object.values(PG.custom).forEach(c => c.stop && c.stop()); pill(); if (!quiet) redraw();
   }
@@ -238,7 +239,9 @@ const PVoice = (() => {
   /* who is talking right now: a little level meter per voice */
   function watch(id, st){ try { const ac = Sound.ac; if (!ac) return; const src = ac.createMediaStreamSource(st), a = ac.createAnalyser(); a.fftSize = 256; src.connect(a); an[id] = a; } catch(e) {} }
   function levels(){ const buf = new Uint8Array(128); Object.entries(an).forEach(([id, a]) => { a.getByteTimeDomainData(buf); let m = 0; for (let i = 0; i < buf.length; i++) m = Math.max(m, Math.abs(buf[i] - 128)); level[id] = m > 10; }); }
+  const heard = {};
   async function onMsg(m){
+    if (m && m.id && m.id !== me() && m.d){ if (m.d.hi) heard[m.id] = Date.now(); else if (m.d.bye) delete heard[m.id]; }
     if (!on || !m || !m.id || m.id === me() || (m.to !== "*" && m.to !== me())) return; const d = m.d || {}, id = m.id;
     if (d.bye){ close(id); return; }
     let x = pcs[id];
@@ -259,7 +262,7 @@ const PVoice = (() => {
       else if (d.cand){ if (!pc.remoteDescription) x.pend.push(d.cand); else { try { await pc.addIceCandidate(d.cand); } catch(e) {} } }
     } catch(e) { console.warn("voice", e); }
   }
-  return {start, stop, onMsg, via(f){ tx = f || null; }, get on(){ return on; }, get starting(){ return !!starting; }, denied: false,
+  return {start, stop, onMsg, via(f){ tx = f || null; }, get viaSet(){ return !!tx; }, others: () => Object.keys(heard).filter(id => Date.now() - heard[id] < 10000), get on(){ return on; }, get starting(){ return !!starting; }, denied: false,
     setMic(v){ mic = !!v; applyMic(); }, get mic(){ return mic; }, toggleMute(){ mute = !mute; applyMic(); return mute; }, get muted(){ return mute; },
     talking: id => !!level[id], peers: () => Object.keys(pcs).filter(id => pcs[id].pc.connectionState === "connected"), get _pcs(){ return pcs; }};
 })();
@@ -367,11 +370,12 @@ Views.lobby = {
   draw(){
     const {T, h} = PG, P = PNet.P, main = this.main; if (!P || !main || !main.isConnected) return;
     if (!main.querySelector(".pg-lob")){
-      main.innerHTML = `<div class="page pg pg-lob" data-notr style="max-width:640px"><div class="row pg-lbar"><span class="pill" id="lcode"></span><span class="grow"></span><button class="btn ghost sm" id="lleave"></button></div><div id="lbody"></div></div>`;
+      main.innerHTML = `<div class="page pg pg-lob" data-notr style="max-width:640px"><div class="row pg-lbar"><span class="pill" id="lcode"></span><span class="grow"></span><button class="btn ghost sm" id="lvoice" hidden></button><button class="btn ghost sm" id="lvx" hidden aria-label="${T("Leave voice chat", "Sprachchat verlassen")}">✕</button><button class="btn ghost sm" id="lleave"></button></div><div id="lbody"></div></div>`;
+      clearInterval(this.vT); this.vT = setInterval(() => { if (!this.main || !this.main.isConnected || App.route !== "lobby" || !this.main.querySelector(".pg-lob")){ clearInterval(this.vT); return; } this.voiceBar(); }, 1500);
       const lv = $("#lleave", main); lv.onclick = () => { if (!lv.dataset.armed){ lv.dataset.armed = 1; lv.textContent = T("Sure? Tap again", "Sicher? Nochmal tippen"); setTimeout(() => { if (lv.isConnected){ delete lv.dataset.armed; this.draw(); } }, 3000); return; } PNet.leave(); App.go("games"); };
     }
-    const lv = $("#lleave", main); if (!lv.dataset.armed) lv.textContent = P.solo ? T("End", "Beenden") : P.isHost ? T("Close lobby", "Lobby schließen") : T("Leave", "Verlassen");
-    const m = P.isHost ? P.msg : P.msg, conn = P.conn && P.conn.live;
+    const lv = $("#lleave", main); if (!lv.dataset.armed) lv.textContent = P.solo ? T("End", "Beenden") : P.isHost ? T("Close", "Schließen") : T("Leave", "Verlassen");
+    const m = P.isHost ? P.msg : P.msg, conn = P.conn && P.conn.live; this.voiceBar();
     $("#lcode", main).innerHTML = P.solo ? `🤖 ${T("Practice", "Übungsmodus")}` : `<span style="width:8px;height:8px;border-radius:50%;background:${conn ? "var(--go-hi)" : "var(--warn)"};display:inline-block"></span> ${T("Lobby", "Lobby")} <b style="letter-spacing:.1em">${esc(P.code.toUpperCase())}</b>`;
     const body = $("#lbody", main);
     if (!m){ P.t0 = P.t0 || Date.now(); const gone = Date.now() - P.t0 > 12000;
@@ -391,6 +395,20 @@ Views.lobby = {
     /* the host also gets a small bar to end the round */
     const hv = P.isHost ? Object.assign({}, v, {hostBack: true}) : v;
     PView.draw(body, hv, a => { if (a.a === "lobby"){ PNet.toLobby(); return; } PNet.act(a); });
+  },
+  /* voice chat for every game in the lobby and while it runs (Natposter has its own): tap to join, tap again to mute, ✕ to leave.
+     Before you join you see how many are in already. */
+  voiceBar(){
+    const {T} = PG, P = PNet.P, m = P && P.msg, b = this.main && $("#lvoice", this.main), x = this.main && $("#lvx", this.main); if (!b) return;
+    const show = !!(P && !P.solo && m && m.game !== "natposter" && typeof PVoice !== "undefined" && navigator.mediaDevices && window.RTCPeerConnection);
+    b.hidden = !show; if (x) x.hidden = !show || !PVoice.on; if (!show) return;
+    const n = PVoice.others().length, on = PVoice.on, mu = on && PVoice.muted, pe = on ? PVoice.peers().length : 0;
+    b.className = "btn sm " + (on && !mu ? "go" : "ghost");
+    b.textContent = !on ? "🎙 " + (n ? T(`Voice · ${n}`, `Sprechen · ${n}`) : T("Voice", "Sprechen")) : mu ? "🔇 " + T("Muted", "Stumm") : "🎙 " + T("On", "An") + (pe ? " · " + pe : "");
+    if (!b.onclick) b.onclick = async () => { if (!PVoice.on){ b.disabled = true; const ok = await PVoice.start(); b.disabled = false;
+        if (!ok){ toast(T("The microphone isn't allowed. Allow it in the settings.", "Das Mikrofon ist nicht erlaubt. Erlaube es in den Einstellungen."), 3500); return; } PVoice.setMic(true); toast(T("Voice chat on 🎙", "Sprachchat an 🎙"), 1400); }
+      else { const now = PVoice.toggleMute(); toast(now ? T("You're muted", "Du bist stumm") : T("Mic on", "Mikro an"), 1200); } this.voiceBar(); };
+    if (x && !x.onclick) x.onclick = () => { PVoice.stop(); toast(T("Left the voice chat", "Sprachchat verlassen"), 1400); this.voiceBar(); };
   },
   practiceUI(body, m, e, g){
     const {T, h} = PG; document.documentElement.classList.remove("pg-night"); const lk = JSON.stringify(["solo", m.game, m.opts]); if (body._lk === lk && body.querySelector(".pg-solo")) return; body._lk = lk; body._json = null;
@@ -480,7 +498,7 @@ PG.friendList = (box, code, game, inLobby) => {
   if (c){ window.__pgJoin = c; try { history.replaceState(null, "", "#lobby"); } catch(e) {} }
   window.addEventListener("hashchange", () => { if (document.documentElement.classList.contains("np-on")) return; const k = PNet.fromHash(location.hash); if (k) App.go("lobby", {join: k}); });
   Object.assign(TAB_OF, {lobby: "games"});
-  const css = `.pg-lbar{gap:8px;align-items:center;margin-bottom:6px}
+  const css = `.pg-lbar{gap:6px;align-items:center;margin-bottom:6px;flex-wrap:nowrap}.pg-lbar .btn{white-space:nowrap;padding-left:10px;padding-right:10px}.pg-lbar #lvx{padding:0 9px}
 .pg-inv{display:flex;gap:14px;align-items:center}
 .pg-qr{width:132px;height:132px;flex:0 0 auto;background:#fff;border-radius:10px;padding:6px}
 .pg-qr svg{width:100%;height:100%;display:block}
