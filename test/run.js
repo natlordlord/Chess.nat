@@ -680,12 +680,16 @@ const PARTS = {
     const fakeAS = () => { Object.defineProperty(navigator, "audioSession", {value: {_t: "auto", get type(){ return this._t; }, set type(v){ this._t = v; }}, configurable: true}); };
     const page = await L.open(browser, "tester", {before: fakeAS}); let last = "";
     page.on("request", r => { const m = /audio-ssl\.itunes\.apple\.com\/fake\/([^?]+)\.m4a/.exec(r.url()); if (m) last = decodeURIComponent(m[1]); });
+    /* the points are checked exactly: no connoisseur songs (+1) in between */
+    const shares = await page.evaluate(() => JSON.parse(JSON.stringify(PG._song.LVL)));
+    await page.evaluate(() => { const L2 = PG._song.LVL; L2.main = [.8, .2, 0]; L2.mid = [.6, .4, 0]; L2.fan = [.2, .8, 0]; });
     await page.evaluate(() => App.go("games")); await sleep(700);
     ok(await has(page, '#main [data-g="song"]'), "„Song raten“ steht bei den Spielen");
     const order = await page.$$eval("#main .pg-gt", x => x.map(b => b.querySelector("h3").innerText.trim()));
     ok(order.indexOf("Song raten") >= 0 && order.indexOf("Song raten") <= 3, "„Song raten“ steht weit oben (Platz " + (order.indexOf("Song raten") + 1) + ")", order.join(" · "));
     await page.tap('#main [data-g="song"]'); await sleep(700);
     ok(/Genre/.test(await txt(page, "#main")) && await has(page, '[data-gn="y80"]'), "Einstellungen: Genres zur Wahl (u. a. 80er)");
+    ok(/Mainstream/.test(await txt(page, "#sgl")) && /Medium/.test(await txt(page, "#sgl")) && /Groupie/.test(await txt(page, "#sgl")), "„Wie bekannt“: Mainstream, Medium, Groupie", await txt(page, "#sgl"));
     const gens = await page.$$eval("[data-gn]", x => x.map(b => b.dataset.gn));
     ok(gens.length >= 22 && ["kpop", "latin", "rnb", "indie", "metal", "film", "xmas", "y60", "y20"].every(g => gens.includes(g)), "mehr Kategorien: " + gens.length + " (u. a. K-Pop, Latin, R&B, Indie, Metal, Film, Weihnachten, 60er/70er, 2020er)", gens.join(","));
     /* a Spotify playlist: paste the link, the songs are read in */
@@ -734,6 +738,14 @@ const PARTS = {
       return {n, bad, de: [langOf("Ich will nur, dass du weißt"), langOf("Bierkönig", "party"), langOf("Take On Me"), langOf("Don't Stop Me Now")]}; });
     ok(fair.n >= 4 && !fair.bad.length, "falsche Antworten: nie ein Song, der noch kommt, und kein Song kommt, der schon als falsch dastand", JSON.stringify(fair));
     ok(fair.de.join() === "de,de,en,en", "Sprache erkannt (deutsch / englisch), damit die falschen Titel zur Sprache passen", JSON.stringify(fair.de));
+    /* how well known: Mainstream are mostly the radio hits everyone knows, Groupie mostly an artist's deep cuts */
+    /* (the shares are random; here once only radio hits, once only deep cuts, to see where each comes from) */
+    const lv = await page.evaluate(async () => { const {Pool, LVL} = PG._song, keep = JSON.stringify(LVL); LVL.main = [1, 0, 0]; LVL.fan = [0, 0, 1];
+      const P1 = Pool.make({genre: "y80", lvl: "main"}); P1.used.clear(); await P1.fill(4); const P2 = Pool.make({genre: "own", own: "Queen", lvl: "fan"}); P2.used.clear(); await P2.fill(2);
+      Object.assign(LVL, JSON.parse(keep)); return {main: P1.songs.map(x => x.tier + ":" + x.title), fan: P2.songs.map(x => x.tier + ":" + x.title)}; });
+    ok(lv.main.length >= 2 && lv.main.some(x => /^hit:(Take On Me|99 Luftballons|Radio Ga Ga|Another One Bites the Dust|Under Pressure|Irgendwie)/.test(x)), "Radio-Hits: kommen aus der Liste der Songs, die jeder kennt (80er: " + lv.main.join(", ") + ")", JSON.stringify(lv.main));
+    ok(lv.fan.length >= 1 && lv.fan.every(x => x.startsWith("fan:")), "Groupie mit nur Queen: Album-Songs für Kenner (" + lv.fan.join(", ") + ")", JSON.stringify(lv.fan));
+    ok(shares.main[0] >= .8 && shares.main[2] > 0 && shares.mid[0] < shares.main[0] && shares.fan[2] >= .5, "Mainstream vor allem Hits (mit ein paar Kenner-Songs), Medium gemischt, Groupie vor allem Kenner-Songs", JSON.stringify(shares));
     /* four to pick from, guessing the artist, longer and longer; two players take turns */
     await page.tap("#sgset"); await sleep(500); await page.tap('[data-gn="y80"]'); await page.tap('#sgw [data-v="artist"]'); await page.tap('#sga [data-v="pick"]'); await page.tap('#sgc [data-v="up"]'); await sleep(200);
     await page.locator("#sgp input").fill("Anna"); await page.locator("#sgp input").press("Enter"); await sleep(200); await page.locator("#sgp input").fill("Ben"); await page.locator("#sgp input").press("Enter"); await sleep(200);
@@ -764,14 +776,19 @@ const PARTS = {
     const audio = pg => pg.evaluate(() => ({on: !PG.songSA.au.paused, t: PG.songSA.au.currentTime}));
     const toLobby = async () => { await a.tap('[data-x="lobby"]').catch(() => {}); await sleep(300); if (await has(a, '[data-x="lobby"]')) await a.tap('[data-x="lobby"]').catch(() => {}); await a.waitForSelector("#lgo", {timeout: 6000}).catch(() => {}); await sleep(600); };
     const startAndPlay = async (sel) => { await a.tap("#lgo"); await a.waitForSelector(sel, {timeout: 12000}).catch(() => {}); await b.waitForSelector(sel, {timeout: 12000}).catch(() => {}); await sleep(2400); };
-    await a.evaluate(() => App.go("party", {g: "song"})); await sleep(600);
+    await a.evaluate(() => { const L2 = PG._song.LVL; L2.main = [.8, .2, 0]; L2.mid = [.6, .4, 0]; L2.fan = [.2, .8, 0]; App.go("party", {g: "song"}); }); await sleep(600);
     ok(await has(a, "#pgon"), "„Song raten“ hat jetzt „Online spielen“");
     await a.tap("#pgon"); await sleep(1500);
     ok(await a.evaluate(() => App.route === "lobby" && PNet.P && PNet.P.isHost && PNet.P.game === "song"), "Online spielen öffnet eine Lobby für Song raten");
     /* game modes as packages: one tap instead of clicking everything together */
     let lob = await txt(a, "#main"); await a.shot("songon-modi");
     ok([/Party/, /Profi/, /Immer länger/, /Blitzrunde/, /Zeitstrahl/, /Musik-Bingo/, /Wessen Song/, /Jahr raten/, /Eigene Regeln/].every(re => re.test(lob)) && !/6 zur Auswahl/.test(lob), "Lobby: Spielmodi als Pakete (Party, Profi, Immer länger, Blitzrunde, Zeitstrahl, Musik-Bingo, Wessen Song?, Jahr raten, Eigene Regeln), die Einzelheiten erst bei „Eigene Regeln“", lob.slice(0, 400));
-    ok(/Deine Spotify-Playlist/.test(lob) && /Jeder wünscht sich was/.test(lob), "Lobby: Spotify-Playlist für jeden, Musik „Jeder wünscht sich was“", "");
+    ok(/Deine Spotify-Playlist/.test(lob) && /Jeder wünscht sich was/.test(lob) && /Eigene Künstler/.test(lob), "Lobby: Spotify-Playlist für jeden, Musik „Jeder wünscht sich was“ oder eigene Künstler", "");
+    ok(/Wie bekannt/i.test(lob) && /Mainstream/.test(lob) && /Medium/.test(lob) && /Groupie/.test(lob), "Lobby: „Wie bekannt“ – Mainstream, Medium, Groupie", "");
+    /* own artists for everyone: e.g. only Michael Jackson */
+    await a.tap('[data-ok="genre"][data-ov="own"]'); await sleep(500); await a.locator("#sgown2 input").fill("Michael Jackson"); await a.locator("#sgown2 button").tap(); await sleep(600);
+    ok(await a.evaluate(() => PNet.P.opts.own === "Michael Jackson") && /Michael Jackson/.test(await txt(a, "#sgown2")), "Musik „Eigene Künstler“: Feld für die Künstler (z. B. nur Michael Jackson)", await txt(a, "#sgown2"));
+    await a.tap('[data-ok="genre"][data-ov="wish"]'); await sleep(400);
     await a.tap('.pg-pk[data-ov="custom"]'); await sleep(500); lob = await txt(a, "#main");
     ok([/4 zur Auswahl/, /6 zur Auswahl/, /Song-Bibliothek/, /Ganzer Song/, /Immer länger 1→10 s/, /Wer zuerst richtig hat/, /Als Spielmodus speichern/].every(re => re.test(lob)), "„Eigene Regeln“: alle Einstellungen und „Als Spielmodus speichern“", lob.slice(0, 300));
     await a.evaluate(() => { PNet.setOpt("what", "both"); PNet.setOpt("ans", "type"); PNet.setOpt("clip", 10); }); await sleep(400);
@@ -795,7 +812,7 @@ const PARTS = {
     ok(/Milas Lieblinge/.test(await txt(b, "#sgpl")), "Mila lädt ihre Spotify-Playlist in der Lobby", await txt(b, "#sgpl"));
     /* Party: first everyone wishes; you the 80s, Mila her playlist */
     await a.tap("#lgo"); await a.waitForSelector("[data-wg]", {timeout: 8000}).catch(() => {}); await b.waitForSelector("[data-wg]", {timeout: 8000}).catch(() => {}); await b.shot("songon-wunsch");
-    ok(/Dein Musikwunsch/i.test(await txt(b, "#main")) && await has(b, '[data-wg="pl"]') && await has(b, '[data-wg="kpop"]'), "vor dem ersten Song: jeder wünscht sich ein Genre oder seine Playlist", (await txt(b, "#main")).slice(0, 200));
+    ok(/Dein Musikwunsch/i.test(await txt(b, "#main")) && await has(b, '[data-wg="pl"]') && await has(b, '[data-wg="kpop"]') && await has(b, '[data-wg="own"]'), "vor dem ersten Song: jeder wünscht sich ein Genre oder seine Playlist", (await txt(b, "#main")).slice(0, 200));
     await a.tap('[data-wg="y80"]'); await sleep(400); ok(/1 von 2 haben gewählt/.test(await txt(b, "#main")), "Mila sieht: 1 von 2 haben gewählt", (await txt(b, "#main")).slice(-120));
     await b.tap('[data-wg="pl"]');
     await b.waitForSelector(".sg-cd.on", {timeout: 12000}).catch(() => {}); const cd = await txt(b, ".sg-cd"); await b.shot("songon-countdown");

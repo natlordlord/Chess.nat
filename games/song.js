@@ -95,31 +95,71 @@
   const used0 = () => new Set((PG.st[SEEN] || []).slice(-600));
   const markUsed = (P, s2) => { P.used.add(s2.id); PG.st[SEEN] = [...new Set([...(PG.st[SEEN] || []), s2.id])].slice(-600); PG.persist(); };
 
-  /* ---------- songs of a genre (or your own artists): two random ones out of each artist's 30 best known, a random artist each
-     time, never one of the last 600. The year is the earliest release of that title (a remaster from 2011 doesn't make
-     "Bohemian Rhapsody" a 2011 song) ---------- */
+  /* ---------- the songs everybody knows: radio classics (what SWR3 played in the 80s, what Radio Arabella plays from the 2000s and
+     2010s), per genre "Title|Artist". Most songs of a round come from here; the rest from the artists' other songs, the deeper
+     the harder (see LVL) ---------- */
+  const HITS = {
+    y60: "Hey Jude|The Beatles;Let It Be|The Beatles;Yesterday|The Beatles;Here Comes the Sun|The Beatles;Dancing Queen|ABBA;Mamma Mia|ABBA;Waterloo|ABBA;Take a Chance on Me|ABBA;Gimme! Gimme! Gimme!|ABBA;Suspicious Minds|Elvis Presley;Can't Help Falling in Love|Elvis Presley;(I Can't Get No) Satisfaction|The Rolling Stones;Paint It Black|The Rolling Stones;Stayin' Alive|Bee Gees;How Deep Is Your Love|Bee Gees;Your Song|Elton John;Rocket Man|Elton John;Heroes|David Bowie;Space Oddity|David Bowie;Dreams|Fleetwood Mac;Go Your Own Way|Fleetwood Mac;Superstition|Stevie Wonder;Respect|Aretha Franklin;Ain't No Mountain High Enough|Marvin Gaye;Rivers of Babylon|Boney M.;Daddy Cool|Boney M.;Rasputin|Boney M.;Good Vibrations|The Beach Boys;Mrs. Robinson|Simon & Garfunkel;The Sound of Silence|Simon & Garfunkel;Have You Ever Seen the Rain|Creedence Clearwater Revival;No Woman, No Cry|Bob Marley & The Wailers;Light My Fire|The Doors;I Feel Love|Donna Summer;Bohemian Rhapsody|Queen;We Will Rock You|Queen;Don't Stop Me Now|Queen;Stairway to Heaven|Led Zeppelin;I Will Survive|Gloria Gaynor;Y.M.C.A.|Village People;The House of the Rising Sun|The Animals;Hotel California|Eagles;Sweet Home Alabama|Lynyrd Skynyrd;What a Wonderful World|Louis Armstrong;Stand by Me|Ben E. King",
+    y80: "Take On Me|a-ha;Billie Jean|Michael Jackson;Beat It|Michael Jackson;Thriller|Michael Jackson;Like a Virgin|Madonna;Like a Prayer|Madonna;Material Girl|Madonna;Sweet Dreams (Are Made of This)|Eurythmics;Africa|Toto;The Final Countdown|Europe;Livin' on a Prayer|Bon Jovi;Don't You (Forget About Me)|Simple Minds;Tainted Love|Soft Cell;Girls Just Want to Have Fun|Cyndi Lauper;Time After Time|Cyndi Lauper;Never Gonna Give You Up|Rick Astley;Every Breath You Take|The Police;Eye of the Tiger|Survivor;Total Eclipse of the Heart|Bonnie Tyler;99 Luftballons|Nena;Irgendwie, irgendwo, irgendwann|Nena;Rock Me Amadeus|Falco;Der Kommissar|Falco;Major Tom (Völlig losgelöst)|Peter Schilling;Skandal im Sperrbezirk|Spider Murphy Gang;Da Da Da|Trio;Männer|Herbert Grönemeyer;Jump|Van Halen;Smalltown Boy|Bronski Beat;Relax|Frankie Goes to Hollywood;Wake Me Up Before You Go-Go|Wham!;Careless Whisper|George Michael;Heaven Is a Place on Earth|Belinda Carlisle;Kids in America|Kim Wilde;You Spin Me Round (Like a Record)|Dead or Alive;In the Air Tonight|Phil Collins;Purple Rain|Prince;I Wanna Dance with Somebody (Who Loves Me)|Whitney Houston;The Power of Love|Huey Lewis & The News;Money for Nothing|Dire Straits;Everybody Wants to Rule the World|Tears for Fears;Just Can't Get Enough|Depeche Mode;Cheri Cheri Lady|Modern Talking;You're My Heart, You're My Soul|Modern Talking;Don't Stop Believin'|Journey;Another One Bites the Dust|Queen;Radio Ga Ga|Queen;Under Pressure|Queen;Let's Dance|David Bowie;Hungry Like the Wolf|Duran Duran;Footloose|Kenny Loggins;Flashdance... What a Feeling|Irene Cara;Uptown Girl|Billy Joel;Karma Chameleon|Culture Club;Here I Go Again|Whitesnake;Sweet Child o' Mine|Guns N' Roses;Forever Young|Alphaville;Big in Japan|Alphaville;Moonlight Shadow|Mike Oldfield;The Look|Roxette;It Must Have Been Love|Roxette;Need You Tonight|INXS;Take My Breath Away|Berlin;Ghostbusters|Ray Parker Jr.;Celebration|Kool & The Gang;Self Control|Laura Branigan;Wonderful Life|Black",
+    y90: "Wonderwall|Oasis;Smells Like Teen Spirit|Nirvana;...Baby One More Time|Britney Spears;Wannabe|Spice Girls;I Want It That Way|Backstreet Boys;Everybody (Backstreet's Back)|Backstreet Boys;Blue (Da Ba Dee)|Eiffel 65;What Is Love|Haddaway;Mr. Vain|Culture Beat;Rhythm Is a Dancer|Snap!;The Rhythm of the Night|Corona;Barbie Girl|Aqua;Mambo No. 5 (A Little Bit of...)|Lou Bega;My Heart Will Go On|Céline Dion;I Will Always Love You|Whitney Houston;Gangsta's Paradise|Coolio;No Diggity|Blackstreet;Waterfalls|TLC;Torn|Natalie Imbruglia;Losing My Religion|R.E.M.;Zombie|The Cranberries;Don't Speak|No Doubt;Bitter Sweet Symphony|The Verve;Livin' la Vida Loca|Ricky Martin;Believe|Cher;Truly Madly Deeply|Savage Garden;Wind of Change|Scorpions;Enjoy the Silence|Depeche Mode;Nothing Compares 2 U|Sinéad O'Connor;Vogue|Madonna;Ice Ice Baby|Vanilla Ice;U Can't Touch This|MC Hammer;Coco Jamboo|Mr. President;Saturday Night|Whigfield;Boom, Boom, Boom, Boom!!|Vengaboys;We Like to Party! (The Vengabus)|Vengaboys;It's My Life|Dr. Alban;Hyper Hyper|Scooter;Freed from Desire|Gala;Children|Robert Miles;Macarena|Los Del Rio;Lemon Tree|Fool's Garden;Kiss from a Rose|Seal;Cotton Eye Joe|Rednex;Scatman (Ski-Ba-Bop-Ba-Dop-Bop)|Scatman John;No Limit|2 Unlimited;Men in Black|Will Smith;Ironic|Alanis Morissette;Black or White|Michael Jackson;Verdammt ich lieb' dich|Matthias Reim;Die da!?!|Die Fantastischen Vier;Sie ist weg|Die Fantastischen Vier;Männer sind Schweine|Die Ärzte;Schrei nach Liebe|Die Ärzte;Alles aus Liebe|Die Toten Hosen;Tage wie dieser|Pur;Abenteuerland|Pur;Engel|Rammstein;Du hast|Rammstein",
+    y00: "Hey Ya!|Outkast;Crazy in Love|Beyoncé;Umbrella|Rihanna;Hips Don't Lie|Shakira;Whenever, Wherever|Shakira;In the End|Linkin Park;Numb|Linkin Park;Lose Yourself|Eminem;Without Me|Eminem;Mr. Brightside|The Killers;Seven Nation Army|The White Stripes;Toxic|Britney Spears;Oops!...I Did It Again|Britney Spears;Complicated|Avril Lavigne;Sk8er Boi|Avril Lavigne;Rehab|Amy Winehouse;Valerie|Mark Ronson;Viva la Vida|Coldplay;Clocks|Coldplay;Yellow|Coldplay;Where Is the Love?|Black Eyed Peas;I Gotta Feeling|Black Eyed Peas;Poker Face|Lady Gaga;Just Dance|Lady Gaga;SexyBack|Justin Timberlake;Cry Me a River|Justin Timberlake;Maneater|Nelly Furtado;Since U Been Gone|Kelly Clarkson;Yeah!|Usher;Temperature|Sean Paul;Bleeding Love|Leona Lewis;Apologize|Timbaland;Chasing Cars|Snow Patrol;Bad Day|Daniel Powter;You're Beautiful|James Blunt;Fallin'|Alicia Keys;Hollaback Girl|Gwen Stefani;The Ketchup Song (Aserejé)|Las Ketchup;Dragostea Din Tei|O-Zone;Hung Up|Madonna;Hot n Cold|Katy Perry;I Kissed a Girl|Katy Perry;Use Somebody|Kings of Leon;Boulevard of Broken Dreams|Green Day;Ein Kompliment|Sportfreunde Stiller;Das Beste|Silbermond;Perfekte Welle|Juli;Dieser Weg|Xavier Naidoo;Haus am See|Peter Fox;Vom selben Stern|Ich + Ich;Durch den Monsun|Tokio Hotel;Liebe ist alles|Rosenstolz;Dickes B|Seeed;Hamma!|Culcha Candela",
+    y10: "Rolling in the Deep|Adele;Someone Like You|Adele;Hello|Adele;Uptown Funk|Mark Ronson;Happy|Pharrell Williams;Shape of You|Ed Sheeran;Thinking Out Loud|Ed Sheeran;Perfect|Ed Sheeran;Wake Me Up|Avicii;Levels|Avicii;Hey Brother|Avicii;Get Lucky|Daft Punk;Despacito|Luis Fonsi;Shake It Off|Taylor Swift;Blank Space|Taylor Swift;Royals|Lorde;Counting Stars|OneRepublic;Radioactive|Imagine Dragons;Believer|Imagine Dragons;Party Rock Anthem|LMFAO;Call Me Maybe|Carly Rae Jepsen;Moves like Jagger|Maroon 5;Somebody That I Used to Know|Gotye;Firework|Katy Perry;Roar|Katy Perry;Diamonds|Rihanna;We Found Love|Rihanna;Titanium|David Guetta;Love Yourself|Justin Bieber;Sorry|Justin Bieber;Stressed Out|Twenty One Pilots;Cheap Thrills|Sia;Chandelier|Sia;Lean On|Major Lazer;Take Me to Church|Hozier;Let Her Go|Passenger;Rather Be|Clean Bandit;Closer|The Chainsmokers;7 Years|Lukas Graham;Locked Out of Heaven|Bruno Mars;Can't Stop the Feeling!|Justin Timberlake;Dance Monkey|Tones and I;Old Town Road|Lil Nas X;bad guy|Billie Eilish;Tage wie diese|Die Toten Hosen;Auf uns|Andreas Bourani;Chöre|Mark Forster;80 Millionen|Max Giesinger;Atemlos durch die Nacht|Helene Fischer;Geboren um zu leben|Unheilig;Traum|Cro;Easy|Cro;Satellite|Lena;Nur noch kurz die Welt retten|Tim Bendzko;Ich lass für dich das Licht an|Revolverheld;Lieblingsmensch|Namika;Feuerwerk|Wincent Weiss",
+    y20: "Blinding Lights|The Weeknd;Save Your Tears|The Weeknd;Levitating|Dua Lipa;Don't Start Now|Dua Lipa;Houdini|Dua Lipa;drivers license|Olivia Rodrigo;good 4 u|Olivia Rodrigo;vampire|Olivia Rodrigo;Flowers|Miley Cyrus;As It Was|Harry Styles;Watermelon Sugar|Harry Styles;Bad Habits|Ed Sheeran;Shivers|Ed Sheeran;Heat Waves|Glass Animals;Espresso|Sabrina Carpenter;Please Please Please|Sabrina Carpenter;Beautiful Things|Benson Boone;Anti-Hero|Taylor Swift;Cruel Summer|Taylor Swift;Unholy|Sam Smith;Calm Down|Rema;Die With A Smile|Lady Gaga;APT.|ROSÉ;BIRDS OF A FEATHER|Billie Eilish;Lose Control|Teddy Swims;Peaches|Justin Bieber;MONTERO (Call Me By Your Name)|Lil Nas X;Kiss Me More|Doja Cat;Say So|Doja Cat;Paint The Town Red|Doja Cat;Dynamite|BTS;Greedy|Tate McRae;Easy On Me|Adele;I'm Good (Blue)|David Guetta;Too Sweet|Hozier;Stargazing|Myles Smith;Good Luck, Babe!|Chappell Roan;Komet|Udo Lindenberg;Roller|Apache 207;Wildberry Lillet|Nina Chuba",
+    rock: "Bohemian Rhapsody|Queen;We Will Rock You|Queen;Highway to Hell|AC/DC;Thunderstruck|AC/DC;Back in Black|AC/DC;Smells Like Teen Spirit|Nirvana;Come As You Are|Nirvana;In the End|Linkin Park;Numb|Linkin Park;Californication|Red Hot Chili Peppers;Can't Stop|Red Hot Chili Peppers;Under the Bridge|Red Hot Chili Peppers;Everlong|Foo Fighters;The Pretender|Foo Fighters;Boulevard of Broken Dreams|Green Day;American Idiot|Green Day;Mr. Brightside|The Killers;Do I Wanna Know?|Arctic Monkeys;505|Arctic Monkeys;Sweet Child o' Mine|Guns N' Roses;Welcome to the Jungle|Guns N' Roses;Livin' on a Prayer|Bon Jovi;It's My Life|Bon Jovi;Nothing Else Matters|Metallica;Enter Sandman|Metallica;Du hast|Rammstein;Sonne|Rammstein;Schrei nach Liebe|Die Ärzte;Westerland|Die Ärzte;(I Can't Get No) Satisfaction|The Rolling Stones;Paint It Black|The Rolling Stones;Stairway to Heaven|Led Zeppelin;Wonderwall|Oasis;Don't Look Back in Anger|Oasis;Uprising|Muse;Supermassive Black Hole|Muse;Sex on Fire|Kings of Leon;Use Somebody|Kings of Leon;Seven Nation Army|The White Stripes;Zombie|The Cranberries;Hotel California|Eagles;Sweet Home Alabama|Lynyrd Skynyrd",
+    dpop: "Auf uns|Andreas Bourani;Chöre|Mark Forster;Au revoir|Mark Forster;80 Millionen|Max Giesinger;Wenn sie tanzt|Max Giesinger;Feuerwerk|Wincent Weiss;Nur noch kurz die Welt retten|Tim Bendzko;Ich lass für dich das Licht an|Revolverheld;Lieblingsmensch|Namika;Haus am See|Peter Fox;Alles neu|Peter Fox;Das Beste|Silbermond;Symphonie|Silbermond;Leichtes Gepäck|Silbermond;Perfekte Welle|Juli;Geile Zeit|Juli;Ein Kompliment|Sportfreunde Stiller;Tage wie diese|Die Toten Hosen;Männer|Herbert Grönemeyer;Mensch|Herbert Grönemeyer;Pocahontas|AnnenMayKantereit;Barfuß am Klavier|AnnenMayKantereit;Traum|Cro;Easy|Cro;Leiser|LEA;Kreise|Johannes Oerding;Gewinner|Clueso;Wildberry Lillet|Nina Chuba;Herz über Kopf|Joris;Songs für Liam|Kraftklub;Dieser Weg|Xavier Naidoo;Vom selben Stern|Ich + Ich;Durch den Monsun|Tokio Hotel;Augenbling|Seeed;Ding|Seeed;Atemlos durch die Nacht|Helene Fischer",
+    drap: "Roller|Apache 207;200 km/h|Apache 207;Komet|Udo Lindenberg;Palmen aus Plastik|Bonez MC;Ohne mein Team|Bonez MC;Kokain|Bonez MC;Cherry Lady|Capital Bra;Neymar|Ufo361;Mein Block|Sido;Bilder im Kopf|Sido;Astronaut|Sido;Chabos wissen wer der Babo ist|Haftbefehl;Bauch Beine Po|Shirin David;Gib ihm|Shirin David;Wie ein Alpha|Kollegah;Sonnenbank Flavour|Bushido;Cataleya|Samra;Sommergewitter|Pashanim;Party Sahne|Ski Aggu;Die da!?!|Die Fantastischen Vier;Remmidemmi (Yippie Yippie Yeah)|Deichkind;Leider geil (Leider geil)|Deichkind;Lila Wolken|Marteria;Kids (2 Finger an den Kopf)|Marteria;Hurra die Welt geht unter|K.I.Z;Im Ascheregen|Casper;Easy|Cro;Traum|Cro;Wenn das Liebe ist|Glasperlenspiel",
+    rap: "Lose Yourself|Eminem;Without Me|Eminem;The Real Slim Shady|Eminem;Stan|Eminem;In da Club|50 Cent;Drop It Like It's Hot|Snoop Dogg;Still D.R.E.|Dr. Dre;California Love|2Pac;Hypnotize|The Notorious B.I.G.;Juicy|The Notorious B.I.G.;Hey Ya!|Outkast;Ms. Jackson|Outkast;Empire State of Mind|JAY-Z;Gold Digger|Kanye West;Stronger|Kanye West;HUMBLE.|Kendrick Lamar;Not Like Us|Kendrick Lamar;SICKO MODE|Travis Scott;goosebumps|Travis Scott;God's Plan|Drake;Hotline Bling|Drake;One Dance|Drake;rockstar|Post Malone;Circles|Post Malone;Sunflower|Post Malone;Old Town Road|Lil Nas X;Super Bass|Nicki Minaj;Bodak Yellow|Cardi B;Lollipop|Lil Wayne;Gangsta's Paradise|Coolio;Say So|Doja Cat;No Role Modelz|J. Cole",
+    dance: "Titanium|David Guetta;Memories|David Guetta;Wake Me Up|Avicii;Levels|Avicii;Summer|Calvin Harris;Feel So Close|Calvin Harris;This Is What You Came For|Calvin Harris;Animals|Martin Garrix;Scared to Be Lonely|Martin Garrix;Sugar|Robin Schulz;Faded|Alan Walker;Firestone|Kygo;Stole the Show|Kygo;Don't You Worry Child|Swedish House Mafia;Red Lights|Tiësto;The Business|Tiësto;Ain't Nobody (Loves Me Better)|Felix Jaehn;Alone|Marshmello;Closer|The Chainsmokers;Clarity|Zedd;Get Lucky|Daft Punk;One More Time|Daft Punk;Around the World|Daft Punk;Breaking Me|Topic;Are You with Me|Lost Frequencies;L'amour toujours|Gigi D'Agostino;Blue (Da Ba Dee)|Eiffel 65;Lean On|Major Lazer;Insomnia|Faithless;Sandstorm|Darude;Children|Robert Miles;Freed from Desire|Gala",
+    party: "Atemlos durch die Nacht|Helene Fischer;Herzbeben|Helene Fischer;Du hast mich tausendmal belogen|Andrea Berg;Wahnsinn|Wolfgang Petry;Verdammt ich lieb' dich|Matthias Reim;Hey Baby (Uhh, Ahh)|DJ Ötzi;Ein Stern (... der deinen Namen trägt)|DJ Ötzi;Layla|DJ Robin;Zehn nackte Friseusen|Mickie Krause;Schatzi schenk mir ein Foto|Mickie Krause;Santa Maria|Roland Kaiser;Hello Again|Howard Carpendale;Ich war noch niemals in New York|Udo Jürgens;Griechischer Wein|Udo Jürgens;Marmor, Stein und Eisen bricht|Drafi Deutscher;Ein Bett im Kornfeld|Jürgen Drews;Fiesta Mexicana|Rex Gildo;Viva Colonia|Höhner;Cordula Grün|Josh.;Hulapalu|Andreas Gabalier;I sing a Liad für di|Andreas Gabalier;Er gehört zu mir|Marianne Rosenberg;Theo, wir fahr'n nach Lodz|Vicky Leandros;Ohne dich (schlaf' ich heut' Nacht nicht ein)|Münchener Freiheit;Kreuzberger Nächte|Gebrüder Blattschuss;Mendocino|Michael Holm;Sweet Caroline|Neil Diamond;Take Me Home, Country Roads|John Denver;Skandal im Sperrbezirk|Spider Murphy Gang;Tage wie diese|Die Toten Hosen",
+    xmas: "All I Want for Christmas Is You|Mariah Carey;Last Christmas|Wham!;It's Beginning to Look a Lot Like Christmas|Michael Bublé;Driving Home for Christmas|Chris Rea;Do They Know It's Christmas?|Band Aid;Merry Christmas Everyone|Shakin' Stevens;Rockin' Around the Christmas Tree|Brenda Lee;Jingle Bell Rock|Bobby Helms;Feliz Navidad|José Feliciano;White Christmas|Bing Crosby;Let It Snow! Let It Snow! Let It Snow!|Dean Martin;Santa Tell Me|Ariana Grande;Mistletoe|Justin Bieber;Underneath the Tree|Kelly Clarkson;In der Weihnachtsbäckerei|Rolf Zuckowski;Fairytale of New York|The Pogues;Wonderful Christmastime|Paul McCartney;Happy Xmas (War Is Over)|John Lennon;Thank God It's Christmas|Queen;Step into Christmas|Elton John;Christmas Lights|Coldplay;Snowman|Sia",
+    film: "Let It Go|Idina Menzel;How Far I'll Go|Auli'i Cravalho;My Heart Will Go On|Céline Dion;I Will Always Love You|Whitney Houston;Shallow|Lady Gaga;City of Stars|Ryan Gosling;This Is Me|Keala Settle;The Greatest Show|Hugh Jackman;Eye of the Tiger|Survivor;Footloose|Kenny Loggins;Take My Breath Away|Berlin;Flashdance... What a Feeling|Irene Cara;Ghostbusters|Ray Parker Jr.;Skyfall|Adele;Happy|Pharrell Williams;Can't Stop the Feeling!|Justin Timberlake;Can You Feel the Love Tonight|Elton John;We Don't Talk About Bruno|Carolina Gaitán;Lose Yourself|Eminem;Stayin' Alive|Bee Gees;(I've Had) The Time of My Life|Bill Medley;Don't You (Forget About Me)|Simple Minds;Mamma Mia|ABBA;See You Again|Wiz Khalifa;Speechless|Naomi Scott"};
+  const hitList = g => { const one = k => String(HITS[k] || "").split(";").map(x => { const [t, a] = x.split("|"); return t && a ? {t: t.trim(), a: a.trim(), g: k} : null; }).filter(Boolean);
+    return g === "mix" ? Object.keys(HITS).flatMap(one) : g === "pop" || g === "charts" ? ["y00", "y10", "y20"].flatMap(one) : one(g); };
+  /* how hard: how many songs come from the radio hits, from the artists' better known songs, and from the deep cuts only fans know */
+  const LVL = {main: [.82, .14, .04], mid: [.55, .3, .15], fan: [.15, .35, .5]};
+  const LVLS = [["main", ["🌟 Mainstream", "🌟 Mainstream"], ["Radio hits everyone knows", "Radio-Hits, die jeder kennt"]], ["mid", ["🎧 Medium", "🎧 Medium"], ["Hits and some lesser known songs", "Hits und ein paar weniger bekannte"]], ["fan", ["🤘 Groupie", "🤘 Groupie"], ["Deep cuts for real fans", "Album-Songs für echte Fans"]]];
+  const RANK = {hit: [0, 3], known: [3, 10], fan: [10, 30]};
+  /* look a song up in Apple's search: the preview, and its earliest year */
+  async function findSong(t, a){ const fa = N(art1(a)), d = await itunes({term: bare(t) + " " + art1(a), entity: "song", limit: 12}); if (!d) return null;
+    const R = (d.results || []).filter(r => r.previewUrl && OKURL.test(r.previewUrl) && r.trackName && r.artistName && (N(r.artistName).includes(fa) || fa.includes(N(art1(r.artistName)))) && titleOk(bare(r.trackName), t) && !/karaoke|instrumental|\blive\b/i.test(r.trackName));
+    if (!R.length) return {r: null}; const ys = R.map(yearOf).filter(y => y > 1900); return {r: R[0], y: ys.length ? String(Math.min(...ys)) : ""}; }
+  /* ---------- songs of a genre (or your own artists). Mostly the radio hits everyone knows (HITS), some better known songs of the
+     genre's artists, and a few deep cuts for fans; how many of each depends on the level (Mainstream, Medium, Groupie). For your own
+     artists (Groupie with only Michael Jackson): their biggest hits, their better known songs, their album songs. Never a song of the
+     last 600. The year is the earliest release of that title (a remaster from 2011 doesn't make "Bohemian Rhapsody" a 2011 song) ---------- */
   const Pool = {
-    make(o){ const P = {o, songs: [], bank: [], shown: new Set(), busy: 0, tried: new Set(), used: used0(), fails: 0};
-      P.one = async () => { const all = artistsOf(o); if (!all.length) return; let A = all.filter(a => !P.tried.has(a)); if (!A.length){ P.tried.clear(); A = all; }
-        const term = PG.pick(A); P.tried.add(term); P.busy++;
-        try { const d = await itunes({term, entity: "song", attribute: "artistTerm", limit: 60}); if (!d){ P.fails++; return; }
-          const g = ["mix", "own"].includes(o.genre) ? (genreOf(term) || o.genre) : o.genre, yr = G[o.genre] && G[o.genre][4], only = G[g] && G[g][5] ? new RegExp(G[g][5], "i") : null, tn = N(term), seen = {}, Y = {};
-          (d.results || []).forEach(r => { const k = N(bare(r.trackName)), y = yearOf(r); if (k && y > 1900 && (!Y[k] || y < Y[k])) Y[k] = y; });
-          let L = (d.results || []).filter(r => r.previewUrl && r.trackName && r.artistName && OKURL.test(r.previewUrl) && (N(r.artistName).includes(tn) || tn.includes(N(r.artistName))))
-            .filter(r => { const k = N(bare(r.trackName)); if (!k || seen[k] || /karaoke|instrumental|\blive\b|remix|acoustic|sped up|slowed/i.test(r.trackName)) return false; seen[k] = 1; return true; });
-          /* Christmas and the like: only the songs that fit */
-          if (only) L = L.filter(r => only.test(r.trackName));
-          /* a decade: only songs from those years, if the search knows enough of them */
-          if (yr){ const inY = L.filter(r => { const y = Y[N(bare(r.trackName))] || yearOf(r); return y >= yr[0] && y <= yr[1]; }); if (inY.length >= 4) L = inY; }
-          const top = L.slice(0, 30), titles = top.map(r => bare(String(r.trackName)).slice(0, 90));
-          const mk = r => { const title = String(r.trackName).slice(0, 90); return {id: String(r.trackId), title, artist: String(r.artistName).slice(0, 60), url: r.previewUrl, art: OKURL.test(r.artworkUrl100 || "") ? r.artworkUrl100 : null, year: String(Y[N(bare(title))] || yearOf(r) || ""), g, lang: langOf(bare(title), g)}; };
-          const pick = PG.shuffle(top.filter(r => !P.used.has(String(r.trackId)) && !P.shown.has(N(bare(r.trackName))) && !P.songs.some(x => x.id === String(r.trackId)))).slice(0, 2);
-          pick.forEach(r => { const s2 = mk(r); s2.alts = titles.filter(t => N(t) !== N(bare(s2.title))).slice(0, 20); P.songs.push(s2); });
-          top.filter(r => !pick.includes(r)).forEach(r => { const x = mk(r); x.title = bare(x.title); delete x.url; P.bank.push(x); });
-          if (P.bank.length > 600) P.bank.splice(0, P.bank.length - 600);
-          P.songs = PG.shuffle(P.songs); }
-        finally { P.busy--; } };
-      P.fill = async (n = 6) => { let guard = 0; while (P.songs.length < n && guard++ < 8 && P.fails < 4) await Promise.all([P.one(), P.one()]); };
+    make(o){ const P = {o, songs: [], bank: [], shown: new Set(), busy: 0, tried: new Set(), used: used0(), fails: 0, titles: new Set()}, mix = LVL[o.lvl] || LVL.main;
+      P.cur = o.genre === "own" ? [] : PG.shuffle(hitList(o.genre));
+      /* the radio hits are the wrong answers too: songs people know */
+      P.bank = P.cur.map(x => ({id: "h:" + N(x.t) + "|" + N(x.a), title: bare(x.t), artist: art1(x.a), lang: langOf(bare(x.t), x.g), g: x.g}));
+      const add = (r, y, g, tier, alts) => { const title = String(r.trackName).slice(0, 90), k = N(bare(title)); if (P.used.has(String(r.trackId)) || P.titles.has(k) || P.shown.has(k) || P.songs.some(x => x.id === String(r.trackId))) return false;
+        P.titles.add(k); P.songs.push({id: String(r.trackId), title, artist: String(r.artistName).slice(0, 60), url: r.previewUrl, art: OKURL.test(r.artworkUrl100 || "") ? r.artworkUrl100 : null, year: String(y || yearOf(r) || ""), g, lang: langOf(bare(title), g), alts: alts || [], tier}); return true; };
+      /* a radio hit: the next one of the list that Apple has */
+      P.hit = async () => { for (let k = 0; k < 3 && P.cur.length; k++){ const x = P.cur.shift(); if (P.shown.has(N(bare(x.t))) || P.titles.has(N(bare(x.t)))) continue; const f = await findSong(x.t, x.a); if (!f){ P.fails++; return; } if (f.r && add(f.r, f.y, G[x.g] ? x.g : o.genre, "hit")) return; } };
+      /* an artist's songs, by how well known they are (Apple lists the best known first) */
+      P.art = async tier => { const all = artistsOf(o); if (!all.length) return; let A = all.filter(a => !P.tried.has(a)); if (!A.length){ P.tried.clear(); A = all; }
+        const term = PG.pick(A); P.tried.add(term);
+        const d = await itunes({term, entity: "song", attribute: "artistTerm", limit: 60}); if (!d){ P.fails++; return; }
+        const g = ["mix", "own"].includes(o.genre) ? (genreOf(term) || o.genre) : o.genre, yr = G[o.genre] && G[o.genre][4], only = G[g] && G[g][5] ? new RegExp(G[g][5], "i") : null, tn = N(term), seen = {}, Y = {};
+        (d.results || []).forEach(r => { const k = N(bare(r.trackName)), y = yearOf(r); if (k && y > 1900 && (!Y[k] || y < Y[k])) Y[k] = y; });
+        let L = (d.results || []).filter(r => r.previewUrl && r.trackName && r.artistName && OKURL.test(r.previewUrl) && (N(r.artistName).includes(tn) || tn.includes(N(r.artistName))))
+          .filter(r => { const k = N(bare(r.trackName)); if (!k || seen[k] || /karaoke|instrumental|\blive\b|remix|acoustic|sped up|slowed/i.test(r.trackName)) return false; seen[k] = 1; return true; });
+        /* Christmas and the like: only the songs that fit */
+        if (only) L = L.filter(r => only.test(r.trackName));
+        /* a decade: only songs from those years, if the search knows enough of them */
+        if (yr){ const inY = L.filter(r => { const y = Y[N(bare(r.trackName))] || yearOf(r); return y >= yr[0] && y <= yr[1]; }); if (inY.length >= 4) L = inY; }
+        const top = L.slice(0, 30), titles = top.map(r => bare(String(r.trackName)).slice(0, 90)), rk = RANK[tier] || RANK.known;
+        /* few songs known: the deep cuts start earlier */
+        let band = top.slice(rk[0], rk[1]); if (!band.length) band = top.slice(Math.max(0, top.length - 5));
+        const pick = PG.shuffle(band).find(r => !P.used.has(String(r.trackId)) && !P.titles.has(N(bare(r.trackName))) && !P.shown.has(N(bare(r.trackName))));
+        if (pick) add(pick, Y[N(bare(pick.trackName))], g, tier, titles.filter(t => N(t) !== N(bare(pick.trackName))).slice(0, 20));
+        top.filter(r => r !== pick).slice(0, 12).forEach(r => P.bank.push({id: String(r.trackId), title: bare(String(r.trackName)).slice(0, 90), artist: String(r.artistName).slice(0, 60), g, lang: langOf(bare(r.trackName), g)}));
+        if (P.bank.length > 700) P.bank.splice(0, P.bank.length - 700); };
+      P.one = async () => { P.busy++; try { const r = Math.random();
+          if (r < mix[0]) return P.cur.length ? P.hit() : P.art("hit");
+          return P.art(r < mix[0] + mix[1] ? "known" : "fan"); }
+        finally { P.busy--; P.songs = PG.shuffle(P.songs); } };
+      P.fill = async (n = 6) => { let guard = 0; while (P.songs.length < n && guard++ < 12 && P.fails < 5) await Promise.all([P.one(), P.one()]); };
       P.next = () => { const s2 = P.songs.shift(); if (s2) markUsed(P, s2); if (P.songs.length < 4 && !P.busy) P.fill(); return s2; };
       P.opts = optsOf(P);
       return P; }
@@ -130,11 +170,10 @@
     make(tracks){ const P = {songs: [], bank: [], shown: new Set(), busy: 0, used: used0(), fails: 0, q: tracks.slice()};
       P.bank = tracks.map(x => ({id: "pl:" + N(x.t) + "|" + N(x.a), title: bare(x.t), artist: art1(x.a), lang: langOf(bare(x.t), ""), g: "pl"}));
       P.one = async () => { const tr = P.q.shift(); if (!tr) return; if (P.shown.has(N(bare(tr.t)))) return; P.busy++;
-        try { const fa = N(art1(tr.a)), d = await itunes({term: bare(tr.t) + " " + art1(tr.a), entity: "song", limit: 12}); if (!d){ P.fails++; P.q.push(tr); return; }
-          const R = (d.results || []).filter(r => r.previewUrl && OKURL.test(r.previewUrl) && r.trackName && r.artistName && (N(r.artistName).includes(fa) || fa.includes(N(art1(r.artistName)))) && titleOk(bare(r.trackName), tr.t) && !/karaoke|instrumental/i.test(r.trackName));
-          const r = R[0]; if (!r || P.used.has(String(r.trackId)) || P.songs.some(x => x.id === String(r.trackId))) return;
-          const ys = R.map(yearOf).filter(y => y > 1900), title = String(r.trackName).slice(0, 90);
-          P.songs.push({id: String(r.trackId), title, artist: String(r.artistName).slice(0, 60), url: r.previewUrl, art: OKURL.test(r.artworkUrl100 || "") ? r.artworkUrl100 : null, year: ys.length ? String(Math.min(...ys)) : "", g: "pl", lang: langOf(bare(title), ""), alts: [], own: tr.o || null}); }
+        try { const f = await findSong(tr.t, tr.a); if (!f){ P.fails++; P.q.push(tr); return; } const r = f.r;
+          if (!r || P.used.has(String(r.trackId)) || P.songs.some(x => x.id === String(r.trackId))) return;
+          const title = String(r.trackName).slice(0, 90);
+          P.songs.push({id: String(r.trackId), title, artist: String(r.artistName).slice(0, 60), url: r.previewUrl, art: OKURL.test(r.artworkUrl100 || "") ? r.artworkUrl100 : null, year: f.y, g: "pl", lang: langOf(bare(title), ""), alts: [], own: tr.o || null, tier: "hit"}); }
         finally { P.busy--; } };
       P.fill = async (n = 6) => { let guard = 0; while (P.songs.length < n && P.q.length && guard++ < 12 && P.fails < 4) await Promise.all([P.one(), P.one(), P.one()]); };
       P.next = () => { const s2 = P.songs.shift(); if (s2) markUsed(P, s2); if (P.songs.length < 3 && !P.busy) P.fill(4); return s2; };
@@ -187,7 +226,7 @@
       rest(url){ halt(); key = "rest"; tok++; try { au.muted = false; if (au.src === url && au.paused) Promise.resolve(au.play()).catch(() => {}); } catch(e) {} },
       pos(){ return au.currentTime || 0; },
       stop(){ key = null; tok++; halt(); try { au.pause(); } catch(e) {} au.muted = false; music(false); }}; })();
-  PG.songSA = SA; PG._song = {Pool, PlPool, langOf};   /* for the tests and for looking into it on a phone */
+  PG.songSA = SA; PG._song = {Pool, PlPool, langOf, LVL};   /* for the tests and for looking into it on a phone */
   /* the first tap in the song game wakes the player (not the voice chat buttons: the microphone comes first there) */
   document.addEventListener("pointerdown", e => { if (typeof App === "undefined" || !(App.route === "lobby" || App.route === "party") || (e.target && e.target.closest && e.target.closest("#lvoice,#lvx"))) return;
     const P = typeof PNet !== "undefined" && PNet.P, song = App.route === "party" ? PG.st.last === "song" : !!(P && (P.game === "song" || (P.msg && P.msg.game === "song"))); if (song) SA.unlock(); }, true);
@@ -245,7 +284,7 @@
   PG.ART.song = ["🎵", "#B65CE0"];
   PG.add({id: "song", icon: "music", name: ["Song Quiz", "Song raten"], tag: ["New", "Neu"], sub: ["Hear a clip, name the song.", "Kurz reinhören, Song erraten."], meta: ["1+ players · pick a genre", "1+ Spieler · Genre wählen"],
     mount(ctx){
-      const o = PG.opt("song", {genre: "mix", what: "title", answer: "type", clip: 10, rounds: 5, own: ""});
+      const o = PG.opt("song", {genre: "mix", what: "title", answer: "type", clip: 10, rounds: 5, own: "", lvl: "main"});
       PG.onLeave(() => SA.stop());
       /* quick start: a ready-made set of rules, one tap */
       const PRE = {party: {what: "title", answer: "pick", clip: 10}, profi: {what: "both", answer: "type", clip: 10}, intro: {what: "title", answer: "pick", clip: "up"}};
@@ -259,6 +298,7 @@
           <div class="unit"><h3>${T("Genre", "Genre")}</h3><div class="grid2" style="margin-top:8px" id="sgg"></div>
             <div id="sgow" ${o.genre === "own" ? "" : "hidden"} style="margin-top:10px"><input type="text" id="sgown" maxlength="400" placeholder="${T("Artists, separated by commas", "Künstler, mit Komma getrennt")}" value="${h(o.own)}" autocomplete="off" enterkeyhint="done" style="width:100%"><p class="pg-sub">${T("e.g. Cro, Queen, Shakira", "z. B. Cro, Queen, Shakira")}</p></div>
             <div id="sgpl" class="sg-plbox"></div></div>
+          <div class="unit"><h3>${T("How well known", "Wie bekannt")}</h3><div class="pg-pkg" id="sgl"></div></div>
           <div class="unit"><h3>${T("What do you guess?", "Was wird geraten?")}</h3><div id="sgw"></div>
             <h3 style="margin-top:14px">${T("Answer", "Antworten")}</h3><div id="sga"></div>
             <h3 style="margin-top:14px">${T("Clip", "Reinhören")}</h3><div id="sgc"></div>
@@ -277,6 +317,9 @@
         ch("#sga", [["type", T("Song library", "Song-Bibliothek")], ["pick", T("Pick of 4", "4 zur Auswahl")]], "answer");
         ch("#sgc", [[5, "5 s"], [10, "10 s"], [20, "20 s"], ["up", T("Longer and longer 1→10 s", "Immer länger 1→10 s")]], "clip");
         ch("#sgr", [[3, "3"], [5, "5"], [10, "10"]], "rounds");
+        /* Mainstream: radio hits; Groupie: deep cuts for fans (best with your own artists, e.g. only Michael Jackson) */
+        const lv = () => { $("#sgl").innerHTML = LVLS.map(([k, l, d]) => `<button class="pg-pk ${(o.lvl || "main") === k ? "on" : ""}" data-lv="${k}"><b>${h(T(l[0], l[1]))}</b><small>${h(T(d[0], d[1]))}</small></button>`).join("");
+          $$("[data-lv]", ctx.body).forEach(b => b.onclick = () => { o.lvl = b.dataset.lv; PG.persist(); lv(); }); }; lv();
         PG.playersUI($("#sgp"), {min: 0});
         $$("[data-pre]", ctx.body).forEach(b => b.onclick = () => { Object.assign(o, PRE[b.dataset.pre]); PG.persist(); start(); });
         $("#sggo").onclick = start;
@@ -305,6 +348,7 @@
           const secs = () => up ? STAGES[stage] : +o.clip || 10;
           ctx.body.innerHTML = `<div class="sg-q"><div class="sg-top"><span class="muted">${names.length > 1 ? h(names[who]) + " · " : ""}${T("Song", "Song")} ${Math.floor(turn / names.length) + 1} / ${o.rounds}</span>${up ? "" : `<button class="btn ghost sm" id="sgagain" data-quiet>↻ ${T("From the start", "Von vorne")}</button>`}</div>
             <div class="sg-eq on">${"<i></i>".repeat(5)}</div><div class="sg-bar"><i id="sgbar"></i></div>${up ? `<div class="sg-stg" id="sgstg"></div>` : ""}
+            ${s2.tier === "fan" ? `<p class="sg-fan">💎 ${T("For connoisseurs: +1 if you know it", "Kenner-Song: +1, wenn du ihn kennst")}</p>` : ""}
             <p class="pg-say" style="margin:0">${w === "both" ? T("Title and artist?", "Titel und Interpret?") : w === "artist" ? T("Who sings?", "Wer singt?") : T("Which song?", "Welcher Song?")}</p>
             ${opts ? `<div class="sg-opts">${opts.map((v, i) => `<button class="btn big" data-op="${i}">${h(v)}</button>`).join("")}</div>` : `<div id="sglib"></div>`}
             <div class="sg-act"><button class="btn sg-skip" id="sgno"><span>🤷</span>${T("No idea", "Weiß nicht")}</button><button class="btn sg-more" id="sgre"></button></div></div>`;
@@ -315,7 +359,7 @@
           if (!opts) library($("#sglib"), w, ans => reveal(judge(w, ans, s2), w === "artist" ? ans.artist : w === "both" ? bare(ans.title) + " – " + ans.artist : bare(ans.title)));
           go(0); re.onclick = () => { Sound.tap(); if (up){ if (stage < STAGES.length - 1) stage++; go(0); } else if (heard < 29) go(heard); else go(0); };
           const ag = $("#sgagain"); if (ag) ag.onclick = () => { Sound.tap(); go(0); };
-          const reveal = (got, said) => { if (done) return; done = true; const k = got.filter(Boolean).length, gain = up ? Math.round(k / got.length * STP[stage]) : k; pts[who] += gain; log.push({s: s2, who, got, gain});
+          const reveal = (got, said) => { if (done) return; done = true; const k = got.filter(Boolean).length, gain = (up ? Math.round(k / got.length * STP[stage]) : k) + (k && s2.tier === "fan" ? 1 : 0); pts[who] += gain; log.push({s: s2, who, got, gain});
             if (gain) Sound.xp ? Sound.xp() : Sound.right(); else Sound.wrong(); PG.vib(gain ? 40 : [20, 30, 20]);
             /* the rest of the clip plays while you see the answer */
             SA.rest(s2.url);
@@ -394,17 +438,20 @@
       if (c.what === "bingo"){
         if (!s.arts){ const lists = [];
           ids.forEach(id => { const w = W[id]; if (w && w.g === "pl" && pls.includes(id)){ const n = {}; w.tr.forEach(tr => { const a = art1(tr[1]); n[a] = (n[a] || 0) + 1; }); lists.push(Object.keys(n).sort((x, y) => n[y] - n[x]).slice(0, 15)); }
+            else if (w && w.g === "own") lists.push(PG.shuffle(list(w.own)));
             else if (w && G[w.g] && G[w.g][3]) lists.push(PG.shuffle(list(G[w.g][3]))); });
+          if (!lists.length && c.genre === "own" && list(c.own).length) lists.push(PG.shuffle(list(c.own)));
           if (!lists.length) lists.push(PG.shuffle(G[c.genre] && G[c.genre][3] ? list(G[c.genre][3]) : artistsOf({genre: "mix"})));
           const arts = []; for (let r = 0; arts.length < 12 && r < 40; r++) lists.forEach(L => { const a = L[r]; if (a && arts.length < 12 && !arts.some(x => N(x) === N(a))) arts.push(a); });
           PG.shuffle(list(G.charts[3])).forEach(a => { if (arts.length < 12 && !arts.some(x => N(x) === N(a))) arts.push(a); });
           s.arts = arts; }
-        return Mix.make([{P: Pool.make({genre: "own", own: s.arts.join(";")})}]); }
+        return Mix.make([{P: Pool.make({genre: "own", own: s.arts.join(";"), lvl: c.lvl})}]); }
       const src = [], byG = {};
       ids.forEach(id => { const w = W[id]; if (!w) return;
         if (w.g === "pl" && pls.includes(id)) src.push({P: PlPool.make(fair(W[id].tr)), who: [id], lab: "🎧 " + (w.nm || T("playlist", "Playlist"))});
-        else if (G[w.g] && w.g !== "own"){ if (!byG[w.g]) byG[w.g] = {P: Pool.make({genre: w.g}), who: [], lab: GLAB(w.g)}; byG[w.g].who.push(id); src.push(byG[w.g]); } });
-      if (!src.length) src.push({P: Pool.make({genre: G[c.genre] && c.genre !== "own" ? c.genre : "mix"})});
+        else if (w.g === "own" && list(w.own).length) src.push({P: Pool.make({genre: "own", own: w.own, lvl: c.lvl}), who: [id], lab: "✍️ " + list(w.own).slice(0, 3).join(", ")});
+        else if (G[w.g] && w.g !== "own"){ if (!byG[w.g]) byG[w.g] = {P: Pool.make({genre: w.g, lvl: c.lvl}), who: [], lab: GLAB(w.g)}; byG[w.g].who.push(id); src.push(byG[w.g]); } });
+      if (!src.length) src.push({P: c.genre === "own" && list(c.own).length ? Pool.make({genre: "own", own: c.own, lvl: c.lvl}) : Pool.make({genre: G[c.genre] && c.genre !== "own" ? c.genre : "mix", lvl: c.lvl})});
       return Mix.make(src); }
     const opool = Gm => { if (!OP || OP.gid !== Gm.gid){ OP = buildPools(Gm); OP.gid = Gm.gid; (Gm.s.used || []).forEach(id => OP.seen.add(id)); } return OP; };
 
@@ -415,7 +462,8 @@
     const isC = o => o.pkg === "custom";
     PG.online.song = {min: 2, max: 24, note: ["Every phone plays the song at the same moment: turn the sound up. Voice chat: the 🎙 at the top.", "Jedes Handy spielt den Song im selben Moment: Ton laut machen. Sprachchat: das 🎙 oben."],
       opts: [{k: "pkg", l: ["Game mode", "Spielmodus"], d: "party", cards: 1, c: () => Object.entries(PKG).map(([k, p]) => [k, p.n, p.d, p.e]).concat(saved().map(x => ["c:" + x.name, x.name, ["Saved by you", "Von dir gespeichert"], "⭐"]))},
-        {k: "genre", l: ["Music", "Musik"], d: "wish", show: o => cfgOf(o).what !== "whose", c: () => [["wish", ["🎁 Everyone wishes", "🎁 Jeder wünscht sich was"]]].concat(Object.entries(G).filter(([k]) => k !== "own").map(([k, g]) => [k, [g[0] + " " + g[2], g[0] + " " + g[1]]]))},
+        {k: "genre", l: ["Music", "Musik"], d: "wish", show: o => cfgOf(o).what !== "whose", c: () => [["wish", ["🎁 Everyone wishes", "🎁 Jeder wünscht sich was"]]].concat(Object.entries(G).map(([k, g]) => [k, [g[0] + " " + g[2], g[0] + " " + g[1]]]))},
+        {k: "lvl", l: ["How well known", "Wie bekannt"], d: "main", cards: 1, show: o => cfgOf(o).what !== "whose", c: () => LVLS.map(([k, l, d]) => [k, l, d, ""])},
         {k: "what", l: ["Guess", "Raten"], d: "title", show: isC, c: WHAT},
         {k: "ans", l: ["Answers", "Antworten"], d: "pick", show: o => isC(o) && ["title", "artist", "both"].includes(o.what), c: ANS},
         {k: "clip", l: ["Clip", "Reinhören"], d: "full", show: isC, c: CLIP},
@@ -423,9 +471,12 @@
         {k: "rounds", l: ["Number of songs", "Anzahl Songs"], d: 10, show: o => { const c = cfgOf(o); return !["time", "bingo"].includes(c.what) && !(PKG[o.pkg] && PKG[o.pkg].o && PKG[o.pkg].o.fixed); }, c: [[5, "5"], [10, "10"], [15, "15"], [20, "20"]]}],
       /* in the lobby, for everyone: your Spotify playlist; for the host with own rules: save them as a mode */
       lobbyHTML(m, isH){ const o = Object.assign({}, PNet.defaults("song"), m.opts || {});
-        return `<div class="unit sg-plbox" id="sgpl" style="width:100%;text-align:left;margin:0"></div>` + (isH && (o.pkg === "custom" || /^c:/.test(o.pkg)) ? `<div class="unit" id="sgsv" style="width:100%;text-align:left;margin:0"></div>` : ""); },
-      lobbyBind(body, m, isH){ const box = body.querySelector("#sgpl"); if (box) plBox(box); const sv = body.querySelector("#sgsv"); if (!sv) return;
-        const o = Object.assign({}, PNet.defaults("song"), m.opts || {}), keep = ["what", "ans", "clip", "mode", "rounds", "genre"];
+        return (isH && o.genre === "own" && cfgOf(o).what !== "whose" ? `<div class="unit" id="sgown2" style="width:100%;text-align:left;margin:0"><h3>✍️ ${T("Your own artists", "Eigene Künstler")}</h3><form class="sg-plf" autocomplete="off"><input type="text" maxlength="200" value="${h(o.own || "")}" placeholder="${T("e.g. Michael Jackson, Queen", "z. B. Michael Jackson, Queen")}" enterkeyhint="done"><button class="btn go sm" type="submit">OK</button></form><p class="pg-sub sg-plm">${o.own ? h(list(o.own).join(" · ")) : T("Separated by commas.", "Mit Komma getrennt.")}</p></div>` : "")
+          + `<div class="unit sg-plbox" id="sgpl" style="width:100%;text-align:left;margin:0"></div>` + (isH && (o.pkg === "custom" || /^c:/.test(o.pkg)) ? `<div class="unit" id="sgsv" style="width:100%;text-align:left;margin:0"></div>` : ""); },
+      lobbyBind(body, m, isH){ const box = body.querySelector("#sgpl"); if (box) plBox(box);
+        const ow = body.querySelector("#sgown2"); if (ow) ow.querySelector("form").onsubmit = e => { e.preventDefault(); const v = ow.querySelector("input").value.trim().slice(0, 200); try { document.activeElement.blur(); } catch(x) {} PNet.setOpt("own", v); };
+        const sv = body.querySelector("#sgsv"); if (!sv) return;
+        const o = Object.assign({}, PNet.defaults("song"), m.opts || {}), keep = ["what", "ans", "clip", "mode", "rounds", "genre", "lvl", "own"];
         if (o.pkg === "custom"){ sv.innerHTML = `<h3>💾 ${T("Save as a game mode", "Als Spielmodus speichern")}</h3><p class="pg-sub" style="margin:4px 0 0">${T("Next time it's one tap.", "Nächstes Mal ist es ein Tipp.")}</p><form class="sg-plf" autocomplete="off"><input type="text" maxlength="24" placeholder="${T("Name, e.g. Friday night", "Name, z. B. Freitagabend")}" enterkeyhint="done"><button class="btn go sm" type="submit">${T("Save", "Speichern")}</button></form>`;
           sv.querySelector("form").onsubmit = e => { e.preventDefault(); const name = sv.querySelector("input").value.trim().slice(0, 24); if (!name) return;
             PG.st.songCustoms = [{name, o: Object.fromEntries(keep.map(k => [k, o[k]]))}].concat(saved().filter(x => x.name !== name)).slice(0, 8); PG.persist(); toast(T("Saved", "Gespeichert") + " ⭐"); PNet.setOpt("pkg", "c:" + name); }; }
@@ -454,7 +505,7 @@
           s.tl = {}; players(Gm).forEach(id => { let x = M.next(); while (x && !+x.year) x = M.next(); s.tl[id] = [x ? {y: +x.year, t: bare(x.title), a: x.artist} : {y: 1985 + Math.floor(Math.random() * 35), t: "", a: ""}]; }); }
         let song = M.songs().length ? M.next() : null; if (c.what === "time" || c.what === "year") while (song && !+song.year) song = M.next();
         if (!song) return this.wait(Gm, api, 6);
-        s.n++; s.used.push(song.id); s.cur = {id: song.id, title: song.title, artist: song.artist, url: song.url, art: song.art, year: song.year, own: song.own || null};
+        s.n++; s.used.push(song.id); s.cur = {id: song.id, title: song.title, artist: song.artist, url: song.url, art: song.art, year: song.year, own: song.own || null, tier: song.tier || "hit"};
         const src = M.src[song.si]; s.cur.wl = c.genre === "wish" && src && src.who && src.who.length ? src.who.map(x => api.name(x)).join(" & ") + " · " + src.lab : "";
         s.kind = kindOf(c, s.n); s.ans = {}; s.more = {}; s.rdy = {}; s.win = null; s.first = null; s.opts = null; s.ready = {}; s.st = null; s.sv = 0;
         if (s.kind === "pick"){ s.opts = M.opts(song, c.what, c.ans === "pick6" ? 6 : 4); if (!s.opts) s.kind = "type"; }
@@ -479,9 +530,9 @@
         if (a.a === "again" && id === Gm.host && s.phase === "end"){ const keep = {used: s.used.slice(-600), wish: s.wish, arts: null}; this.start(Gm, api); Gm.s.used = keep.used;
           /* the same wishes again: no second round of asking */
           if (Gm.s.phase === "wish" && Object.keys(keep.wish || {}).length){ Gm.s.wish = keep.wish; this.ready(Gm, api); } return; }
-        if (a.a === "wish" && s.phase === "wish" && players(Gm).includes(id)){ const g = String(a.g || ""); if (!(g === "any" || g === "pl" || (G[g] && g !== "own"))) return;
+        if (a.a === "wish" && s.phase === "wish" && players(Gm).includes(id)){ const g = String(a.g || ""), own = String(a.own || "").slice(0, 200); if (!(g === "any" || g === "pl" || (G[g] && g !== "own") || (g === "own" && list(own).length))) return;
           const tr = g === "pl" && Array.isArray(a.tr) ? a.tr.slice(0, 150).map(x => [String((x || [])[0] || "").slice(0, 120), String((x || [])[1] || "").slice(0, 120)]).filter(x => x[0] && x[1]) : null;
-          s.wish[id] = {g: g === "pl" && !(tr && tr.length) ? "any" : g, tr, nm: String(a.nm || "").slice(0, 60)}; if (players(Gm).every(x => s.wish[x])) this.ready(Gm, api); return; }
+          s.wish[id] = {g: g === "pl" && !(tr && tr.length) ? "any" : g, tr, nm: String(a.nm || "").slice(0, 60), own: g === "own" ? own : ""}; if (players(Gm).every(x => s.wish[x])) this.ready(Gm, api); return; }
         if (a.a === "wishgo" && id === Gm.host && s.phase === "wish"){ this.ready(Gm, api); return; }
         if (a.a === "next" && id === Gm.host && s.phase === "rev"){ this.next(Gm, api); return; }
         if (a.a === "nx" && s.phase === "rev"){ s.rdy[id] = 1; if (players(Gm).every(x => s.rdy[x])) this.next(Gm, api); return; }
@@ -512,6 +563,8 @@
         else { const full = Gm.ids.filter(x => A(x) && A(x).ok.length && A(x).ok.every(Boolean)).sort((a, b) => A(a).ms - A(b).ms);
           Gm.ids.forEach(x => { const a = A(x); if (!a){ gain[x] = 0; return; } const k = a.ok.filter(Boolean).length; gain[x] = up ? Math.round(k / a.ok.length * sp(x)) : k * (w === "both" ? 1 : 2); });
           if (full.length){ s.first = full[0]; gain[full[0]] += 1; } }
+        /* a song only fans know: +1 for everyone who got it */
+        if (s.cur.tier === "fan" && ["pick", "type"].includes(s.kind)) Gm.ids.forEach(x => { if (gain[x] > 0) gain[x] += 1; });
         Gm.ids.forEach(x => { gain[x] = gain[x] || 0; s.pts[x] = (s.pts[x] || 0) + gain[x]; }); s.gain = gain;
         /* after the answer the song plays on to its end (unless everyone taps "Next" or the host goes on) */
         s.until = now() + (s.kind === "bingo" ? 7000 : Math.max(9000, Math.min(25000, SEG * 1000 - (now() - s.t0) + 1500)));
@@ -532,7 +585,7 @@
         if (s.phase === "prep") return Object.assign(base, {k: "p" + s.n, ph: "prep", n: s.n, of: +c.rounds, url: s.cur.url, note: s.n === 1 ? s.note || "" : "", kind: s.kind, wl: s.cur.wl});
         const tot = Gm.ids.map(x => ({n: api.name(x), p: s.pts[x] || 0, me: x === id, c: s.tl && s.tl[x] ? s.tl[x].length : null})).sort((a, b) => b.p - a.p), up = c.clip === "up";
         if (s.phase === "play"){ const me = s.ans[id], t = now(), still = players(Gm).filter(x => !s.ans[x]);
-          return Object.assign(base, {k: "q" + s.n, ph: "play", n: s.n, of: +c.rounds, url: s.cur.url, st: s.st.map(x => ({in: x.at - t, len: x.len, from: x.from})), sv: s.sv, left: s.until - t, kind: s.kind, what: c.what, fast: c.mode === "fast", up, wl: s.cur.wl,
+          return Object.assign(base, {k: "q" + s.n, ph: "play", n: s.n, of: +c.rounds, url: s.cur.url, fan: s.cur.tier === "fan" && ["pick", "type"].includes(s.kind), st: s.st.map(x => ({in: x.at - t, len: x.len, from: x.from})), sv: s.sv, left: s.until - t, kind: s.kind, what: c.what, fast: c.mode === "fast", up, wl: s.cur.wl,
             opts: s.kind === "whose" ? (s.opts || []).map(x => api.name(x)) : s.opts, own: s.kind === "whose" && s.cur.own === id, tl: s.kind === "time" ? (s.tl || {})[id] || [] : null, card: s.kind === "bingo" ? (s.card || {})[id] || [] : null, goal: GOAL,
             done: !!me, wrong: !!(me && c.mode === "fast" && !me.sk && !me.ok.every(Boolean)), got: players(Gm).filter(x => s.ans[x]).length, all: players(Gm).length,
             more: {can: this.canMore(Gm) && !me, n: still.filter(x => s.more[x]).length, need: still.length, mine: !!s.more[id]}}); }
@@ -565,14 +618,17 @@
         if (v.ph === "wish"){
           /* before the first song: everyone wishes for a genre or their playlist */
           const tiles = () => { const pl = myPl(), L = v.whose ? [] : Object.entries(G).filter(([k]) => k !== "own").map(([k, g]) => [k, g[0], T(g[2], g[1])]);
-            return (pl ? [["pl", "🎧", T("My playlist", "Meine Playlist") + ` <small>${md(pl.name || "")}</small>`]] : []).concat(L).concat([["any", v.whose ? "🙈" : "🎲", v.whose ? T("I only guess", "Ich rate nur mit") : T("Don't mind", "Egal")]])
+            return (pl ? [["pl", "🎧", T("My playlist", "Meine Playlist") + ` <small>${md(pl.name || "")}</small>`]] : []).concat(L).concat(v.whose ? [] : [["own", "✍️", T("Artists of my own", "Eigene Künstler") + (V.own ? ` <small>${md(V.own)}</small>` : "")]]).concat([["any", v.whose ? "🙈" : "🎲", v.whose ? T("I only guess", "Ich rate nur mit") : T("Don't mind", "Egal")]])
               .map(([k, e, l]) => `<button class="btn sg-wt ${V.wish === k || (!V.wish && v.mine === k) ? "go" : ""}" data-wg="${k}"><span style="font-size:20px">${e}</span><span style="text-align:left">${l}</span></button>`).join(""); };
-          const send = g => { const pl = myPl(); V.wish = g; act(Object.assign({a: "wish", g}, g === "pl" && pl ? {tr: pl.tracks.slice(0, 150).map(x => [x.t, x.a]), nm: pl.name || ""} : {})); PG.vib(12); };
-          const bind = () => body.querySelectorAll("[data-wg]").forEach(b => b.onclick = () => { send(b.dataset.wg); body.querySelector(".sg-wg").innerHTML = tiles(); bind(); });
-          if (fresh){ V.wish = null;
+          const send = g => { const pl = myPl(); V.wish = g; act(Object.assign({a: "wish", g}, g === "pl" && pl ? {tr: pl.tracks.slice(0, 150).map(x => [x.t, x.a]), nm: pl.name || ""} : {}, g === "own" ? {own: V.own} : {})); PG.vib(12); };
+          /* own artists: a field opens (e.g. only Michael Jackson, with "Groupie" for his deep cuts) */
+          const ownForm = () => { const f = body.querySelector("[data-wown]"); f.hidden = false; const i = f.querySelector("input"); i.value = V.own || PG.st.songOwn || ""; try { i.focus(); } catch(e) {}
+            f.onsubmit = e => { e.preventDefault(); const val = i.value.trim().slice(0, 200); if (!list(val).length) return; V.own = val; PG.st.songOwn = val; PG.persist(); try { i.blur(); } catch(x) {} f.hidden = true; send("own"); body.querySelector(".sg-wg").innerHTML = tiles(); bind(); }; };
+          const bind = () => body.querySelectorAll("[data-wg]").forEach(b => b.onclick = () => { if (b.dataset.wg === "own") return ownForm(); send(b.dataset.wg); body.querySelector(".sg-wg").innerHTML = tiles(); bind(); });
+          if (fresh){ V.wish = null; V.own = "";
             body.innerHTML = `<div class="pg-stage sg-on sg-wish"><div class="pg-who">${v.whose ? "🕵️ " + T("Whose song?", "Wessen Song?") : "🎁 " + T("Your music wish", "Dein Musikwunsch")}</div>
               <p class="pg-say" style="margin:0">${v.whose ? T("Share your Spotify playlist: the songs come from your playlists, everyone guesses whose they are.", "Teil deine Spotify-Playlist: Die Songs kommen aus euren Playlists, alle raten, von wem sie sind.") : T("What do you know best? Everyone wishes for something, the songs take turns between all wishes.", "Was kannst du am besten? Jeder wünscht sich etwas, die Songs kommen abwechselnd aus allen Wünschen.")}</p>
-              <div class="grid2 sg-wg">${tiles()}</div><div class="unit sg-plbox" data-plb style="width:100%;text-align:left;margin:0"></div>
+              <div class="grid2 sg-wg">${tiles()}</div><form class="sg-plf" data-wown hidden autocomplete="off"><input type="text" maxlength="200" placeholder="${T("e.g. Michael Jackson, Queen", "z. B. Michael Jackson, Queen")}" enterkeyhint="done"><button class="btn go sm" type="submit">OK</button></form><div class="unit sg-plbox" data-plb style="width:100%;text-align:left;margin:0"></div>
               <p class="pg-hint" data-st></p>${v.host ? `<button class="btn ghost sm" data-x="wishgo">${T("Start without the others", "Ohne die anderen starten")}</button>` : ""}${hostBar}</div>`;
             bind(); plBox(body.querySelector("[data-plb]"), () => { body.querySelector(".sg-wg").innerHTML = tiles(); bind(); if (myPl() && (v.whose || !V.wish)) { send("pl"); body.querySelector(".sg-wg").innerHTML = tiles(); bind(); } });
             if (v.whose && myPl() && !v.mine) send("pl"); }
@@ -594,7 +650,7 @@
               : `<div data-lib></div>`;
             body.innerHTML = `<div class="sg-q sg-on wait"><div class="sg-top"><span class="muted">${K === "time" || K === "bingo" ? "" : T("Song", "Song") + ` ${v.n} / ${v.of}`}${v.fast ? " · ⚡ " + T("fastest takes it", "wer zuerst richtig hat") : ""}</span><b class="sg-left" data-left></b></div>
               <div class="sg-cd" data-cd></div><div class="sg-eq on">${"<i></i>".repeat(5)}</div><div class="sg-bar"><i data-bar></i></div>${v.up ? `<div class="sg-stg" data-stg></div>` : ""}<button class="btn go big" data-x="hear" hidden>▶ ${T("Tap to listen", "Tippen zum Hören")}</button>
-              ${v.wl ? `<p class="sg-wl">🎁 ${md(v.wl)}</p>` : ""}${say ? `<p class="pg-say" style="margin:0">${say}</p>` : ""}${ui}
+              ${v.wl ? `<p class="sg-wl">🎁 ${md(v.wl)}</p>` : ""}${v.fan ? `<p class="sg-fan">💎 ${T("For connoisseurs: +1 if you know it", "Kenner-Song: +1, wenn du ihn kennst")}</p>` : ""}${say ? `<p class="pg-say" style="margin:0">${say}</p>` : ""}${ui}
               <div class="sg-act">${v.own ? "" : `<button class="btn sg-skip" data-skip><span>${K === "bingo" ? "🙅" : "🤷"}</span>${K === "bingo" ? T("Not on my card", "Nicht auf meiner Karte") : T("No idea", "Weiß nicht")}</button>`}<button class="btn sg-more" data-more hidden></button></div>
               <p class="pg-hint" data-st></p>${hostBar}</div>`;
             const q = body.querySelector(".sg-q"), lock = () => body.querySelectorAll(LOCK).forEach(x => { x.disabled = true; });
@@ -688,6 +744,7 @@
 .sg-slot{border:2px dashed rgba(127,127,127,.45);background:none;color:var(--muted);border-radius:12px;min-height:40px;font:800 13.5px var(--body);cursor:pointer}.sg-slot:active,.sg-slot.on{border-color:var(--go);color:var(--go-hi);background:color-mix(in srgb,var(--go) 14%,transparent)}.sg-slot:disabled{opacity:.45}
 .sg-bingo{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;width:100%}.sg-bc{position:relative;aspect-ratio:1.15;border:0;border-radius:14px;background:var(--panel-2);color:inherit;font:800 13.5px/1.2 var(--body);padding:6px;cursor:pointer;display:grid;place-items:center;text-align:center;overflow:hidden}
 .sg-bc span{overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}.sg-bc.m{background:linear-gradient(180deg,#5FC66B,#3D9E4A);color:#fff}.sg-bc i{position:absolute;top:4px;right:7px;font-style:normal;font-weight:900}.sg-bc.on{box-shadow:inset 0 0 0 3px var(--go-hi)}.sg-bc:disabled:not(.m){opacity:.6}
-.sg-bingo-win{font-size:44px;color:var(--go-hi)}`;
+.sg-bingo-win{font-size:44px;color:var(--go-hi)}
+.sg-fan{margin:0;text-align:center;font:800 13.5px var(--body);color:#7FD8FF}`;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 })();
