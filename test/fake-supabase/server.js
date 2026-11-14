@@ -152,6 +152,13 @@ global.fetch = async (url, init = {}) => {
   /* the server function asks the database as the signed-in person (the shared food database) */
   if (/supabase\.co\/rest\/v1\//.test(url)){ const U = new URL(url), name = U.pathname.split("/rest/v1/")[1], uid = uidOf((init.headers || {}).Authorization), bd = init.body ? JSON.parse(init.body) : null;
     try { const r = name.startsWith("rpc/") ? db.rpc(name.slice(4), bd || {}, uid) : db.rest(init.method || "GET", name, U.searchParams, bd, init.headers || {}, uid); return json(r.body, r.status); } catch(e) { return json(e.body || {message: String(e.message || e)}, e.status || 500); } }
+  /* the embedding model of the search by meaning: a few fixed "meanings" (dairy, fruit, grain …) instead of a real model, so
+     "Fruchtjoghurt" lands near "Buntes Frucht-Trio, Danone" and far from "Haferflocken" */
+  if (/ai-gateway\.vercel\.sh\/v1\/embeddings/.test(url)){ if (process.env.FAKE_AI_DOWN === "1") return json({error: "down"}, 503); global.__embeds = (global.__embeds || 0) + 1;
+    const M = [/joghurt|jogurt|yogh|frucht-?trio|skyr|quark|pudding|danone|ehrmann/i, /frucht|beere|erdbeer|himbeer|kirsch|pfirsich|banane|apfel|obst/i, /milch|latte|kakao|käse|kase/i,
+      /hafer|flocken|müsli|musli|brot|brötchen|toast|nudel|spaghetti|pasta|reis/i, /hähnchen|huhn|fleisch|wurst|schinken|döner/i, /nutella|schoko|kuchen|keks|zucker/i];
+    const b = JSON.parse(init.body), inp = Array.isArray(b.input) ? b.input : [b.input];
+    return json({object: "list", model: b.model, data: inp.map((t, index) => ({object: "embedding", index, embedding: M.map(re => re.test(t) ? 1 : 0).concat([.35])}))}); }
   if (/ai-gateway\.vercel\.sh/.test(url)){ if (process.env.FAKE_AI_DOWN === "1") return json({error: "down"}, 503);
     /* like Gemini: an empty string in an enum makes the whole request fail (that took "Sprechen" down on 2026-11-11) */
     { const bad = []; (function walk(o, p){ if (!o || typeof o !== "object") return; if (Array.isArray(o.enum) && o.enum.some(v => v === "")) bad.push(p); for (const k in o) walk(o[k], p + "." + k); })(((JSON.parse(init.body).response_format || {}).json_schema || {}).schema, "schema");

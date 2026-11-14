@@ -131,6 +131,32 @@ async function ask(req, text, only, cfg){
   }
   throw last || new Error("no model");
 }
+/* The search by meaning: an embedding model turns what was typed and the names of everything this person knows (products eaten,
+   photographed packs, recipes, the food table) into vectors; the closest ones are suggested ("Fruchtjoghurt" → "Buntes Frucht-Trio").
+   The vectors of names are kept while this instance lives, so mostly only what was typed is sent. Models in order (env EMBED_MODELS). */
+const EMBED_MODELS = (process.env.EMBED_MODELS || "openai/text-embedding-3-large,openai/text-embedding-3-small").split(",").map(s => s.trim()).filter(Boolean);
+const EMBED_DIM = Number(process.env.EMBED_DIM || 1024), EMBED_MIN = Number(process.env.EMBED_MIN || .3), EMBED_REL = Number(process.env.EMBED_REL || .62);
+const VEC = new Map();
+const unit = v => { let n = 0; for (const x of v) n += x * x; n = Math.sqrt(n) || 1; return Float32Array.from(v, x => x / n); };
+const dot = (a, b) => { let s = 0; for (let i = 0; i < a.length && i < b.length; i++) s += a[i] * b[i]; return s; };
+async function embed(req, texts){
+  const key = String(process.env.AI_GATEWAY_API_KEY || process.env.AI_KEY || "").trim(), token = key || req.headers["x-vercel-oidc-token"] || process.env.VERCEL_OIDC_TOKEN;
+  if (!token) throw Object.assign(new Error("no ai credentials"), {status: 500});
+  let last;
+  for (const model of EMBED_MODELS){
+    const K = t => model + "\u0000" + t, want = [...new Set(texts.filter(t => t && !VEC.has(K(t))))];
+    try {
+      for (let i = 0; i < want.length; i += 200){ const part = want.slice(i, i + 200);
+        const r = await fetch("https://ai-gateway.vercel.sh/v1/embeddings", Object.assign({method: "POST", headers: {"Content-Type": "application/json", Authorization: "Bearer " + token},
+          body: JSON.stringify(Object.assign({model, input: part}, /text-embedding-3/.test(model) ? {dimensions: EMBED_DIM} : {}))}, soon(9000)));
+        if (!r.ok) throw Object.assign(new Error((await r.text().catch(() => "")).slice(0, 300)), {status: r.status, model});
+        const j = await r.json(); (j.data || []).forEach(d => { if (part[d.index] != null && Array.isArray(d.embedding)) VEC.set(K(part[d.index]), unit(d.embedding)); }); }
+      if (VEC.size > 30000) [...VEC.keys()].slice(0, 10000).forEach(k => VEC.delete(k));
+      return texts.map(t => VEC.get(K(t)) || null);
+    } catch(e) { last = e; if (![400, 401, 402, 403, 404, 429].includes(e.status)) break; }
+  }
+  throw last || new Error("no embedding model");
+}
 /* A food from the table: the numbers are worked out here from its values per 100 g and the grams, not taken from the AI.
    Weighed cooked, the grams are first turned back into dry (or raw) weight with the food's cooking factor. */
 /* the table's values come from Open Food Facts (api/foods.js, kept at the edge for a week): read them once per instance and every few hours,
@@ -229,6 +255,18 @@ module.exports = async (req, res) => {
   const b = await readBody(req);
   const fail = e => { console.log("kcal ai failed", b.mode || "meal", e.status, e.model, String(e.message).slice(0, 300)); return res.status(502).json({error: e.status === 429 ? "Gerade zu viele Anfragen. Gleich nochmal versuchen." : "Die KI hat gerade nicht geantwortet. Nochmal versuchen."}); };
   const clip = (v, n) => String(v == null ? "" : v).slice(0, n);
+  /* the search by meaning: the typed text against the names the phone sends; the closest few come back as numbers into that list */
+  if (b.mode === "find"){
+    const q = clip(b.q, 80).replace(/\s+/g, " ").trim(), T = (Array.isArray(b.items) ? b.items : []).slice(0, 400).map(t => clip(t, 120).replace(/\s+/g, " ").trim());
+    if (q.length < 2 || !T.some(Boolean)) return res.status(200).json({hits: []});
+    try { const V = await embed(req, [q].concat(T)), qv = V[0]; if (!qv) return res.status(200).json({hits: []});
+      const all = T.map((t, i) => ({i, s: V[i + 1] ? dot(qv, V[i + 1]) : -1})).sort((x, y) => y.s - x.s), top = all.length ? all[0].s : 0;
+      /* close enough on its own, and not far behind the best one */
+      const hits = all.filter(x => x.s >= EMBED_MIN && x.s >= top * EMBED_REL).slice(0, 8).map(x => ({i: x.i, s: Math.round(x.s * 1000) / 1000}));
+      console.log("kcal find", JSON.stringify({q, n: T.length, top: all.slice(0, 5).map(x => [T[x.i].slice(0, 40), Math.round(x.s * 1000) / 1000]), hits: hits.length}));
+      return res.status(200).json({hits}); }
+    catch(e) { console.log("kcal find failed", e.status, e.model, String(e.message).slice(0, 200)); return res.status(200).json({hits: [], error: "Die Suche nach Ähnlichem geht gerade nicht."}); }
+  }
   /* the shopping list: free text (typed or dictated) becomes products and dishes with what they need */
   if (b.mode === "shop"){
     const text = clip(b.text, 600).trim(); if (text.length < 2) return res.status(400).json({error: "Schreib oder sag kurz, was fehlt."});

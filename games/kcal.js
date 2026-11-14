@@ -608,6 +608,74 @@
   const RK = "chessnat-kcal-recent";
   const recents = () => { try { return JSON.parse(localStorage.getItem(RK) || "[]"); } catch(e) { return []; } };
   function recent(P){ try { const key = P.code || P.name, l = recents().filter(x => (x.code || x.name) !== key); l.unshift({code: P.code || null, name: P.name, brand: P.brand || "", img: P.img || null, k: P.k, c: P.c, pr: P.pr, f: P.f, serving: P.serving || 0, pack: P.pack || 0, ss: P.ss || ""}); localStorage.setItem(RK, JSON.stringify(l.slice(0, 12))); } catch(e) {} }
+  /* ---------- a search that forgives (Wunsch von Nathan): typos, missing or extra spaces and hyphens, swapped letters or words.
+     "Fruchtrio" finds the "Buntes Frucht-Trio", "jogurt" the "Fruchtjoghurt", "trio frucht" too ---------- */
+  const Fz = {
+    /* ä and ae, ß and ss count the same */
+    n: t => String(t == null ? "" : t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\u00df/g, "ss").replace(/([aou])e/g, "$1"),
+    c: t => Fz.n(t).replace(/[^a-z0-9]+/g, ""),
+    /* how many typing errors (a letter wrong, missing, too much, or two swapped) turn q into some piece of t */
+    near(q, t){ const n = q.length; let p2 = null, p = Array.from({length: n + 1}, (_, i) => i), best = n;
+      for (let j = 1; j <= t.length; j++){ const c = [0];
+        for (let i = 1; i <= n; i++){ let v = Math.min(p[i] + 1, c[i - 1] + 1, p[i - 1] + (q[i - 1] === t[j - 1] ? 0 : 1));
+          if (p2 && i > 1 && q[i - 1] === t[j - 2] && q[i - 2] === t[j - 1]) v = Math.min(v, p2[i - 2] + 1); c[i] = v; }
+        if (c[n] < best) best = c[n]; p2 = p; p = c; }
+      return best; },
+    /* errors forgiven: none in short words (else "Reis" would find "Preis"), one from 5 letters, two from 8 */
+    ok: len => len >= 8 ? 2 : len >= 5 ? 1 : 0,
+    /* 0 … 1: how well what was typed fits a name; 1 = it is in there as typed */
+    score(q, name){ const qc = Fz.c(q), tc = Fz.c(name); if (qc.length < 2 || !tc) return 0;
+      const at = tc.indexOf(qc); if (at >= 0){ let pos = 0; for (const w of Fz.n(name).split(/[^a-z0-9]+/)){ if (!w) continue; if (pos === at) return 1; pos += w.length; } return .95; }
+      let best = 0; const d = qc.length >= 5 ? Fz.near(qc, tc) : 99; if (d <= Fz.ok(qc.length)) best = .85 - .08 * d;
+      /* word by word (other order, or one word a bit off): every word has to be found */
+      const ws = Fz.n(q).split(/[^a-z0-9]+/).filter(w => w.length >= 2); if (ws.length > 1){ let sum = 0;
+        for (const w of ws){ if (tc.includes(w)){ sum += 1; continue; } const e = w.length >= 5 ? Fz.near(w, tc) : 99; if (e > Fz.ok(w.length)) return best; sum += 1 - .12 * e; }
+        best = Math.max(best, .9 * sum / ws.length); }
+      return best; },
+    /* the best of several names (a food of the table has a few) */
+    best: (q, names) => names.reduce((m, t) => Math.max(m, Fz.score(q, t)), 0)
+  };
+  /* ---------- what this person already knows: every product eaten (scanned, searched, from the table, "wie letztes Mal"), how often
+     and when last; what was picked in the search lately; the packs people photographed and the published recipes ---------- */
+  const tabNames = F => [F.n].concat(String(F.al || "").replace(/\[([^\]])[^\]]*\]/g, "$1").replace(/\\[a-z]/gi, "").split("|").map(a => a.replace(/[^a-zäöüß ]/gi, "").trim()).filter(a => a.length >= 3));
+  const Known = {
+    own: null, recs: null, at: 0,
+    /* the photographed packs and the recipes are few: fetched once when the search opens, then searched here on the phone */
+    async load(){ if (this.own && Date.now() - this.at < 120000) return; const c = sb(); if (!c || !meId()) return;
+      try { const [o, r] = await Promise.all([c.from("kcal_own_products").select(Label.COLS).order("created_at").limit(600), c.from("kcal_recipes").select("*").order("created_at", {ascending: false}).limit(300)]);
+        if (!o.error) this.own = Label.best(o.data || []).map(x => { const p = Label.asOff(x); return Object.assign(prodOf(String(x.code), p), {brand: p.by ? "Foto von " + p.by : "Dein Foto der Packung", own: 1}); });
+        if (!r.error) this.recs = r.data || []; this.at = Date.now(); } catch(e) {} },
+    keyOf: P => P.tab ? "t:" + P.tab + (P.ck || "") : P.code ? "c:" + P.code : "n:" + Fz.c(P.name + " " + (P.brand || "")),
+    /* the products of all meals on this phone (120 days), the most eaten first */
+    eaten(){ const by = new Map();
+      for (const m of K.meals){ if (m.draft) continue; for (const i of (Array.isArray(m.items) ? m.items : [])){ if (!i || !i.per || !i.per.n) continue;
+        const F = i.per.tab && TAB.byId[i.per.tab], P = F ? (F.cf ? tabP(F, i.per.ck === "cooked") : tabP(F)) : perP(i), key = Known.keyOf(P), o = by.get(key);
+        if (o){ o.n++; if (m.day > o.day) o.day = m.day; } else by.set(key, {P, n: 1, day: m.day || ""}); } }
+      recents().forEach(P => { const key = Known.keyOf(P); if (!by.has(key)) by.set(key, {P, n: 0, day: ""}); });
+      return [...by.values()].sort((a, b) => b.n - a.n || (a.day < b.day ? 1 : -1)); },
+    textOf: P => P.name + (P.brand && !P.tab && !P.own ? " " + P.brand : ""),
+    /* eaten before and fitting what was typed: the best fit first, then how often */
+    find(q, max = 5){ return this.eaten().map(x => ({x, s: Fz.score(q, this.textOf(x.P))})).filter(o => o.s >= .6)
+      .sort((a, b) => (b.s + Math.min(.12, .04 * Math.log2(1 + b.x.n))) - (a.s + Math.min(.12, .04 * Math.log2(1 + a.x.n)))).slice(0, max).map(o => Known.mark(o.x)); },
+    mark: x => Object.assign({}, x.P, {seen: x.n ? x.n + "× gegessen" : "zuletzt gesucht"}),
+    ownFind(q){ return (this.own || []).map(P => ({P, s: Fz.score(q, P.name)})).filter(o => o.s >= .6).sort((a, b) => b.s - a.s).slice(0, 6).map(o => o.P); },
+    recFind(q){ return (this.recs || []).map(R => ({R, s: Fz.score(q, R.name)})).filter(o => o.s >= .6).sort((a, b) => b.s - a.s).slice(0, 6).map(o => o.R); },
+    /* foods of the table: the exact names and how people call them first, then forgiving */
+    tabFind(q){ const ex = tabFind(q); if (ex.length) return ex; const hit = TAB.list.map(F => ({F, s: Fz.best(q, tabNames(F))})).filter(o => o.s >= .7).sort((a, b) => b.s - a.s).slice(0, 2);
+      return hit.flatMap(({F}) => F.cf ? [tabP(F, true), tabP(F, false)] : [tabP(F)]); }
+  };
+  /* ---------- the search by meaning (Wunsch von Nathan): an embedding model compares what was typed with everything this person knows,
+     so "Fruchtjoghurt" also brings up the "Buntes Frucht-Trio" from last week. Only the names go to /api/kcal; nothing is stored ---------- */
+  const Sem = {
+    cands(){ const out = [], seen = new Set(), add = (kind, o, t) => { t = String(t || "").replace(/\s+/g, " ").trim().slice(0, 110); const k = Fz.c(t); if (!t || seen.has(k) || out.length >= 320) return; seen.add(k); out.push({kind, o, t}); };
+      Known.eaten().forEach(x => add("known", x, x.P.name + (x.P.brand && !x.P.tab && !x.P.own ? ", " + x.P.brand : "")));
+      (Known.own || []).forEach(P => add("own", P, P.name)); (Known.recs || []).forEach(R => add("rec", R, R.name)); TAB.list.forEach(F => add("tab", F, F.n));
+      return out; },
+    async find(q){ const C = this.cands(); if (Fz.c(q).length < 3 || !C.length) return []; const s2 = window.ChessSite && window.ChessSite.getSession();
+      const r = await fetch("/api/kcal", {method: "POST", headers: {"Content-Type": "application/json", Authorization: "Bearer " + (s2 ? s2.access_token : "")}, body: JSON.stringify({mode: "find", q: String(q).slice(0, 80), items: C.map(c => c.t)})});
+      const j = await r.json().catch(() => ({})); if (!r.ok || !Array.isArray(j.hits)) return [];
+      return j.hits.map(hh => C[hh.i] && Object.assign({}, C[hh.i], {s: Number(hh.s) || 0})).filter(Boolean); }
+  };
   /* the search fills the screen: the field glides up from where it was tapped, the keyboard is already open,
      results come while typing (kcal and carbs per 100 g); tapping one opens how much right there, one more tap adds it */
   const Search = {
@@ -638,24 +706,45 @@
       ov.addEventListener("click", e => { if (q.value.trim() || e.target.closest("button,input,.kc-sovt,.kc-sadd")) return; close(); });
       ov.querySelector("#kcsm").onclick = () => { close(); (opt.manual || manual)(q.value.trim()); };
       const per = P => { const S = shows(), o = P2o(P), k0 = S[0]; return `<b>${k0 === "kcal" ? fmt(o.kcal) : f1(o[k0])}<small>${k0 === "kcal" ? "kcal" : "g " + NUT[k0].s}</small>${S.slice(1).map(k => `<small class="${NUT[k].c}">${one1(o, k)}</small>`).join("")}</b>`; };
-      const row = (P, i) => { const U = unitOf(P), ut = U && U.one !== "Portion" ? `1 ${U.one} ≈ ${nf(U.g, 0)} g` : P.serving ? `Portion ${P.serving} g` : "";
-        return `<button class="kc-sres" data-i="${i}">${P.img ? `<img src="${h(P.img)}" alt="" loading="lazy">` : `<span class="kc-sph">📦</span>`}<span class="kc-sn">${h(P.name)}<small>${h(P.brand || "")}${ut ? `${P.brand ? " · " : ""}${ut}` : ""}</small></span>${per(P)}</button>`; };
+      const row = (P, i) => { const U = unitOf(P), ut = U && U.one !== "Portion" ? `1 ${U.one} ≈ ${nf(U.g, 0)} g` : P.serving ? `Portion ${P.serving} g` : "", sub = [P.seen, P.brand, ut].filter(Boolean).join(" · ");
+        return `<button class="kc-sres" data-i="${i}">${P.img ? `<img src="${h(P.img)}" alt="" loading="lazy">` : `<span class="kc-sph">📦</span>`}<span class="kc-sn">${h(P.name)}<small>${P.seen ? `<em>${h(P.seen)}</em>${sub.length > P.seen.length ? " · " : ""}${h(sub.slice(P.seen.length + 3))}` : h(sub)}</small></span>${per(P)}</button>`; };
       /* recipes people published stand above the products; a tap opens the recipe with the gram field ready */
       let recs = [];
       const rrow = (R, i) => `<button class="kc-sres" data-rc="${i}"><span class="kc-sph kc-srec">${h(R.emoji || "🍽️")}</span><span class="kc-sn">${h(R.name)}<small>Rezept${R.author ? " von " + h(R.author) : ""} · ${(R.items || []).length} Zutaten · ${fmt(Math.round(R.grams))} g</small></span>${per(Recipes.per(R))}</button>`;
-      const draw = (l, head) => { list = l; out.innerHTML = (recs.length ? `<div class="kc-sh muted">Rezepte <span>pro 100 g</span></div>` + recs.map(rrow).join("") : "") + (l.length ? (head ? `<div class="kc-sh muted">${head} <span>pro 100 g</span></div>` : `<div class="kc-sh muted">${recs.length ? "Produkte " : ""}<span>pro 100 g</span></div>`) + l.map(row).join("") : "");
+      /* what is shown, in this order: eaten before (forgiving spelling) · the food table and photographed packs · fits by meaning (the embedding model)
+         · recipes · products from Open Food Facts. Every product only once. While one is open (amount under it), later results don't redraw the list */
+      let S = {mine: [], local: [], sem: [], recs: [], off: [], ph: "", note: ""};
+      const render = () => { if (closed || busy || out.querySelector(".kc-sres.open")) return; const seen = new Set(), uniq = l => l.filter(P => { const k = Known.keyOf(P); if (seen.has(k)) return false; seen.add(k); return true; });
+        const mine = uniq(S.mine), local = uniq(S.local), sem = uniq(S.sem), off = uniq(S.off); list = mine.concat(local, sem, off); recs = S.recs.filter((R, i, A) => A.findIndex(x => x.id === R.id) === i);
+        const sec = (head, l, base) => l.length ? `<div class="kc-sh muted">${head} <span>pro 100 g</span></div>` + l.map((P, k) => row(P, base + k)).join("") : "";
+        out.innerHTML = sec("Schon gegessen", mine, 0) + sec(S.ph || (mine.length ? "Lebensmittel" : ""), local, mine.length) + sec("Passt vielleicht", sem, mine.length + local.length)
+          + (recs.length ? `<div class="kc-sh muted">Rezepte <span>pro 100 g</span></div>` + recs.map(rrow).join("") : "")
+          + sec(mine.length || local.length || sem.length || recs.length ? "Produkte" : "", off, mine.length + local.length + sem.length) + (S.note ? `<p class="muted kc-sh">${S.note}</p>` : "");
         out.querySelectorAll("[data-i]").forEach(b => b.onclick = () => pick(list[+b.dataset.i], b)); out.querySelectorAll("[data-rc]").forEach(b => b.onclick = () => { const R = recs[+b.dataset.rc]; if (!R) return; haptic(10); close(); entrySheet(Recipes.asMeal(R), {focus: true}); }); };
-      const empty = () => { const r = recents(), my = seq; recs = []; if (r.length) draw(r, "Zuletzt"); else out.innerHTML = `<p class="muted kc-sh">Tipp den Namen ein, z. B. Eier, Toast, Nutella.</p>`;
-        if (!opt.pick) Recipes.find("").then(R => { if (closed || my !== seq || !R.length || q.value.trim().length >= 2) return; recs = R; draw(recents(), "Zuletzt"); }); };
+      const kl = Known.load();
+      /* nothing typed: what was picked lately, then what you eat most */
+      const empty = () => { const my = seq, r = recents(), often = Known.eaten().filter(x => x.n >= 2).slice(0, 6).map(Known.mark);
+        S = {mine: [], local: r.concat(often), sem: [], recs: [], off: [], ph: r.length ? "Zuletzt" : "Oft gegessen", note: r.length || often.length ? "" : "Tipp den Namen ein, z. B. Eier, Toast, Nutella."}; render();
+        if (!opt.pick) Recipes.find("").then(R => { if (closed || my !== seq || !R.length || q.value.trim().length >= 2) return; S.recs = R; render(); }); };
+      const semP = c => c.kind === "known" ? Known.mark(c.o) : c.kind === "own" ? c.o : c.kind === "tab" ? (c.o.cf ? tabP(c.o, true) : tabP(c.o)) : null;
       const go = async () => { const v = q.value.trim(), my = ++seq; if (v.length < 2) return empty(); out.classList.add("busy");
-        try { const rq = opt.pick ? Promise.resolve([]) : Recipes.find(v), oq = Label.find(v), r = await fetch("/api/food?q=" + encodeURIComponent(v)).catch(e => e), j = r && r.json ? await r.json().catch(() => ({})) : {}, R = await rq, own = await oq; if (my !== seq) return; recs = R;
-          /* the foods of the table come first ("Nudeln, gekocht" is the same for everybody), then the products */
-          /* then packs somebody photographed (Open Food Facts doesn't know those) */
-          const loc = tabFind(v).concat(own);
-          if (!r.ok || !Array.isArray(j.items)){ if (R.length || loc.length) return draw(loc); throw new Error(j.error || (r.ok === false ? "Suche gerade nicht erreichbar" : "Keine Verbindung")); }
-          if (!j.items.length && !R.length && !loc.length) out.innerHTML = `<p class="muted kc-sh">Nichts gefunden. Anders schreiben oder selbst eintragen.</p>`; else draw(loc.concat(j.items)); }
-        catch(e) { if (my === seq) out.innerHTML = `<p class="muted kc-sh">⚠️ ${h(e.message || "Keine Verbindung")}</p>`; }
-        finally { if (my === seq) out.classList.remove("busy"); } };
+        await Promise.race([kl, new Promise(r => setTimeout(r, 1200))]); if (my !== seq) return;
+        /* at once, here on the phone: eaten before, recipes, the table ("Nudeln, gekocht" is the same for everybody), photographed packs */
+        const tab = Known.tabFind(v); S = {mine: Known.find(v), local: tab.concat(Known.ownFind(v)), sem: [], recs: opt.pick ? [] : Known.recFind(v), off: [], ph: "", note: ""}; render();
+        let left = 3; const done = () => { if (--left || my !== seq) return; out.classList.remove("busy");
+          if (!S.mine.length && !S.local.length && !S.sem.length && !S.recs.length && !S.off.length && !S.note) S.note = "Nichts gefunden. Anders schreiben oder selbst eintragen."; render(); };
+        /* photographed packs straight from the database too (the newest state, also of a pack added a moment ago) */
+        Label.find(v).then(own => { if (my !== seq || !own.length) return; S.local = tab.concat(own, S.local.slice(tab.length)); render(); }).catch(() => {}).finally(done);
+        /* Open Food Facts */
+        (async () => { try { const r = await fetch("/api/food?q=" + encodeURIComponent(v)), j = await r.json().catch(() => ({})); if (my !== seq) return;
+            if (!r.ok || !Array.isArray(j.items)) throw new Error(j.error || "Suche gerade nicht erreichbar"); S.off = j.items; render(); }
+          catch(e) { if (my === seq && !S.mine.length && !S.local.length) S.note = "⚠️ " + h(e.message || "Keine Verbindung"); }
+          finally { done(); } })();
+        /* by meaning: things you know that fit, even when no word is the same */
+        (async () => { try { const hits = await Sem.find(v); if (my !== seq) return; const boost = c => c.kind === "known" ? Math.min(.06, .02 * Math.log2(1 + c.o.n)) : 0;
+            hits.sort((a2, b2) => (b2.s + boost(b2)) - (a2.s + boost(a2)));
+            S.sem = hits.map(semP).filter(Boolean).slice(0, 5); if (!opt.pick) S.recs = S.recs.concat(hits.filter(c => c.kind === "rec").map(c => c.o)); render(); }
+          catch(e) {} finally { done(); } })(); };
       q.oninput = () => { clearTimeout(tmr); tmr = setTimeout(go, 320); };
       q.onkeydown = e => { if (e.key === "Enter"){ e.preventDefault(); clearTimeout(tmr); go(); q.blur(); } };
       /* tapped a product: how much, right under it (the portion size comes from the product itself) */
@@ -893,11 +982,13 @@
       const take = async P => { const st0 = stOf(); w.name = el.querySelector("#kpn").defaultValue; const g = (!add && (w.g || gramsIn(w.amount))) || 0, ck = !!cookOf(P), P2 = ck ? (st0 ? cookP(P, st0) : null) : P; haptic(10); sh.close();
         if (g > 0 && P2){ recent(P.base || P); const ps = partsOf(m); ps[idx] = itemOf(P2, g); try { await done(ps); say("✓ " + String(P.name).slice(0, 30)); } catch(e) { say("Ging nicht: " + (e.message || e)); } }
         else swap(ck && st0 ? Object.assign({}, P, {ck0: st0}) : P); };
-      const draw = () => { sg.innerHTML = L.length ? `<div class="kc-shsg kc-psg">${L.map((x, i) => `<button type="button" data-sg="${i}"><b>${h(x.name)}</b><small>${h(x.brand || "")}${x.brand ? " · " : ""}${fmt(x.k)} kcal / 100 g</small><i>›</i></button>`).join("")}</div>` : "";
+      const draw = () => { sg.innerHTML = L.length ? `<div class="kc-shsg kc-psg">${L.map((x, i) => `<button type="button" data-sg="${i}"><b>${h(x.name)}</b><small>${x.seen ? `<em>${h(x.seen)}</em> · ` : ""}${h(x.brand || "")}${x.brand ? " · " : ""}${fmt(x.k)} kcal / 100 g</small><i>›</i></button>`).join("")}</div>` : "";
         sg.querySelectorAll("[data-sg]").forEach(b => b.onclick = () => take(L[+b.dataset.sg])); };
       pn.addEventListener("input", () => { clearTimeout(tm); const v = pn.value.trim(), my = ++seq; if (v.length < 2){ L = []; draw(); return; }
-        L = tabFind(v).slice(0, 2); draw();
-        tm = setTimeout(async () => { try { const r = await fetch("/api/food?q=" + encodeURIComponent(v)), j = await r.json().catch(() => ({})); if (my !== seq || !Array.isArray(j.items)) return; L = tabFind(v).slice(0, 2).concat(j.items).slice(0, 7); draw(); } catch(e) {} }, 300); }); }
+        /* what you ate before first (forgiving spelling), then the table, then Open Food Facts */
+        const one = l => { const seen = new Set(); return l.filter(P => { const k = Known.keyOf(P); if (seen.has(k)) return false; seen.add(k); return true; }); }, base = () => Known.find(v, 3).concat(Known.tabFind(v).slice(0, 2));
+        L = one(base()); draw();
+        tm = setTimeout(async () => { try { const r = await fetch("/api/food?q=" + encodeURIComponent(v)), j = await r.json().catch(() => ({})); if (my !== seq || !Array.isArray(j.items)) return; L = one(base().concat(j.items)).slice(0, 8); draw(); } catch(e) {} }, 300); }); }
     el.querySelectorAll("[data-rep]").forEach(b => b.onclick = () => { const k = b.dataset.rep; read(); sh.close();
       if (k === "scan") KCScan.open({pick: swap}); else if (k === "search") Search.open({pick: swap, q: add ? "" : (w.per && w.per.n) || w.name.replace(/\(.*?\)/g, "").trim(), title: add ? "Etwas dazu suchen" : "Echtes Produkt suchen"}); else swap(perP(w)); });
     el.querySelector("#kps").onclick = async () => { read(); if (!w.name) return say("Wie heißt es?"); const ps = partsOf(m); if (add) ps.push(w); else ps[idx] = w;
@@ -1979,7 +2070,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-shbar{display:flex;gap:8px;align-items:stretch}.kc-shbar input{flex:1;min-width:0;padding:15px 14px!important;font:800 17px var(--body)!important;border-radius:16px!important;border:2px solid var(--go)!important;background:#2A2825!important;color:var(--fg)}
 .kc-shmic{flex:none;width:54px;border-radius:16px;border:0;background:var(--panel-3);color:var(--fg);display:grid;place-items:center;box-shadow:inset 0 -4px 0 rgba(0,0,0,.28);cursor:pointer;transition:transform .12s}.kc-shmic:active{transform:translateY(2px)}.kc-shmic.on{background:#E2523E;animation:kcMic 1s ease-in-out infinite}@keyframes kcMic{50%{box-shadow:0 0 0 8px rgba(226,82,62,.25)}}
 .kc-shok{flex:none;min-width:62px;border-radius:16px;border:0;background:linear-gradient(180deg,var(--go-hi),var(--go));color:#fff;font:900 17px var(--display);box-shadow:inset 0 -4px 0 var(--go-deep);cursor:pointer;transition:transform .12s}.kc-shok:active{transform:translateY(2px)}
-.kc-shsg{display:flex;flex-direction:column;gap:4px}.kc-shsg button{display:flex;align-items:center;gap:8px;text-align:left;padding:12px 14px;border-radius:14px;border:0;background:var(--panel-2);color:var(--fg);cursor:pointer}.kc-shsg b{font:800 15px var(--body);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.kc-shsg small{color:var(--muted);font:600 12px var(--body);flex:none;max-width:35%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.kc-shsg i{font-style:normal;color:var(--go-hi);font:900 20px var(--body)}
+.kc-shsg{display:flex;flex-direction:column;gap:4px}.kc-shsg button{display:flex;align-items:center;gap:8px;text-align:left;padding:12px 14px;border-radius:14px;border:0;background:var(--panel-2);color:var(--fg);cursor:pointer}.kc-shsg b{font:800 15px var(--body);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.kc-shsg small{color:var(--muted);font:600 12px var(--body);flex:none;max-width:35%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.kc-shsg small em{font-style:normal;color:#9BE25A;font-weight:800}.kc-shsg i{font-style:normal;color:var(--go-hi);font:900 20px var(--body)}
 .kc-shgob{border:0;border-radius:16px;padding:15px;background:#C9853F;color:#fff;font:900 18px var(--display);box-shadow:inset 0 -4px 0 #9A6228;text-shadow:0 1px 0 rgba(0,0,0,.2);cursor:pointer}.kc-shgob:active{transform:translateY(2px)}
 .kc-shst{display:grid;grid-template-columns:1fr 1fr;gap:8px}.kc-shst button{border:0;border-radius:18px;padding:26px 8px;background:var(--panel-3);color:var(--fg);font:900 22px var(--display);box-shadow:inset 0 -5px 0 rgba(0,0,0,.28);cursor:pointer}.kc-shst button:active{transform:translateY(2px)}.kc-shst button:last-child:nth-child(odd){grid-column:1 / -1}
 .kc-shgo{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-radius:14px;background:rgba(201,133,63,.16);box-shadow:inset 0 0 0 1.5px rgba(201,133,63,.55)}.kc-shgo b{font:900 15px var(--display);color:#E0A262}.kc-shgo button{border:0;border-radius:10px;padding:7px 10px;background:var(--panel-3);color:var(--fg);font:800 13px var(--body)}
@@ -2035,7 +2126,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-srcb.bls{background:rgba(96,196,190,.12);box-shadow:inset 0 0 0 1.5px rgba(96,196,190,.4)}.kc-srcb.bls b{color:#7FD6D0}.kc-srcb.own{background:rgba(232,197,106,.12);box-shadow:inset 0 0 0 1.5px rgba(232,197,106,.4)}.kc-srcb.own b{color:#E8C56A}.kc-srcb.est{background:rgba(255,154,136,.12);box-shadow:inset 0 0 0 1.5px rgba(255,154,136,.4)}.kc-srcb.est b{color:#FF9A88}
 .kc-sph.kc-srec{background:var(--panel-3)}
 .kc-sres img,.kc-sph{width:44px;height:44px;border-radius:10px;object-fit:contain;flex:none;background:#fff;display:flex;align-items:center;justify-content:center;font-size:24px}
-.kc-sn{flex:1;min-width:0;display:flex;flex-direction:column;font:800 15px var(--body);line-height:1.2}.kc-sn small{color:var(--muted);font-weight:700;font-size:12px;margin-top:2px}
+.kc-sn{flex:1;min-width:0;display:flex;flex-direction:column;font:800 15px var(--body);line-height:1.2}.kc-sn small{color:var(--muted);font-weight:700;font-size:12px;margin-top:2px}.kc-sn small em{font-style:normal;color:#9BE25A;font-weight:800}
 .kc-sres b{display:flex;flex-direction:column;align-items:flex-end;font:900 17px var(--display);white-space:nowrap}.kc-sres b small{font:700 11px var(--body);color:var(--muted)}
 .kc-sh{font:800 12px var(--body);margin:2px 2px 0}
 .kc-rep{display:grid;grid-template-columns:1fr 1fr;gap:8px}.kc-rep .btn{display:flex;align-items:center;justify-content:center;gap:6px}

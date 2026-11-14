@@ -573,6 +573,38 @@ const PARTS = {
     await clean([a, b], "Haushalt");
   },
 
+  /* ---------- the forgiving search (Wunsch von Nathan): typos, other spelling, other word order, and by meaning; what you ate before comes first ---------- */
+  async suche(browser){
+    const d3 = new Date(Date.now() - 3 * 864e5), day = d3.getFullYear() + "-" + String(d3.getMonth() + 1).padStart(2, "0") + "-" + String(d3.getDate()).padStart(2, "0"), code = "4063367101045";
+    const trio = {name: "Buntes Frucht-Trio (Danone)", amount: "125 g", kcal: 120, carbs: 17, protein: 4, fat: 3.6, code, g: 125, per: {n: "Buntes Frucht-Trio", b: "Danone", k: 96, c: 13.6, pr: 3.2, f: 2.9, s: 125, pk: 500, img: null, ss: "125 g", fi: 0, su: 12, sf: 1.9, sa: .1, ns: "", hd: 1}};
+    for (const hh of [0, 5]) await L.stage("POST", "kcal_meals", "", {user_id: ID.tester, day, ts: new Date(d3.getTime() + hh * 36e5).toISOString(), title: "Buntes Frucht-Trio", emoji: "📦", source: "barcode", kcal: 120, carbs: 17, protein: 4, fat: 3.6, code, items: [trio]});
+    const page = await L.open(browser, "tester"); await page.waitForFunction(c => window.Kcal && Kcal.meals && Kcal.meals.some(m => m.code === c), code, {timeout: 10000}).catch(() => {});
+    const search = async (text, want) => { await page.tap("#main [data-kc-find]"); await sleep(400); await page.keyboard.type(text, {delay: 15});
+      await page.waitForFunction(w => { const o = document.querySelector("#kcsr"); return o && !o.classList.contains("busy") && new RegExp(w).test(o.innerText); }, want, {timeout: 7000}).catch(() => {}); await sleep(250); return txt(page, "#kcsr"); };
+    const shut = async () => { if (await has(page, "#kcsx")){ await page.tap("#kcsx"); await sleep(400); } };
+    const e0 = global.__embeds || 0;
+    let t = await search("Fruchtrio", "Schon gegessen"); await page.shot("suche-fruchtrio");
+    ok(/^Schon gegessen/.test(t) && /Buntes Frucht-Trio/.test(t) && /2× gegessen/.test(t), "„Fruchtrio“ (falsch geschrieben) findet das „Buntes Frucht-Trio“ ganz oben unter „Schon gegessen“ (2× gegessen)", t.slice(0, 160));
+    /* taking it from there works like any product: its own portion, its own values */
+    const n0 = (await L.table("kcal_meals", "user_id=eq." + ID.tester)).length;
+    await page.tap('#kcsr .kc-sres:has-text("Buntes Frucht-Trio")'); await sleep(500); await page.tap(".kc-sov [data-add]"); await sleep(1100);
+    const m = (await L.table("kcal_meals", "user_id=eq." + ID.tester + "&order=ts.desc&limit=1"))[0] || {};
+    ok((await L.table("kcal_meals", "user_id=eq." + ID.tester)).length === n0 + 1 && m.code === code && m.kcal === 120 && m.source === "search", "angetippt und hinzugefügt: 125 g Frucht-Trio = 120 kcal, mit Barcode", JSON.stringify([m.title, m.kcal, m.code, m.source]));
+    await clean(page, "Suche mit Tippfehler");
+    t = await search("trio frucht", "Schon gegessen"); ok(/Schon gegessen[\s\S]*Buntes Frucht-Trio/.test(t), "andere Reihenfolge („trio frucht“) findet es auch", t.slice(0, 120)); await shut();
+    t = await search("Fruchtjoghurt", "Passt vielleicht"); await page.shot("suche-fruchtjoghurt");
+    ok(/Passt vielleicht[\s\S]*Buntes Frucht-Trio/.test(t), "„Fruchtjoghurt“: kein Wort gleich, trotzdem schlägt die Bedeutungs-Suche das Frucht-Trio vor", t.slice(0, 200));
+    ok((global.__embeds || 0) > e0, "dafür wurde das Embedding-Modell gefragt");
+    ok(!/Passt vielleicht[\s\S]*Haferflocken/.test(t), "Unpassendes (Haferflocken) steht nicht bei „Passt vielleicht“", t.slice(0, 200)); await shut();
+    t = await search("Hafrflocken", "Haferflocken[\\s\\S]*pro 100 g|pro 100 g[\\s\\S]*Haferflocken"); ok(/Haferflocken/.test(t), "„Hafrflocken“ (Tippfehler) findet die Haferflocken", t.slice(0, 160)); await shut();
+    /* nothing typed: what you eat often */
+    await page.tap("#main [data-kc-find]"); await sleep(600); t = await txt(page, "#kcsr"); ok(/Buntes Frucht-Trio/.test(t), "leeres Suchfeld: zuletzt Gesuchtes und oft Gegessenes stehen schon da", t.slice(0, 160)); await shut();
+    /* the model is down: the forgiving search still works */
+    process.env.FAKE_AI_DOWN = "1"; t = await search("Fruchtrio", "Schon gegessen"); delete process.env.FAKE_AI_DOWN;
+    ok(/Schon gegessen[\s\S]*Buntes Frucht-Trio/.test(t), "ohne KI findet die Suche Bekanntes trotzdem", t.slice(0, 120)); await shut();
+    await clean(page, "Suche nach Bedeutung"); await page.context().close();
+  },
+
   async feedback(browser){
     const page = await L.open(browser, "tester"); await page.evaluate(() => openSheet()); await sleep(400); await page.locator('#sheet [data-s="__feedback"]').tap(); await sleep(600);
     /* ideas come first: a long wish is kept whole */

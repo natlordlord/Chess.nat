@@ -30,7 +30,7 @@ tut, was ein Spieler tun würde, und prüft das Ergebnis auf der Seite **und** i
 geklappt hat, samt jedem Fehler, den Seite oder Datenbank unterwegs gemeldet haben. Bilder landen in `test/out/`.
 
 Teile (`quelle` läuft zuletzt, es stellt die Nährwert-Tabelle auf die Open-Food-Facts-Werte der Attrappe um): `login` · `kcal` (Suche, Mengen, Sprechen, Barcode) · `nudeln` (feste Nährwerte, trocken/gekocht) ·
-`kcal2` (Reiter, Einstellungen, Wiegen, Kochen, Wochen-Rückblick) · `shop` (Einkaufsliste mit zwei Handys) ·
+`suche` (Tippfehler, andere Schreibweise, Suche nach Bedeutung, Schon gegessen) · `kcal2` (Reiter, Einstellungen, Wiegen, Kochen, Wochen-Rückblick) · `shop` (Einkaufsliste mit zwei Handys) ·
 `chat` (Chat mit zwei Handys, Nat Stars, Freunde) · `tipp` · `feedback` · `seiten` (jede Seite, Handy und PC) · `start` (kein Flackern) · `quelle` (Tabellenwerte aus Open Food Facts)
 
 ## Tippen mit Tastatur (iPhone nachgestellt)
@@ -49,7 +49,7 @@ Eine echte iPhone-Tastatur ist das nicht: Was iOS selbst mit der Seite macht, si
 - `fake-supabase/rules.js` enthält die echten Regeln: CHECKs, Row Level Security (wer darf was sehen und ändern),
   Trigger (Flamme) und die Funktionen hinter `rpc`.
 - Live-Änderungen kommen wie in echt nur für Tabellen, die dafür freigeschaltet sind, und nur bei dem an, der die Zeile lesen darf.
-- `/api/kcal` und `/api/food` sind die echten Dateien aus `api/`; nur die KI und Open Food Facts sind durch feste Antworten ersetzt.
+- `/api/kcal` und `/api/food` sind die echten Dateien aus `api/`; nur die KI und Open Food Facts sind durch feste Antworten ersetzt (das Embedding-Modell der Suche durch ein paar feste „Bedeutungen“ wie Milchprodukt, Obst, Getreide).
 
 **Wichtig:** Ändert sich die echte Datenbank (neue Tabelle, neue Spalte, neue Regel), müssen `schema.js` und `rules.js` nachziehen.
 Tabellen, die es bisher nur als SQL-Datei gibt, stehen in `schema.js` unter `PENDING`; mit `FAKE_PENDING=1` tut die Attrappe so, als gäbe es sie schon.
