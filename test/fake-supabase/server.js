@@ -153,6 +153,14 @@ function ai(req){
 const realFetch = global.fetch, json = (o, status = 200) => new Response(JSON.stringify(o), {status, headers: {"content-type": "application/json"}});
 global.fetch = async (url, init = {}) => {
   url = String(url);
+  /* Spotify's public embed page of a playlist: "pl1…" has Queen and Nena, "pl2…" Queen and a-ha (two Queen songs in both);
+     the songs sit in the page's JSON like on the real page */
+  if (/open\.spotify\.com\/embed\/playlist\//.test(url)){ const id = url.split("/").pop(), L = {
+      pl1aaaaaaaaaaa: [["Bohemian Rhapsody - Remastered 2011", "Queen"], ["Don't Stop Me Now", "Queen"], ["Radio Ga Ga", "Queen"], ["99 Luftballons", "Nena"], ["Leuchtturm", "Nena"], ["Irgendwie, irgendwo, irgendwann", "Nena"]],
+      pl2bbbbbbbbbbb: [["Bohemian Rhapsody", "Queen"], ["Don't Stop Me Now", "Queen"], ["Under Pressure", "Queen, David Bowie"], ["Take On Me", "a-ha"], ["Hunting High and Low", "a-ha"], ["The Sun Always Shines on T.V.", "a-ha"]]}[id];
+    if (!L) return new Response("<html><title>Page not found</title></html>", {status: 404, headers: {"content-type": "text/html"}});
+    const data = {props: {pageProps: {state: {data: {entity: {type: "playlist", name: id === "pl1aaaaaaaaaaa" ? "Nats Mix" : "Milas Lieblinge", trackList: L.map(([title, subtitle]) => ({uri: "spotify:track:x", title, subtitle, duration: 200000}))}}}}}};
+    return new Response(`<!doctype html><html><head><title>Spotify Embed</title></head><body><div id="root"></div><script id="__NEXT_DATA__" type="application/json">${JSON.stringify(data)}</script></body></html>`, {status: 200, headers: {"content-type": "text/html"}}); }
   if (/supabase\.co\/auth\/v1\/user/.test(url)){ const u = db.users.find(x => x.id === uidOf((init.headers || {}).Authorization)); return u ? json(userJSON(u)) : json({msg: "invalid JWT"}, 401); }
   /* the server function asks the database as the signed-in person (the shared food database) */
   if (/supabase\.co\/rest\/v1\//.test(url)){ const U = new URL(url), name = U.pathname.split("/rest/v1/")[1], uid = uidOf((init.headers || {}).Authorization), bd = init.body ? JSON.parse(init.body) : null;
@@ -217,6 +225,7 @@ const server = http.createServer((req, res) => {
       if (p === "/api/kcal") return await vercel("kcal.js", req, res, q, raw);
       if (p === "/api/food") return await vercel("food.js", req, res, q, raw);
       if (p === "/api/foods") return await vercel("foods.js", req, res, q, raw);
+      if (p === "/api/spotify") return await vercel("spotify.js", req, res, q, raw);
       /* api/muell.js with the district's calendar replaced by a fixed one: two towns, a few streets, collections on the next days */
       if (p === "/api/abfall"){ res.writeHead(200, {"content-type": "application/json"}); return res.end(JSON.stringify({error: "unsupported"})); }
       if (p === "/api/muell"){ const day = n => { const d = new Date(Date.now() + n * 864e5); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }, J = (o, st) => { res.writeHead(st || 200, {"content-type": "application/json"}); return res.end(JSON.stringify(o)); };
