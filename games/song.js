@@ -186,7 +186,8 @@
   /* ---------- one player for every clip. It is loaded ahead (while the phone is passed on, or during the 3-2-1), and every clip starts
      at its first second (or where the last part stopped): the clip's time only starts counting once the sound really plays.
      The iPhone only plays sound a tap started: the first tap in the game wakes the player; it counts as music (plays on silent too) ---------- */
-  const SA = (() => { const au = new Audio(); au.preload = "auto"; au.setAttribute("playsinline", ""); let ok = false, key = null, tok = 0, stopT = 0, starts = [];
+  const SA = (() => { const au = new Audio(); au.preload = "auto"; au.setAttribute("playsinline", ""); let ok = false, key = null, tok = 0, stopT = 0, starts = [], dl = 0, dlWant = 0, dlT = 0, cur = null;
+    try { au.preservesPitch = true; au.webkitPreservesPitch = true; au.mozPreservesPitch = true; } catch(e) {}
     const silent = (() => { const n = 1600, b = new Uint8Array(44 + n), dv = new DataView(b.buffer), w = (o2, str) => [...str].forEach((ch, i) => { b[o2 + i] = ch.charCodeAt(0); });
       w(0, "RIFF"); dv.setUint32(4, 36 + n, true); w(8, "WAVEfmt "); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true); dv.setUint32(24, 8000, true); dv.setUint32(28, 8000, true); dv.setUint16(32, 1, true); dv.setUint16(34, 8, true); w(36, "data"); dv.setUint32(40, n, true); b.fill(128, 44);
       let bin = ""; b.forEach(x => { bin += String.fromCharCode(x); }); return "data:audio/wav;base64," + btoa(bin); })();
@@ -198,8 +199,9 @@
         Promise.resolve(au.play()).then(() => { ok = true; }).catch(e => { au.removeEventListener("playing", arm); if (key === k && (!e || e.name === "NotAllowedError")) onNeed && onNeed(); }); }
       catch(e) { onNeed && onNeed(); } };
     /* parts still to come start on time; one that is already running (a phone that came in late) starts now, where it is */
-    const sched = (k, url, parts, onNeed) => { const t = Date.now(); starts = parts.filter(p => p.at + p.len * 1000 > t).map(p => { const late = Math.max(0, t - p.at), off = late > 300 ? late / 1000 : 0;
-      return setTimeout(() => go(k, url, p.len - off, onNeed, (p.from || 0) + off), Math.max(0, p.at - t)); }); };
+    /* dl: how much later this phone plays than planned, while someone else sings along (see Sing) */
+    const sched = (k, url, parts, onNeed) => { cur = {k, url, parts, onNeed}; const t = Date.now(); starts = parts.filter(p => p.at + dl + p.len * 1000 > t).map(p => { const at = p.at + dl, late = Math.max(0, t - at), off = late > 300 ? late / 1000 : 0;
+      return setTimeout(() => go(k, url, p.len - off, onNeed, (p.from || 0) + off), Math.max(0, at - t)); }); };
     return {au, get ok(){ return ok; }, get key(){ return key; },
       unlock(){ music(true); if (ok || key || (au.src && OKURL.test(au.src)) || (typeof PVoice !== "undefined" && (PVoice.on || PVoice.starting))) return;
         try { au.muted = true; au.src = silent; Promise.resolve(au.play()).then(() => { if (au.src === silent){ au.pause(); au.muted = false; } ok = true; }).catch(() => { if (au.src === silent) au.muted = false; }); } catch(e) {} },
@@ -225,8 +227,43 @@
       /* the answer is out: the rest of the preview plays on */
       rest(url){ halt(); key = "rest"; tok++; try { au.muted = false; if (au.src === url && au.paused) Promise.resolve(au.play()).catch(() => {}); } catch(e) {} },
       pos(){ return au.currentTime || 0; },
+      /* move the music later (or back) by ms: while it plays, gently (10 % slower or faster, same pitch) until it fits; when nothing plays, at once */
+      lag(ms){ dlWant = Math.max(0, Math.min(600, Math.round(ms || 0))); },
+      lagStep(){ const t = Date.now(), el = dlT ? Math.min(500, t - dlT) : 0; dlT = t; const diff = dlWant - dl;
+        if (au.paused || !key){ if (diff){ dl = dlWant; if (au.playbackRate !== 1) au.playbackRate = 1; if (key && cur && cur.k === key && starts.length){ starts.forEach(clearTimeout); starts = []; sched(cur.k, cur.url, cur.parts.filter(p => p.at > t - 80), cur.onNeed); } } return; }
+        if (Math.abs(diff) <= 25){ if (au.playbackRate !== 1) au.playbackRate = 1; dl = dlWant; return; }
+        const r = diff > 0 ? .9 : 1.1; if (au.playbackRate !== r) au.playbackRate = r; dl += (1 - r) * el; },
+      get lagMs(){ return Math.round(dl); }, get lagWant(){ return dlWant; }, get rate(){ return au.playbackRate; },
       stop(){ key = null; tok++; halt(); try { au.pause(); } catch(e) {} au.muted = false; music(false); }}; })();
-  PG.songSA = SA; PG._song = {Pool, PlPool, langOf, LVL};   /* for the tests and for looking into it on a phone */
+  /* ---------- singing along over the voice chat (Nathan): a voice reaches the others a little late (the network and the phones'
+     sound buffers), so whoever sings along to their music sounds behind it on every other phone. Each phone measures how late every
+     voice arrives (WebRTC statistics: half the round trip, the jitter buffer and the phones' own sound path) and, while someone else
+     sings, lets its music run exactly that much later: the singer's voice and the music arrive together. Two people singing at the
+     same moment can't both be in time everywhere (the delay would have to go both ways), so the music follows whoever started first,
+     until they have been quiet for a moment; while you sing yourself your music stays where it is, so you are in time for the others.
+     The music is moved gently, never with a jump ---------- */
+  const Sing = (() => {
+    const L = {}, st = {lead: null, heard: {}, on: {}, mineT: 0, it: 0, mt: 0}, X = {};
+    const voice = () => typeof PVoice !== "undefined" && PVoice.on, peers = () => X.peers ? X.peers() : voice() ? PVoice.peers() : [];
+    const talking = id => X.talking ? X.talking(id) : voice() && PVoice.talking(id), latOf = id => X.lat && X.lat[id] != null ? X.lat[id] : L[id];
+    async function measure(){ if (!voice()) return; const pcs = PVoice._pcs || {};
+      for (const id of Object.keys(pcs)){ const pc = pcs[id] && pcs[id].pc; if (!pc || pc.connectionState !== "connected") continue;
+        try { const r = await pc.getStats(); let rtt = null, jb = null; r.forEach(v => { if (v.type === "candidate-pair" && v.nominated && v.state === "succeeded" && v.currentRoundTripTime != null) rtt = v.currentRoundTripTime; if (v.type === "inbound-rtp" && v.kind === "audio" && v.jitterBufferEmittedCount) jb = v.jitterBufferDelay / v.jitterBufferEmittedCount; });
+          if (rtt != null) L[id] = Math.round(Math.min(600, (rtt / 2 + (jb != null ? jb : .06) + .06) * 1000)); } catch(e) {} } }
+    function step(){ const t = Date.now(), ps = peers(), me = PNet.me;
+      ps.forEach(id => { if (talking(id)){ if (!st.on[id] || t - (st.heard[id] || 0) > 400) st.on[id] = t; st.heard[id] = t; } });
+      if (st.lead && (!ps.includes(st.lead) || t - (st.heard[st.lead] || 0) > 2500)) st.lead = null;
+      const meTalk = talking(me); if (meTalk) st.mineT = t;
+      if (!st.lead && !(t - st.mineT < 1500)){ let best = null; ps.forEach(id => { if (t - (st.heard[id] || 0) < 300 && t - st.on[id] >= 400 && (!best || st.on[id] < st.on[best])) best = id; }); st.lead = best; }
+      SA.lag(st.lead && latOf(st.lead) != null ? latOf(st.lead) : 0); SA.lagStep(); badge(t); }
+    /* a small line on the screen: who leads and by how much the music runs later; or that you lead */
+    function badge(t){ const box = document.querySelector(".sg-on"); if (!box) return; let b = box.querySelector(".sg-sing");
+      const txt = st.lead ? `🎤 ${h(PNet.nameOf(st.lead) || "?")} ${T("sings along · your music follows", "singt mit · deine Musik läuft")} ${SA.lagWant} ms ${T("later, so it fits", "später, damit es passt")}` : t - st.mineT < 1500 && peers().length ? `🎤 ${T("You sing along · the others hear you in time", "Du singst mit · die anderen hören dich im Takt")}` : "";
+      if (!txt){ if (b) b.remove(); return; } if (!b){ b = document.createElement("div"); b.className = "sg-sing"; box.prepend(b); } if (b._t !== txt){ b._t = txt; b.innerHTML = txt; } }
+    return {start(){ if (st.it) return; st.it = setInterval(step, 100); st.mt = setInterval(measure, 2000); measure(); },
+      stop(){ clearInterval(st.it); clearInterval(st.mt); st.it = st.mt = 0; st.lead = null; SA.lag(0); SA.lagStep(); },
+      get lead(){ return st.lead; }, L, step, test(o){ Object.assign(X, o || {}); }}; })();
+  PG.songSA = SA; PG._song = {Pool, PlPool, langOf, LVL, Sing};   /* for the tests and for looking into it on a phone */
   /* the first tap in the song game wakes the player (not the voice chat buttons: the microphone comes first there) */
   document.addEventListener("pointerdown", e => { if (typeof App === "undefined" || !(App.route === "lobby" || App.route === "party") || (e.target && e.target.closest && e.target.closest("#lvoice,#lvx"))) return;
     const P = typeof PNet !== "undefined" && PNet.P, song = App.route === "party" ? PG.st.last === "song" : !!(P && (P.game === "song" || (P.msg && P.msg.game === "song"))); if (song) SA.unlock(); }, true);
@@ -607,8 +644,8 @@
       + `<div class="sg-card ${nw && x.nw === nw ? "nw" : ""}"><b>${x.y}</b><span>${md(x.t || "")}${x.a ? `<small>${md(x.a)}</small>` : ""}</span></div>`).join("") + (slots && L.length ? `<button class="sg-slot" data-sl="${L.length}">＋ ${T(`after ${L[L.length - 1].y}`, `nach ${L[L.length - 1].y}`)}</button>` : "")}</div>`;
     const bingoHTML = (card, live2) => `<div class="sg-bingo">${card.map((x, i) => `<button class="sg-bc ${x.m ? "m" : ""}" ${live2 && !x.m ? `data-bc="${i}"` : "disabled"}><span>${md(x.a)}</span>${x.m ? "<i>✓</i>" : ""}</button>`).join("")}</div>`;
     PG.custom.song = {
-      stop(){ SA.stop(); clearInterval(V.tk); V.k = null; },
-      draw(body, v, m, act){
+      stop(){ SA.stop(); Sing.stop(); clearInterval(V.tk); V.k = null; },
+      draw(body, v, m, act){ Sing.start();
         if (v.snd && v.snd.k !== V.snd){ V.snd = v.snd.k; try { (SND[v.snd.n] || (() => {}))(); } catch(e) {} }
         const fresh = V.k !== v.k || !body.querySelector(".sg-on"), need = () => { const b = body.querySelector('[data-x="hear"]'); if (b) b.hidden = false; };
         /* times: taken once per question from what the host said; a new plan (more listening) replaces them */
@@ -704,6 +741,7 @@
 
   /* ---------- the look ---------- */
   const css = `
+.sg-sing{align-self:stretch;margin:0 0 8px;padding:7px 12px;border-radius:12px;background:rgba(127,178,74,.16);color:var(--fg);font:800 13px var(--display,system-ui);text-align:center;animation:sgSing 1.6s ease-in-out infinite}@keyframes sgSing{50%{background:rgba(127,178,74,.28)}}
 .sg-eq{display:flex;gap:6px;justify-content:center;align-items:flex-end;height:46px;margin:6px 0}
 .sg-eq i{width:10px;height:30%;border-radius:4px;background:var(--go)}
 .sg-eq i:nth-child(2){background:#B65CE0}.sg-eq i:nth-child(4){background:#4FA3FF}

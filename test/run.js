@@ -465,13 +465,16 @@ const PARTS = {
     await a.evaluate(() => App.go("party", {g: "arena"})); await sleep(900); await a.locator("#main button", {hasText: "Gegen Bots"}).first().tap();
     await a.waitForSelector('.ar-card[data-arc="beam"]', {timeout: 8000}).catch(() => {}); await sleep(400); await a.shot("natstars-auswahl");
     const cards = await a.$$eval(".ar-card", x => x.map(c => c.dataset.arc + ":" + c.getBoundingClientRect().width));
-    ok(cards.length === 7 && cards.some(c => c.startsWith("beam")), "Auswahl: 7 Kämpfer, neu der Lichtstrahl", JSON.stringify(cards));
+    ok(cards.length === 8 && cards.some(c => c.startsWith("beam")) && cards.some(c => c.startsWith("hammer")), "Auswahl: 8 Kämpfer, mit Lichtstrahl und neu dem Hammer", JSON.stringify(cards));
+    ok(/Hammer/.test(await txt(a, '.ar-card[data-arc="hammer"]')) && /Erdbeben/.test(await txt(a, '.ar-card[data-arc="hammer"]')), "Hammer-Karte: Name, „Schlägt im Bogen“, Super „Erdbeben“", await txt(a, '.ar-card[data-arc="hammer"]'));
     ok(/Lichtstrahl/.test(await txt(a, '.ar-card[data-arc="beam"]')) && /Blendlicht/.test(await txt(a, '.ar-card[data-arc="beam"]')), "Lichtstrahl-Karte: Name, „Haftet · saugt Leben“, Super „Blendlicht“", await txt(a, '.ar-card[data-arc="beam"]'));
     await a.tap('.ar-card[data-arc="beam"]');
     for (let i = 0; i < 60 && (await a.evaluate(() => __ar().ph)) !== "fight"; i++) await sleep(250);
     await sleep(1800); await a.evaluate(() => __arFreeze(true));
     const me = await a.evaluate(() => { const r = __ar(), id = Object.keys(r.cls).find(x => r.cls[x] === "beam" && !/^bot/.test(x)) || Object.keys(r.cls).find(x => !/^bot/.test(x)); return {id, cls: r.cls[id], x: r.me.x, y: r.me.y, bot: Object.keys(r.cls).find(x => /^bot/.test(x) || x !== id)}; });
     ok(me.cls === "beam", "du kämpfst als Lichtstrahl", JSON.stringify(me));
+    let f3 = []; for (let i = 0; i < 30; i++){ f3 = await a.evaluate(() => __ar3()); if (f3.length && f3.every(x => x[1] === "ok")) break; await sleep(250); }
+    ok(f3.length >= 2 && f3.every(x => x[1] === "ok"), "3D-Kämpfer: jeder als eigene 3D-Figur mit Laufbildern (vorn und hinten)", JSON.stringify(f3));
     /* a bot right in front of you, frozen */
     const spot = await a.evaluate(m => { for (let r = 200; r <= 360; r += 40) for (let k = 0; k < 16; k++){ const an = k / 16 * Math.PI * 2, f = __arFree(m.x + Math.cos(an) * r, m.y + Math.sin(an) * r); if (!f) continue; const d = Math.hypot(f.x - m.x, f.y - m.y); if (d > 150 && d < 400 && __arClear(m, f)) return f; } return null; }, me);
     ok(!!spot, "freie Stelle mit Sicht für den Test-Gegner", JSON.stringify(me));
@@ -481,18 +484,70 @@ const PARTS = {
     await a.evaluate(([m, s]) => __arFire(Math.atan2(s.y - m.y, s.x - m.x)), [me, spot]); await sleep(450);
     const mid = await a.evaluate(id => ({beams: __arBeams(), b: __arBotS(id)}), me.bot); await a.shot("natstars-lichtstrahl");
     ok(mid.beams.some(b => b.tg === me.bot && !b.heal) && mid.b.slow < 1, "der Strahl haftet am Gegner und bremst ihn", JSON.stringify(mid));
-    await sleep(1200); const hp1 = await a.evaluate(() => __ar().hp), b1 = await a.evaluate(id => __arBotS(id), me.bot);
-    ok(b0.hp - b1.hp >= 40 && b0.hp - b1.hp <= 60, "5 Treffer à 10: der Gegner verliert " + (b0.hp - b1.hp) + " Leben", JSON.stringify([b0, b1]));
+    await sleep(1800); const hp1 = await a.evaluate(() => __ar().hp), b1 = await a.evaluate(id => __arBotS(id), me.bot), st1 = await a.evaluate(id => __arBeams().filter(b => b.by === id), me.id);
+    ok(st1.length === 1 && b0.hp - b1.hp >= 54, "der Strahl hält, solange der Gegner in Reichweite ist: nach gut 2 s " + (b0.hp - b1.hp) + " Schaden, Verbindung steht", JSON.stringify({b0, b1, st1}));
     ok(hp1[me.id] > hp0[me.id], "und du bekommst Leben zurück (" + hp0[me.id] + " → " + hp1[me.id] + ")", JSON.stringify([hp0[me.id], hp1[me.id]]));
-    /* the super: blinding light, the bot runs away */
+    /* out of reach: a second to come back, then it is gone */
+    await a.evaluate(([id, m]) => __arBot(id, m.x + 1400, m.y), [me.bot, me]); await sleep(500); await a.evaluate(([id, s]) => __arBot(id, s.x, s.y), [me.bot, spot]); await sleep(400);
+    const mine = () => a.evaluate(id => __arBeams().filter(b => b.by === id), me.id);
+    ok((await mine()).length === 1, "kurz außer Reichweite (0,5 s) und zurück: die Verbindung steht wieder", JSON.stringify(await mine()));
+    await a.evaluate(([id, m]) => __arBot(id, m.x + 1400, m.y), [me.bot, me]); await sleep(1300); await a.evaluate(([id, s]) => __arBot(id, s.x, s.y), [me.bot, spot]); await sleep(300);
+    ok((await mine()).length === 0, "über 1 s außer Reichweite: die Verbindung ist weg, man muss neu treffen", JSON.stringify(await mine()));
+    await a.evaluate(([m, s]) => __arFire(Math.atan2(s.y - m.y, s.x - m.x)), [me, spot]); await sleep(300); const b1b = await a.evaluate(id => __arBotS(id), me.bot);
+    /* the super: blinding light, the bot runs away (a fresh bot, the first one has taken a lot) */
+    me.bot = await a.evaluate(([id, old]) => { const r = __ar(); return Object.keys(r.cls).filter(x => x !== id && x !== old && !r.out.includes(x)).sort((p, q) => r.hp[q] - r.hp[p])[0]; }, [me.id, me.bot]);
+    await a.evaluate(([id, s]) => { __arNoCubes(); __arPark(id); __arBot(id, s.x, s.y); }, [me.bot, spot]); await sleep(300); const b1c = await a.evaluate(id => __arBotS(id), me.bot);
     await a.evaluate(() => __arSup(1)); await a.evaluate(([m, s]) => __arFire(Math.atan2(s.y - m.y, s.x - m.x), true), [me, spot]); await sleep(300); await a.shot("natstars-blendlicht");
     const b2 = await a.evaluate(id => __arBotS(id), me.bot);
-    ok(b2.fear && b1.hp - b2.hp >= 40, "Blendlicht: Treffer (" + (b1.hp - b2.hp) + ") und der Gegner rennt weg", JSON.stringify(b2));
+    ok(b2.fear && b1c.hp - b2.hp >= 40, "Blendlicht: Treffer (" + (b1c.hp - b2.hp) + ") und der Gegner rennt weg", JSON.stringify(b2));
+    ok(b2.fv && b2.fv[0] * (spot.x - me.x) + b2.fv[1] * (spot.y - me.y) > 0, "er rennt von dir weg (Richtung der Furcht)", JSON.stringify(b2));
     await a.evaluate(() => __arFreeze(false)); await sleep(1200);
-    const b3 = await a.evaluate(id => __arBotS(id), me.bot);
-    ok(Math.hypot(b3.x - me.x, b3.y - me.y) > Math.hypot(spot.x - me.x, spot.y - me.y) + 40, "er läuft wirklich weg (Abstand " + Math.round(Math.hypot(spot.x - me.x, spot.y - me.y)) + " → " + Math.round(Math.hypot(b3.x - me.x, b3.y - me.y)) + ")", JSON.stringify(b3));
+    /* the hammer: a wind-up, then a blow on everyone in the arc; the earthquake all around; its super charges while an enemy is close */
+    await a.evaluate(() => { __arFreeze(true); __arCls("hammer"); __arSup(0); }); const m2 = await a.evaluate(() => __ar().me);
+    /* a fresh bot for the rest (the first one has taken a lot by now) */
+    me.bot = await a.evaluate(([id, old]) => { const r = __ar(); return Object.keys(r.cls).filter(x => x !== id && x !== old && !r.out.includes(x)).sort((p, q) => r.hp[q] - r.hp[p])[0]; }, [me.id, me.bot]);
+    const near = await a.evaluate(m => { for (let r = 110; r <= 140; r += 10) for (let k = 0; k < 24; k++){ const an = k / 24 * Math.PI * 2, f = __arFree(m.x + Math.cos(an) * r, m.y + Math.sin(an) * r); if (!f) continue; const d = Math.hypot(f.x - m.x, f.y - m.y); if (d > 95 && d < 150 && __arClear(m, f)) return f; } return null; }, m2);
+    if (ok(!!near, "freie Stelle direkt vor dem Hammer", JSON.stringify(m2))){
+      await a.evaluate(([id, s]) => { __arNoCubes(); __arPark(id); __arBot(id, s.x, s.y); }, [me.bot, near]); await sleep(1200); const h0 = (await a.evaluate(id => __arBotS(id), me.bot)).hp, s0 = await a.evaluate(() => __ar().sup);
+      ok(s0 > .05, "Lade-Radius: steht ein Gegner nah, lädt sich das Super von selbst (" + Math.round(s0 * 100) + " % nach gut 1 s)", String(s0));
+      await a.evaluate(([m, s]) => __arFire(Math.atan2(s.y - m.y, s.x - m.x)), [m2, near]); await sleep(130); const h1 = (await a.evaluate(id => __arBotS(id), me.bot)).hp; await sleep(350); await a.shot("natstars-hammer"); const h2 = (await a.evaluate(id => __arBotS(id), me.bot)).hp;
+      ok(h1 === h0 && h0 - h2 >= 38 && h0 - h2 <= 48, "Hammer: erst ausholen (nach 0,13 s noch kein Treffer), dann " + (h0 - h2) + " Schaden im Bogen", JSON.stringify([h0, h1, h2]));
+      const q0 = await a.evaluate(id => __arBotS(id), me.bot); await a.evaluate(() => __arSup(1)); await a.evaluate(() => __arFire(null, true)); await sleep(260); const q1 = await a.evaluate(id => __arBotS(id), me.bot); await a.shot("natstars-erdbeben"); const away = q1.kb ? q1.kb[0] * (q0.x - m2.x) + q1.kb[1] * (q0.y - m2.y) : -1;
+      ok(q0.hp - q1.hp >= 50 && away > 0, "Erdbeben: " + (q0.hp - q1.hp) + " Schaden rundherum, der Gegner wird weggestoßen", JSON.stringify([m2, q0, q1]));
+      await a.evaluate(([id, m]) => __arBot(id, m.x + 2000, m.y + 2000), [me.bot, m2]); await a.evaluate(() => __arSup(0)); await sleep(1000); ok(await a.evaluate(() => __ar().sup) === 0, "ohne Gegner im Radius lädt sich nichts", String(await a.evaluate(() => __ar().sup))); }
+    /* power cubes fly to you when you're close */
+    const pwa = (await a.evaluate(() => __arPw())).pw, kNear = await a.evaluate(() => __arDrop(95, 40)), kFar = await a.evaluate(() => __arDrop(-260, 0)); await sleep(1000); const pwb = await a.evaluate(() => __arPw());
+    ok(pwb.pw === pwa + 1 && !pwb.cubes.includes(kNear) && pwb.cubes.includes(kFar), "Power-Würfel: aus gut 100 px fliegt er von selbst zu dir, aus 260 px nicht", JSON.stringify({pwa, pwb, kNear, kFar}));
+    /* the tap aims ahead of a running enemy; bots go easier when friends play together, not alone */
+    await a.evaluate(() => __arCls("gun")); const m3 = await a.evaluate(() => __ar().me);
+    await a.evaluate(id => __arPark(id), me.bot);
+    const far = await a.evaluate(([m, id]) => { for (let r = 380; r <= 460; r += 20) for (let k = 0; k < 24; k++){ const an = k / 24 * Math.PI * 2, f = __arFree(m.x + Math.cos(an) * r, m.y + Math.sin(an) * r); if (!f || !__arClear(m, f) || Math.hypot(f.x - m.x, f.y - m.y) < 350) continue; const dr = Math.atan2(f.y - m.y, f.x - m.x), lp = {x: f.x - Math.sin(dr) * 130, y: f.y + Math.cos(dr) * 130}, lf = __arFree(lp.x, lp.y); if (!lf || Math.hypot(lf.x - lp.x, lf.y - lp.y) > 8 || !__arClear(m, lp)) continue; __arBot(id, f.x, f.y); const sn = __arSeen(id); if (sn && sn.vis) return f; } return null; }, [m3, me.bot]);
+    if (ok(!!far, "freie, sichtbare Stelle für den laufenden Gegner")){
+      await a.evaluate(([id, s]) => __arBot(id, s.x, s.y), [me.bot, far]); const dir = Math.atan2(far.y - m3.y, far.x - m3.x), vx = -Math.sin(dir) * 250, vy = Math.cos(dir) * 250;
+      await a.evaluate(([id, x, y]) => __arMoving(id, x, y), [me.bot, vx, vy]); await sleep(100); const au = await a.evaluate(() => __arAuto(false)), da = Math.atan2(Math.sin(au.a - dir), Math.cos(au.a - dir));
+      ok(au.id === me.bot && da > .12, "Auto-Zielen: zielt beim Revolver vor den laufenden Gegner (" + Math.round(da * 57) + "° voraus)", JSON.stringify({au, dir, da})); }
+    const sf = await a.evaluate(() => { const was = PNet.P.solo, r1 = __arSoft(["u1", "bot1", "bot2"]); PNet.P.solo = false; const r2 = __arSoft(["u1", "u2", "bot1"]), r3 = __arSoft(["u1", "bot1"]); PNet.P.solo = was; return [r1, r2, r3]; });
+    ok(!sf[0] && sf[1] && !sf[2], "Bots: mit 2+ Menschen etwas schwächer, allein gegen Bots nicht", JSON.stringify(sf));
+    /* the sniper pressed while still reloading: it starts charging as soon as a shot is ready, no plain shot */
+    await a.evaluate(() => { __arCls("snipe"); __arAmmo(0); }); await a.keyboard.down("Space"); await sleep(400); const w1 = await a.evaluate(() => __arChg());
+    await sleep(2300); const w2 = await a.evaluate(() => __arChg()); await a.keyboard.up("Space"); await sleep(100);
+    ok(w1.wait && !w1.chg && w2.chg > .5 && !w2.wait, "Scharfschütze: gedrückt ohne Munition → lädt auf, sobald der Schuss bereit ist (" + Math.round(w2.chg * 100) + " %)", JSON.stringify([w1, w2]));
+    ok(!!(await a.evaluate(() => __arRigShot(2))), "Kämpfer laufen: Beine, Arme, Körper und Kopf als eigene Teile (Laufanimation)");
+    await a.evaluate(() => __arFreeze(false));
     await a.evaluate(() => document.querySelector("#lleave").click()); await sleep(800);
     await clean(a, "Nat Stars Lichtstrahl", /AudioContext|play\(\)/); await a.context().close();
+    /* on a laptop: ideas & feedback in the sidebar; the super with right-click, E, or the button */
+    const d = await L.open(browser, "tester", {desktop: true}); await sleep(800);
+    if (ok(await d.locator("#rail [data-fbk]").isVisible().catch(() => false), "Laptop: „Ideen & Feedback“ in der Seitenleiste")){ await d.locator("#rail [data-fbk]").click(); await sleep(700); ok(await has(d, ".fb-ov"), "Laptop: der Knopf öffnet Ideen & Feedback"); await d.evaluate(() => { const x = document.querySelector(".fb-ov #fbx"); if (x) x.click(); }); await sleep(400); }
+    await d.evaluate(() => App.go("party", {g: "arena"})); await sleep(900); await d.locator("#main button", {hasText: "Gegen Bots"}).first().click();
+    for (let i = 0; i < 80 && (await d.evaluate(() => __ar().ph)) !== "fight"; i++) await sleep(250); await sleep(1800); await d.evaluate(() => __arFreeze(true));
+    const vw = d.viewportSize(), sup = [];
+    await d.evaluate(() => __arSup(1)); await d.mouse.click(vw.width * .7, vw.height * .4, {button: "right"}); await sleep(250); sup.push(await d.evaluate(() => __ar().sup));
+    await d.evaluate(() => __arSup(1)); await d.keyboard.press("e"); await sleep(250); sup.push(await d.evaluate(() => __ar().sup));
+    await d.evaluate(() => __arSup(1)); await d.locator(".ar-sup").click(); await sleep(250); sup.push(await d.evaluate(() => __ar().sup));
+    ok(sup.every(x => x === 0), "Laptop: Super per Rechtsklick, Taste E und Knopf", JSON.stringify(sup));
+    ok(await d.locator(".ar-sk").isVisible().catch(() => false), "Laptop: am Super-Knopf steht „Rechtsklick · E“"); await d.shot("natstars-laptop");
+    await d.evaluate(() => document.querySelector("#lleave").click()); await sleep(800); await clean(d, "Nat Stars am Laptop", /AudioContext|play\(\)/); await d.context().close();
   },
 
   /* ---------- Tippspiel ---------- */
@@ -831,6 +886,18 @@ const PARTS = {
     const ra = await txt(a, "#main"), rb = await txt(b, "#main");
     ok(/\+3/.test(ra) && new RegExp(esc(bareT(cur()))).test(rb), "beide fertig: sofort die Auflösung, du +3 (2 richtig + 1 schnellster), Mila sieht die Lösung", ra.slice(0, 200));
     ok((await audio(a)).on && (await audio(b)).on, "nach der Auflösung läuft der Song weiter", JSON.stringify([await audio(a), await audio(b)]));
+    /* singing along: Mila's phone measures how late your voice arrives; while you sing, her music runs that much later (gently, same pitch) */
+    const aId = await a.evaluate(() => PNet.me); await sleep(2300);
+    const lat = await b.evaluate(id => PG._song.Sing.L[id], aId);
+    ok(lat > 0 && lat < 700, "Mitsingen: Milas Handy misst, wie spät deine Stimme ankommt (" + lat + " ms)", String(lat));
+    await b.evaluate(id => { window.__sing = true; PG._song.Sing.test({talking: x => x === id && window.__sing, lat: {[id]: 220}}); }, aId); await sleep(1900);
+    const s1 = await b.evaluate(() => ({lead: PG._song.Sing.lead, want: PG.songSA.lagWant, rate: PG.songSA.rate, txt: (document.querySelector(".sg-sing") || {}).innerText || ""}));
+    ok(s1.lead === aId && s1.want === 220 && s1.rate < 1 && /singt mit/.test(s1.txt), "du singst: Milas Musik läuft sanft 220 ms später (etwas langsamer, gleiche Tonhöhe), mit Hinweis", JSON.stringify(s1));
+    await sleep(2400); const s2 = await b.evaluate(() => ({lag: PG.songSA.lagMs, rate: PG.songSA.rate}));
+    ok(Math.abs(s2.lag - 220) <= 30 && s2.rate === 1, "nach gut 2 s passt es: 220 ms später, wieder normales Tempo", JSON.stringify(s2));
+    await b.evaluate(() => { window.__sing = false; }); await sleep(2900); const s3 = await b.evaluate(() => ({lead: PG._song.Sing.lead, want: PG.songSA.lagWant, rate: PG.songSA.rate, lag: PG.songSA.lagMs, paused: PG.songSA.au.paused}));
+    ok(s3.lead === null && s3.want === 0 && (s3.rate > 1 || s3.lag < 200), "du hörst auf: nach 2,5 s holt Milas Musik wieder auf", JSON.stringify(s3));
+    await b.evaluate(() => PG._song.Sing.test({talking: null, lat: null}));
     await b.tap('[data-x="nx"]'); await sleep(500); ok(/1\/2/.test(await txt(b, "[data-rdy]")) && await has(b, ".sg-ans"), "Mila tippt „Weiter“: 1/2, der Song läuft noch, bis alle weiter wollen", await txt(b, "[data-rdy]"));
     await a.tap('[data-x="next"]'); await a.waitForSelector("[data-op]", {timeout: 10000}).catch(() => {}); await b.waitForSelector("[data-op]", {timeout: 10000}).catch(() => {}); await sleep(2400);
     /* both "No idea": the answer comes at once */
