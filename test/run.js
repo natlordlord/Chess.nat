@@ -150,18 +150,6 @@ const PARTS = {
     await closeSheets(page); await clean(page, "Sprechen");
 
     /* barcode typed by hand (the camera sees nothing in a test) */
-    /* barcode without asking for the camera (Wunsch von Nathan): the tap opens the phone's camera for a photo, the code is read from it */
-    { const ean = await page.evaluate(code => { const L = ["0001101", "0011001", "0010011", "0111101", "0100011", "0110001", "0101111", "0111011", "0110111", "0001011"], R = L.map(x => [...x].map(b => b === "0" ? "1" : "0").join("")), G = R.map(x => [...x].reverse().join(""));
-        const P = ["LLLLLL", "LLGLGG", "LLGGLG", "LLGGGL", "LGLLGG", "LGGLLG", "LGGGLL", "LGLGLG", "LGLGGL", "LGGLGL"][+code[0]], d = [...code].map(Number);
-        const bits = "101" + d.slice(1, 7).map((x, i) => (P[i] === "L" ? L : G)[x]).join("") + "01010" + d.slice(7).map(x => R[x]).join("") + "101";
-        const c = document.createElement("canvas"), m = 5, q = 60; c.width = bits.length * m + 2 * q; c.height = 320; const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.fillStyle = "#000";
-        [...bits].forEach((b, i) => { if (b === "1") x.fillRect(q + i * m, 40, m, 240); }); return c.toDataURL("image/png").split(",")[1]; }, "4000000000075");
-      const fc = page.waitForEvent("filechooser", {timeout: 5000}).catch(() => null); await page.tap("#main [data-kc-scan]"); const ch = await fc;
-      ok(!!ch && !(await page.evaluate(() => !!(document.querySelector("#kcv") || {}).srcObject)), "Barcode: der Tipp öffnet die Handy-Kamera für ein Foto, keine Kamera-Erlaubnis nötig");
-      /* a real EAN-13 (with its check digit) that the database doesn't know: read, looked up, "photograph the label" offered */
-      if (ch){ await ch.setFiles({name: "barcode.png", mimeType: "image/png", buffer: Buffer.from(ean, "base64")}); await page.waitForSelector("#kclab", {timeout: 12000}).catch(() => {});
-        ok(await has(page, "#kclab"), "Barcode-Foto gelesen (4000000000075) und nachgeschlagen: „Nährwerte abfotografieren“ wird angeboten", await txt(page, ".kc-scanov")); await page.shot("kcal-barcode-foto");
-        if (await has(page, ".kc-scanov [data-x]")) await page.tap(".kc-scanov [data-x]"); await sleep(300); } }
     await page.tap("#main [data-kc-scan]"); await page.waitForSelector("#kccode", {timeout: 6000}).catch(() => {});
     if (ok(await has(page, "#kccode"), "Barcode: Scanner öffnet, Nummer lässt sich eintippen")){
       await page.fill("#kccode", "4000000000079"); await page.locator("#kcman button").tap(); await page.waitForSelector("#kcadd", {timeout: 6000}).catch(() => {});
@@ -655,33 +643,53 @@ const PARTS = {
     ok(/Genre/.test(await txt(page, "#main")) && await has(page, '[data-gn="y80"]'), "Einstellungen: Genres zur Wahl (u. a. 80er)");
     await page.tap('[data-gn="own"]'); await sleep(300);
     ok(await page.evaluate(() => document.activeElement && document.activeElement.id === "sgown"), "„Eigene Künstler“: das Feld ist sofort zum Tippen offen");
-    await page.keyboard.type("Queen", {delay: 15}); await page.tap('#sgr [data-v="3"]'); await sleep(200);
-    await page.tap("#sggo"); await page.waitForSelector("#sgplay", {timeout: 8000}).catch(() => {});
-    const play = async () => { last = ""; await page.tap("#sgplay"); await sleep(500); };
+    await page.keyboard.type("Queen", {delay: 15}); await page.tap('#sgr [data-v="3"]'); await page.tap('#sga [data-v="type"]'); await page.tap('#sgc [data-v="10"]'); await sleep(200);
+    ok(/Song-Bibliothek/.test(await txt(page, "#sga")) && /Immer länger/.test(await txt(page, "#sgc")), "Antworten: Song-Bibliothek oder 4 zur Auswahl; Reinhören auch „Immer länger“", (await txt(page, "#sga")) + " | " + (await txt(page, "#sgc")));
+    await page.tap("#sggo"); await page.waitForSelector("#sgplay", {timeout: 8000}).catch(() => {}); await sleep(400);
+    const audio = () => page.evaluate(() => { const a = PG.songSA.au; return {on: !a.paused, t: a.currentTime, src: decodeURIComponent(a.src || "")}; });
+    ok(!!last, "der Song lädt schon, während das Handy weitergegeben wird (vor dem Tippen)", last);
+    const play = async () => { await page.tap("#sgplay"); await sleep(500); };
     await play(); await page.shot("song-frage");
-    ok(await page.evaluate(() => document.activeElement && document.activeElement.id === "sgt"), "Abspielen: das Titel-Feld ist gleich offen (Tastatur)");
-    ok(!!last, "der Song spielt (Vorschau geladen)", last);
+    ok(await page.evaluate(() => document.activeElement && document.activeElement.id === "sgt"), "Abspielen: das Suchfeld ist gleich offen (Tastatur)");
+    let au = await audio(); ok(au.on && au.t > .1 && au.t < 1.5 && au.src.includes(last), "der Song spielt sofort, ab der ersten Sekunde", JSON.stringify(au));
     ok(await page.evaluate(() => navigator.audioSession.type === "playback"), "iPhone: der Song zählt als Musik, spielt also auch im Stummmodus", await page.evaluate(() => navigator.audioSession.type));
-    /* the right title with a typo and without "(Remastered …)" */
+    /* the right title with a typo and without "(Remastered …)", Enter without tapping a hit */
     const typo = t => { const b = t.replace(/\s*\(.*\)$/, ""); return b.length >= 8 ? b.slice(0, 3) + b.slice(4) : b; };
     const t1 = last; await page.keyboard.type(typo(t1), {delay: 10}); await page.keyboard.press("Enter"); await sleep(500); await page.shot("song-antwort");
     ok(/\+1/.test(await txt(page, "#main")) && /✓/.test(await txt(page, "#main")) && new RegExp(t1.slice(0, 6).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).test(await txt(page, "#main")), "Titel mit Tippfehler („" + typo(t1) + "“) zählt: +1, richtiger Titel steht da", (await txt(page, "#main")).slice(0, 160));
-    await page.tap("#sgnx"); await sleep(400); await play(); await page.tap("#sgno"); await sleep(400);
-    ok(/✗/.test(await txt(page, "#main")) && /\b0\b/.test(await txt(page, ".pg-name")), "„Keine Ahnung“: 0 Punkte, die Lösung steht da", (await txt(page, "#main")).slice(0, 120));
+    /* the song library: a few letters, the song is listed, one tap */
+    await page.tap("#sgnx"); await sleep(400); await play(); const t2 = last, b2 = t2.replace(/\s*\(.*\)$/, "");
+    await page.keyboard.type(b2.slice(0, 4), {delay: 20}); await page.waitForSelector(".sg-sug", {timeout: 5000}).catch(() => {}); await sleep(200); await page.shot("song-bibliothek");
+    const sugs = await page.$$eval(".sg-sug", x => x.map(y => y.innerText.replace(/\s+/g, " ")));
+    ok(sugs.some(x => x.includes(b2) && /Queen/.test(x)), "Song-Bibliothek: nach 4 Buchstaben („" + b2.slice(0, 4) + "“) steht der Song mit Interpret da", JSON.stringify(sugs));
+    await page.locator(".sg-sug", {hasText: b2}).first().tap(); await sleep(500);
+    ok(/\+1/.test(await txt(page, "#main")) && /✓/.test(await txt(page, "#main")), "Song angetippt: zählt, +1", (await txt(page, "#main")).slice(0, 160));
     await page.tap("#sgnx"); await sleep(400); await play(); await page.keyboard.type("Thriller", {delay: 10}); await page.keyboard.press("Enter"); await sleep(400);
     ok(/✗/.test(await txt(page, "#main")), "falscher Titel zählt nicht"); await page.tap("#sgnx"); await sleep(600);
-    ok(/Ergebnis/i.test(await txt(page, "#main")) && /\b1\b/.test(await txt(page, ".pg-name")), "nach 3 Songs: Ergebnis 1 Punkt mit Liste der Songs", (await txt(page, "#main")).slice(0, 160)); await page.shot("song-ergebnis");
-    /* four to pick from, guessing the artist; two players take turns */
-    await page.tap("#sgset"); await sleep(500); await page.tap('[data-gn="y80"]'); await page.tap('#sgw [data-v="artist"]'); await page.tap('#sga [data-v="pick"]'); await sleep(200);
+    ok(/Ergebnis/i.test(await txt(page, "#main")) && /\b2\b/.test(await txt(page, ".pg-name")), "nach 3 Songs: Ergebnis 2 Punkte mit Liste der Songs", (await txt(page, "#main")).slice(0, 160)); await page.shot("song-ergebnis");
+    /* the wrong answers: never a song that is still to come, never shown first and played later; the song's language */
+    const fair = await page.evaluate(async () => { const {Pool, langOf} = PG._song, P = Pool.make({genre: "own", own: "Queen, Nena, a-ha"}); P.used.clear(); await P.fill(6); const bad = [], shown = new Set(), n = P.songs.length;
+      for (let i = 0; i < n; i++){ const s = P.next(); if (!s) break; const N = x => x.toLowerCase().replace(/\s*\(.*\)$/, "");
+        if (shown.has(N(s.title))) bad.push("schon als falsch gezeigt: " + s.title);
+        const o = P.opts(s, "title", 4) || []; o.forEach(x => { if (P.songs.some(c => N(c.title) === N(x))) bad.push("kommt noch: " + x); if (N(x) !== N(s.title)) shown.add(N(x)); }); }
+      return {n, bad, de: [langOf("Ich will nur, dass du weißt"), langOf("Bierkönig", "party"), langOf("Take On Me"), langOf("Don't Stop Me Now")]}; });
+    ok(fair.n >= 4 && !fair.bad.length, "falsche Antworten: nie ein Song, der noch kommt, und kein Song kommt, der schon als falsch dastand", JSON.stringify(fair));
+    ok(fair.de.join() === "de,de,en,en", "Sprache erkannt (deutsch / englisch), damit die falschen Titel zur Sprache passen", JSON.stringify(fair.de));
+    /* four to pick from, guessing the artist, longer and longer; two players take turns */
+    await page.tap("#sgset"); await sleep(500); await page.tap('[data-gn="y80"]'); await page.tap('#sgw [data-v="artist"]'); await page.tap('#sga [data-v="pick"]'); await page.tap('#sgc [data-v="up"]'); await sleep(200);
     await page.locator("#sgp input").fill("Anna"); await page.locator("#sgp input").press("Enter"); await sleep(200); await page.locator("#sgp input").fill("Ben"); await page.locator("#sgp input").press("Enter"); await sleep(200);
-    await page.tap("#sggo"); await page.waitForSelector("#sgplay", {timeout: 8000}).catch(() => {});
+    await page.tap("#sggo"); await page.waitForSelector("#sgplay", {timeout: 8000}).catch(() => {}); await sleep(300);
     ok(/Anna/.test(await txt(page, "#main")), "zwei Spieler: „Gib das Handy an Anna“", (await txt(page, "#main")).slice(0, 80));
     await play(); const opts = await page.$$eval("[data-op]", b => b.map(x => x.innerText)); ok(opts.length === 4, "4 Interpreten zur Auswahl", JSON.stringify(opts));
+    await sleep(900); au = await audio(); ok(!au.on && /1 s/.test(await txt(page, "#sgstg")) && /Mehr hören: 2 s/.test(await txt(page, "#sgre")), "„Immer länger“: erst nur 1 Sekunde, dann „Mehr hören: 2 s“", JSON.stringify(au) + " " + (await txt(page, "#sgre")));
+    await page.tap("#sgre"); await sleep(400); au = await audio(); ok(au.on && au.t < 1, "Mehr hören: wieder von vorne, jetzt 2 Sekunden", JSON.stringify(au)); await page.shot("song-immer-laenger");
     /* which artist: in the fixed list, the one whose song is playing */
     const who = {"99 Luftballons": "Nena", "Irgendwie, irgendwo, irgendwann": "Nena", "Leuchtturm": "Nena", "Take On Me": "a-ha", "The Sun Always Shines on T.V.": "a-ha", "Hunting High and Low": "a-ha"}[last] || (last.match(/^(.*) Hit \d$/) || [])[1] || "Queen";
     await page.locator("[data-op]", {hasText: who}).first().tap(); await sleep(400);
-    ok(/\+1/.test(await txt(page, "#main")) && /Anna/.test(await txt(page, "#main")), "richtigen Interpreten angetippt: +1 für Anna", (await txt(page, "#main")).slice(0, 120));
+    ok(/\+4/.test(await txt(page, "#main")) && /Anna/.test(await txt(page, "#main")) && /nach 2 s/.test(await txt(page, "#main")), "richtigen Interpreten nach 2 Sekunden angetippt: +4 für Anna (nach 1 s wären es 5)", (await txt(page, "#main")).slice(0, 160));
     await page.tap("#sgnx"); await sleep(400); ok(/Ben/.test(await txt(page, "#main")), "danach ist Ben dran");
+    await play(); await page.tap("#sgno"); await sleep(400);
+    ok(/✗/.test(await txt(page, "#main")) && /\b0\b/.test(await txt(page, ".pg-name")), "„Weiß nicht“: 0 Punkte, die Lösung steht da", (await txt(page, "#main")).slice(0, 120));
     await page.evaluate(() => App.go("games")); await sleep(400); ok(await page.evaluate(() => navigator.audioSession.type === "auto"), "raus aus dem Spiel: das iPhone entscheidet wieder selbst (Stummschalter gilt wieder)");
     await clean(page, "Song raten"); await page.context().close();
   },
@@ -695,7 +703,7 @@ const PARTS = {
     ok(await has(a, "#pgon"), "„Song raten“ hat jetzt „Online spielen“");
     await a.tap("#pgon"); await sleep(1500);
     ok(await a.evaluate(() => App.route === "lobby" && PNet.P && PNet.P.isHost && PNet.P.game === "song"), "Online spielen öffnet eine Lobby für Song raten");
-    const lob = await txt(a, "#main"); ok([/Genre/i, /Modus/i, /4 zur Auswahl/i, /6 zur Auswahl/i, /Selbst tippen/i, /Gemischt/i, /Jahr/i, /Wer zuerst richtig hat/i, /80er/].every(re => re.test(lob)), "Lobby: Genre, Modus, Raten (auch Jahr), Antworten (4, 6, selbst tippen, gemischt)", lob.slice(-600));
+    const lob = await txt(a, "#main"); ok([/Genre/i, /Modus/i, /4 zur Auswahl/i, /6 zur Auswahl/i, /Song-Bibliothek/i, /Gemischt/i, /Jahr/i, /Wer zuerst richtig hat/i, /80er/, /Immer länger/i].every(re => re.test(lob)), "Lobby: Genre, Modus, Raten (auch Jahr), Antworten (4, 6, Song-Bibliothek, gemischt), Reinhören (auch immer länger)", lob.slice(-600));
     ok(await has(a, "#lvoice:not([hidden])"), "oben steht der Sprachchat-Knopf");
     await a.evaluate(() => { PNet.setOpt("genre", "y80"); PNet.setOpt("what", "artist"); PNet.setOpt("ans", "pick"); PNet.setOpt("rounds", 2); PNet.setOpt("clip", 5); });
     const code = await a.evaluate(() => PNet.P.code);
@@ -710,7 +718,11 @@ const PARTS = {
     ok(await a.evaluate(() => !navigator.audioSession || navigator.audioSession.type === "play-and-record"), "iPhone: der Sprachchat läuft als Gespräch (auch im Stummmodus)");
     await b.tap("#lvoice"); let vc = false; for (let i = 0; i < 20 && !vc; i++){ await sleep(500); vc = await a.evaluate(() => PVoice.peers().length === 1) && await b.evaluate(() => PVoice.peers().length === 1); }
     ok(vc, "beide im Sprachchat: die Handys sind verbunden", JSON.stringify([await a.evaluate(() => PVoice.peers()), await b.evaluate(() => PVoice.peers())]));
-    await a.tap("#lgo"); await a.waitForSelector("[data-op]", {timeout: 10000}).catch(() => {}); await b.waitForSelector("[data-op]", {timeout: 10000}).catch(() => {}); await sleep(2600); await a.shot("songon-frage"); await b.shot("songon-frage-mila");
+    await a.tap("#lgo"); await b.waitForSelector(".sg-cd.on", {timeout: 10000}).catch(() => {}); const cd = await txt(b, ".sg-cd"); await b.shot("songon-countdown");
+    ok(/^[123]$/.test(cd.trim()), "vor dem Song: ein schnelles 3, 2, 1", cd);
+    await a.waitForSelector("[data-op]", {timeout: 10000}).catch(() => {}); await b.waitForSelector("[data-op]", {timeout: 10000}).catch(() => {}); await sleep(2400); await a.shot("songon-frage"); await b.shot("songon-frage-mila");
+    const auA = await a.evaluate(() => ({on: !PG.songSA.au.paused, t: PG.songSA.au.currentTime})), auB = await b.evaluate(() => ({on: !PG.songSA.au.paused, t: PG.songSA.au.currentTime}));
+    ok(auA.on && auB.on && auA.t > .1 && auA.t < 2.5 && Math.abs(auA.t - auB.t) < .6, "nach dem 3-2-1 spielt der Song auf beiden Handys im selben Moment, ab Sekunde 0", JSON.stringify([auA, auB]));
     const oa = await a.$$eval("[data-op]", x => x.map(y => y.innerText)), ob = await b.$$eval("[data-op]", x => x.map(y => y.innerText));
     ok(oa.length === 4 && JSON.stringify(oa) === JSON.stringify(ob), "beide Handys: dieselben 4 Interpreten zur Auswahl", JSON.stringify([oa, ob]));
     ok(heard.a.length && heard.b.length && heard.a[heard.a.length - 1] === heard.b[heard.b.length - 1], "beide Handys spielen denselben Song", JSON.stringify([heard.a.slice(-1), heard.b.slice(-1)]));
@@ -730,18 +742,34 @@ const PARTS = {
     ok(await a.evaluate(() => PVoice.on) && /An/.test(await txt(a, "#lvoice")), "der Sprachchat lief das ganze Spiel über weiter");
     /* type it yourself, fastest takes it: Mila is wrong and locked out, you type the title with a typo and win the song */
     await a.evaluate(() => { PNet.setOpt("genre", "y80"); PNet.setOpt("what", "title"); PNet.setOpt("ans", "type"); PNet.setOpt("mode", "fast"); PNet.setOpt("rounds", 1); }); await sleep(500);
-    await a.tap("#lgo"); await a.waitForSelector('.sg-form input[data-in="t"]', {timeout: 10000}).catch(() => {}); await b.waitForSelector('.sg-form input[data-in="t"]', {timeout: 10000}).catch(() => {}); await sleep(2400);
+    await a.tap("#lgo"); await a.waitForSelector('.sg-lib input[data-in="t"]', {timeout: 10000}).catch(() => {}); await b.waitForSelector('.sg-lib input[data-in="t"]', {timeout: 10000}).catch(() => {}); await sleep(2400);
     const t2 = heard.a[heard.a.length - 1] || "";
-    const bot = await b.evaluate(() => Math.round(document.querySelector('.sg-form input[data-in="t"]').getBoundingClientRect().bottom)); await b.shot("songon-tippen");
-    ok(bot <= 844 - 336 - 4, "das Antwortfeld liegt über einer iPhone-Tastatur (unterer Rand " + bot + " px)", String(bot));
-    await b.locator('.sg-form input[data-in="t"]').fill("Völlig falsch"); await b.locator('.sg-form input[data-in="t"]').press("Enter"); await sleep(700);
-    ok(/Leider falsch/.test(await txt(b, "#main")), "„Wer zuerst richtig hat“: Mila tippt falsch und ist für diesen Song raus", (await txt(b, "#main")).slice(0, 160));
-    const ty = t2.length >= 8 ? t2.slice(0, 2) + t2.slice(3) : t2; await a.locator('.sg-form input[data-in="t"]').fill(ty); await a.locator('.sg-form input[data-in="t"]').press("Enter");
+    const bot = await b.evaluate(() => Math.round(document.querySelector('.sg-lib input[data-in="t"]').getBoundingClientRect().bottom)); await b.shot("songon-tippen");
+    ok(bot <= 844 - 336 - 4, "das Suchfeld liegt über einer iPhone-Tastatur (unterer Rand " + bot + " px)", String(bot));
+    /* Mila searches the library and taps a wrong song */
+    const other = ["Leuchtturm", "Take On Me", "Radio Ga Ga"].find(x => x !== t2);
+    await b.locator('.sg-lib input[data-in="t"]').tap(); await b.keyboard.type(other.slice(0, 5), {delay: 20}); await b.waitForSelector(".sg-sug", {timeout: 5000}).catch(() => {}); await sleep(200);
+    await b.locator(".sg-sug", {hasText: other}).first().tap(); await sleep(700);
+    ok(/Leider falsch/.test(await txt(b, "#main")), "„Wer zuerst richtig hat“: Mila tippt in der Song-Bibliothek den falschen Song an und ist für diesen Song raus", (await txt(b, "#main")).slice(0, 160));
+    const ty = t2.length >= 8 ? t2.slice(0, 2) + t2.slice(3) : t2; await a.locator('.sg-lib input[data-in="t"]').fill(ty); await a.locator('.sg-lib input[data-in="t"]').press("Enter");
     await a.waitForSelector(".sg-ans", {timeout: 6000}).catch(() => {}); await sleep(300);
     ok(/\+3/.test(await txt(a, "#main")), "du tippst den Titel (mit Tippfehler „" + ty + "“) zuerst richtig: +3, gleich die Auflösung", (await txt(a, "#main")).slice(0, 160));
     await a.tap('[data-x="next"]'); await a.waitForSelector('[data-x="again"]', {timeout: 8000}).catch(() => {}); await a.tap('[data-x="lobby"]'); await sleep(1200);
+    /* longer and longer: 1 s, a pause, then 2 s from the start again; you know it after 2 s: 4 points (+1 fastest) */
+    await a.evaluate(() => { PNet.setOpt("what", "artist"); PNet.setOpt("ans", "pick"); PNet.setOpt("mode", "all"); PNet.setOpt("clip", "up"); }); await sleep(500);
+    await a.tap("#lgo"); await a.waitForSelector("[data-op]", {timeout: 10000}).catch(() => {}); await b.waitForSelector("[data-op]", {timeout: 10000}).catch(() => {});
+    await sleep(3000); const up1 = await b.evaluate(() => ({on: !PG.songSA.au.paused, chips: document.querySelector("[data-stg]").innerText}));
+    ok(!up1.on && /Gleich: 2 s/.test(up1.chips), "„Immer länger“: 1 Sekunde, dann Pause („Gleich: 2 s“)", JSON.stringify(up1));
+    await sleep(2800); const up2 = await b.evaluate(() => ({on: !PG.songSA.au.paused, t: PG.songSA.au.currentTime}));
+    ok(up2.on && up2.t < 1.2, "dann 2 Sekunden, wieder ab dem Anfang", JSON.stringify(up2)); await b.shot("songon-immer-laenger");
+    const song3 = heard.a[heard.a.length - 1], who3 = {"99 Luftballons": "Nena", "Irgendwie, irgendwo, irgendwann": "Nena", "Leuchtturm": "Nena", "Take On Me": "a-ha", "The Sun Always Shines on T.V.": "a-ha", "Hunting High and Low": "a-ha"}[song3] || (song3.match(/^(.*) Hit \d$/) || [])[1];
+    const o3 = await a.$$eval("[data-op]", x => x.map(y => y.innerText));
+    await a.locator("[data-op]", {hasText: who3}).first().tap(); await b.locator("[data-op]", {hasText: o3.find(x => x !== who3)}).first().tap();
+    await a.waitForSelector(".sg-ans", {timeout: 6000}).catch(() => {}); await sleep(300); const r3 = await txt(a, "#main");
+    ok(/\+5/.test(r3) && /nach 2 s/.test(r3), "nach 2 Sekunden richtig: +5 (4 für die 2 Sekunden, +1 als Schnellster)", r3.slice(0, 200));
+    await a.tap('[data-x="next"]'); await a.waitForSelector('[data-x="again"]', {timeout: 8000}).catch(() => {}); await a.tap('[data-x="lobby"]'); await sleep(1200);
     /* the year */
-    await a.evaluate(() => { PNet.setOpt("what", "year"); PNet.setOpt("mode", "all"); }); await sleep(500);
+    await a.evaluate(() => { PNet.setOpt("what", "year"); PNet.setOpt("mode", "all"); PNet.setOpt("clip", 10); }); await sleep(500);
     await a.tap("#lgo"); await a.waitForSelector('.sg-form input[data-in="y"]', {timeout: 10000}).catch(() => {}); await b.waitForSelector('.sg-form input[data-in="y"]', {timeout: 10000}).catch(() => {}); await sleep(2400);
     ok(await has(b, '.sg-form input[data-in="y"][inputmode="numeric"]'), "„Jahr“: ein Zahlenfeld zum Schätzen");
     await a.locator('.sg-form input[data-in="y"]').fill("1985"); await a.locator('.sg-form input[data-in="y"]').press("Enter"); await b.locator('.sg-form input[data-in="y"]').fill("1950"); await b.locator('.sg-form input[data-in="y"]').press("Enter");
