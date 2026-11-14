@@ -112,7 +112,7 @@ async function ask(req, text, only, cfg){
   const token = key || req.headers["x-vercel-oidc-token"] || process.env.VERCEL_OIDC_TOKEN;
   if (!token) throw Object.assign(new Error("no ai credentials"), {status: 500});
   let last;
-  for (const model of only ? [only] : MODELS){
+  for (const model of only ? [only] : MODELS.filter(m => !(NOPE[m] > Date.now()))){
     const r = await fetch("https://ai-gateway.vercel.sh/v1/chat/completions", {method: "POST",
       headers: {"Content-Type": "application/json", Authorization: "Bearer " + token},
       body: JSON.stringify({model, max_tokens: cfg.max, temperature: cfg.temp,
@@ -127,6 +127,7 @@ async function ask(req, text, only, cfg){
       try { const p = JSON.parse(out); p.model = model; return p; } catch(e) { last = Object.assign(new Error("bad json from " + model), {status: 502}); continue; }
     }
     last = Object.assign(new Error((await r.text().catch(() => "")).slice(0, 300)), {status: r.status, model});
+    if (r.status === 403 || r.status === 402) NOPE[model] = Date.now() + 30 * 60e3;
     if (![400, 401, 402, 403, 404, 429].includes(r.status) && r.status !== 0) break;
   }
   throw last || new Error("no model");
@@ -134,8 +135,10 @@ async function ask(req, text, only, cfg){
 /* The search by meaning: an embedding model turns what was typed and the names of everything this person knows (products eaten,
    photographed packs, recipes, the food table) into vectors; the closest ones are suggested ("Fruchtjoghurt" → "Buntes Frucht-Trio").
    The vectors of names are kept while this instance lives, so mostly only what was typed is sent. Models in order (env EMBED_MODELS). */
-const EMBED_MODELS = (process.env.EMBED_MODELS || "openai/text-embedding-3-large,openai/text-embedding-3-small").split(",").map(s => s.trim()).filter(Boolean);
-const EMBED_DIM = Number(process.env.EMBED_DIM || 1024), EMBED_MIN = Number(process.env.EMBED_MIN || .3), EMBED_REL = Number(process.env.EMBED_REL || .62);
+/* the free AI Gateway tier refuses OpenAI's embedding models ("Free tier users do not have access", 403): Google's and the open ones come first */
+const NOPE = {};
+const EMBED_MODELS = (process.env.EMBED_MODELS || "google/gemini-embedding-001,google/text-multilingual-embedding-002,alibaba/qwen3-embedding-0.6b,mistral/mistral-embed,openai/text-embedding-3-small").split(",").map(s => s.trim()).filter(Boolean);
+const EMBED_DIM = Number(process.env.EMBED_DIM || 1024), EMBED_MIN = Number(process.env.EMBED_MIN || .2);
 const VEC = new Map();
 const unit = v => { let n = 0; for (const x of v) n += x * x; n = Math.sqrt(n) || 1; return Float32Array.from(v, x => x / n); };
 const dot = (a, b) => { let s = 0; for (let i = 0; i < a.length && i < b.length; i++) s += a[i] * b[i]; return s; };
@@ -143,7 +146,7 @@ async function embed(req, texts){
   const key = String(process.env.AI_GATEWAY_API_KEY || process.env.AI_KEY || "").trim(), token = key || req.headers["x-vercel-oidc-token"] || process.env.VERCEL_OIDC_TOKEN;
   if (!token) throw Object.assign(new Error("no ai credentials"), {status: 500});
   let last;
-  for (const model of EMBED_MODELS){
+  for (const model of EMBED_MODELS.filter(m => !(NOPE[m] > Date.now()))){
     const K = t => model + "\u0000" + t, want = [...new Set(texts.filter(t => t && !VEC.has(K(t))))];
     try {
       for (let i = 0; i < want.length; i += 200){ const part = want.slice(i, i + 200);
@@ -153,7 +156,7 @@ async function embed(req, texts){
         const j = await r.json(); (j.data || []).forEach(d => { if (part[d.index] != null && Array.isArray(d.embedding)) VEC.set(K(part[d.index]), unit(d.embedding)); }); }
       if (VEC.size > 30000) [...VEC.keys()].slice(0, 10000).forEach(k => VEC.delete(k));
       return texts.map(t => VEC.get(K(t)) || null);
-    } catch(e) { last = e; if (![400, 401, 402, 403, 404, 429].includes(e.status)) break; }
+    } catch(e) { last = e; if (e.status === 403 || e.status === 402) NOPE[model] = Date.now() + 30 * 60e3; if (![400, 401, 402, 403, 404, 429].includes(e.status)) break; }
   }
   throw last || new Error("no embedding model");
 }
@@ -259,13 +262,22 @@ module.exports = async (req, res) => {
   if (b.mode === "find"){
     const q = clip(b.q, 80).replace(/\s+/g, " ").trim(), T = (Array.isArray(b.items) ? b.items : []).slice(0, 400).map(t => clip(t, 120).replace(/\s+/g, " ").trim());
     if (q.length < 2 || !T.some(Boolean)) return res.status(200).json({hits: []});
-    try { const V = await embed(req, [q].concat(T)), qv = V[0]; if (!qv) return res.status(200).json({hits: []});
-      const all = T.map((t, i) => ({i, s: V[i + 1] ? dot(qv, V[i + 1]) : -1})).sort((x, y) => y.s - x.s), top = all.length ? all[0].s : 0;
-      /* close enough on its own, and not far behind the best one */
-      const hits = all.filter(x => x.s >= EMBED_MIN && x.s >= top * EMBED_REL).slice(0, 8).map(x => ({i: x.i, s: Math.round(x.s * 1000) / 1000}));
-      console.log("kcal find", JSON.stringify({q, n: T.length, top: all.slice(0, 5).map(x => [T[x.i].slice(0, 40), Math.round(x.s * 1000) / 1000]), hits: hits.length}));
-      return res.status(200).json({hits}); }
-    catch(e) { console.log("kcal find failed", e.status, e.model, String(e.message).slice(0, 200)); return res.status(200).json({hits: [], error: "Die Suche nach Ähnlichem geht gerade nicht."}); }
+    let hits = null, how = "";
+    try { const V = await embed(req, [q].concat(T)), qv = V[0];
+      if (qv){ const all = T.map((t, i) => ({i, s: V[i + 1] ? dot(qv, V[i + 1]) : -1})).sort((x, y) => y.s - x.s);
+        /* the closest ones, best first: always a few, as long as they are not far off */
+        hits = all.filter(x => x.s >= EMBED_MIN).slice(0, 6).map(x => ({i: x.i, s: Math.round(x.s * 1000) / 1000})); how = "embed";
+        console.log("kcal find", JSON.stringify({q, n: T.length, top: all.slice(0, 5).map(x => [T[x.i].slice(0, 40), Math.round(x.s * 1000) / 1000])})); } }
+    catch(e) { console.log("kcal find: no embedding model", e.status, e.model, String(e.message).slice(0, 160)); }
+    /* no embedding model reachable (free tier): the language model reads the list and names the closest */
+    if (!hits) try {
+      const o = await ask(req, "", null, {name: "find", max: 400, temp: 0, schema: {type: "object", additionalProperties: false, required: ["hits"], properties: {hits: {type: "array", items: {type: "integer"}, description: "Nummern aus LISTE, beste zuerst, höchstens 6"}}},
+        system: "Du hilfst bei der Lebensmittel-Suche einer Kalorien-App. Der Nutzer tippt schnell, oft mit Tippfehlern, anderer Schreibweise oder umschreibend. LISTE enthält Produkte und Lebensmittel, die er kennt. Nenne die Nummern der Einträge, die er am ehesten meint oder die am besten passen, die besten zuerst (höchstens 6). Bedeutung zählt: „Fruchtyogurt“ passt zu „Milder Fruchtjoghurt“ und zu einem Frucht-Trio von Danone (Joghurt mit Früchten), „Nudeln“ zu Spaghetti. Gib nur dann eine leere Liste, wenn wirklich gar nichts verwandt ist.",
+        user: `Gesucht: „${q}“\nLISTE:\n${T.map((t, i) => i + ": " + t).join("\n")}`});
+      const seen = new Set(); hits = (Array.isArray(o.hits) ? o.hits : []).filter(i => Number.isInteger(i) && i >= 0 && i < T.length && !seen.has(i) && seen.add(i)).slice(0, 6).map((i, k) => ({i, s: Math.round((.9 - k * .05) * 1000) / 1000})); how = "llm:" + o.model;
+      console.log("kcal find (llm)", JSON.stringify({q, n: T.length, model: o.model, top: hits.map(h => T[h.i].slice(0, 40))})); }
+    catch(e) { console.log("kcal find failed", e.status, e.model, String(e.message).slice(0, 200)); }
+    return res.status(200).json({hits: hits || [], how});
   }
   /* the shopping list: free text (typed or dictated) becomes products and dishes with what they need */
   if (b.mode === "shop"){

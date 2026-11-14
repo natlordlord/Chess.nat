@@ -150,6 +150,18 @@ const PARTS = {
     await closeSheets(page); await clean(page, "Sprechen");
 
     /* barcode typed by hand (the camera sees nothing in a test) */
+    /* barcode without asking for the camera (Wunsch von Nathan): the tap opens the phone's camera for a photo, the code is read from it */
+    { const ean = await page.evaluate(code => { const L = ["0001101", "0011001", "0010011", "0111101", "0100011", "0110001", "0101111", "0111011", "0110111", "0001011"], R = L.map(x => [...x].map(b => b === "0" ? "1" : "0").join("")), G = R.map(x => [...x].reverse().join(""));
+        const P = ["LLLLLL", "LLGLGG", "LLGGLG", "LLGGGL", "LGLLGG", "LGGLLG", "LGGGLL", "LGLGLG", "LGLGGL", "LGGLGL"][+code[0]], d = [...code].map(Number);
+        const bits = "101" + d.slice(1, 7).map((x, i) => (P[i] === "L" ? L : G)[x]).join("") + "01010" + d.slice(7).map(x => R[x]).join("") + "101";
+        const c = document.createElement("canvas"), m = 5, q = 60; c.width = bits.length * m + 2 * q; c.height = 320; const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.fillStyle = "#000";
+        [...bits].forEach((b, i) => { if (b === "1") x.fillRect(q + i * m, 40, m, 240); }); return c.toDataURL("image/png").split(",")[1]; }, "4000000000075");
+      const fc = page.waitForEvent("filechooser", {timeout: 5000}).catch(() => null); await page.tap("#main [data-kc-scan]"); const ch = await fc;
+      ok(!!ch && !(await page.evaluate(() => !!(document.querySelector("#kcv") || {}).srcObject)), "Barcode: der Tipp öffnet die Handy-Kamera für ein Foto, keine Kamera-Erlaubnis nötig");
+      /* a real EAN-13 (with its check digit) that the database doesn't know: read, looked up, "photograph the label" offered */
+      if (ch){ await ch.setFiles({name: "barcode.png", mimeType: "image/png", buffer: Buffer.from(ean, "base64")}); await page.waitForSelector("#kclab", {timeout: 12000}).catch(() => {});
+        ok(await has(page, "#kclab"), "Barcode-Foto gelesen (4000000000075) und nachgeschlagen: „Nährwerte abfotografieren“ wird angeboten", await txt(page, ".kc-scanov")); await page.shot("kcal-barcode-foto");
+        if (await has(page, ".kc-scanov [data-x]")) await page.tap(".kc-scanov [data-x]"); await sleep(300); } }
     await page.tap("#main [data-kc-scan]"); await page.waitForSelector("#kccode", {timeout: 6000}).catch(() => {});
     if (ok(await has(page, "#kccode"), "Barcode: Scanner öffnet, Nummer lässt sich eintippen")){
       await page.fill("#kccode", "4000000000079"); await page.locator("#kcman button").tap(); await page.waitForSelector("#kcadd", {timeout: 6000}).catch(() => {});
@@ -606,6 +618,11 @@ const PARTS = {
     t = await search("Hafrflocken", "Haferflocken[\\s\\S]*pro 100 g|pro 100 g[\\s\\S]*Haferflocken"); ok(/Haferflocken/.test(t), "„Hafrflocken“ (Tippfehler) findet die Haferflocken", t.slice(0, 160)); await shut();
     /* nothing typed: what you eat often */
     await page.tap("#main [data-kc-find]"); await sleep(600); t = await txt(page, "#kcsr"); ok(/Buntes Frucht-Trio/.test(t), "leeres Suchfeld: zuletzt Gesuchtes und oft Gegessenes stehen schon da", t.slice(0, 160)); await shut();
+    /* the free AI tier: no embedding model allowed; the language model picks instead, and a misspelt "Fruchtyogurt" still finds the Frucht-Trio */
+    process.env.FAKE_EMBED_DOWN = "1"; const l0 = global.__findLLM || 0; t = await search("Fruchtyogurt", "Passt vielleicht|Am ehesten"); delete process.env.FAKE_EMBED_DOWN;
+    ok(/Frucht-Trio/.test(t) && (global.__findLLM || 0) > l0, "kein Embedding-Modell erlaubt (kostenloser Tarif): die KI wählt, „Fruchtyogurt“ schlägt das Frucht-Trio vor", t.slice(0, 200)); await page.shot("suche-fruchtyogurt"); await shut();
+    /* nothing at all fits: still the closest ones, never an empty list */
+    t = await search("Xylophonbrei", "Am ehesten|Nichts"); ok(/Am ehesten/.test(t) && /pro 100 g/.test(t), "auch bei Unsinn steht nie „nichts“ da, sondern was am nächsten kommt", t.slice(0, 160)); await shut();
     /* the model is down: the forgiving search still works */
     process.env.FAKE_AI_DOWN = "1"; t = await search("Fruchtrio", "Schon gegessen"); delete process.env.FAKE_AI_DOWN;
     ok(/Schon gegessen[\s\S]*Buntes Frucht-Trio/.test(t), "ohne KI findet die Suche Bekanntes trotzdem", t.slice(0, 120)); await shut();
@@ -628,7 +645,9 @@ const PARTS = {
 
   /* ---------- Song raten (Wunsch von Nathan): its own game, genre or own artists, type the answer (typos forgiven) or pick of four ---------- */
   async song(browser){
-    const page = await L.open(browser, "tester"); let last = "";
+    /* Safari's audio session, imitated: what the game tells the iPhone about its sound (silent switch) */
+    const fakeAS = () => { Object.defineProperty(navigator, "audioSession", {value: {_t: "auto", get type(){ return this._t; }, set type(v){ this._t = v; }}, configurable: true}); };
+    const page = await L.open(browser, "tester", {before: fakeAS}); let last = "";
     page.on("request", r => { const m = /audio-ssl\.itunes\.apple\.com\/fake\/([^?]+)\.m4a/.exec(r.url()); if (m) last = decodeURIComponent(m[1]); });
     await page.evaluate(() => App.go("games")); await sleep(700);
     ok(await has(page, '#main [data-g="song"]'), "„Song raten“ steht bei den Spielen");
@@ -642,6 +661,7 @@ const PARTS = {
     await play(); await page.shot("song-frage");
     ok(await page.evaluate(() => document.activeElement && document.activeElement.id === "sgt"), "Abspielen: das Titel-Feld ist gleich offen (Tastatur)");
     ok(!!last, "der Song spielt (Vorschau geladen)", last);
+    ok(await page.evaluate(() => navigator.audioSession.type === "playback"), "iPhone: der Song zählt als Musik, spielt also auch im Stummmodus", await page.evaluate(() => navigator.audioSession.type));
     /* the right title with a typo and without "(Remastered …)" */
     const typo = t => { const b = t.replace(/\s*\(.*\)$/, ""); return b.length >= 8 ? b.slice(0, 3) + b.slice(4) : b; };
     const t1 = last; await page.keyboard.type(typo(t1), {delay: 10}); await page.keyboard.press("Enter"); await sleep(500); await page.shot("song-antwort");
@@ -662,12 +682,14 @@ const PARTS = {
     await page.locator("[data-op]", {hasText: who}).first().tap(); await sleep(400);
     ok(/\+1/.test(await txt(page, "#main")) && /Anna/.test(await txt(page, "#main")), "richtigen Interpreten angetippt: +1 für Anna", (await txt(page, "#main")).slice(0, 120));
     await page.tap("#sgnx"); await sleep(400); ok(/Ben/.test(await txt(page, "#main")), "danach ist Ben dran");
+    await page.evaluate(() => App.go("games")); await sleep(400); ok(await page.evaluate(() => navigator.audioSession.type === "auto"), "raus aus dem Spiel: das iPhone entscheidet wieder selbst (Stummschalter gilt wieder)");
     await clean(page, "Song raten"); await page.context().close();
   },
 
   /* ---------- Song raten online: two phones, a lobby, voice chat button, the same song on both, answers, points ---------- */
   async songon(browser){
-    const a = await L.open(browser, "tester"), b = await L.open(browser, "mila"); const heard = {a: [], b: []};
+    const fakeAS = () => { Object.defineProperty(navigator, "audioSession", {value: {_t: "auto", get type(){ return this._t; }, set type(v){ this._t = v; }}, configurable: true}); };
+    const a = await L.open(browser, "tester", {before: fakeAS}), b = await L.open(browser, "mila", {before: fakeAS}); const heard = {a: [], b: []};
     for (const [pg, k] of [[a, "a"], [b, "b"]]) pg.on("request", r => { const m = /audio-ssl\.itunes\.apple\.com\/fake\/([^?]+)\.m4a/.exec(r.url()); if (m) heard[k].push(decodeURIComponent(m[1])); });
     await a.evaluate(() => App.go("party", {g: "song"})); await sleep(600);
     ok(await has(a, "#pgon"), "„Song raten“ hat jetzt „Online spielen“");
@@ -685,6 +707,7 @@ const PARTS = {
     ok(/An/.test(await txt(a, "#lvoice")), "Sprachchat-Knopf: an (Mikrofon erlaubt)", await txt(a, "#lvoice"));
     for (let i = 0; i < 12 && !/Sprechen · 1/.test(await txt(b, "#lvoice")); i++) await sleep(500);
     ok(/Sprechen · 1/.test(await txt(b, "#lvoice")), "Mila sieht: 1 ist schon im Sprachchat", await txt(b, "#lvoice"));
+    ok(await a.evaluate(() => !navigator.audioSession || navigator.audioSession.type === "play-and-record"), "iPhone: der Sprachchat läuft als Gespräch (auch im Stummmodus)");
     await b.tap("#lvoice"); let vc = false; for (let i = 0; i < 20 && !vc; i++){ await sleep(500); vc = await a.evaluate(() => PVoice.peers().length === 1) && await b.evaluate(() => PVoice.peers().length === 1); }
     ok(vc, "beide im Sprachchat: die Handys sind verbunden", JSON.stringify([await a.evaluate(() => PVoice.peers()), await b.evaluate(() => PVoice.peers())]));
     await a.tap("#lgo"); await a.waitForSelector("[data-op]", {timeout: 10000}).catch(() => {}); await b.waitForSelector("[data-op]", {timeout: 10000}).catch(() => {}); await sleep(2600); await a.shot("songon-frage"); await b.shot("songon-frage-mila");

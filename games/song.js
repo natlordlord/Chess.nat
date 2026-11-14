@@ -70,9 +70,9 @@
   PG.add({id: "song", icon: "music", name: ["Song Quiz", "Song raten"], tag: ["New", "Neu"], sub: ["Hear a clip, name the song.", "Kurz reinhören, Song erraten."], meta: ["1+ players · pick a genre", "1+ Spieler · Genre wählen"],
     mount(ctx){
       const o = PG.opt("song", {genre: "mix", what: "title", answer: "type", clip: 10, rounds: 5, own: ""});
-      const au = new Audio(); au.preload = "auto"; PG.onLeave(() => { try { au.pause(); } catch(e) {} });
+      const au = new Audio(); au.preload = "auto"; au.setAttribute("playsinline", ""); PG.onLeave(() => { try { au.pause(); } catch(e) {} if (PG.audio) PG.audio.music(false); });
       let stopAt = 0; const clipOff = () => { clearTimeout(stopAt); }; PG.onLeave(clipOff);
-      const play = (url, secs) => { clipOff(); try { if (au.src !== url) au.src = url; au.currentTime = 0; au.volume = 1; const p = au.play(); if (p && p.catch) p.catch(() => {}); } catch(e) {} if (secs) stopAt = setTimeout(() => { try { au.pause(); } catch(e) {} }, secs * 1000); };
+      const play = (url, secs) => { clipOff(); if (PG.audio) PG.audio.music(true); try { if (au.src !== url) au.src = url; au.currentTime = 0; au.volume = 1; const p = au.play(); if (p && p.catch) p.catch(() => {}); } catch(e) {} if (secs) stopAt = setTimeout(() => { try { au.pause(); } catch(e) {} }, secs * 1000); };
 
       const setup = () => {
         ctx.stop(); clipOff(); try { au.pause(); } catch(e) {}
@@ -86,7 +86,7 @@
             <button class="btn go big" id="sggo" style="margin-top:14px">${T("Start", "Los geht's")} 🎵</button></div>
           <div class="unit" id="sgp"></div>`;
         const gen = () => { $("#sgg").innerHTML = Object.entries(G).map(([k, g]) => `<button class="btn ${o.genre === k ? "go" : ""}" data-gn="${k}" style="justify-content:flex-start;gap:10px"><span style="font-size:22px">${g[0]}</span>${h(T(g[2], g[1]))}</button>`).join("");
-          $$("[data-gn]", ctx.body).forEach(b => b.onclick = () => { o.genre = b.dataset.gn; PG.persist(); gen(); const ow = $("#sgow"); ow.hidden = o.genre !== "own"; if (!ow.hidden){ const i = $("#sgown"); try { i.focus(); } catch(e) {} } }); };
+          $$("[data-gn]", ctx.body).forEach(b => b.onclick = () => { o.genre = b.dataset.gn; PG.persist(); gen(); const ow = $("#sgow"); ow.hidden = o.genre !== "own"; if (!ow.hidden){ const i = $("#sgown"); try { i.focus({preventScroll: true}); } catch(e) {} } }); };
         gen();
         $("#sgown").oninput = e => { o.own = e.target.value.slice(0, 400); PG.persist(); };
         /* the keyboard comes up from below: the field glides to the middle first, so it stays in sight */
@@ -169,10 +169,10 @@
       w(0, "RIFF"); dv.setUint32(4, 36 + n, true); w(8, "WAVEfmt "); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true); dv.setUint32(24, 8000, true); dv.setUint32(28, 8000, true); dv.setUint16(32, 1, true); dv.setUint16(34, 8, true); w(36, "data"); dv.setUint32(40, n, true); b.fill(128, 44);
       let bin = ""; b.forEach(x => { bin += String.fromCharCode(x); }); return "data:audio/wav;base64," + btoa(bin); })();
     return {au, get ok(){ return ok; },
-      unlock(){ if (ok || key) return; try { au.muted = true; au.src = silent; const p = au.play(); Promise.resolve(p).then(() => { au.pause(); au.muted = false; ok = true; }).catch(() => { au.muted = false; }); } catch(e) {} },
+      unlock(){ if (PG.audio) PG.audio.music(true); if (ok || key || (typeof PVoice !== "undefined" && (PVoice.on || PVoice.starting))) return; try { au.muted = true; au.src = silent; const p = au.play(); Promise.resolve(p).then(() => { au.pause(); au.muted = false; ok = true; }).catch(() => { au.muted = false; }); } catch(e) {} },
       /* the clip of this question: starts at the moment the host set, stops after the clip; false = this phone needs a tap first */
       at(k, url, start, secs, onNeed){ if (key === k || !OKURL.test(url)) return; key = k; clearTimeout(startT); clearTimeout(stopT);
-        const go = () => { if (key !== k) return; try { au.muted = false; if (au.src !== url) au.src = url; const off = Math.max(0, (Date.now() - start) / 1000); try { au.currentTime = off; } catch(e) {}
+        const go = () => { if (key !== k) return; if (PG.audio) PG.audio.music(true); try { au.muted = false; if (au.src !== url) au.src = url; const off = Math.max(0, (Date.now() - start) / 1000); try { au.currentTime = off; } catch(e) {}
             const p = au.play(); Promise.resolve(p).then(() => { ok = true; }).catch(() => { onNeed && onNeed(); }); } catch(e) { onNeed && onNeed(); }
           stopT = setTimeout(() => { if (key === k) try { au.pause(); } catch(e) {} }, Math.max(500, start + secs * 1000 - Date.now())); };
         startT = setTimeout(go, Math.max(0, start - Date.now())); },
@@ -180,8 +180,10 @@
       tap(k, url, start, secs){ key = null; this.at(k, url, start, secs); },
       /* the answer is out: the rest of the preview plays on */
       rest(url){ clearTimeout(stopT); try { if (au.src === url && au.paused) au.play().catch(() => {}); } catch(e) {} },
-      stop(){ key = null; clearTimeout(startT); clearTimeout(stopT); try { au.pause(); } catch(e) {} }}; })();
-  document.addEventListener("pointerdown", () => { if (typeof App !== "undefined" && (App.route === "lobby" || App.route === "party")) SA.unlock(); }, true);
+      stop(){ key = null; clearTimeout(startT); clearTimeout(stopT); try { au.pause(); } catch(e) {} if (PG.audio) PG.audio.music(false); }}; })();
+  /* the first tap in the song game's lobby wakes the player (not the voice chat buttons: the microphone comes first there) */
+  document.addEventListener("pointerdown", e => { if (typeof App === "undefined" || !(App.route === "lobby" || App.route === "party") || (e.target && e.target.closest && e.target.closest("#lvoice,#lvx"))) return;
+    const P = typeof PNet !== "undefined" && PNet.P, song = App.route === "party" ? PG.st.last === "song" : !!(P && (P.game === "song" || (P.msg && P.msg.game === "song"))); if (song) SA.unlock(); }, true);
 
   if (PG.online){
     let OP = null; const now = () => Date.now();
