@@ -30,6 +30,7 @@ chess_push|endpoint|endpoint:text:!: ; user_id:uuid:!:@uid ; p256dh:text:!: ; au
 chess_queue|user_id|user_id:uuid:!: ; tc:text:!: ; cat:text:!: ; r:float8:!: ; joined_at:timestamptz:!:@now ; seen_at:timestamptz:!:@now ; match_id:uuid:?:
 chess_ratings|user_id,cat|user_id:uuid:!: ; cat:text:!: ; r:float8:!:1200 ; rd:float8:!:350 ; games:int4:!:0 ; w:int4:!:0 ; d:int4:!:0 ; l:int4:!:0 ; peak:int4:!:0 ; updated_at:timestamptz:!:@now
 kcal_body|user_id|user_id:uuid:!: ; aim:text:?: ; sex:text:?: ; born:int2:?: ; height:int2:?: ; weight:numeric:?: ; activity:numeric:?: ; custom:bool:!:false ; weigh_min:int2:?: ; setup_at:timestamptz:?: ; updated_at:timestamptz:!:@now
+kcal_claps|from_id,to_id,day|from_id:uuid:!:@uid ; to_id:uuid:!: ; day:date:!: ; created_at:timestamptz:!:@now
 kcal_foods|key|key:text:!: ; name:text:!: ; k:numeric:!: ; c:numeric:!: ; p:numeric:!: ; f:numeric:!: ; fi:numeric:!:0 ; su:numeric:!:0 ; sf:numeric:!:0 ; q:int2:!:3 ; source:text:!: ; created_at:timestamptz:!:@now
 kcal_ice|user_id,day|user_id:uuid:!: ; day:date:!:
 kcal_invites|from_id,to_id|from_id:uuid:!:@uid ; to_id:uuid:!: ; created_at:timestamptz:!:@now
@@ -54,7 +55,6 @@ tipp_tips|id|id:int8:!:@identity ; user_id:uuid:?: ; bot:text:?: ; event_id:text
 /* Tables that exist only as SQL files in the repository and are NOT in the real database yet.
    They are left out unless the server is started with FAKE_PENDING=1 (to try the feature as it will be). */
 const PENDING = `
-kcal_claps|from_id,to_id,day|from_id:uuid:!:@uid ; to_id:uuid:!: ; day:date:!: ; created_at:timestamptz:!:@now
 `;
 
 /* Functions callable through /rest/v1/rpc, with their argument names ("?" = has a default). */
