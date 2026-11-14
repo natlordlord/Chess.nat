@@ -548,6 +548,12 @@ const PARTS = {
     ok(sup.every(x => x === 0), "Laptop: Super per Rechtsklick, Taste E und Knopf", JSON.stringify(sup));
     ok(await d.locator(".ar-sk").isVisible().catch(() => false), "Laptop: am Super-Knopf steht „Rechtsklick · E“"); await d.shot("natstars-laptop");
     await d.evaluate(() => document.querySelector("#lleave").click()); await sleep(800); await clean(d, "Nat Stars am Laptop", /AudioContext|play\(\)/); await d.context().close();
+    /* the 3D arena: here without a graphics chip it is switched on on purpose, builds and draws (then falls back to the drawn map, too slow) */
+    const g = await L.open(browser, "tester", {before: () => { window.__ar3dSoft = true; }});
+    await g.evaluate(() => App.go("party", {g: "arena"})); await sleep(900); await g.locator("#main button", {hasText: "Gegen Bots"}).first().tap();
+    let g3 = null; for (let i = 0; i < 80; i++){ g3 = await g.evaluate(() => __ar3d()); if (g3.built && g3.frames >= 1) break; await sleep(250); }
+    ok(g3 && g3.built && g3.frames >= 1, "3D-Arena: Boden, Mauern, Hecke, Teiche, Bäume, Blumen werden gebaut und gezeichnet (" + JSON.stringify(g3) + ")", JSON.stringify(g3));
+    await g.evaluate(() => document.querySelector("#lleave") && document.querySelector("#lleave").click()); await sleep(800); await clean(g, "3D-Arena", /AudioContext|play\(\)|GPU stall|WebGL/); await g.context().close();
   },
 
   /* ---------- Tippspiel ---------- */
