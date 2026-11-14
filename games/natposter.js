@@ -390,7 +390,8 @@
     /* only when the page really reaches under the status bar may the game be as tall as the screen */
     sat(){ try { const d = document.createElement("div"); d.style.cssText = "position:fixed;top:0;left:0;width:1px;height:var(--st,0px);height:max(var(--st,0px),var(--sl,0px),var(--sr,0px));visibility:hidden"; document.body.appendChild(d); const h = d.offsetHeight; d.remove(); return h; } catch(e) { return 0; } },
     unfull(){ try { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); else if (document.webkitFullscreenElement && document.webkitExitFullscreen) document.webkitExitFullscreen(); } catch(e) {} },
-    stop(){ PVoice.stop(); this.vTried = 0; cancelAnimationFrame(this.raf); this.raf = 0; if (this.el){ this.el.remove(); this.unfull(); } this.el = null; this.fullTried = 0; if (this.pop) window.removeEventListener("popstate", this.pop, true); document.documentElement.classList.remove("np-on"); window.removeEventListener("keydown", this.kd); window.removeEventListener("keyup", this.ku); window.removeEventListener("resize", this.rs); },
+    /* the station's own voice chat ends with it; a voice chat started in another game's lobby (net.js) stays on */
+    stop(){ if (this.el || this.vTried) PVoice.stop(); this.vTried = 0; cancelAnimationFrame(this.raf); this.raf = 0; if (this.el){ this.el.remove(); this.unfull(); } this.el = null; this.fullTried = 0; if (this.pop) window.removeEventListener("popstate", this.pop, true); document.documentElement.classList.remove("np-on"); window.removeEventListener("keydown", this.kd); window.removeEventListener("keyup", this.ku); window.removeEventListener("resize", this.rs); },
     /* synth sounds, all through the app's sound engine (respects the sound switch) */
     sfx: {
       ac(){ return !QUIET && Sound.fx && Sound.fx() ? Sound.ac : null; },
