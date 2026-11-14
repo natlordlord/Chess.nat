@@ -300,7 +300,7 @@ const PARTS = {
     await page.tap("#main [data-inv]"); await sleep(800); ok((await L.table("kcal_invites", "to_id=eq." + ID.jonas)).length === 1, "Einladung landet in der Datenbank");
     /* applause: Mila reached her goal today */
     const clap = await has(page, "#main [data-clap]");
-    ok(clap, "Applaudieren-Knopf bei Mila (Ziel heute erreicht)", "kein Knopf: die Tabelle kcal_claps gibt es in der echten Datenbank noch nicht");
+    ok(clap, "Applaudieren-Knopf bei Mila (Ziel heute erreicht)", "kein Knopf: fehlt die Tabelle kcal_claps?");
     if (clap){ await page.tap("#main [data-clap]"); await sleep(700); ok((await L.table("kcal_claps")).length === 1, "Applaus wird gespeichert"); }
     await clean(page, "Reiter und Freunde", /kcal_claps/);
 
