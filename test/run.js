@@ -313,6 +313,9 @@ const PARTS = {
     ok(JSON.stringify(show) === JSON.stringify(["fat", "carbs", "kcal"]), "Reihenfolge des Antippens gespeichert (höchstens drei: Fett, KH, Kalorien)", JSON.stringify(show));
     await page.shot("kcal-einstellungen"); await closeSheets(page); await sleep(400);
     ok(/FETT|Fett/.test(await txt(page, "#main .kc-sum .kc-b2")), "oben groß steht jetzt, was zuerst angetippt wurde (Fett)", await txt(page, "#main .kc-sum"));
+    ok(await page.locator("#main .kc-sum .kc-b2").count() === 1, "oben steht nur eines groß", String(await page.locator("#main .kc-sum .kc-b2").count()));
+    ok(await page.locator("#main .kc-sum .kc-pf > span").count() === 3, "die anderen drei stehen klein darunter (auch was nicht angetippt wurde)", await txt(page, "#main .kc-sum .kc-pf"));
+    ok(await page.evaluate(() => [...document.querySelectorAll("#main .kc-sum .kc-pf u")].every(u => !/255, 255, 255/.test(getComputedStyle(u).backgroundColor))), "die kleinen Balken sind farbig, nicht grau");
     await clean(page, "Einstellungen");
 
     /* streak freeze */

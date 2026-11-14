@@ -321,10 +321,10 @@
     const bb = sh.el.querySelector("#kcbuy"); if (bb) bb.onclick = async () => { if (!(typeof natSpend === "function" && natSpend(ICE_PRICE))) return say("Nicht genug Natcoins"); bb.disabled = true;
       try { await K.buyIce(); sh.close(); haptic([15, 30, 15]); confetti(false); say("🧊 Streak on Ice gekauft"); } catch(e) { if (typeof natEarn === "function") natEarn(ICE_PRICE, true); bb.disabled = false; say("Ging nicht: " + (e.message || e)); } };
     return sh; }
-  /* ---------- what each person cares about (Settings): the first two big at the top, up to three as columns in the lists ---------- */
+  /* ---------- what each person cares about (Settings): the first one big at the top, up to three as columns in the lists ---------- */
   const NUT = {kcal: {l: "Kalorien", s: "kcal", c: "k", e: "🔥"}, carbs: {l: "Kohlenhydrate", s: "KH", c: "c", e: "🍞"}, protein: {l: "Protein", s: "Protein", c: "p", e: "💪"}, fat: {l: "Fett", s: "Fett", c: "f", e: "🥑"}}, NORD = ["kcal", "protein", "carbs", "fat"];
   const aimShow = aim => ["kcal", ["muscle", "gain", "bulk"].includes(aim) ? "protein" : "carbs"];
-  /* what you see, in the order you tapped it: the first two big at the top, the others small below, all of them as columns in the lists.
+  /* what you see, in the order you tapped it: the first one big at the top, all others small below, all of them as columns in the lists.
      Nobody picked yet: all four, calories and protein first. The profile keeps at most three (in order); "all four" is remembered
      on this phone (SHOWK = "4") and the one left over simply comes last */
   const SHOWK = "chessnat-kc-show4", pickedV = () => { try { return localStorage.getItem(SHOWK) || ""; } catch(e) { return ""; } }, setPicked = n => { try { localStorage.setItem(SHOWK, n >= NORD.length ? "4" : "1"); } catch(e) {} };
@@ -332,7 +332,7 @@
     if (f && Array.isArray(p.show)){ const s2 = p.show.filter((k, i) => NORD.includes(k) && p.show.indexOf(k) === i); if (s2.length) return f === "4" ? s2.concat(NORD.filter(k => !s2.includes(k))) : s2; }
     return NORD.slice(); }
   const vOf = (o, k) => Number(o[k]) || 0;
-  /* in the lists only the two values that matter most to you (the ones shown big at the top): the name of what you ate gets the room */
+  /* in the lists only the two values that matter most to you (the first two you picked): the name of what you ate gets the room */
   const cells = o => { const S = shows().slice(0, 2), n3 = S.length > 3 ? " n3 n4" : S.length > 2 ? " n3" : ""; return S.map(k => `<span class="kc-n ${NUT[k].c}${n3}">${k === "kcal" || S.length > 3 ? fmt(Math.round(vOf(o, k))) : g0(vOf(o, k))}</span>`).join(""); };
   const heads = () => { const S = shows().slice(0, 2), n3 = S.length > 3 ? " n3 n4" : S.length > 2 ? " n3" : ""; return S.map(k => `<span class="kc-n ${NUT[k].c}${n3}">${S.length > 3 ? ({kcal: "kcal", protein: "Prot.", carbs: "KH", fat: "Fett"})[k] : NUT[k].s}</span>`).join(""); };
   const one1 = (o, k) => k === "kcal" ? fmt(vOf(o, k)) + " kcal" : f1(vOf(o, k)) + " g " + NUT[k].s;
@@ -343,11 +343,11 @@
   const P2o = (P, f = 1) => ({kcal: P.k * f, carbs: P.c * f, protein: P.pr * f, fat: P.f * f});
   const sumOf = ms => { const o = {kcal: 0, carbs: 0, protein: 0, fat: 0}; ms.forEach(m => NORD.forEach(k => { o[k] += Number(m[k]) || 0; })); return o; };
 
-  /* ---------- the day at a glance: the two that matter most, big, against their targets ---------- */
-  function sumHTML(t, go){ const T = K.targets(), S = shows(), top = S.slice(0, 2), rest = S.slice(2), v = k => k === "kcal" ? K.dayKcal(t) : K.daySum(t, k), pc = k => Math.round(Math.min(1, v(k) / (T[k] || 1)) * 100);
+  /* ---------- the day at a glance: what matters most (usually the calories) big, the other three small below it, each with its own colour ---------- */
+  function sumHTML(t, go){ const T = K.targets(), S = shows(), top = S.slice(0, 1), rest = S.slice(1).concat(NORD.filter(k => !S.includes(k))), v = k => k === "kcal" ? K.dayKcal(t) : K.daySum(t, k), pc = k => Math.round(Math.min(1, v(k) / (T[k] || 1)) * 100);
     const box = k => { const ok = v(k) >= T[k]; return `<div class="kc-b2 ${NUT[k].c} ${ok ? "ok" : ""}"><small>${NUT[k].l}${k === "kcal" && ok ? " 🔥" : ""}</small><b><var data-cnt="${k}" data-v="${Math.round(v(k))}">${fmt(v(k))}</var><em> / ${fmt(T[k])}${k === "kcal" ? "" : " g"}</em></b><i><u data-bar="${k}" style="width:${pc(k)}%"></u></i></div>`; };
-    const small = k => `<span class="${v(k) >= T[k] ? "ok" : ""}">${NUT[k].s || NUT[k].l} <b data-cnt="${k}" data-v="${Math.round(v(k))}">${fmt(v(k))}</b> / ${fmt(T[k])}${k === "kcal" ? " kcal" : " g"}<i><u data-bar="${k}" style="width:${pc(k)}%"></u></i></span>`;
-    return `<div class="kc-two ${top.length < 2 ? "one" : ""}" ${go ? "data-kc-go" : ""}>${top.map(box).join("")}</div>${rest.length ? `<div class="kc-pf">${rest.map(small).join("")}</div>` : ""}`; }
+    const small = k => `<span class="${NUT[k].c} ${v(k) >= T[k] ? "ok" : ""}"><em>${NUT[k].s || NUT[k].l}</em> <b data-cnt="${k}" data-v="${Math.round(v(k))}">${fmt(v(k))}</b> / ${fmt(T[k])}${k === "kcal" ? " kcal" : " g"}<i><u data-bar="${k}" style="width:${pc(k)}%"></u></i></span>`;
+    return `<div class="kc-two ${top.length < 2 ? "one" : ""}" ${go ? "data-kc-go" : ""}>${top.map(box).join("")}</div>${rest.length ? `<div class="kc-pf n${rest.length}">${rest.map(small).join("")}</div>` : ""}`; }
   /* ---------- suggestions: what's pinned first, then what is eaten again and again; + adds it once more, a tap on the row shows it ---------- */
   const keyOf = m => { const it = Array.isArray(m.items) && m.items.length === 1 ? m.items[0] : null; return m.code || (it && it.code) || String(m.title || "").toLowerCase().trim(); };
   const pins = () => Array.isArray(K.prof && K.prof.pins) ? K.prof.pins : [];
@@ -1255,7 +1255,7 @@
     const on = K.on(), p = K.prof || {};
     return `<h3>Kalorien-Tracker</h3>
       <label class="chk"><input type="checkbox" data-kcs="enabled" ${on ? "checked" : ""}> Auf der Startseite zeigen (Sprechen + Barcode)</label>
-      ${on || full ? `<div class="kc-showp"><b>Was dich interessiert</b><div class="kc-chips">${NORD.map(k => { const i = shows().indexOf(k); return `<button class="chip ${i >= 0 ? "on" : ""}" data-show="${k}">${i >= 0 ? `<b class="kc-ord">${i + 1}</b> ` : ""}${NUT[k].e} ${NUT[k].l}</button>`; }).join("")}</div><small class="muted">Die Reihenfolge zählt: Was du zuerst antippst, steht oben groß (1 und 2), der Rest klein darunter. Zum Umsortieren abwählen und neu antippen.</small></div>
+      ${on || full ? `<div class="kc-showp"><b>Was dich interessiert</b><div class="kc-chips">${NORD.map(k => { const i = shows().indexOf(k); return `<button class="chip ${i >= 0 ? "on" : ""}" data-show="${k}">${i >= 0 ? `<b class="kc-ord">${i + 1}</b> ` : ""}${NUT[k].e} ${NUT[k].l}</button>`; }).join("")}</div><small class="muted">Die Reihenfolge zählt: Was du zuerst antippst, steht oben groß, der Rest klein darunter. Zum Umsortieren abwählen und neu antippen.</small></div>
       <div class="kc-goal"><span>Tagesziel</span><input id="kcgoal" inputmode="numeric" value="${K.goal()}"><span>kcal</span></div>
       <div class="kc-chips">${[2000, 2500, 2800, 3000, 3500].map(v => `<button class="chip ${K.goal() === v ? "on" : ""}" data-goal="${v}">${fmt(v)}</button>`).join("")}</div>
       ${(() => { const T = K.targets(), b = K.body || {}, A = AIMS.find(a => a[0] === b.aim), lw = K.weights[0];
@@ -1904,7 +1904,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-sadd{background:#33302C;border-radius:4px 4px 14px 14px;margin-top:-6px;padding:10px;display:flex;flex-direction:column;gap:10px;animation:kcIn .2s ease-out}@keyframes kcIn{from{opacity:0;transform:translateY(-6px)}}
 .kc-sk{font:800 15px var(--body);text-align:center}.kc-sk b{font:900 22px var(--display)}.kc-sk small{display:block;color:var(--muted);font-weight:700;font-size:12px;margin-top:2px}
 .kc-pf{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:2px 4px;font:700 13px var(--body);color:var(--muted)}.kc-pf b{color:var(--fg);font:900 14px var(--display)}
-.kc-pf i{display:block;height:4px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:5px}.kc-pf u{display:block;height:100%;background:rgba(255,255,255,.45);border-radius:2px}.kc-pf .ok u{background:#9BE25A}.kc-pf .ok,.kc-pf .ok b{color:#9BE25A}
+.kc-pf i{display:block;height:4px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:5px}.kc-pf u{display:block;height:100%;background:var(--go);border-radius:2px}.kc-pf .c u{background:#E9A92B}.kc-pf .p u{background:#4FA3FF}.kc-pf .f u{background:#EF7A5F}.kc-pf em{font-style:normal}.kc-pf.n3{grid-template-columns:1fr 1fr 1fr;gap:10px;white-space:nowrap}.kc-pf.n3>span{min-width:0;overflow:hidden;text-overflow:ellipsis}.kc-pf.n3 em{display:block;font:900 11px var(--body);letter-spacing:.06em;text-transform:uppercase}.kc-pf i{height:6px;border-radius:3px}.kc-pf .ok u{background:#9BE25A}.kc-pf .ok,.kc-pf .ok b{color:#9BE25A}
 .kc-quick{gap:6px}.kc-qc{background:var(--panel-2);border-radius:16px;overflow:hidden}.kc-qc .kc-q{background:none;border-radius:0;padding:10px 10px 10px 14px;gap:10px}.kc-qc .kc-q+.kc-q{border-top:1px solid rgba(255,255,255,.06)}
 .kc-qc .kc-qn{flex:1;min-width:0;display:block;font:800 15px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kc-qv{font:700 13px var(--body);color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
 .kc-qa{position:relative;width:32px;height:32px;border-radius:50%;background:none;border:2px solid var(--go);color:var(--go-hi,#8FC458);display:grid;place-items:center;flex:none;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}.kc-qa::after{content:"";position:absolute;inset:-9px}.kc-qa:active,.kc-qa.ok{background:var(--go);color:#fff}.kc-qc .kc-q:has(.kc-qa:active){transform:none}
