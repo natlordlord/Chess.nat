@@ -441,7 +441,11 @@ const PARTS = {
     await a.shot("chat"); await clean([a, b], "Chat");
     /* after a round of Nat Stars the keys must still type */
     await a.evaluate(() => App.go("party", {g: "arena"})); await sleep(900); await a.locator("#main button", {hasText: "Gegen Bots"}).first().tap(); await sleep(6500); await a.shot("natstars");
-    ok(await a.evaluate(() => !!document.querySelector(".ar-l")), "Nat Stars startet gegen Bots"); await a.evaluate(() => document.querySelector("#lleave").click()); await sleep(1200);
+    ok(await a.evaluate(() => !!document.querySelector(".ar-l")), "Nat Stars startet gegen Bots");
+    for (let i = 0; i < 40 && (await a.evaluate(() => __ar().ph)) !== "fight"; i++) await sleep(250);
+    const ar = await a.evaluate(() => __ar()); ok(ar.crates >= 12 && ar.crates <= 28, "Nat Stars: deutlich weniger Kisten (" + ar.crates + " auf der Karte „" + ar.map + "“, vorher 56 bis 68)", JSON.stringify({c: ar.crates, map: ar.map, ph: ar.ph}));
+    const pw = await a.evaluate(() => __arGive(15)); ok(pw === 15, "Nat Stars: kein Limit mehr bei 12 Power-Würfeln (15 aufgesammelt, 15 zählen)", String(pw));
+    await a.evaluate(() => document.querySelector("#lleave").click()); await sleep(1200);
     await a.evaluate(id => App.go("chat", {id}), ID.mila); await a.waitForSelector("#ctext"); await sleep(600); await a.tap("#ctext"); await a.keyboard.type("was die sache ist", {delay: 20});
     ok(await a.inputValue("#ctext") === "was die sache ist", "nach einer Runde Nat Stars: W A S D E Q und Leerzeichen lassen sich weiter tippen", await a.inputValue("#ctext"));
     await clean([a, b], "Nat Stars und zurück", /AudioContext|play\(\)/);

@@ -1,6 +1,6 @@
 /* ===== Nat Stars: a Brawl-Stars-style showdown on its own big meadow.
-   Grass, stone walls, ponds, bushes to hide in and crates full of power cubes: shoot a crate open, grab the green cube,
-   get more health and more damage. The gas closes in slowly, the last one standing wins.
+   Grass, stone walls, ponds, bushes to hide in and a few crates full of power cubes: shoot a crate open, grab the green cube,
+   get more health and more damage (no upper limit). The gas closes in slowly, the last one standing wins.
    It runs on its own (round after round) and as the minigame at a Natposter meeting (the winner picks a secret bonus).
    Network: every phone moves itself ("am") and says when it shoots ("as"). Whoever fired decides what the shot hit
    and says so ("ah" for people, "ach" for crates; the host does it for the bots). The gas where you stand you report yourself.
@@ -68,10 +68,10 @@
 
   /* ---------------- the maps: 44 × 44 tiles, mirrored four times like a Showdown map. Grass, walls, ponds, bushes, crates ---------------- */
   const LAYS = [
-    {id: "wiese", en: "Meadow", de: "Wiese", seed: 11, wall: 6, water: 1, bush: 7, crate: 5},
-    {id: "schlucht", en: "Canyon", de: "Schlucht", seed: 23, wall: 9, water: 0, bush: 5, crate: 5},
-    {id: "teiche", en: "Ponds", de: "Teiche", seed: 37, wall: 4, water: 3, bush: 6, crate: 5},
-    {id: "dschungel", en: "Jungle", de: "Dschungel", seed: 51, wall: 5, water: 1, bush: 11, crate: 5}];
+    {id: "wiese", en: "Meadow", de: "Wiese", seed: 11, wall: 6, water: 1, bush: 7, crate: 2},
+    {id: "schlucht", en: "Canyon", de: "Schlucht", seed: 23, wall: 9, water: 0, bush: 5, crate: 2},
+    {id: "teiche", en: "Ponds", de: "Teiche", seed: 37, wall: 4, water: 3, bush: 6, crate: 2},
+    {id: "dschungel", en: "Jungle", de: "Dschungel", seed: 51, wall: 5, water: 1, bush: 11, crate: 2}];
   const MAPS = {};
   let LAY = null, MP = null, FOG = [];
   function genMap(L){
@@ -80,9 +80,10 @@
     const free = (i, j, w, h, m) => { if (i < 0 || j < 0 || i + w > H || j + h > H) return false; for (let y = j - m; y < j + h + m; y++) for (let x = i - m; x < i + w + m; x++) if (used(x, y)) return false; return true; };
     const set = (i, j, v) => { if (ok(i, j)) q[j * H + i] = v; };
     const box = (i, j) => { if (ok(i, j) && !q[j * H + i]) qc[j * H + i] = 1; };
-    /* the middle: a big bush with crates all around it (every crate here is four on the map) */
+    /* the middle: a big bush with crates all around it (every crate here is four on the map).
+       Few crates on purpose (Wolf's idea): around 20 on the whole map, so players fight over them */
     for (let j = 20; j < 22; j++) for (let i = 20; i < 22; i++) set(i, j, 3);
-    box(21, 18); box(18, 21); box(19, 19);
+    box(21, 18); box(18, 21);
     if (R() < .5){ set(17, 17, 1); set(17, 18, 1); set(18, 17, 1); } else { set(16, 20, 1); set(16, 21, 1); set(20, 16, 1); set(21, 16, 1); }
     let n = 0, tries = 0;
     while (n < L.wall && tries++ < 500){ const blk = R() < .2, len = 2 + ri(4), hor = R() < .5, w = blk ? 2 : hor ? len : 1, h = blk ? 2 : hor ? 1 : len, i = 1 + ri(H - w - 1), j = 1 + ri(H - h - 1);
@@ -95,8 +96,8 @@
       if ((i + w > 14 && j + h > 14) || !free(i, j, w, h, 2)) continue;
       for (let y = j; y < j + h; y++) for (let x = i; x < i + w; x++) if (!((x === i || x === i + w - 1) && (y === j || y === j + h - 1) && w > 2 && h > 2 && R() < .5)) set(x, y, 2);
       n++; }
-    /* crates: one, two or three together, never too close to the next group */
-    const cl = [], SH = [[[0, 0]], [[0, 0], [1, 0]], [[0, 0], [0, 1]], [[0, 0], [1, 0], [2, 0]], [[0, 0], [0, 1], [0, 2]], [[0, 0], [1, 0], [0, 1]], [[0, 0], [1, 0], [1, 1]]]; n = tries = 0;
+    /* crates: one or two together, never too close to the next group */
+    const cl = [], SH = [[[0, 0]], [[0, 0]], [[0, 0], [1, 0]], [[0, 0], [0, 1]]]; n = tries = 0;
     while (n < L.crate && tries++ < 800){ const s = SH[ri(SH.length)], i = 1 + ri(H - 4), j = 1 + ri(H - 4);
       if ((i > 13 && j > 13) || cl.some(([a, b]) => Math.abs(a - i) + Math.abs(b - j) < 6) || !s.every(([dx, dy]) => free(i + dx, j + dy, 1, 1, 1))) continue;
       s.forEach(([dx, dy]) => box(i + dx, j + dy)); cl.push([i, j]); n++; }
@@ -190,12 +191,13 @@
       if (teams <= 1 || now() >= A.end || (humans.length && !alive.some(id => humans.includes(id)) && alive.length)){ finish(G, mg); ch = true; } }
     return ch;
   }
-  /* power cubes, like Brawl Stars but harder: each one +15 % health and +15 % damage (up to 12), whoever is knocked out drops theirs.
-     With 10 cubes you have 2.5× the health and hit 2.5× as hard, so farming crates really pays off */
-  const CUBE = .15, CUBES = 12;
+  /* power cubes, like Brawl Stars but harder: each one +15 % health and +15 % damage, with no upper limit (Wolf's idea),
+     whoever is knocked out drops theirs. With 10 cubes you have 2.5× the health and hit 2.5× as hard; with few crates on the map
+     every cube is worth a fight. The glow around a fighter only grows up to 12 */
+  const CUBE = .15, CUBEVIS = 12;
   function cubeAdd(A, x, y, n){ A.cubes.push({k: ++A.cseq, x: Math.round(x), y: Math.round(y), n: n || 1}); HB.cdirty = true; }
   function cubeGrab(A, id, k){ const i = A.cubes.findIndex(c => c.k === k); if (i < 0 || A.out.includes(id)) return; const c = A.cubes[i], q = posOf(id); if (!q || Math.hypot(q.x - c.x, q.y - c.y) > 90) return;
-    A.cubes.splice(i, 1); const was = A.pw[id] || 0, now2 = Math.min(CUBES, was + c.n), base = Math.round(CLS[A.cls[id]].hp * hpF(A, id)); A.pw[id] = now2; A.mx[id] = Math.round(base * (1 + CUBE * now2)); A.hp[id] = Math.min(A.mx[id], A.hp[id] + base * CUBE * (now2 - was)); HB.dirty = true; HB.cdirty = true; }
+    A.cubes.splice(i, 1); const was = A.pw[id] || 0, now2 = was + c.n, base = Math.round(CLS[A.cls[id]].hp * hpF(A, id)); A.pw[id] = now2; A.mx[id] = Math.round(base * (1 + CUBE * now2)); A.hp[id] = Math.min(A.mx[id], A.hp[id] + base * CUBE * (now2 - was)); HB.dirty = true; HB.cdirty = true; }
   /* a crate takes a hit; broken, it leaves a cube */
   function hostCrate(A, i, d, k){ if (!MP || !MP.cr[i] || !A.crb || A.crb.includes(i) || !(d > 0) || A.ph !== "fight") return; if (k){ const key = "c" + i + "|" + k; if (HB.seen.has(key)) return; HB.seen.add(key); }
     const hp = (A.crh[i] == null ? CRATE : A.crh[i]) - Math.min(220, d); if (hp > 0){ A.crh[i] = hp; HB.crd = true; return; }
@@ -809,10 +811,10 @@
     cv.width = w; cv.height = 40; c.font = f; c.fillStyle = self ? "rgba(79,122,42,.9)" : "rgba(20,19,17,.72)"; rr(c, 0, 0, w, 40, 20); c.fill(); c.fillStyle = "#fff"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(p.name, w / 2, 21); return TAG[k] = {cv, w: w / 2, h: 20}; }
   /* a fighter: shadow and ring on the ground, the avatar (in the air while jumping), the weapon in the hand pointing where they aim */
   function fig(c, x, y, p, o){
-    const pw = Math.min(CUBES, o.pw || 0), h = 118, w = h * 200 / 256, bob = o.mv && !o.jh ? Math.sin(now() / 90 + (p.id.charCodeAt(1) || 0)) * 3 : 0, cv = body(p), jh = o.jh || 0, sc = (1 + jh / 900) * (1 + pw * .025);
+    const pw = Math.min(CUBEVIS, o.pw || 0), h = 118, w = h * 200 / 256, bob = o.mv && !o.jh ? Math.sin(now() / 90 + (p.id.charCodeAt(1) || 0)) * 3 : 0, cv = body(p), jh = o.jh || 0, sc = (1 + jh / 900) * (1 + pw * .025);
     c.fillStyle = "rgba(0,0,0,.32)"; c.beginPath(); c.ellipse(x, y + 16, 26 * (1 - jh / 400), 8 * (1 - jh / 400), 0, 0, 7); c.fill();
     c.strokeStyle = o.mate ? "rgba(79,163,255,.9)" : o.me ? "rgba(143,196,88,.85)" : "rgba(233,87,63,.75)"; c.lineWidth = 3; c.beginPath(); c.ellipse(x, y + 16, 30, 10, 0, 0, 7); c.stroke();
-    if (pw){ const k = pw / CUBES, pu = (Math.sin(now() / 260) + 1) / 2; c.strokeStyle = `rgba(150,245,90,${.35 + k * .5})`; c.lineWidth = 2 + k * 4; c.beginPath(); c.ellipse(x, y + 16, 36 + k * 14 + pu * 4, 12 + k * 5 + pu * 1.5, 0, 0, 7); c.stroke();
+    if (pw){ const k = pw / CUBEVIS, pu = (Math.sin(now() / 260) + 1) / 2; c.strokeStyle = `rgba(150,245,90,${.35 + k * .5})`; c.lineWidth = 2 + k * 4; c.beginPath(); c.ellipse(x, y + 16, 36 + k * 14 + pu * 4, 12 + k * 5 + pu * 1.5, 0, 0, 7); c.stroke();
       c.save(); c.globalAlpha *= .25 + k * .5; c.drawImage(glowSpr(), x - 60 - k * 30, y - 100 - k * 30, 120 + k * 60, 140 + k * 50); c.restore(); }
     const a = o.a || 0, bx = x + Math.cos(a) * (o.lu || 0) * 12, by = y - jh, im = o.k && !(o.k === "punch" && o.lu > .05) ? wpnImg(o.k) : null, behind = Math.sin(a) < -.35;
     const weapon = () => { if (!im) return; const s = o.k === "punch" ? 30 : 38, hx = bx + Math.cos(a) * 24, hy = by - 36 + Math.sin(a) * 14; c.save(); c.translate(hx, hy); if (o.k === "punch") c.rotate(a + Math.PI / 2); else if (o.k !== "bomb" && o.k !== "zap"){ c.rotate(a); if (Math.cos(a) < 0) c.scale(1, -1); } c.drawImage(im, -s / 2, -s / 2, s, s); c.restore(); };
@@ -1024,6 +1026,8 @@
   PG.onArena = m => onMsg(m);
   if (PG.ART) PG.ART.arena = ["⭐", "#E9A92B"];
   window.__ar = () => ({on: C.on, team: C.A && C.A.team, ph: C.A && C.A.ph, me: C.me && {x: Math.round(C.me.x), y: Math.round(C.me.y)}, hp: C.A && C.A.hp, out: C.A && C.A.out, cls: C.A && C.A.cls, am: C.am, sup: C.sup, proj: C.proj.length, bots: Object.keys(HB.bots).length, fog: C.me ? fogAt(C.me.x, C.me.y) : -1, kop: C.pops.filter(p => p.ko).length, dpr: NPo().dpr, qn: Q.n, crates: MP ? MP.cr.length : 0, broken: C.crb.size, cubes: C.cubes.length, pw: C.pw[me()] || 0, map: LAY && LAY.id});
+  /* for the tests: the host drops n cubes at your feet and you pick them up; gives back how many you hold */
+  window.__arGive = n => { const mg = hostMg(); if (!mg || !mg.ar.cubes || !C.me) return null; cubeAdd(mg.ar, C.me.x, C.me.y, n); cubeGrab(mg.ar, me(), mg.ar.cseq); return mg.ar.pw[me()] || 0; };
   window.__arFire = (a, su, len, ch) => a == null ? autoFire(su, ch) : fire(a, su, len, ch);
   window.__arMove = (dx, dy) => { C.moveP = dx == null ? null : {dx, dy, id: -1}; };
   window.__arTo = (x, y) => { if (C.me){ C.me.x = x; C.me.y = y; } };
