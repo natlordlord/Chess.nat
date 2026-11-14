@@ -10,6 +10,8 @@ async function start(){
   const browser = await playwright.chromium.launch({executablePath: process.env.CHROME || (fs.existsSync("/usr/bin/google-chrome") ? "/usr/bin/google-chrome" : undefined), args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", "--autoplay-policy=no-user-gesture-required"]});
   return {browser, stop: async () => { await browser.close(); await new Promise(ok => fake.server.close(ok)); fake.server.closeAllConnections && fake.server.closeAllConnections(); }};
 }
+const SONGS = {Queen: [["Bohemian Rhapsody (Remastered 2011)", "1975"], ["Don't Stop Me Now", "1978"], ["Another One Bites the Dust", "1980"], ["We Will Rock You", "1977"], ["Radio Ga Ga", "1984"], ["Under Pressure", "1981"]],
+  Nena: [["99 Luftballons", "1983"], ["Irgendwie, irgendwo, irgendwann", "1984"], ["Leuchtturm", "1983"]], "a-ha": [["Take On Me", "1985"], ["The Sun Always Shines on T.V.", "1985"], ["Hunting High and Low", "1985"]]};
 /* a phone (iPhone-sized, touch, German, Berlin time) with that person already signed in; who = null → not signed in */
 async function open(browser, who, {route = "", desktop = false, app = true, seasoned = true, before} = {}){
   const ctx = await browser.newContext(Object.assign({locale: "de-DE", timezoneId: "Europe/Berlin", serviceWorkers: "block", permissions: ["microphone", "camera", "notifications"]},
@@ -20,6 +22,13 @@ async function open(browser, who, {route = "", desktop = false, app = true, seas
   page.on("response", r => { const u = r.url(); if (r.status() >= 400 && u.startsWith(BASE) && !/favicon|apple-touch/.test(u)) bad.push({kind: "Anfrage " + r.status(), text: r.request().method() + " " + decodeURIComponent(u.slice(BASE.length)).slice(0, 300)}); });
   /* the barcode lookup goes straight to Open Food Facts from the phone: answer it from the stand-in */
   await page.route(/^https?:\/\/(?!localhost)/, r => r.abort());   /* nothing leaves the machine */
+  /* Song raten: Apple's song search answers from a small fixed list; the 30-second previews are one of the app's own sounds.
+     The song's title is in its preview address, so a test knows which song is playing */
+  await page.route(/itunes\.apple\.com\/search/, r => { const u = new URL(r.request().url()), term = u.searchParams.get("term") || "", cb = u.searchParams.get("callback") || "cb";
+    const L = SONGS[term] || [1, 2, 3, 4, 5].map(i => [term + " Hit " + i, "2015"]);
+    const results = L.map(([t, y], i) => ({trackId: Math.abs([...(term + t)].reduce((a, c) => a * 31 + c.charCodeAt(0) | 0, 7)), trackName: t, artistName: term, previewUrl: "https://audio-ssl.itunes.apple.com/fake/" + encodeURIComponent(t) + ".m4a", artworkUrl100: null, releaseDate: y + "-01-01T08:00:00Z"}));
+    r.fulfill({status: 200, contentType: "text/javascript", body: cb + "(" + JSON.stringify({resultCount: results.length, results}) + ")"}); });
+  await page.route(/audio-ssl\.itunes\.apple\.com\/fake\//, r => r.fulfill({status: 200, contentType: "audio/mpeg", body: fs.readFileSync(path.join(__dirname, "..", "sounds", "Move.mp3"))}));
   await page.route(/world\.openfoodfacts\.org\/api\/v2\/product\//, async r => { const code = /product\/(\d+)/.exec(r.request().url())[1]; const j = await (await fetch(BASE + "/__fake/off?code=" + code)).text(); r.fulfill({status: 200, contentType: "application/json", body: j}); });
   if (who){ const s = await (await fetch(BASE + "/__fake/session?u=" + who)).json(); await ctx.addInitScript(v => { try { if (!sessionStorage.getItem("fake-out")) localStorage.setItem("sb-localhost-auth-token", v); } catch(e) {} }, JSON.stringify(s)); }
   /* on the phone it runs from the home screen: say so, otherwise the "add to home screen" page covers everything */

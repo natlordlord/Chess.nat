@@ -626,6 +626,45 @@ const PARTS = {
     await clean(page, "Freunde-Reihenfolge"); await page.context().close();
   },
 
+  /* ---------- Song raten (Wunsch von Nathan): its own game, genre or own artists, type the answer (typos forgiven) or pick of four ---------- */
+  async song(browser){
+    const page = await L.open(browser, "tester"); let last = "";
+    page.on("request", r => { const m = /audio-ssl\.itunes\.apple\.com\/fake\/([^?]+)\.m4a/.exec(r.url()); if (m) last = decodeURIComponent(m[1]); });
+    await page.evaluate(() => App.go("games")); await sleep(700);
+    ok(await has(page, '#main [data-g="song"]'), "„Song raten“ steht bei den Spielen");
+    await page.tap('#main [data-g="song"]'); await sleep(700);
+    ok(/Genre/.test(await txt(page, "#main")) && await has(page, '[data-gn="y80"]'), "Einstellungen: Genres zur Wahl (u. a. 80er)");
+    await page.tap('[data-gn="own"]'); await sleep(300);
+    ok(await page.evaluate(() => document.activeElement && document.activeElement.id === "sgown"), "„Eigene Künstler“: das Feld ist sofort zum Tippen offen");
+    await page.keyboard.type("Queen", {delay: 15}); await page.tap('#sgr [data-v="3"]'); await sleep(200);
+    await page.tap("#sggo"); await page.waitForSelector("#sgplay", {timeout: 8000}).catch(() => {});
+    const play = async () => { last = ""; await page.tap("#sgplay"); await sleep(500); };
+    await play(); await page.shot("song-frage");
+    ok(await page.evaluate(() => document.activeElement && document.activeElement.id === "sgt"), "Abspielen: das Titel-Feld ist gleich offen (Tastatur)");
+    ok(!!last, "der Song spielt (Vorschau geladen)", last);
+    /* the right title with a typo and without "(Remastered …)" */
+    const typo = t => { const b = t.replace(/\s*\(.*\)$/, ""); return b.length >= 8 ? b.slice(0, 3) + b.slice(4) : b; };
+    const t1 = last; await page.keyboard.type(typo(t1), {delay: 10}); await page.keyboard.press("Enter"); await sleep(500); await page.shot("song-antwort");
+    ok(/\+1/.test(await txt(page, "#main")) && /✓/.test(await txt(page, "#main")) && new RegExp(t1.slice(0, 6).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).test(await txt(page, "#main")), "Titel mit Tippfehler („" + typo(t1) + "“) zählt: +1, richtiger Titel steht da", (await txt(page, "#main")).slice(0, 160));
+    await page.tap("#sgnx"); await sleep(400); await play(); await page.tap("#sgno"); await sleep(400);
+    ok(/✗/.test(await txt(page, "#main")) && /\b0\b/.test(await txt(page, ".pg-name")), "„Keine Ahnung“: 0 Punkte, die Lösung steht da", (await txt(page, "#main")).slice(0, 120));
+    await page.tap("#sgnx"); await sleep(400); await play(); await page.keyboard.type("Thriller", {delay: 10}); await page.keyboard.press("Enter"); await sleep(400);
+    ok(/✗/.test(await txt(page, "#main")), "falscher Titel zählt nicht"); await page.tap("#sgnx"); await sleep(600);
+    ok(/Ergebnis/i.test(await txt(page, "#main")) && /\b1\b/.test(await txt(page, ".pg-name")), "nach 3 Songs: Ergebnis 1 Punkt mit Liste der Songs", (await txt(page, "#main")).slice(0, 160)); await page.shot("song-ergebnis");
+    /* four to pick from, guessing the artist; two players take turns */
+    await page.tap("#sgset"); await sleep(500); await page.tap('[data-gn="y80"]'); await page.tap('#sgw [data-v="artist"]'); await page.tap('#sga [data-v="pick"]'); await sleep(200);
+    await page.locator("#sgp input").fill("Anna"); await page.locator("#sgp input").press("Enter"); await sleep(200); await page.locator("#sgp input").fill("Ben"); await page.locator("#sgp input").press("Enter"); await sleep(200);
+    await page.tap("#sggo"); await page.waitForSelector("#sgplay", {timeout: 8000}).catch(() => {});
+    ok(/Anna/.test(await txt(page, "#main")), "zwei Spieler: „Gib das Handy an Anna“", (await txt(page, "#main")).slice(0, 80));
+    await play(); const opts = await page.$$eval("[data-op]", b => b.map(x => x.innerText)); ok(opts.length === 4, "4 Interpreten zur Auswahl", JSON.stringify(opts));
+    /* which artist: in the fixed list, the one whose song is playing */
+    const who = {"99 Luftballons": "Nena", "Irgendwie, irgendwo, irgendwann": "Nena", "Leuchtturm": "Nena", "Take On Me": "a-ha", "The Sun Always Shines on T.V.": "a-ha", "Hunting High and Low": "a-ha"}[last] || (last.match(/^(.*) Hit \d$/) || [])[1] || "Queen";
+    await page.locator("[data-op]", {hasText: who}).first().tap(); await sleep(400);
+    ok(/\+1/.test(await txt(page, "#main")) && /Anna/.test(await txt(page, "#main")), "richtigen Interpreten angetippt: +1 für Anna", (await txt(page, "#main")).slice(0, 120));
+    await page.tap("#sgnx"); await sleep(400); ok(/Ben/.test(await txt(page, "#main")), "danach ist Ben dran");
+    await clean(page, "Song raten"); await page.context().close();
+  },
+
   async feedback(browser){
     const page = await L.open(browser, "tester"); await page.evaluate(() => openSheet()); await sleep(400); await page.locator('#sheet [data-s="__feedback"]').tap(); await sleep(600);
     /* ideas come first: a long wish is kept whole */
