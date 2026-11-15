@@ -552,7 +552,7 @@ const PARTS = {
   /* ---------- Tippspiel ---------- */
   async tipp(browser){
     const page = await L.open(browser, "tester"); await page.tap('#tabbar [data-t="tipp"]'); await sleep(1500);
-    const t = await txt(page, "#main"); ok(/Bayern/.test(t) && /Leipzig/.test(t) && /4 offen/.test(t), "Tippspiel zeigt die offenen Spiele (4 offen)", t.slice(0, 200)); await page.shot("tipp");
+    const t = await txt(page, "#main"); ok(/Bayern/.test(t) && /Leipzig/.test(t) && /5 offen/.test(t), "Tippspiel zeigt die offenen Spiele (5 offen, mit Deutschland in der Nations League)", t.slice(0, 200)); await page.shot("tipp");
     ok(/Makhachev/.test(t), "UFC-Titelkampf ist tippbar gelistet", t.slice(0, 300));
     await clean(page, "Tippspiel öffnen");
     /* only the result: plus and minus, saved at once */
@@ -566,6 +566,42 @@ const PARTS = {
     await page.tap('#main [data-tab="res"]'); await sleep(1000); const r = await txt(page, "#main"); ok(/Leverkusen/.test(r) && /Freiburg/.test(r), "Ergebnisse: laufendes und beendetes Spiel", r.slice(0, 250)); await page.shot("tipp-ergebnisse");
     await page.tap('#main [data-tab="table"]'); await sleep(1000); const tb = await txt(page, "#main"); ok(/Nat Tester|Du/.test(tb) && /Mila/.test(tb), "Rangliste zeigt dich und Mila", tb.slice(0, 250)); await page.shot("tipp-rangliste");
     await clean(page, "Tippen"); await page.context().close();
+  },
+
+  /* ---------- Nations League: groups, what has to happen (with the tie-breakers), what if, bracket ---------- */
+  async nations(browser){
+    const page = await L.open(browser, "tester"); await page.tap('#tabbar [data-t="tipp"]'); await sleep(1500);
+    /* the chip: only the Nations League games */
+    await page.tap('#main [data-f="uefa.nations"]'); await sleep(500); let t = await txt(page, "#tpbody");
+    ok(/Deutschland/.test(t) && /Niederlande/.test(t) && /Gruppe A2/.test(t) && !/Bayern/.test(t), "Chip „Nations League“: nur die Nations-League-Spiele, mit Gruppe", t.slice(0, 200));
+    await page.tap('#main [data-f="all"]'); await sleep(300);
+    await page.tap('#main [data-tab="nl"]'); await sleep(1500); t = await txt(page, "#tpbody"); await page.shot("nations");
+    ok(/Gruppe A1/.test(t) && /Gruppe A2/.test(t), "Tab „Nations League“: die Gruppen mit Tabelle", t.slice(0, 200));
+    ok(/Live/.test(t) && /Frankreich/.test(t) && /1:0/.test(t), "das laufende Spiel Frankreich – Türkei steht live oben", t.slice(0, 200));
+    ok(/Deutschland kommt weiter, wenn/.test(t) && /Sieg gegen die Niederlande: sicher weiter/.test(t), "Deutschland: mit einem Sieg sicher weiter", t.slice(0, 600));
+    ok(/Remis gegen die Niederlande: weiter nur, wenn Serbien gegen Griechenland gewinnt/.test(t), "Deutschland: bei Remis muss Serbien gegen Griechenland gewinnen (Griechenland hat den direkten Vergleich)", t.slice(0, 600));
+    ok(/Niederlage gegen die Niederlande: raus \(Platz 3 → Relegation\)/.test(t), "Deutschland: bei einer Niederlage raus, Platz 3", t.slice(0, 600));
+    ok(/Frankreich fliegt raus, wenn/.test(t) && /Niederlage gegen die Türkei: raus, wenn Belgien gegen Italien gewinnt/.test(t), "Frankreich fliegt nur raus, wenn es verliert und Belgien gegen Italien gewinnt", t.slice(0, 900));
+    /* the tie-breakers on their own: Germany beat the Netherlands, Greece beat Serbia: three teams on 11 points */
+    const tie = await page.evaluate(() => { const d = NL.d, A2 = d.matches.filter(m => m.grp === "A2" && m.state === "post"), ids = ["449", "481", "455", "6757"];
+      const r = (g, x) => NL._order(ids, A2.concat([{h: "481", a: "449", sh: g, sa: 0}, {h: "455", a: "6757", sh: 1, sa: 0}]))[x][0];
+      return [r(4, "449"), r(4, "481"), r(4, "455"), r(5, "481"), r(5, "449")]; });
+    ok(JSON.stringify(tie) === "[1,2,3,1,2]", "Dreiergleichstand: direkter Vergleich (Tordifferenz, dann Tore) – 4:0 reicht nicht für Platz 1, 5:0 schon", JSON.stringify(tie));
+    /* a team: what has to happen, and what if */
+    await page.locator('#main .nl-g.ger [data-nlteam="481"]').first().tap(); await sleep(700); let sh = await txt(page, ".dsheet");
+    ok(/Was muss passieren, damit Deutschland weiterkommt/.test(sh) && await has(page, ".dsheet .nl-mx .nl-c"), "Deutschland antippen: was muss passieren, mit allen Ausgängen", sh.slice(0, 300)); await page.shot("nations-team");
+    const plus = (i, s) => page.locator(`.dsheet .nl-sm >> nth=${i}`).locator(`[data-s="${s}"] [data-d="1"]`).tap(), minus = (i, s) => page.locator(`.dsheet .nl-sm >> nth=${i}`).locator(`[data-s="${s}"] [data-d="-1"]`).tap();
+    await plus(0, "h"); await sleep(300); ok(/Deutschland: Platz 1/.test(await txt(page, ".dsheet .nl-simv")), "Was wäre wenn: 1:0 gegen die Niederlande → Platz 1", await txt(page, ".dsheet .nl-simv"));
+    await minus(0, "h"); await sleep(200); await plus(1, "h"); await sleep(300);
+    ok(/Platz 3/.test(await txt(page, ".dsheet .nl-simv")), "Was wäre wenn: 0:0 und Griechenland gewinnt → Platz 3 (Relegation)", await txt(page, ".dsheet .nl-simv"));
+    await page.locator(".dsheet [data-reset]").tap(); await sleep(200); ok(/\?/.test(await txt(page, ".dsheet .nl-sim .nl-sm")), "„Zurück auf Stand jetzt“ setzt die eigenen Ergebnisse zurück");
+    await closeSheets(page);
+    /* the bracket */
+    await page.tap('#main [data-nlsub="tree"]'); await sleep(500); t = await txt(page, "#tpbody"); await page.shot("nations-tree");
+    ok(/Viertelfinale/i.test(t) && /Halbfinale/i.test(t) && /Finale/i.test(t) && /Niederlande/.test(t), "Turnierbaum: Viertelfinale bis Finale, dazu wer Stand jetzt drin ist", t.slice(0, 300));
+    await page.locator('#main .nl-seeds [data-nlteam]').first().tap(); await sleep(600); ok(/Was muss passieren/.test(await txt(page, ".dsheet")), "Team im Turnierbaum antippen öffnet „Was muss passieren“");
+    await closeSheets(page); await page.tap('#main [data-nlsub="groups"]'); await sleep(300);
+    await clean(page, "Nations League"); await page.context().close();
   },
 
   /* ---------- Feedback im Mehr-Menü ---------- */

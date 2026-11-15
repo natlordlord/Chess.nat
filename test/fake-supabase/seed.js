@@ -43,7 +43,20 @@ module.exports = db => {
   db.seed("tipp_events", [ev("t-pre", "FC Bayern München", "Borussia Dortmund", new Date(now + 26 * 3600e3), {fav: true}), ev("t-pre2", "RB Leipzig", "VfB Stuttgart", new Date(now + 28 * 3600e3)),
     ev("t-live", "Bayer Leverkusen", "Eintracht Frankfurt", ago(50), {state: "in", clock: "50'", score_h: 1, score_a: 0}), ev("t-post", "SC Freiburg", "Werder Bremen", ago(26 * 60), {state: "post", score_h: 2, score_a: 1}),
     {id: "t-ufc", sport: "mma", comp: "ufc", name: "UFC 322 · Titelkampf", home: "Makhachev", away: "Della Maddalena", start_at: new Date(now + 3 * 864e5).toISOString(), meta: {title: true}},
-    {id: "t-lol", sport: "lol", comp: "lol", name: "Worlds · Finale", home: "Gen.G", away: "Bilibili Gaming", start_at: new Date(now + 3.2 * 864e5).toISOString(), fav: true, meta: {title: true, bo: 5}}]);
+    {id: "t-lol", sport: "lol", comp: "lol", name: "Worlds · Finale", home: "Gen.G", away: "Bilibili Gaming", start_at: new Date(now + 3.2 * 864e5).toISOString(), fav: true, meta: {title: true, bo: 5}},
+    ev("espn:uefa.nations:9011", "Frankreich", "Türkei", ago(40), {comp: "uefa.nations", state: "in", clock: "38'", score_h: 1, score_a: 0, meta: {grp: "Group A1"}}),
+    ev("espn:uefa.nations:9021", "Deutschland", "Niederlande", new Date(now + 30 * 3600e3), {comp: "nt", fav: true, meta: {grp: "Group A2"}})]);
+
+  /* Nations League A: groups A1 and A2 before the last matchday, as on 15 Nov 2026 (France–Türkei and Belgium–Italy live) */
+  const NT = {478: "Frankreich", 162: "Italien", 459: "Belgien", 465: "Türkei", 449: "Niederlande", 481: "Deutschland", 455: "Griechenland", 6757: "Serbien"};
+  const teams = Object.fromEntries(Object.entries(NT).map(([id, name]) => [id, {id, name, abbr: name.slice(0, 3).toUpperCase(), logo: null, grp: +id === 478 || +id === 162 || +id === 459 || +id === 465 ? "A1" : "A2"}]));
+  let nid = 9000; const nm = (grp, d, hh, aa, sh, sa, o = {}) => Object.assign({id: "espn:uefa.nations:" + (++nid), grp, round: "league-phase", date: new Date(now + d * 864e5).toISOString(), h: String(hh), a: String(aa), state: "post", clock: null, sh, sa, pen: [null, null], win: null}, o);
+  const A1 = [[162, 459, 0, 2], [465, 478, 0, 1], [465, 162, 1, 4], [459, 478, 0, 1], [459, 465, 3, 0], [478, 162, 1, 1], [478, 459, 4, 1], [162, 465, 3, 1], [465, 459, 1, 2], [162, 478, 3, 1]];
+  const A2 = [[449, 481, 1, 1], [6757, 455, 1, 2], [6757, 449, 1, 2], [481, 455, 0, 1], [481, 6757, 2, 0], [455, 449, 2, 2], [455, 481, 0, 0], [449, 6757, 2, 1], [449, 455, 7, 0], [6757, 481, 1, 3]];
+  const ms = A1.map((x, i) => nm("A1", -50 + i * 4, ...x));
+  ms.push(nm("A1", -40 / 1440, 478, 465, 1, 0, {state: "in", clock: "38'", id: "espn:uefa.nations:9011"}), nm("A1", -40 / 1440, 459, 162, 0, 0, {state: "in", clock: "38'", id: "espn:uefa.nations:9012"}));
+  ms.push(...A2.map((x, i) => nm("A2", -49 + i * 4, ...x)), nm("A2", 30 / 24, 481, 449, null, null, {state: "pre", id: "espn:uefa.nations:9021"}), nm("A2", 30 / 24, 455, 6757, null, null, {state: "pre", id: "espn:uefa.nations:9022"}));
+  db.seed("nl_state", {id: "A", data: {season: "2026-27", teams, matches: ms, ko: [], at: new Date(now).toISOString()}});
   db.seed("tipp_picks", [{user_id: tester, event_id: "t-post", sh: 2, sa: 1}, {user_id: mila, event_id: "t-post", sh: 1, sa: 0}, {user_id: mila, event_id: "t-live", sh: 2, sa: 0}, {user_id: tester, event_id: "t-live", sh: 1, sa: 1}, {bot: "ki", event_id: "t-post", sh: 1, sa: 1}]);
 };
 module.exports.ID = ID;

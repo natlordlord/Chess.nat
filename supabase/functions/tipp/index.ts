@@ -1,6 +1,8 @@
 // Chess.nat Tippspiel: every minute (pg_cron -> private.tipp_tick) this pulls fixtures, live scores and odds from
 // ESPN, lets the AI tipster ("Nat-KI") tip a score (football) or a winner (UFC title fights), sends kick-off, goal
 // and final-whistle pushes with everybody's points (tipp_picks; points are worked out in the database).
+// Nations League: all League A games are tipped too (comp "uefa.nations", Germany's stay "nt"), and every 5 minutes
+// the groups, all league-phase games and the knockout games go to public.nl_state for the app's tables and bracket.
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
@@ -21,8 +23,8 @@ const LEAGUES = [
   { sport: "soccer", slug: "uefa.champions", comp: "uefa.champions", kind: "fb" },
   { sport: "soccer", slug: "ger.dfb_pokal", comp: "ger.dfb_pokal", kind: "fb" },
   { sport: "mma", slug: "ufc", comp: "ufc", kind: "mma" },
-  /* Germany's national team: only its games */
-  { sport: "soccer", slug: "uefa.nations", comp: "nt", kind: "fb", only: true },
+  /* Germany's national team: only its games; the Nations League also brings all League A games (comp "uefa.nations") */
+  { sport: "soccer", slug: "uefa.nations", comp: "nt", kind: "fb", only: true, nl: "uefa.nations" },
   { sport: "soccer", slug: "fifa.friendly", comp: "nt", kind: "fb", only: true },
   { sport: "soccer", slug: "uefa.euroq", comp: "nt", kind: "fb", only: true },
   { sport: "soccer", slug: "fifa.worldq.uefa", comp: "nt", kind: "fb", only: true },
@@ -168,7 +170,7 @@ const DE: Record<string, string> = { "Bayern Munich": "FC Bayern", "FC Cologne":
   "Belgium": "Belgien", "Croatia": "Kroatien", "Turkey": "Türkei", "Türkiye": "Türkei", "Poland": "Polen", "Denmark": "Dänemark", "Sweden": "Schweden", "Norway": "Norwegen", "Greece": "Griechenland", "Scotland": "Schottland", "Slovakia": "Slowakei",
   "Czechia": "Tschechien", "Czech Republic": "Tschechien", "Slovenia": "Slowenien", "Romania": "Rumänien", "Ukraine": "Ukraine", "Portugal": "Portugal", "Republic of Ireland": "Irland", "Northern Ireland": "Nordirland", "Wales": "Wales", "Iceland": "Island",
   "Luxembourg": "Luxemburg", "Georgia": "Georgien", "Albania": "Albanien", "Finland": "Finnland", "Israel": "Israel", "Kosovo": "Kosovo", "North Macedonia": "Nordmazedonien", "Montenegro": "Montenegro", "Bulgaria": "Bulgarien", "USA": "USA", "United States": "USA",
-  "Mexico": "Mexiko", "Brazil": "Brasilien", "Argentina": "Argentinien", "Japan": "Japan" };
+  "Mexico": "Mexiko", "Brazil": "Brasilien", "Argentina": "Argentinien", "Japan": "Japan", "England": "England" };
 const de = (n: string) => DE[n] || n;
 function soccerEvent(L: J, e: J): J {
   const c = e.competitions?.[0] || {}, cs = c.competitors || [], h = cs.find((x: J) => x.homeAway === "home") || cs[0] || {}, a = cs.find((x: J) => x.homeAway === "away") || cs[1] || {};
@@ -178,7 +180,7 @@ function soccerEvent(L: J, e: J): J {
     home_id: h.team?.id || null, away_id: a.team?.id || null, start_at: e.date, state: canc ? "canc" : (st.state || "pre"),
     clock: st.state === "in" ? (st.shortDetail || c.status?.displayClock || "") : (st.state === "post" ? (st.shortDetail || "FT") : null),
     score_h: st.state === "pre" ? null : +h.score || 0, score_a: st.state === "pre" ? null : +a.score || 0, fav: isBay(hn) || isBay(an) || hn === "Deutschland" || an === "Deutschland",
-    meta: { espn: e.id, cid: c.id, slug: L.slug, sport: L.sport, round: e.season?.slug || null, bvb: isBvb(hn) || isBvb(an), ab: [h.team?.abbreviation, a.team?.abbreviation],
+    meta: { espn: e.id, cid: c.id, slug: L.slug, sport: L.sport, round: e.season?.slug || null, grp: c.group?.name || null, bvb: isBvb(hn) || isBvb(an), ab: [h.team?.abbreviation, a.team?.abbreviation],
       lines: [h.linescores?.map((x: J) => +x.value), a.linescores?.map((x: J) => +x.value)], detail: st.detail || null } };
 }
 function mmaEvents(L: J, e: J): J[] {
@@ -260,6 +262,29 @@ async function kiTip(e: J, markets: J[], model: J = {}){
   await sb.from("tipp_picks").insert(row);
 }
 
+/* ---------- Nations League, League A: groups, every league-phase game and the knockout games, for the app's tables,
+   bracket and "what has to happen" (public.nl_state, every 5 minutes; live scores come from tipp_events every minute) ---------- */
+const nlA = (grp?: string | null, round?: string | null) => /^Group A/i.test(String(grp || "")) || (!grp && /quarter|semi|final|third|3rd/i.test(String(round || "")));
+async function nlSync(minute: number) {
+  if (minute % 5 !== 0){ const { count } = await sb.from("nl_state").select("id", { count: "exact", head: true }).eq("id", "A"); if (count) return null; }
+  const teams: Record<string, J> = {}, matches: J[] = [], ko: J[] = [];
+  for (const m of ["202609", "202610", "202611", "202703", "202706"]){
+    const j = await get(`${SITE}/soccer/uefa.nations/scoreboard?dates=${m}`, 12000); if (!j) continue;
+    for (const e of (j.events || []) as J[]){ const c = e.competitions?.[0] || {}, grp = c.group?.name || null, round = e.season?.slug || null; if (!nlA(grp, round)) continue;
+      const cs = c.competitors || [], H = cs.find((x: J) => x.homeAway === "home") || cs[0] || {}, A = cs.find((x: J) => x.homeAway === "away") || cs[1] || {}, st = c.status?.type || {};
+      const tm = (x: J) => ({ id: String(x.team?.id || ""), name: de(x.team?.displayName || "?"), abbr: x.team?.abbreviation || "", logo: x.team?.logo || null });
+      const h = tm(H), a = tm(A), g = grp ? String(grp).replace(/^Group /i, "") : null;
+      const row = { id: `espn:uefa.nations:${e.id}`, grp: g, round, date: e.date, h: h.id, a: a.id, state: /postpon|cancel/i.test(st.name || "") ? "canc" : (st.state || "pre"),
+        clock: st.state === "in" ? (st.shortDetail || "") : null, sh: st.state === "pre" ? null : +H.score || 0, sa: st.state === "pre" ? null : +A.score || 0,
+        pen: [H.shootoutScore ?? null, A.shootoutScore ?? null], win: H.winner ? "h" : A.winner ? "a" : null };
+      for (const t of [h, a]) if (t.id) teams[t.id] = Object.assign(teams[t.id] || {}, t, g ? { grp: g } : {});
+      (g ? matches : ko).push(row); } }
+  if (!matches.length) return { nl: 0 };
+  const data = { season: "2026-27", teams, matches: matches.sort((x, y) => Date.parse(x.date) - Date.parse(y.date)), ko: ko.sort((x, y) => Date.parse(x.date) - Date.parse(y.date)), at: new Date().toISOString() };
+  const { error } = await sb.from("nl_state").upsert({ id: "A", data, updated_at: data.at }, { onConflict: "id" });
+  return { nl: matches.length, ko: ko.length, err: error?.message };
+}
+
 async function sync() {
   const now = new Date(), log: string[] = [], minute = now.getUTCMinutes();
   const months = [month(now)]; if (minute % 10 === 0 || now.getUTCDate() >= 20) months.push(month(new Date(now.getTime() + 20 * 864e5)));
@@ -267,7 +292,9 @@ async function sync() {
   const fresh: J[] = [], seen = new Set<string>();
   for (const L of LEAGUES) for (const m of [...new Set(months)]){
     const j = await get(`${SITE}/${L.sport}/${L.slug}/scoreboard?dates=${m}`); if (!j) continue;
-    for (const e of (j.events || []) as J[]){ if (L.sport === "mma"){ fresh.push(...mmaEvents(L, e)); continue; } const ev = soccerEvent(L, e); if (L.only && ev.home !== "Deutschland" && ev.away !== "Deutschland") continue; fresh.push(ev); }
+    for (const e of (j.events || []) as J[]){ if (L.sport === "mma"){ fresh.push(...mmaEvents(L, e)); continue; } const ev = soccerEvent(L, e), ger = ev.home === "Deutschland" || ev.away === "Deutschland";
+      if (L.nl && !ger){ if (nlA(ev.meta.grp, ev.meta.round)){ ev.comp = L.nl; fresh.push(ev); } continue; }
+      if (L.only && !ger) continue; fresh.push(ev); }
   }
   /* the same game can come twice (two months, two lists): once is enough for the upsert */
   for (let i = fresh.length - 1; i >= 0; i--){ if (seen.has(fresh[i].id)) fresh.splice(i, 1); else seen.add(fresh[i].id); }
@@ -332,7 +359,8 @@ async function sync() {
   for (const e of keep.filter(e => e.fav && e.state === "pre" && tippable(e))){ const t = Date.parse(e.start_at) - now.getTime(), o = old[e.id];
     if (t > 40 * 60e3 && t < 75 * 60e3 && !(o?.meta || {}).rem){ await sb.rpc("tipp_remind", { p_event: e.id, p_title: e.sport === "fb" ? `⚽ Gleich: ${e.home} – ${e.away}` : `🥊 Gleich: ${e.home} vs. ${e.away}`, p_body: "In einer Stunde geht's los. Noch kein Tipp? Ergebnis tippen, fertig." });
       await sb.from("tipp_events").update({ meta: Object.assign({}, o?.meta || {}, e.meta, { rem: true }) }).eq("id", e.id); } }
-  return { events: keep.length, priced: pre.length, settled: (due || []).length, log };
+  let nl: J | null = null; try { nl = await nlSync(minute); } catch (e) { log.push("nl " + String(e)); }
+  return { events: keep.length, priced: pre.length, settled: (due || []).length, nl, log };
 }
 
 Deno.serve(async (req) => {

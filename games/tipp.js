@@ -1,5 +1,6 @@
 /* ===== Chess.nat Tippspiel: tip the result, nothing else.
-   Football (Deutschland, Bayern, Bundesliga, Champions League, DFB-Pokal) and the UFC title fights.
+   Football (Deutschland, Bayern, Bundesliga, Champions League, DFB-Pokal, Nations League A) and the UFC title fights.
+   The Nations League tab (groups, what has to happen, bracket) is games/nations.js.
    One tip per game, changeable until kick-off and saved on the server the moment you change it (tipp_pick).
    Points like Kicktipp: exact score 4 · right goal difference 3 · right winner or draw 2 · UFC: right winner 3.
    Fixtures and live scores come from the edge function "tipp" (ESPN, every minute); Nat-KI tips along. ===== */
@@ -10,8 +11,8 @@
   const meId = () => (typeof Social !== "undefined" && Social.me) || (window.ChessSite && ChessSite.storedUid ? ChessSite.storedUid() : null);
   const h = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
   const bay = n => /bayern/i.test(n || "");
-  const COMP = {"nt": ["🇩🇪", T("Germany", "Deutschland")], "ger.1": ["⚽", "Bundesliga"], "uefa.champions": ["⭐", "Champions League"], "ger.dfb_pokal": ["🏆", "DFB-Pokal"], "ufc": ["🥊", T("UFC title fight", "UFC-Titelkampf")], "lol": ["🎮", "League of Legends"]};
-  const FILTERS = [["all", T("All", "Alle")], ["nt", "🇩🇪 " + T("Germany", "Deutschland")], ["bay", "⭐ Bayern"], ["ger.1", "Bundesliga"], ["uefa.champions", "Champions League"], ["ger.dfb_pokal", "DFB-Pokal"], ["ufc", "🥊 UFC"], ["lol", "🎮 LoL"]];
+  const COMP = {"nt": ["🇩🇪", T("Germany", "Deutschland")], "ger.1": ["⚽", "Bundesliga"], "uefa.champions": ["⭐", "Champions League"], "ger.dfb_pokal": ["🏆", "DFB-Pokal"], "ufc": ["🥊", T("UFC title fight", "UFC-Titelkampf")], "lol": ["🎮", "League of Legends"], "uefa.nations": ["🌍", "Nations League"]};
+  const FILTERS = [["all", T("All", "Alle")], ["nt", "🇩🇪 " + T("Germany", "Deutschland")], ["uefa.nations", "🌍 Nations League"], ["bay", "⭐ Bayern"], ["ger.1", "Bundesliga"], ["uefa.champions", "Champions League"], ["ger.dfb_pokal", "DFB-Pokal"], ["ufc", "🥊 UFC"], ["lol", "🎮 LoL"]];
   /* short club names, so a row never wraps ("Bayern" instead of "FC Bayern München") */
   const SN = {"FC Bayern München": "Bayern", "FC Bayern": "Bayern", "Bayern München": "Bayern", "Borussia Dortmund": "Dortmund", "Borussia Mönchengladbach": "Gladbach", "Bayer 04 Leverkusen": "Leverkusen", "Bayer Leverkusen": "Leverkusen", "RB Leipzig": "Leipzig", "Eintracht Frankfurt": "Frankfurt", "VfB Stuttgart": "Stuttgart", "SC Freiburg": "Freiburg", "TSG Hoffenheim": "Hoffenheim", "TSG 1899 Hoffenheim": "Hoffenheim", "1. FC Union Berlin": "Union Berlin", "Union Berlin": "Union Berlin", "SV Werder Bremen": "Bremen", "Werder Bremen": "Bremen", "VfL Wolfsburg": "Wolfsburg", "1. FSV Mainz 05": "Mainz", "Mainz 05": "Mainz", "FC Augsburg": "Augsburg", "1. FC Heidenheim 1846": "Heidenheim", "1. FC Heidenheim": "Heidenheim", "FC St. Pauli": "St. Pauli", "1. FC Köln": "Köln", "Hamburger SV": "HSV", "VfL Bochum": "Bochum", "Holstein Kiel": "Kiel", "SC Paderborn 07": "Paderborn", "SV Elversberg": "Elversberg", "Real Madrid": "Real Madrid", "FC Barcelona": "Barcelona", "Paris Saint-Germain": "Paris SG", "Manchester City": "Man City", "Manchester United": "Man United", "Atlético Madrid": "Atlético", "Atletico Madrid": "Atlético", "Inter Mailand": "Inter", "Internazionale": "Inter", "Tottenham Hotspur": "Tottenham", "Newcastle United": "Newcastle", "Bosnien-Herzegowina": "Bosnien"};
   const sn = n => { n = String(n || ""); if (SN[n]) return SN[n]; if (n.length <= 14) return n; const x = n.replace(/^(1\. )?(FC|SC|SV|VfB|VfL|TSG|RB|FSV|SpVgg|SSV|AFC|CF) /, "").replace(/ (FC|CF|SC|\d{2,4})$/, "").trim(); return x || n; };
@@ -29,6 +30,8 @@
   /* what is tipped at all: football, and the UFC title fights (five rounds on a numbered card) */
   const tippable = e => e && e.state !== "canc" && (e.sport === "fb" || e.sport === "lol" || (e.sport === "mma" && e.meta && e.meta.title));
   /* tipped by winner (3 points) instead of a score: UFC title fights and the big League of Legends series */
+  /* a Nations League game (Germany's are "nt", the others "uefa.nations") */
+  const isNL = e => e.comp === "uefa.nations" || /^espn:uefa\.nations:/.test(e.id || "");
   const isW = e => e.sport === "mma" || e.sport === "lol", wn = (e, n) => e.sport === "lol" ? String(n || "") : last(n), ico = e => e.sport === "lol" ? "🎮" : "🥊";
   const open = e => e.state === "pre" && Date.parse(e.start_at) > Date.now();
   /* the same rule as the database (tipp_pts) */
@@ -98,12 +101,14 @@
   Views.tipp = {
     mount(main, arg){
       this.main = main; this.arg = arg || {}; if (this.arg.tab) Tipp.tab = this.arg.tab; if (this.arg.open || this.arg.quick) Tipp.tab = "tip";
+      if (typeof NL !== "undefined") NL.fromCache();
       main.innerHTML = `<div class="page tp"><div class="tp-head"><h1 class="h-title" style="margin:0">${T("Tipping game", "Tippspiel")}</h1><button class="tp-pts" id="tppts" hidden></button></div>
-        <div class="seg tp-tabs" id="tptabs">${[["tip", T("Tip", "Tippen")], ["res", T("Results", "Ergebnisse")], ["table", T("Table", "Rangliste")]].map(([k, l]) => `<button data-tab="${k}" class="${Tipp.tab === k ? "on" : ""}">${l}</button>`).join("")}</div>
+        <div class="seg tp-tabs" id="tptabs">${[["tip", T("Tip", "Tippen")], ["res", T("Results", "Ergebnisse")], ["table", T("Table", "Rangliste")], ["nl", `🌍 <span class="tp-nlw">Nations League</span><span class="tp-nln">Nations</span>`]].filter(x => x[0] !== "nl" || typeof NL !== "undefined").map(([k, l]) => `<button data-tab="${k}" class="${Tipp.tab === k ? "on" : ""}">${l}</button>`).join("")}</div>
         <div class="chips tp-chips" id="tpchips">${FILTERS.map(([k, l]) => `<button class="chip ${(k === "all" ? !Tipp.sel.size : Tipp.sel.has(k)) ? "on" : ""}" data-f="${k}">${l}</button>`).join("")}</div>
         <div id="tpbody"><div class="tp-empty">${T("Loading…", "Lädt…")}</div></div></div>`;
       main.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { if (Tipp.tab === b.dataset.tab) return; tap(); Tipp.tab = b.dataset.tab;
-        main.querySelectorAll("[data-tab]").forEach(x => x.classList.toggle("on", x === b)); this.render(true); if (Tipp.tab === "table") this.loadTable(); });
+        main.querySelectorAll("[data-tab]").forEach(x => x.classList.toggle("on", x === b)); this.render(true); if (Tipp.tab === "table") this.loadTable();
+        if (Tipp.tab === "nl") NL.load(true).then(() => { if (Tipp.tab === "nl" && App.route === "tipp") this.render(); }, () => {}); });
       main.querySelectorAll("[data-f]").forEach(b => b.onclick = () => { tap(); const k = b.dataset.f; if (k === "all") Tipp.sel.clear(); else if (Tipp.sel.has(k)) Tipp.sel.delete(k); else Tipp.sel.add(k); Tipp.saveSel();
         main.querySelectorAll("[data-f]").forEach(x => x.classList.toggle("on", x.dataset.f === "all" ? !Tipp.sel.size : Tipp.sel.has(x.dataset.f))); this.render(true); });
       main.querySelector("#tppts").onclick = () => { tap(); main.querySelector('[data-tab="table"]').click(); };
@@ -114,6 +119,7 @@
     unmount(){ clearInterval(this.iv); },
     async refresh(first){
       try { await Tipp.load(); } catch(e) { Tipp.err = true; }
+      if (Tipp.tab === "nl" && typeof NL !== "undefined") try { await NL.load(first); NL.err = false; } catch(e) { NL.err = true; }
       if (App.route !== "tipp" || !this.main || !this.main.isConnected) return;
       if (!first && Tipp.tab === "tip" && Date.now() - (this.busyT || 0) < 8000) return;
       this.render(first && !this.pre); this.pre = false;
@@ -123,20 +129,20 @@
     },
     async loadTable(){ await Tipp.loadTable(); if (App.route !== "tipp") return; this.pill(); if (Tipp.tab === "table") this.render(); },
     pill(){ const b = this.main && this.main.querySelector("#tppts"), r = Tipp.myRow(); if (!b) return; b.hidden = !r; if (r) b.innerHTML = `🏆 <b>${r.pts}</b> ${T("pts", "Punkte")}`; },
-    shown(){ const S = Tipp.sel; return Tipp.ev.filter(e => !S.size || [...S].some(k => k === "bay" ? bay(e.home) || bay(e.away) : k === "nt" ? e.comp === "nt" : e.comp === k)); },
+    shown(){ const S = Tipp.sel; return Tipp.ev.filter(e => !S.size || [...S].some(k => k === "bay" ? bay(e.home) || bay(e.away) : k === "nt" ? e.comp === "nt" : k === "uefa.nations" ? isNL(e) : e.comp === k)); },
     focus(id){ const el = this.main.querySelector(`[data-ev="${CSS.escape(id)}"]`); if (!el){ if (Tipp.sel.size){ Tipp.sel.clear(); Tipp.saveSel(); this.main.querySelectorAll("[data-f]").forEach(x => x.classList.toggle("on", x.dataset.f === "all")); this.render(); const e2 = this.main.querySelector(`[data-ev="${CSS.escape(id)}"]`); if (e2) return this.focus(id); } return; }
       el.scrollIntoView({block: "center", behavior: "smooth"}); el.classList.add("hl"); setTimeout(() => el.classList.remove("hl"), 2200); },
     render(anim){
       const body = this.main && this.main.querySelector("#tpbody"); if (!body) return;
-      const chips = this.main.querySelector("#tpchips"); chips.hidden = Tipp.tab === "table";
+      const chips = this.main.querySelector("#tpchips"); chips.hidden = Tipp.tab === "table" || Tipp.tab === "nl";
       let html;
       if (!Tipp.loaded && Tipp.err) html = `<div class="tp-empty">📡 ${T("No connection.", "Keine Verbindung.")}<br><button class="btn ghost sm" data-retry style="margin-top:10px">↻ ${T("Try again", "Nochmal")}</button></div>`;
       else if (!Tipp.loaded) html = `<div class="tp-empty">${T("Loading…", "Lädt…")}</div>`;
-      else html = Tipp.tab === "tip" ? this.tipHTML() : Tipp.tab === "res" ? this.resHTML() : this.tableHTML();
+      else html = Tipp.tab === "tip" ? this.tipHTML() : Tipp.tab === "res" ? this.resHTML() : Tipp.tab === "nl" && typeof NL !== "undefined" ? NL.html() : this.tableHTML();
       if (body._h === html && !anim) return; body._h = html;
       /* keep the scroll and the stepper that is being tapped calm: only swap what changed */
       body.innerHTML = html; if (anim){ body.classList.remove("tp-in"); void body.offsetWidth; body.classList.add("tp-in"); }
-      this.wire(body); this.pill();
+      this.wire(body); if (Tipp.tab === "nl" && typeof NL !== "undefined") NL.wire(body, this); this.pill();
     },
     /* ---------- Tippen ---------- */
     tipHTML(){
@@ -150,7 +156,8 @@
     },
     cardHTML(e){
       const p = Tipp.mine(e.id), c = COMP[e.comp] || ["⚽", ""], fav = e.comp === "nt" || bay(e.home) || bay(e.away) || (isW(e));
-      const top = `<div class="tq-top"><span>${hm(e.start_at)} · ${c[0]} ${h(e.sport === "mma" ? T("Title fight", "Titelkampf") : e.sport === "lol" ? (e.name || c[1]) : c[1])}</span><span class="tq-ok" data-ok>${p ? "✓ " + T("Saved", "Gespeichert") : ""}</span></div>`;
+      const grp = isNL(e) && e.meta && e.meta.grp ? ` · ${String(e.meta.grp).replace(/^Group /i, T("Group ", "Gruppe "))}` : "";
+      const top = `<div class="tq-top"><span>${hm(e.start_at)} · ${c[0]} ${h(e.sport === "mma" ? T("Title fight", "Titelkampf") : e.sport === "lol" ? (e.name || c[1]) : c[1])}${h(grp)}</span><span class="tq-ok" data-ok>${p ? "✓ " + T("Saved", "Gespeichert") : ""}</span></div>`;
       if (isW(e)) return `<div class="tq ${fav ? "fav" : ""} ${p ? "done" : ""}" data-ev="${h(e.id)}">${top}<div class="tq-f">${["a", "b"].map(s => `<button class="tq-fb ${p && p.w === s ? "on" : ""}" data-w="${s}"><b>${h(s === "a" ? e.home : e.away)}</b>${e.meta && e.meta.rec ? `<small>${h((e.meta.rec[s === "a" ? 0 : 1]) || "")}</small>` : ""}</button>`).join(`<span class="tq-vs">vs</span>`)}</div></div>`;
       const row = (s, nm, lg) => `<div class="tq-r">${lg ? `<img class="tq-lg" src="${h(lg)}" alt="" loading="lazy">` : `<span class="tq-lg tq-lg0"></span>`}<span class="tq-n">${h(sn(nm))}</span>
         <div class="tq-st" data-s="${s}"><button data-d="-1" aria-label="−">−</button><b class="${p ? "" : "e"}">${p ? p[s === "h" ? "sh" : "sa"] : "?"}</b><button data-d="1" aria-label="+">+</button></div></div>`;
@@ -266,7 +273,8 @@
 .page.tp{max-width:760px}.tp{padding-bottom:96px;overflow-x:clip}
 .tp-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
 .tp-pts{border:0;background:var(--panel-2);color:var(--fg);border-radius:999px;padding:7px 14px;font:800 14px var(--body);cursor:pointer}.tp-pts b{font:900 17px var(--display);color:var(--go-hi,var(--go))}.tp-pts[hidden]{display:none}
-.tp-tabs{display:flex;width:100%}.tp-tabs button{flex:1;white-space:nowrap}
+.tp-tabs{display:flex;width:100%}.tp-tabs button{flex:1 1 auto;white-space:nowrap;padding-left:8px;padding-right:8px;font-size:clamp(12px,3.5vw,14px)}
+.tp-nln{display:none}@media (max-width:520px){.tp-nlw{display:none}.tp-nln{display:inline}}
 .tp-chips{flex-wrap:nowrap;overflow-x:auto;margin:12px -4px 4px;padding:2px 4px 4px;scrollbar-width:none;overscroll-behavior-x:contain}.tp-chips::-webkit-scrollbar{display:none}.tp-chips .chip{flex:none}.tp-chips[hidden]{display:none}
 @media (hover:hover) and (pointer:fine) and (min-width:760px){.tp-chips{flex-wrap:wrap;overflow:visible;gap:6px}}
 #tpbody.tp-in{animation:tpIn .25s ease-out}@keyframes tpIn{from{opacity:0;transform:translateY(6px)}}

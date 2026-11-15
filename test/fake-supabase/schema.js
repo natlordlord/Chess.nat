@@ -45,6 +45,7 @@ shop_items|id|id:uuid:!:@uuid ; list_id:uuid:!: ; kind:text:!:'product' ; parent
 shop_lists|id|id:uuid:!:@uuid ; owner:uuid:!: ; name:text:!: ; created_at:timestamptz:!:@now
 shop_members|list_id,user_id|list_id:uuid:!: ; user_id:uuid:!: ; created_at:timestamptz:!:@now
 tipp_admins|user_id|user_id:uuid:!:
+nl_state|id|id:text:!: ; data:jsonb:!:{} ; updated_at:timestamptz:!:@now
 tipp_events|id|id:text:!: ; sport:text:!: ; comp:text:!: ; name:text:?: ; home:text:?: ; away:text:?: ; home_logo:text:?: ; away_logo:text:?: ; home_id:text:?: ; away_id:text:?: ; start_at:timestamptz:!: ; state:text:!:'pre' ; clock:text:?: ; score_h:int4:?: ; score_a:int4:?: ; stats:jsonb:!:{} ; markets:jsonb:!:[] ; model:jsonb:?: ; odds_src:text:?: ; odds_at:timestamptz:?: ; result:jsonb:?: ; settled:bool:!:false ; fav:bool:!:false ; meta:jsonb:!:{} ; created_by:uuid:?: ; updated_at:timestamptz:!:@now
 tipp_groups|id|id:uuid:!:@uuid ; code:text:!:@code ; name:text:!: ; owner:uuid:!: ; comps:_text:!:{} ; created_at:timestamptz:!:@now
 tipp_members|group_id,user_id|group_id:uuid:!: ; user_id:uuid:!: ; joined_at:timestamptz:!:@now
