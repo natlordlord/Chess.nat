@@ -138,6 +138,13 @@ const PARTS = {
     ok(await page.evaluate(() => document.querySelectorAll(".sq.tint").length === 2), "Partieanalyse: die zwei Felder des Zugs in der Farbe seiner Bewertung");
     await page.shot("review-farbe");
     await page.close();
+    /* am Laptop: das Zeichen bleibt klein und verdeckt die Figur nicht */
+    { const dp = await L.open(browser, "tester", {desktop: true}); await sleep(800);
+      await dp.evaluate(() => { const p = '[White "Nat Tester"]\n[Black "Ines"]\n[Result "0-1"]\n\n1. e4 e6 2. Bc4 Ne7 3. d3 Nbc6 4. Nf3 d5 5. Bf4 dxc4 6. dxc4 Qxd1+ 7. Kxd1 Bd7 0-1'; App.go("review", {pgn: p, meta: {id: "t-op", color: "w", result: "0-1", opponent: "Ines"}}); });
+      await dp.waitForFunction(() => Views.review.A && Views.review.A.cls && Views.review.A.cls.length > 4, null, {timeout: 150000}).catch(() => {});
+      await dp.evaluate(() => Views.review.go(3)); await sleep(500);
+      ok(await dp.evaluate(() => { const b = document.querySelector(".badge-mv").getBoundingClientRect(), q = document.querySelector('.sq[data-sq="c4"]').getBoundingClientRect(); return b.width < q.width * .45 && b.width > 18; }), "am Laptop: Zeichen der Zug-Bewertung kleiner als ein halbes Feld");
+      await dp.shot("review-farbe-laptop"); await dp.close(); }
   },
   async matt(browser){
     const page = await L.open(browser, "tester"); await sleep(800);
