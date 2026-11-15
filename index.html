@@ -174,7 +174,23 @@ a{color:var(--go-hi)}
 .float{margin-top:38%;font:900 54px var(--display);color:var(--go-hi);text-shadow:0 2px 0 rgba(0,0,0,.45);animation:floatup 1.1s ease-out forwards}
 .float.neg{color:var(--bad)}
 @keyframes floatup{0%{opacity:0;transform:translateY(16px) scale(.8)}15%{opacity:1;transform:translateY(0) scale(1.08)}70%{opacity:1}100%{opacity:0;transform:translateY(-46px) scale(1)}}
-.badge-mv{position:absolute;width:3.6cqw;height:3.6cqw;min-width:18px;min-height:18px;border-radius:50%;z-index:25;display:flex;align-items:center;justify-content:center;font:900 1.9cqw var(--body);color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.4);transform:translate(-35%,35%)}
+.badge-mv{position:absolute;width:5.2cqw;height:5.2cqw;min-width:22px;min-height:22px;border-radius:50%;z-index:25;display:flex;align-items:center;justify-content:center;font:900 2.4cqw var(--body);color:#fff;box-shadow:0 0 0 .32cqw #fff,0 .5cqw 1.1cqw rgba(0,0,0,.42);transform:translate(var(--bx,-62%),var(--by,-38%));animation:bdgpop .34s cubic-bezier(.3,1.6,.5,1) both;pointer-events:none}
+.badge-mv svg{width:72%;height:72%;display:block}
+.pc.mf-hide{opacity:0!important}
+.endfx{position:absolute;width:12.5%;height:12.5%;z-index:24;pointer-events:none;display:grid;place-items:center;animation:effade .3s ease-out both}
+.endfx.lose{background:#E2493B}.endfx.win{background:#6E9F45}.endfx.draw{background:#8B8984}
+.endfx .ef-ic{width:72%;height:72%;display:block;animation:efpop .5s cubic-bezier(.3,1.6,.5,1) .12s both}.endfx .ef-ic svg{width:100%;height:100%;display:block;filter:drop-shadow(0 .3cqw .4cqw rgba(0,0,0,.25))}
+.endfx .ef-pill{position:absolute;left:50%;top:0;transform:translate(-50%,-62%);white-space:nowrap;padding:.7cqw 2.2cqw;border-radius:99px;background:#fff;font:900 2.7cqw/1.15 var(--body);box-shadow:0 .5cqw 1.4cqw rgba(0,0,0,.35);animation:efpill .45s cubic-bezier(.3,1.6,.5,1) .3s both}
+.endfx.lose .ef-pill{color:#C93A2D}.endfx.win .ef-pill{color:#4F7A2A}.endfx.draw .ef-pill{color:#5F5E5A}
+.endfx.top .ef-pill{top:auto;bottom:0;transform:translate(-50%,62%)}
+@keyframes effade{from{opacity:0}}
+@keyframes efpop{0%{transform:scale(.2);opacity:0}100%{transform:none;opacity:1}}
+@keyframes efpill{0%{transform:translate(-50%,-62%) scale(.4);opacity:0}100%{transform:translate(-50%,-62%);opacity:1}}
+.endfx.top .ef-pill{animation-name:efpilltop}@keyframes efpilltop{0%{transform:translate(-50%,62%) scale(.4);opacity:0}100%{transform:translate(-50%,62%);opacity:1}}
+.ef-conf{position:absolute;width:0;height:0;z-index:26;pointer-events:none}.ef-conf i{position:absolute;left:-.6cqw;top:-.9cqw;width:1.2cqw;height:1.8cqw;opacity:0;animation:efconf 1.5s cubic-bezier(.15,.7,.35,1) .35s forwards}
+@keyframes efconf{0%{transform:translate(0,0) rotate(0);opacity:1}80%{opacity:1}100%{transform:translate(var(--dx),calc(var(--dy) + 14cqw)) rotate(var(--r));opacity:0}}
+@media (prefers-reduced-motion:reduce){.endfx,.endfx *{animation:none!important}.ef-conf{display:none}}
+@keyframes bdgpop{0%{transform:translate(var(--bx,-62%),var(--by,-38%)) scale(.2) rotate(-25deg);opacity:0}100%{transform:translate(var(--bx,-62%),var(--by,-38%)) scale(1);opacity:1}}
 .promo{position:absolute;z-index:40;display:flex;flex-direction:column;background:#fff;border-radius:4px;box-shadow:0 6px 18px rgba(0,0,0,.45);overflow:hidden}
 .promo button{width:calc(var(--bs)/8);height:calc(var(--bs)/8);max-width:12.5vw;max-height:12.5vw;border:0;background-color:#fff;background-size:90% 90%;background-position:center;background-repeat:no-repeat;cursor:pointer}
 .promo button:hover{background-color:#EEE}
@@ -243,7 +259,7 @@ label.chk{display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer}
 .chat{display:flex;gap:10px;align-items:flex-start}
 .chat .av{width:44px;height:44px;border-radius:6px;flex:0 0 auto;overflow:hidden;background:var(--panel-3)}
 .chat .bubble{background:#fff;color:#262421;border-radius:10px;padding:9px 12px;font-size:14px;position:relative;font-weight:600}
-.cls{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font:900 11px var(--body);color:#fff;flex:0 0 auto}
+.cls{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font:900 11px var(--body);color:#fff;flex:0 0 auto;box-shadow:0 1px 2px rgba(0,0,0,.25)}.cls svg{width:74%;height:74%;display:block}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--panel-3);color:var(--fg);padding:10px 16px;border-radius:8px;font-weight:700;z-index:100;box-shadow:0 6px 20px rgba(0,0,0,.4)}
 .lesson-text{font-size:16.5px;line-height:1.6}
 .lesson-text p{margin:0 0 10px}
@@ -571,6 +587,24 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 /* ===== Review ===== */
 .rv-best{display:flex;gap:8px;align-items:flex-start;margin-top:8px;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,var(--go) 14%,transparent)}
 .cw-ask{display:inline-flex;align-items:center;gap:6px;margin-top:10px}
+.end-an{margin:12px 0 10px;text-align:left}.end-an-load{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:13.5px;color:var(--muted)}.end-an-load .bar{flex-basis:100%;height:5px}
+.end-acc{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ea{background:var(--panel-2);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:1px}.ea small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ea b{font:900 22px var(--display);font-variant-numeric:tabular-nums}.ea.me b{color:var(--go)}.ea span{font-size:11.5px;color:var(--muted)}
+.ea em{font-style:normal;font-size:12.5px;font-weight:800;margin-top:3px}.ea i{font-style:normal;display:flex;align-items:center;gap:4px;font-size:12.5px;font-weight:800;margin-top:4px}.ea i .cls{width:16px;height:16px}
+.end-coach{display:flex;gap:10px;align-items:flex-end;margin:4px 0 10px}.end-av svg{display:block;border-radius:10px}
+.end-bub{position:relative;flex:1;min-height:44px;display:flex;align-items:center;gap:8px;background:#fff;color:#262421;border-radius:12px;padding:10px 12px;font-size:13.5px;line-height:1.45;text-align:left}.end-bub::before{content:"";position:absolute;left:-7px;bottom:12px;border:7px solid transparent;border-right-color:#fff;border-left:0}
+.end-bub b{color:#262421}.end-tip{margin:0 0 10px;text-align:left}
+.end-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.end-tiles .et{display:grid;place-items:center;height:46px;border-radius:10px;background:var(--panel-2)}.end-tiles .cls{width:24px;height:24px}.end-tiles .cls.pop{animation:mfpop2 .35s cubic-bezier(.3,1.6,.5,1)}
+@keyframes mfpop2{0%{transform:scale(.3);opacity:0}100%{transform:none;opacity:1}}
+.end-bar{height:4px;margin-top:8px}.end-tr{display:inline-flex;vertical-align:-3px;margin-right:6px;color:#FFC93C}
+.rv-gr{display:block;margin-top:2px;font-weight:800}
+.cn-av{display:inline-flex;flex:none}.cn-av svg{display:block;border-radius:8px}.cn-note{display:flex;gap:10px;align-items:flex-start}.cn-why{display:inline-block;margin-top:6px}.cn-card{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.rv-off{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;margin-bottom:10px;border-radius:12px;background:color-mix(in srgb,var(--go) 20%,var(--panel-2));border:1px solid color-mix(in srgb,var(--go) 55%,transparent)}
+.rv-off>span{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;min-width:0}.rv-off .btn{flex:none;display:inline-flex;align-items:center;gap:6px}
+.rv-backbig{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:17px}
+.xp-tree{display:flex;flex-wrap:wrap;gap:3px 2px;margin:8px 0;font:700 13.5px var(--mono);line-height:1.9}.xp-m{display:inline-flex;align-items:center;gap:3px;padding:0 5px;border-radius:5px;cursor:pointer}.xp-m .cls{width:15px;height:15px}
+.xp-m.cur{background:var(--go);color:#fff}.xp-var{color:var(--muted);display:inline-flex;flex-wrap:wrap;align-items:center;gap:2px}.xp-var .xp-m.cur{color:#fff}
+.xp-now{display:flex;gap:10px;align-items:flex-start;margin-top:4px}.xp-now>div{display:flex;flex-direction:column;gap:2px}.xp-s{font-size:13px;color:var(--muted)}
+.xp-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.xp-acts .btn{display:inline-flex;align-items:center;gap:5px}
 .cw{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--panel-2);display:flex;flex-direction:column;gap:8px}.cw p{margin:0;font-size:14px;line-height:1.5}
 .cw-h{font-size:15px}.cw-err{color:var(--bad,#e2564b)}.cw-pl{color:var(--muted)}.cw-pl b{color:var(--fg)}
 .cw-wait{flex-direction:row;align-items:center;gap:10px;color:var(--muted);font-size:14px}.cw-dot{width:10px;height:10px;border-radius:50%;background:var(--go);animation:cwp 1s ease-in-out infinite}@keyframes cwp{50%{opacity:.25;transform:scale(.7)}}
@@ -2882,7 +2916,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794770671";
+const CHESSNAT_BUILD = "1794774227";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -3648,7 +3682,7 @@ function makeBoard(wrap, opts = {}){
   /* live position from the game; stepping back through history shows older positions without touching the game */
   let liveFen = null;
   B.set = (g, last) => {
-    const fen = g.fen(); if (fen !== liveFen){ if (liveFen !== null){ B.userArrows = []; B.userMarks = {}; } liveFen = fen; }
+    const fen = g.fen(); if (fen !== liveFen){ if (liveFen !== null){ B.userArrows = []; B.userMarks = {}; } liveFen = fen; B.mateClear(); }
     try { if (typeof Watch !== "undefined") Watch.note(B, fen, last); } catch(e) {}
     B.live = {g, last: last || null};
     if (B.ply != null){ B.ply = null; wrap.classList.remove("viewing"); }
@@ -3729,7 +3763,40 @@ function makeBoard(wrap, opts = {}){
     clearTimeout(B._cheerT); B._cheerT = setTimeout(() => { fx.innerHTML = ""; }, tier >= 3 ? 2100 : 1700);
   };
   B.float = (text, neg) => { fx.innerHTML = `<div class="float ${neg ? "neg" : ""}">${esc(text)}</div>`; setTimeout(() => { fx.innerHTML = ""; }, 1150); };
-  B.badge = (sq, label, color) => { wrap.querySelectorAll(".badge-mv").forEach(n => n.remove()); if (!sq) return; const [x, y] = sqXY(sq, B.o); const b = document.createElement("div"); b.className = "badge-mv"; b.style.left = ((x + 1) * 12.5) + "%"; b.style.top = (y * 12.5) + "%"; b.style.background = color; b.textContent = label; wrap.appendChild(b); };
+  B.badge = (sq, label, color) => { wrap.querySelectorAll(".badge-mv").forEach(n => n.remove()); if (!sq) return; const [x, y] = sqXY(sq, B.o); const b = document.createElement("div"); b.className = "badge-mv"; b.style.left = ((x + 1) * 12.5) + "%"; b.style.top = (y * 12.5) + "%"; b.style.background = color;
+    b.style.setProperty("--bx", x === 7 ? "-100%" : "-62%"); b.style.setProperty("--by", y === 0 ? "0%" : "-38%"); if (/^<svg/.test(label)) b.innerHTML = label; else b.textContent = label; wrap.appendChild(b); };
+  /* end of the game on the board: the loser's king square turns red with a white sign of how it ended (#, flag, clock …) and a small
+     label above it, the winner's king square turns green with a crown and "Winner"; a draw marks both kings grey with ½.
+     The promise resolves when it's time for the end screen. The marks stay until the position changes. */
+  B.mateClear = () => { wrap.querySelectorAll(".endfx").forEach(n => n.remove()); for (const sq in (B.pieces || {})) B.pieces[sq].el.classList.remove("mf-hide"); };
+  const EF_IC = {
+    mate: '<path d="M9.5 4.5L8 19.5M16 4.5l-1.5 15M4.8 9h15M4 15h15" stroke-width="2.6"/>',
+    resign: '<path d="M6 21V4M6 4.5c3.6-2.2 6.4 2.2 12 0v8.4c-5.6 2.2-8.4-2.2-12 0" stroke-width="2.3" fill="rgba(255,255,255,.18)"/>',
+    time: '<circle cx="12" cy="13" r="7.6" stroke-width="2.3"/><path d="M12 9v4.4l2.8 1.8M9.6 2.8h4.8M12 2.8v2.6" stroke-width="2.3"/>',
+    left: '<path d="M14 4h4.5v16H14M10.5 8l-4 4 4 4M6.5 12H15" stroke-width="2.3"/>',
+    lost: '<path d="M7 7l10 10M17 7L7 17" stroke-width="2.8"/>',
+    win: '<path d="M4 18.5h16M5 15.5L3.6 7.4l4.7 3.8L12 5l3.7 6.2 4.7-3.8-1.4 8.1z" stroke-width="2" fill="rgba(255,255,255,.2)"/>',
+    draw: '<path d="M7.5 5v7M5.5 6.5L7.5 5M17.5 5L6.5 19M14 13.5c0-1.6 1.2-2.4 2.5-2.4s2.5.8 2.5 2.2c0 2-4.6 3.2-4.6 5.2H19" stroke-width="2"/>'
+  };
+  B.endFx = (g, o = {}) => new Promise(res => {
+    try {
+      const r = o.res || (g.in_checkmate() ? (g.turn() === "w" ? "0-1" : "1-0") : g.game_over() ? "1/2-1/2" : null); if (!r || r === "*") return res();
+      const why = String(o.why || (g.in_checkmate() ? "by checkmate" : "")), k = /checkmate/.test(why) ? "mate" : /resign/.test(why) ? "resign" : /on time/.test(why) ? "time" : /aband|left|gone|disconnect/.test(why) ? "left" : "lost";
+      B.mateClear();
+      const mark = (color, cls, ic, label) => { const sq = kingSquare(g, color); if (!sq) return; const [x, y] = sqXY(sq, B.o), d = document.createElement("div");
+        d.className = `endfx ${cls}${y === 0 ? " top" : ""}`; d.style.left = (x * 12.5) + "%"; d.style.top = (y * 12.5) + "%";
+        d.innerHTML = `<span class="ef-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${EF_IC[ic]}</svg></span><span class="ef-pill">${label}</span>`;
+        wrap.appendChild(d); const p = B.pieces[sq]; if (p) p.el.classList.add("mf-hide"); };
+      if (r === "1/2-1/2"){ mark("w", "draw", "draw", "Draw"); mark("b", "draw", "draw", "Draw"); }
+      else { const lose = r === "1-0" ? "b" : "w"; mark(lose, "lose", k, {mate: "Checkmate", resign: "Resigned", time: "Time", left: "Left", lost: "Lost"}[k]); mark(lose === "w" ? "b" : "w", "win", "win", "Winner"); }
+      if (o.burst && r !== "1/2-1/2"){ const sq = kingSquare(g, r === "1-0" ? "w" : "b"); if (sq){ const [x, y] = sqXY(sq, B.o), c = document.createElement("div"), cols = ["#81B64C", "#FFC93C", "#FFFFFF", "#5DCAA5", "#ED93B1", "#F7C631"];
+        c.className = "ef-conf"; c.style.left = ((x + .5) * 12.5) + "%"; c.style.top = ((y + .5) * 12.5) + "%";
+        c.innerHTML = Array.from({length: 34}, (_, i) => { const a = Math.random() * Math.PI * 2, d = 18 + Math.random() * 34; return `<i style="--dx:${(Math.cos(a) * d).toFixed(1)}cqw;--dy:${(Math.sin(a) * d - 8).toFixed(1)}cqw;--r:${Math.round(Math.random() * 720 - 360)}deg;background:${cols[i % cols.length]};animation-delay:${(Math.random() * .12).toFixed(2)}s;${i % 3 ? "" : "border-radius:50%;"}"></i>`; }).join("");
+        wrap.appendChild(c); setTimeout(() => c.remove(), 1900); } }
+      setTimeout(res, o.quiet ? 0 : k === "mate" ? 1500 : 1100);
+    } catch(e) { res(); }
+  });
+  B.mateFx = (g, o = {}) => g && g.in_checkmate && g.in_checkmate() ? B.endFx(g, o) : Promise.resolve();
   B.overlay = html => { wrap.querySelectorAll(".overlay").forEach(n => n.remove()); if (!html) return null; const o = document.createElement("div"); o.className = "overlay"; o.innerHTML = html; wrap.appendChild(o); return o; };
   B.promote = (sq, color) => new Promise(res => {
     const [x, y] = sqXY(sq, B.o); const box = document.createElement("div"); box.className = "promo";
@@ -4921,18 +4988,23 @@ Views.bots = {
     dayTick("gm"); S.games.push(rec); save(); if (G.g.history().length >= 4){ addXP(XP.game + (score === 1 ? XP.win : 0)); if (score === 1 && typeof natWin === "function") natWin("bot"); }
     logEvent("game", {opponent: G.bot.name, opponentRating: G.bot.r, color: me, result: res, why, pgn, moves: rec.moves, takebacks: G.takebacks, coachWarnings: G.warns});
     G.chat = score === 1 ? rnd(BOT_LINES.lose) : score === 0 ? rnd(BOT_LINES.win) : rnd(BOT_LINES.draw);
-    if (G.journey){ rec.mode = "journey"; save(); this.journeyEnd(G, score, pgn, rec); return; }
-    Sound.play(score === 1 ? "Victory" : score === 0 ? "Defeat" : "GenericNotify", .8);
-    const title = score === 1 ? "You won!" : score === 0 ? G.bot.name + " won" : "Draw";
+    if (G.journey){ rec.mode = "journey"; save(); G.board.endFx(G.g, {res, why}).then(() => { if (this.G === G) this.journeyEnd(G, score, pgn, rec); }); return; }
     if (/on time/.test(why) && score === 0) G.chat = "Your flag fell! Watch the clock.";
-    const o = G.board.overlay(`<div class="card-over has-emst">${endHead({res, why, me, g: G.g, opp: G.bot.name})}${EmoStage.html({cls: "sm", opName: G.bot.name, opCfg: botCfg(G.bot)})}${G.rating ? ratingDeltaHTML(G.rating) : ""}${score === 1 ? pctCard(G.bot.r) : ""}${score === 1 && r.w === 1 ? `<div class="newtrophy">${botPortrait(G.bot, 56)}<div><b>New trophy!</b><span>${esc(G.bot.name)} is now locked in your cage.</span></div><button class="btn sm go" id="tro">See it</button></div>` : ""}<div class="grid2"><button class="btn go" id="rv">Game Review</button><button class="btn" id="rm">Rematch</button></div><button class="btn ghost sm" id="cl" style="margin-top:8px">View board</button></div>`);
-    /* you and the bot after the game: the winner dances, you can dance at it, it dances back */
-    const em = EmoStage.mount(o, {opCfg: botCfg(G.bot), opTier: botTierOf(G.bot), opName: G.bot.name, win: score === 1 ? "me" : score === 0 ? "op" : "draw",
-      send: () => setTimeout(() => { if (em && em.stages.op && o.isConnected) em.stages.op.emote(score === 0 ? "flex" : ["wave", "cheer", "dance"][Math.floor(Math.random() * 3)]); }, 1300)});
-    $("#rv", o).onclick = () => App.go("review", {pgn, meta: rec});
-    $("#rm", o).onclick = () => this.start(G.bot, G.color === "w" ? "b" : "w", Object.assign({}, G.opt));
-    if (score === 1) pctAnimate(o); if (G.rating) ratingAnimate(o);
-    $("#cl", o).onclick = () => G.board.overlay(null); if ($("#tro", o)) $("#tro", o).onclick = () => App.go("friends", {tab: "cages"});
+    /* how it ended shows on the board first (red square on the loser's king, crown on the winner's), then the end screen comes up */
+    const show = () => { if (this.G !== G) return;
+      Sound.play(score === 1 ? "Victory" : score === 0 ? "Defeat" : "GenericNotify", .8);
+      const title = score === 1 ? "You won!" : score === 0 ? G.bot.name + " won" : "Draw";
+      const o = G.board.overlay(`<div class="card-over has-emst">${endHead({res, why, me, g: G.g, opp: G.bot.name})}${EmoStage.html({cls: "sm", opName: G.bot.name, opCfg: botCfg(G.bot)})}${G.rating ? ratingDeltaHTML(G.rating) : ""}${score === 1 ? pctCard(G.bot.r) : ""}${score === 1 && r.w === 1 ? `<div class="newtrophy">${botPortrait(G.bot, 56)}<div><b>New trophy!</b><span>${esc(G.bot.name)} is now locked in your cage.</span></div><button class="btn sm go" id="tro">See it</button></div>` : ""}<div class="grid2"><button class="btn go" id="rv">Game Review</button><button class="btn" id="rm">Rematch</button></div><button class="btn ghost sm" id="cl" style="margin-top:8px">View board</button></div>`);
+      /* you and the bot after the game: the winner dances, you can dance at it, it dances back */
+      const em = EmoStage.mount(o, {opCfg: botCfg(G.bot), opTier: botTierOf(G.bot), opName: G.bot.name, win: score === 1 ? "me" : score === 0 ? "op" : "draw",
+        send: () => setTimeout(() => { if (em && em.stages.op && o.isConnected) em.stages.op.emote(score === 0 ? "flex" : ["wave", "cheer", "dance"][Math.floor(Math.random() * 3)]); }, 1300)});
+      $("#rv", o).onclick = () => App.go("review", {pgn, meta: rec});
+      $("#rm", o).onclick = () => this.start(G.bot, G.color === "w" ? "b" : "w", Object.assign({}, G.opt));
+      if (score === 1) pctAnimate(o); if (G.rating) ratingAnimate(o);
+      $("#cl", o).onclick = () => G.board.overlay(null); if ($("#tro", o)) $("#tro", o).onclick = () => App.go("friends", {tab: "cages"});
+      EndReview.mount(o, {pgn, me, oppName: G.bot.name, oppR: G.bot.r, myR: G.opt.rated && G.opt.tc && S.ratings && S.ratings[tcCat(G.opt.tc)] ? Math.round(S.ratings[tcCat(G.opt.tc)].r) : null, res, why});
+      this.panel(); };
+    G.board.endFx(G.g, {res, why, burst: score === 1}).then(show);
     this.panel();
   },
   /* boss game in the Journey: a win clears the level, anything else is another try */
@@ -5043,7 +5115,7 @@ function endHead(o){
   else if (R.k === "left") line = `${them} left the game.`;
   let last = "";
   if (g){ const h = g.history(); if (h.length){ const i = h.length - 1, n = Math.floor(i / 2) + 1; last = `<div class="end-last"><b>${n}${i % 2 ? "..." : "."} ${esc(h[i])}</b><span>· ${Math.ceil(h.length / 2)} move${Math.ceil(h.length / 2) === 1 ? "" : "s"}</span>${o.clk ? `<span>· ⏱ ${o.clk}</span>` : ""}</div>`; } }
-  return `<div class="endh ${draw ? "draw" : won ? "won" : "lost"}"><div class="end-ic">${draw ? "½" : won ? "★" : "✕"}</div><div class="end-badge">${esc(R.label)}</div><h3>${title}</h3>${line ? `<p class="end-line">${line}</p>` : ""}${last}</div>`;
+  return `<div class="endh ${draw ? "draw" : won ? "won" : "lost"}"><div class="end-ic">${draw ? "½" : won ? "★" : "✕"}</div><div class="end-badge">${esc(R.label)}</div><h3>${won ? `<span class="end-tr">${icon("trophy", 24)}</span>` : ""}${title}</h3>${line ? `<p class="end-line">${line}</p>` : ""}${last}</div>`;
 }
 
 /* ===== Sparring partner: reads the position like a coach and talks about plans, squares and pawns, never about the exact move.
@@ -5184,12 +5256,14 @@ Views.learn = {
       <div class="stat" style="min-width:200px"><span>Path progress</span><b>${done} / ${total}</b><div class="bar" style="margin-top:6px"><i style="width:${total ? Math.round(done / total * 100) : 0}%"></i></div></div></div>
       ${nx ? `<div class="unit" style="margin-top:14px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;border:1px solid var(--go)">${coachAvatar(56)}<div style="flex:1;min-width:200px"><div class="muted" style="font-weight:800;font-size:12px;letter-spacing:.06em">UP NEXT · ${esc(nx.unit.title.toUpperCase())}</div><div style="font:900 22px var(--display)">${esc(nx.title)}</div><div class="muted">${esc(nx.sub || "")}</div></div><button class="btn go" id="cont">Start lesson</button></div>` : ""}
       ${typeof playerProfile === "function" ? (P => `<button class="unit pf-card" id="pfc" style="margin-top:12px"><div class="pf-piece sm"><i class="pc ${P.type.piece}"></i></div><div style="flex:1;min-width:200px;text-align:left"><div class="muted" style="font-weight:800;font-size:12px;letter-spacing:.06em">YOUR CHESS PROFILE</div><div style="font:900 20px var(--display)">${esc(P.type.name)}</div><div class="muted" style="font-size:13.5px">Openings for you: ${esc(P.rep.white.name)} as White, ${esc(P.rep.e4.name)} against 1.e4. Find out why.</div></div><span class="btn sm go">Open</span></button>`)(playerProfile()) : ""}
+      ${(A => A ? `<div class="unit pf-card cn-card" style="margin-top:12px"><span class="cn-av">${coachAvatar(56)}</span><div style="flex:1;min-width:200px;text-align:left"><div class="muted" style="font-weight:800;font-size:12px;letter-spacing:.06em">OPENING SPARRING WITH COACH NAT</div><div style="font:900 20px var(--display)">${esc(A.name)}</div><div class="muted" style="font-size:13.5px">You play White, Coach Nat answers with every main line and trap, and explains each move.</div><div class="row" style="gap:8px;margin-top:8px"><button class="btn go sm" id="cnsp">Start sparring</button><button class="btn sm" id="cnth">Read first</button>${Views.repertoire.score(A.id)}</div></div></div>` : "")(THEORY.find(t => t.id === "alien"))}
       <button class="unit pf-card" id="thc" style="margin-top:12px"><div class="pf-piece sm" style="display:flex;align-items:center;justify-content:center;color:#fff">${icon("scroll", 30)}</div><div style="flex:1;min-width:200px;text-align:left"><div class="muted" style="font-weight:800;font-size:12px;letter-spacing:.06em">OPENING THEORY</div><div style="font:900 20px var(--display)">${typeof THEORY !== "undefined" ? THEORY.length : ""} deep-dive articles</div><div class="muted" style="font-size:13.5px">Sicilian, Italian, Caro-Kann, London and more: ideas, structures, plans and lines.</div></div><span class="btn sm go">Open</span></button>
       ${units.map((u, ui) => { const ls = u.lessons; const d = ls.filter(l => S.lessons[l.id] && S.lessons[l.id].done).length;
         return `<div class="unit" style="margin-top:12px"><div class="row" style="justify-content:space-between"><div><div class="muted" style="font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase"><span>Unit ${ui + 1}</span> · <span>Goal:</span> <span>${esc(u.target)}</span></div><h3>${esc(u.title)}</h3><p class="muted" style="margin:2px 0 0">${esc(u.desc)}</p></div><div class="row" style="gap:6px">${d < ls.length ? `<button class="btn sm ghost" data-skipu="${u.id}">I know this</button>` : ""}<span class="pill ${d === ls.length ? "go" : ""}">${d}/${ls.length}</span></div></div>
         <div class="lessons">${ls.map((l, i) => { const st = S.lessons[l.id]; return `<button class="lsn ${st && st.done ? "done" : ""}" data-l="${l.id}"><span class="n">${st && st.done ? "✓" : i + 1}</span><span style="min-width:0"><div class="t">${esc(l.title)}</div><div class="s">${esc(l.sub || "")}</div></span></button>`; }).join("")}</div></div>`; }).join("")}</div>`;
     if ($("#pfc")) $("#pfc").onclick = () => App.go("profile");
     if ($("#thc")) $("#thc").onclick = () => App.go("theory");
+    if ($("#cnsp")) $("#cnsp").onclick = () => App.go("repdrill", {id: "alien"}); if ($("#cnth")) $("#cnth").onclick = () => App.go("theory", {id: "alien"});
     if (placed) toast(`${placed} beginner lessons ticked off, you know those already`, 3200);
     $$("[data-skipu]", main).forEach(b => b.onclick = () => { if (!b.dataset.armed){ b.dataset.armed = 1; b.textContent = "Tick all off?"; return; } skipUnit(b.dataset.skipu); Sound.play("Capture", .6); this.mount(main); });
     if (nx) $("#cont").onclick = () => App.go("lesson", {id: nx.id});
@@ -6576,17 +6650,31 @@ const Openings = {
 };
 
 /* ===== Game Review: Stockfish analysis with move classifications ===== */
+/* move-quality marks: each one a small drawn icon (white on its colour), the same on the board, in the move list and in the cards */
+const CLS_SVG = (() => {
+  const ex = x => `<path d="M${x} 5.2v8.3" stroke-width="3.1"/><circle cx="${x}" cy="18.6" r="1.75" fill="#fff" stroke="none"/>`;
+  const qu = x => `<path d="M${x - 3.3} 8.1a3.4 3.4 0 1 1 4.7 3.2c-1.1.5-1.4 1.2-1.4 2.4v.4" stroke-width="2.7"/><circle cx="${x}" cy="18.6" r="1.7" fill="#fff" stroke="none"/>`;
+  const w = d => `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  return {
+    brilliant: w(ex(8.6) + ex(15.4)), great: w(ex(12)), inaccuracy: w(qu(9.6) + ex(17)), mistake: w(qu(12.6)), blunder: w(qu(8.4) + qu(16.6)),
+    best: w('<path d="M12 3.6l2.5 5.2 5.6.7-4.1 3.9 1 5.6-5-2.7-5 2.7 1-5.6-4.1-3.9 5.6-.7z" fill="#fff" stroke-width="1.2"/>'),
+    excellent: w('<path d="M7.5 10.5v8.3M7.5 10.5l3.4-6.1c1.4 0 2.1 1 1.8 2.4l-.6 2.9h4.6c1.2 0 2 1.1 1.7 2.2l-1.4 5.4c-.2.9-1 1.5-1.9 1.5H7.5M4.3 10.5h3.2v8.3H4.3z" stroke-width="1.9"/>'),
+    good: w('<path d="M5.5 12.6l4.3 4.3 8.7-9.4" stroke-width="3"/>'),
+    book: w('<path d="M12 7.2c-1.8-1.5-4.6-2-7.2-1.6v11.6c2.6-.4 5.4.1 7.2 1.6 1.8-1.5 4.6-2 7.2-1.6V5.6c-2.6-.4-5.4.1-7.2 1.6zM12 7.2v11.6" stroke-width="1.9"/>'),
+    miss: w('<path d="M7.2 7.2l9.6 9.6M16.8 7.2l-9.6 9.6" stroke-width="3"/>')
+  };
+})();
 const CLS = {
-  brilliant:  {sym:"!!", name:"Brilliant",  c:"#1BACA6"},
-  great:      {sym:"!",  name:"Great Move", c:"#5C8BB0"},
-  best:       {sym:"★",  name:"Best",       c:"#81B64C"},
-  excellent:  {sym:"👍", name:"Excellent",  c:"#81B64C"},
-  good:       {sym:"✓",  name:"Good",       c:"#95B776"},
-  book:       {sym:"📖", name:"Book",       c:"#A88865"},
-  inaccuracy: {sym:"?!", name:"Inaccuracy", c:"#F7C631"},
-  mistake:    {sym:"?",  name:"Mistake",    c:"#FFA459"},
-  miss:       {sym:"✕",  name:"Miss",       c:"#FF7769"},
-  blunder:    {sym:"??", name:"Blunder",    c:"#FA412D"},
+  brilliant:  {sym:CLS_SVG.brilliant, name:"Brilliant",  c:"#1BACA6"},
+  great:      {sym:CLS_SVG.great,  name:"Great Move", c:"#5C8BB0"},
+  best:       {sym:CLS_SVG.best,  name:"Best",       c:"#81B64C"},
+  excellent:  {sym:CLS_SVG.excellent, name:"Excellent",  c:"#81B64C"},
+  good:       {sym:CLS_SVG.good,  name:"Good",       c:"#95B776"},
+  book:       {sym:CLS_SVG.book, name:"Book",       c:"#A88865"},
+  inaccuracy: {sym:CLS_SVG.inaccuracy, name:"Inaccuracy", c:"#F7C631"},
+  mistake:    {sym:CLS_SVG.mistake,  name:"Mistake",    c:"#FFA459"},
+  miss:       {sym:CLS_SVG.miss,  name:"Miss",       c:"#FF7769"},
+  blunder:    {sym:CLS_SVG.blunder, name:"Blunder",    c:"#FA412D"},
 };
 const CLS_ORDER = ["brilliant","great","best","excellent","good","book","inaccuracy","mistake","miss","blunder"];
 const winPct = cp => 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * clamp(cp, -1500, 1500))) - 1);
@@ -6629,7 +6717,7 @@ Views.review = {
     if (Openings.map) A0.open = Openings.ofFens(A0.fens); else Openings.load().then(setOpen);
     this.go(startPly || 0); this.analyse();
     /* tap the right half of the board for the next move, the left half to go back; hold to jump to the end or the start */
-    tapNav($("#bw"), {active: () => this.mode === "review" && this.A, step: d => this.LN ? this.lineStep(d) : this.go(this.A.ply + d), jump: d => this.LN ? this.lineStep(d * 99) : this.go(d > 0 ? this.A.moves.length : 0)});
+    tapNav($("#bw"), {active: () => this.mode === "review" && this.A, step: d => this.LN ? this.lineStep(d) : this.xOn() ? this.xStep(d) : this.go(this.A.ply + d), jump: d => this.LN ? this.lineStep(d * 99) : this.xOn() ? this.xStep(d * 99) : this.go(d > 0 ? this.A.moves.length : 0)});
     if (!S.settings.tapHint){ S.settings.tapHint = 1; save(); setTimeout(() => toast("Tap the right side of the board for the next move, the left side to go back. Hold to jump.", 4200), 900); }
   },
   /* player bars: face, name, rating, and the accuracy once the review is ready */
@@ -6645,7 +6733,7 @@ Views.review = {
   },
   async analyse(){
     const A = this.A; const key = A.pgn;
-    if (this.cache[key]){ Object.assign(A, this.cache[key]); A.done = true; this.bars(); this.go(A.ply); return; }
+    if (this.cache[key]){ Object.assign(A, this.cache[key]); A.done = true; this.bars(); if (!this.cache[key].saved){ this.cache[key].saved = true; this.saveSummary(); } this.go(A.ply); return; }
     Engine.init();
     if (Engine.failed){ this.panel("The analysis engine could not start in this browser."); return; }
     for (let i = 0; i < A.fens.length; i++){
@@ -6655,7 +6743,7 @@ Views.review = {
       else { const r = await Engine.run({fen, depth: 11, multipv: 3}); if (!r){ A.evals[i] = A.evals[i - 1] || 0; A.lines[i] = []; } else { A.lines[i] = r.lines; A.evals[i] = Engine.white(r.lines[0], fen); A.lines[i].best = r.best; } }
       this.progress(i + 1, A.fens.length);
     }
-    this.classify(); A.done = true; this.cache[key] = {evals: A.evals, lines: A.lines, cls: A.cls, sum: A.sum}; this.bars();
+    this.classify(); A.done = true; this.cache[key] = {evals: A.evals, lines: A.lines, cls: A.cls, sum: A.sum, saved: true}; this.bars();
     this.saveSummary(); this.go(A.ply);
   },
   classify(){
@@ -6704,7 +6792,7 @@ Views.review = {
   },
   progress(n, tot){ const el = $("#anprog"); if (el) el.style.width = Math.round(n / tot * 100) + "%"; const tx = $("#antext"); if (tx) tx.textContent = `Analyzing… ${n}/${tot}`; },
   go(ply){
-    const A = this.A; if (!A) return; ply = clamp(ply, 0, A.moves.length); A.ply = ply; this.LN = null;
+    const A = this.A; if (!A) return; ply = clamp(ply, 0, A.moves.length); A.ply = ply; this.LN = null; if (A.X) A.X.on = false;
     const t = new Chess(A.fens[ply]); const m = A.moves[ply - 1];
     this.board.set(t, m ? {from: m.from, to: m.to} : null);
     if (m && A.cls[ply - 1]){ const k = CLS[A.cls[ply - 1]]; this.board.badge(m.to, k.sym, k.c); } else this.board.badge(null);
@@ -6714,8 +6802,73 @@ Views.review = {
     if (m && A.done && m.color === A.me && ["mistake", "miss", "blunder"].includes(A.cls[ply - 1])) this.whyLoad(ply - 1);
     evalSet(A.evals[ply], this.board.o);
     if (m) (m.captured ? Sound.play("Capture", .5) : Sound.play("Move", .5));
-    this.panel();
+    this.pickable(); this.panel();
   },
+  /* ---- your own moves: move any piece on the review board and see what happens; every try grows a little tree ---- */
+  xOn(){ return !!(this.A && this.A.X && this.A.X.on); },
+  shownFen(){ const A = this.A; if (this.LN){ const L = A.why[this.LN.i].res.lines[this.LN.k]; return Coach.after(A.fens[this.LN.i], L.sans.slice(0, this.LN.s)).fen(); }
+    if (this.xOn()){ const X = A.X; return X.cur < 0 ? X.rootFen : X.nodes[X.cur].fen; } return A.fens[A.ply]; },
+  pickable(){
+    const A = this.A, board = this.board; if (!A || !board || this.mode !== "review" || !A.done) return;
+    const t = new Chess(this.shownFen()); board.canPick = sq => { const p = t.get(sq); return !!p && p.color === t.turn() && !t.game_over(); }; board.dests = gameDests(t);
+    board.onMove = (f, to, pr) => this.tryMove(f, to, pr);
+  },
+  tryMove(f, to, pr){
+    const A = this.A, fenB = this.shownFen(), t = new Chess(fenB), mv = t.move({from: f, to, promotion: pr || "q"}); if (!mv) return;
+    const uci = f + to + (mv.promotion || "");
+    /* the move of the game itself: just go on in the game */
+    if (!this.LN && !this.xOn() && A.moves[A.ply] && A.moves[A.ply].from + A.moves[A.ply].to + (A.moves[A.ply].promotion || "") === uci){ this.go(A.ply + 1); return; }
+    if (!this.xOn()){ A.X = {rootFen: fenB, rootPly: A.ply, fromLine: !!this.LN, nodes: [], cur: -1, on: true}; this.LN = null; }
+    const X = A.X, had = X.nodes.findIndex(n => n.parent === X.cur && n.uci === uci);
+    if (had >= 0){ X.cur = had; this.xShow(true); return; }
+    const node = {fen: t.fen(), fenB, san: mv.san, uci, from: mv.from, to: mv.to, color: mv.color, parent: X.cur};
+    X.nodes.push(node); X.cur = X.nodes.length - 1; this.xShow(true); this.xGrade(node);
+  },
+  async xGrade(node){
+    const A = this.A, t = new Chess(node.fen);
+    const g = await gradeMove(node.fenB, node.uci, node.fen); node.cls = g.cls; node.bestUci = g.bestUci; node.bestSan = g.bestSan;
+    if (t.game_over()) node.ev = t.in_checkmate() ? (t.turn() === "w" ? -10000 : 10000) : 0;
+    else { const r = await Engine.run({fen: node.fen, depth: 12}); if (r && r.lines[0]){ node.ev = Engine.white(r.lines[0], node.fen); node.reply = r.best ? {uci: r.best, san: sanOf(node.fen, r.best)} : null; } }
+    if (this.A === A && this.xOn() && A.X.nodes[A.X.cur] === node) this.xShow(false); else if (this.xOn()) this.panel();
+  },
+  xShow(sound){
+    const A = this.A, X = A.X, n = X.cur >= 0 ? X.nodes[X.cur] : null, t = new Chess(n ? n.fen : X.rootFen);
+    this.board.set(t, n ? {from: n.from, to: n.to} : null); this.board.mark({});
+    if (n && n.cls){ const k = CLS[n.cls]; this.board.badge(n.to, k.sym, k.c); } else this.board.badge(null);
+    this.board.setArrows(n && n.reply ? [[n.reply.uci.slice(0, 2), n.reply.uci.slice(2, 4), "b"]] : []); if (n && n.ev != null) evalSet(n.ev, this.board.o);
+    if (sound && n) Sound.forMove({flags: /x/.test(n.san) ? "c" : "n"}, t);
+    this.pickable(); this.panel();
+  },
+  xStep(d){
+    const X = this.A.X; if (!X) return;
+    if (d < 0){ for (let k = 0; k < -d && X.cur >= 0; k++) X.cur = X.nodes[X.cur].parent; }
+    else for (let k = 0; k < d; k++){ const c = X.nodes.findIndex(n => n.parent === X.cur); if (c < 0) break; X.cur = c; }
+    this.xShow(true);
+  },
+  /* the tree like a score sheet: your main try runs on, other tries hang off it in brackets */
+  xTree(){
+    const X = this.A.X, kids = p => X.nodes.map((n, i) => ({n, i})).filter(x => x.n.parent === p);
+    const num = (n, force) => { const no = +n.fenB.split(" ")[5]; return n.color === "w" ? no + "." : force ? no + "…" : ""; };
+    const mv = (x, force) => { const k = x.n.cls ? CLS[x.n.cls] : null; return `<span class="xp-m ${x.i === X.cur ? "cur" : ""}" data-xn="${x.i}">${num(x.n, force)}${k ? `<span class="cls" style="background:${k.c}">${k.sym}</span>` : ""}${esc(x.n.san)}</span>`; };
+    const seq = (p, force) => { let out = "", cur = p, f = force;
+      for (let guard = 0; guard < 200; guard++){ const ch = kids(cur); if (!ch.length) break; const [first, ...rest] = ch;
+        out += mv(first, f); f = false;
+        rest.forEach(r => { out += `<span class="xp-var">(${mv(r, true)}${seq(r.i, false)})</span>`; f = true; });
+        cur = first.i; }
+      return out; };
+    return `<div class="xp-tree" data-notr><span class="xp-m ${X.cur < 0 ? "cur" : ""}" data-xn="-1">${typeof I18N !== "undefined" && I18N.lang === "de" ? "Anfang" : "Start"}</span>${seq(-1, true)}</div>`;
+  },
+  xPanel(){
+    const A = this.A, X = A.X, n = X.cur >= 0 ? X.nodes[X.cur] : null, k = n && n.cls ? CLS[n.cls] : null, Q = n && n.goal;
+    const info = !n ? `<p class="muted">Move any piece: each move is graded, and the engine's answer shows as a blue arrow.</p>`
+      : `<div class="xp-now">${k ? `<span class="cls" style="background:${k.c};width:28px;height:28px">${k.sym}</span>` : `<span class="cw-dot"></span>`}<div><div><b>${esc(n.san)}${k ? " · " + k.name : ""}</b>${n.ev != null ? ` <span class="rv-ev">${fmtEval(n.ev)}</span>` : ""}</div>
+          ${n.bestSan && k && !["best", "great", "brilliant", "excellent"].includes(n.cls) ? `<span class="xp-s">Better was ${esc(n.bestSan)}</span>` : ""}${n.reply ? `<span class="xp-s">Engine's answer: ${esc(n.reply.san)} (blue arrow)</span>` : ""}</div></div>
+        <div class="xp-acts">${n.reply ? `<button class="btn sm" data-xreply>${icon("play", 15)}<span>Play the answer</span></button>` : ""}<button class="btn sm" data-xgoal>${icon("bubble", 15)}<span>Ask Coach Nat</span></button></div>
+        ${Q ? Q.wait ? `<div class="cw cw-wait"><span class="cw-dot"></span><span>Coach Nat is looking at the board…</span></div>` : Q.err ? `<div class="cw"><p class="cw-err">${esc(Q.err)}</p></div>` : `<div class="cw"><b class="cw-h" data-notr>${esc(Q.res.goal)}</b><p data-notr>${esc(Q.res.why)}</p>${Q.res.danger ? `<p class="cw-pl"><b>Careful:</b> <span data-notr>${esc(Q.res.danger)}</span></p>` : ""}${Q.res.look ? `<div class="cw-rule">${icon("bulb", 16)}<span data-notr>${esc(Q.res.look)}</span></div>` : ""}</div>` : ""}`;
+    return `<div class="msg rv-ex xp"><div style="min-width:0;flex:1"><h4>Your own line</h4>${this.xTree()}${info}</div></div>`;
+  },
+  /* off the game (a coach line or your own moves): one big way back, at the top and at the bottom */
+  backBar(what){ return `<div class="rv-off"><span>${icon("map", 18)}<span>${what}</span></span><button class="btn go" data-back>${icon("back", 18)}<span>Back to the game</span></button></div>`; },
   panel(errText){
     const A = this.A; if (!A) return;
     const ply = A.ply, m = A.moves[ply - 1];
@@ -6725,7 +6878,7 @@ Views.review = {
     else {
       const s = A.sum, me = A.me; const row = side => CLS_ORDER.map(k => `<div class="li" style="padding:5px 4px"><span class="cls" style="background:${CLS[k].c}">${CLS[k].sym}</span><div class="grow"><div class="t" style="font-size:13.5px">${CLS[k].name}</div></div><b>${(s.counts.w[k] || 0)}</b><b style="width:28px;text-align:right">${(s.counts.b[k] || 0)}</b></div>`).join("");
       top = `${m && A.cls[ply - 1] ? this.explain(ply - 1) : `<div class="msg"><div class="ic">★</div><div><h4>Review ready</h4><p>Tap the right side of the board for the next move, the left side to go back. Hold to jump to the end or the start. Every move that wasn't the best shows the better one in green.</p></div></div>`}
-        <!--OPN--><div class="grid2" style="margin-top:10px"><div class="stat"><span>White accuracy</span><b>${s.accW}</b></div><div class="stat"><span>Black accuracy</span><b>${s.accB}</b></div></div>
+        <!--OPN--><div class="grid2" style="margin-top:10px">${["w", "b"].map(c => { const gr = gameRating(c === "w" ? s.accW : s.accB, A.moves.filter(x => x.color === c).length); return `<div class="stat"><span>${c === "w" ? "White accuracy" : "Black accuracy"}</span><b>${c === "w" ? s.accW : s.accB}</b>${gr ? `<span class="rv-gr">Game rating ≈ ${gr}</span>` : ""}</div>`; }).join("")}</div>
         ${this.keyMoments()}
         <details style="margin-top:10px"><summary class="muted" style="cursor:pointer;font-weight:800">Move quality table</summary><div class="list" style="margin-top:6px"><div class="li" style="padding:4px"><div class="grow"></div><span class="dim" style="font-size:12px">White</span><span class="dim" style="font-size:12px;width:34px;text-align:right">Black</span></div>${row()}</div></details>`;
     }
@@ -6733,7 +6886,9 @@ Views.review = {
       const cell = j => { if (!A.moves[j]) return `<span></span>`; const c = A.cls[j]; const k = c ? CLS[c] : null; return `<span class="m ${A.ply === j + 1 ? "cur" : ""}" data-ply="${j + 1}">${k && ["brilliant","great","inaccuracy","mistake","miss","blunder"].includes(c) ? `<span class="cls" style="background:${k.c};width:16px;height:16px;font-size:9px;margin-right:4px">${k.sym}</span>` : ""}${esc(A.moves[j].san)}</span>`; };
       mv += `<span class="n">${n}.</span>${cell(i)}${cell(i + 1)}`; }
     const opnCard = S.settings.openings !== false && A.open ? Openings.card(A.open, {note: A.moves.length > A.open.ply ? `You both played known opening moves until move ${Math.floor((A.open.ply - 1) / 2) + 1}.` : ""}) : "";
-    $("#sp").innerHTML = (top.includes("<!--OPN-->") ? top.replace("<!--OPN-->", opnCard) : opnCard + top) + `<div class="h-sec">Moves</div><div class="moves">${mv}</div>`;
+    const off = A.done && !errText && (this.LN || this.xOn());
+    if (off) $("#sp").innerHTML = this.backBar(this.LN ? "You're looking at a line of Coach Nat" : "You're trying your own moves") + (this.xOn() ? this.xPanel() : this.explain(A.ply - 1)) + `<div class="h-sec">Moves</div><div class="moves">${mv}</div>`;
+    else $("#sp").innerHTML = (top.includes("<!--OPN-->") ? top.replace("<!--OPN-->", opnCard) : opnCard + top) + (A.done && A.X && !A.X.on && A.X.rootPly === A.ply && A.X.nodes.length ? `<button class="btn sm cw-ask" data-xback>${icon("map", 16)}<span>Back to your own line</span></button>` : "") + `<div class="h-sec">Moves</div><div class="moves">${mv}</div>`;
     $$("#sp .m[data-ply]").forEach(s => s.onclick = () => this.go(+s.dataset.ply));
     $$("#sp [data-km]").forEach(s => s.onclick = () => this.go(+s.dataset.km)); Openings.wire($("#sp"));
     $$("#sp [data-why]").forEach(b => b.onclick = () => this.whyLoad(+b.dataset.why, !!b.dataset.again));
@@ -6742,6 +6897,8 @@ Views.review = {
     if ($("#sp [data-cwn]")) $("#sp [data-cwn]").onclick = () => this.lineStep(1);
     if ($("#sp [data-cwp]")) $("#sp [data-cwp]").onclick = () => this.lineStep(-1);
     if ($("#sp [data-cwx]")) $("#sp [data-cwx]").onclick = () => this.go(A.ply);
+    if ($("#sp [data-xback]")) $("#sp [data-xback]").onclick = () => { A.X.on = true; this.xShow(false); };
+    if (off){ $("#sf").innerHTML = `<button class="btn go big rv-backbig" data-back>${icon("back", 20)}<span>Back to the game</span></button>`; this.wireOff(); return; }
     $("#sf").innerHTML = `<div class="rv-foot"><button class="btn" id="rvb" aria-label="Your games">${icon("list", 18)}<span>Games</span></button><button class="btn" id="ran">${icon("search", 18)}<span>Analyze</span></button>${A.done ? `<button class="btn" id="rlearn">${icon("refresh", 18)}<span>Retry</span></button>` : ""}<button class="btn go" id="rcont">Play on from here</button></div>`;
     $("#rvb").onclick = () => { this.dead = true; Engine.clear(); this.list(); };
     if ($("#rlearn")) $("#rlearn").onclick = () => this.retry();
@@ -6774,7 +6931,7 @@ Views.review = {
       <div class="cw-tabs">${R.lines.map((x, k) => `<button class="cw-t ${LN && LN.k === k ? "on" : ""}" data-cwl="${k}">${icon("play", 14)}${x.title ? `<span data-notr>${esc(x.title)}</span>` : `<span>Show the line</span>`}</button>`).join("")}</div>
       ${L ? `<div class="cw-step"><div class="cw-mv">${L.sans.map((sn, j) => `<span class="${j === LN.s - 1 ? "cur" : j < LN.s ? "done" : ""} ${j % 2 ? "op" : ""}" data-cws="${j + 1}">${esc(sn)}</span>`).join("")}</div>
         <p>${LN.s ? `<b>${LN.s % 2 ? "You:" : "They:"}</b> <span data-notr>${esc(L.say[LN.s - 1] || "")}</span>` : "Tap the board or › to play the line."}</p>
-        <div class="cw-nav"><button class="btn sm" data-cwp aria-label="Back">‹</button><button class="btn sm" data-cwn aria-label="Next">›</button><button class="btn sm ghost" data-cwx>Back to the game</button></div></div>` : ""}
+        <div class="cw-nav"><button class="btn sm" data-cwp aria-label="Back">‹</button><button class="btn sm" data-cwn aria-label="Next">›</button></div></div>` : ""}
       ${R.played ? `<p class="cw-pl"><b>Your ${esc(R.playedSan)}:</b> <span data-notr>${esc(R.played)}</span></p>` : ""}${R.rule ? `<div class="cw-rule">${icon("bulb", 16)}<span data-notr>${esc(R.rule)}</span></div>` : ""}</div>`;
   },
   async whyLoad(i, again){
@@ -6790,7 +6947,21 @@ Views.review = {
     const t = new Chess(A.fens[LN.i]); let last = null; for (let j = 0; j < LN.s; j++){ last = t.move(L.sans[j]); if (!last) break; }
     this.board.set(t, last ? {from: last.from, to: last.to} : null); this.board.badge(null); this.board.setArrows([]);
     if (last && d) (last.captured ? Sound.play("Capture", .5) : Sound.play("Move", .5));
-    this.panel();
+    this.pickable(); this.panel();
+  },
+  wireOff(){
+    const A = this.A; $$("[data-back]").forEach(b => b.onclick = () => this.go(this.xOn() && A.X.rootPly != null ? A.X.rootPly : A.ply));
+    $$("#sp [data-xn]").forEach(b => b.onclick = () => { A.X.cur = +b.dataset.xn; this.xShow(true); });
+    $$("#sp .m[data-ply]").forEach(s => s.onclick = () => this.go(+s.dataset.ply));
+    $$("#sp [data-cwl]").forEach(b => b.onclick = () => { const k = +b.dataset.cwl; if (this.LN && this.LN.k === k) return; this.LN = {i: A.ply - 1, k, s: 0}; this.lineStep(1); });
+    $$("#sp [data-cws]").forEach(b => b.onclick = () => this.lineStep(0, +b.dataset.cws));
+    if ($("#sp [data-cwn]")) $("#sp [data-cwn]").onclick = () => this.lineStep(1);
+    if ($("#sp [data-cwp]")) $("#sp [data-cwp]").onclick = () => this.lineStep(-1);
+    if ($("#sp [data-cwx]")) $("#sp [data-cwx]").onclick = () => this.go(A.ply);
+    const n = this.xOn() && A.X.cur >= 0 ? A.X.nodes[A.X.cur] : null;
+    if (n && $("#sp [data-xreply]")) $("#sp [data-xreply]").onclick = () => { if (n.reply) this.tryMove(n.reply.uci.slice(0, 2), n.reply.uci.slice(2, 4), n.reply.uci[4]); };
+    if (n && $("#sp [data-xgoal]")) $("#sp [data-xgoal]").onclick = async () => { n.goal = {wait: true}; this.panel(); const t = new Chess(n.fen);
+      try { n.goal = {res: await Coach.goal(t, t.turn())}; } catch(e) { n.goal = {err: String((e && e.message) || "The coach didn't answer. Try again.")}; } if (this.xOn()) this.panel(); };
   },
   /* a one-time reaction to your own standout moves */
   quip(i){
@@ -6895,7 +7066,7 @@ const Coach = {
     const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || (r.status === 401 ? "Sign in to ask the coach." : "The coach didn't answer. Try again.")); return j;
   },
   lang: () => typeof I18N !== "undefined" && I18N.lang === "de" ? "de" : "en",
-  key(fen, best){ return "chessnat-why-" + this.lang() + "-" + hashStr(fen + " " + best); },
+  key(fen, best){ return "chessnat-why2-" + this.lang() + "-" + hashStr(fen + " " + best); },
   /* one moment of a finished game: the engine's move, what happens if they take back or answer as they'd like to, and what the played move allowed */
   async why(A, i){
     const fen0 = A.fens[i], m = A.moves[i], me = m.color, L0 = A.lines[i] && A.lines[i][0], best = A.lines[i] && A.lines[i].best;
@@ -6914,21 +7085,108 @@ const Coach = {
       if (tr.game_over()) end = tr.in_checkmate() ? (tr.turn() === "w" ? -10000 : 10000) : 0;
       else { const r = await Engine.run({fen: fenR, depth: 12}); if (r && r.lines[0]){ tail = this.sans(fenR, r.lines[0].pv, 6); end = Engine.white(r.lines[0], fenR); } }
       lines.push({id: "r" + lines.length, label: c.label, sans: [main[0], c.san].concat(tail), end}); }
-    lines.forEach(L => { const te = this.after(fen0, L.sans); L.mate = te.in_checkmate(); L.material = this.matWords(t0, te, me); });
+    /* play every line to its end: a forced mate right up to the mate, everything else past the last capture or check, so
+       nothing stops halfway ("you will mate them soon" while the king sits safe) */
+    for (const L of lines) await this.finish(fen0, L);
+    lines.forEach(L => { const te = this.after(fen0, L.sans); L.mate = te.in_checkmate(); L.material = this.matWords(t0, te, me); L.notes = this.notes(fen0, L.sans, me); });
     const LP = A.lines[i + 1] && A.lines[i + 1][0];
     const res = await this.api({mode: "why", me, fen: fen0, board: this.board(t0), facts: this.facts(t0, me), before: A.evals[i], played: m.san, afterPlayed: A.evals[i + 1],
       playedReply: LP ? this.sans(A.fens[i + 1], LP.pv, 4) : [], best: main[0], afterBest: Engine.white(L0, fen0),
-      lines: lines.map(L => ({id: L.id, label: L.label, moves: L.sans, end: L.end, mate: L.mate, material: L.material}))});
+      lines: lines.map(L => ({id: L.id, label: L.label, moves: L.sans, notes: L.notes, end: L.end, mate: L.mate, material: L.material}))});
     const out = {headline: res.headline, idea: res.idea, played: res.played, rule: res.rule, playedSan: m.san, bestSan: main[0],
       lines: lines.map(L => { const r = (res.lines || []).find(x => x.id === L.id) || {}; return {title: r.title || L.label, sans: L.sans, say: L.sans.map((_, k) => (r.comments || [])[k] || "")}; })};
     try { localStorage.setItem(this.key(fen0, best), JSON.stringify(out)); } catch(e) {}
     return out;
+  },
+  async finish(fen0, L){
+    for (let round = 0; round < 4; round++){
+      const te = this.after(fen0, L.sans); if (te.game_over() || L.sans.length >= 24) return;
+      const mate = L.end != null && Math.abs(L.end) >= 9000, h = te.history({verbose: true}), last = h[h.length - 1];
+      const loud = last && (last.captured || /[+#]/.test(last.san)) || te.in_check();
+      /* a big plus that hasn't turned into material yet: go on until it has (or 14 moves), so the line shows where the gain comes from */
+      const me = new Chess(fen0).turn(), sg = me === "w" ? 1 : -1, unpaid = L.end != null && sg * L.end >= 300 && this.mat(te, me) - this.mat(new Chess(fen0), me) < 2;
+      if (!mate && L.sans.length >= 8 && !loud && !(unpaid && L.sans.length < 14)) return;
+      const r = await Engine.run({fen: te.fen(), depth: mate ? 16 : 13}); if (!r || !r.lines[0] || !r.lines[0].pv) return;
+      const more = this.sans(te.fen(), r.lines[0].pv, mate ? 24 - L.sans.length : Math.max(2, (unpaid ? 14 : 10) - L.sans.length)); if (!more.length) return;
+      L.sans = L.sans.concat(more); L.end = Engine.white(r.lines[0], te.fen());
+    }
+  },
+  /* what each move does, in plain facts the coach must stick to: who moves, what it takes, check or mate, material afterwards */
+  notes(fen0, sans, me){
+    const t = new Chess(fen0), out = []; let before = this.mat(t, me);
+    for (const sn of sans){ const mv = t.move(sn); if (!mv) break; const now = this.mat(t, me), who = mv.color === me ? "you" : "they";
+      const bits = [`${who}: ${PIECE_NAME[mv.piece]} ${mv.from}→${mv.to}`]; if (mv.captured) bits.push(`takes the ${PIECE_NAME[mv.captured]} on ${mv.to}`); if (mv.flags.includes("k") || mv.flags.includes("q")) bits.push("castles");
+      if (mv.promotion) bits.push("promotes to a " + PIECE_NAME[mv.promotion]); if (t.in_checkmate()) bits.push("CHECKMATE"); else if (t.in_check()) bits.push("check");
+      bits.push(`material afterwards ${now > 0 ? "+" : ""}${now} for you`); if (now !== before) bits.push(`(${now > before ? "+" : ""}${now - before})`);
+      out.push(bits.join(", ")); before = now; }
+    return out;
+  },
+  /* after a game: what decided it, from the analysis (key moments with the better move, and where the evaluation turned) */
+  async summary(A, me, info, grMe, grOp){
+    const key = "chessnat-sum-" + this.lang() + "-" + hashStr(A.pgn + me); try { const c = JSON.parse(localStorage.getItem(key) || "null"); if (c) return c; } catch(e) {}
+    const pov = v => v == null ? null : me === "w" ? v : -v, moments = [];
+    A.moves.forEach((m, i) => { const c = A.cls[i]; if (!["mistake", "miss", "blunder", "brilliant", "great"].includes(c)) return;
+      moments.push({who: m.color === me ? "you" : "they", no: Math.floor(i / 2) + 1, played: m.san, cls: c, best: sanOf(A.fens[i], A.lines[i] && A.lines[i].best) || "", before: pov(A.evals[i]), after: pov(A.evals[i + 1])}); });
+    const turn = A.evals.findIndex(v => v != null && Math.abs(v) >= 300);
+    const res = info.res === "1/2-1/2" ? "draw" : (info.res === "1-0") === (me === "w") ? "you won" : "you lost";
+    const r = await this.api({mode: "summary", me, fen: A.fens[A.fens.length - 1], result: res, why: info.why || "", opp: info.oppName || "", moves: A.moves.length,
+      acc: {you: me === "w" ? A.sum.accW : A.sum.accB, them: me === "w" ? A.sum.accB : A.sum.accW}, rating: {you: grMe, them: grOp}, moments: moments.slice(0, 14), turn: turn > 0 ? {no: Math.floor((turn - 1) / 2) + 1, ev: pov(A.evals[turn])} : null});
+    try { localStorage.setItem(key, JSON.stringify(r)); } catch(e) {} return r;
   },
   /* in a game: what to aim for now, without giving the move away */
   async goal(g, me){
     const fen = g.fen(), r = await Engine.run({fen, depth: 12, multipv: 3}); if (!r || !r.lines[0]) throw new Error("The engine couldn't look at this position.");
     const t = new Chess(fen);
     return this.api({mode: "goal", me, fen, board: this.board(t), facts: this.facts(t, me), eval: Engine.white(r.lines[0], fen), lines: r.lines.map(l => ({moves: this.sans(fen, l.pv, 6), end: Engine.white(l, fen)}))});
+  }
+};
+/* ===== End of a game: accuracy, game rating and Coach Nat's verdict right on the end screen =====
+   The same analysis as the Game Review (kept in its cache, so opening the review afterwards is instant). */
+/* "how strong did you play in this game": an estimate from the accuracy, like the game rating on big chess sites (rough, ±200) */
+function gameRating(acc, n){
+  if (acc == null || !(n >= 6)) return null;
+  const T = [[0, 100], [30, 150], [40, 300], [50, 500], [60, 750], [70, 1050], [75, 1250], [80, 1450], [85, 1700], [90, 2000], [93, 2250], [96, 2550], [98, 2800], [100, 3000]];
+  for (let k = 1; k < T.length; k++) if (acc <= T[k][0]){ const [a0, r0] = T[k - 1], [a1, r1] = T[k]; return Math.round((r0 + (r1 - r0) * (acc - a0) / (a1 - a0)) / 25) * 25; }
+  return 3000;
+}
+const EndReview = {
+  async analyse(pgn, prog){
+    const g = new Chess(); if (!g.load_pgn(pgn, {sloppy: true})) return null;
+    const hdr = g.header(), moves = g.history({verbose: true}), t = new Chess(hdr.FEN || START), fens = [t.fen()]; moves.forEach(m => { t.move(m); fens.push(t.fen()); });
+    const A = {pgn, hdr, moves, fens, evals: new Array(fens.length).fill(null), lines: new Array(fens.length).fill(null), cls: [], open: typeof Openings !== "undefined" && Openings.map ? Openings.ofFens(fens) : null};
+    const R = Views.review; R.cache = R.cache || {}; if (R.cache[pgn]){ Object.assign(A, R.cache[pgn]); return A; }
+    Engine.init(); if (Engine.failed) return null;
+    for (let i = 0; i < fens.length; i++){ const tg = new Chess(fens[i]);
+      if (tg.game_over()){ A.evals[i] = tg.in_checkmate() ? (tg.turn() === "w" ? -10000 : 10000) : 0; A.lines[i] = []; }
+      else { const r = await Engine.run({fen: fens[i], depth: 11, multipv: 3}); if (!r){ A.evals[i] = A.evals[i - 1] || 0; A.lines[i] = []; } else { A.lines[i] = r.lines; A.evals[i] = Engine.white(r.lines[0], fens[i]); A.lines[i].best = r.best; } }
+      if (prog) prog(i + 1, fens.length); }
+    R.classify.call({A}); R.cache[pgn] = {evals: A.evals, lines: A.lines, cls: A.cls, sum: A.sum}; return A;
+  },
+  mount(o, info){
+    const card = o && o.querySelector(".card-over"), grid = card && card.querySelector(".grid2"); if (!grid || !info.pgn) return;
+    const n = new Chess(); if (!n.load_pgn(info.pgn, {sloppy: true}) || n.history().length < 6) return;
+    const el = document.createElement("div"); el.className = "end-an";
+    el.innerHTML = `<div class="end-coach"><span class="end-av">${coachAvatar(46)}</span><div class="end-bub"><span>Coach Nat is analysing the game…</span></div></div>
+      <div class="end-tiles">${[0, 1, 2].map(() => `<span class="et"><span class="cls"></span></span>`).join("")}</div><div class="bar end-bar"><i style="width:0%"></i></div>`; grid.before(el);
+    /* while the engine works the tiles flick through the move marks */
+    const keys = ["book", "best", "excellent", "great", "brilliant", "good", "inaccuracy", "mistake", "miss", "blunder"]; let n0 = 0;
+    const flick = () => { el.querySelectorAll(".end-tiles .et .cls").forEach((c, i) => { const k = keys[(n0 + i * 3) % keys.length]; c.style.background = CLS[k].c; c.innerHTML = CLS[k].sym; c.classList.remove("pop"); void c.offsetWidth; c.classList.add("pop"); }); n0++; };
+    flick(); el._flick = setInterval(() => { if (!el.isConnected || !el.querySelector(".end-tiles .et .cls")) return clearInterval(el._flick); flick(); }, 520);
+    this.run(el, info);
+  },
+  async run(el, info){
+    const bar = el.querySelector(".end-bar i"), A = await this.analyse(info.pgn, (k, tot) => { if (bar) bar.style.width = Math.round(k / tot * 100) + "%"; });
+    clearInterval(el._flick); if (!el.isConnected) return; if (!A || !A.sum){ el.remove(); return; }
+    const me = info.me, op = me === "w" ? "b" : "w", acc = c => c === "w" ? A.sum.accW : A.sum.accB, cnt = c => A.moves.filter(m => m.color === c).length;
+    const grMe = gameRating(acc(me), cnt(me)), grOp = gameRating(acc(op), cnt(op)), bad = A.sum.counts[me] || {};
+    const marks = ["blunder", "miss", "mistake"].filter(k => bad[k]).map(k => `<span class="cls" style="background:${CLS[k].c}">${CLS[k].sym}</span>${bad[k]}`).join(" ");
+    el.innerHTML = `<div class="end-coach"><span class="end-av">${coachAvatar(46)}</span><div class="end-bub end-say"><span class="cw-dot"></span></div></div>
+      <div class="end-acc"><div class="ea me"><small>You</small><b>${acc(me).toFixed(1)}</b><span>Accuracy</span>${grMe ? `<em>Game rating ≈ ${grMe}</em>` : ""}${marks ? `<i>${marks}</i>` : ""}</div>
+      <div class="ea"><small data-notr>${esc(info.oppName || "Opponent")}</small><b>${acc(op).toFixed(1)}</b><span>Accuracy</span>${grOp ? `<em>Game rating ≈ ${grOp}</em>` : ""}</div></div>`;
+    const say = el.querySelector(".end-say");
+    try { const r = await Coach.summary(A, me, info, grMe, grOp); if (!el.isConnected) return;
+      say.innerHTML = `<span data-notr><b>${esc(r.headline || "")}</b> ${esc(r.text || "")}</span>`; if (r.tip) say.closest(".end-coach").insertAdjacentHTML("afterend", `<div class="cw-rule end-tip">${icon("bulb", 16)}<span data-notr>${esc(r.tip)}</span></div>`); }
+    catch(e) { if (say.isConnected) say.textContent = "Open the Game Review to see what decided the game."; }
   }
 };
 /* grade one move quickly (for playing on from a position): engine before and after */
@@ -9822,6 +10080,33 @@ THEORY.push(Object.assign({
 ])));
 
 /* ===== Theory library view: list of articles, and an article with lines on a board ===== */
+/* the Alien Gambit (asked for by Nathan): White against the Caro-Kann. Every White move below 5.Ng5/6.Nxf7 is the engine's choice
+   (app engine, depth 16; checked: none loses more than 0.9 against the best move); the traps are the known ones. */
+THEORY.push(Object.assign({
+  id: "alien", short: "Alien Gambit", tag: "Sacrifice a knight on f7 and hunt the king.", name: "Caro-Kann: the Alien Gambit", group: "mine", side: "w", eco: "B15", drill: true,
+  intro: "Against the Caro-Kann (1...c6) you play normally until your knight jumps to g5, and when Black kicks it with ...h6 you give it up on f7. Black wins a piece, but the king has to come out to f7, and from then on almost every move of yours is a check or a threat. Engines say Black is better. In real games below 2000, above all in blitz, White wins far more often, because Black has to find several only-moves in a row.",
+  sections: [
+    {h: "The idea in one minute", p: ["Moves 1 to 5: e4, d4, Nc3, take back on e4 with the knight, then Ng5. If Black chases the knight with ...h6, don't retreat: Nxf7! Kxf7 and then Nf3, so the other knight can jump to e5 with check.", "Your attackers: the knight on e5 with check, the bishop to c4 or d3 with check, the queen to d3, e2, g6 or h5. Black's king has no pawn on f7 and every diagonal towards it is open."]},
+    {h: "What you must know", p: ["You are a piece down. If the attack stops, you lose slowly. So play forcing moves: checks first, then threats, then development that gains time.", "Black's best defences are ...c5 (hit your centre), ...e6 (give the king a square) and ...Be6 (block and trade). Learn those first; the other lines are traps where Black gets mated or loses material quickly."]},
+    {h: "When Black doesn't play ...h6", p: ["5...Bf5, 5...e6 or 5...c5: no sacrifice today. Then you develop normally and play a regular Caro-Kann middlegame."]}
+  ]
+}, REP_LINES([
+  repL("Main line: 7...c5, Black hits back", "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Ng5 {The Alien starts: the knight eyes f7.} h6 {Black kicks the knight.} Nxf7 {The sacrifice! You give the knight for the f7 pawn.} Kxf7 {The king has to take and now stands in the open.} Nf3 {Bring the other knight: it wants to jump to e5 with check.} c5 {Black's best: hit your centre at once.} Bc4+ {Check with the bishop: it aims straight at the king.} e6 {Black blocks and gives the king a square on g8.} Ne5+ {Knight in with check. No pawn can ever chase it from e5.} Kg8 Be3 {Protect d4 and get ready to castle long.} cxd4 Bxd4 {Your bishop rejoins on the long diagonal. Next the queen and long castling: Black is a piece up but tied in knots.}"),
+  repL("7...c5 8.Bc4+ Ke8: the queen comes to g6", "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Ng5 h6 Nxf7 Kxf7 Nf3 c5 Bc4+ Ke8 {The king runs back home, but it can't castle any more.} Qd3 {The queen heads for g6, where it gives check.} e6 Qg6+ {Check! The king has to walk again.} Ke7 O-O {Castle and bring the rook. Here the engine likes White.}"),
+  repL("Trap: 8...Kg6?? walks into mate", "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Ng5 h6 Nxf7 Kxf7 Nf3 c5 Bc4+ Kg6 {A mistake: the king walks forward.} Ne5+ {Check, and the king only has h7.} Kh7 Qd3+ {The queen joins with check on the long diagonal.} Ne4 {Black blocks.} Qxe4+ {Take it with check.} Bf5 {Black blocks again and attacks your queen.} Qxf5+ {Take that too, with check.} g6 Qxg6# {Mate: queen and knight together.}"),
+  repL("Trap: 8...Kg6?? 10...g6, mate at once", "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Ng5 h6 Nxf7 Kxf7 Nf3 c5 Bc4+ Kg6 Ne5+ Kh7 Qd3+ g6 {This blocks the check, but...} Qxg6# {...the knight on e5 protects g6. Mate.}"),
+  repL("Trap: 8...Be6?? loses the bishop", "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Ng5 h6 Nxf7 Kxf7 Nf3 c5 Bc4+ Be6 {Black blocks with the bishop.} Ne5+ {Check first...} Ke8 Bxe6 {...then take the bishop. Two pawns and a big attack for the knight.}"),
+  repL("7...e6: the knight eats the rook", "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Ng5 h6 Nxf7 Kxf7 Nf3 e6 {Solid: the pawn covers d5 and f5.} Ne5+ {Knight in with check, as always.} Kg8 Bd3 {The bishop aims at g6 and h7.} Bd6 Ng6 {The knight hits the rook on h8.} Nbd7 Qe2 {Pin the e6 pawn and bring the queen.} Nf8 Nxh8 {Take the rook.} Kxh8 O-O {A rook and two pawns for the knight: material is about even, and Black's king is still weak.}"),
+  repL("Trap: 7...e6 8.Ne5+ Ke7?", "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Ng5 h6 Nxf7 Kxf7 Nf3 e6 Ne5+ Ke7 {A mistake: the king steps into a knight check.} Ng6+ {Fork: king and rook.} Kf7 Nxh8+ {Take the rook with check.} Kg8 Ng6 {The knight gets out. Now you are ahead in material.}"),
+  repL("7...Bf5: chase the bishop", "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Ng5 h6 Nxf7 Kxf7 Nf3 Bf5 {Black develops the bishop and eyes c2.} Ne5+ Kg8 Bc4+ {Check from the other side.} e6 g4 {Chase the bishop.} b5 Bb3 Be4 Bxe6+ {Take the pawn with check.} Kh7 f3 {Hit the bishop again. Black's king is boxed in on h7.}"),
+  repL("7...Bf5 8.Ne5+ Ke8", "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Ng5 h6 Nxf7 Kxf7 Nf3 Bf5 Ne5+ Ke8 {The king goes home.} Bc4 {Aim at e6 and f7.} e6 g4 {Chase the bishop away from the defence.} Bh7 Bxe6 {Take the e6 pawn. Your bishop and knight dominate.}"),
+  repL("Trap: 7...Bg4? the knight forks", "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Ng5 h6 Nxf7 Kxf7 Nf3 Bg4 {Looks natural, but...} Ne5+ {Check, and the bishop is attacked too.} Ke8 Nxg4 {You win the piece back: material is even and Black's king can't castle.}"),
+  repL("7...g6", "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Ng5 h6 Nxf7 Kxf7 Nf3 g6 {Black builds a little house for the king on g7.} Bd3 {Aim at g6.} Kg7 Ne5 {Pile up on g6.} Qxd4 Nxg6 {Take the pawn: the king's house is gone.}"),
+  repL("7...Be6", "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Ng5 h6 Nxf7 Kxf7 Nf3 Be6 {Develop and guard the light squares.} Bd3 Kg8 {The king hides.} Qe2 {Pressure on the bishop on e6.} Bf7 O-O {Castle. Next Ne5 and Re1: all your pieces join.}"),
+  repL("5...Bf5: no Alien today", "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Ng5 {The Alien starts: the knight eyes f7.} Bf5 {Black develops the bishop before ...h6. Here the sacrifice doesn't work well.} Ne2 {Bring the other knight.} e6 Ng3 {Kick the bishop.} Bg6 c3 h6 Nf3 {Now the knight goes back: no Alien today.} Bd6 Bd3 Bxd3 Qxd3 {A normal position with easy development.}"),
+  repL("5...e6: no Alien today", "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Ng5 e6 {With ...e6 the king can always step to e7: the sacrifice is too risky.} c3 h6 N5f3 {Back with the knight.} c5 Be3 cxd4 Nxd4 {A normal game.}"),
+  repL("5...c5: no Alien today", "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Ng5 c5 {Black hits d4 at once.} Be3 cxd4 Qxd4 Qxd4 Bxd4 {Queens off: an equal endgame.}")
+])));
 Views.theory = {
   mount(main, arg){ this.main = main; if (arg && arg.id) this.open(arg.id, arg.line || 0); else this.list(); },
   unmount(){ document.onkeydown = null; },
@@ -9882,7 +10167,7 @@ Views.theory = {
       <div class="th-body">${this.body()}</div>`;
     sp.scrollTop = keep;
     $$("[data-p]", sp).forEach(b => b.onclick = () => this.go(+b.dataset.p)); this.wire(sp);
-    $("#sf").innerHTML = `<button class="btn" id="thl">← ${this.A.group === "mine" ? "Openings" : "Articles"}</button>${this.A.group === "mine" ? `<button class="btn" id="thd">Drill</button>` : ""}<button class="btn big-nav" id="thp" aria-label="Back">‹</button><button class="btn big-nav" id="thn" aria-label="Next">›</button><button class="btn go" id="thx" style="flex:1">${this.li < this.lines.length - 1 ? "Next line" : "Analyze"}</button>`;
+    $("#sf").innerHTML = `<button class="btn" id="thl">← ${this.A.group === "mine" ? "Openings" : "Articles"}</button>${this.A.group === "mine" || this.A.drill ? `<button class="btn" id="thd">${this.A.drill ? "Sparring" : "Drill"}</button>` : ""}<button class="btn big-nav" id="thp" aria-label="Back">‹</button><button class="btn big-nav" id="thn" aria-label="Next">›</button><button class="btn go" id="thx" style="flex:1">${this.li < this.lines.length - 1 ? "Next line" : "Analyze"}</button>`;
     $("#thl").onclick = () => { const mine = this.A && this.A.group === "mine"; this.A = null; if (mine) App.go("repertoire"); else this.list(); };
     if ($("#thd")) $("#thd").onclick = () => App.go("repdrill", {id: this.A.id}); $("#thp").onclick = () => this.go(this.ply - 1); $("#thn").onclick = () => this.go(this.ply + 1);
     $("#thx").onclick = () => { if (this.li < this.lines.length - 1){ this.li++; this.go(0); } else App.go("analysis", {fen: t.fen(), back: {route: "theory", arg: {id: this.A.id, line: this.li}}}); };
@@ -10084,7 +10369,7 @@ Views.repdrill = {
     const board = this.board = makeBoard($("#bw"), {orientation: this.me, history: false}); board.canPick = () => false;
     /* premove the next move of your line while the reply is coming (a wrong one counts as a miss) */
     board.premoveFor = () => !this.dead && this.t && this.ply > 0 && this.ply < this.mv.length && this.t.turn() !== this.me ? this.me : null;
-    $("#topbar").innerHTML = `<span class="pill">Drill</span><span class="nm" style="margin-left:6px">${esc(A.name.split(":")[0])}</span>`; $("#botbar").innerHTML = youBar();
+    $("#topbar").innerHTML = `<span class="cn-av">${coachAvatar(30)}</span><span class="nm" style="margin-left:6px">Coach Nat</span><span class="pill" style="margin-left:6px">${esc(A.short || A.name.split(":")[0])}</span>`; $("#botbar").innerHTML = youBar();
     this.next();
   },
   unmount(){ this.dead = true; },
@@ -10094,7 +10379,7 @@ Views.repdrill = {
     let r = Math.random() * w.reduce((a, x) => a + x[1], 0); for (const [i, k] of w){ r -= k; if (r <= 0) return i; } return w[0][0];
   },
   next(){
-    if (this.dead) return; this.li = this.pickLine(); this.L = this.A.lines[this.li]; this.mv = this.L.san.split(" "); this.ply = 0; this.miss = 0;
+    if (this.dead) return; this.li = this.pickLine(); this.L = this.A.lines[this.li]; this.mv = this.L.san.split(" "); this.ply = 0; this.miss = 0; this.goal = null;
     this.t = new Chess(); this.board.set(this.t, null); this.board.setArrows([]); this.board.mark({}); this.note = "";
     this.panel(); this.step();
   },
@@ -10106,25 +10391,32 @@ Views.repdrill = {
     board.onMove = (f, to, pr) => {
       const m = t.move({from: f, to, promotion: pr || "q"}); if (!m) return; const want = this.mv[this.ply].replace(/[+#]/g, "");
       if (m.san.replace(/[+#]/g, "") === want){ this.ply++; board.set(t, {from: f, to}); Sound.forMove(m, t); board.setArrows([]); board.mark({}); this.noteAt(); this.panel(); this.step(); }
-      else { t.undo(); this.miss++; Sound.wrong(); board.set(t, this.ply ? null : null); board.mark({[to]: "bad"}); const g = new Chess(t.fen()); const r = g.move(this.mv[this.ply]); if (r) board.setArrows([[r.from, r.to, "g"]]); this.note = `Not here. In your repertoire it's <b>${esc(this.mv[this.ply])}</b>, shown with the arrow.`; this.panel(); }
+      else { t.undo(); this.miss++; Sound.wrong(); board.set(t, this.ply ? null : null); board.mark({[to]: "bad"}); const g = new Chess(t.fen()); const r = g.move(this.mv[this.ply]); if (r) board.setArrows([[r.from, r.to, "g"]]); const why = this.L.notes && this.L.notes[this.ply + 1]; this.note = `Not here. In your repertoire it's <b>${esc(this.mv[this.ply])}</b>, shown with the arrow.${why ? `<br><span class="cn-why"><b>Why:</b> <span>${esc(why)}</span></span>` : ""}`; this.goal = null; this.panel(); }
     };
   },
-  noteAt(){ const n = this.L.notes && this.L.notes[this.ply]; this.note = n ? esc(n) : ""; },
+  noteAt(){ const n = this.L.notes && this.L.notes[this.ply]; this.note = n ? `<span>${esc(n)}</span>` : ""; this.goal = null; },
   finish(){
     const d = S.repd[this.A.id], s = d[this.li] = d[this.li] || {ok: 0, miss: 0};
     if (this.miss) s.miss++; else { s.ok++; this.streak++; } if (this.miss) this.streak = 0; this.done++; save();
     this.board.canPick = () => false; if (!this.miss) Sound.right();
+    if (this.t.in_checkmate()) this.board.endFx(this.t, {});   /* a trap line that ends in mate shows it like a real game */
     this.panel(true);
   },
   panel(end){
     const A = this.A, L = this.L, d = S.repd[A.id], n = A.lines.length, learned = Object.keys(d).filter(i => d[i].ok >= 2 && d[i].ok > d[i].miss).length;
     const mine = Math.ceil(this.mv.filter((m, i) => (i % 2 === 0) === (this.me === "w")).length);
     $("#sp").innerHTML = `<div class="msg ${end ? (this.miss ? "" : "ok") : "hint"}"><div class="ic">${end ? (this.miss ? "↻" : "✓") : "▶"}</div><div style="min-width:0"><h4>${end ? (this.miss ? "Line done, " + this.miss + " slip" + (this.miss > 1 ? "s" : "") : "Perfect line!") : this.t.turn() === this.me ? "Your move" : "Opponent is moving…"}</h4><p>${esc(L.name)}</p></div></div>
-      ${this.note ? `<div class="unit rep-note" style="margin-top:8px">${this.note}</div>` : ""}
+      ${this.note ? `<div class="unit rep-note cn-note" style="margin-top:8px"><span class="cn-av">${coachAvatar(30)}</span><div>${this.note}</div></div>` : ""}
+      ${end ? `<div class="muted" style="margin-top:8px;font-size:13px">Line: <b>${esc(this.L.name)}</b></div>` : ""}
+      ${this.goal ? this.goal.wait ? `<div class="cw cw-wait"><span class="cw-dot"></span><span>Coach Nat is looking at the board…</span></div>` : this.goal.err ? `<div class="cw"><p class="cw-err">${esc(this.goal.err)}</p></div>` : `<div class="cw"><b class="cw-h" data-notr>${esc(this.goal.res.goal)}</b><p data-notr>${esc(this.goal.res.why)}</p>${this.goal.res.look ? `<div class="cw-rule">${icon("bulb", 16)}<span data-notr>${esc(this.goal.res.look)}</span></div>` : ""}</div>` : ""}
       <div class="rep-prog"><div class="bar"><i style="width:${Math.round(learned / n * 100)}%"></i></div><span class="muted">${learned} of ${n} lines learned${this.streak > 1 ? ` · ${this.streak} in a row` : ""}</span></div>
       <div class="dim" style="font-size:12.5px;margin-top:8px">You play ${this.me === "w" ? "White" : "Black"}: ${mine} moves in this line. A line counts as learned after two clean runs.</div>`;
-    $("#sf").innerHTML = end ? `<button class="btn" id="rdx">Done</button><button class="btn" id="rdl">See the line</button><button class="btn go" id="rdn" style="flex:1">Next line</button>`
-      : `<button class="btn" id="rdx">Done</button><button class="btn" id="rdh">Hint</button><button class="btn" id="rds">Skip</button>`;
+    $("#sf").innerHTML = end ? `<button class="btn" id="rdx">Done</button>${this.t.game_over() ? `<button class="btn" id="rdl">See the line</button>` : `<button class="btn" id="rdp">Play it out</button>`}<button class="btn go" id="rdn" style="flex:1">Next line</button>`
+      : `<button class="btn" id="rdx">Done</button><button class="btn" id="rdh">Hint</button><button class="btn" id="rdq">${icon("bubble", 16)}<span>Ask Coach Nat</span></button><button class="btn" id="rds">Skip</button>`;
+    if ($("#rdq")) $("#rdq").onclick = async () => { const ply = this.ply; this.goal = {wait: true}; this.panel(); let Q; try { Q = {res: await Coach.goal(new Chess(this.t.fen()), this.t.turn())}; } catch(e) { Q = {err: String((e && e.message) || "The coach didn't answer. Try again.")}; } if (!this.dead && this.ply === ply){ this.goal = Q; this.panel(); } };
+    /* the line is learned: now play the middlegame from here against a bot, with the sparring partner on */
+    if ($("#rdp")) $("#rdp").onclick = () => { const fen = this.t.fen(), bot = (typeof recommendBot === "function" && recommendBot()) || BOTS.find(b => b.id === "ines"); App.go("bots");
+      setTimeout(() => Views.bots.start(bot, this.me, {spar: true, coach: false, hints: false, threats: S.settings.threats, tips: false, level: "normal", tc: null, rated: false}, fen), 0); };
     $("#rdx").onclick = () => App.go("repertoire");
     if ($("#rdn")) $("#rdn").onclick = () => this.next();
     if ($("#rdl")) $("#rdl").onclick = () => App.go("theory", {id: A.id, line: this.li});
@@ -11145,7 +11437,7 @@ Views.friend = {
       dayTick("gm"); S.games.push(rec); save(); if (s.moves.length >= 4){ addXP(XP.game + (win ? XP.win : 0)); if (win && typeof natWin === "function") natWin("live"); } logEvent("game", {opponent: oppName, mode: "friend", color: s.seat, result: s.result.res, why: s.result.why, pgn, moves: s.moves.length, timeControl: tcLabel(s.tc || [0,0])});
       Sound.play(draw ? "GenericNotify" : win ? "Victory" : "Defeat", .8);
       this.board.cancelPremove();
-      this.endCard(nickOf(o && o.by, oppName));
+      { const nm = nickOf(o && o.by, oppName); this.board.endFx(s.g, {res: s.result.res, why: s.result.why, burst: win}).then(() => { if (this.st === s) this.endCard(nm); }); }
       /* signed-in opponent: the result decides who sits in whose cage */
       if (typeof Social !== "undefined" && o && o.by) Social.gameOver({id: s.code + ":" + s.gameNo, seat: s.seat, opp: o.by, oppName, result: s.result.res, why: s.result.why, moves: s.moves.length}).then(m => { if (m && this.st === s){ s.cageMsg = m; this.render(); this.endExtras(); } });
     }
@@ -11165,6 +11457,7 @@ Views.friend = {
     $("#erv", o).onclick = () => App.go("review", {pgn: s.g.pgn(), meta: S.games[S.games.length - 1]});
     $("#ecl", o).onclick = shut;
     o.onclick = e => { if (e.target === o) shut(); };
+    if (s.seat !== "spec") EndReview.mount(o, {pgn: s.g.pgn(), me, oppName, res: s.result.res, why: s.result.why});
     this.endExtras();
   },
   /* rating change and the cage news arrive a moment later: add them to the open card, in one short line each */
@@ -11434,6 +11727,9 @@ Views.local = {
 
 /* ===== Icons (own line set) ===== */
 const ICONS = {
+  back: '<path d="M19 12H5M11 18l-6-6 6-6"/>',
+  play: '<path d="M7 5l12 7-12 7z"/>',
+  bulb: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1.1 2.2h5c.1-1 .5-1.7 1.1-2.2A6 6 0 0 0 12 3z"/>',
   star: `<path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8 6.6 19.7l1.1-6.1-4.5-4.2 6.1-.8z"/>`,
   ball: `<circle cx="12" cy="12" r="9"/><path d="M12 7.2l3.6 2.6-1.4 4.2H9.8L8.4 9.8z"/><path d="M12 7.2V3M15.6 9.8l4-1.3M14.2 14l2.5 3.4M9.8 14l-2.5 3.4M8.4 9.8l-4-1.3"/>`,
   lock: `<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>`,
