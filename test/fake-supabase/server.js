@@ -122,6 +122,7 @@ function ai(req){
   if (kind === "coach_why"){ global.__coachWhy = (global.__coachWhy || []).concat([user]); const L = [...user.matchAll(/^id (\w+)(?: \(([^)]*)\))?: (.+)$/gm)];
     return {headline: "Take the pawn: their king has no cover", idea: "The pawn in front of their king is gone. Your queen wants h5.", played: "Castling was safe but slow.", rule: "When their f-pawn is gone, look for a queen check on h5.",
       lines: L.map(m => ({id: m[1], title: m[2] ? m[2].slice(0, 40) : "Main line", comments: m[3].trim().split(/\s+/).map((mv, k) => "Comment " + (k + 1) + " on " + mv)}))}; }
+  if (kind === "coach_summary"){ global.__coachSum = (global.__coachSum || []).concat([user]); return {headline: "Decided by the open king", text: "On move 6 you could have taken on g5 and attacked their king.", tip: "When their f-pawn is gone, look for a queen check."}; }
   if (kind === "coach_goal"){ global.__coachGoal = (global.__coachGoal || 0) + 1; return {goal: "Go after their open king", why: "Their king has lost a pawn in front of it.", look: "Which of my pieces can reach their king fastest?", danger: ""}; }
   /* a photographed nutrition table: the numbers "printed" on the test pack */
   if (kind === "label") return {readable: true, name: "Skyr Vanille", brand: "Milbona", unit: "g", kcal: 76, kj: 322, fat: 0.2, satfat: 0.1, carbs: 9.4, sugar: 9.1, fiber: -1, protein: 9.0, salt: 0.13};

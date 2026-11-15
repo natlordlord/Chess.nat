@@ -69,8 +69,33 @@ const PARTS = {
       ok(/They:|You:|Gegner:|Du:/.test(await txt(page, "#sp .cw-step")) && /Comment 3 on Qh5\+/.test(await txt(page, "#sp .cw-step")), "weiter: Zug für Zug, wer zieht und warum", await txt(page, "#sp .cw-step"));
       const box = await page.locator("#bw").boundingBox(); await page.mouse.click(box.x + box.width * .8, box.y + box.height / 2); await sleep(500);
       ok(await page.evaluate(() => Views.review.LN && Views.review.LN.s === 4), "Tippen rechts aufs Brett geht in der Linie weiter (nicht in der Partie)");
-      await page.locator("#sp [data-cwx]").click(); await sleep(400);
+      ok(await has(page, "#sp .rv-off [data-back]") && await has(page, "#sf .rv-backbig"), "in einer Variante: „Back to the game“ groß oben und unten");
+      const sent2 = (global.__coachWhy || [])[n0] || "", lm = sent2.match(/^id \w+ \((if )?they take back on g5 with the pawn\): (.*)$/m);
+      ok(lm && lm[2].trim().split(/\s+/).length >= 8, "die Variante „er schlägt zurück“ ist mindestens 8 Halbzüge lang", lm ? lm[2] : sent2.slice(-600));
+      ok(/   \d+\. Qh5\+ = you: queen d1→h5, check, material afterwards/.test(sent2), "die KI bekommt zu jedem Zug, was er tut (Schach, Material)", sent2.slice(-900));
+      /* eine Mattführung wird bis zum Matt gespielt: die Falle im Alien Gambit, 8...Kg6?? 9.Ne5+ */
+      const mateLine = await page.evaluate(async () => { const fen = "rnbq1b1r/pp2p1p1/5nkp/2p5/2BP4/5N2/PPP2PPP/R1BQK2R w KQ - 2 9", L = {sans: ["Ne5+"], end: 9994}; await Coach.finish(fen, L); return L.sans.join(" "); });
+      ok(/#$/.test(mateLine), "eine Variante mit erzwungenem Matt läuft bis zum Matt", mateLine);
+      await page.locator("#sf .rv-backbig").click(); await sleep(400);
       ok(await page.evaluate(i => !Views.review.LN && Views.review.A.ply === i + 1, at), "„Back to the game“ stellt die Partie wieder her");
+      /* selbst ziehen: ein eigener kleiner Variantenbaum */
+      await page.evaluate(i => Views.review.go(i), at); await sleep(300);
+      ok(await page.evaluate(() => Views.review.board.canPick("f3") && !Views.review.board.canPick("e8")), "im Review lassen sich die Figuren der Seite am Zug anfassen");
+      await page.evaluate(() => Views.review.board.onMove("f3", "g5")); await sleep(300);
+      ok(await page.evaluate(() => Views.review.xOn() && Views.review.A.X.nodes.length === 1) && await has(page, "#sp .rv-off") && /Nxg5/.test(await txt(page, "#sp .xp-tree")), "eigener Zug: eigene Linie mit Leiste „zurück zur Partie“", await txt(page, "#sp"));
+      await page.waitForFunction(() => { const n = Views.review.A.X.nodes[0]; return n.cls && n.reply; }, null, {timeout: 30000}).catch(() => {});
+      ok(await page.evaluate(() => { const n = Views.review.A.X.nodes[0]; return !!(n.cls && n.reply && Views.review.board.arrows.some(a => a[2] === "b")); }), "der Zug wird bewertet, die Antwort der Engine steht als blauer Pfeil da");
+      await page.locator("#sp [data-xreply]").click(); await sleep(400);
+      ok(await page.evaluate(() => Views.review.A.X.nodes.length === 2 && Views.review.A.X.cur === 1), "„Play the answer“ spielt die Antwort der Engine in die Linie");
+      const g1 = global.__coachGoal || 0; await page.locator("#sp [data-xgoal]").click(); await page.waitForFunction(() => /open king/.test(document.querySelector("#sp").innerText), null, {timeout: 20000}).catch(() => {});
+      ok((global.__coachGoal || 0) > g1, "„Ask Coach Nat“ fragt nach dem Ziel in der eigenen Stellung");
+      const box2 = await page.locator("#bw").boundingBox(); await page.mouse.click(box2.x + box2.width * .2, box2.y + box2.height / 2); await sleep(300); await page.mouse.click(box2.x + box2.width * .2, box2.y + box2.height / 2); await sleep(300);
+      ok(await page.evaluate(() => Views.review.A.X.cur === -1), "Tippen links aufs Brett geht in der eigenen Linie zurück");
+      await page.evaluate(() => Views.review.board.onMove("d1", "e2")); await sleep(500);
+      ok(/\(/.test(await txt(page, "#sp .xp-tree")) && await page.evaluate(() => Views.review.A.X.nodes.filter(n => n.parent === -1).length === 2), "ein anderer Zug von dort wird eine Nebenvariante in Klammern", await txt(page, "#sp .xp-tree"));
+      await page.shot("review-eigene-zuege");
+      await page.locator("#sp .rv-off [data-back]").click(); await sleep(400);
+      ok(await page.evaluate(i => !Views.review.xOn() && Views.review.A.ply === i, at) && await has(page, "#sp [data-xback]"), "zurück zur Partie; die eigene Linie lässt sich wieder öffnen");
       const n1 = (global.__coachWhy || []).length; await page.evaluate(i => { Views.review.A.why = {}; Views.review.go(i + 1); }, at); await sleep(1500);
       ok((global.__coachWhy || []).length === n1 && await has(page, "#sp .cw .cw-t"), "ein zweites Mal kommt die Erklärung aus dem Speicher, ohne neue KI-Anfrage");
     }
@@ -86,6 +111,77 @@ const PARTS = {
       ok((global.__coachGoal || 0) > g0 && /Go after their open king/.test(await page.evaluate(() => document.body.innerText)), "Coach Nat antwortet mit dem Ziel");
     }
     await clean(page, "Coach im Spiel"); await page.context().close();
+  },
+
+  /* ---------- Spielende: Matt-Animation über dem König, danach der Endbildschirm mit Genauigkeit, Game-Rating und Coach Nat ---------- */
+  async matt(browser){
+    const page = await L.open(browser, "tester"); await sleep(800);
+    await page.evaluate(() => App.go("bots")); await sleep(500);
+    /* Weiß setzt mit der Dame auf f7 matt */
+    await page.evaluate(() => Views.bots.start(BOTS.find(b => b.id === "ines"), "w", {spar: false, coach: false, hints: false, threats: false, tips: false, level: "normal", tc: null, rated: false}, "r1bqkbnr/pppp1ppp/2n5/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4")); await sleep(1200);
+    await page.evaluate(() => Views.bots.G.board.onMove("h5", "f7")); await sleep(700);
+    ok(await has(page, ".matefx.lose .mf-tag") && await has(page, ".matefx.win .mf-crown") && !(await has(page, ".matefx-word")), "Matt: kleines #-Zeichen am geschlagenen König, kleine Krone beim Sieger, kein großer Kasten über dem Brett");
+    ok(!(await has(page, ".overlay .card-over")), "der Endbildschirm wartet, bis man das Matt gesehen hat");
+    await page.evaluate(() => document.querySelectorAll(".lvup, .ntf, .notif").forEach(n => n.remove())); await sleep(500); await page.shot("matt-animation");
+    await page.waitForSelector(".overlay .card-over", {timeout: 6000}).catch(() => {});
+    ok(await has(page, ".overlay .card-over") && /won|gewonnen/i.test(await txt(page, ".overlay .card-over")), "danach kommt der Endbildschirm „You won“");
+    ok(await has(page, ".matefx.lose"), "die Matt-Zeichen bleiben auf dem Brett stehen");
+    /* die Auswertung auf dem Endbildschirm: dieselbe Partie wie gegen Finn */
+    const pgn = '[White "Nat Tester"]\n[Black "Finnel"]\n[Result "1-0"]\n\n1. e4 e5 2. Bc4 f6 3. Nc3 g5 4. d3 d6 5. Nf3 c5 6. Be3 b6 7. a4 a5 8. O-O *';
+    const s0 = (global.__coachSum || []).length;
+    await page.evaluate(p => { const o = Views.bots.G.board.overlay('<div class="card-over"><h3>You won!</h3><div class="grid2"><button class="btn go" id="rv">Game Review</button><button class="btn">Rematch</button></div></div>'); EndReview.mount(o, {pgn: p, me: "w", oppName: "Finnel", res: "1-0", why: "by checkmate"}); }, pgn);
+    ok(await has(page, ".overlay .end-an-load"), "Endbildschirm: „Coach Nat is analysing the game…“ mit Fortschritt");
+    await page.waitForSelector(".overlay .end-acc", {timeout: 180000}).catch(() => {});
+    const card = await txt(page, ".overlay .end-an");
+    ok(/Game[ -]rating ≈ \d+/i.test(card) && /Finnel/.test(card) && (card.match(/\d+\.\d/g) || []).length >= 2, "Genauigkeit und Game-Rating für beide stehen da", card);
+    await page.waitForFunction(() => /open king/.test((document.querySelector(".overlay .end-an") || {}).innerText || ""), null, {timeout: 20000}).catch(() => {});
+    const sent = (global.__coachSum || [])[s0] || "";
+    ok(/Decided by the open king/.test(await txt(page, ".overlay .end-an")) && /move 6, you played Be3 \((mistake|miss|blunder)\), better was Nxg5/.test(sent), "Coach Nat sagt, woran es lag (mit den Schlüsselmomenten)", sent.slice(-600));
+    await page.evaluate(() => { document.querySelectorAll(".lvup, .ntf").forEach(n => n.remove()); [...document.body.children].forEach(n => { if (getComputedStyle(n).position === "fixed" && !n.querySelector(".overlay") && !n.matches("nav,.tabbar,#app,main")) n.remove(); }); }); await page.shot("endbildschirm");
+    ok(await page.evaluate(p => !!(Views.review.cache && Views.review.cache[p]), pgn), "die Analyse liegt schon für das Review bereit");
+    await clean(page, "Spielende"); await page.context().close();
+  },
+
+  /* ---------- Eröffnungs-Sparring mit Coach Nat: das Alien Gambit ---------- */
+  async sparring(browser){
+    const page = await L.open(browser, "tester"); await sleep(800);
+    await page.evaluate(() => App.go("learn")); await sleep(600);
+    ok(await has(page, "#cnsp") && /Alien Gambit/.test(await txt(page, ".cn-card")), "Lernen: Karte „Eröffnungs-Sparring mit Coach Nat“ mit dem Alien Gambit", await txt(page, ".cn-card"));
+    await page.locator("#cnsp").click(); await sleep(900);
+    ok(await page.evaluate(() => App.route === "repdrill" && Views.repdrill.A.id === "alien" && Views.repdrill.me === "w"), "Sparring startet: du spielst Weiß im Alien Gambit");
+    /* alle Varianten sind gültige Züge und der weiße Zug ist in gleichen Stellungen immer derselbe */
+    const chk = await page.evaluate(() => { const A = THEORY.find(t => t.id === "alien"), seen = {}, bad = [];
+      A.lines.forEach(L => { const t = new Chess(); L.san.split(" ").forEach(m => { const k = t.fen().split(" ").slice(0, 2).join(" "); if (t.turn() === "w"){ if (seen[k] && seen[k] !== m) bad.push(L.name + ": " + m + " vs " + seen[k]); seen[k] = m; } if (!t.move(m)) bad.push(L.name + ": illegal " + m); }); });
+      return {n: A.lines.length, bad, mates: A.lines.filter(L => { const t = new Chess(); L.san.split(" ").forEach(m => t.move(m)); return t.in_checkmate(); }).length}; });
+    ok(chk.n >= 12 && !chk.bad.length && chk.mates === 2, "15 Varianten, alle Züge gültig, Weiß spielt in gleicher Stellung immer gleich, zwei enden mit Matt", JSON.stringify(chk));
+    await page.evaluate(() => { const V = Views.repdrill; V.pickLine = () => 0; V.next(); }); await sleep(600);   /* the main line, so the test is the same every time */
+    /* ein falscher Zug: Coach Nat zeigt den richtigen und sagt, warum */
+    await page.evaluate(() => Views.repdrill.board.onMove("g1", "f3")); await sleep(500);
+    const n1 = await txt(page, "#sp .cn-note");
+    ok(/e4/.test(n1) && await page.evaluate(() => Views.repdrill.miss === 1), "falscher Zug: Coach Nat zeigt den Zug des Repertoires", n1);
+    /* die Variante zu Ende spielen */
+    for (let k = 0; k < 40; k++){
+      const st = await page.evaluate(() => { const V = Views.repdrill; return {ply: V.ply, n: V.mv.length, turn: V.t.turn(), me: V.me}; });
+      if (st.ply >= st.n) break;
+      if (st.turn === st.me){ await page.evaluate(() => { const V = Views.repdrill, g = new Chess(V.t.fen()), m = g.move(V.mv[V.ply]); V.board.onMove(m.from, m.to, m.promotion); }); await sleep(250); }
+      else await sleep(700);
+    }
+    const end = await page.evaluate(() => ({ply: Views.repdrill.ply, n: Views.repdrill.mv.length, name: Views.repdrill.L.name}));
+    ok(end.ply === end.n && await has(page, "#rdp"), "Variante durchgespielt, „Weiterspielen“ wird angeboten", JSON.stringify(end));
+    const notes = await page.evaluate(() => Object.values(Views.repdrill.L.notes || {}).length);
+    ok(notes >= 2 && /Line|Variante/.test(await txt(page, "#sp")), "jede Variante hat Erklärungen, am Ende steht ihr Name", end.name);
+    ok(/Schwarz|Black|Läufer|bishop|Springer|knight|König|king/.test(await txt(page, "#sp .cn-note")), "die Erklärung von Coach Nat steht da (auf Deutsch, wenn die App Deutsch ist)", await txt(page, "#sp .cn-note"));
+    await page.shot("sparring-alien");
+    const fenEnd = await page.evaluate(() => Views.repdrill.t.fen());
+    await page.locator("#rdp").click(); await sleep(1500);
+    ok(await page.evaluate(f => App.route === "bots" && !!Views.bots.G && !!Views.bots.G.opt.spar && Views.bots.G.startFen === f && Views.bots.G.color === "w", fenEnd), "„Weiterspielen“: Partie gegen einen Bot ab dieser Stellung, Sparringspartner an", await page.evaluate(() => JSON.stringify({r: App.route, s: Views.bots.G && Views.bots.G.startFen})));
+    /* eine Fallen-Variante, die mit Matt endet: Matt wie in einer echten Partie */
+    await page.evaluate(() => App.go("repdrill", {id: "alien"})); await sleep(800);
+    await page.evaluate(() => { const V = Views.repdrill, i = V.A.lines.findIndex(L => /10\.\.\.g6/.test(L.name)); V.pickLine = () => i; V.next(); }); await sleep(600);
+    for (let k = 0; k < 40; k++){ const st = await page.evaluate(() => { const V = Views.repdrill; return {ply: V.ply, n: V.mv.length, turn: V.t.turn()}; }); if (st.ply >= st.n) break;
+      if (st.turn === "w"){ await page.evaluate(() => { const V = Views.repdrill, g = new Chess(V.t.fen()), m = g.move(V.mv[V.ply]); V.board.onMove(m.from, m.to, m.promotion); }); await sleep(250); } else await sleep(700); }
+    await sleep(400); ok(await has(page, ".matefx.lose") && !(await has(page, "#rdp")), "Fallen-Variante mit Matt: Matt-Animation, kein „Weiterspielen“");
+    await clean(page, "Sparring"); await page.context().close();
   },
 
   /* ---------- Kalorien: Start, Suche, Mengen, selbst eintragen, Vorschläge, Sprechen, Barcode ---------- */
