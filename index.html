@@ -177,15 +177,19 @@ a{color:var(--go-hi)}
 .badge-mv{position:absolute;width:5.2cqw;height:5.2cqw;min-width:22px;min-height:22px;border-radius:50%;z-index:25;display:flex;align-items:center;justify-content:center;font:900 2.4cqw var(--body);color:#fff;box-shadow:0 0 0 .32cqw #fff,0 .5cqw 1.1cqw rgba(0,0,0,.42);transform:translate(var(--bx,-62%),var(--by,-38%));animation:bdgpop .34s cubic-bezier(.3,1.6,.5,1) both;pointer-events:none}
 .badge-mv svg{width:72%;height:72%;display:block}
 .pc.mf-hide{opacity:0!important}
-.matefx{position:absolute;width:12.5%;height:12.5%;z-index:24;pointer-events:none}
-.matefx .mf-glow{position:absolute;inset:0;background:rgba(235,64,52,.5);animation:mffade .4s ease-out both}
-.matefx .mf-king{position:absolute;inset:0;background-size:100% 100%;transform-origin:50% 60%;animation:mftip .7s cubic-bezier(.55,0,.35,1.3) .3s both}
-.matefx .mf-tag{position:absolute;right:-10%;top:-10%;width:38%;height:38%;border-radius:50%;background:#FA412D;display:grid;place-items:center;box-shadow:0 0 0 .32cqw #fff,0 .6cqw 1.3cqw rgba(0,0,0,.45);animation:mfpop .5s cubic-bezier(.3,1.7,.5,1) .15s both}.matefx .mf-tag svg{width:66%;height:66%}
-.matefx.win .mf-tag{background:#81B64C;animation-delay:.55s}
-@keyframes mftip{0%{transform:none}65%{transform:rotate(-98deg) scale(.84)}100%{transform:rotate(-90deg) scale(.84)}}
-@keyframes mffade{from{opacity:0}}
-@keyframes mfpop{0%{transform:scale(0) rotate(-40deg);opacity:0}100%{transform:scale(1);opacity:1}}
-@media (prefers-reduced-motion:reduce){.matefx *{animation:none!important}}
+.endfx{position:absolute;width:12.5%;height:12.5%;z-index:24;pointer-events:none;display:grid;place-items:center;animation:effade .3s ease-out both}
+.endfx.lose{background:#E2493B}.endfx.win{background:#6E9F45}.endfx.draw{background:#8B8984}
+.endfx .ef-ic{width:72%;height:72%;display:block;animation:efpop .5s cubic-bezier(.3,1.6,.5,1) .12s both}.endfx .ef-ic svg{width:100%;height:100%;display:block;filter:drop-shadow(0 .3cqw .4cqw rgba(0,0,0,.25))}
+.endfx .ef-pill{position:absolute;left:50%;top:0;transform:translate(-50%,-62%);white-space:nowrap;padding:.7cqw 2.2cqw;border-radius:99px;background:#fff;font:900 2.7cqw/1.15 var(--body);box-shadow:0 .5cqw 1.4cqw rgba(0,0,0,.35);animation:efpill .45s cubic-bezier(.3,1.6,.5,1) .3s both}
+.endfx.lose .ef-pill{color:#C93A2D}.endfx.win .ef-pill{color:#4F7A2A}.endfx.draw .ef-pill{color:#5F5E5A}
+.endfx.top .ef-pill{top:auto;bottom:0;transform:translate(-50%,62%)}
+@keyframes effade{from{opacity:0}}
+@keyframes efpop{0%{transform:scale(.2);opacity:0}100%{transform:none;opacity:1}}
+@keyframes efpill{0%{transform:translate(-50%,-62%) scale(.4);opacity:0}100%{transform:translate(-50%,-62%);opacity:1}}
+.endfx.top .ef-pill{animation-name:efpilltop}@keyframes efpilltop{0%{transform:translate(-50%,62%) scale(.4);opacity:0}100%{transform:translate(-50%,62%);opacity:1}}
+.ef-conf{position:absolute;width:0;height:0;z-index:26;pointer-events:none}.ef-conf i{position:absolute;left:-.6cqw;top:-.9cqw;width:1.2cqw;height:1.8cqw;opacity:0;animation:efconf 1.5s cubic-bezier(.15,.7,.35,1) .35s forwards}
+@keyframes efconf{0%{transform:translate(0,0) rotate(0);opacity:1}80%{opacity:1}100%{transform:translate(var(--dx),calc(var(--dy) + 14cqw)) rotate(var(--r));opacity:0}}
+@media (prefers-reduced-motion:reduce){.endfx,.endfx *{animation:none!important}.ef-conf{display:none}}
 @keyframes bdgpop{0%{transform:translate(var(--bx,-62%),var(--by,-38%)) scale(.2) rotate(-25deg);opacity:0}100%{transform:translate(var(--bx,-62%),var(--by,-38%)) scale(1);opacity:1}}
 .promo{position:absolute;z-index:40;display:flex;flex-direction:column;background:#fff;border-radius:4px;box-shadow:0 6px 18px rgba(0,0,0,.45);overflow:hidden}
 .promo button{width:calc(var(--bs)/8);height:calc(var(--bs)/8);max-width:12.5vw;max-height:12.5vw;border:0;background-color:#fff;background-size:90% 90%;background-position:center;background-repeat:no-repeat;cursor:pointer}
@@ -586,7 +590,12 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 .end-an{margin:12px 0 10px;text-align:left}.end-an-load{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:13.5px;color:var(--muted)}.end-an-load .bar{flex-basis:100%;height:5px}
 .end-acc{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ea{background:var(--panel-2);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:1px}.ea small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ea b{font:900 22px var(--display);font-variant-numeric:tabular-nums}.ea.me b{color:var(--go)}.ea span{font-size:11.5px;color:var(--muted)}
 .ea em{font-style:normal;font-size:12.5px;font-weight:800;margin-top:3px}.ea i{font-style:normal;display:flex;align-items:center;gap:4px;font-size:12.5px;font-weight:800;margin-top:4px}.ea i .cls{width:16px;height:16px}
-.end-coach{display:flex;gap:10px;align-items:flex-start;margin-top:10px;padding:10px;border-radius:10px;background:var(--panel-2)}.end-coach b{font-size:13.5px}.end-say{margin:2px 0 0;font-size:13.5px;line-height:1.45}.end-coach .cw-rule{margin-top:8px}.end-av svg{display:block;border-radius:8px}
+.end-coach{display:flex;gap:10px;align-items:flex-end;margin:4px 0 10px}.end-av svg{display:block;border-radius:10px}
+.end-bub{position:relative;flex:1;min-height:44px;display:flex;align-items:center;gap:8px;background:#fff;color:#262421;border-radius:12px;padding:10px 12px;font-size:13.5px;line-height:1.45;text-align:left}.end-bub::before{content:"";position:absolute;left:-7px;bottom:12px;border:7px solid transparent;border-right-color:#fff;border-left:0}
+.end-bub b{color:#262421}.end-tip{margin:0 0 10px;text-align:left}
+.end-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.end-tiles .et{display:grid;place-items:center;height:46px;border-radius:10px;background:var(--panel-2)}.end-tiles .cls{width:24px;height:24px}.end-tiles .cls.pop{animation:mfpop2 .35s cubic-bezier(.3,1.6,.5,1)}
+@keyframes mfpop2{0%{transform:scale(.3);opacity:0}100%{transform:none;opacity:1}}
+.end-bar{height:4px;margin-top:8px}.end-tr{display:inline-flex;vertical-align:-3px;margin-right:6px;color:#FFC93C}
 .rv-gr{display:block;margin-top:2px;font-weight:800}
 .cn-av{display:inline-flex;flex:none}.cn-av svg{display:block;border-radius:8px}.cn-note{display:flex;gap:10px;align-items:flex-start}.cn-why{display:inline-block;margin-top:6px}.cn-card{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
 .rv-off{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;margin-bottom:10px;border-radius:12px;background:color-mix(in srgb,var(--go) 20%,var(--panel-2));border:1px solid color-mix(in srgb,var(--go) 55%,transparent)}
@@ -2907,7 +2916,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794773568";
+const CHESSNAT_BUILD = "1794774227";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -3756,21 +3765,38 @@ function makeBoard(wrap, opts = {}){
   B.float = (text, neg) => { fx.innerHTML = `<div class="float ${neg ? "neg" : ""}">${esc(text)}</div>`; setTimeout(() => { fx.innerHTML = ""; }, 1150); };
   B.badge = (sq, label, color) => { wrap.querySelectorAll(".badge-mv").forEach(n => n.remove()); if (!sq) return; const [x, y] = sqXY(sq, B.o); const b = document.createElement("div"); b.className = "badge-mv"; b.style.left = ((x + 1) * 12.5) + "%"; b.style.top = (y * 12.5) + "%"; b.style.background = color;
     b.style.setProperty("--bx", x === 7 ? "-100%" : "-62%"); b.style.setProperty("--by", y === 0 ? "0%" : "-38%"); if (/^<svg/.test(label)) b.innerHTML = label; else b.textContent = label; wrap.appendChild(b); };
-  /* checkmate: the beaten king tips over on a red square with a small "#" mark, the winner's king gets a small crown mark;
-     no big text over the board. The promise resolves when it's time for the end screen. The marks stay on the board. */
-  B.mateClear = () => { wrap.querySelectorAll(".matefx").forEach(n => n.remove()); for (const sq in (B.pieces || {})) B.pieces[sq].el.classList.remove("mf-hide"); };
-  B.mateFx = (g, opt = {}) => new Promise(res => {
+  /* end of the game on the board: the loser's king square turns red with a white sign of how it ended (#, flag, clock …) and a small
+     label above it, the winner's king square turns green with a crown and "Winner"; a draw marks both kings grey with ½.
+     The promise resolves when it's time for the end screen. The marks stay until the position changes. */
+  B.mateClear = () => { wrap.querySelectorAll(".endfx").forEach(n => n.remove()); for (const sq in (B.pieces || {})) B.pieces[sq].el.classList.remove("mf-hide"); };
+  const EF_IC = {
+    mate: '<path d="M9.5 4.5L8 19.5M16 4.5l-1.5 15M4.8 9h15M4 15h15" stroke-width="2.6"/>',
+    resign: '<path d="M6 21V4M6 4.5c3.6-2.2 6.4 2.2 12 0v8.4c-5.6 2.2-8.4-2.2-12 0" stroke-width="2.3" fill="rgba(255,255,255,.18)"/>',
+    time: '<circle cx="12" cy="13" r="7.6" stroke-width="2.3"/><path d="M12 9v4.4l2.8 1.8M9.6 2.8h4.8M12 2.8v2.6" stroke-width="2.3"/>',
+    left: '<path d="M14 4h4.5v16H14M10.5 8l-4 4 4 4M6.5 12H15" stroke-width="2.3"/>',
+    lost: '<path d="M7 7l10 10M17 7L7 17" stroke-width="2.8"/>',
+    win: '<path d="M4 18.5h16M5 15.5L3.6 7.4l4.7 3.8L12 5l3.7 6.2 4.7-3.8-1.4 8.1z" stroke-width="2" fill="rgba(255,255,255,.2)"/>',
+    draw: '<path d="M7.5 5v7M5.5 6.5L7.5 5M17.5 5L6.5 19M14 13.5c0-1.6 1.2-2.4 2.5-2.4s2.5.8 2.5 2.2c0 2-4.6 3.2-4.6 5.2H19" stroke-width="2"/>'
+  };
+  B.endFx = (g, o = {}) => new Promise(res => {
     try {
-      if (!g || !g.in_checkmate || !g.in_checkmate()) return res();
-      B.mateClear(); const lose = g.turn(), L = kingSquare(g, lose), W = kingSquare(g, lose === "w" ? "b" : "w");
-      const put = (sq, cls, html) => { const [x, y] = sqXY(sq, B.o), d = document.createElement("div"); d.className = "matefx " + cls; d.style.left = (x * 12.5) + "%"; d.style.top = (y * 12.5) + "%"; d.innerHTML = html; wrap.appendChild(d); return d; };
-      const pl = L && B.pieces[L]; const img = pl ? getComputedStyle(pl.el).backgroundImage : "none"; if (pl) pl.el.classList.add("mf-hide");
-      const lz = L ? put(L, "lose", `<span class="mf-glow"></span><span class="mf-king"></span><span class="mf-tag"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M9.6 5.5L8 18.5M16 5.5l-1.6 13M5.5 9.5h14M4.5 14.5h14"/></svg></span>`) : null;
-      if (lz) lz.querySelector(".mf-king").style.backgroundImage = img;   /* set as a property: the image URL has quotes in it */
-      if (W) put(W, "win", `<span class="mf-tag mf-crown"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.8l4 3.4L12 5.6l4 6.6 4-3.4-1.6 8.8H5.6z" fill="#fff" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/></svg></span>`);
-      setTimeout(res, opt.quiet ? 0 : 1700);
+      const r = o.res || (g.in_checkmate() ? (g.turn() === "w" ? "0-1" : "1-0") : g.game_over() ? "1/2-1/2" : null); if (!r || r === "*") return res();
+      const why = String(o.why || (g.in_checkmate() ? "by checkmate" : "")), k = /checkmate/.test(why) ? "mate" : /resign/.test(why) ? "resign" : /on time/.test(why) ? "time" : /aband|left|gone|disconnect/.test(why) ? "left" : "lost";
+      B.mateClear();
+      const mark = (color, cls, ic, label) => { const sq = kingSquare(g, color); if (!sq) return; const [x, y] = sqXY(sq, B.o), d = document.createElement("div");
+        d.className = `endfx ${cls}${y === 0 ? " top" : ""}`; d.style.left = (x * 12.5) + "%"; d.style.top = (y * 12.5) + "%";
+        d.innerHTML = `<span class="ef-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${EF_IC[ic]}</svg></span><span class="ef-pill">${label}</span>`;
+        wrap.appendChild(d); const p = B.pieces[sq]; if (p) p.el.classList.add("mf-hide"); };
+      if (r === "1/2-1/2"){ mark("w", "draw", "draw", "Draw"); mark("b", "draw", "draw", "Draw"); }
+      else { const lose = r === "1-0" ? "b" : "w"; mark(lose, "lose", k, {mate: "Checkmate", resign: "Resigned", time: "Time", left: "Left", lost: "Lost"}[k]); mark(lose === "w" ? "b" : "w", "win", "win", "Winner"); }
+      if (o.burst && r !== "1/2-1/2"){ const sq = kingSquare(g, r === "1-0" ? "w" : "b"); if (sq){ const [x, y] = sqXY(sq, B.o), c = document.createElement("div"), cols = ["#81B64C", "#FFC93C", "#FFFFFF", "#5DCAA5", "#ED93B1", "#F7C631"];
+        c.className = "ef-conf"; c.style.left = ((x + .5) * 12.5) + "%"; c.style.top = ((y + .5) * 12.5) + "%";
+        c.innerHTML = Array.from({length: 34}, (_, i) => { const a = Math.random() * Math.PI * 2, d = 18 + Math.random() * 34; return `<i style="--dx:${(Math.cos(a) * d).toFixed(1)}cqw;--dy:${(Math.sin(a) * d - 8).toFixed(1)}cqw;--r:${Math.round(Math.random() * 720 - 360)}deg;background:${cols[i % cols.length]};animation-delay:${(Math.random() * .12).toFixed(2)}s;${i % 3 ? "" : "border-radius:50%;"}"></i>`; }).join("");
+        wrap.appendChild(c); setTimeout(() => c.remove(), 1900); } }
+      setTimeout(res, o.quiet ? 0 : k === "mate" ? 1500 : 1100);
     } catch(e) { res(); }
   });
+  B.mateFx = (g, o = {}) => g && g.in_checkmate && g.in_checkmate() ? B.endFx(g, o) : Promise.resolve();
   B.overlay = html => { wrap.querySelectorAll(".overlay").forEach(n => n.remove()); if (!html) return null; const o = document.createElement("div"); o.className = "overlay"; o.innerHTML = html; wrap.appendChild(o); return o; };
   B.promote = (sq, color) => new Promise(res => {
     const [x, y] = sqXY(sq, B.o); const box = document.createElement("div"); box.className = "promo";
@@ -4962,9 +4988,9 @@ Views.bots = {
     dayTick("gm"); S.games.push(rec); save(); if (G.g.history().length >= 4){ addXP(XP.game + (score === 1 ? XP.win : 0)); if (score === 1 && typeof natWin === "function") natWin("bot"); }
     logEvent("game", {opponent: G.bot.name, opponentRating: G.bot.r, color: me, result: res, why, pgn, moves: rec.moves, takebacks: G.takebacks, coachWarnings: G.warns});
     G.chat = score === 1 ? rnd(BOT_LINES.lose) : score === 0 ? rnd(BOT_LINES.win) : rnd(BOT_LINES.draw);
-    if (G.journey){ rec.mode = "journey"; save(); if (why === "by checkmate") G.board.mateFx(G.g).then(() => { if (this.G === G) this.journeyEnd(G, score, pgn, rec); }); else this.journeyEnd(G, score, pgn, rec); return; }
+    if (G.journey){ rec.mode = "journey"; save(); G.board.endFx(G.g, {res, why}).then(() => { if (this.G === G) this.journeyEnd(G, score, pgn, rec); }); return; }
     if (/on time/.test(why) && score === 0) G.chat = "Your flag fell! Watch the clock.";
-    /* checkmate first shows on the board (the beaten king tips over), then the end screen comes up */
+    /* how it ended shows on the board first (red square on the loser's king, crown on the winner's), then the end screen comes up */
     const show = () => { if (this.G !== G) return;
       Sound.play(score === 1 ? "Victory" : score === 0 ? "Defeat" : "GenericNotify", .8);
       const title = score === 1 ? "You won!" : score === 0 ? G.bot.name + " won" : "Draw";
@@ -4978,7 +5004,7 @@ Views.bots = {
       $("#cl", o).onclick = () => G.board.overlay(null); if ($("#tro", o)) $("#tro", o).onclick = () => App.go("friends", {tab: "cages"});
       EndReview.mount(o, {pgn, me, oppName: G.bot.name, oppR: G.bot.r, myR: G.opt.rated && G.opt.tc && S.ratings && S.ratings[tcCat(G.opt.tc)] ? Math.round(S.ratings[tcCat(G.opt.tc)].r) : null, res, why});
       this.panel(); };
-    if (why === "by checkmate") G.board.mateFx(G.g).then(show); else show();
+    G.board.endFx(G.g, {res, why, burst: score === 1}).then(show);
     this.panel();
   },
   /* boss game in the Journey: a win clears the level, anything else is another try */
@@ -5089,7 +5115,7 @@ function endHead(o){
   else if (R.k === "left") line = `${them} left the game.`;
   let last = "";
   if (g){ const h = g.history(); if (h.length){ const i = h.length - 1, n = Math.floor(i / 2) + 1; last = `<div class="end-last"><b>${n}${i % 2 ? "..." : "."} ${esc(h[i])}</b><span>· ${Math.ceil(h.length / 2)} move${Math.ceil(h.length / 2) === 1 ? "" : "s"}</span>${o.clk ? `<span>· ⏱ ${o.clk}</span>` : ""}</div>`; } }
-  return `<div class="endh ${draw ? "draw" : won ? "won" : "lost"}"><div class="end-ic">${draw ? "½" : won ? "★" : "✕"}</div><div class="end-badge">${esc(R.label)}</div><h3>${title}</h3>${line ? `<p class="end-line">${line}</p>` : ""}${last}</div>`;
+  return `<div class="endh ${draw ? "draw" : won ? "won" : "lost"}"><div class="end-ic">${draw ? "½" : won ? "★" : "✕"}</div><div class="end-badge">${esc(R.label)}</div><h3>${won ? `<span class="end-tr">${icon("trophy", 24)}</span>` : ""}${title}</h3>${line ? `<p class="end-line">${line}</p>` : ""}${last}</div>`;
 }
 
 /* ===== Sparring partner: reads the position like a coach and talks about plans, squares and pawns, never about the exact move.
@@ -7140,21 +7166,26 @@ const EndReview = {
     const card = o && o.querySelector(".card-over"), grid = card && card.querySelector(".grid2"); if (!grid || !info.pgn) return;
     const n = new Chess(); if (!n.load_pgn(info.pgn, {sloppy: true}) || n.history().length < 6) return;
     const el = document.createElement("div"); el.className = "end-an";
-    el.innerHTML = `<div class="end-an-load"><span class="cw-dot"></span><span>Coach Nat is analysing the game…</span><div class="bar"><i style="width:0%"></i></div></div>`; grid.before(el);
+    el.innerHTML = `<div class="end-coach"><span class="end-av">${coachAvatar(46)}</span><div class="end-bub"><span>Coach Nat is analysing the game…</span></div></div>
+      <div class="end-tiles">${[0, 1, 2].map(() => `<span class="et"><span class="cls"></span></span>`).join("")}</div><div class="bar end-bar"><i style="width:0%"></i></div>`; grid.before(el);
+    /* while the engine works the tiles flick through the move marks */
+    const keys = ["book", "best", "excellent", "great", "brilliant", "good", "inaccuracy", "mistake", "miss", "blunder"]; let n0 = 0;
+    const flick = () => { el.querySelectorAll(".end-tiles .et .cls").forEach((c, i) => { const k = keys[(n0 + i * 3) % keys.length]; c.style.background = CLS[k].c; c.innerHTML = CLS[k].sym; c.classList.remove("pop"); void c.offsetWidth; c.classList.add("pop"); }); n0++; };
+    flick(); el._flick = setInterval(() => { if (!el.isConnected || !el.querySelector(".end-tiles .et .cls")) return clearInterval(el._flick); flick(); }, 520);
     this.run(el, info);
   },
   async run(el, info){
-    const bar = el.querySelector(".bar i"), A = await this.analyse(info.pgn, (k, tot) => { if (bar) bar.style.width = Math.round(k / tot * 100) + "%"; });
-    if (!el.isConnected) return; if (!A || !A.sum){ el.remove(); return; }
+    const bar = el.querySelector(".end-bar i"), A = await this.analyse(info.pgn, (k, tot) => { if (bar) bar.style.width = Math.round(k / tot * 100) + "%"; });
+    clearInterval(el._flick); if (!el.isConnected) return; if (!A || !A.sum){ el.remove(); return; }
     const me = info.me, op = me === "w" ? "b" : "w", acc = c => c === "w" ? A.sum.accW : A.sum.accB, cnt = c => A.moves.filter(m => m.color === c).length;
     const grMe = gameRating(acc(me), cnt(me)), grOp = gameRating(acc(op), cnt(op)), bad = A.sum.counts[me] || {};
     const marks = ["blunder", "miss", "mistake"].filter(k => bad[k]).map(k => `<span class="cls" style="background:${CLS[k].c}">${CLS[k].sym}</span>${bad[k]}`).join(" ");
-    el.innerHTML = `<div class="end-acc"><div class="ea me"><small>You</small><b>${acc(me).toFixed(1)}</b><span>Accuracy</span>${grMe ? `<em>Game rating ≈ ${grMe}</em>` : ""}${marks ? `<i>${marks}</i>` : ""}</div>
-      <div class="ea"><small data-notr>${esc(info.oppName || "Opponent")}</small><b>${acc(op).toFixed(1)}</b><span>Accuracy</span>${grOp ? `<em>Game rating ≈ ${grOp}</em>` : ""}</div></div>
-      <div class="end-coach"><span class="end-av">${coachAvatar(34)}</span><div><b>Coach Nat</b><p class="end-say"><span class="cw-dot"></span></p></div></div>`;
+    el.innerHTML = `<div class="end-coach"><span class="end-av">${coachAvatar(46)}</span><div class="end-bub end-say"><span class="cw-dot"></span></div></div>
+      <div class="end-acc"><div class="ea me"><small>You</small><b>${acc(me).toFixed(1)}</b><span>Accuracy</span>${grMe ? `<em>Game rating ≈ ${grMe}</em>` : ""}${marks ? `<i>${marks}</i>` : ""}</div>
+      <div class="ea"><small data-notr>${esc(info.oppName || "Opponent")}</small><b>${acc(op).toFixed(1)}</b><span>Accuracy</span>${grOp ? `<em>Game rating ≈ ${grOp}</em>` : ""}</div></div>`;
     const say = el.querySelector(".end-say");
     try { const r = await Coach.summary(A, me, info, grMe, grOp); if (!el.isConnected) return;
-      say.outerHTML = `<p class="end-say" data-notr><b>${esc(r.headline || "")}</b> ${esc(r.text || "")}</p>${r.tip ? `<div class="cw-rule">${icon("bulb", 16)}<span data-notr>${esc(r.tip)}</span></div>` : ""}`; }
+      say.innerHTML = `<span data-notr><b>${esc(r.headline || "")}</b> ${esc(r.text || "")}</span>`; if (r.tip) say.closest(".end-coach").insertAdjacentHTML("afterend", `<div class="cw-rule end-tip">${icon("bulb", 16)}<span data-notr>${esc(r.tip)}</span></div>`); }
     catch(e) { if (say.isConnected) say.textContent = "Open the Game Review to see what decided the game."; }
   }
 };
@@ -10368,7 +10399,7 @@ Views.repdrill = {
     const d = S.repd[this.A.id], s = d[this.li] = d[this.li] || {ok: 0, miss: 0};
     if (this.miss) s.miss++; else { s.ok++; this.streak++; } if (this.miss) this.streak = 0; this.done++; save();
     this.board.canPick = () => false; if (!this.miss) Sound.right();
-    if (this.t.in_checkmate()) this.board.mateFx(this.t, {});   /* a trap line that ends in mate shows it like a real game */
+    if (this.t.in_checkmate()) this.board.endFx(this.t, {});   /* a trap line that ends in mate shows it like a real game */
     this.panel(true);
   },
   panel(end){
@@ -11406,7 +11437,7 @@ Views.friend = {
       dayTick("gm"); S.games.push(rec); save(); if (s.moves.length >= 4){ addXP(XP.game + (win ? XP.win : 0)); if (win && typeof natWin === "function") natWin("live"); } logEvent("game", {opponent: oppName, mode: "friend", color: s.seat, result: s.result.res, why: s.result.why, pgn, moves: s.moves.length, timeControl: tcLabel(s.tc || [0,0])});
       Sound.play(draw ? "GenericNotify" : win ? "Victory" : "Defeat", .8);
       this.board.cancelPremove();
-      { const nm = nickOf(o && o.by, oppName); if (s.result.why === "by checkmate") this.board.mateFx(s.g).then(() => { if (this.st === s) this.endCard(nm); }); else this.endCard(nm); }
+      { const nm = nickOf(o && o.by, oppName); this.board.endFx(s.g, {res: s.result.res, why: s.result.why, burst: win}).then(() => { if (this.st === s) this.endCard(nm); }); }
       /* signed-in opponent: the result decides who sits in whose cage */
       if (typeof Social !== "undefined" && o && o.by) Social.gameOver({id: s.code + ":" + s.gameNo, seat: s.seat, opp: o.by, oppName, result: s.result.res, why: s.result.why, moves: s.moves.length}).then(m => { if (m && this.st === s){ s.cageMsg = m; this.render(); this.endExtras(); } });
     }

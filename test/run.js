@@ -119,18 +119,24 @@ const PARTS = {
     await page.evaluate(() => App.go("bots")); await sleep(500);
     /* Weiß setzt mit der Dame auf f7 matt */
     await page.evaluate(() => Views.bots.start(BOTS.find(b => b.id === "ines"), "w", {spar: false, coach: false, hints: false, threats: false, tips: false, level: "normal", tc: null, rated: false}, "r1bqkbnr/pppp1ppp/2n5/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4")); await sleep(1200);
-    await page.evaluate(() => Views.bots.G.board.onMove("h5", "f7")); await sleep(700);
-    ok(await has(page, ".matefx.lose .mf-tag") && await has(page, ".matefx.win .mf-crown") && !(await has(page, ".matefx-word")), "Matt: kleines #-Zeichen am geschlagenen König, kleine Krone beim Sieger, kein großer Kasten über dem Brett");
+    await page.evaluate(() => Views.bots.G.board.onMove("h5", "f7")); await sleep(500);
+    ok(await has(page, ".ef-conf i"), "gewonnen: Konfetti aus dem Feld des Siegers"); await sleep(200);
+    ok(/Checkmate|Schachmatt/.test(await txt(page, ".endfx.lose .ef-pill")) && /Winner|Sieger/.test(await txt(page, ".endfx.win .ef-pill")) && await page.evaluate(() => !!document.querySelector(".endfx.lose") && document.querySelector(".endfx.lose").style.top === "0%"), "Matt: rotes Feld mit # und „Schachmatt“ am schwarzen König (e8), grünes Feld mit Krone und „Sieger“ beim weißen");
     ok(!(await has(page, ".overlay .card-over")), "der Endbildschirm wartet, bis man das Matt gesehen hat");
     await page.evaluate(() => document.querySelectorAll(".lvup, .ntf, .notif").forEach(n => n.remove())); await sleep(500); await page.shot("matt-animation");
     await page.waitForSelector(".overlay .card-over", {timeout: 6000}).catch(() => {});
     ok(await has(page, ".overlay .card-over") && /won|gewonnen/i.test(await txt(page, ".overlay .card-over")), "danach kommt der Endbildschirm „You won“");
-    ok(await has(page, ".matefx.lose"), "die Matt-Zeichen bleiben auf dem Brett stehen");
+    ok(await has(page, ".endfx.lose"), "die Zeichen bleiben auf dem Brett stehen");
+    /* Aufgeben: dasselbe, mit Fahne und „Aufgegeben“ */
+    await page.evaluate(() => Views.bots.start(BOTS.find(b => b.id === "ines"), "w", {spar: false, coach: false, hints: false, threats: false, tips: false, level: "normal", tc: null, rated: false})); await sleep(1000);
+    await page.evaluate(() => Views.bots.finish("0-1", "by resignation")); await sleep(400);
+    ok(/Resigned|Aufgegeben/.test(await txt(page, ".endfx.lose .ef-pill")) && /Winner|Sieger/.test(await txt(page, ".endfx.win .ef-pill")) && !(await has(page, ".overlay .card-over")), "Aufgeben: rotes Feld mit Fahne und „Aufgegeben“ an deinem König, erst danach der Endbildschirm");
+    await page.waitForSelector(".overlay .card-over", {timeout: 5000}).catch(() => {}); ok(await has(page, ".overlay .card-over"), "der Endbildschirm kommt danach");
     /* die Auswertung auf dem Endbildschirm: dieselbe Partie wie gegen Finn */
     const pgn = '[White "Nat Tester"]\n[Black "Finnel"]\n[Result "1-0"]\n\n1. e4 e5 2. Bc4 f6 3. Nc3 g5 4. d3 d6 5. Nf3 c5 6. Be3 b6 7. a4 a5 8. O-O *';
     const s0 = (global.__coachSum || []).length;
-    await page.evaluate(p => { const o = Views.bots.G.board.overlay('<div class="card-over"><h3>You won!</h3><div class="grid2"><button class="btn go" id="rv">Game Review</button><button class="btn">Rematch</button></div></div>'); EndReview.mount(o, {pgn: p, me: "w", oppName: "Finnel", res: "1-0", why: "by checkmate"}); }, pgn);
-    ok(await has(page, ".overlay .end-an-load"), "Endbildschirm: „Coach Nat is analysing the game…“ mit Fortschritt");
+    await page.evaluate(p => { const o = Views.bots.G.board.overlay('<div class="card-over has-emst"><h3>You won!</h3><div class="grid2"><button class="btn go" id="rv">Game Review</button><button class="btn">Rematch</button></div></div>'); EndReview.mount(o, {pgn: p, me: "w", oppName: "Finnel", res: "1-0", why: "by checkmate"}); }, pgn);
+    ok(await has(page, ".overlay .end-coach .end-bub") && await page.evaluate(() => document.querySelectorAll(".overlay .end-tiles .et .cls svg").length === 3), "Endbildschirm: Coach Nat mit Sprechblase „analysiert die Partie …“, darunter drei Kacheln mit wechselnden Zug-Symbolen");
     await page.waitForSelector(".overlay .end-acc", {timeout: 180000}).catch(() => {});
     const card = await txt(page, ".overlay .end-an");
     ok(/Game[ -]rating ≈ \d+/i.test(card) && /Finnel/.test(card) && (card.match(/\d+\.\d/g) || []).length >= 2, "Genauigkeit und Game-Rating für beide stehen da", card);
@@ -180,7 +186,7 @@ const PARTS = {
     await page.evaluate(() => { const V = Views.repdrill, i = V.A.lines.findIndex(L => /10\.\.\.g6/.test(L.name)); V.pickLine = () => i; V.next(); }); await sleep(600);
     for (let k = 0; k < 40; k++){ const st = await page.evaluate(() => { const V = Views.repdrill; return {ply: V.ply, n: V.mv.length, turn: V.t.turn()}; }); if (st.ply >= st.n) break;
       if (st.turn === "w"){ await page.evaluate(() => { const V = Views.repdrill, g = new Chess(V.t.fen()), m = g.move(V.mv[V.ply]); V.board.onMove(m.from, m.to, m.promotion); }); await sleep(250); } else await sleep(700); }
-    await sleep(400); ok(await has(page, ".matefx.lose") && !(await has(page, "#rdp")), "Fallen-Variante mit Matt: Matt-Animation, kein „Weiterspielen“");
+    await sleep(400); ok(await has(page, ".endfx.lose") && !(await has(page, "#rdp")), "Fallen-Variante mit Matt: Matt-Zeichen, kein „Weiterspielen“");
     await clean(page, "Sparring"); await page.context().close();
   },
 
