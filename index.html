@@ -570,6 +570,13 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 
 /* ===== Review ===== */
 .rv-best{display:flex;gap:8px;align-items:flex-start;margin-top:8px;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,var(--go) 14%,transparent)}
+.cw-ask{display:inline-flex;align-items:center;gap:6px;margin-top:10px}
+.cw{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--panel-2);display:flex;flex-direction:column;gap:8px}.cw p{margin:0;font-size:14px;line-height:1.5}
+.cw-h{font-size:15px}.cw-err{color:var(--bad,#e2564b)}.cw-pl{color:var(--muted)}.cw-pl b{color:var(--fg)}
+.cw-wait{flex-direction:row;align-items:center;gap:10px;color:var(--muted);font-size:14px}.cw-dot{width:10px;height:10px;border-radius:50%;background:var(--go);animation:cwp 1s ease-in-out infinite}@keyframes cwp{50%{opacity:.25;transform:scale(.7)}}
+.cw-tabs{display:flex;flex-wrap:wrap;gap:6px}.cw-t{display:inline-flex;align-items:center;gap:5px;border:1px solid color-mix(in srgb,var(--go) 45%,transparent);background:transparent;color:var(--fg);border-radius:8px;padding:6px 10px;font:700 13px var(--body);cursor:pointer}.cw-t.on{background:color-mix(in srgb,var(--go) 22%,transparent)}
+.cw-step{display:flex;flex-direction:column;gap:8px;padding-top:2px}.cw-mv{display:flex;flex-wrap:wrap;gap:4px}.cw-mv span{font:700 13px var(--mono);padding:2px 6px;border-radius:5px;cursor:pointer;color:var(--muted)}.cw-mv span.done{color:var(--fg)}.cw-mv span.cur{background:var(--go);color:#fff}
+.cw-nav{display:flex;gap:6px}.cw-rule{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;font-weight:700;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,var(--go) 14%,transparent)}
 .rv-best b{display:block;font:900 15px var(--display)}
 .rv-best span:not(.cls){display:block;font-size:12.5px;color:var(--muted);word-break:break-word}
 .rv-ex .cls{flex:none}
@@ -2875,7 +2882,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794702394";
+const CHESSNAT_BUILD = "1794770671";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -4957,7 +4964,12 @@ Views.bots = {
     if (fresh){ G.planPly = ply; G.plan = planFor(G.g, G.color, G.planEvPly === ply ? G.planEv : null);
       if (G.planEvPly !== ply && !Engine.failed){ Engine.init(); const fen = G.g.fen(); Engine.run({fen, depth: 10}).then(r => { if (this.G !== G || G.planPly !== ply || !r || !r.lines[0]) return; G.planEvPly = ply; G.planEv = (G.color === "w" ? 1 : -1) * Engine.white(r.lines[0], fen); G.plan = planFor(G.g, G.color, G.planEv); this.panel(); }); } }
     G.board.mark(G.plan.marks); G.planMarked = true;
-    return planCardHTML(G.plan, {fresh, close: true});
+    const Q = G.goal && G.goal.ply === ply ? G.goal : null;
+    const ask = !Q ? `<button class="btn sm cw-ask" data-goal>${icon("bubble", 16)}<span>What should I aim for here?</span></button>`
+      : Q.wait ? `<div class="cw cw-wait"><span class="cw-dot"></span><span>Coach Nat is looking at the board…</span></div>`
+      : Q.err ? `<div class="cw"><p class="cw-err">${esc(Q.err)}</p><button class="btn sm" data-goal>Try again</button></div>`
+      : `<div class="cw"><b class="cw-h" data-notr>${esc(Q.res.goal)}</b><p data-notr>${esc(Q.res.why)}</p>${Q.res.danger ? `<p class="cw-pl"><b>Careful:</b> <span data-notr>${esc(Q.res.danger)}</span></p>` : ""}${Q.res.look ? `<div class="cw-rule">${icon("bulb", 16)}<span data-notr>${esc(Q.res.look)}</span></div>` : ""}</div>`;
+    return planCardHTML(G.plan, {fresh, close: true, extra: ask});
   },
   panel(){
     const G = this.G; if (!G) return; const h = G.g.history();
@@ -4986,7 +4998,10 @@ Views.bots = {
     if ($("#pv")) $("#pv").onclick = () => this.nav(-1); if ($("#nx")) $("#nx").onclick = () => this.nav(1);
     if ($("#hi")) $("#hi").onclick = () => this.hint();
     if ($("#plb")) $("#plb").onclick = () => { G.opt.spar = !G.opt.spar; G.planPly = null; if (!G.opt.spar) G.board.mark({}); this.panel(); };
-    const px = $("[data-planx]"); if (px) px.onclick = () => { G.opt.spar = false; G.board.mark({}); this.panel(); }; if ($("#tbk")) $("#tbk").onclick = () => this.takeback();
+    const px = $("[data-planx]"); if (px) px.onclick = () => { G.opt.spar = false; G.board.mark({}); this.panel(); };
+    const gq = $("[data-goal]"); if (gq) gq.onclick = async () => { const ply = G.g.history().length; G.goal = {ply, wait: true}; this.panel();
+      let Q; try { Q = {ply, res: await Coach.goal(G.g, G.color)}; } catch(e) { Q = {ply, err: String((e && e.message) || "The coach didn't answer. Try again.")}; }
+      if (this.G === G && G.goal && G.goal.ply === ply){ G.goal = Q; this.panel(); } }; if ($("#tbk")) $("#tbk").onclick = () => this.takeback();
     if ($("#rs")) $("#rs").onclick = () => { if (G.over) return; const o = G.board.overlay(`<div class="card-over"><h3 style="font-size:20px">Resign?</h3><div class="row" style="justify-content:center"><button class="btn" id="ry">Resign</button><button class="btn go" id="rn">Keep playing</button></div></div>`); $("#ry", o).onclick = () => { G.board.overlay(null); this.finish(G.color === "w" ? "0-1" : "1-0", "by resignation"); }; $("#rn", o).onclick = () => G.board.overlay(null); };
     if ($("#rv2")) $("#rv2").onclick = () => App.go("review", {pgn: G.g.pgn(), meta: S.games[S.games.length - 1]});
   }
@@ -5136,7 +5151,7 @@ function planFor(g, me, ev){
 function planCardHTML(P, opt = {}){
   return `<div class="plan ${opt.fresh ? "new" : ""}"><div class="plan-h"><span class="plan-ic">${icon("target", 20)}</span><div><small>Sparring partner</small><b>${esc(P.head)}</b></div>${opt.close ? `<button class="plan-x" data-planx aria-label="Hide">${icon("xmark", 16)}</button>` : ""}</div>
     <ol class="plan-g">${P.goals.map(g => `<li><b>${esc(g.t)}</b><span>${esc(g.d)}</span></li>`).join("")}</ol>
-    <div class="plan-q">${icon("bubble", 16)}<span>${esc(P.q)}</span></div></div>`;
+    <div class="plan-q">${icon("bubble", 16)}<span>${esc(P.q)}</span></div>${opt.extra || ""}</div>`;
 }
 
 /* ===== Learn: curriculum player ===== */
@@ -6614,7 +6629,7 @@ Views.review = {
     if (Openings.map) A0.open = Openings.ofFens(A0.fens); else Openings.load().then(setOpen);
     this.go(startPly || 0); this.analyse();
     /* tap the right half of the board for the next move, the left half to go back; hold to jump to the end or the start */
-    tapNav($("#bw"), {active: () => this.mode === "review" && this.A, step: d => this.go(this.A.ply + d), jump: d => this.go(d > 0 ? this.A.moves.length : 0)});
+    tapNav($("#bw"), {active: () => this.mode === "review" && this.A, step: d => this.LN ? this.lineStep(d) : this.go(this.A.ply + d), jump: d => this.LN ? this.lineStep(d * 99) : this.go(d > 0 ? this.A.moves.length : 0)});
     if (!S.settings.tapHint){ S.settings.tapHint = 1; save(); setTimeout(() => toast("Tap the right side of the board for the next move, the left side to go back. Hold to jump.", 4200), 900); }
   },
   /* player bars: face, name, rating, and the accuracy once the review is ready */
@@ -6689,13 +6704,14 @@ Views.review = {
   },
   progress(n, tot){ const el = $("#anprog"); if (el) el.style.width = Math.round(n / tot * 100) + "%"; const tx = $("#antext"); if (tx) tx.textContent = `Analyzing… ${n}/${tot}`; },
   go(ply){
-    const A = this.A; if (!A) return; ply = clamp(ply, 0, A.moves.length); A.ply = ply;
+    const A = this.A; if (!A) return; ply = clamp(ply, 0, A.moves.length); A.ply = ply; this.LN = null;
     const t = new Chess(A.fens[ply]); const m = A.moves[ply - 1];
     this.board.set(t, m ? {from: m.from, to: m.to} : null);
     if (m && A.cls[ply - 1]){ const k = CLS[A.cls[ply - 1]]; this.board.badge(m.to, k.sym, k.c); } else this.board.badge(null);
     const bl = A.lines[ply] && A.lines[ply].best; this.board.setArrows(A.done && bl && ply < A.moves.length ? [] : []);
     if (m && A.done && A.lines[ply - 1] && A.lines[ply - 1].best && A.lines[ply - 1].best !== m.from + m.to + (m.promotion || "") && !["best","book","great","brilliant"].includes(A.cls[ply - 1])){ const b = A.lines[ply - 1].best; this.board.setArrows([[b.slice(0,2), b.slice(2,4), "g"]]); }
     if (m && A.done) this.quip(ply - 1);
+    if (m && A.done && m.color === A.me && ["mistake", "miss", "blunder"].includes(A.cls[ply - 1])) this.whyLoad(ply - 1);
     evalSet(A.evals[ply], this.board.o);
     if (m) (m.captured ? Sound.play("Capture", .5) : Sound.play("Move", .5));
     this.panel();
@@ -6720,6 +6736,12 @@ Views.review = {
     $("#sp").innerHTML = (top.includes("<!--OPN-->") ? top.replace("<!--OPN-->", opnCard) : opnCard + top) + `<div class="h-sec">Moves</div><div class="moves">${mv}</div>`;
     $$("#sp .m[data-ply]").forEach(s => s.onclick = () => this.go(+s.dataset.ply));
     $$("#sp [data-km]").forEach(s => s.onclick = () => this.go(+s.dataset.km)); Openings.wire($("#sp"));
+    $$("#sp [data-why]").forEach(b => b.onclick = () => this.whyLoad(+b.dataset.why, !!b.dataset.again));
+    $$("#sp [data-cwl]").forEach(b => b.onclick = () => { const k = +b.dataset.cwl; if (this.LN && this.LN.k === k) return; this.LN = {i: A.ply - 1, k, s: 0}; this.lineStep(1); });
+    $$("#sp [data-cws]").forEach(b => b.onclick = () => this.lineStep(0, +b.dataset.cws));
+    if ($("#sp [data-cwn]")) $("#sp [data-cwn]").onclick = () => this.lineStep(1);
+    if ($("#sp [data-cwp]")) $("#sp [data-cwp]").onclick = () => this.lineStep(-1);
+    if ($("#sp [data-cwx]")) $("#sp [data-cwx]").onclick = () => this.go(A.ply);
     $("#sf").innerHTML = `<div class="rv-foot"><button class="btn" id="rvb" aria-label="Your games">${icon("list", 18)}<span>Games</span></button><button class="btn" id="ran">${icon("search", 18)}<span>Analyze</span></button>${A.done ? `<button class="btn" id="rlearn">${icon("refresh", 18)}<span>Retry</span></button>` : ""}<button class="btn go" id="rcont">Play on from here</button></div>`;
     $("#rvb").onclick = () => { this.dead = true; Engine.clear(); this.list(); };
     if ($("#rlearn")) $("#rlearn").onclick = () => this.retry();
@@ -6738,7 +6760,37 @@ Views.review = {
     const line = (() => { const L = A.lines[i] && A.lines[i][0]; if (!L || !L.pv) return ""; const t = new Chess(A.fens[i]), out = []; for (const u of L.pv.slice(0, 6)){ const mv = t.move({from: u.slice(0,2), to: u.slice(2,4), promotion: u[4] || undefined}); if (!mv) break; out.push(mv.san); } return out.join(" "); })();
     const text = {brilliant: "A brilliant sacrifice!", great: "The only move that keeps the advantage.", best: "The engine's top choice.", excellent: "Almost as good as the best move.", good: "A decent move.", book: "A known opening move.", inaccuracy: "Not the most precise.", mistake: "This costs you.", miss: "Your opponent slipped and you missed the punishment.", blunder: "A serious error."}[c];
     return `<div class="msg rv-ex"><span class="cls" style="background:${k.c};width:34px;height:34px;font-size:15px">${k.sym}</span><div style="min-width:0"><h4>${esc(m.san)} is ${({brilliant: "brilliant", great: "a great move", best: "the best move", excellent: "excellent", good: "a good move", book: "a book move", inaccuracy: "an inaccuracy", mistake: "a mistake", miss: "a miss", blunder: "a blunder"})[c]}</h4><p>${esc(text)} <span class="rv-ev">${ev}</span></p>
-      ${notBest ? `<div class="rv-best"><span class="cls" style="background:${CLS.best.c}">★</span><div><b>Best was ${esc(bestSan)}</b>${line ? `<span>Line: ${esc(line)}</span>` : ""}</div></div>` : ""}</div></div>`;
+      ${notBest ? `<div class="rv-best"><span class="cls" style="background:${CLS.best.c}">★</span><div><b>Best was ${esc(bestSan)}</b>${line ? `<span>Line: ${esc(line)}</span>` : ""}</div></div>` : ""}
+      ${notBest && m.color === A.me ? this.whyHTML(i, bestSan) : ""}</div></div>`;
+  },
+  /* Coach Nat explains why the better move is better: the idea, then every line move by move on the board */
+  whyHTML(i, bestSan){
+    const A = this.A, W = (A.why || {})[i];
+    if (!W) return `<button class="btn sm cw-ask" data-why="${i}">${icon("bubble", 16)}<span>Why is ${esc(bestSan)} better?</span></button>`;
+    if (W.wait) return `<div class="cw cw-wait"><span class="cw-dot"></span><span>Coach Nat is looking at it…</span></div>`;
+    if (W.err) return `<div class="cw"><p class="cw-err">${esc(W.err)}</p><button class="btn sm" data-why="${i}" data-again="1">Try again</button></div>`;
+    const R = W.res, LN = this.LN && this.LN.i === i ? this.LN : null, L = LN ? R.lines[LN.k] : null;
+    return `<div class="cw">${R.headline ? `<b class="cw-h" data-notr>${esc(R.headline)}</b>` : ""}${R.idea ? `<p data-notr>${esc(R.idea)}</p>` : ""}
+      <div class="cw-tabs">${R.lines.map((x, k) => `<button class="cw-t ${LN && LN.k === k ? "on" : ""}" data-cwl="${k}">${icon("play", 14)}${x.title ? `<span data-notr>${esc(x.title)}</span>` : `<span>Show the line</span>`}</button>`).join("")}</div>
+      ${L ? `<div class="cw-step"><div class="cw-mv">${L.sans.map((sn, j) => `<span class="${j === LN.s - 1 ? "cur" : j < LN.s ? "done" : ""} ${j % 2 ? "op" : ""}" data-cws="${j + 1}">${esc(sn)}</span>`).join("")}</div>
+        <p>${LN.s ? `<b>${LN.s % 2 ? "You:" : "They:"}</b> <span data-notr>${esc(L.say[LN.s - 1] || "")}</span>` : "Tap the board or › to play the line."}</p>
+        <div class="cw-nav"><button class="btn sm" data-cwp aria-label="Back">‹</button><button class="btn sm" data-cwn aria-label="Next">›</button><button class="btn sm ghost" data-cwx>Back to the game</button></div></div>` : ""}
+      ${R.played ? `<p class="cw-pl"><b>Your ${esc(R.playedSan)}:</b> <span data-notr>${esc(R.played)}</span></p>` : ""}${R.rule ? `<div class="cw-rule">${icon("bulb", 16)}<span data-notr>${esc(R.rule)}</span></div>` : ""}</div>`;
+  },
+  async whyLoad(i, again){
+    const A = this.A; A.why = A.why || {}; if (A.why[i] && !(again && A.why[i].err)) return;
+    A.why[i] = {wait: true}; if (A.ply === i + 1) this.panel();
+    try { A.why[i] = {res: await Coach.why(A, i)}; } catch(e) { A.why[i] = {err: String((e && e.message) || "The coach didn't answer. Try again.")}; }
+    if (this.A === A && this.mode === "review" && A.ply === i + 1 && !this.LN) this.panel();
+  },
+  /* walk one of the coach's lines on the board; tapping the board steps through it too */
+  lineStep(d, k){
+    const A = this.A, LN = this.LN; if (!LN) return; const L = A.why[LN.i].res.lines[LN.k];
+    LN.s = k != null ? k : clamp(LN.s + d, 0, L.sans.length);
+    const t = new Chess(A.fens[LN.i]); let last = null; for (let j = 0; j < LN.s; j++){ last = t.move(L.sans[j]); if (!last) break; }
+    this.board.set(t, last ? {from: last.from, to: last.to} : null); this.board.badge(null); this.board.setArrows([]);
+    if (last && d) (last.captured ? Sound.play("Capture", .5) : Sound.play("Move", .5));
+    this.panel();
   },
   /* a one-time reaction to your own standout moves */
   quip(i){
@@ -6806,6 +6858,79 @@ Views.review = {
   }
 };
 
+/* ===== Coach Nat: why a move is good, and in a game what to aim for =====
+   The engine in this phone finds every move: the better move, what follows when they take back or answer naturally, what the
+   played move allowed. /api/coach only puts those lines into words, one sentence per move; it never adds a move of its own. */
+const Coach = {
+  sans(fen, pv, n){ const t = new Chess(fen), out = []; for (const u of (pv || []).slice(0, n)){ const mv = t.move({from: u.slice(0, 2), to: u.slice(2, 4), promotion: u[4] || undefined}); if (!mv) break; out.push(mv.san); } return out; },
+  after(fen, sans){ const t = new Chess(fen); for (const x of sans) if (!t.move(x)) break; return t; },
+  board(t){ return t.board().map((r, k) => (8 - k) + "  " + r.map(p => p ? (p.color === "w" ? p.type.toUpperCase() : p.type) : ".").join(" ")).join("\n") + "\n   a b c d e f g h"; },
+  mat(t, me){ let d = 0; t.board().forEach(r => r.forEach(p => { if (p && p.type !== "k") d += (p.color === me ? 1 : -1) * {p: 1, n: 3, b: 3, r: 5, q: 9}[p.type]; })); return d; },
+  matWords(t0, t1, me){ const d = this.mat(t1, me) - this.mat(t0, me); return d === 0 ? "even compared to the start of the line" : (d > 0 ? "you are up " : "you are down ") + Math.abs(d) + " points compared to the start of the line (pawn 1, knight/bishop 3, rook 5, queen 9)"; },
+  /* what a coach would notice first: material, loose pieces, the kings' pawn cover, checks and captures on offer */
+  facts(t, me){
+    const op = me === "w" ? "b" : "w", F = [], N = {p: "pawn", n: "knight", b: "bishop", r: "rook", q: "queen", k: "king"}, nm = sq => N[(t.get(sq) || {}).type] + " on " + sq;
+    const d = this.mat(t, me); F.push(d === 0 ? "Material is even." : `Material: ${d > 0 ? "you are up" : "you are down"} ${Math.abs(d)} points.`);
+    const lm = hangingFor(t, me), lt = hangingFor(t, op);
+    if (lm.length) F.push("Your loose pieces (attacked and not defended enough): " + lm.map(nm).join(", ") + ".");
+    if (lt.length) F.push("Their loose pieces: " + lt.map(nm).join(", ") + ".");
+    [[me, "Your"], [op, "Their"]].forEach(([c, who]) => { let k = null; t.board().forEach((r, ri) => r.forEach((p, f) => { if (p && p.type === "k" && p.color === c) k = {f, r: 8 - ri}; }));
+      if (!k) return; const dir = c === "w" ? 1 : -1, gone = [], at = (f, r) => f >= 0 && f < 8 && r >= 1 && r <= 8 ? String.fromCharCode(97 + f) + r : null, ksq = at(k.f, k.r);
+      for (const ff of [k.f - 1, k.f, k.f + 1]){ const sq = at(ff, k.r + dir); if (!sq) continue; const p1 = t.get(sq); if (!(p1 && p1.type === "p" && p1.color === c)) gone.push(sq); }
+      /* lines into the king with nothing on them: where a queen, rook or bishop could give check from afar */
+      const open = []; [[1, 1], [-1, 1], [1, -1], [-1, -1], [0, 1], [0, -1], [1, 0], [-1, 0]].forEach(([df, dr]) => { const run = []; let f = k.f + df, r = k.r + dr * dir;
+        while (at(f, r) && !t.get(at(f, r))){ run.push(at(f, r)); f += df; r += dr * dir; }
+        if (run.length >= 2) open.push(`${ksq} to ${run[run.length - 1]} (${run.join(", ")} empty)`); });
+      F.push(`${who} king is on ${ksq}${gone.length ? "; no pawn of its own directly in front of it on " + gone.join(", ") : ", with pawns right in front of it"}.`);
+      if (open.length) F.push(`Open lines into ${who.toLowerCase()} king: ${open.join("; ")}.`); });
+    const ms = t.moves({verbose: true}), who = t.turn() === me ? "You" : "They";
+    const ch = ms.filter(m => /[+#]/.test(m.san)).map(m => m.san), cp = ms.filter(m => m.captured).map(m => m.san);
+    if (ch.length) F.push(`${who} could give check right now with: ${ch.slice(0, 6).join(", ")}.`);
+    if (cp.length) F.push(`${who} could capture right now with: ${cp.slice(0, 8).join(", ")}.`);
+    return F;
+  },
+  async api(body){
+    const s = window.ChessSite && window.ChessSite.getSession && window.ChessSite.getSession();
+    const r = await fetch("/api/coach", {method: "POST", headers: {"Content-Type": "application/json", Authorization: "Bearer " + (s ? s.access_token : "")}, body: JSON.stringify(Object.assign({lang: this.lang()}, body))});
+    const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || (r.status === 401 ? "Sign in to ask the coach." : "The coach didn't answer. Try again.")); return j;
+  },
+  lang: () => typeof I18N !== "undefined" && I18N.lang === "de" ? "de" : "en",
+  key(fen, best){ return "chessnat-why-" + this.lang() + "-" + hashStr(fen + " " + best); },
+  /* one moment of a finished game: the engine's move, what happens if they take back or answer as they'd like to, and what the played move allowed */
+  async why(A, i){
+    const fen0 = A.fens[i], m = A.moves[i], me = m.color, L0 = A.lines[i] && A.lines[i][0], best = A.lines[i] && A.lines[i].best;
+    if (!L0 || !best) throw new Error("No engine line for this move.");
+    try { const c = JSON.parse(localStorage.getItem(this.key(fen0, best)) || "null"); if (c && c.lines) return c; } catch(e) {}
+    const t0 = new Chess(fen0), main = this.sans(fen0, L0.pv, 8), tb = new Chess(fen0), bm = tb.move({from: best.slice(0, 2), to: best.slice(2, 4), promotion: best[4] || undefined}), fenB = tb.fen();
+    const lines = [{id: "best", label: "the engine's main line", sans: main, end: Engine.white(L0, fen0)}];
+    /* the answers a player would expect: taking back on the square the move went to (cheapest piece first), then their best try */
+    const takes = tb.moves({verbose: true}).filter(x => x.to === bm.to && x.captured).sort((a, b) => PV[a.piece] - PV[b.piece]).map(x => ({uci: x.from + x.to + (x.promotion || ""), san: x.san, label: `if they take back on ${x.to} with the ${PIECE_NAME[x.piece] || "piece"}`}));
+    const rB = await Engine.run({fen: fenB, depth: 12, multipv: 3}); const cands = takes.slice(0, 2);
+    /* their best answer, and their next-best one: when the best answer is taking back, "and if they don't take?" is the other big question */
+    ((rB && rB.lines) || []).forEach(l => { const san = sanOf(fenB, l.move); if (!san || cands.some(c => c.san === san)) return;
+      cands.push({uci: l.move, san, label: takes.length ? "if they don't take back" : "if they try something else"}); });
+    for (const c of cands){ if (lines.length >= 3) break; if (c.san === main[1]){ if (takes.some(x => x.san === c.san)) lines[0].label = c.label.replace(/^if they/, "they"); continue; }
+      const tr = new Chess(fenB); tr.move(c.san); const fenR = tr.fen(); let tail = [], end = null;
+      if (tr.game_over()) end = tr.in_checkmate() ? (tr.turn() === "w" ? -10000 : 10000) : 0;
+      else { const r = await Engine.run({fen: fenR, depth: 12}); if (r && r.lines[0]){ tail = this.sans(fenR, r.lines[0].pv, 6); end = Engine.white(r.lines[0], fenR); } }
+      lines.push({id: "r" + lines.length, label: c.label, sans: [main[0], c.san].concat(tail), end}); }
+    lines.forEach(L => { const te = this.after(fen0, L.sans); L.mate = te.in_checkmate(); L.material = this.matWords(t0, te, me); });
+    const LP = A.lines[i + 1] && A.lines[i + 1][0];
+    const res = await this.api({mode: "why", me, fen: fen0, board: this.board(t0), facts: this.facts(t0, me), before: A.evals[i], played: m.san, afterPlayed: A.evals[i + 1],
+      playedReply: LP ? this.sans(A.fens[i + 1], LP.pv, 4) : [], best: main[0], afterBest: Engine.white(L0, fen0),
+      lines: lines.map(L => ({id: L.id, label: L.label, moves: L.sans, end: L.end, mate: L.mate, material: L.material}))});
+    const out = {headline: res.headline, idea: res.idea, played: res.played, rule: res.rule, playedSan: m.san, bestSan: main[0],
+      lines: lines.map(L => { const r = (res.lines || []).find(x => x.id === L.id) || {}; return {title: r.title || L.label, sans: L.sans, say: L.sans.map((_, k) => (r.comments || [])[k] || "")}; })};
+    try { localStorage.setItem(this.key(fen0, best), JSON.stringify(out)); } catch(e) {}
+    return out;
+  },
+  /* in a game: what to aim for now, without giving the move away */
+  async goal(g, me){
+    const fen = g.fen(), r = await Engine.run({fen, depth: 12, multipv: 3}); if (!r || !r.lines[0]) throw new Error("The engine couldn't look at this position.");
+    const t = new Chess(fen);
+    return this.api({mode: "goal", me, fen, board: this.board(t), facts: this.facts(t, me), eval: Engine.white(r.lines[0], fen), lines: r.lines.map(l => ({moves: this.sans(fen, l.pv, 6), end: Engine.white(l, fen)}))});
+  }
+};
 /* grade one move quickly (for playing on from a position): engine before and after */
 async function gradeMove(fenB, uci, fenA){
   const side = new Chess(fenB).turn(), sg = side === "w" ? 1 : -1;

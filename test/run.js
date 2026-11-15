@@ -40,6 +40,54 @@ const PARTS = {
     await clean(page, "Anmelden"); await page.context().close();
   },
 
+  /* ---------- Coach Nat: warum der bessere Zug besser ist (Analyse) und worauf man im Spiel hinarbeitet (Sparringspartner) ---------- */
+  async coach(browser){
+    const page = await L.open(browser, "tester"); await sleep(800);
+    /* Nathans Partie gegen Finn bis zum 8. Zug: zweimal hätte der Springer den Bauern auf g5 nehmen können */
+    const pgn = '[White "Nat Tester"]\n[Black "Finnel"]\n[Result "*"]\n\n1. e4 e5 2. Bc4 f6 3. Nc3 g5 4. d3 d6 5. Nf3 c5 6. Be3 b6 7. a4 a5 8. O-O *';
+    await page.evaluate(p => App.go("review", {pgn: p, meta: {id: "coachtest", color: "w", opp: "Finnel", oppR: 634, result: "*", mode: "friend"}}), pgn);
+    await page.waitForFunction(() => Views.review.A && Views.review.A.done, null, {timeout: 180000}).catch(() => {});
+    ok(await page.evaluate(() => !!(Views.review.A && Views.review.A.done)), "Analyse fertig");
+    const misses = await page.evaluate(() => { const A = Views.review.A; return A.moves.map((m, i) => ({i, san: m.san, c: A.cls[i], best: sanOf(A.fens[i], A.lines[i] && A.lines[i].best)})).filter(x => x.i % 2 === 0 && ["mistake", "miss", "blunder"].includes(x.c)); });
+    ok(misses.some(x => x.best === "Nxg5"), "die Analyse findet: Springer schlägt auf g5 wäre besser gewesen", JSON.stringify(misses));
+    const at = (misses.find(x => x.best === "Nxg5") || misses[0] || {}).i;
+    if (at != null){
+      const n0 = (global.__coachWhy || []).length;
+      await page.evaluate(i => Views.review.go(i + 1), at);
+      await page.waitForSelector("#sp .cw .cw-t", {timeout: 60000}).catch(() => {});
+      ok(await has(page, "#sp .cw .cw-t"), "eigener Fehler: Coach Nat erklärt ihn sofort, ohne extra Tippen", await txt(page, "#sp"));
+      const sent = (global.__coachWhy || [])[n0] || "";
+      ok(/^id (best|r\d+) \((if )?they take back on g5 with the pawn\): Nxg5 fxg5 Qh5\+/m.test(sent), "an die KI geht „was, wenn er mit dem Bauern zurückschlägt“, mit dem Schach der Dame auf h5", sent.slice(-900));
+      ok(/^id r\d+ \(if they don't take back\): Nxg5 /m.test(sent), "und „was, wenn er nicht zurückschlägt“", sent.slice(-900));
+      ok(/Open lines into their king: e8 to h5 \(f7, g6, h5 empty\)/.test(sent), "Fakt für die KI: die Diagonale vom schwarzen König bis h5 ist leer", sent.slice(0, 1200));
+      ok(/Take the pawn/.test(await txt(page, "#sp .cw")) && /h5/.test(await txt(page, "#sp .cw-rule")), "Überschrift, Idee und Merksatz stehen in der Karte");
+      /* eine Linie Zug für Zug auf dem Brett */
+      const li = await page.evaluate(() => Views.review.A.why[Views.review.A.ply - 1].res.lines.findIndex(L => L.sans[1] === "fxg5")); await page.locator("#sp [data-cwl]").nth(Math.max(0, li)).click(); await sleep(500);
+      const st1 = await page.evaluate(() => ({fen: Views.review.board && new Chess(Views.review.A.fens[Views.review.LN.i]).fen(), s: Views.review.LN.s, sq: [...document.querySelectorAll("#bw [data-sq]")].length}));
+      ok(st1.s === 1 && /Comment 1 on Nxg5/.test(await txt(page, "#sp .cw-step")), "Linie gewählt: der erste Zug steht auf dem Brett, mit Satz dazu", JSON.stringify(st1) + " " + await txt(page, "#sp .cw-step"));
+      await page.locator("#sp [data-cwn]").click(); await sleep(300); await page.locator("#sp [data-cwn]").click(); await sleep(300);
+      ok(/They:|You:|Gegner:|Du:/.test(await txt(page, "#sp .cw-step")) && /Comment 3 on Qh5\+/.test(await txt(page, "#sp .cw-step")), "weiter: Zug für Zug, wer zieht und warum", await txt(page, "#sp .cw-step"));
+      const box = await page.locator("#bw").boundingBox(); await page.mouse.click(box.x + box.width * .8, box.y + box.height / 2); await sleep(500);
+      ok(await page.evaluate(() => Views.review.LN && Views.review.LN.s === 4), "Tippen rechts aufs Brett geht in der Linie weiter (nicht in der Partie)");
+      await page.locator("#sp [data-cwx]").click(); await sleep(400);
+      ok(await page.evaluate(i => !Views.review.LN && Views.review.A.ply === i + 1, at), "„Back to the game“ stellt die Partie wieder her");
+      const n1 = (global.__coachWhy || []).length; await page.evaluate(i => { Views.review.A.why = {}; Views.review.go(i + 1); }, at); await sleep(1500);
+      ok((global.__coachWhy || []).length === n1 && await has(page, "#sp .cw .cw-t"), "ein zweites Mal kommt die Erklärung aus dem Speicher, ohne neue KI-Anfrage");
+    }
+    await page.shot("coach-warum");
+    await clean(page, "Coach in der Analyse");
+    /* im Spiel: der Sparringspartner fragt Coach Nat nach dem Ziel, ohne den Zug zu verraten */
+    await page.evaluate(() => { App.go("bots"); }); await sleep(600);
+    await page.evaluate(() => { const V = Views.bots; V.start(BOTS.find(b => b.id === "ines"), "w", {spar: true, coach: false, hints: false, threats: false, tips: false, level: "normal", tc: null, rated: false}); }); await sleep(1200);
+    await page.waitForSelector("[data-goal]", {timeout: 15000}).catch(() => {});
+    if (ok(await has(page, "[data-goal]"), "Sparringspartner zeigt „What should I aim for here?“")){
+      const g0 = global.__coachGoal || 0; await page.locator("[data-goal]").first().click();
+      await page.waitForFunction(() => /open king/.test(document.body.innerText), null, {timeout: 30000}).catch(() => {});
+      ok((global.__coachGoal || 0) > g0 && /Go after their open king/.test(await page.evaluate(() => document.body.innerText)), "Coach Nat antwortet mit dem Ziel");
+    }
+    await clean(page, "Coach im Spiel"); await page.context().close();
+  },
+
   /* ---------- Kalorien: Start, Suche, Mengen, selbst eintragen, Vorschläge, Sprechen, Barcode ---------- */
   async kcal(browser){
     const page = await L.open(browser, "tester", {before: () => {
