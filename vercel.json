@@ -10,6 +10,9 @@
     "api/muell.js": {
       "maxDuration": 30
     },
+    "api/coach.js": {
+      "maxDuration": 60
+    },
     "api/abfall.py": {
       "maxDuration": 60,
       "excludeFiles": "{voice,test,games,icons,supabase,node_modules,vendor,img,sounds,assets}/**"
