@@ -86,7 +86,7 @@ module.exports = db => {
       update: {using: (r, u) => r.from_id === u || r.to_id === u, check: (r, u) => r.from_id === u || r.to_id === u}},
     chess_messages: {select: (r, u) => r.from_id === u || r.to_id === u, insert: (r, u) => r.from_id === u && r.to_id !== r.from_id && friends(r.from_id, r.to_id),
       update: {using: (r, u) => r.to_id === u, check: (r, u) => r.to_id === u}},
-    chess_news: {select: T}, chess_ratings: {select: T}, chess_matches: {select: T}, tipp_events: {select: T}, tipp_tips: {select: T}, tipp_admins: {select: T},
+    chess_news: {select: T}, chess_ratings: {select: T}, chess_matches: {select: T}, tipp_events: {select: T}, nl_state: {select: T}, tipp_tips: {select: T}, tipp_admins: {select: T},
     chess_events: {insert: (r, u) => r.user_id === u && size(r.meta) < 2000},
     chess_queue: {select: (r, u) => r.user_id === u}, chess_fixes: {select: (r, u) => r.user_id === u},
     chess_feedback: {select: (r, u) => r.user_id === u || isAdmin(u), insert: (r, u) => r.user_id === u, delete: (r, u) => isAdmin(u)},
