@@ -118,6 +118,11 @@ function ai(req){
     const parts = []; for (let i = 0; i + 5 <= n(q).length; i++) parts.push(n(q).slice(i, i + 5));
     const L = (user.split("LISTE:\n")[1] || "").split("\n").map(l => /^(\d+): (.*)$/.exec(l)).filter(Boolean).map(m => [+m[1], parts.filter(p => n(m[2]).includes(p)).length]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]);
     return {hits: L.slice(0, 5).map(x => x[0])}; }
+  /* Coach Nat: one comment per move of every line the phone sent (counted, so a test can see the lines arrived) */
+  if (kind === "coach_why"){ global.__coachWhy = (global.__coachWhy || []).concat([user]); const L = [...user.matchAll(/^id (\w+)(?: \(([^)]*)\))?: (.+)$/gm)];
+    return {headline: "Take the pawn: their king has no cover", idea: "The pawn in front of their king is gone. Your queen wants h5.", played: "Castling was safe but slow.", rule: "When their f-pawn is gone, look for a queen check on h5.",
+      lines: L.map(m => ({id: m[1], title: m[2] ? m[2].slice(0, 40) : "Main line", comments: m[3].trim().split(/\s+/).map((mv, k) => "Comment " + (k + 1) + " on " + mv)}))}; }
+  if (kind === "coach_goal"){ global.__coachGoal = (global.__coachGoal || 0) + 1; return {goal: "Go after their open king", why: "Their king has lost a pawn in front of it.", look: "Which of my pieces can reach their king fastest?", danger: ""}; }
   /* a photographed nutrition table: the numbers "printed" on the test pack */
   if (kind === "label") return {readable: true, name: "Skyr Vanille", brand: "Milbona", unit: "g", kcal: 76, kj: 322, fat: 0.2, satfat: 0.1, carbs: 9.4, sugar: 9.1, fiber: -1, protein: 9.0, salt: 0.13};
   if (kind === "shop"){ const words = said.split(/,| und /).map(s => s.trim()).filter(Boolean), dish = words.filter(w => /lasagne|chili|kuchen|pizza/i.test(w));
@@ -226,6 +231,7 @@ const server = http.createServer((req, res) => {
       if (p === "/api/food") return await vercel("food.js", req, res, q, raw);
       if (p === "/api/foods") return await vercel("foods.js", req, res, q, raw);
       if (p === "/api/spotify") return await vercel("spotify.js", req, res, q, raw);
+      if (p === "/api/coach") return await vercel("coach.js", req, res, q, raw);
       /* api/muell.js with the district's calendar replaced by a fixed one: two towns, a few streets, collections on the next days */
       if (p === "/api/abfall"){ res.writeHead(200, {"content-type": "application/json"}); return res.end(JSON.stringify({error: "unsupported"})); }
       if (p === "/api/muell"){ const day = n => { const d = new Date(Date.now() + n * 864e5); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }, J = (o, st) => { res.writeHead(st || 200, {"content-type": "application/json"}); return res.end(JSON.stringify(o)); };
