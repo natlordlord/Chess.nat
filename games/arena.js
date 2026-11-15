@@ -28,9 +28,9 @@
       su: {en: "Triple", de: "Dreifach", n: 3, spr: .32, dmg: 31, rg: 540}},
     /* the light beam (Nathan's wish, a support like Glowy in Brawl Stars): the beam sticks to the first one in its way and holds as long
        as they stay in reach, hurts and slows an enemy and gives the beamer part of it back as health, or heals a teammate. Out of reach
-       or behind a wall it flickers for a second: back in reach in time and it holds again, otherwise it is gone and you have to hit anew. Super: a blinding flash, whoever stands in it takes a hit and runs away for a moment, unable to shoot */
+       or behind a wall it flickers for a second: back in reach in time and it holds again, otherwise it is gone and you have to hit anew. Super: a blinding flash, whoever stands in it takes a hit (no more fear, Finnel's wish: nothing from League) */
     beam: {c: "#33C6D6", en: "Light beam", de: "Lichtstrahl", sen: "Holds on · drains life", sde: "Hält fest · saugt Leben", hp: 205, sp: 1, rl: 1500, cd: 420, rg: 430, r: 10, dmg: 9, every: 250, grace: 1000, heal: .5, slow: .75, sc: 120,
-      su: {en: "Blinding light", de: "Blendlicht", rg: 380, cone: .62, dmg: 44, fear: 1500}},
+      su: {en: "Blinding light", de: "Blendlicht", rg: 380, cone: .62, dmg: 70}},
     /* the hammer (Wolf's wish): raises it for a moment, then smashes a wide arc in front, everyone in it gets hit.
        Super: an earthquake all around, pushes everyone away. Like the boxer it charges its super while an enemy is close (aura) */
     hammer: {c: "#D9628F", en: "Hammer", de: "Hammer", sen: "Smashes a wide arc · hits all in it", sde: "Schlägt im Bogen · trifft alle darin", hp: 315, sp: .95, rl: 1700, cd: 650, rg: 165, cone: .85, wind: 260, dmg: 43, sc: 130, aura: {r: 230, rate: .07},
@@ -636,7 +636,7 @@
     if (m.c === "beam"){
       if (su){ C.fx.push({k: "blind", x: from.x, y: from.y, a, t, d: 560}); snd("blind", from); if (C.me && Math.hypot(from.x - C.me.x, from.y - C.me.y) < 500) C.shake = Math.max(C.shake, 6);
         cratesIn(from.x, from.y, s2.rg, a, s2.cone).forEach(i => { crateFx(i); if (au) hitCrate(i, s2.dmg, m.k + "c" + i, by); });
-        if (au) hitCone(from, a, s2.rg, s2.cone, by).forEach(id => { const q = pos(id), dd = Math.hypot(q.x - from.x, q.y - from.y) || 1; hitOut(id, s2.dmg, m.k + ":" + id, by, {fr: s2.fear, fx: (q.x - from.x) / dd, fy: (q.y - from.y) / dd}); });
+        if (au) hitCone(from, a, s2.rg, s2.cone, by).forEach(id => { const q = pos(id), dd = Math.hypot(q.x - from.x, q.y - from.y) || 1; hitOut(id, s2.dmg, m.k + ":" + id, by); void dd; });
         return; }
       const tg = typeof m.tg === "string" && C.A.ids.includes(m.tg) ? m.tg : null, ci = !tg && m.cr != null ? +m.cr : -1;
       C.beams.forEach(o => { if (o.by === by) o.dead = 1; });
@@ -711,8 +711,8 @@
       if (v === me()) hurtFx(d, m, pu);
       else { const q = pos(v); if (q) C.pops.push({x: q.x, y: q.y - 120, txt: "-" + d, t: now(), mine: m.by === me()}); if (m.by === me()) snd(pu ? "thud" : "hit", q);
         if (host && HB.bots[v] && m.kx != null) HB.bots[v].kb = {vx: m.kx / .16, vy: m.ky / .16, until: now() + 160};
-        if (host && HB.bots[v] && m.fr) HB.bots[v].fear = {until: now() + Math.min(2000, +m.fr), vx: +m.fx || 0, vy: +m.fy || 0}; }
-      if (m.fr) C.feared[v] = now() + Math.min(2000, +m.fr); }
+      }
+    }
     else if (m.t === "ahl"){ const v = m.v, d = +m.d || 0; if (host) hostHeal(v, d, m.k ? String(m.k).slice(0, 32) : null);
       if (d > 0 && C.A.ids.includes(v)){ const q = v === me() ? C.me : pos(v); if (q && (v === me() || m.id === me())) C.pops.push({x: q.x + 18, y: q.y - 128, txt: "+" + d, t: now(), heal: 1}); } }
     else if (m.t === "ach"){ if (host){ const mg = hostMg(); if (mg) hostCrate(mg.ar, +m.i, +m.d || 0, m.k ? String(m.k).slice(0, 40) : null); } }
@@ -733,7 +733,7 @@
   function hurtFx(d, m, pu){
     if (!alive(me()) || !C.me) return; if (C.A.hp[me()] != null) C.A.hp[me()] = Math.max(1, C.A.hp[me()] - d); C.hpT = now();
     if (m.kx != null) C.kb = {vx: m.kx / .16, vy: m.ky / .16, until: now() + 160};
-    if (m.fr){ C.fear = {until: now() + Math.min(2000, +m.fr), vx: +m.fx || 0, vy: +m.fy || 0}; C.chg = null; C.chgWait = 0; Haptic.go([30, 20, 30]); }
+
     if (m.by === me() || !m.by) return; /* the gas: no big fuss */
     C.hurtT = now(); C.shake = Math.max(C.shake, d > 20 ? 9 : 6); C.pops.push({x: C.me.x, y: C.me.y - 120, txt: "-" + Math.round(d), t: now(), me: 1}); snd(pu ? "thud" : "hurt"); Haptic.go(d > 20 ? 25 : 10);
   }
@@ -1180,11 +1180,6 @@
       fig(c, q.x, q.y, p, {pw: out ? 0 : C.pw[id] || 0, f: q.f, mv: q.mv, me: self, mate: mate(id, me()), flash: C.hitAt[id] && t - C.hitAt[id] < 110, k: A.ph === "fight" && !out ? A.cls[id] : null, a: q.a, jh: q.jh, lu: q.lu, sw: q.sw, su: q.su, glow: Math.max(0, 1 - (t - (C.glow[id] || 0)) / 700)});
       c.globalAlpha = 1;
       if (self && q.ch > 0){ c.strokeStyle = q.ch >= 1 ? "#A9D6FF" : "rgba(169,214,255,.75)"; c.lineWidth = q.ch >= 1 ? 6 : 4; c.beginPath(); c.ellipse(q.x, q.y + 16, 38, 14, 0, -Math.PI / 2, -Math.PI / 2 + q.ch * Math.PI * 2); c.stroke(); }
-      /* feared: a status over the health bar like in League ("FURCHT" with the time running out) and purple swirls at the feet */
-      if ((C.feared[id] || 0) > t && !out){ const k = Math.min(1, (C.feared[id] - t) / CLS.beam.su.fear), py = y0 - 152 + Math.sin(t / 90) * 1.5;
-        c.strokeStyle = "rgba(170,110,255,.75)"; c.lineWidth = 3; for (let i = 0; i < 3; i++){ const an = t / 160 + i * 2.09; c.beginPath(); c.ellipse(q.x, q.y + 16, 36, 13, 0, an, an + 1.4); c.stroke(); }
-        c.fillStyle = "rgba(46,16,76,.94)"; rr(c, q.x - 48, py - 14, 96, 27, 13); c.fill(); c.strokeStyle = "#B784FF"; c.lineWidth = 2; c.stroke();
-        c.fillStyle = "#C9A2FF"; rr(c, q.x - 40, py + 7, 80 * k, 3, 1.5); c.fill(); c.font = "900 13px Figtree,system-ui,sans-serif"; c.textAlign = "center"; c.fillStyle = "#fff"; c.fillText("😱 " + T("FEARED", "FURCHT"), q.x, py + 3); c.font = NUMF; }
       const em = C.emo[id]; if (em && t - em.t < 2200){ const k = Math.min(1, (t - em.t) / 160), yy = y0 - 172 - (1 - k) * 12; c.globalAlpha = t - em.t > 1900 ? (2200 - (t - em.t)) / 300 : 1; c.fillStyle = "#fff"; rr(c, q.x - 26, yy - 26, 52, 46, 14); c.fill(); c.beginPath(); c.moveTo(q.x - 7, yy + 19); c.lineTo(q.x, yy + 28); c.lineTo(q.x + 7, yy + 19); c.fill();
         if (em.e === "GG"){ c.fillStyle = "#1b1a18"; c.font = "900 22px Figtree,system-ui,sans-serif"; c.textAlign = "center"; c.fillText("GG", q.x, yy + 6); c.font = NUMF; } else emoAt(c, em.e, q.x, yy - 3, 32); c.globalAlpha = 1; }
       if (A.ph === "fight" && !out){ const hp = A.hp[id] || 0, mx = A.mx[id] || 1, w = 74, y = y0 - 124, f = Math.max(0, Math.min(1, hp / mx)); c.fillStyle = "rgba(10,10,14,.85)"; rr(c, q.x - w / 2 - 3, y - 3, w + 6, self ? 26 : 16, 6); c.fill();
@@ -1275,12 +1270,6 @@
     /* the screen goes red when you're hit or nearly dead */
     const hk = Math.max(0, 1 - (t - C.hurtT) / 400), low = fighting() && (A.hp[me()] || 0) / (A.mx[me()] || 1) < .3 ? .25 + pulse * .2 : 0, red = Math.max(hk * .5, low);
     if (red > 0){ const g = c.createRadialGradient(cw / 2, ch / 2, Math.min(cw, ch) * .3, cw / 2, ch / 2, Math.max(cw, ch) * .7); g.addColorStop(0, "rgba(200,30,20,0)"); g.addColorStop(1, `rgba(200,30,20,${red})`); c.fillStyle = g; c.fillRect(0, 0, cw, ch); }
-    /* when I am feared: a purple edge and the status big at the top, with the time it has left */
-    if (blinded() && fighting()){ const k = Math.min(1, (C.fear.until - t) / CLS.beam.su.fear), dd = NPo().dpr || 1, g = c.createRadialGradient(cw / 2, ch / 2, Math.min(cw, ch) * .32, cw / 2, ch / 2, Math.max(cw, ch) * .72);
-      g.addColorStop(0, "rgba(110,40,200,0)"); g.addColorStop(1, `rgba(110,40,200,${.32 + .1 * Math.sin(t / 120)})`); c.fillStyle = g; c.fillRect(0, 0, cw, ch);
-      const w = 190 * dd, h = 44 * dd, x = cw / 2 - w / 2, y = ch * .2; c.fillStyle = "rgba(46,16,76,.94)"; rr(c, x, y, w, h, h / 2); c.fill(); c.strokeStyle = "#B784FF"; c.lineWidth = 3 * dd; c.stroke();
-      c.fillStyle = "#C9A2FF"; rr(c, x + 16 * dd, y + h - 8 * dd, (w - 32 * dd) * k, 4 * dd, 2 * dd); c.fill();
-      c.font = `900 ${Math.round(21 * dd)}px Figtree,system-ui,sans-serif`; c.textAlign = "center"; c.textBaseline = "middle"; c.fillStyle = "#fff"; c.fillText("😱 " + T("FEARED", "FURCHT"), cw / 2, y + h / 2 - 2 * dd); c.textBaseline = "alphabetic"; }
   }
   const rr = (c, x, y, w, h, r) => { c.beginPath(); if (c.roundRect) c.roundRect(x, y, Math.max(0, w), h, r); else c.rect(x, y, Math.max(0, w), h); };
 

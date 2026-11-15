@@ -499,8 +499,7 @@ const PARTS = {
     await a.evaluate(([id, s]) => { __arNoCubes(); __arPark(id); __arBot(id, s.x, s.y); }, [me.bot, spot]); await sleep(300); const b1c = await a.evaluate(id => __arBotS(id), me.bot);
     await a.evaluate(() => __arSup(1)); await a.evaluate(([m, s]) => __arFire(Math.atan2(s.y - m.y, s.x - m.x), true), [me, spot]); await sleep(300); await a.shot("natstars-blendlicht");
     const b2 = await a.evaluate(id => __arBotS(id), me.bot);
-    ok(b2.fear && b1c.hp - b2.hp >= 40, "Blendlicht: Treffer (" + (b1c.hp - b2.hp) + ") und der Gegner rennt weg", JSON.stringify(b2));
-    ok(b2.fv && b2.fv[0] * (spot.x - me.x) + b2.fv[1] * (spot.y - me.y) > 0, "er rennt von dir weg (Richtung der Furcht)", JSON.stringify(b2));
+    ok(!b2.fear && b1c.hp - b2.hp >= 60, "Blendlicht: Treffer (" + (b1c.hp - b2.hp) + "), keine Furcht mehr – niemand rennt weg", JSON.stringify(b2));
     await a.evaluate(() => __arFreeze(false)); await sleep(1200);
     /* the hammer: a wind-up, then a blow on everyone in the arc; the earthquake all around; its super charges while an enemy is close */
     await a.evaluate(() => { __arFreeze(true); __arCls("hammer"); __arSup(0); }); const m2 = await a.evaluate(() => __ar().me);
