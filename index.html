@@ -146,12 +146,13 @@ a{color:var(--go-hi)}
 .clock.low{background:#E2523E;color:#fff}
 
 /* board */
-.boardwrap{position:relative;width:var(--bs);height:var(--bs);max-width:100%}
+.boardwrap{position:relative;width:var(--bs);height:var(--bs);max-width:100%;container-type:inline-size}
 .board{position:absolute;inset:0;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);border-radius:3px;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none;container-type:inline-size}
 .sq{position:relative}
 .sq.l{background:var(--sq-l)}.sq.d{background:var(--sq-d)}
 .sq .hl{position:absolute;inset:0;pointer-events:none}
 .sq.last .hl,.sq.sel .hl{background:var(--hl)}
+.sq.last.tint .hl{background:color-mix(in srgb,var(--tint) 72%,transparent)}.sq.last.tint.sel .hl{background:var(--hl)}
 .sq.sel .hl{background:var(--hl-sel)}
 .sq.chk .hl{background:radial-gradient(circle,var(--check) 0%,rgba(235,64,52,.35) 55%,transparent 75%)}
 .sq.good .hl{background:rgba(127,178,74,.6)}
@@ -174,19 +175,18 @@ a{color:var(--go-hi)}
 .float{margin-top:38%;font:900 54px var(--display);color:var(--go-hi);text-shadow:0 2px 0 rgba(0,0,0,.45);animation:floatup 1.1s ease-out forwards}
 .float.neg{color:var(--bad)}
 @keyframes floatup{0%{opacity:0;transform:translateY(16px) scale(.8)}15%{opacity:1;transform:translateY(0) scale(1.08)}70%{opacity:1}100%{opacity:0;transform:translateY(-46px) scale(1)}}
-.badge-mv{position:absolute;width:5.2cqw;height:5.2cqw;min-width:22px;min-height:22px;border-radius:50%;z-index:25;display:flex;align-items:center;justify-content:center;font:900 2.4cqw var(--body);color:#fff;box-shadow:0 0 0 .32cqw #fff,0 .5cqw 1.1cqw rgba(0,0,0,.42);transform:translate(var(--bx,-62%),var(--by,-38%));animation:bdgpop .34s cubic-bezier(.3,1.6,.5,1) both;pointer-events:none}
+.badge-mv{position:absolute;width:4.8cqw;height:4.8cqw;min-width:20px;min-height:20px;border-radius:50%;z-index:25;display:flex;align-items:center;justify-content:center;font:900 2.4cqw var(--body);color:#fff;box-shadow:0 .25cqw .7cqw rgba(0,0,0,.38);transform:translate(var(--bx,-62%),var(--by,-38%));animation:bdgpop .34s cubic-bezier(.3,1.6,.5,1) both;pointer-events:none}
 .badge-mv svg{width:72%;height:72%;display:block}
 .pc.mf-hide{opacity:0!important}
-.endfx{position:absolute;width:12.5%;height:12.5%;z-index:24;pointer-events:none;display:grid;place-items:center;animation:effade .3s ease-out both}
-.endfx.lose{background:#E2493B}.endfx.win{background:#6E9F45}.endfx.draw{background:#8B8984}
-.endfx .ef-ic{width:72%;height:72%;display:block;animation:efpop .5s cubic-bezier(.3,1.6,.5,1) .12s both}.endfx .ef-ic svg{width:100%;height:100%;display:block;filter:drop-shadow(0 .3cqw .4cqw rgba(0,0,0,.25))}
-.endfx .ef-pill{position:absolute;left:50%;top:0;transform:translate(-50%,-62%);white-space:nowrap;padding:.7cqw 2.2cqw;border-radius:99px;background:#fff;font:900 2.7cqw/1.15 var(--body);box-shadow:0 .5cqw 1.4cqw rgba(0,0,0,.35);animation:efpill .45s cubic-bezier(.3,1.6,.5,1) .3s both}
-.endfx.lose .ef-pill{color:#C93A2D}.endfx.win .ef-pill{color:#4F7A2A}.endfx.draw .ef-pill{color:#5F5E5A}
-.endfx.top .ef-pill{top:auto;bottom:0;transform:translate(-50%,62%)}
+.endfx{position:absolute;width:12.5%;height:12.5%;z-index:24;pointer-events:none;display:grid;place-items:center;container-type:size;animation:effade .25s ease-out both}
+.endfx.lose{background:#E04A3C}.endfx.win{background:#78A84A}.endfx.draw{background:#8F8D88}
+.endfx .ef-ic{width:62%;height:62%;display:block;animation:efpop .45s cubic-bezier(.3,1.5,.5,1) .1s both}.endfx .ef-ic svg{width:100%;height:100%;display:block}
+.endfx .ef-k{width:82%;height:82%;background-size:contain;background-repeat:no-repeat;background-position:center;filter:brightness(0) invert(1)}
+.endfx .ef-pill{position:absolute;left:42%;top:0;transform:translateY(-50%);white-space:nowrap;padding:2.5cqh 7cqw;border-radius:99px;background:#fff;font:800 clamp(8px,15cqw,13px)/1.2 var(--body);letter-spacing:0;box-shadow:0 1px 3px rgba(0,0,0,.3);animation:effade .3s ease-out .25s both}
+.endfx.right .ef-pill{left:auto;right:42%}.endfx.top .ef-pill{transform:translateY(12%)}
+.endfx.lose .ef-pill{color:#C8382A}.endfx.win .ef-pill{color:#5A8A2E}.endfx.draw .ef-pill{color:#5F5E5A}
 @keyframes effade{from{opacity:0}}
-@keyframes efpop{0%{transform:scale(.2);opacity:0}100%{transform:none;opacity:1}}
-@keyframes efpill{0%{transform:translate(-50%,-62%) scale(.4);opacity:0}100%{transform:translate(-50%,-62%);opacity:1}}
-.endfx.top .ef-pill{animation-name:efpilltop}@keyframes efpilltop{0%{transform:translate(-50%,62%) scale(.4);opacity:0}100%{transform:translate(-50%,62%);opacity:1}}
+@keyframes efpop{0%{transform:scale(.4);opacity:0}100%{transform:none;opacity:1}}
 .ef-conf{position:absolute;width:0;height:0;z-index:26;pointer-events:none}.ef-conf i{position:absolute;left:-.6cqw;top:-.9cqw;width:1.2cqw;height:1.8cqw;opacity:0;animation:efconf 1.5s cubic-bezier(.15,.7,.35,1) .35s forwards}
 @keyframes efconf{0%{transform:translate(0,0) rotate(0);opacity:1}80%{opacity:1}100%{transform:translate(var(--dx),calc(var(--dy) + 14cqw)) rotate(var(--r));opacity:0}}
 @media (prefers-reduced-motion:reduce){.endfx,.endfx *{animation:none!important}.ef-conf{display:none}}
@@ -570,6 +570,8 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 .opn-ic{font-size:30px;line-height:1;flex:none;width:38px;text-align:center;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
 .opn-t{flex:1;min-width:0;display:flex;flex-direction:column}
 .opn-t b{font:900 19px/1.15 var(--display);letter-spacing:-.01em}
+.opn-sides{display:flex;flex-direction:column;gap:3px;margin-top:7px}.opn-sides .os{display:flex;align-items:center;gap:7px;font-size:13.5px;min-width:0}.opn-sides .os i{width:11px;height:11px;border-radius:50%;flex:none;box-shadow:0 0 0 1px rgba(0,0,0,.45)}.opn-sides .os.w i{background:#f4f4f0}.opn-sides .os.b i{background:#2b2a28;box-shadow:0 0 0 1px rgba(255,255,255,.35)}
+.opn-sides .os b{font:800 13.5px var(--body);letter-spacing:0;flex:none}.opn-sides .os span{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .opn-t small{font:700 12.5px var(--body);color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .opn-ch{flex:none;font:900 22px var(--display);color:var(--muted);transition:transform .25s}
 .opn.open .opn-ch{transform:rotate(90deg)}
@@ -2916,7 +2918,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794774227";
+const CHESSNAT_BUILD = "1794778217";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -3712,6 +3714,7 @@ function makeBoard(wrap, opts = {}){
     if (!vw) B.pre.forEach((m, i) => { preSq[m.from] = preSq[m.from] || i + 1; preSq[m.to] = i + 1; });
     squares.forEach(d => { const sq = d.dataset.sq;
       d.classList.toggle("last", !!(B.last && (B.last.from === sq || B.last.to === sq)));
+      d.classList.toggle("tint", !!(B.tint && B.last && B.last.to === B.tint.to && (B.last.from === sq || B.last.to === sq)));
       d.classList.toggle("sel", B.sel === sq);
       d.classList.toggle("chk", B.check === sq);
       ["good","bad","hint","mark"].forEach(c => d.classList.toggle(c, marks[sq] === c));
@@ -3763,7 +3766,7 @@ function makeBoard(wrap, opts = {}){
     clearTimeout(B._cheerT); B._cheerT = setTimeout(() => { fx.innerHTML = ""; }, tier >= 3 ? 2100 : 1700);
   };
   B.float = (text, neg) => { fx.innerHTML = `<div class="float ${neg ? "neg" : ""}">${esc(text)}</div>`; setTimeout(() => { fx.innerHTML = ""; }, 1150); };
-  B.badge = (sq, label, color) => { wrap.querySelectorAll(".badge-mv").forEach(n => n.remove()); if (!sq) return; const [x, y] = sqXY(sq, B.o); const b = document.createElement("div"); b.className = "badge-mv"; b.style.left = ((x + 1) * 12.5) + "%"; b.style.top = (y * 12.5) + "%"; b.style.background = color;
+  B.badge = (sq, label, color) => { wrap.querySelectorAll(".badge-mv").forEach(n => n.remove()); B.tint = sq ? {to: sq, c: color} : null; if (color) wrap.style.setProperty("--tint", color); B.paint(); if (!sq) return; const [x, y] = sqXY(sq, B.o); const b = document.createElement("div"); b.className = "badge-mv"; b.style.left = ((x + 1) * 12.5) + "%"; b.style.top = (y * 12.5) + "%"; b.style.background = color;
     b.style.setProperty("--bx", x === 7 ? "-100%" : "-62%"); b.style.setProperty("--by", y === 0 ? "0%" : "-38%"); if (/^<svg/.test(label)) b.innerHTML = label; else b.textContent = label; wrap.appendChild(b); };
   /* end of the game on the board: the loser's king square turns red with a white sign of how it ended (#, flag, clock …) and a small
      label above it, the winner's king square turns green with a crown and "Winner"; a draw marks both kings grey with ½.
@@ -3783,10 +3786,12 @@ function makeBoard(wrap, opts = {}){
       const r = o.res || (g.in_checkmate() ? (g.turn() === "w" ? "0-1" : "1-0") : g.game_over() ? "1/2-1/2" : null); if (!r || r === "*") return res();
       const why = String(o.why || (g.in_checkmate() ? "by checkmate" : "")), k = /checkmate/.test(why) ? "mate" : /resign/.test(why) ? "resign" : /on time/.test(why) ? "time" : /aband|left|gone|disconnect/.test(why) ? "left" : "lost";
       B.mateClear();
-      const mark = (color, cls, ic, label) => { const sq = kingSquare(g, color); if (!sq) return; const [x, y] = sqXY(sq, B.o), d = document.createElement("div");
-        d.className = `endfx ${cls}${y === 0 ? " top" : ""}`; d.style.left = (x * 12.5) + "%"; d.style.top = (y * 12.5) + "%";
-        d.innerHTML = `<span class="ef-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${EF_IC[ic]}</svg></span><span class="ef-pill">${label}</span>`;
-        wrap.appendChild(d); const p = B.pieces[sq]; if (p) p.el.classList.add("mf-hide"); };
+      const mark = (color, cls, ic, label) => { const sq = kingSquare(g, color); if (!sq) return; const [x, y] = sqXY(sq, B.o), d = document.createElement("div"), p = B.pieces[sq];
+        d.className = `endfx ${cls}${y === 0 ? " top" : ""}${x === 7 ? " right" : ""}`; d.style.left = (x * 12.5) + "%"; d.style.top = (y * 12.5) + "%";
+        const king = ic === "mate" || ic === "lost" || ic === "draw";
+        d.innerHTML = `${king ? `<span class="ef-ic ef-k"></span>` : `<span class="ef-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${EF_IC[ic]}</svg></span>`}<span class="ef-pill">${label}</span>`;
+        if (king && p) d.querySelector(".ef-k").style.backgroundImage = getComputedStyle(p.el).backgroundImage;   /* a property: the URL has quotes */
+        wrap.appendChild(d); if (p) p.el.classList.add("mf-hide"); };
       if (r === "1/2-1/2"){ mark("w", "draw", "draw", "Draw"); mark("b", "draw", "draw", "Draw"); }
       else { const lose = r === "1-0" ? "b" : "w"; mark(lose, "lose", k, {mate: "Checkmate", resign: "Resigned", time: "Time", left: "Left", lost: "Lost"}[k]); mark(lose === "w" ? "b" : "w", "win", "win", "Winner"); }
       if (o.burst && r !== "1/2-1/2"){ const sq = kingSquare(g, r === "1-0" ? "w" : "b"); if (sq){ const [x, y] = sqXY(sq, B.o), c = document.createElement("div"), cols = ["#81B64C", "#FFC93C", "#FFFFFF", "#5DCAA5", "#ED93B1", "#F7C631"];
@@ -4644,9 +4649,13 @@ function bookMove(g, bot){
    every bot sloppier. Rating → style is one smooth curve, calibrated offline: the average centipawn loss of each
    rating matches human blitz play, and bots 300 points apart score about 75–85 % against each other. */
 const BOT_TC_HEAT = {bullet: 1.3, blitz: 1, rapid: .85, none: .85};
+/* what the curve below gets for a bot of rating R. Checked against real games in Nov 2026: a 1044 player scored 2 of 12 against
+   Ines (1050) and 0 of 5 against Greta (1100) — the bots from about 900 up played ~250 points above their number. So from 900 to 2000
+   a bot plays 250 lower on the curve; below 400 and from 2800 (full engine) nothing changes, with smooth ramps in between. */
+function botCurveR(R){ const d = R <= 400 ? 0 : R < 900 ? 250 * (R - 400) / 500 : R <= 2000 ? 250 : R < 2800 ? 250 * (2800 - R) / 800 : 0; return R - d; }
 function botStyle(bot){
-  const r = bot.rEff || bot.r;
-  if (bot.engine || r >= 3000) return {depth: bot.depth || 16, T: 0, blind: 0, mpv: 1};
+  const R = bot.rEff || bot.r, r = botCurveR(R);
+  if (bot.engine || R >= 3000) return {depth: bot.depth || 16, T: 0, blind: 0, mpv: 1};
   const x = (r - 900) / 100;
   /* depth grows smoothly: 3.6 means depth 3 or 4 at random, so neighbours have no jumps between them */
   const d = clamp(3 + x * .28, 2, 10), depth = Math.floor(d) + (Math.random() < d % 1 ? 1 : 0);
@@ -5057,7 +5066,8 @@ Views.bots = {
       if (!Openings.map){ if (!G.opnWait){ G.opnWait = true; Openings.load().then(() => { if (this.G === G) this.panel(); }); } }
       else { const o = Openings.ofGame(G.g, G.startFen); const fresh = o && o.name !== G.opnName; if (o) G.opnName = o.name;
         const h2 = G.g.history(), out = o && h2.length > o.ply + 1 ? `Out of the book since move ${Math.floor(o.ply / 2) + 1}.` : "";
-        opn = Openings.card(o, {fresh: fresh && h2.length > 0, note: out, noLesson: !G.over}); }
+        const sd = o ? Openings.sidesOfGame(G.g, G.startFen) : null; if (sd){ sd.me = G.color; sd[G.color + "l"] = "You"; sd[(G.color === "w" ? "b" : "w") + "l"] = G.bot.name; }
+        opn = Openings.card(o, {fresh: fresh && h2.length > 0, note: out, noLesson: !G.over, sides: sd}); }
     }
     $("#sp").innerHTML = `${tip}${opn}${G.chat ? `<div class="chat"><div class="av">${botAvatar(G.bot, 44)}</div><div class="bubble">${esc(G.chat)}</div></div>` : ""}
       <div class="h-sec">Moves</div><div class="moves" id="mvl">${mv || `<span></span><span class="dim">No moves yet</span>`}</div>
@@ -6630,6 +6640,47 @@ const Openings = {
     const r = this.ofFens(fens); if (this.map) this.memo.set(sig, r); return r;
   },
   ofPgn(pgn){ const g = new Chess(); if (!g.load_pgn(pgn || "", {sloppy: true})) return null; return this.ofGame(g, g.header().FEN); },
+  /* who plays what: the name each side's own moves gave the game. A new opening name set by Black's move is Black's defence
+     (1...e6: French Defense), one set by White's move is White's (2.Bc4: Bishop's Opening); a variation added by a move belongs
+     to that side too (6.Nxf7: Alien Gambit, 3...Bc5: Giuoco Piano). Where the book says nothing about a side ("King's Pawn
+     Game"), its setup is recognised from where its own pieces went (e4 + Bc4 on move 2: Bishop's Opening). */
+  WEAK: /^(King's Pawn Game|Queen's Pawn Game|Main Line|Mainline|Normal Variation|Modern Variations|Closed|Open)$/i,
+  sides(fens){
+    if (!this.map || !fens || fens.length < 2) return null; const out = {w: null, b: null}; let pb = "", pv = "";
+    for (let i = 1; i < fens.length && i <= 40; i++){ const r = this.at(fens[i]); if (!r) continue;
+      const c = fens[i - 1].split(" ")[1], parts = r.name.split(":"), base = parts[0].trim(), vari = parts.slice(1).join(":").trim();
+      if (base !== pb && !this.WEAK.test(base)) out[c] = base;
+      if (vari && vari !== pv && !this.WEAK.test(vari)) out[c] = vari;
+      pb = base; pv = vari; }
+    if (!out.w && /^Sicilian/.test(out.b || "") && this.setup(fens, "w", "d4")) out.w = "Open Sicilian";
+    for (const c of ["w", "b"]) if (!out[c]) out[c] = this.setup(fens, c);
+    return out;
+  },
+  sidesOfGame(g, startFen){ const h = g.history({verbose: true}), t = new Chess(startFen || undefined), fens = [t.fen()]; h.slice(0, 40).forEach(m => { t.move(m); fens.push(t.fen()); }); return this.sides(fens); },
+  /* a side's setup from its own first moves, for when the book names only the other side */
+  setup(fens, c, only){
+    const mv = []; for (let i = 1; i < fens.length && mv.length < 10; i++){ if (fens[i - 1].split(" ")[1] !== c) continue; const a = new Chess(fens[i - 1]), b = new Chess(fens[i]);
+      const m = a.moves({verbose: true}).find(x => { const t = new Chess(fens[i - 1]); t.move(x); return t.fen().split(" ")[0] === b.fen().split(" ")[0]; }); if (m) mv.push(m); }
+    if (!mv.length) return null; const did = (p, to, k) => mv.slice(0, k || 10).some(m => m.piece === p && m.to === to), first = mv[0];
+    if (only) return did("p", only, 4);
+    if (c === "w"){
+      if (did("p", "d4", 3) && did("b", "f4", 4)) return "London System";
+      if (first.to === "e4" && mv[1] && mv[1].piece === "b" && mv[1].to === "c4") return "Bishop's Opening";
+      if (did("p", "e4", 1) && did("n", "f3", 4) && did("b", "c4", 5)) return "Italian setup";
+      if (did("p", "e4", 1) && did("n", "f3", 4) && did("b", "b5", 5)) return "Spanish setup";
+      if (did("n", "f3", 3) && did("p", "g3", 4) && did("b", "g2", 5)) return "King's Indian Attack";
+      if (did("p", "d4", 2) && did("p", "e3", 4) && did("b", "d3", 5)) return "Colle System";
+      if (did("p", "d4", 1) && did("p", "c4", 3)) return "Queen's Gambit setup";
+      if (first.to === "c4" && first.piece === "p") return "English Opening";
+      return first.to === "e4" ? "King's Pawn Opening" : first.to === "d4" ? "Queen's Pawn Opening" : null;
+    }
+    if (did("p", "d5", 3) && did("p", "e6", 3)) return "Queen's Gambit Declined setup";
+    if (did("p", "d5", 3) && did("p", "c6", 3)) return "Slav setup";
+    if (did("n", "f6", 3) && did("p", "g6", 3) && did("b", "g7", 5)) return "King's Indian setup";
+    if (did("p", "f5", 2)) return "Dutch setup";
+    if (first.to === "e5" && first.piece === "p") return "Open Game (1...e5)";
+    return null;
+  },
   fam(name){ const base = name.split(":")[0].trim(); if (OPENING_FAMILIES[base]) return OPENING_FAMILIES[base];
     const k = Object.keys(OPENING_FAMILIES).filter(f => base.startsWith(f)).sort((x, y) => y.length - x.length)[0]; return k ? OPENING_FAMILIES[k] : null; },
   family(name){ const f = this.fam(name); return f ? f[1] : null; },
@@ -6642,7 +6693,9 @@ const Openings = {
     const parts = o.name.split(":"), base = parts[0].trim(), vari = parts.slice(1).join(":").trim(), fam = this.family(o.name), open = this.opened.has(base);
     const les = this.lesson(o.name), done = les && S.lessons[les] && S.lessons[les].done, th = typeof theoryFor === "function" && theoryFor(o.name), noL = extra && extra.noLesson;
     const btns = `${th && !noL ? `<button class="btn sm" data-otheory="${th.id}">Theory</button>` : ""}${les && !noL ? `<button class="btn sm ${done ? "" : "go"}" data-olesson="${les}">${done ? "Review" : "Learn it"}</button>` : ""}`;
-    return `<div class="opn ${extra && extra.fresh ? "new" : ""} ${open ? "open" : ""}" data-obase="${esc(base)}"><button class="opn-h" data-otog aria-expanded="${open}"><span class="opn-ic">${this.icon(o.name)}</span><span class="opn-t"><b>${esc(base)}</b>${vari ? `<small>${esc(vari)}</small>` : ""}</span><span class="opn-ch" aria-hidden="true">›</span></button>
+    const sd = extra && extra.sides, side = c => sd && sd[c] ? `<span class="os ${c}"><i></i><b ${sd[c + "l"] === "You" ? "" : "data-notr"}>${esc(sd[c + "l"] || (c === "w" ? "White" : "Black"))}</b><span>${esc(sd[c])}</span></span>` : "";
+    const sides = sd && (sd.w || sd.b) ? `<div class="opn-sides">${side(sd.me === "b" ? "b" : "w")}${side(sd.me === "b" ? "w" : "b")}</div>` : "";
+    return `<div class="opn ${extra && extra.fresh ? "new" : ""} ${open ? "open" : ""}" data-obase="${esc(base)}"><button class="opn-h" data-otog aria-expanded="${open}"><span class="opn-ic">${this.icon(o.name)}</span><span class="opn-t"><b>${esc(base)}</b>${vari ? `<small>${esc(vari)}</small>` : ""}${sides}</span><span class="opn-ch" aria-hidden="true">›</span></button>
       <div class="opn-b"><div class="opn-bi">${fam ? `<p>${esc(fam)}</p>` : ""}${extra && extra.note ? `<p class="dim">${extra.note}</p>` : ""}${btns ? `<div class="row opn-btns">${btns}</div>` : ""}</div></div></div>`;
   },
   wire(root){ if (!root) return; root.querySelectorAll("[data-olesson]").forEach(b => b.onclick = () => App.go("lesson", {id: b.dataset.olesson})); root.querySelectorAll("[data-otheory]").forEach(b => b.onclick = () => App.go("theory", {id: b.dataset.otheory}));
@@ -6885,7 +6938,8 @@ Views.review = {
     let mv = ""; for (let i = 0; i < A.moves.length; i += 2){ const n = i / 2 + 1;
       const cell = j => { if (!A.moves[j]) return `<span></span>`; const c = A.cls[j]; const k = c ? CLS[c] : null; return `<span class="m ${A.ply === j + 1 ? "cur" : ""}" data-ply="${j + 1}">${k && ["brilliant","great","inaccuracy","mistake","miss","blunder"].includes(c) ? `<span class="cls" style="background:${k.c};width:16px;height:16px;font-size:9px;margin-right:4px">${k.sym}</span>` : ""}${esc(A.moves[j].san)}</span>`; };
       mv += `<span class="n">${n}.</span>${cell(i)}${cell(i + 1)}`; }
-    const opnCard = S.settings.openings !== false && A.open ? Openings.card(A.open, {note: A.moves.length > A.open.ply ? `You both played known opening moves until move ${Math.floor((A.open.ply - 1) / 2) + 1}.` : ""}) : "";
+    const sd = A.open ? Openings.sides(A.fens) : null, mine = !!this.meta; if (sd){ sd.me = A.me; const W = A.hdr.White || "White", Bn = A.hdr.Black || "Black"; sd.wl = mine && A.me === "w" ? "You" : W; sd.bl = mine && A.me === "b" ? "You" : Bn; }
+    const opnCard = S.settings.openings !== false && A.open ? Openings.card(A.open, {sides: sd, note: A.moves.length > A.open.ply ? `You both played known opening moves until move ${Math.floor((A.open.ply - 1) / 2) + 1}.` : ""}) : "";
     const off = A.done && !errText && (this.LN || this.xOn());
     if (off) $("#sp").innerHTML = this.backBar(this.LN ? "You're looking at a line of Coach Nat" : "You're trying your own moves") + (this.xOn() ? this.xPanel() : this.explain(A.ply - 1)) + `<div class="h-sec">Moves</div><div class="moves">${mv}</div>`;
     else $("#sp").innerHTML = (top.includes("<!--OPN-->") ? top.replace("<!--OPN-->", opnCard) : opnCard + top) + (A.done && A.X && !A.X.on && A.X.rootPly === A.ply && A.X.nodes.length ? `<button class="btn sm cw-ask" data-xback>${icon("map", 16)}<span>Back to your own line</span></button>` : "") + `<div class="h-sec">Moves</div><div class="moves">${mv}</div>`;
@@ -7142,10 +7196,12 @@ const Coach = {
 };
 /* ===== End of a game: accuracy, game rating and Coach Nat's verdict right on the end screen =====
    The same analysis as the Game Review (kept in its cache, so opening the review afterwards is instant). */
-/* "how strong did you play in this game": an estimate from the accuracy, like the game rating on big chess sites (rough, ±200) */
+/* "how strong did you play in this game": an estimate from the accuracy (rough, ±250 for one game).
+   Set to the ratings in this app (Nov 2026): players around 1050 play about 79 % in their games, so 79 % ≈ 1050.
+   The old table gave the same 79 % about 1400, so everyone looked 300–400 points better than their rating. */
 function gameRating(acc, n){
   if (acc == null || !(n >= 6)) return null;
-  const T = [[0, 100], [30, 150], [40, 300], [50, 500], [60, 750], [70, 1050], [75, 1250], [80, 1450], [85, 1700], [90, 2000], [93, 2250], [96, 2550], [98, 2800], [100, 3000]];
+  const T = [[0, 100], [30, 150], [40, 250], [50, 350], [60, 500], [70, 750], [75, 900], [79, 1050], [82, 1200], [85, 1400], [88, 1650], [90, 1850], [93, 2150], [96, 2500], [98, 2750], [100, 3000]];
   for (let k = 1; k < T.length; k++) if (acc <= T[k][0]){ const [a0, r0] = T[k - 1], [a1, r1] = T[k]; return Math.round((r0 + (r1 - r0) * (acc - a0) / (a1 - a0)) / 25) * 25; }
   return 3000;
 }

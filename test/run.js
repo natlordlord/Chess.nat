@@ -114,6 +114,38 @@ const PARTS = {
   },
 
   /* ---------- Spielende: Matt-Animation über dem König, danach der Endbildschirm mit Genauigkeit, Game-Rating und Coach Nat ---------- */
+  async eroeffnung(browser){
+    const page = await L.open(browser, "tester"); await sleep(800);
+    await page.evaluate(() => Openings.load()); await sleep(300);
+    const S = async l => page.evaluate(l => { const t = new Chess(), f = [t.fen()]; l.split(" ").forEach(m => { t.move(m); f.push(t.fen()); }); return Openings.sides(f); }, l);
+    let r = await S("e4 e6 Bc4 Ne7 d3 Nbc6 Nf3 d5 Bf4"); ok(r.w === "Bishop's Opening" && r.b === "French Defense", "1.e4 e6 2.Bc4: Weiß Läuferspiel, Schwarz Französisch → " + JSON.stringify(r));
+    r = await S("e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Ng5 h6 Nxf7"); ok(r.w === "Alien Gambit" && r.b === "Caro-Kann Defense", "Alien Gambit für Weiß, Caro-Kann für Schwarz → " + JSON.stringify(r));
+    r = await S("e4 e5 Nf3 Nc6 Bc4 Bc5"); ok(r.w === "Italian Game" && r.b === "Giuoco Piano", "Italienisch: Weiß Italian Game, Schwarz Giuoco Piano → " + JSON.stringify(r));
+    r = await S("d4 d5 Bf4 Nf6 e3 e6"); ok(/London/.test(r.w) && r.b, "Londoner System erkannt → " + JSON.stringify(r));
+    r = await S("e4 c5 Nf3 d6 d4"); ok(/Sicilian/.test(r.b) && r.w === "Open Sicilian", "Sizilianisch für Schwarz, Offenes Sizilianisch für Weiß → " + JSON.stringify(r));
+    /* im Spiel gegen den Bot: unter dem Namen steht, was du spielst und was der Bot spielt */
+    await page.evaluate(() => App.go("bots")); await sleep(500);
+    await page.evaluate(() => Views.bots.start(BOTS.find(b => b.id === "ines"), "w", {spar: false, coach: false, hints: false, threats: false, tips: false, level: "normal", tc: null, rated: false})); await sleep(1000);
+    await page.evaluate(() => { const G = Views.bots.G; G.thinking = true; ["e4", "e6", "Bc4", "Ne7"].forEach(m => G.g.move(m)); G.board.set(G.g, null); G.thinking = false; Views.bots.panel(); }); await sleep(400);
+    const tx = await txt(page, ".opn-sides"); ok(/(You|Du)[\s\S]*(Bishop's Opening|Läuferspiel)/.test(tx) && /Ines[\s\S]*(French Defense|Französisch)/.test(tx), "Spiel: „Du – Läuferspiel“, „Ines – Französisch“ → " + tx.replace(/\s+/g, " "));
+    await page.evaluate(() => document.querySelectorAll(".lvup, .ntf, .notif").forEach(n => n.remove())); await page.evaluate(() => document.querySelector(".opn") && document.querySelector(".opn").scrollIntoView({block: "center"})); await sleep(300); await page.shot("eroeffnung-seiten");
+    /* Partieanalyse: beide Seiten in der Eröffnungskarte, Felder in der Farbe der Bewertung */
+    await page.evaluate(() => { const p = '[White "Nat Tester"]\n[Black "Ines"]\n[Result "0-1"]\n\n1. e4 e6 2. Bc4 Ne7 3. d3 Nbc6 4. Nf3 d5 5. Bf4 dxc4 6. dxc4 Qxd1+ 7. Kxd1 Bd7 0-1'; App.go("review", {pgn: p, meta: {id: "t-op", color: "w", result: "0-1", opponent: "Ines"}}); });
+    await page.waitForSelector(".opn-sides", {timeout: 120000}).catch(() => {});
+    const rt = await txt(page, ".opn-sides"); ok(/(You|Du)[\s\S]*Bishop's Opening/.test(rt) && /Ines[\s\S]*French Defense/.test(rt), "Partieanalyse: „Du – Bishop's Opening“, „Ines – French Defense“ → " + rt.replace(/\s+/g, " "));
+    await page.evaluate(() => Views.review.go && Views.review.go(3)); await sleep(500);
+    await page.waitForFunction(() => Views.review.A && Views.review.A.cls && Views.review.A.cls.length > 4, null, {timeout: 150000}).catch(() => {});
+    ok(await page.evaluate(() => document.querySelectorAll(".sq.tint").length === 2), "Partieanalyse: die zwei Felder des Zugs in der Farbe seiner Bewertung");
+    await page.shot("review-farbe");
+    await page.close();
+    /* am Laptop: das Zeichen bleibt klein und verdeckt die Figur nicht */
+    { const dp = await L.open(browser, "tester", {desktop: true}); await sleep(800);
+      await dp.evaluate(() => { const p = '[White "Nat Tester"]\n[Black "Ines"]\n[Result "0-1"]\n\n1. e4 e6 2. Bc4 Ne7 3. d3 Nbc6 4. Nf3 d5 5. Bf4 dxc4 6. dxc4 Qxd1+ 7. Kxd1 Bd7 0-1'; App.go("review", {pgn: p, meta: {id: "t-op", color: "w", result: "0-1", opponent: "Ines"}}); });
+      await dp.waitForFunction(() => Views.review.A && Views.review.A.cls && Views.review.A.cls.length > 4, null, {timeout: 150000}).catch(() => {});
+      await dp.evaluate(() => Views.review.go(3)); await sleep(500);
+      ok(await dp.evaluate(() => { const b = document.querySelector(".badge-mv").getBoundingClientRect(), q = document.querySelector('.sq[data-sq="c4"]').getBoundingClientRect(); return b.width < q.width * .45 && b.width > 18; }), "am Laptop: Zeichen der Zug-Bewertung kleiner als ein halbes Feld");
+      await dp.shot("review-farbe-laptop"); await dp.close(); }
+  },
   async matt(browser){
     const page = await L.open(browser, "tester"); await sleep(800);
     await page.evaluate(() => App.go("bots")); await sleep(500);
@@ -121,12 +153,22 @@ const PARTS = {
     await page.evaluate(() => Views.bots.start(BOTS.find(b => b.id === "ines"), "w", {spar: false, coach: false, hints: false, threats: false, tips: false, level: "normal", tc: null, rated: false}, "r1bqkbnr/pppp1ppp/2n5/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4")); await sleep(1200);
     await page.evaluate(() => Views.bots.G.board.onMove("h5", "f7")); await sleep(500);
     ok(await has(page, ".ef-conf i"), "gewonnen: Konfetti aus dem Feld des Siegers"); await sleep(200);
-    ok(/Checkmate|Schachmatt/.test(await txt(page, ".endfx.lose .ef-pill")) && /Winner|Sieger/.test(await txt(page, ".endfx.win .ef-pill")) && await page.evaluate(() => !!document.querySelector(".endfx.lose") && document.querySelector(".endfx.lose").style.top === "0%"), "Matt: rotes Feld mit # und „Schachmatt“ am schwarzen König (e8), grünes Feld mit Krone und „Sieger“ beim weißen");
+    ok(/Checkmate|Schachmatt/.test(await txt(page, ".endfx.lose .ef-pill")) && /Winner|Sieger/.test(await txt(page, ".endfx.win .ef-pill")) && await page.evaluate(() => !!document.querySelector(".endfx.lose") && document.querySelector(".endfx.lose").style.top === "0%"), "Matt: rotes Feld mit weißem König und „Schachmatt“ am schwarzen König (e8), grünes Feld mit Krone und „Sieger“ beim weißen");
     ok(!(await has(page, ".overlay .card-over")), "der Endbildschirm wartet, bis man das Matt gesehen hat");
     await page.evaluate(() => document.querySelectorAll(".lvup, .ntf, .notif").forEach(n => n.remove())); await sleep(500); await page.shot("matt-animation");
     await page.waitForSelector(".overlay .card-over", {timeout: 6000}).catch(() => {});
     ok(await has(page, ".overlay .card-over") && /won|gewonnen/i.test(await txt(page, ".overlay .card-over")), "danach kommt der Endbildschirm „You won“");
     ok(await has(page, ".endfx.lose"), "die Zeichen bleiben auf dem Brett stehen");
+    /* Zug-Bewertung auf dem Brett: beide Felder des Zugs in der Farbe der Bewertung, kleines Zeichen in der Ecke */
+    await page.evaluate(() => { const B = Views.bots.G.board; B.badge("f7", CLS.brilliant.sym, CLS.brilliant.c); });
+    ok(await page.evaluate(() => { const t = [...document.querySelectorAll(".sq.tint")].map(d => d.dataset.sq).sort().join(); const b = document.querySelector(".badge-mv").getBoundingClientRect(), q = document.querySelector('.sq[data-sq="f7"]').getBoundingClientRect(); return t === "f7,h5" && b.width < q.width * .5; }), "Zug-Bewertung: Von- und Zielfeld in der Farbe der Bewertung, das Zeichen kleiner als ein halbes Feld");
+    await page.evaluate(() => Views.bots.G.board.badge(null)); ok(await page.evaluate(() => !document.querySelector(".sq.tint")), "ohne Bewertung keine Färbung");
+    /* am Computer: die Zeichen bleiben so groß wie ein Feld, das Label klein */
+    { const dp = await L.open(browser, "tester", {desktop: true}); await sleep(800); await dp.evaluate(() => App.go("bots")); await sleep(500);
+      await dp.evaluate(() => Views.bots.start(BOTS.find(b => b.id === "ines"), "w", {spar: false, coach: false, hints: false, threats: false, tips: false, level: "normal", tc: null, rated: false}, "r1bqkbnr/pppp1ppp/2n5/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4")); await sleep(1200);
+      await dp.evaluate(() => Views.bots.G.board.onMove("h5", "f7")); await sleep(900);
+      ok(await dp.evaluate(() => { const p = document.querySelector(".endfx.lose .ef-pill").getBoundingClientRect(), q = document.querySelector(".endfx.lose").getBoundingClientRect(); return p.height < q.height * .4 && p.width < q.width * 1.4 && !!document.querySelector(".endfx.lose .ef-k"); }), "am Computer: „Schachmatt“-Label klein (unter 40 % der Feldhöhe), statt # der weiße König");
+      await dp.shot("matt-desktop"); await dp.close(); }
     /* Aufgeben: dasselbe, mit Fahne und „Aufgegeben“ */
     await page.evaluate(() => Views.bots.start(BOTS.find(b => b.id === "ines"), "w", {spar: false, coach: false, hints: false, threats: false, tips: false, level: "normal", tc: null, rated: false})); await sleep(1000);
     await page.evaluate(() => Views.bots.finish("0-1", "by resignation")); await sleep(400);
