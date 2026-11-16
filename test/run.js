@@ -774,6 +774,38 @@ const PARTS = {
     await clean(page, "Tippen"); await page.context().close();
   },
 
+  /* ---------- Frag Nat: the AI coach in the calorie tracker (Idee von Finnel) ---------- */
+  async fragnat(browser){
+    const page = await L.open(browser, "tester", {before: () => {
+      class SR { start(){ SR.cur = this; setTimeout(() => this.onstart && this.onstart(), 10); } stop(){ setTimeout(() => this.onend && this.onend(), 20); } abort(){ this.stop(); } }
+      window.SpeechRecognition = window.webkitSpeechRecognition = SR;
+      window.__hear = t => { const r = SR.cur; if (r && r.onresult) r.onresult({resultIndex: 0, results: Object.assign([Object.assign([{transcript: t, confidence: .9}], {isFinal: true})], {length: 1})}); };
+    }});
+    await page.waitForSelector("#kcai"); await page.locator("#kcai").scrollIntoViewIfNeeded(); await page.shot("fragnat-start"); ok(/Frag Nat/.test(await txt(page, "#kcai")), "Kalorien-Start: Kachel „Frag Nat“ neben dem Haushalt");
+    await page.tap("#kcai"); await page.waitForSelector("#kcaiq"); await sleep(400); await page.shot("fragnat-leer");
+    let t = await txt(page, ".kc-aiov"); ok(/Warum stagniert mein Gewicht/.test(t) && /eingetragen wird nichts/.test(t), "leer: Startfragen zum Antippen und der Hinweis, was mit den Daten passiert", t.slice(0, 200));
+    const n0 = (global.__aiChat || []).length;
+    await page.tap(".kc-aich >> nth=0"); await page.waitForSelector(".kc-aia", {timeout: 8000}); await sleep(300); t = await txt(page, ".kc-aic"); await page.shot("fragnat-antwort");
+    ok(/Zu „Warum stagniert mein Gewicht\?“/.test(t) && /78 kg/.test(t), "eine Startfrage antippen fragt sofort; die Antwort kennt das eigene Gewicht", t.slice(0, 200));
+    const sent = (global.__aiChat || [])[n0] || "";
+    ok(/Tagesziele: \d+ kcal/.test(sent) && /Gewicht \(neueste zuerst\): \S+ 78 kg nüchtern; \S+ 77.2 kg/.test(sent) && /Tage mit Einträgen/.test(sent) && /Mahlzeiten seit/.test(sent) && !/Mila|60.2/.test(sent),
+      "mitgeschickt: Ziele, Gewichtsverlauf, Tage und Mahlzeiten – nur die eigenen", sent.slice(0, 400));
+    ok(await has(page, ".kc-aia b") && await has(page, ".kc-aia li"), "fett und Listen in der Antwort werden schön dargestellt");
+    ok(/Und am Wochenende\?/.test(await txt(page, "#kcaisg")), "danach: Anschlussfragen zum Antippen");
+    /* speaking: the microphone listens, a second tap asks */
+    await page.tap(".kc-aiov [data-mic]"); await sleep(150); await page.evaluate(() => window.__hear("wie viel protein brauche ich")); await sleep(150);
+    ok(await page.inputValue("#kcaiq") === "wie viel protein brauche ich", "Sprechen schreibt die Frage ins Feld");
+    await page.tap(".kc-aiov [data-mic]"); await page.waitForFunction(() => document.querySelectorAll(".kc-aia").length === 2, null, {timeout: 8000});
+    const sent2 = (global.__aiChat || [])[n0 + 1] || "";
+    ok(/FRAGE: wie viel protein brauche ich/.test(sent2) && /Er: Warum stagniert mein Gewicht\?/.test(sent2), "Mikrofon nochmal tippen fragt; das Gespräch bisher geht mit", sent2.slice(-300));
+    ok(/wie viel protein/i.test(await txt(page, ".kc-aic >> nth=0")), "die neueste Antwort steht oben, direkt unter dem Feld");
+    /* stays when you come back, "Neu" clears */
+    await page.tap("#kcaix"); await sleep(400); await page.tap("#kcai"); await page.waitForSelector(".kc-aia"); ok((await page.locator(".kc-aia").count()) === 2, "beim nächsten Öffnen ist das Gespräch noch da");
+    await page.tap("#kcainew"); await sleep(200); ok((await page.locator(".kc-aia").count()) === 0 && await has(page, ".kc-aich"), "„Neu“ fängt ein neues Gespräch an");
+    await page.tap("#kcaix"); await sleep(300);
+    await clean(page, "Frag Nat"); await page.context().close();
+  },
+
   /* ---------- Nations League: groups, what has to happen (with the tie-breakers), what if, bracket ---------- */
   async nations(browser){
     const page = await L.open(browser, "tester"); await page.tap('#tabbar [data-t="tipp"]'); await sleep(1500);

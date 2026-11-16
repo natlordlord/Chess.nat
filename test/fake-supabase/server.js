@@ -124,6 +124,9 @@ function ai(req){
       lines: L.map(m => ({id: m[1], title: m[2] ? m[2].slice(0, 40) : "Main line", comments: m[3].trim().split(/\s+/).map((mv, k) => "Comment " + (k + 1) + " on " + mv)}))}; }
   if (kind === "coach_summary"){ global.__coachSum = (global.__coachSum || []).concat([user]); return {headline: "Decided by the open king", text: "On move 6 you could have taken on g5 and attacked their king.", tip: "When their f-pawn is gone, look for a queen check."}; }
   if (kind === "coach_goal"){ global.__coachGoal = (global.__coachGoal || 0) + 1; return {goal: "Go after their open king", why: "Their king has lost a pawn in front of it.", look: "Which of my pieces can reach their king fastest?", danger: ""}; }
+  /* Frag Nat: answers with what arrived (the newest weight, how many days, the question), so a test can see the data went along */
+  if (kind === "answer"){ global.__aiChat = (global.__aiChat || []).concat([user]); const kg = (/Gewicht \(neueste zuerst\): \S+ ([\d.,]+) kg/.exec(user) || [])[1], q = (/FRAGE: (.*)$/m.exec(user) || [])[1] || "", days = (user.split("Tage mit Einträgen")[1] || "").split("\n").filter(l => /^\d{4}-/.test(l)).length;
+    return {answer: `Zu „${q}“: Dein letztes Gewicht ist **${kg || "?"} kg**, ${days} Tage sind eingetragen.\n- Wieg dich morgens nüchtern\n- Achte auf den Wochenschnitt`, more: ["Und am Wochenende?", "Wie viel Protein brauche ich?"]}; }
   /* a photographed nutrition table: the numbers "printed" on the test pack */
   if (kind === "label") return {readable: true, name: "Skyr Vanille", brand: "Milbona", unit: "g", kcal: 76, kj: 322, fat: 0.2, satfat: 0.1, carbs: 9.4, sugar: 9.1, fiber: -1, protein: 9.0, salt: 0.13};
   if (kind === "shop"){ const words = said.split(/,| und /).map(s => s.trim()).filter(Boolean), dish = words.filter(w => /lasagne|chili|kuchen|pizza/i.test(w));

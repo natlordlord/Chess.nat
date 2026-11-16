@@ -1390,6 +1390,84 @@
   /* ---------- the shopping list: lists you share with the friends you pick. Everyone on a list adds products (typed or searched),
      ticks off what is bought and can say "I'll buy that"; every row shows who put it there and who takes care of it.
      Changes by the others arrive live ---------- */
+  /* ---------- Frag Nat (Idee von Finnel): the AI coach to talk to, typed or spoken. Every question takes along what the tracker
+     knows about you (goals, body, weight, the last 60 days, the meals of the last week); it only answers, nothing is written
+     into the tracker, and no one else's data goes along. Like the shopping list, everything sits at the top (the iPhone
+     keyboard never covers it): the field, then the newest answer, older ones below. ---------- */
+  const STARTERS = ["Warum stagniert mein Gewicht?", "Wie war meine Woche?", "Was esse ich heute noch?", "Woher mehr Protein?"];
+  const Ai = { log: [], busy: false, sh: null,
+    key(){ return "chessnat-kc-ai-" + meId(); },
+    load(){ try { const l = JSON.parse(localStorage.getItem(this.key()) || "[]"); this.log = Array.isArray(l) ? l : []; } catch(e) { this.log = []; } },
+    save(){ try { localStorage.setItem(this.key(), JSON.stringify(this.log.slice(-30))); } catch(e) {} },
+    /* everything the tracker knows, short */
+    ctx(){ const T = K.targets(), b = K.body || {}, t = today(), r = n => Math.round(Number(n) || 0), L = [];
+      const act = {1.2: "kaum Bewegung", 1.375: "leicht aktiv", 1.55: "aktiv", 1.725: "sehr aktiv", 1.9: "extrem aktiv"}[b.activity] || (b.activity ? "Faktor " + b.activity : "");
+      L.push(`Ziel: ${aimName() || "nicht eingerichtet"}. Tagesziele: ${r(T.kcal)} kcal, Protein ${r(T.protein)} g, KH ${r(T.carbs)} g, Fett ${r(T.fat)} g${b.custom ? " (selbst eingestellt)" : ""}.`);
+      if (b.setup_at) L.push(`Körper: ${b.sex === "f" ? "weiblich" : b.sex === "m" ? "männlich" : "?"}, ${b.born ? new Date().getFullYear() - b.born + " Jahre" : "Alter ?"}, ${b.height ? b.height + " cm" : "Größe ?"}${act ? ", " + act : ""}.`);
+      L.push(`Ziel-Serie (Flammen): ${K.flame()} Tage.`);
+      const W = (K.weights || []).slice(0, 90); if (W.length) L.push(`Gewicht (neueste zuerst): ${W.map(w => `${String(w.ts).slice(0, 10)} ${w.kg} kg${w.fasted ? " nüchtern" : ""}`).join("; ")}`);
+      else if (b.weight) L.push(`Gewicht: ${b.weight} kg (beim Einrichten).`);
+      const days = [...new Set(K.meals.map(m => m.day))].sort().reverse().slice(0, 60);
+      L.push(days.length ? `Tage mit Einträgen (neueste zuerst):\n${days.map(d => `${d} ${new Date(d + "T12:00").toLocaleDateString("de-DE", {weekday: "short"})}: ${r(K.dayKcal(d))} kcal, P ${r(K.daySum(d, "protein"))}, KH ${r(K.daySum(d, "carbs"))}, F ${r(K.daySum(d, "fat"))} (${K.dayMeals(d).length} Einträge)`).join("\n")}` : "Noch keine Einträge.");
+      const since = addDays(t, -6), M = K.meals.filter(m => m.day >= since).slice(0, 60);
+      if (M.length) L.push(`Mahlzeiten seit ${since}:\n${M.map(m => `${m.day} ${hhmm(m.ts)} ${String(m.title || "").slice(0, 40)}: ${r(m.kcal)} kcal, P ${r(m.protein)}, KH ${r(m.carbs)}, F ${r(m.fat)}${Array.isArray(m.items) && m.items.length > 1 ? " [" + m.items.slice(0, 6).map(i => String(i.name || "").replace(/\s+/g, " ").slice(0, 30) + (i.g || i.grams ? " " + r(i.g || i.grams) + " g" : "")).join(", ") + "]" : ""}`).join("\n")}`);
+      return L.join("\n").slice(0, 13000); },
+    open(){
+      if (!meId()) return say("Bitte erst anmelden"); this.load();
+      const ov = document.createElement("div"); ov.className = "kc-sov kc-aiov"; ov.setAttribute("data-notr", ""); ov.lang = "de";
+      ov.innerHTML = `<div class="kc-sovt"><b class="kc-shtt"><span class="kc-aiic">🤖</span><span>Frag Nat</span></b><button class="kc-sx kc-ainew" id="kcainew">Neu</button><button class="kc-sx" id="kcaix">Fertig</button></div>
+        <div class="kc-sovb" id="kcaib"><div class="kc-shbar"><input id="kcaiq" maxlength="600" enterkeyhint="send" autocomplete="off" placeholder="Frag mich alles …"><button class="kc-shmic" data-mic aria-label="Sprechen">${svg(IC.mic, 24)}</button><button class="kc-shok" data-send aria-label="Fragen">➤</button></div>
+        <div id="kcaisg" class="kc-aisg"></div><div id="kcailst" class="kc-ailst"></div></div>`;
+      document.body.appendChild(ov); document.documentElement.classList.add("kc-sopen"); let closed = false;
+      const body = ov.querySelector("#kcaib"), vv = window.visualViewport, fit = () => { if (!vv || closed) return; const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop); body.style.paddingBottom = (kb + 24) + "px"; ov.style.transform = vv.offsetTop ? `translateY(${vv.offsetTop}px)` : ""; };
+      if (vv){ vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); fit(); }
+      const close = () => { if (closed) return; closed = true; this.micStop(); try { speechSynthesis.cancel(); } catch(e) {} if (vv){ vv.removeEventListener("resize", fit); vv.removeEventListener("scroll", fit); }
+        try { document.activeElement && document.activeElement.blur(); } catch(e) {} document.documentElement.classList.remove("kc-sopen"); this.sh = null;
+        if (ov.animate){ const an = ov.animate([{opacity: 1}, {opacity: 0}], {duration: 160, easing: "ease-in"}); an.onfinish = () => ov.remove(); } else ov.remove(); };
+      this.sh = {el: ov, close}; ov.querySelector("#kcaix").onclick = close;
+      ov.querySelector("#kcainew").onclick = () => { if (this.busy) return; haptic(10); this.log = []; this.save(); try { speechSynthesis.cancel(); } catch(e) {} this.draw(); };
+      if (ov.animate) ov.animate([{opacity: 0}, {opacity: 1}], {duration: 200, easing: "ease-out"});
+      const inp = this.inp = ov.querySelector("#kcaiq"), send = () => { const t = this.micLive() ? this.micStop() : inp.value.trim(); if (t) this.ask(t); };
+      ov.querySelector("[data-send]").onclick = send; inp.onkeydown = e => { if (e.key === "Enter"){ e.preventDefault(); send(); } };
+      this.wireMic(ov.querySelector("[data-mic]"), inp, send); this.draw();
+    },
+    /* speaking, like the shopping list: it keeps listening through pauses until you tap the microphone or ➤ again, then it asks */
+    wireMic(mic, inp, send){ const SR = window.SpeechRecognition || window.webkitSpeechRecognition; let want = false, base = "", rec = null, one = false;
+      const listen = () => { const r = rec = new SR(), t0 = Date.now(); let cur = "", got = false, bad = ""; r.lang = "de-DE"; r.interimResults = true; r.continuous = !one;
+        r.onresult = e => { cur = srText(e.results, /Android/i.test(navigator.userAgent)); got = true; inp.value = (base + " " + cur).trim(); };
+        r.onerror = e => { bad = e.error || "?"; if (/not-allowed|service-not-allowed|audio-capture/.test(bad)){ want = false; say("Das Mikrofon ist nicht erlaubt. Nimm das Mikrofon der Tastatur."); } };
+        r.onend = () => { base = (base + " " + cur).trim(); rec = null; if (!want){ mic.classList.remove("on"); return; }
+          if (!one && !got && (bad && !/no-speech/.test(bad) || Date.now() - t0 < 1500)) one = true;
+          setTimeout(() => { if (!want) return; try { listen(); } catch(e) { want = false; mic.classList.remove("on"); } }, 220); };
+        r.start(); };
+      this.micLive = () => want; this.micStop = () => { if (!want) return inp.value.trim(); want = false; try { if (rec) rec.stop(); } catch(e) {} mic.classList.remove("on"); const t = inp.value.trim(); base = ""; return t; };
+      mic.onclick = () => { if (want) return send(); if (!SR){ inp.focus(); return say("Tipp auf das Mikrofon der Tastatur und sprich, dann ➤"); }
+        want = true; base = inp.value.trim(); mic.classList.add("on"); haptic(12); try { listen(); } catch(e) { want = false; mic.classList.remove("on"); say("Das Mikrofon ging nicht"); } }; },
+    micLive(){ return false; }, micStop(){ return ""; },
+    /* **fett** and "- " lists, the rest as plain text */
+    fmt(t){ const lines = String(t || "").split(/\n+/), out = []; let ul = false;
+      lines.forEach(l => { const li = /^\s*[-•*]\s+/.test(l), x = h(l.replace(/^\s*[-•*]\s+/, "")).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+        if (li && !ul){ out.push("<ul>"); ul = true; } if (!li && ul){ out.push("</ul>"); ul = false; } out.push(li ? `<li>${x}</li>` : `<p>${x}</p>`); });
+      if (ul) out.push("</ul>"); return out.join(""); },
+    draw(){ if (!this.sh) return; const el = this.sh.el, lst = el.querySelector("#kcailst"), sg = el.querySelector("#kcaisg");
+      const last = this.log[this.log.length - 1], chips = this.busy ? [] : last && last.more && last.more.length ? last.more : !this.log.length ? STARTERS : [];
+      sg.innerHTML = chips.map((c, i) => `<button class="kc-aich" data-q="${i}">${h(c)}</button>`).join("");
+      sg.querySelectorAll("[data-q]").forEach(b => b.onclick = () => { haptic(8); this.ask(chips[+b.dataset.q]); });
+      const cards = this.log.slice().reverse().map((x, i) => `<div class="kc-aic ${i ? "old" : ""}"><div class="kc-aiq">${h(x.q)}</div>${x.err ? `<div class="kc-aierr">${h(x.err)} <button class="kc-aire" data-re="${this.log.length - 1 - i}">Nochmal</button></div>`
+        : `<div class="kc-aia">${this.fmt(x.a)}</div><button class="kc-aisp" data-sp="${this.log.length - 1 - i}" aria-label="Vorlesen">🔊</button>`}</div>`).join("");
+      lst.innerHTML = (this.busy ? `<div class="kc-aic"><div class="kc-aiq">${h(this.busy)}</div><div class="kc-aiw"><i></i><i></i><i></i> Nat schaut sich deine Daten an …</div></div>` : "")
+        + (cards || (this.busy ? "" : `<p class="muted kc-aihint">Ich kenne deine Einträge, deine Ziele und dein Gewicht. Frag mich alles – tippen oder 🎤 sprechen.<br><small>Für die Antwort gehen deine eigenen Daten an die KI; gespeichert wird dort nichts, und eingetragen wird nichts.</small></p>`));
+      lst.querySelectorAll("[data-re]").forEach(b => b.onclick = () => { const x = this.log[+b.dataset.re]; if (!x) return; this.log.splice(+b.dataset.re, 1); this.ask(x.q); });
+      lst.querySelectorAll("[data-sp]").forEach(b => b.onclick = () => { const x = this.log[+b.dataset.sp], S = window.speechSynthesis; if (!x || !S) return say("Vorlesen geht hier nicht");
+        if (S.speaking){ S.cancel(); if (b.classList.contains("on")){ b.classList.remove("on"); return; } } lst.querySelectorAll("[data-sp]").forEach(y => y.classList.remove("on"));
+        const u = new SpeechSynthesisUtterance(String(x.a).replace(/\*\*/g, "").replace(/^\s*[-•*]\s+/gm, "")); u.lang = "de-DE"; u.onend = () => b.classList.remove("on"); b.classList.add("on"); S.speak(u); }); },
+    async ask(q){ q = String(q || "").trim(); if (!q || this.busy) return; if (this.inp){ this.inp.value = ""; try { this.inp.blur(); } catch(e) {} }
+      this.busy = q; this.draw(); const hist = this.log.filter(x => !x.err).slice(-4).flatMap(x => [{r: "q", t: x.q}, {r: "a", t: x.a}]);
+      let x; try { const j = await api({mode: "chat", q, hist, ctx: this.ctx()}); x = {q, a: j.answer || "Dazu fällt mir gerade nichts ein.", more: j.more || [], at: Date.now()}; haptic(10); }
+      catch(e) { x = {q, err: e.message || "Das hat nicht geklappt.", at: Date.now()}; }
+      this.busy = false; this.log.push(x); if (!x.err) this.save(); this.draw(); const l = this.sh && this.sh.el.querySelector("#kcaib"); if (l) l.scrollTo({top: 0, behavior: "smooth"}); },
+  };
+
   const Shop = { lists: [], cur: null, items: [], mem: [], sh: null, ch: null,
     async open(){ if (!meId() || !sb()) return say("Bitte erst anmelden");
       /* a full screen like the food search, the way that already works with the iPhone keyboard: everything sits at the top,
@@ -1875,11 +1953,11 @@
       el.innerHTML = `<div id="hsslot" data-notr></div><div class="unit kc-sum">${sumHTML(t, false)}
         <div class="kc-btns two"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 32)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 32)}<span>Barcode</span></button></div>
         <div class="kc-srow"><button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Lebensmittel suchen …</span></button><button class="kc-phb" data-kc-photo aria-label="Foto vom Essen">📷<small>Foto</small></button></div>
-        <div class="kc-btns two"><button class="kc-tile shop" id="kcshop">${svg(IC.list, 24)}<span><b>Einkaufsliste</b><small>mit Freunden</small></span></button><button class="kc-tile cook" id="kccook">${svg(IC.chef, 24)}<span><b>Kochen</b><small>Was hast du da?</small></span></button><button class="kc-tile haus" id="kchaus" data-notr><span class="hs-ti">🏠</span><span><b>Haushalt</b><small id="hsnext">Müllplan &amp; Aufgaben</small></span></button></div>
+        <div class="kc-btns two"><button class="kc-tile shop" id="kcshop">${svg(IC.list, 24)}<span><b>Einkaufsliste</b><small>mit Freunden</small></span></button><button class="kc-tile cook" id="kccook">${svg(IC.chef, 24)}<span><b>Kochen</b><small>Was hast du da?</small></span></button><button class="kc-tile ai" id="kcai"><span class="hs-ti">🤖</span><span><b>Frag Nat</b><small>KI-Coach</small></span></button><button class="kc-tile haus" id="kchaus" data-notr><span class="hs-ti">🏠</span><span><b>Haushalt</b><small id="hsnext">Müllplan &amp; Aufgaben</small></span></button></div>
         ${setupCard()}</div>
         <div class="kc-lh"><span>Heute</span>${heads()}</div>${this.dayBlock(t)}
         <button class="kc-link" id="kcmanual">${svg(IC.plus, 15)} Selbst eintragen</button>
-        ${(q => q ? `<div class="unit kc-sum kc-sugg">${q}</div>` : "")(quickHTML())}`; el.querySelector("#kcshop").onclick = () => Shop.open(); el.querySelector("#kccook").onclick = () => Cook.open(); el.querySelector("#kchaus").onclick = () => Haus.open(); Haus.paint();
+        ${(q => q ? `<div class="unit kc-sum kc-sugg">${q}</div>` : "")(quickHTML())}`; el.querySelector("#kcshop").onclick = () => Shop.open(); el.querySelector("#kccook").onclick = () => Cook.open(); el.querySelector("#kcai").onclick = () => Ai.open(); el.querySelector("#kchaus").onclick = () => Haus.open(); Haus.paint();
       wireDay(el); animSum(el); el.querySelector("#kcmanual").onclick = () => manual();
       this.wireMeals(el);
     },
@@ -2026,7 +2104,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-tile{display:flex;align-items:center;gap:8px;height:76px;padding:0 12px;border:0;border-radius:20px;color:#fff;text-align:left;cursor:pointer;min-width:0;-webkit-tap-highlight-color:transparent}
 .kc-tile svg{flex:none}.kc-tile span{display:flex;flex-direction:column;min-width:0}.kc-tile b{font:900 16px var(--display);white-space:nowrap}.kc-tile small{font:700 11.5px var(--body);opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kc-tile.shop{background:#D9952A;box-shadow:inset 0 -5px 0 #A86E16}
-.kc-tile.haus{grid-column:1/-1;height:64px;background:#3B8C88;box-shadow:inset 0 -5px 0 #276562}.hs-ti{font-size:24px;line-height:1}
+.kc-tile.haus{height:64px;background:#3B8C88;box-shadow:inset 0 -5px 0 #276562}.kc-tile.ai{height:64px;background:#6B5BD6;box-shadow:inset 0 -5px 0 #4C3FA8}.hs-ti{font-size:24px;line-height:1}
 #hsslot{display:flex;flex-direction:column;gap:8px}#hsslot:empty{display:none}#hsslot:not(:empty){margin-bottom:10px}
 .hs-ask,.hs-todo,.hs-t{display:flex;align-items:center;gap:10px;min-width:0}
 .hs-ask{padding:10px 12px;border-radius:16px;background:rgba(59,140,136,.22);box-shadow:inset 0 0 0 1.5px rgba(96,196,190,.55);animation:hsIn .35s cubic-bezier(.2,.8,.2,1)}
@@ -2081,6 +2159,14 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-shd{display:flex;flex-direction:column;gap:4px;padding:10px;border-radius:14px;background:rgba(233,169,43,.08);box-shadow:inset 0 0 0 1.5px rgba(233,169,43,.35)}.kc-shd.ok{background:rgba(127,178,74,.1);box-shadow:inset 0 0 0 1.5px rgba(143,196,88,.45)}
 .kc-shdh{display:grid;grid-template-columns:auto 1fr auto;column-gap:8px;align-items:center}.kc-shdh span{grid-row:span 2;font-size:24px}.kc-shdh b{font:900 17px var(--display)}.kc-shdh small{grid-column:2;color:var(--muted);font:600 11.5px var(--body)}.kc-shdh .kc-shx{grid-row:1 / span 2;grid-column:3}
 .kc-shd .kc-shr{background:rgba(0,0,0,.2)}.kc-shd .kc-link{align-self:flex-start}.kc-shto{display:flex;align-items:center;gap:6px;font:700 13px var(--body);color:#E9A92B}.kc-shhint{font:600 11.5px/1.35 var(--body)}
+.kc-aiov .kc-sovb{gap:10px}.kc-aiic{font-size:22px;line-height:1}.kc-ainew{color:var(--muted)!important;margin-left:auto}
+.kc-aisg{display:flex;flex-wrap:wrap;gap:6px}.kc-aisg:empty{display:none}.kc-aich{border:0;border-radius:999px;padding:9px 13px;background:rgba(107,91,214,.2);box-shadow:inset 0 0 0 1.5px rgba(140,125,240,.55);color:#C9C1FF;font:800 14px var(--body);cursor:pointer;text-align:left}.kc-aich:active{transform:translateY(1px)}
+.kc-ailst{display:flex;flex-direction:column;gap:10px}.kc-aic{position:relative;background:var(--panel);border-radius:18px;padding:12px 14px 12px;box-shadow:inset 0 0 0 1px var(--line)}.kc-aic.old{opacity:.85}
+.kc-aiq{font:800 14px var(--body);color:#C9C1FF;margin:0 34px 6px 0}.kc-aia{font:600 16px/1.45 var(--body);color:var(--fg)}.kc-aia p{margin:0 0 7px}.kc-aia p:last-child{margin-bottom:0}.kc-aia ul{margin:2px 0 8px;padding-left:20px}.kc-aia li{margin:3px 0}.kc-aia b{color:#fff}
+.kc-aisp{position:absolute;top:8px;right:8px;width:32px;height:32px;border:0;border-radius:10px;background:var(--panel-2);font-size:15px;cursor:pointer}.kc-aisp.on{background:#6B5BD6}
+.kc-aiw{display:flex;align-items:center;gap:5px;color:var(--muted);font:700 14px var(--body)}.kc-aiw i{width:7px;height:7px;border-radius:50%;background:#8C7DF0;animation:kcAiDot 1s infinite ease-in-out}.kc-aiw i:nth-child(2){animation-delay:.15s}.kc-aiw i:nth-child(3){animation-delay:.3s;margin-right:4px}
+@keyframes kcAiDot{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
+.kc-aierr{color:#ff8a80;font:700 14px var(--body)}.kc-aire{border:0;border-radius:10px;padding:5px 10px;margin-left:6px;background:var(--panel-3);color:var(--fg);font:800 13px var(--body)}.kc-aihint{margin:6px 4px;line-height:1.45}.kc-aihint small{opacity:.8}
 .kc-shbar{display:flex;gap:8px;align-items:stretch}.kc-shbar input{flex:1;min-width:0;padding:15px 14px!important;font:800 17px var(--body)!important;border-radius:16px!important;border:2px solid var(--go)!important;background:#2A2825!important;color:var(--fg)}
 .kc-shmic{flex:none;width:54px;border-radius:16px;border:0;background:var(--panel-3);color:var(--fg);display:grid;place-items:center;box-shadow:inset 0 -4px 0 rgba(0,0,0,.28);cursor:pointer;transition:transform .12s}.kc-shmic:active{transform:translateY(2px)}.kc-shmic.on{background:#E2523E;animation:kcMic 1s ease-in-out infinite}@keyframes kcMic{50%{box-shadow:0 0 0 8px rgba(226,82,62,.25)}}
 .kc-shok{flex:none;min-width:62px;border-radius:16px;border:0;background:linear-gradient(180deg,var(--go-hi),var(--go));color:#fff;font:900 17px var(--display);box-shadow:inset 0 -4px 0 var(--go-deep);cursor:pointer;transition:transform .12s}.kc-shok:active{transform:translateY(2px)}
