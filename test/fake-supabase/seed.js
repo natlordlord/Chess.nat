@@ -45,7 +45,14 @@ module.exports = db => {
     {id: "t-ufc", sport: "mma", comp: "ufc", name: "UFC 322 · Titelkampf", home: "Makhachev", away: "Della Maddalena", start_at: new Date(now + 3 * 864e5).toISOString(), meta: {title: true}},
     {id: "t-lol", sport: "lol", comp: "lol", name: "Worlds · Finale", home: "Gen.G", away: "Bilibili Gaming", start_at: new Date(now + 3.2 * 864e5).toISOString(), fav: true, meta: {title: true, bo: 5}},
     ev("espn:uefa.nations:9011", "Frankreich", "Türkei", ago(40), {comp: "uefa.nations", state: "in", clock: "38'", score_h: 1, score_a: 0, meta: {grp: "Group A1"}}),
-    ev("espn:uefa.nations:9021", "Deutschland", "Niederlande", new Date(now + 30 * 3600e3), {comp: "nt", fav: true, meta: {grp: "Group A2"}})]);
+    ev("espn:uefa.nations:9021", "Deutschland", "Niederlande", new Date(now + 30 * 3600e3), {comp: "nt", fav: true, meta: {grp: "Group A2"}}),
+    /* the library (Polymarket): an NBA game (tester follows the NBA), a handball game with a draw (nobody follows handball) */
+    {id: "pm:9101", sport: "pm", comp: "pm:nba", name: "NBA", home: "Lakers", away: "Celtics", start_at: new Date(now + 20 * 3600e3).toISOString(), odds_src: "Polymarket", meta: {src: {kind: "pm", ev: "9101"}, league: "nba", p: [0.42, 0.58], draw: false}},
+    {id: "pm:9102", sport: "pm", comp: "pm:hbbundesliga", name: "Handball Bundesliga", home: "THW Kiel", away: "SG Flensburg-Handewitt", start_at: new Date(now + 22 * 3600e3).toISOString(), odds_src: "Polymarket", meta: {src: {kind: "pm", ev: "9102"}, league: "hbbundesliga", p: [0.48, 0.1, 0.42], draw: true}},
+    {id: "pm:9103", sport: "pm", comp: "pm:nba", name: "NBA", home: "Knicks", away: "Raptors", start_at: ago(26 * 60).toISOString(), state: "post", score_h: 112, score_a: 104, clock: "112:104", settled: true, meta: {src: {kind: "pm", ev: "9103"}, league: "nba", p: [0.56, 0.44], winner: "a"}}]);
+  db.seed("tipp_leagues", [{key: "nba", name: "NBA", grp: "bk", series: "10345", rank: 11}, {key: "epl", name: "Premier League", grp: "fb", series: "10188", rank: 0}, {key: "hbbundesliga", name: "Handball Bundesliga", grp: "hb", series: "12557", rank: 26},
+    {key: "lol", name: "LoL", grp: "es", series: "10311", rank: 17}, {key: "bun", name: "Bundesliga", grp: "fb", series: "10194", rank: 100, builtin: true}, {key: "cricipl", name: "Indian Premier League", grp: "cr", series: "11213", rank: 100}]);
+  db.seed("tipp_follows", [{user_id: tester, league: "nba"}]);
 
   /* Nations League A: groups A1 and A2 before the last matchday, as on 15 Nov 2026 (France–Türkei and Belgium–Italy live) */
   const NT = {478: "Frankreich", 162: "Italien", 459: "Belgien", 465: "Türkei", 449: "Niederlande", 481: "Deutschland", 455: "Griechenland", 6757: "Serbien"};
@@ -57,6 +64,6 @@ module.exports = db => {
   ms.push(nm("A1", -40 / 1440, 478, 465, 1, 0, {state: "in", clock: "38'", id: "espn:uefa.nations:9011"}), nm("A1", -40 / 1440, 459, 162, 0, 0, {state: "in", clock: "38'", id: "espn:uefa.nations:9012"}));
   ms.push(...A2.map((x, i) => nm("A2", -49 + i * 4, ...x)), nm("A2", 30 / 24, 481, 449, null, null, {state: "pre", id: "espn:uefa.nations:9021"}), nm("A2", 30 / 24, 455, 6757, null, null, {state: "pre", id: "espn:uefa.nations:9022"}));
   db.seed("nl_state", {id: "A", data: {season: "2026-27", teams, matches: ms, ko: [], at: new Date(now).toISOString()}});
-  db.seed("tipp_picks", [{user_id: tester, event_id: "t-post", sh: 2, sa: 1}, {user_id: mila, event_id: "t-post", sh: 1, sa: 0}, {user_id: mila, event_id: "t-live", sh: 2, sa: 0}, {user_id: tester, event_id: "t-live", sh: 1, sa: 1}, {bot: "ki", event_id: "t-post", sh: 1, sa: 1}]);
+  db.seed("tipp_picks", [{user_id: tester, event_id: "t-post", sh: 2, sa: 1}, {user_id: mila, event_id: "t-post", sh: 1, sa: 0}, {user_id: mila, event_id: "t-live", sh: 2, sa: 0}, {user_id: tester, event_id: "t-live", sh: 1, sa: 1}, {bot: "ki", event_id: "t-post", sh: 1, sa: 1}, {user_id: tester, event_id: "pm:9103", w: "a"}]);
 };
 module.exports.ID = ID;

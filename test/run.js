@@ -744,7 +744,7 @@ const PARTS = {
   /* ---------- Tippspiel ---------- */
   async tipp(browser){
     const page = await L.open(browser, "tester"); await page.tap('#tabbar [data-t="tipp"]'); await sleep(1500);
-    const t = await txt(page, "#main"); ok(/Bayern/.test(t) && /Leipzig/.test(t) && /5 offen/.test(t), "Tippspiel zeigt die offenen Spiele (5 offen, mit Deutschland in der Nations League)", t.slice(0, 200)); await page.shot("tipp");
+    const t = await txt(page, "#main"); ok(/Bayern/.test(t) && /Leipzig/.test(t) && /6 offen/.test(t), "Tippspiel zeigt die offenen Spiele (6 offen, mit Deutschland in der Nations League und dem NBA-Spiel aus der Bibliothek)", t.slice(0, 200)); await page.shot("tipp");
     ok(/Makhachev/.test(t), "UFC-Titelkampf ist tippbar gelistet", t.slice(0, 300));
     await clean(page, "Tippspiel öffnen");
     /* only the result: plus and minus, saved at once */
@@ -752,10 +752,24 @@ const PARTS = {
     const pick = (await L.table("tipp_picks", "event_id=eq.t-pre&user_id=eq." + ID.tester))[0];
     ok(pick && pick.sh != null && pick.sa != null, "Ergebnis mit + tippen wird sofort gespeichert", JSON.stringify(pick));
     if (pick) ok(new RegExp("Bayern . " + pick.sh + " . Dortmund . " + pick.sa).test((await txt(page, "#main")).replace(/[−+]/g, ".")), "die Seite zeigt denselben Tipp wie die Datenbank (" + pick.sh + ":" + pick.sa + ")", (await txt(page, "#main")).slice(120, 260));
-    await page.tap('#main [data-w="a"]'); await sleep(1200); const ufc = (await L.table("tipp_picks", "event_id=eq.t-ufc&user_id=eq." + ID.tester))[0]; ok(ufc && ufc.w === "a", "UFC: Sieger tippen gespeichert", JSON.stringify(ufc));
+    await page.tap('#main [data-ev="t-ufc"] [data-w="a"]'); await sleep(1200); const ufc = (await L.table("tipp_picks", "event_id=eq.t-ufc&user_id=eq." + ID.tester))[0]; ok(ufc && ufc.w === "a", "UFC: Sieger tippen gespeichert", JSON.stringify(ufc));
     ok(/Worlds · Finale/i.test(await txt(page, "#main")) && /Bilibili Gaming/.test(await txt(page, "#main")), "League of Legends: das Worlds-Finale ist tippbar gelistet, mit vollem Teamnamen");
     await page.tap('#main [data-ev="t-lol"] [data-w="b"]'); await sleep(1200); const lol = (await L.table("tipp_picks", "event_id=eq.t-lol&user_id=eq." + ID.tester))[0]; ok(lol && lol.w === "b", "LoL: Sieger tippen gespeichert", JSON.stringify(lol)); await page.shot("tipp-lol");
+    /* the library: a followed league's game (NBA) with Polymarket's chances; a league nobody follows stays out; a draw where the market has one */
+    let tl = await txt(page, "#tpbody"); ok(/Lakers/.test(tl) && /42 %/.test(tl) && !/THW Kiel/.test(tl), "Bibliothek: Spiel einer gefolgten Liga (NBA) mit Polymarket-Chance, nicht gefolgte Liga (Handball) fehlt", tl.slice(0, 300));
+    await page.tap('#main [data-ev="pm:9101"] [data-w="b"]'); await sleep(1200); const nba = (await L.table("tipp_picks", "event_id=eq.pm:9101&user_id=eq." + ID.tester))[0]; ok(nba && nba.w === "b", "NBA: Sieger tippen gespeichert", JSON.stringify(nba));
+    await page.tap('#main [data-lib]'); await sleep(900);
+    ok(await page.evaluate(() => !!document.activeElement && document.activeElement.id === "tlq"), "Ligen: das Suchfeld hat sofort den Fokus (Tastatur geht auf)");
+    let sh = await txt(page, ".dsheet"); ok(/Deine Ligen/i.test(sh) && /NBA/.test(sh) && /immer dabei/.test(sh), "Ligen: deine Ligen oben, Bundesliga „immer dabei“", sh.slice(0, 300)); await page.shot("tipp-ligen");
+    await page.fill("#tlq", "handb"); await sleep(400); sh = await txt(page, ".dsheet"); ok(/Handball Bundesliga/.test(sh) && !/Premier League/.test(sh), "Ligen: Suche findet „Handball Bundesliga“", sh.slice(0, 200));
+    await page.tap('.dsheet [data-k="hbbundesliga"]'); await sleep(1200);
+    ok((await L.table("tipp_follows", "user_id=eq." + ID.tester + "&league=eq.hbbundesliga")).length === 1, "Ligen: Folgen wird gespeichert");
+    await closeSheets(page); await sleep(1500);
+    tl = await txt(page, "#tpbody"); ok(/THW Kiel/.test(tl) && /Remis/.test(tl), "nach dem Folgen: das Handball-Spiel ist da, mit Remis-Knopf", tl.slice(0, 400)); await page.shot("tipp-bibliothek");
+    await page.tap('#main [data-ev="pm:9102"] [data-w="d"]'); await sleep(1200); const hb = (await L.table("tipp_picks", "event_id=eq.pm:9102&user_id=eq." + ID.tester))[0]; ok(hb && hb.w === "d", "Handball: Unentschieden tippen gespeichert", JSON.stringify(hb));
+    ok(await has(page, '#main [data-f="pm:hbbundesliga"]'), "neuer Chip für die gefolgte Liga");
     await page.tap('#main [data-tab="res"]'); await sleep(1000); const r = await txt(page, "#main"); ok(/Leverkusen/.test(r) && /Freiburg/.test(r), "Ergebnisse: laufendes und beendetes Spiel", r.slice(0, 250)); await page.shot("tipp-ergebnisse");
+    ok(/Knicks/.test(r) && /112:104/.test(r), "Ergebnisse: beendetes Bibliotheks-Spiel mit Endstand", r.slice(0, 400));
     await page.tap('#main [data-tab="table"]'); await sleep(1000); const tb = await txt(page, "#main"); ok(/Nat Tester|Du/.test(tb) && /Mila/.test(tb), "Rangliste zeigt dich und Mila", tb.slice(0, 250)); await page.shot("tipp-rangliste");
     await clean(page, "Tippen"); await page.context().close();
   },

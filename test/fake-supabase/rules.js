@@ -42,7 +42,7 @@ const CHECKS = {
   shop_items: [["shop_items_amount_check", r => maxLen(r.amount, 60)], ["shop_items_kind_check", r => oneOf(r.kind, ["product", "dish"])], ["shop_items_name_check", r => len(r.name) >= 1 && len(r.name) <= 120]],
   shop_lists: [["shop_lists_name_check", r => len(r.name) >= 1 && len(r.name) <= 60]],
   tipp_groups: [["tipp_groups_name_check", r => len(r.name) >= 1 && len(r.name) <= 40]],
-  tipp_picks: [["tipp_picks_check", r => (r.user_id == null) !== (r.bot == null)], ["tipp_picks_sa_check", r => between(r.sa, 0, 20)], ["tipp_picks_sh_check", r => between(r.sh, 0, 20)], ["tipp_picks_w_check", r => oneOf(r.w, ["a", "b"])]],
+  tipp_picks: [["tipp_picks_check", r => (r.user_id == null) !== (r.bot == null)], ["tipp_picks_sa_check", r => between(r.sa, 0, 20)], ["tipp_picks_sh_check", r => between(r.sh, 0, 20)], ["tipp_picks_w_check", r => oneOf(r.w, ["a", "b", "d"])]],
   tipp_tips: [["tipp_tips_stake_check", r => between(r.stake, 1, 1000000)]]
 };
 /* UNIQUE constraints besides the primary keys */
@@ -86,7 +86,8 @@ module.exports = db => {
       update: {using: (r, u) => r.from_id === u || r.to_id === u, check: (r, u) => r.from_id === u || r.to_id === u}},
     chess_messages: {select: (r, u) => r.from_id === u || r.to_id === u, insert: (r, u) => r.from_id === u && r.to_id !== r.from_id && friends(r.from_id, r.to_id),
       update: {using: (r, u) => r.to_id === u, check: (r, u) => r.to_id === u}},
-    chess_news: {select: T}, chess_ratings: {select: T}, chess_matches: {select: T}, tipp_events: {select: T}, nl_state: {select: T}, tipp_tips: {select: T}, tipp_admins: {select: T},
+    chess_news: {select: T}, chess_ratings: {select: T}, chess_matches: {select: T}, tipp_events: {select: T}, tipp_leagues: {select: T},
+    tipp_follows: {select: (r, u) => r.user_id === u, insert: (r, u) => r.user_id === u && !R.tipp_leagues.some(l => l.key === r.league && l.builtin), delete: (r, u) => r.user_id === u}, nl_state: {select: T}, tipp_tips: {select: T}, tipp_admins: {select: T},
     chess_events: {insert: (r, u) => r.user_id === u && size(r.meta) < 2000},
     chess_queue: {select: (r, u) => r.user_id === u}, chess_fixes: {select: (r, u) => r.user_id === u},
     chess_feedback: {select: (r, u) => r.user_id === u || isAdmin(u), insert: (r, u) => r.user_id === u, delete: (r, u) => isAdmin(u)},
@@ -131,7 +132,7 @@ module.exports = db => {
   };
 
   const raise = (message, code = "P0001") => { throw {status: 400, body: {code, message, details: null, hint: null}}; };
-  const tippPts = (sport, sh, sa, w, rh, ra, rw) => (sport === "mma" || sport === "lol") ? (w == null || rw == null ? null : w === rw ? 3 : 0)
+  const tippPts = (sport, sh, sa, w, rh, ra, rw) => (sport === "mma" || sport === "lol" || sport === "pm") ? (w == null || rw == null ? null : w === rw ? 3 : 0)
     : sh == null || sa == null || rh == null || ra == null ? null : sh === rh && sa === ra ? 4
     : Math.sign(sh - sa) === Math.sign(rh - ra) && rh !== ra && sh - sa === rh - ra ? 3 : Math.sign(sh - sa) === Math.sign(rh - ra) ? 2 : 0;
   const evPts = (e, sh, sa, w, final = true) => e.state === "canc" || (final && e.state !== "post") || e.state === "pre" ? null
@@ -189,7 +190,7 @@ module.exports = db => {
       if (!u) raise("not signed in"); const ev = R.tipp_events.find(e => e.id === p_event); if (!ev) raise("no such event");
       if (ev.state !== "pre" || Date.parse(ev.start_at) <= Date.now()) raise("closed");
       if (ev.sport === "fb"){ if (p_h == null || p_a == null || p_h < 0 || p_h > 20 || p_a < 0 || p_a > 20) raise("bad score"); p_w = null; }
-      else if (ev.sport === "lol" || (ev.sport === "mma" && ev.meta && String(ev.meta.title) === "true")){ if (!["a", "b"].includes(p_w)) raise("bad pick"); p_h = p_a = null; }
+      else if (ev.sport === "lol" || ev.sport === "pm" || (ev.sport === "mma" && ev.meta && String(ev.meta.title) === "true")){ if (!(["a", "b"].includes(p_w) || (p_w === "d" && ev.meta && String(ev.meta.draw) === "true"))) raise("bad pick"); p_h = p_a = null; }
       else raise("not tippable");
       let r = R.tipp_picks.find(p => p.user_id === u && p.event_id === p_event);
       if (r) Object.assign(r, {sh: p_h, sa: p_a, w: p_w, updated_at: db.now()});

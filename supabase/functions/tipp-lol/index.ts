@@ -1,7 +1,8 @@
-// NOT DEPLOYED YET (no cron job either): until it is, the big series are entered by hand, see supabase/tipp_lol.sql.
-// Chess.nat Tippspiel, League of Legends: every two minutes (pg_cron -> private.tipp_lol_tick) this would pull the big
+// Chess.nat Tippspiel, League of Legends: every two minutes (pg_cron -> private.tipp_lol_tick) this pulls the big
 // series from the LoL Esports schedule (Worlds, MSI, First Stand, LEC; only finals, playoffs, knockouts and best-of-five,
-// no LCS) into tipp_events as sport "lol". They are tipped like a UFC title fight: pick the winner, 3 points.
+// no LCS) into tipp_events as sport "lol", with the live score and the result (winner -> points, final push).
+// They are tipped like a UFC title fight: pick the winner, 3 points. Live since 2026-11-16; before that the series were
+// entered by hand and the Worlds final 2026 waited for its result (see supabase/tipp_library.sql).
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
@@ -44,7 +45,11 @@ async function sync() {
   const keep = all.filter(e => { const t = Date.parse(e.start_at); return t > now.getTime() - 3 * 864e5 && t < now.getTime() + 40 * 864e5; });
   if (!keep.length) return { events: 0 };
   const old: Record<string, J> = {}; { const { data } = await sb.from("tipp_events").select("id,state,markets,meta").in("id", keep.map(e => e.id)); (data || []).forEach((r: J) => old[r.id] = r); }
-  const up = keep.map(e => Object.assign({}, e, { meta: Object.assign({}, old[e.id]?.meta || {}, e.meta), updated_at: now.toISOString() }));
+  /* a series that was entered by hand (id "man:…") is the same game: it is not added a second time */
+  { const { data } = await sb.from("tipp_events").select("start_at").eq("sport", "lol").not("id", "like", "lol:%"); const hand = (data || []).map((r: J) => Date.parse(r.start_at));
+    for (let i = keep.length - 1; i >= 0; i--) if (!old[keep[i].id] && hand.some(t => Math.abs(t - Date.parse(keep[i].start_at)) < 3 * 3600e3)) keep.splice(i, 1); }
+  if (!keep.length) return { events: 0 };
+  const up = keep.map(e => Object.assign({}, e, { meta: Object.assign({}, old[e.id]?.meta || {}, e.meta, { src: { kind: "lol", match: e.id.slice(4) } }), updated_at: now.toISOString() }));
   { const { error } = await sb.from("tipp_events").upsert(up, { onConflict: "id" }); if (error) return { error: "upsert " + error.message }; }
   for (const e of up){ const o = old[e.id];
     /* the winner market (for Nat-KI's tip), once, before the start */
@@ -58,7 +63,8 @@ async function sync() {
     if (e.state === "pre" && t > 40 * 60e3 && t < 75 * 60e3 && !e.meta.rem){ try { await sb.rpc("tipp_remind", { p_event: e.id, p_title: `🎮 Gleich: ${e.home} vs. ${e.away}`, p_body: `${e.name}. In einer Stunde geht's los. Noch kein Tipp? Sieger tippen, fertig.` }); } catch (_) { /* ignore */ }
       await sb.from("tipp_events").update({ meta: Object.assign({}, e.meta, { rem: true }) }).eq("id", e.id); }
     /* over: everyone with a tip hears how it went (once; tipp_final marks it) */
-    if (e.state === "post" && e.meta.winner && !e.meta.pp){ try { await sb.rpc("tipp_final", { p_event: e.id }); } catch (er) { log.push("final " + String(er)); } }
+    if (e.state === "post" && e.meta.winner && !e.meta.pp){ try { await sb.rpc("tipp_final", { p_event: e.id }); } catch (er) { log.push("final " + String(er)); }
+      await sb.from("tipp_events").update({ settled: true }).eq("id", e.id); }
   }
   return { events: keep.length, log };
 }
