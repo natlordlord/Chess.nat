@@ -227,6 +227,7 @@ const server = http.createServer((req, res) => {
         if (req.method === "DELETE"){ stored.delete(k); return send(200, {message: "Successfully deleted"}); }
         const f = stored.get(k); return f ? send(200, f.data, {"content-type": f.type}) : send(404, {statusCode: "404", error: "not_found", message: "Object not found"});
       }
+      if (p === "/functions/v1/tipp-pm") return send(200, {n: 0});
       if (p.startsWith("/storage/v1/") || p.startsWith("/functions/v1/")) return send(200, {});
       if (p === "/api/kcal") return await vercel("kcal.js", req, res, q, raw);
       if (p === "/api/food") return await vercel("food.js", req, res, q, raw);

@@ -47,6 +47,8 @@ shop_members|list_id,user_id|list_id:uuid:!: ; user_id:uuid:!: ; created_at:time
 tipp_admins|user_id|user_id:uuid:!:
 nl_state|id|id:text:!: ; data:jsonb:!:{} ; updated_at:timestamptz:!:@now
 tipp_events|id|id:text:!: ; sport:text:!: ; comp:text:!: ; name:text:?: ; home:text:?: ; away:text:?: ; home_logo:text:?: ; away_logo:text:?: ; home_id:text:?: ; away_id:text:?: ; start_at:timestamptz:!: ; state:text:!:'pre' ; clock:text:?: ; score_h:int4:?: ; score_a:int4:?: ; stats:jsonb:!:{} ; markets:jsonb:!:[] ; model:jsonb:?: ; odds_src:text:?: ; odds_at:timestamptz:?: ; result:jsonb:?: ; settled:bool:!:false ; fav:bool:!:false ; meta:jsonb:!:{} ; created_by:uuid:?: ; updated_at:timestamptz:!:@now
+tipp_follows|user_id,league|user_id:uuid:!:@uid ; league:text:!: ; created_at:timestamptz:!:@now
+tipp_leagues|key|key:text:!: ; name:text:!: ; grp:text:!: ; series:text:!: ; image:text:?: ; rank:int4:!:100 ; builtin:bool:!:false ; updated_at:timestamptz:!:@now
 tipp_groups|id|id:uuid:!:@uuid ; code:text:!:@code ; name:text:!: ; owner:uuid:!: ; comps:_text:!:{} ; created_at:timestamptz:!:@now
 tipp_members|group_id,user_id|group_id:uuid:!: ; user_id:uuid:!: ; joined_at:timestamptz:!:@now
 tipp_picks|id|id:int8:!:@identity ; user_id:uuid:?: ; bot:text:?: ; event_id:text:!: ; sh:int4:?: ; sa:int4:?: ; w:text:?: ; created_at:timestamptz:!:@now ; updated_at:timestamptz:!:@now
@@ -68,7 +70,7 @@ const RPCS = {
   tipp_event_picks: ["p_event"], tipp_event_tips: ["p_event"], tipp_final: ["p_event"], tipp_group_save: ["p_id", "p_name", "p_comps"], tipp_groups_mine: [],
   tipp_join: ["p_code"], tipp_leave: ["p_id"], tipp_lines: ["p_event", "p_final"], tipp_live: ["p_event", "p_title"], tipp_notify: ["p_event", "p_title", "p_body"],
   tipp_pick: ["p_event", "p_h?", "p_a?", "p_w?"], tipp_place: ["p_event", "p_market", "p_pick", "p_stake", "p_score?"], tipp_remind: ["p_event", "p_title", "p_body"],
-  tipp_settle: ["p_event", "p_res"], tipp_table: [],
+  tipp_settle: ["p_event", "p_res"], tipp_table: [], tipp_alert: ["p_title", "p_body"], tipp_is_w: ["p_sport"],
   home_can: ["g"], home_owns: ["g"], home_answer: ["p_task", "p_yes"], home_done: ["p_task"],
   home_tick: [] /* not callable in the real database (there a trigger and a cron job do this); the tests use it to let time pass */
 };
@@ -81,7 +83,7 @@ const FKS = [
   ["home_members", "group_id", "home_groups", "id", "cascade"], ["home_tasks", "group_id", "home_groups", "id", "cascade"], ["home_log", "group_id", "home_groups", "id", "cascade"], ["home_thanks", "task_id", "home_tasks", "id", "cascade"],
   ["shop_members", "list_id", "shop_lists", "id", "cascade"], ["shop_items", "list_id", "shop_lists", "id", "cascade"], ["shop_items", "parent", "shop_items", "id", "cascade"],
   ["shop_asks", "list_id", "shop_lists", "id", "cascade"], ["shop_asks", "item_id", "shop_items", "id", "cascade"], ["shop_answers", "ask_id", "shop_asks", "id", "cascade"],
-  ["tipp_picks", "event_id", "tipp_events", "id", "restrict"], ["tipp_tips", "event_id", "tipp_events", "id", "restrict"], ["tipp_members", "group_id", "tipp_groups", "id", "cascade"]
+  ["tipp_picks", "event_id", "tipp_events", "id", "restrict"], ["tipp_tips", "event_id", "tipp_events", "id", "restrict"], ["tipp_members", "group_id", "tipp_groups", "id", "cascade"], ["tipp_follows", "league", "tipp_leagues", "key", "cascade"]
 ];
 
 function parse(text){
