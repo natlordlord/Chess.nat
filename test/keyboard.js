@@ -61,6 +61,7 @@ async function run(browser, model){
   await step("Wiegen", async () => { await page.tap('#main [data-tab="stats"]'); await sleep(400); await page.tap("#kcwnow"); await sleep(600); await P("Wiegen: Gewicht", "#kwkg"); });
   await step("Kochen", async () => { await page.tap("#kccook"); await sleep(600); await P("Kochen: Was hast du da", "#kch"); });
   await step("Rezept", async () => { await page.tap('#main [data-tab="today"]'); await sleep(300); await page.locator("#main [data-meal]", {hasText: "Nudeln Test"}).first().tap(); await sleep(500); await page.locator(".dsheet [data-pub]").tap(); await sleep(700); await P("Rezept: Name", "#kcrn"); });
+  await step("Frag Nat", async () => { await page.tap("#kcai"); await page.waitForSelector("#kcaiq"); await sleep(700); await P("Frag Nat: Frage", "#kcaiq"); await page.tap("#kcaix"); await sleep(400); });
   await step("Einkaufsliste", async () => { await page.tap("#kcshop"); await page.waitForSelector("#kcsha"); await sleep(700); await P("Einkaufsliste: Was fehlt", "#kcsha"); });
   await step("Haushalt", async () => { await page.tap('#main [data-tab="today"]').catch(() => {}); await sleep(300); await page.tap("#kchaus"); await page.waitForSelector("#hsti"); await sleep(900); await P("Haushalt: Neue Aufgabe", "#hsti");
     await page.tap(".hs-ov [data-addr]"); await page.waitForSelector("#hsai"); await sleep(700); await P("Haushalt: Adresse", "#hsai"); await page.tap("#hsax").catch(() => {}); await sleep(300); await page.tap("#hsx").catch(() => {}); });

@@ -242,6 +242,24 @@ async function fromChecked(req, items, raw){
       Object.assign(it, {kcal: Math.round(F.k * f), carbs: r1(F.c * f), protein: r1(F.p * f), fat: r1(F.f * f), h: {fi: r1(F.fi * f), su: r1(F.su * f), sf: r1(F.sf * f), q: Number(F.q) || it.h.q}, food: String(F.key)}); });
   } catch(e) { console.log("kcal foods: not reachable", String(e && e.message).slice(0, 120)); }
 }
+/* "Frag Nat" (Idee von Finnel): a coach to talk to about one's own eating. The phone sends what the tracker knows about this
+   person (goals, body, weight, the days, the last week's meals) with every question; the answer only talks, nothing is
+   written into the tracker, and no one else's data goes along. */
+const CHAT = {type: "object", additionalProperties: false, required: ["answer", "more"], properties: {
+  answer: {type: "string", description: "Die Antwort: locker und direkt, meist 2–6 Sätze oder eine kurze Liste mit '- ' am Zeilenanfang. Kein Markdown außer **fett** für eine Zahl oder ein Wort."},
+  more: {type: "array", items: {type: "string"}, description: "2–3 kurze Anschlussfragen, die er als Nächstes stellen könnte (aus seiner Sicht, max. 6 Wörter)"}}};
+const CHAT_SYS = `Du bist Nat, der Ernährungs-Coach in der Kalorien-App von Chess.nat. Ein Nutzer fragt dich etwas zu seinem Essen, seinem Gewicht oder seinen Zielen – getippt oder gesprochen (Spracherkennung macht Fehler: lies wohlwollend).
+Unter DATEN steht alles, was die App über ihn weiß: Ziel und Tagesziele, Körperdaten, Gewichtsverlauf, jeder Tag mit Kalorien und Makros, die Mahlzeiten der letzten Tage mit Zutaten. BISHER ist euer Gespräch.
+So antwortest du:
+- Auf Deutsch, du-Form, wie ein guter Coach: ehrlich, konkret, freundlich, ohne Floskeln. Kurz, denn er liest auf dem Handy.
+- Nutze seine echten Zahlen (Durchschnitte, Trends über Wochen, einzelne Tage, Mahlzeiten). Rechne sorgfältig.
+- Erfinde nichts: Was nicht in DATEN steht, weißt du nicht – sag das und was er eintragen müsste. Nährwerte, die du selbst nennst, sind typische Werte, keine geprüften.
+- Gewicht: schau auf den Trend über Wochen, nicht auf einzelne Tage (Wasser, Salz, Kohlenhydrate, Verdauung, Uhrzeit des Wiegens). Prüfe, ob Tage fehlen oder auffällig niedrig eingetragen sind (vergessene Einträge), ob die Wochenenden anders sind, ob das Ziel zum Verlauf passt.
+- Du trägst nichts ein und änderst keine Werte. Will er etwas eintragen, sag ihm, er soll es mit „Sprechen“ oder der Suche eintragen.
+- Keine Diagnosen, keine Medikamente oder Nahrungsergänzungs-Dosierungen. Bei Beschwerden, Krankheit, Schwangerschaft oder wenn er dauerhaft sehr wenig isst (deutlich unter 1200 kcal), Hinweisen auf Essstörungen oder großer Belastung: keine Abnehm-Tipps, sondern freundlich raten, mit einer Ärztin oder einem Arzt bzw. einer Vertrauensperson zu sprechen.
+- Andere Nutzer: du kennst nur seine eigenen Daten, keine von anderen.
+Antworte nur mit JSON nach diesem Schema: ${JSON.stringify(CHAT)}`;
+
 const SELFTEST_HASH = "1e09bcb6a579162e0bd707a6b896a71c9034ab0e2e9d5f409f480a590774375d";
 const r1 = n => Math.round((Number(n) || 0) * 10) / 10;
 
@@ -325,6 +343,14 @@ module.exports = async (req, res) => {
       const sum = k => items.reduce((s, i) => s + (Number(i[k]) || 0), 0);
       return res.status(200).json({dish: {title: clip(o.title, 60), emoji: clip(o.emoji || "🍳", 8), why: clip(o.why, 300), items, kcal: Math.round(sum("kcal")), carbs: r1(sum("carbs")), protein: r1(sum("protein")), fat: r1(sum("fat")),
         steps: (Array.isArray(o.steps) ? o.steps : []).slice(0, 8).map(x => clip(x, 200)), tip: clip(o.tip, 200)}});
+    } catch(e) { return fail(e); }
+  }
+  if (b.mode === "chat"){
+    const q = clip(b.q, 1200).replace(/\s+/g, " ").trim(); if (q.length < 2) return res.status(400).json({error: "Frag einfach los."});
+    const hist = (Array.isArray(b.hist) ? b.hist : []).slice(-8).map(x => (x && x.r === "a" ? "Du: " : "Er: ") + clip(x && x.t, 1500).replace(/\s+/g, " ").trim()).filter(x => x.length > 4);
+    const user = `Jetzt ist ${berlinNow()} (Europe/Berlin).\nDATEN:\n${clip(b.ctx, 14000) || "(keine)"}\n\nBISHER:\n${hist.join("\n") || "(neues Gespräch)"}\n\nFRAGE: ${q}`;
+    try { const o = await ask(req, "", null, {system: CHAT_SYS, schema: CHAT, name: "answer", user, max: 1500, temp: .4});
+      return res.status(200).json({answer: clip(o.answer, 3000).trim(), more: (Array.isArray(o.more) ? o.more : []).slice(0, 3).map(x => clip(x, 70).trim()).filter(Boolean)});
     } catch(e) { return fail(e); }
   }
   if (b.mode === "week"){
