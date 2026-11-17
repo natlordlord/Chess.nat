@@ -2919,7 +2919,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794957302";
+const CHESSNAT_BUILD = "1794959441";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -3373,6 +3373,8 @@ window.Haptic = Haptic;
 const Sound = {ac:null, buf:{}, loading:false,
   init(){ if (this.ac) { if (this.ac.state !== "running") this.ac.resume().catch(() => {}); return; }
     try { this.ac = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return; }
+    /* a fresh player (the iPhone switched to call or music mode): its mixer is made new too, one from the old player can't be used */
+    this.bus = null;
     if (this.loading) return; this.loading = true;
     ["Move","Capture","Check","Mate","Victory","Defeat","GenericNotify","cheer1","cheer2","cheer3","cheer4"].forEach(n => {
       fetch("sounds/" + n + ".mp3?v=4").then(r => r.arrayBuffer()).then(b => new Promise((res, rej) => this.ac.decodeAudioData(b, res, rej))).then(d => { this.buf[n] = d; }).catch(() => {});
@@ -3395,7 +3397,7 @@ const Sound = {ac:null, buf:{}, loading:false,
     if (((S.puzzle && S.puzzle.streak) || 0) >= 3 && this.fx()) this.sparkle(.22, Math.min(9, 2 + S.puzzle.streak), 2200, .025); },
   /* ---- the reward kit: small synth bells, marimba, plucks, sparkles and air, all through one gentle compressor ---- */
   fx(){ if (!S.settings.sound) return null; this.init(); const ac = this.ac; if (!ac) return null;
-    if (!this.bus){ const c = ac.createDynamicsCompressor(); c.threshold.value = -16; c.ratio.value = 3.5; c.attack.value = .003; c.release.value = .2; const g = ac.createGain(); g.gain.value = .95; c.connect(g).connect(ac.destination); this.bus = c; } return ac; },
+    if (!this.bus || this.bus.context !== ac){ const c = ac.createDynamicsCompressor(); c.threshold.value = -16; c.ratio.value = 3.5; c.attack.value = .003; c.release.value = .2; const g = ac.createGain(); g.gain.value = .95; c.connect(g).connect(ac.destination); this.bus = c; } return ac; },
   mf(m){ return 440 * Math.pow(2, (m - 69) / 12); },
   note(m, at, dur = .5, gain = .1, kind = "bell"){ const ac = this.ac, t = ac.currentTime + at, f = this.mf(m);
     const P = {bell: [[1, 1, 1], [2.76, .32, .5], [5.4, .14, .3], [8.93, .06, .2]], marimba: [[1, 1, 1], [3.93, .22, .25], [9.8, .05, .1]], pluck: [[1, 1, 1], [2, .45, .6], [3, .2, .4], [4, .1, .3]], soft: [[1, 1, 1], [2, .15, .6]]}[kind] || [[1, 1, 1]];

@@ -495,7 +495,8 @@
           go(0); re.onclick = () => { Sound.tap(); if (up){ if (stage < STAGES.length - 1) stage++; go(0); } else if (heard < 29) go(heard); else go(0); };
           const ag = $("#sgagain"); if (ag) ag.onclick = () => { Sound.tap(); go(0); };
           const reveal = (got, said) => { if (done) return; done = true; const k = got.filter(Boolean).length, gain = (up ? Math.round(k / got.length * STP[stage]) : k) + (k && s2.tier === "fan" ? 1 : 0); pts[who] += gain; log.push({s: s2, who, got, gain});
-            if (gain) Sound.xp ? Sound.xp() : Sound.right(); else Sound.wrong(); PG.vib(gain ? 40 : [20, 30, 20]);
+            /* a sound must never stop the answer (Nathan, Nov 2026: tapped "Rasputin", it clicked, nothing happened) */
+            try { if (gain) Sound.xp ? Sound.xp() : Sound.right(); else Sound.wrong(); } catch(e) {} PG.vib(gain ? 40 : [20, 30, 20]);
             /* the rest of the clip plays while you see the answer */
             SA.rest(s2.url);
             const mark = ok => `<b class="sg-mk ${ok ? "ok" : ""}">${ok ? "✓" : "✗"}</b>`;
