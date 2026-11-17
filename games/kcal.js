@@ -1412,8 +1412,23 @@
       const since = addDays(t, -6), M = K.meals.filter(m => m.day >= since).slice(0, 60);
       if (M.length) L.push(`Mahlzeiten seit ${since}:\n${M.map(m => `${m.day} ${hhmm(m.ts)} ${String(m.title || "").slice(0, 40)}: ${r(m.kcal)} kcal, P ${r(m.protein)}, KH ${r(m.carbs)}, F ${r(m.fat)}${Array.isArray(m.items) && m.items.length > 1 ? " [" + m.items.slice(0, 6).map(i => String(i.name || "").replace(/\s+/g, " ").slice(0, 30) + (i.g || i.grams ? " " + r(i.g || i.grams) + " g" : "")).join(", ") + "]" : ""}`).join("\n")}`);
       return L.join("\n").slice(0, 13000); },
-    open(){
+    /* Nats Tipp für heute (Nathan: den Coach für Finn ausbauen): once a day the coach looks at your last days on his own and
+       says one concrete thing; it sits under the tiles, a tap opens the talk with the tip as the first answer and its follow-ups */
+    tipKey(){ return "chessnat-kc-aitip-" + meId(); },
+    async tip(box){ if (!box || !meId()) return; const day = today(); let c = null; try { c = JSON.parse(localStorage.getItem(this.tipKey()) || "null"); } catch(e) {}
+      const show = x => { box.innerHTML = `<button class="kc-aitip" id="kcaitipb"><span class="kc-aiic">🤖</span><span class="kc-aitx"><b>Nats Tipp für heute</b><small>${h(x.t)}</small></span><span class="kc-aigo">›</span></button>`;
+        box.querySelector("button").onclick = () => { haptic(8); this.open(x); }; };
+      if (c && c.day === day && c.t) return show(c);
+      /* nothing to look at yet: no tip */
+      if (new Set(K.meals.map(m => m.day)).size < 2 || this.tipBusy) return; this.tipBusy = true;
+      try { const j = await api({mode: "chat", q: "Nats Tipp für heute: Schau dir meine letzten Tage an und gib mir genau einen kurzen, konkreten Tipp für heute (höchstens 2 Sätze, mit einer echten Zahl von mir).", hist: [], ctx: this.ctx()});
+        const t = String(j.answer || "").replace(/\*\*/g, "").replace(/^\s*[-•*]\s+/gm, "").replace(/\s+/g, " ").trim().slice(0, 260);
+        if (t){ const x = {day, t, more: (j.more || []).slice(0, 3)}; try { localStorage.setItem(this.tipKey(), JSON.stringify(x)); } catch(e) {} if (box.isConnected) show(x); } }
+      catch(e) {} finally { this.tipBusy = false; } },
+    open(seed){
       if (!meId()) return say("Bitte erst anmelden"); this.load();
+      /* opened from the tip: the tip is the first answer of the talk (once) */
+      if (seed && seed.t && !this.log.some(x => x.tip === seed.day)){ this.log.push({q: "Nats Tipp für heute", a: seed.t, more: seed.more || [], at: Date.now(), tip: seed.day}); this.save(); }
       const ov = document.createElement("div"); ov.className = "kc-sov kc-aiov"; ov.setAttribute("data-notr", ""); ov.lang = "de";
       ov.innerHTML = `<div class="kc-sovt"><b class="kc-shtt"><span class="kc-aiic">🤖</span><span>Frag Nat</span></b><button class="kc-sx kc-ainew" id="kcainew">Neu</button><button class="kc-sx" id="kcaix">Fertig</button></div>
         <div class="kc-sovb" id="kcaib"><div class="kc-shbar"><input id="kcaiq" maxlength="600" enterkeyhint="send" autocomplete="off" placeholder="Frag mich alles …"><button class="kc-shmic" data-mic aria-label="Sprechen">${svg(IC.mic, 24)}</button><button class="kc-shok" data-send aria-label="Fragen">➤</button></div>
@@ -1954,10 +1969,10 @@
         <div class="kc-btns two"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 32)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 32)}<span>Barcode</span></button></div>
         <div class="kc-srow"><button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Lebensmittel suchen …</span></button><button class="kc-phb" data-kc-photo aria-label="Foto vom Essen">📷<small>Foto</small></button></div>
         <div class="kc-btns two"><button class="kc-tile shop" id="kcshop">${svg(IC.list, 24)}<span><b>Einkaufsliste</b><small>mit Freunden</small></span></button><button class="kc-tile cook" id="kccook">${svg(IC.chef, 24)}<span><b>Kochen</b><small>Was hast du da?</small></span></button><button class="kc-tile ai" id="kcai"><span class="hs-ti">🤖</span><span><b>Frag Nat</b><small>KI-Coach</small></span></button><button class="kc-tile haus" id="kchaus" data-notr><span class="hs-ti">🏠</span><span><b>Haushalt</b><small id="hsnext">Müllplan &amp; Aufgaben</small></span></button></div>
-        ${setupCard()}</div>
+        <div id="kcaitip" data-notr></div>${setupCard()}</div>
         <div class="kc-lh"><span>Heute</span>${heads()}</div>${this.dayBlock(t)}
         <button class="kc-link" id="kcmanual">${svg(IC.plus, 15)} Selbst eintragen</button>
-        ${(q => q ? `<div class="unit kc-sum kc-sugg">${q}</div>` : "")(quickHTML())}`; el.querySelector("#kcshop").onclick = () => Shop.open(); el.querySelector("#kccook").onclick = () => Cook.open(); el.querySelector("#kcai").onclick = () => Ai.open(); el.querySelector("#kchaus").onclick = () => Haus.open(); Haus.paint();
+        ${(q => q ? `<div class="unit kc-sum kc-sugg">${q}</div>` : "")(quickHTML())}`; el.querySelector("#kcshop").onclick = () => Shop.open(); el.querySelector("#kccook").onclick = () => Cook.open(); el.querySelector("#kcai").onclick = () => Ai.open(); Ai.tip(el.querySelector("#kcaitip")); el.querySelector("#kchaus").onclick = () => Haus.open(); Haus.paint();
       wireDay(el); animSum(el); el.querySelector("#kcmanual").onclick = () => manual();
       this.wireMeals(el);
     },
@@ -2159,6 +2174,8 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-shd{display:flex;flex-direction:column;gap:4px;padding:10px;border-radius:14px;background:rgba(233,169,43,.08);box-shadow:inset 0 0 0 1.5px rgba(233,169,43,.35)}.kc-shd.ok{background:rgba(127,178,74,.1);box-shadow:inset 0 0 0 1.5px rgba(143,196,88,.45)}
 .kc-shdh{display:grid;grid-template-columns:auto 1fr auto;column-gap:8px;align-items:center}.kc-shdh span{grid-row:span 2;font-size:24px}.kc-shdh b{font:900 17px var(--display)}.kc-shdh small{grid-column:2;color:var(--muted);font:600 11.5px var(--body)}.kc-shdh .kc-shx{grid-row:1 / span 2;grid-column:3}
 .kc-shd .kc-shr{background:rgba(0,0,0,.2)}.kc-shd .kc-link{align-self:flex-start}.kc-shto{display:flex;align-items:center;gap:6px;font:700 13px var(--body);color:#E9A92B}.kc-shhint{font:600 11.5px/1.35 var(--body)}
+.kc-aitip{display:flex;align-items:center;gap:10px;width:100%;margin-top:10px;padding:11px 12px;border:0;border-radius:16px;background:color-mix(in srgb,#6B5BD6 22%,var(--panel-2));box-shadow:inset 0 0 0 1.5px color-mix(in srgb,#6B5BD6 55%,transparent);color:var(--fg);text-align:left;cursor:pointer;font:inherit;-webkit-tap-highlight-color:transparent}
+.kc-aitx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}.kc-aitx b{font:900 14px var(--display)}.kc-aitx small{font:700 13px/1.35 var(--body);color:var(--fg);opacity:.9;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.kc-aigo{font:900 22px var(--display);opacity:.6}
 .kc-aiov .kc-sovb{gap:10px}.kc-aiic{font-size:22px;line-height:1}.kc-ainew{color:var(--muted)!important;margin-left:auto}
 .kc-aisg{display:flex;flex-wrap:wrap;gap:6px}.kc-aisg:empty{display:none}.kc-aich{border:0;border-radius:999px;padding:9px 13px;background:rgba(107,91,214,.2);box-shadow:inset 0 0 0 1.5px rgba(140,125,240,.55);color:#C9C1FF;font:800 14px var(--body);cursor:pointer;text-align:left}.kc-aich:active{transform:translateY(1px)}
 .kc-ailst{display:flex;flex-direction:column;gap:10px}.kc-aic{position:relative;background:var(--panel);border-radius:18px;padding:12px 14px 12px;box-shadow:inset 0 0 0 1px var(--line)}.kc-aic.old{opacity:.85}

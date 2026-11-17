@@ -791,7 +791,7 @@ const PARTS = {
     const n0 = (global.__aiChat || []).length;
     await page.tap(".kc-aich >> nth=0"); await page.waitForSelector(".kc-aia", {timeout: 8000}); await sleep(300); t = await txt(page, ".kc-aic"); await page.shot("fragnat-antwort");
     ok(/Zu „Warum stagniert mein Gewicht\?“/.test(t) && /78 kg/.test(t), "eine Startfrage antippen fragt sofort; die Antwort kennt das eigene Gewicht", t.slice(0, 200));
-    const sent = (global.__aiChat || [])[n0] || "";
+    const sent = (global.__aiChat || []).slice(n0).find(x => /FRAGE: Warum stagniert/.test(x)) || "";
     ok(/Tagesziele: \d+ kcal/.test(sent) && /Gewicht \(neueste zuerst\): \S+ 78 kg nüchtern; \S+ 77.2 kg/.test(sent) && /Tage mit Einträgen/.test(sent) && /Mahlzeiten seit/.test(sent) && !/Mila|60.2/.test(sent),
       "mitgeschickt: Ziele, Gewichtsverlauf, Tage und Mahlzeiten – nur die eigenen", sent.slice(0, 400));
     ok(await has(page, ".kc-aia b") && await has(page, ".kc-aia li"), "fett und Listen in der Antwort werden schön dargestellt");
@@ -800,12 +800,20 @@ const PARTS = {
     await page.tap(".kc-aiov [data-mic]"); await sleep(150); await page.evaluate(() => window.__hear("wie viel protein brauche ich")); await sleep(150);
     ok(await page.inputValue("#kcaiq") === "wie viel protein brauche ich", "Sprechen schreibt die Frage ins Feld");
     await page.tap(".kc-aiov [data-mic]"); await page.waitForFunction(() => document.querySelectorAll(".kc-aia").length === 2, null, {timeout: 8000});
-    const sent2 = (global.__aiChat || [])[n0 + 1] || "";
+    const sent2 = (global.__aiChat || []).slice(n0).find(x => /FRAGE: wie viel protein/.test(x)) || "";
     ok(/FRAGE: wie viel protein brauche ich/.test(sent2) && /Er: Warum stagniert mein Gewicht\?/.test(sent2), "Mikrofon nochmal tippen fragt; das Gespräch bisher geht mit", sent2.slice(-300));
     ok(/wie viel protein/i.test(await txt(page, ".kc-aic >> nth=0")), "die neueste Antwort steht oben, direkt unter dem Feld");
     /* stays when you come back, "Neu" clears */
     await page.tap("#kcaix"); await sleep(400); await page.tap("#kcai"); await page.waitForSelector(".kc-aia"); ok((await page.locator(".kc-aia").count()) === 2, "beim nächsten Öffnen ist das Gespräch noch da");
     await page.tap("#kcainew"); await sleep(200); ok((await page.locator(".kc-aia").count()) === 0 && await has(page, ".kc-aich"), "„Neu“ fängt ein neues Gespräch an");
+    await page.tap("#kcaix"); await sleep(300);
+    /* Nats Tipp für heute: once a day on the start page, about your own last days; a tap opens the talk with it */
+    await page.waitForSelector(".kc-aitip", {timeout: 8000}).catch(() => {}); const tip = await txt(page, ".kc-aitip"); await page.locator(".kc-aitip").scrollIntoViewIfNeeded().catch(() => {}); await page.shot("fragnat-tipp");
+    ok(/Nats Tipp für heute/.test(tip) && /78 kg/.test(tip) && (global.__aiChat || []).some(x => /FRAGE: Nats Tipp für heute/.test(x)), "Kalorien-Start: „Nats Tipp für heute“ mit einer echten Zahl (dein Gewicht)", tip);
+    const calls = (global.__aiChat || []).filter(x => /FRAGE: Nats Tipp/.test(x)).length; await page.evaluate(() => App.go("home")); await sleep(600); await page.evaluate(() => App.go("kcal")).catch(() => {}); await sleep(900);
+    ok((global.__aiChat || []).filter(x => /FRAGE: Nats Tipp/.test(x)).length === calls, "der Tipp wird nur einmal am Tag geholt");
+    await page.tap(".kc-aitip").catch(() => {}); await page.waitForSelector(".kc-aiq", {timeout: 6000}).catch(() => {});
+    ok(/Nats Tipp für heute/.test(await txt(page, ".kc-aiq")) && /Und am Wochenende/.test(await txt(page, "#kcaisg")), "antippen öffnet Frag Nat mit dem Tipp als erste Antwort und Anschlussfragen", await txt(page, ".kc-aiov"));
     await page.tap("#kcaix"); await sleep(300);
     await clean(page, "Frag Nat"); await page.context().close();
   },
