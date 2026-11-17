@@ -66,6 +66,7 @@ const RPCS = {
   news_broadcast: ["nid"], news_delete: ["nid"], news_is_admin: [], news_post: ["t", "b", "a?"], news_post_v: ["t", "b", "a?", "v?"], news_reshow: ["nid"],
   nudge_turn: ["target", "code"], push_config: [], ranked_leave: [], ranked_lobby: [], ranked_me: [], ranked_queue: ["tc", "hint?"],
   ranked_report: ["mid", "res", "why?"], ranked_top: ["c", "n?"], shop_can: ["l"], shop_owns: ["l"],
+  song_add: ["p_won", "p_heard", "p_right", "p_pts", "p_ms", "p_genres"], song_board: [],
   tipp_admin_event: ["p"], tipp_admin_nudge: ["p_event", "p_title", "p_body"], tipp_board: [], tipp_board_group: ["p_group"], tipp_claim: [],
   tipp_event_picks: ["p_event"], tipp_event_tips: ["p_event"], tipp_final: ["p_event"], tipp_group_save: ["p_id", "p_name", "p_comps"], tipp_groups_mine: [],
   tipp_join: ["p_code"], tipp_leave: ["p_id"], tipp_lines: ["p_event", "p_final"], tipp_live: ["p_event", "p_title"], tipp_notify: ["p_event", "p_title", "p_body"],

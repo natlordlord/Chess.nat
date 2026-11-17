@@ -30,6 +30,10 @@ const PARTS = {
   async login(browser){
     const page = await L.open(browser, null, {route: "#account"}); await sleep(600);
     ok(await has(page, 'input[type="email"]'), "Anmeldeseite zeigt das Formular");
+    /* Nathan: right at the start, before the account is made: the confirmation email is almost always in spam */
+    if (!(await has(page, ".auth-spam"))){ await page.locator("#sw").click(); await sleep(400); }
+    ok(/Spam-Ordner|spam folder/i.test(await txt(page, ".auth-spam")), "Konto erstellen: Hinweis, dass die Bestätigungsmail fast immer im Spam-Ordner landet", await txt(page, "#afw")); await page.shot("anmelden-spam");
+    await page.locator("#sw").click(); await sleep(400);
     await page.fill('input[type="email"]', "tester@chessnat.test"); await page.fill('input[type="password"]', "falsch123");
     await page.locator("#afw button.go, #afw button[type=submit]").first().click(); await sleep(1200);
     ok(/invalid|falsch|stimmt|Passwort|credentials/i.test(await txt(page, "#afw") + await toast(page)), "falsches Passwort wird abgelehnt und gemeldet", await txt(page, "#afw"));
@@ -1062,6 +1066,31 @@ const PARTS = {
   },
 
   /* ---------- Song raten online: two phones, a lobby, voice chat button, the same song on both, answers, points ---------- */
+  async songquelle(browser){
+    const page = await L.open(browser, "tester"); await sleep(800);
+    const exp = s => Math.floor(Date.now() / 1000) + s, dz = (id, t, a, e) => ({trackId: "dz" + id, trackName: t, artistName: a, previewUrl: `https://cdnt-preview.dzcdn.net/api/1/1/${id}.mp3?hdnea=exp=${e}~acl=x`, artworkUrl100: "https://e-cdns-images.dzcdn.net/images/cover/" + id + "/250x250.jpg", rank: 1000 - id, src: "dz"});
+    const asked = [];
+    await page.route(/\/api\/songs\?/, r => { const u = new URL(r.request().url()); asked.push(u.search);
+      if (u.searchParams.get("pl") === "disney") return r.fulfill({status: 200, contentType: "application/json", body: JSON.stringify({results: [dz(1, "Hakuna Matata", "Nathan Lane", exp(900)), dz(2, "Under the Sea", "Samuel E. Wright", exp(900)), dz(3, "Circle of Life", "Carmen Twillie", exp(900)), dz(4, "Old Song", "Old Artist", exp(30))]})});
+      if (/let it/i.test(u.searchParams.get("term") || "")) return r.fulfill({status: 200, contentType: "application/json", body: JSON.stringify({results: [dz(9, "Let It Go", "Idina Menzel", exp(900))], src: "dz"})});
+      return r.fulfill({status: 200, contentType: "application/json", body: JSON.stringify({results: []})}); });
+    const cats = await page.evaluate(() => Object.keys(PG._song.G));
+    ok(["disney", "musical", "series", "kids", "esc", "apres", "boy", "summer", "tiktok", "onehit", "ballad", "ndw"].every(k => cats.includes(k)), "neue Kategorien: Disney, Musicals, Serien, Kinderlieder, Eurovision, Après-Ski, Boybands, Sommerhits, TikTok, One-Hit-Wonder, Balladen, NDW", cats.join(" "));
+    const nh = await page.evaluate(() => Object.fromEntries(Object.entries(PG._song.HITS).map(([k, v]) => [k, v.split(";").length])));
+    ok(Object.values(nh).every(n => n >= 20) && Object.values(nh).reduce((a, b) => a + b, 0) >= 1150, "jede Kategorie mit Hit-Liste hat mindestens 20 bekannte Songs, zusammen " + Object.values(nh).reduce((a, b) => a + b, 0), JSON.stringify(nh));
+    /* Disney: the radio hits aren't in this test's catalog, so the songs come from the category's playlists (api/songs?pl=disney) */
+    const r = await page.evaluate(async () => { const P = PG._song.Pool.make({genre: "disney", lvl: "main"}); P.used.clear(); await P.fill(3); return P.songs.map(s => ({t: s.title, u: s.url, g: s.g})); });
+    ok(r.length >= 3 && r.filter(x => /dzcdn\.net/.test(x.u)).length >= 2 && r.every(x => x.g === "disney") && !r.some(x => x.t === "Old Song") && asked.some(q => /pl=disney/.test(q)), "Disney: die Songs kommen aus den großen Playlists (Deezer) und von den Künstlern, ein Song mit bald ablaufendem Link fliegt raus", JSON.stringify(r));
+    /* the titles in the ranking */
+    const tags = await page.evaluate(() => [PG._song.Rank.tags({genres: {y60: [8, 10], rock: [2, 4]}, avg_ms: 2500, right_n: 10, heard: 14}), PG._song.Rank.tags({genres: {musical: [13, 15]}, best_ms: 700, right_n: 13, heard: 15}), PG._song.secs(540), PG._song.secs(12400)]);
+    ok(/Oldie-Scanner/.test(tags[0].join()) && /Blitzmerker/.test(tags[0].join()) && /Musical-Experte/.test(tags[1].join()) && /Sekundenschnell/.test(tags[1].join()) && /Treffsicher/.test(tags[1].join()), "Rangliste: Titel wie „Oldie-Scanner“, „Musical-Experte“, „Blitzmerker“, „Treffsicher“", JSON.stringify(tags));
+    ok(tags[2] === "0,5 s" && tags[3] === "12 s", "Zeiten: „0,5 s“, „12 s“", JSON.stringify(tags.slice(2)));
+    /* the start screen shows the ranking */
+    await page.evaluate(() => App.go("party", {g: "song"})); await sleep(900);
+    ok(/Songraten-Rangliste/.test(await txt(page, "#main")) && /Disney/.test(await txt(page, "#sgg")) && /Musicals/.test(await txt(page, "#sgg")), "Song raten: Startseite mit Rangliste, Disney und Musicals bei den Genres", (await txt(page, "#sgg")).slice(0, 300));
+    await page.shot("song-start-rangliste");
+    await page.close();
+  },
   async songon(browser){
     const fakeAS = () => { Object.defineProperty(navigator, "audioSession", {value: {_t: "auto", get type(){ return this._t; }, set type(v){ this._t = v; }}, configurable: true}); };
     const a = await L.open(browser, "tester", {before: fakeAS}), b = await L.open(browser, "mila", {before: fakeAS}); const heard = {a: [], b: []};
@@ -1078,6 +1107,7 @@ const PARTS = {
     ok(await a.evaluate(() => App.route === "lobby" && PNet.P && PNet.P.isHost && PNet.P.game === "song"), "Online spielen öffnet eine Lobby für Song raten");
     /* game modes as packages: one tap instead of clicking everything together */
     let lob = await txt(a, "#main"); await a.shot("songon-modi");
+    ok(await has(a, "#lallg") && !(await has(a, '[data-g="werwolf"]')) && /Songraten-Rangliste/.test(lob), "Song-Lobby: keine Liste aller Partyspiele (nur „Anderes Spiel“), dafür die Songraten-Rangliste", "");
     ok([/Party/, /Profi/, /Immer länger/, /Blitzrunde/, /Zeitstrahl/, /Musik-Bingo/, /Wessen Song/, /Jahr raten/, /Eigene Regeln/].every(re => re.test(lob)) && !/6 zur Auswahl/.test(lob), "Lobby: Spielmodi als Pakete (Party, Profi, Immer länger, Blitzrunde, Zeitstrahl, Musik-Bingo, Wessen Song?, Jahr raten, Eigene Regeln), die Einzelheiten erst bei „Eigene Regeln“", lob.slice(0, 400));
     ok(/Deine Spotify-Playlist/.test(lob) && /Jeder wünscht sich was/.test(lob) && /Eigene Künstler/.test(lob), "Lobby: Spotify-Playlist für jeden, Musik „Jeder wünscht sich was“ oder eigene Künstler", "");
     ok(/Wie bekannt/i.test(lob) && /Mainstream/.test(lob) && /Medium/.test(lob) && /Groupie/.test(lob), "Lobby: „Wie bekannt“ – Mainstream, Medium, Groupie", "");
@@ -1125,7 +1155,9 @@ const PARTS = {
     await b.tap("[data-skip]"); await sleep(400); ok(/Abgegeben/.test(await txt(b, "#main")), "Mila: „Weiß nicht“ – sie wartet");
     await a.locator("[data-op]", {hasText: right}).first().tap(); await a.waitForSelector(".sg-ans", {timeout: 6000}).catch(() => {}); await b.waitForSelector(".sg-ans", {timeout: 6000}).catch(() => {}); await sleep(1200); await a.shot("songon-aufloesung");
     const ra = await txt(a, "#main"), rb = await txt(b, "#main");
-    ok(/\+3/.test(ra) && new RegExp(esc(bareT(cur()))).test(rb), "beide fertig: sofort die Auflösung, du +3 (2 richtig + 1 schnellster), Mila sieht die Lösung", ra.slice(0, 200));
+    /* Maxi: speed pays: your time is shown, and right within 2/4/7 s gives 3/2/1 tempo points on top */
+    const sbm = /\+(\d) ⚡/.exec(ra), sb2 = sbm ? +sbm[1] : 0, ms2 = /(\d+,\d) s/.exec(ra), mine2 = await a.evaluate(() => (document.querySelector(".sg-on .pg-name") || {}).innerText || "");
+    ok(ms2 && mine2.trim() === "+" + (3 + sb2) && new RegExp(esc(bareT(cur()))).test(rb), `beide fertig: sofort die Auflösung mit deiner Zeit (${ms2 && ms2[1]} s), du +${3 + sb2} (2 richtig + ${sb2} Tempo + 1 schnellster), Mila sieht die Lösung`, ra.slice(0, 300) + " | " + mine2);
     ok((await audio(a)).on && (await audio(b)).on, "nach der Auflösung läuft der Song weiter", JSON.stringify([await audio(a), await audio(b)]));
     /* singing along: Mila's phone measures how late your voice arrives; while you sing, her music runs that much later (gently, same pitch) */
     const aId = await a.evaluate(() => PNet.me); await sleep(2300);
@@ -1145,7 +1177,11 @@ const PARTS = {
     await a.tap("[data-skip]"); await b.tap("[data-skip]"); const t0 = Date.now(); await a.waitForSelector(".sg-ans", {timeout: 6000}).catch(() => {});
     ok(await has(a, ".sg-ans") && Date.now() - t0 < 2500, "beide „Weiß nicht“: sofort die Auflösung (" + (Date.now() - t0) + " ms)");
     await a.tap('[data-x="next"]'); await a.waitForSelector('[data-x="again"]', {timeout: 8000}).catch(() => {}); await b.waitForSelector(".pg-moon", {timeout: 8000}).catch(() => {});
-    ok(/gewinnt/.test(await txt(a, "#main")) && /Die Songs/.test(await txt(b, "#main")), "nach 2 Songs: Sieger, Stand und die Songs auf beiden Handys", (await txt(b, "#main")).slice(0, 200)); await b.shot("songon-ende");
+    ok(/gewinnt/.test(await txt(a, "#main")) && /Die Songs/.test(await txt(b, "#main")), "nach 2 Songs: Sieger, Stand und die Songs auf beiden Handys", (await txt(b, "#main")).slice(0, 200));
+    /* the ranking: each phone adds its player's game, the end screen shows your numbers and the list */
+    await a.waitForFunction(() => /Nat|Tester/.test((document.querySelector(".sg-rkbox") || {}).innerText || ""), null, {timeout: 6000}).catch(() => {}); await sleep(600);
+    const ea = await txt(a, "#main"); await a.shot("songon-ende-rangliste"); await b.shot("songon-ende");
+    ok(/Songraten-Rangliste/.test(ea) && /1\/2\s*richtig/.test(ea) && /schnellster Treffer/.test(ea) && /% richtig/.test(ea), "Ende: deine Werte (1/2 richtig, schnellster Treffer) und die Songraten-Rangliste", ea.slice(ea.indexOf("Gesamt"), ea.indexOf("Gesamt") + 400));
     await toLobby(); ok(await has(a, "#lgo"), "zurück in die Lobby");
     ok(await a.evaluate(() => PVoice.on) && /An/.test(await txt(a, "#lvoice")), "der Sprachchat lief das ganze Spiel über weiter");
     /* own rules: song library, 5 s, fastest takes it. Mila taps a wrong song; you want to hear more; "Search" only searches */

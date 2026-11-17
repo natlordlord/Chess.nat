@@ -213,6 +213,13 @@ module.exports = db => {
     },
     tipp_claim(u){ if (!u) return {sum: 0, n: 0}; const c = R.tipp_tips.filter(t => t.user_id === u && !t.claimed && ["won", "void"].includes(t.status)); c.forEach(t => { t.claimed = true; });
       return {sum: c.reduce((s, t) => s + t.payout, 0), n: c.length, won: c.filter(t => t.status === "won").length}; },
+    /* Song raten: the ranking (kept in memory, like supabase/song_stats.sql) */
+    song_add(u, {p_won, p_heard, p_right, p_pts, p_ms, p_genres}){ if (!u || !(p_heard > 0)) return null; R.__song = R.__song || {};
+      const S = R.__song[u] = R.__song[u] || {games: 0, won: 0, heard: 0, right_n: 0, pts: 0, ms_sum: 0, ms_n: 0, best_ms: null, genres: {}}, ms = (p_ms || []).filter(x => x >= 150 && x <= 60000);
+      S.games++; S.won += p_won > 0 ? 1 : 0; S.heard += Math.min(60, p_heard); S.right_n += Math.min(p_heard, p_right || 0); S.pts += Math.max(0, Math.min(600, p_pts || 0));
+      S.ms_sum += ms.reduce((a, b) => a + b, 0); S.ms_n += ms.length; if (ms.length) S.best_ms = Math.min(S.best_ms == null ? 1e9 : S.best_ms, ...ms);
+      Object.entries(p_genres || {}).forEach(([k, v]) => { const c = S.genres[k] || [0, 0]; S.genres[k] = [c[0] + (+v[0] || 0), c[1] + (+v[1] || 0)]; }); return null; },
+    song_board: () => Object.entries(R.__song || {}).map(([uid, S]) => { const pl = player(uid); return {uid, name: pl ? pl.name : "?", avatar: pl ? pl.avatar : null, games: S.games, won: S.won, heard: S.heard, right_n: S.right_n, pts: S.pts, avg_ms: S.ms_n ? Math.round(S.ms_sum / S.ms_n) : null, best_ms: S.best_ms, genres: S.genres}; }).sort((a, b) => b.pts - a.pts),
     tipp_board: () => [], tipp_board_group: () => [], tipp_groups_mine: () => [], tipp_event_tips: () => [], tipp_lines: () => [],
     ranked_me: u => R.chess_ratings.filter(r => r.user_id === u).map(r => ({cat: r.cat, r: Math.round(r.r), rd: Math.round(r.rd), games: r.games, w: r.w, d: r.d, l: r.l, peak: r.peak})),
     ranked_lobby: () => ({}), ranked_top: () => [], ranked_leave: () => null, ranked_queue: () => ({status: "waiting"}), ranked_report: () => ({status: "ok"}),
