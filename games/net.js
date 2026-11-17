@@ -186,7 +186,10 @@ PG.online = {};
 /* ---------- the iPhone's audio session (Safari 16.4+, navigator.audioSession): by default sound from a web page counts as
    "ambient" and the silent switch mutes it. A game with music says "playback" (plays like a music app, also on silent),
    the voice chat "play-and-record" (like a call). Back to "auto" when nothing of it runs. Other phones: nothing happens. ---------- */
-PG.audio = (() => { let want = {}; const set = t => { try { const a = navigator.audioSession; if (a && a.type !== t) a.type = t; } catch(e) {} };
+PG.audio = (() => { let want = {}; const set = t => { try { const a = navigator.audioSession; if (a && a.type !== t){ a.type = t;
+      /* the iPhone switches the sound hardware (call vs. music, another sample rate): a player made before keeps the old rate and
+         crackles, so the app's sound-effects player starts fresh with the next sound */
+      if (typeof Sound !== "undefined" && Sound.ac){ const old = Sound.ac; Sound.ac = null; try { old.close(); } catch(e) {} } } } catch(e) {} };
   const apply = () => set(want.voice ? "play-and-record" : want.music ? "playback" : "auto");
   return {music(on){ want.music = !!on; apply(); }, voice(on){ want.voice = !!on; apply(); }, get type(){ try { return navigator.audioSession ? navigator.audioSession.type : null; } catch(e) { return null; } }}; })();
 
@@ -216,7 +219,7 @@ const PVoice = (() => {
     if (on || starting) return starting; if (!navigator.mediaDevices || !window.RTCPeerConnection) return false;
     /* the microphone is asked for once: the stream stays with the app (muted) between lobby and rounds, so the phone doesn't ask again every game */
     PG.audio.voice(true);
-    starting = (async () => { try { clearTimeout(keepT); if (keep && keep.getAudioTracks().some(t => t.readyState === "live")) stream = keep; else { stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true}, video: false}); keep = stream; } }
+    starting = (async () => { try { clearTimeout(keepT); if (keep && keep.getAudioTracks().some(t => t.readyState === "live")) stream = keep; else { stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1}, video: false}); keep = stream; } }
       catch(e) { starting = null; PVoice.denied = true; PG.audio.voice(false); log("deny", {e: String(e && e.name || e).slice(0, 30)}); return false; }
       await iceServers(); log("start", {turn: ICE !== STUN ? 1 : 0});
       on = true; PVoice.denied = false; applyMic(); watch(me(), stream); send("*", {hi: 1}); lastHi = Date.now();
@@ -233,7 +236,7 @@ const PVoice = (() => {
   let fixing = false;
   async function fix(){ if (!on || fixing) return; PG.audio.voice(true); Object.values(pcs).forEach(x => { if (x.au && (x.au.paused || x.blocked)) x.au.play().then(() => { x.blocked = 0; }).catch(() => {}); });
     const t = stream && stream.getAudioTracks()[0]; if (t && t.readyState === "live") return; fixing = true;
-    try { const ns = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true}, video: false}), nt = ns.getAudioTracks()[0];
+    try { const ns = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1}, video: false}), nt = ns.getAudioTracks()[0];
       if (!on){ ns.getTracks().forEach(x => x.stop()); return; }
       if (stream) stream.getTracks().forEach(x => { try { x.stop(); } catch(e) {} }); stream = keep = ns; applyMic(); watch(me(), ns);
       Object.values(pcs).forEach(x => x.pc.getSenders().forEach(sd => { if (!sd.track || sd.track.kind === "audio") sd.replaceTrack(nt).catch(() => {}); })); log("revive", {was: t ? t.readyState : "none"}); }
@@ -257,12 +260,29 @@ const PVoice = (() => {
       if (s === "failed"){ log("fail", {ms: Date.now() - x.t, up: x.up ? 1 : 0}); close(id); if (offerer(id)) offer(id); else send(id, {hi: 1}); } };
     return x;
   }
+  /* the voice codec (Opus) as the other phone should send it: the settings in the description we send are our wishes for their
+     encoder. No pauses in silence (usedtx=0: the comfort noise came and went as a hiss), lost packets made up from the next one
+     (useinbandfec=1: no crackle when a packet is late), 40 kbit/s mono: clear speech */
+  const tune = sdp => String(sdp).replace(/a=fmtp:(\d+) ([^\r\n]*)/g, (m, pt, p) => { if (!new RegExp("a=rtpmap:" + pt + " opus/", "i").test(sdp)) return m;
+    const kv = {}; p.split(";").forEach(x => { const [k, v] = x.split("="); if (k && k.trim()) kv[k.trim()] = v; });
+    Object.assign(kv, {usedtx: "0", useinbandfec: "1", maxaveragebitrate: "40000", stereo: "0", "sprop-stereo": "0"});
+    return "a=fmtp:" + pt + " " + Object.entries(kv).map(([k, v]) => v == null ? k : k + "=" + v).join(";"); });
   /* the offerer starts a fresh connection and sends its offer */
   function offer(id){ const x = peer(id), pc = x.pc;
-    x.q = x.q.then(async () => { try { await pc.setLocalDescription(await pc.createOffer()); if (pcs[id] === x) send(id, {s: x.sid, desc: {type: "offer", sdp: pc.localDescription.sdp}}); } catch(e) { console.warn("voice", e); } }); }
-  /* who is talking right now: a little level meter per voice */
-  function watch(id, st){ try { const ac = Sound.ac; if (!ac) return; const src = ac.createMediaStreamSource(st), a = ac.createAnalyser(); a.fftSize = 256; src.connect(a); an[id] = a; } catch(e) {} }
-  function levels(){ const buf = new Uint8Array(128); Object.entries(an).forEach(([id, a]) => { a.getByteTimeDomainData(buf); let m = 0; for (let i = 0; i < buf.length; i++) m = Math.max(m, Math.abs(buf[i] - 128)); level[id] = m > 10; }); }
+    x.q = x.q.then(async () => { try { await pc.setLocalDescription(await pc.createOffer()); if (pcs[id] === x) send(id, {s: x.sid, desc: {type: "offer", sdp: tune(pc.localDescription.sdp)}}); } catch(e) { console.warn("voice", e); } }); }
+  /* who is talking right now. Before, every voice (and your own microphone) also went through an audio graph for a level meter;
+     on the iPhone that made the voices crackle. Now the connection itself says how loud each voice is (the RTP level of the
+     last packets), and your own level comes from what your phone sends */
+  function watch(){}
+  const nowMs = () => Date.now();
+  let lvBusy = false;
+  function levels(){
+    Object.entries(pcs).forEach(([id, x]) => { try { const r = x.pc.getReceivers().find(q => q.track && q.track.kind === "audio"), S = r && r.getSynchronizationSources ? r.getSynchronizationSources() : [];
+      const s2 = S[0]; const fresh = s2 && (Math.abs(nowMs() - s2.timestamp) < 700 || Math.abs(performance.now() - s2.timestamp) < 700 || Math.abs(performance.timeOrigin + performance.now() - s2.timestamp) < 700);
+      level[id] = !!(fresh && s2.audioLevel > .03); } catch(e) { level[id] = false; } });
+    /* my own level: from the sending side's statistics, at most every 360 ms */
+    const x = Object.values(pcs).find(q => q.pc.connectionState === "connected"); if (!x || lvBusy || !mic || mute){ if (!mic || mute) level[me()] = false; return; }
+    lvBusy = true; x.pc.getStats().then(r => { let a = null; r.forEach(v => { if (v.type === "media-source" && v.kind === "audio" && v.audioLevel != null) a = v.audioLevel; }); level[me()] = a != null && a > .04; }).catch(() => {}).finally(() => { setTimeout(() => { lvBusy = false; }, 180); }); }
   const heard = {};
   async function onMsg(m){
     if (m && m.id && m.id !== me() && m.d){ if (m.d.hi) heard[m.id] = Date.now(); else if (m.d.bye) delete heard[m.id]; }
@@ -281,14 +301,14 @@ const PVoice = (() => {
     try {
       if (d.desc){ if (d.desc.type === "answer" && pc.signalingState !== "have-local-offer") return;
         await pc.setRemoteDescription(d.desc);
-        if (d.desc.type === "offer"){ await pc.setLocalDescription(await pc.createAnswer()); if (pcs[id] === x) send(id, {s: x.sid, r: x.rs, desc: {type: "answer", sdp: pc.localDescription.sdp}}); }
+        if (d.desc.type === "offer"){ await pc.setLocalDescription(await pc.createAnswer()); if (pcs[id] === x) send(id, {s: x.sid, r: x.rs, desc: {type: "answer", sdp: tune(pc.localDescription.sdp)}}); }
         const P = x.pend; x.pend = []; for (const c of P){ try { await pc.addIceCandidate(c); } catch(e) {} } }
       else if (d.cand){ if (!pc.remoteDescription) x.pend.push(d.cand); else { try { await pc.addIceCandidate(d.cand); } catch(e) {} } }
     } catch(e) { console.warn("voice", e); }
   }
   return {start, stop, onMsg, via(f){ tx = f || null; }, get viaSet(){ return !!tx; }, others: () => Object.keys(heard).filter(id => Date.now() - heard[id] < 10000), get on(){ return on; }, get starting(){ return !!starting; }, denied: false,
     setMic(v){ mic = !!v; applyMic(); }, get mic(){ return mic; }, toggleMute(){ mute = !mute; applyMic(); return mute; }, get muted(){ return mute; },
-    talking: id => !!level[id], peers: () => Object.keys(pcs).filter(id => pcs[id].pc.connectionState === "connected"), get _pcs(){ return pcs; }};
+    talking: id => !!level[id], _tune: tune, peers: () => Object.keys(pcs).filter(id => pcs[id].pc.connectionState === "connected"), get _pcs(){ return pcs; }};
 })();
 
 /* ---------- safe rendering of a view: plain text, *bold*, line breaks; never HTML from another phone ---------- */
@@ -465,7 +485,10 @@ Views.lobby = {
         ${online.length < need ? `<p class="pg-sub">${T("Waiting for the others to join…", "Warte, bis die anderen beitreten…")}</p>` : ""}</div>
       ${e && e.lobbyHTML ? e.lobbyHTML(m, isH) : ""}
       ${typeof Social !== "undefined" && Social.me ? `<div class="unit" style="width:100%;text-align:left;margin:0"><h3>${T("Invite friends", "Freunde einladen")}</h3><p class="pg-sub">${T("Like a puzzle duel: they get a notification and land right here.", "Wie beim Puzzle-Duell: Sie bekommen eine Benachrichtigung und landen direkt hier.")}</p><div id="lfl" class="list" style="margin-top:6px"></div></div>` : ""}
-      ${isH ? `<div class="unit" style="width:100%;text-align:left;margin:0"><h3>${T("Game", "Spiel")}</h3><div class="grid2" style="margin-top:8px">${Object.keys(PG.online).map(id => { const gg = PG.games.find(x => x.id === id); return gg ? `<button class="btn ${id === m.game ? "go" : ""}" data-g="${id}" style="justify-content:flex-start;gap:8px">${icon(gg.icon, 20)}<span style="text-align:left">${h(T(gg.name[0], gg.name[1]))}</span></button>` : ""; }).join("")}</div>
+      ${isH ? `<div class="unit" style="width:100%;text-align:left;margin:0"><h3>${T("Game", "Spiel")}</h3>${m.game === "song" && !this.allGames
+          /* a song quiz lobby is about the song quiz (Nathan): not the whole list of party games, only a way out */
+          ? `<div class="row" style="margin-top:8px;gap:8px;align-items:center"><span class="pg-chip" style="font:800 15px var(--body)">${icon("music", 18)} ${T("Song Quiz", "Song raten")}</span><button class="btn ghost sm" id="lallg">${T("Other game", "Anderes Spiel")}</button></div>`
+          : `<div class="grid2" style="margin-top:8px">${Object.keys(PG.online).map(id => { const gg = PG.games.find(x => x.id === id); return gg ? `<button class="btn ${id === m.game ? "go" : ""}" data-g="${id}" style="justify-content:flex-start;gap:8px">${icon(gg.icon, 20)}<span style="text-align:left">${h(T(gg.name[0], gg.name[1]))}</span></button>` : ""; }).join("")}</div>`}
           ${e && e.opts && e.opts.length ? e.opts.filter(o => !o.solo && (!o.show || o.show(Object.assign({}, PNet.defaults(m.game), m.opts || {})))).map(o => `<div style="margin-top:12px"><div class="pg-who" style="text-align:left">${h(T(o.l[0], o.l[1]))}</div>${o.cards
             /* big cards for a choice that needs a word of explanation (game modes): emoji, name, one line */
             ? `<div class="pg-pkg">${(typeof o.c === "function" ? o.c() : o.c).map(([v, l, d, em]) => `<button class="pg-pk ${String(m.opts[o.k]) === String(v) ? "on" : ""}" data-ok="${o.k}" data-ov="${esc(String(v))}"><span class="e">${em || ""}</span><b>${h(Array.isArray(l) ? T(l[0], l[1]) : l)}</b>${d ? `<small>${h(Array.isArray(d) ? T(d[0], d[1]) : d)}</small>` : ""}</button>`).join("")}</div>`
@@ -484,7 +507,8 @@ Views.lobby = {
       $("#lshare", body).onclick = async () => { const url = PNet.link(P.code), txt = T(`Join my ${g ? T(g.name[0], g.name[1]) : "game"} lobby on Chess.nat: `, `Komm in meine ${g ? T(g.name[0], g.name[1]) : "Spiele"}-Lobby auf Chess.nat: `);
         try { if (navigator.share){ await navigator.share({title: "Chess.nat", text: txt, url}); return; } } catch(err) { if (err && err.name === "AbortError") return; }
         try { await navigator.clipboard.writeText(url); toast(T("Link copied", "Link kopiert")); } catch(err) { prompt("Link", url); } };
-      $$("[data-g]", body).forEach(b => b.onclick = () => PNet.setGame(b.dataset.g));
+      $$("[data-g]", body).forEach(b => b.onclick = () => { this.allGames = false; PNet.setGame(b.dataset.g); });
+      const ag = $("#lallg", body); if (ag) ag.onclick = () => { this.allGames = true; body._lk = null; this.lobby(body, m); };
       $$("[data-ok]", body).forEach(b => b.onclick = () => { const o = e.opts.find(x => x.k === b.dataset.ok), v = (typeof o.c === "function" ? o.c() : o.c).find(c => String(c[0]) === b.dataset.ov)[0]; PNet.setOpt(o.k, v); });
       $$("[data-kick]", body).forEach(b => b.onclick = () => PNet.kick(b.dataset.kick));
       const go = $("#lgo", body); if (go) go.onclick = () => PNet.begin();
@@ -501,10 +525,11 @@ PG.qr = (() => { let lib = null;
     return `<svg viewBox="-2 -2 ${n + 4} ${n + 4}" shape-rendering="crispEdges" aria-label="QR"><rect x="-2" y="-2" width="${n + 4}" height="${n + 4}" fill="#fff"/><path d="${d}" fill="#262421"/></svg>`; } catch(e) { return ""; } }; })();
 
 /* ---- invite friends, right in the lobby: the same invite as for a chess game or a puzzle duel ---- */
-const pgInvited = {};
+const pgInvited = {};   /* code + friend → when the invite went out; after a few seconds it can go out again */
+const PG_REINV = 6000;
 /* a lobby opened from a friend's "Play" button: as soon as the lobby has its code, that friend gets the invite */
 PG.inviteSoon = (to, game) => { let n = 0; const go = async () => { const P = PNet.P, code = P && P.code; if (!code){ if (++n < 40) setTimeout(go, 250); return; }
-    if (typeof Social === "undefined" || !Social.me || pgInvited[code + to]) return; pgInvited[code + to] = 1;
+    if (typeof Social === "undefined" || !Social.me || (pgInvited[code + to] && Date.now() - pgInvited[code + to] < PG_REINV)) return; pgInvited[code + to] = Date.now();
     try { const {error} = await Social.sb.from("chess_invites").insert({from_id: Social.me, to_id: to, code, tc: ("p:" + game).slice(0, 12)}); if (error) throw error;
       toast(PG.T("Invite sent to ", "Einladung geschickt an ") + Social.P(to).name + " 📨", 2600); PG.vib(15); }
     catch(e) { delete pgInvited[code + to]; toast(PG.T("Couldn't invite: ", "Einladen ging nicht: ") + (e.message || e), 3500); } }; go(); };
@@ -512,13 +537,19 @@ PG.friendList = (box, code, game, inLobby) => {
   const {T, h} = PG; if (typeof Social === "undefined" || !Social.me) return;
   const me = Social.me, ids = Social.data.friends.filter(r => r.status === "accepted").map(r => r.a === me ? r.b : r.a).filter(id => !inLobby.includes(id));
   if (typeof friendRank === "function") ids.splice(0, ids.length, ...friendRank(ids)); else ids.sort((a, b) => (Social.isOnline(Social.P(b)) ? 1 : 0) - (Social.isOnline(Social.P(a)) ? 1 : 0));
-  box.innerHTML = ids.map(id => { const p = Social.P(id), on = Social.isOnline(p), done = pgInvited[code + id];
-    return `<div class="li">${Social.face ? Social.face(p, 34) : ""}<div class="grow"><div class="t">${h(p.name)}</div><div class="s" style="${on ? "color:var(--go-hi)" : ""}">${on ? "● " + T("online", "online") : T("offline", "offline")}</div></div><button class="btn sm ${done ? "" : "go"}" data-inv="${esc(id)}" ${done ? "disabled" : ""}>${done ? T("Invited ✓", "Eingeladen ✓") : T("Invite", "Einladen")}</button></div>`; }).join("")
-    || `<p class="muted" style="margin:4px 0">${T("All your friends are here, or you have none yet. Share the link or the QR code.", "Alle deine Freunde sind schon da oder du hast noch keine. Teil den Link oder den QR-Code.")}</p>`;
-  $$("[data-inv]", box).forEach(b => b.onclick = async () => { b.disabled = true;
-    const {error} = await Social.sb.from("chess_invites").insert({from_id: me, to_id: b.dataset.inv, code, tc: ("p:" + game).slice(0, 12)});
-    if (error){ b.disabled = false; toast(T("Couldn't send: ", "Ging nicht: ") + error.message, 3500); return; }
-    pgInvited[code + b.dataset.inv] = 1; b.textContent = T("Invited ✓", "Eingeladen ✓"); b.classList.remove("go"); PG.vib(15); });
+  /* an invite can go out again after a few seconds (Nathan: someone was thrown out or closed it by mistake) */
+  const draw = () => { if (!box.isConnected) return; clearTimeout(box._re);
+    box.innerHTML = ids.map(id => { const p = Social.P(id), on = Social.isOnline(p), at = pgInvited[code + id], done = !!at && Date.now() - at < PG_REINV;
+      return `<div class="li">${Social.face ? Social.face(p, 34) : ""}<div class="grow"><div class="t">${h(p.name)}</div><div class="s" style="${on ? "color:var(--go-hi)" : ""}">${on ? "● " + T("online", "online") : T("offline", "offline")}</div></div><button class="btn sm ${done ? "" : "go"}" data-inv="${esc(id)}" ${done ? "disabled" : ""}>${done ? T("Invited ✓", "Eingeladen ✓") : at ? T("Invite again", "Nochmal einladen") : T("Invite", "Einladen")}</button></div>`; }).join("")
+      || `<p class="muted" style="margin:4px 0">${T("All your friends are here, or you have none yet. Share the link or the QR code.", "Alle deine Freunde sind schon da oder du hast noch keine. Teil den Link oder den QR-Code.")}</p>`;
+    $$("[data-inv]", box).forEach(b => b.onclick = async () => { b.disabled = true;
+      const {error} = await Social.sb.from("chess_invites").insert({from_id: me, to_id: b.dataset.inv, code, tc: ("p:" + game).slice(0, 12)});
+      if (error){ b.disabled = false; toast(T("Couldn't send: ", "Ging nicht: ") + error.message, 3500); return; }
+      pgInvited[code + b.dataset.inv] = Date.now(); PG.vib(15); draw(); });
+    /* the "Invited ✓" turns back into "Invite again" by itself */
+    const wait = ids.map(id => pgInvited[code + id]).filter(at => at && Date.now() - at < PG_REINV).map(at => PG_REINV - (Date.now() - at));
+    if (wait.length) box._re = setTimeout(draw, Math.min(...wait) + 50); };
+  draw();
 };
 
 /* ---- links: #p-CODE opens the lobby (at start and while the app is open) ---- */

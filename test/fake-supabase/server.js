@@ -236,6 +236,9 @@ const server = http.createServer((req, res) => {
       if (p === "/api/food") return await vercel("food.js", req, res, q, raw);
       if (p === "/api/foods") return await vercel("foods.js", req, res, q, raw);
       if (p === "/api/spotify") return await vercel("spotify.js", req, res, q, raw);
+      /* api/songs.js asks Apple and Deezer over the internet; here it has nothing, so the phone falls back to Apple's search
+         (answered in test/lib.js). A test can answer /api/songs itself with page.route */
+      if (p === "/api/songs"){ res.writeHead(200, {"content-type": "application/json"}); return res.end(JSON.stringify({resultCount: 0, results: [], src: "test"})); }
       if (p === "/api/coach") return await vercel("coach.js", req, res, q, raw);
       /* api/muell.js with the district's calendar replaced by a fixed one: two towns, a few streets, collections on the next days */
       if (p === "/api/abfall"){ res.writeHead(200, {"content-type": "application/json"}); return res.end(JSON.stringify({error: "unsupported"})); }

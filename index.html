@@ -2810,7 +2810,8 @@ html.booting .app{visibility:hidden}
 .dm-rb i{width:28px;height:28px;border-radius:50%;background:#454746;display:grid;place-items:center;font-style:normal;font-size:11px}
 .dm-sh26 .dm-list{background:#454746;border-radius:12px}.dm-sh26 .dm-list .dm-row{flex-direction:row-reverse;justify-content:flex-end;gap:8px}
 .onb-spam{display:flex;gap:10px;align-items:center;text-align:left;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,#e9b64a 18%,transparent);border:1px solid #e9b64a;color:var(--fg);font:800 15px/1.35 var(--body)}
-.onb-spam b{font-size:22px}
+.onb-spam b{font-size:22px}.onb-spam-big{font-size:16px;box-shadow:0 0 0 3px color-mix(in srgb,#e9b64a 35%,transparent)}.onb-spam-big strong{display:block;font:900 18px var(--display);margin-bottom:2px}
+.auth-spam{font-size:14px;margin:2px 0 4px}.auth-spam u{text-decoration-thickness:2px}
 .me-out{display:flex;flex-direction:column;align-items:center;gap:8px;margin:28px 0 8px;padding-top:18px;border-top:1px solid var(--line)}
 .me-out .btn{min-width:200px}.me-out .btn.armed{background:var(--bad);color:#fff}
 /* voice lines */
@@ -2918,7 +2919,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794797555";
+const CHESSNAT_BUILD = "1794956954";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -13283,6 +13284,7 @@ function authForm(root, o = {}){
         <label>Email<input type="email" id="em" name="${mode === "up" ? "new-email-" + Date.now().toString(36) : "email"}" required autocomplete="${mode === "up" ? "off" : "username"}" inputmode="email" placeholder="you@example.com" value=""></label>
         <label>Password<input type="password" id="pw" minlength="6" required autocomplete="${mode === "up" ? "new-password" : "current-password"}" placeholder="${mode === "up" ? "At least 6 characters" : ""}"></label>
         <p class="aerr" id="aerr"></p>
+        ${mode === "up" ? `<div class="onb-spam auth-spam"><b>📩</b><span>Then you get a confirmation email. It almost always lands in your <u>spam folder</u>: look there!</span></div>` : ""}
         <button class="btn go big" type="submit" id="asub">${mode === "up" ? "Create account" : "Sign in"}</button>
         ${window.CHESSNAT_CONFIG && window.CHESSNAT_CONFIG.google ? `<button class="btn" type="button" id="gg">Continue with Google</button>` : ""}
       </form>
@@ -13298,7 +13300,7 @@ function authForm(root, o = {}){
       const r = mode === "up" ? await site.signUp(em, pw) : await site.signIn(em, pw); b.disabled = false;
       if (r.error){ const m = r.error.message || "";
         if (m === "Invalid login credentials") return err("Wrong email or password. Forgot it? Use “Forgot password” below.");
-        if (m === "Email not confirmed"){ if (o.onSignedUp) return o.onSignedUp(em, pw); return err("Please click the confirmation link in your email first, then sign in here."); }
+        if (m === "Email not confirmed"){ if (o.onSignedUp) return o.onSignedUp(em, pw); return err("Please click the confirmation link in your email first, then sign in here. It's almost always in your spam folder."); }
         return err(m); }
       /* "Create account" with an email that already has one: just sign in with what was typed; only if that password is wrong, switch to the sign-in form and say so calmly */
       if (mode === "up" && r.data && r.data.user && Array.isArray(r.data.user.identities) && r.data.user.identities.length === 0){
@@ -13456,8 +13458,8 @@ const Onboard = (() => {
         <div id="onaf"></div><button class="btn ghost onb-skip" id="onskip">Play without an account</button>`;
     } else if (s === "verify"){
       body = `<div class="onb-bell">${icon("send", 46)}</div><h2>Confirm your email</h2>
+        <div class="onb-spam onb-spam-big"><b>⚠️</b><span><strong>Look in your SPAM folder!</strong> The email almost always lands in your spam folder. Look there first!</span></div>
         <p class="onb-sub">We sent a link to ${esc(pending.em)}. Tap it, it opens a new tab. This page goes on by itself.</p>
-        <div class="onb-spam"><b>⚠️</b><span>The email almost always lands in your spam folder. Look there first!</span></div>
         <div class="onb-wait"><i></i><span>Waiting for your confirmation…</span></div>
         <button class="btn go big" id="onchk" style="width:100%">I've confirmed it</button>
         <div class="onb-row"><button class="btn ghost" id="onres">Send the email again</button><button class="btn ghost" id="onchg">Different email</button></div>`;
