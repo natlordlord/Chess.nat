@@ -83,30 +83,40 @@ async function deezer(q){
   const r = await get("https://api.deezer.com/search?" + new URLSearchParams({q: qs, limit: String(lim), order: "RANKING"}));
   return r.j && Array.isArray(r.j.data) ? r.j.data.map(dz).filter(real) : null; }
 
+/* a playlist must be about its search: Deezer's playlist search also answers with lists that only look alike
+   ("Musical Hits" found a Brazilian church playlist, "Músicas …", and its songs came up in Musicals). So the list's title has to
+   carry one of the search's own words (not "hits", "best" and the like); "80s"/"80er"/"80's" all count as 80. */
+const PLAIN = new Set("hits hit best of the top songs song classics classic greatest all time die de der das and und today s todays".split(" "));
+const words = t => N(t).replace(/\b(\d+)(?:er|s)\b/g, "$1").split(" ").filter(Boolean);
+const keyWords = q => words(q).filter(w => (w.length >= 3 || /^\d\d/.test(w)) && !PLAIN.has(w)).map(w => /^\d/.test(w) ? w : w.replace(/s$/, ""));
+function about(title, q){ const need = keyWords(q); if (!need.length) return true;
+  const have = words(title); return need.some(k => have.some(w => /^\d/.test(k) ? w === k : w.startsWith(k))); }
+
 /* the category's playlists: searched once, then their songs (fresh preview links every time) */
 const PLIDS = new Map();
 async function playlists(key){
-  const qs = PLQ[key] || PLQ.mix, out = [], seen = new Set();
+  const qs = PLQ[key] || PLQ.mix, out = [], seen = new Set(), lists = [];
   const add = L => (L || []).map(dz).filter(real).forEach(x => { const k = N(x.trackName) + "|" + N(x.artistName); if (seen.has(k)) return; seen.add(k); out.push(x); });
   const ids = [];
   for (const q of qs){
     if (q === "@chart"){ const r = await get("https://api.deezer.com/chart/0/tracks?limit=100"); if (r.j) add(r.j.data); continue; }
     let L = PLIDS.get(q);
     if (!L){ const r = await get("https://api.deezer.com/search/playlist?" + new URLSearchParams({q, limit: "10"}));
-      L = r.j && Array.isArray(r.j.data) ? r.j.data.filter(p => p.nb_tracks >= 25 && p.nb_tracks <= 2000).slice(0, 2).map(p => p.id) : [];
+      L = r.j && Array.isArray(r.j.data) ? r.j.data.filter(p => p.nb_tracks >= 25 && p.nb_tracks <= 2000 && about(p.title, q)).slice(0, 2)
+        .map(p => ({id: p.id, title: clip(p.title, 80), n: p.nb_tracks})) : [];
       if (L.length) PLIDS.set(q, L); }
-    L.forEach(id => { if (!ids.includes(id)) ids.push(id); }); }
+    L.forEach(p => { if (!ids.includes(p.id)){ ids.push(p.id); lists.push(p); } }); }
   const got = await Promise.all(ids.slice(0, 5).map(id => get(`https://api.deezer.com/playlist/${id}/tracks?limit=400`, 6000)));
   got.forEach(r => { if (r.j) add(r.j.data); });
-  /* the best known first */
-  return out.sort((a, b) => (b.rank || 0) - (a.rank || 0)).slice(0, 500); }
+  /* the best known first; which lists they came from goes along (to look at, the phones ignore it) */
+  const res = out.sort((a, b) => (b.rank || 0) - (a.rank || 0)).slice(0, 500); res.lists = lists.slice(0, 5); return res; }
 
 module.exports = async (req, res) => {
   const q = req.query || {}, send = (code, body, age) => { res.setHeader("content-type", "application/json; charset=utf-8");
     res.setHeader("cache-control", age ? `public, max-age=60, s-maxage=${age}, stale-while-revalidate=${Math.round(age / 4)}` : "no-store"); res.statusCode = code; res.end(JSON.stringify(body)); };
   try {
     if (q.pl){ const key = String(q.pl).toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 16); const results = await playlists(PLQ[key] ? key : "mix");
-      return send(200, {resultCount: results.length, results, src: "dz"}, results.length ? 240 : 0); }
+      return send(200, {resultCount: results.length, lists: results.lists, results, src: "dz"}, results.length ? 240 : 0); }
     if (!q.term || String(q.term).trim().length < 2) return send(400, {error: "term"});
     let results = q.src === "dz" ? null : await apple(q), src = "it";
     /* Apple has nothing or says no: Deezer */
@@ -116,4 +126,4 @@ module.exports = async (req, res) => {
     return send(200, {resultCount: results.length, results, src}, results.length ? (src === "it" ? 86400 : 240) : 600);
   } catch(e) { return send(500, {error: String(e && e.message || e), results: []}); }
 };
-module.exports._t = {PLQ, dz, real, playlists, apple, deezer};
+module.exports._t = {PLQ, dz, real, playlists, apple, deezer, about, keyWords};
