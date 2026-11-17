@@ -85,12 +85,15 @@ async function deezer(q){
 
 /* a playlist must be about its search: Deezer's playlist search also answers with lists that only look alike
    ("Musical Hits" found a Brazilian church playlist, "Músicas …", and its songs came up in Musicals). So the list's title has to
-   carry one of the search's own words (not "hits", "best" and the like); "80s"/"80er"/"80's" all count as 80. */
+   carry one of the search's own words (not "hits", "best" and the like); "80s"/"80er"/"80's" all count as 80. And it must be
+   short: a long title is a fan's theme list that only mentions the word. */
 const PLAIN = new Set("hits hit best of the top songs song classics classic greatest all time die de der das and und today s todays".split(" "));
 const words = t => N(t).replace(/\b(\d+)(?:er|s)\b/g, "$1").split(" ").filter(Boolean);
 const keyWords = q => words(q).filter(w => (w.length >= 3 || /^\d\d/.test(w)) && !PLAIN.has(w)).map(w => /^\d/.test(w) ? w : w.replace(/s$/, ""));
-function about(title, q){ const need = keyWords(q); if (!need.length) return true;
-  const have = words(title); return need.some(k => have.some(w => /^\d/.test(k) ? w === k : w.startsWith(k))); }
+function about(title, q){ const need = keyWords(q), have = words(title);
+  /* a long title is somebody's theme list ("Onyx Storm | Fourth Wing, Iron Flame - The musical"), not the category */
+  if (have.length > words(q).length + 4) return false;
+  return !need.length || need.some(k => have.some(w => /^\d/.test(k) ? w === k : w.startsWith(k))); }
 
 /* the category's playlists: searched once, then their songs (fresh preview links every time) */
 const PLIDS = new Map();
