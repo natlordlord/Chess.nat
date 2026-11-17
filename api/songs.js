@@ -40,7 +40,7 @@ const PLQ = {
   disney: ["Disney Hits", "Disney Songs", "Disney Klassiker"],
   musical: ["Musical Hits", "Best of Musicals", "Broadway Hits"],
   movie: ["Movie Soundtrack Hits", "Filmmusik Hits", "Soundtrack Hits"],
-  series: ["TV Theme Songs", "Serien Titelsongs"],
+  series: ["Serien Titelsongs", "Serien Titelmusik", "Sitcom Theme Songs"],
   kids: ["Kinderlieder", "Kinderdisco"],
   esc: ["Eurovision Hits", "Eurovision Song Contest"],
   apres: ["Après Ski Hits", "Oktoberfest Hits"],
