@@ -465,7 +465,10 @@ Views.lobby = {
         ${online.length < need ? `<p class="pg-sub">${T("Waiting for the others to join…", "Warte, bis die anderen beitreten…")}</p>` : ""}</div>
       ${e && e.lobbyHTML ? e.lobbyHTML(m, isH) : ""}
       ${typeof Social !== "undefined" && Social.me ? `<div class="unit" style="width:100%;text-align:left;margin:0"><h3>${T("Invite friends", "Freunde einladen")}</h3><p class="pg-sub">${T("Like a puzzle duel: they get a notification and land right here.", "Wie beim Puzzle-Duell: Sie bekommen eine Benachrichtigung und landen direkt hier.")}</p><div id="lfl" class="list" style="margin-top:6px"></div></div>` : ""}
-      ${isH ? `<div class="unit" style="width:100%;text-align:left;margin:0"><h3>${T("Game", "Spiel")}</h3><div class="grid2" style="margin-top:8px">${Object.keys(PG.online).map(id => { const gg = PG.games.find(x => x.id === id); return gg ? `<button class="btn ${id === m.game ? "go" : ""}" data-g="${id}" style="justify-content:flex-start;gap:8px">${icon(gg.icon, 20)}<span style="text-align:left">${h(T(gg.name[0], gg.name[1]))}</span></button>` : ""; }).join("")}</div>
+      ${isH ? `<div class="unit" style="width:100%;text-align:left;margin:0"><h3>${T("Game", "Spiel")}</h3>${m.game === "song" && !this.allGames
+          /* a song quiz lobby is about the song quiz (Nathan): not the whole list of party games, only a way out */
+          ? `<div class="row" style="margin-top:8px;gap:8px;align-items:center"><span class="pg-chip" style="font:800 15px var(--body)">${icon("music", 18)} ${T("Song Quiz", "Song raten")}</span><button class="btn ghost sm" id="lallg">${T("Other game", "Anderes Spiel")}</button></div>`
+          : `<div class="grid2" style="margin-top:8px">${Object.keys(PG.online).map(id => { const gg = PG.games.find(x => x.id === id); return gg ? `<button class="btn ${id === m.game ? "go" : ""}" data-g="${id}" style="justify-content:flex-start;gap:8px">${icon(gg.icon, 20)}<span style="text-align:left">${h(T(gg.name[0], gg.name[1]))}</span></button>` : ""; }).join("")}</div>`}
           ${e && e.opts && e.opts.length ? e.opts.filter(o => !o.solo && (!o.show || o.show(Object.assign({}, PNet.defaults(m.game), m.opts || {})))).map(o => `<div style="margin-top:12px"><div class="pg-who" style="text-align:left">${h(T(o.l[0], o.l[1]))}</div>${o.cards
             /* big cards for a choice that needs a word of explanation (game modes): emoji, name, one line */
             ? `<div class="pg-pkg">${(typeof o.c === "function" ? o.c() : o.c).map(([v, l, d, em]) => `<button class="pg-pk ${String(m.opts[o.k]) === String(v) ? "on" : ""}" data-ok="${o.k}" data-ov="${esc(String(v))}"><span class="e">${em || ""}</span><b>${h(Array.isArray(l) ? T(l[0], l[1]) : l)}</b>${d ? `<small>${h(Array.isArray(d) ? T(d[0], d[1]) : d)}</small>` : ""}</button>`).join("")}</div>`
@@ -484,7 +487,8 @@ Views.lobby = {
       $("#lshare", body).onclick = async () => { const url = PNet.link(P.code), txt = T(`Join my ${g ? T(g.name[0], g.name[1]) : "game"} lobby on Chess.nat: `, `Komm in meine ${g ? T(g.name[0], g.name[1]) : "Spiele"}-Lobby auf Chess.nat: `);
         try { if (navigator.share){ await navigator.share({title: "Chess.nat", text: txt, url}); return; } } catch(err) { if (err && err.name === "AbortError") return; }
         try { await navigator.clipboard.writeText(url); toast(T("Link copied", "Link kopiert")); } catch(err) { prompt("Link", url); } };
-      $$("[data-g]", body).forEach(b => b.onclick = () => PNet.setGame(b.dataset.g));
+      $$("[data-g]", body).forEach(b => b.onclick = () => { this.allGames = false; PNet.setGame(b.dataset.g); });
+      const ag = $("#lallg", body); if (ag) ag.onclick = () => { this.allGames = true; body._lk = null; this.lobby(body, m); };
       $$("[data-ok]", body).forEach(b => b.onclick = () => { const o = e.opts.find(x => x.k === b.dataset.ok), v = (typeof o.c === "function" ? o.c() : o.c).find(c => String(c[0]) === b.dataset.ov)[0]; PNet.setOpt(o.k, v); });
       $$("[data-kick]", body).forEach(b => b.onclick = () => PNet.kick(b.dataset.kick));
       const go = $("#lgo", body); if (go) go.onclick = () => PNet.begin();
@@ -501,10 +505,11 @@ PG.qr = (() => { let lib = null;
     return `<svg viewBox="-2 -2 ${n + 4} ${n + 4}" shape-rendering="crispEdges" aria-label="QR"><rect x="-2" y="-2" width="${n + 4}" height="${n + 4}" fill="#fff"/><path d="${d}" fill="#262421"/></svg>`; } catch(e) { return ""; } }; })();
 
 /* ---- invite friends, right in the lobby: the same invite as for a chess game or a puzzle duel ---- */
-const pgInvited = {};
+const pgInvited = {};   /* code + friend → when the invite went out; after a few seconds it can go out again */
+const PG_REINV = 6000;
 /* a lobby opened from a friend's "Play" button: as soon as the lobby has its code, that friend gets the invite */
 PG.inviteSoon = (to, game) => { let n = 0; const go = async () => { const P = PNet.P, code = P && P.code; if (!code){ if (++n < 40) setTimeout(go, 250); return; }
-    if (typeof Social === "undefined" || !Social.me || pgInvited[code + to]) return; pgInvited[code + to] = 1;
+    if (typeof Social === "undefined" || !Social.me || (pgInvited[code + to] && Date.now() - pgInvited[code + to] < PG_REINV)) return; pgInvited[code + to] = Date.now();
     try { const {error} = await Social.sb.from("chess_invites").insert({from_id: Social.me, to_id: to, code, tc: ("p:" + game).slice(0, 12)}); if (error) throw error;
       toast(PG.T("Invite sent to ", "Einladung geschickt an ") + Social.P(to).name + " 📨", 2600); PG.vib(15); }
     catch(e) { delete pgInvited[code + to]; toast(PG.T("Couldn't invite: ", "Einladen ging nicht: ") + (e.message || e), 3500); } }; go(); };
@@ -512,13 +517,19 @@ PG.friendList = (box, code, game, inLobby) => {
   const {T, h} = PG; if (typeof Social === "undefined" || !Social.me) return;
   const me = Social.me, ids = Social.data.friends.filter(r => r.status === "accepted").map(r => r.a === me ? r.b : r.a).filter(id => !inLobby.includes(id));
   if (typeof friendRank === "function") ids.splice(0, ids.length, ...friendRank(ids)); else ids.sort((a, b) => (Social.isOnline(Social.P(b)) ? 1 : 0) - (Social.isOnline(Social.P(a)) ? 1 : 0));
-  box.innerHTML = ids.map(id => { const p = Social.P(id), on = Social.isOnline(p), done = pgInvited[code + id];
-    return `<div class="li">${Social.face ? Social.face(p, 34) : ""}<div class="grow"><div class="t">${h(p.name)}</div><div class="s" style="${on ? "color:var(--go-hi)" : ""}">${on ? "● " + T("online", "online") : T("offline", "offline")}</div></div><button class="btn sm ${done ? "" : "go"}" data-inv="${esc(id)}" ${done ? "disabled" : ""}>${done ? T("Invited ✓", "Eingeladen ✓") : T("Invite", "Einladen")}</button></div>`; }).join("")
-    || `<p class="muted" style="margin:4px 0">${T("All your friends are here, or you have none yet. Share the link or the QR code.", "Alle deine Freunde sind schon da oder du hast noch keine. Teil den Link oder den QR-Code.")}</p>`;
-  $$("[data-inv]", box).forEach(b => b.onclick = async () => { b.disabled = true;
-    const {error} = await Social.sb.from("chess_invites").insert({from_id: me, to_id: b.dataset.inv, code, tc: ("p:" + game).slice(0, 12)});
-    if (error){ b.disabled = false; toast(T("Couldn't send: ", "Ging nicht: ") + error.message, 3500); return; }
-    pgInvited[code + b.dataset.inv] = 1; b.textContent = T("Invited ✓", "Eingeladen ✓"); b.classList.remove("go"); PG.vib(15); });
+  /* an invite can go out again after a few seconds (Nathan: someone was thrown out or closed it by mistake) */
+  const draw = () => { if (!box.isConnected) return; clearTimeout(box._re);
+    box.innerHTML = ids.map(id => { const p = Social.P(id), on = Social.isOnline(p), at = pgInvited[code + id], done = !!at && Date.now() - at < PG_REINV;
+      return `<div class="li">${Social.face ? Social.face(p, 34) : ""}<div class="grow"><div class="t">${h(p.name)}</div><div class="s" style="${on ? "color:var(--go-hi)" : ""}">${on ? "● " + T("online", "online") : T("offline", "offline")}</div></div><button class="btn sm ${done ? "" : "go"}" data-inv="${esc(id)}" ${done ? "disabled" : ""}>${done ? T("Invited ✓", "Eingeladen ✓") : at ? T("Invite again", "Nochmal einladen") : T("Invite", "Einladen")}</button></div>`; }).join("")
+      || `<p class="muted" style="margin:4px 0">${T("All your friends are here, or you have none yet. Share the link or the QR code.", "Alle deine Freunde sind schon da oder du hast noch keine. Teil den Link oder den QR-Code.")}</p>`;
+    $$("[data-inv]", box).forEach(b => b.onclick = async () => { b.disabled = true;
+      const {error} = await Social.sb.from("chess_invites").insert({from_id: me, to_id: b.dataset.inv, code, tc: ("p:" + game).slice(0, 12)});
+      if (error){ b.disabled = false; toast(T("Couldn't send: ", "Ging nicht: ") + error.message, 3500); return; }
+      pgInvited[code + b.dataset.inv] = Date.now(); PG.vib(15); draw(); });
+    /* the "Invited ✓" turns back into "Invite again" by itself */
+    const wait = ids.map(id => pgInvited[code + id]).filter(at => at && Date.now() - at < PG_REINV).map(at => PG_REINV - (Date.now() - at));
+    if (wait.length) box._re = setTimeout(draw, Math.min(...wait) + 50); };
+  draw();
 };
 
 /* ---- links: #p-CODE opens the lobby (at start and while the app is open) ---- */
