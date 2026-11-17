@@ -1133,6 +1133,9 @@ const PARTS = {
     ok(/Sprechen · 1/.test(await txt(b, "#lvoice")), "Mila sieht: 1 ist schon im Sprachchat", await txt(b, "#lvoice"));
     await b.tap("#lvoice"); let vc = false; for (let i = 0; i < 20 && !vc; i++){ await sleep(500); vc = await a.evaluate(() => PVoice.peers().length === 1) && await b.evaluate(() => PVoice.peers().length === 1); }
     ok(vc, "beide im Sprachchat: die Handys sind verbunden", JSON.stringify([await a.evaluate(() => PVoice.peers()), await b.evaluate(() => PVoice.peers())]));
+    /* clear voice: the other phone sends Opus without silence gaps, with loss repair, 40 kbit/s mono; no audio graph on the voices */
+    const sdp = await b.evaluate(() => { const x = Object.values(PVoice._pcs)[0]; return x && x.pc.remoteDescription ? x.pc.remoteDescription.sdp : ""; });
+    ok(/usedtx=0/.test(sdp) && /useinbandfec=1/.test(sdp) && /maxaveragebitrate=40000/.test(sdp), "Sprachchat klar: Opus ohne Pausen-Rauschen (usedtx=0), mit Verlust-Ausgleich (FEC), 40 kbit/s", (sdp.match(/a=fmtp:\d+ [^\r\n]*/) || [""])[0]);
     /* Mila adds her Spotify playlist in the lobby */
     await b.locator("#sgpl input").fill("https://open.spotify.com/playlist/pl2bbbbbbbbbbb"); await b.locator("#sgpl button[type=submit]").tap(); await sleep(1500);
     ok(/Milas Lieblinge/.test(await txt(b, "#sgpl")), "Mila lädt ihre Spotify-Playlist in der Lobby", await txt(b, "#sgpl"));
@@ -1159,18 +1162,11 @@ const PARTS = {
     const sbm = /\+(\d) ⚡/.exec(ra), sb2 = sbm ? +sbm[1] : 0, ms2 = /(\d+,\d) s/.exec(ra), mine2 = await a.evaluate(() => (document.querySelector(".sg-on .pg-name") || {}).innerText || "");
     ok(ms2 && mine2.trim() === "+" + (3 + sb2) && new RegExp(esc(bareT(cur()))).test(rb), `beide fertig: sofort die Auflösung mit deiner Zeit (${ms2 && ms2[1]} s), du +${3 + sb2} (2 richtig + ${sb2} Tempo + 1 schnellster), Mila sieht die Lösung`, ra.slice(0, 300) + " | " + mine2);
     ok((await audio(a)).on && (await audio(b)).on, "nach der Auflösung läuft der Song weiter", JSON.stringify([await audio(a), await audio(b)]));
-    /* singing along: Mila's phone measures how late your voice arrives; while you sing, her music runs that much later (gently, same pitch) */
-    const aId = await a.evaluate(() => PNet.me); await sleep(2300);
-    const lat = await b.evaluate(id => PG._song.Sing.L[id], aId);
-    ok(lat > 0 && lat < 700, "Mitsingen: Milas Handy misst, wie spät deine Stimme ankommt (" + lat + " ms)", String(lat));
-    await b.evaluate(id => { window.__sing = true; PG._song.Sing.test({talking: x => x === id && window.__sing, lat: {[id]: 220}}); }, aId); await sleep(1900);
-    const s1 = await b.evaluate(() => ({lead: PG._song.Sing.lead, want: PG.songSA.lagWant, rate: PG.songSA.rate, txt: (document.querySelector(".sg-sing") || {}).innerText || ""}));
-    ok(s1.lead === aId && s1.want === 220 && s1.rate < 1 && /singt mit/.test(s1.txt), "du singst: Milas Musik läuft sanft 220 ms später (etwas langsamer, gleiche Tonhöhe), mit Hinweis", JSON.stringify(s1));
-    await sleep(2400); const s2 = await b.evaluate(() => ({lag: PG.songSA.lagMs, rate: PG.songSA.rate}));
-    ok(Math.abs(s2.lag - 220) <= 30 && s2.rate === 1, "nach gut 2 s passt es: 220 ms später, wieder normales Tempo", JSON.stringify(s2));
-    await b.evaluate(() => { window.__sing = false; }); await sleep(2900); const s3 = await b.evaluate(() => ({lead: PG._song.Sing.lead, want: PG.songSA.lagWant, rate: PG.songSA.rate, lag: PG.songSA.lagMs, paused: PG.songSA.au.paused}));
-    ok(s3.lead === null && s3.want === 0 && (s3.rate > 1 || s3.lag < 200), "du hörst auf: nach 2,5 s holt Milas Musik wieder auf", JSON.stringify(s3));
-    await b.evaluate(() => PG._song.Sing.test({talking: null, lat: null}));
+    /* no delay any more (Nathan): while someone talks, the music on the other phones keeps its time and its speed, no banner */
+    await b.evaluate(id => { window.__sing = true; PG._song.Sing.test({talking: x => x === id && window.__sing, lat: {[id]: 220}}); }, await a.evaluate(() => PNet.me)); await sleep(1900);
+    const s1 = await b.evaluate(() => ({lag: PG.songSA.lagMs, want: PG.songSA.lagWant, rate: PG.songSA.rate, txt: (document.querySelector(".sg-sing") || {}).innerText || ""}));
+    ok(s1.lag === 0 && s1.want === 0 && s1.rate === 1 && !s1.txt, "Sprachchat: keine Verzögerung mehr – die Musik läuft weiter im selben Moment und im selben Tempo, auch wenn jemand singt", JSON.stringify(s1));
+    await b.evaluate(() => { window.__sing = false; PG._song.Sing.test({talking: null, lat: null}); });
     await b.tap('[data-x="nx"]'); await sleep(500); ok(/1\/2/.test(await txt(b, "[data-rdy]")) && await has(b, ".sg-ans"), "Mila tippt „Weiter“: 1/2, der Song läuft noch, bis alle weiter wollen", await txt(b, "[data-rdy]"));
     await a.tap('[data-x="next"]'); await a.waitForSelector("[data-op]", {timeout: 10000}).catch(() => {}); await b.waitForSelector("[data-op]", {timeout: 10000}).catch(() => {}); await sleep(2400);
     /* both "No idea": the answer comes at once */
