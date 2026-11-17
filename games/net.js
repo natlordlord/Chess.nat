@@ -189,7 +189,7 @@ PG.online = {};
 PG.audio = (() => { let want = {}; const set = t => { try { const a = navigator.audioSession; if (a && a.type !== t){ a.type = t;
       /* the iPhone switches the sound hardware (call vs. music, another sample rate): a player made before keeps the old rate and
          crackles, so the app's sound-effects player starts fresh with the next sound */
-      if (typeof Sound !== "undefined" && Sound.ac){ const old = Sound.ac; Sound.ac = null; try { old.close(); } catch(e) {} } } } catch(e) {} };
+      if (typeof Sound !== "undefined" && Sound.ac){ const old = Sound.ac; Sound.ac = null; Sound.bus = null; try { old.close(); } catch(e) {} } } } catch(e) {} };
   const apply = () => set(want.voice ? "play-and-record" : want.music ? "playback" : "auto");
   return {music(on){ want.music = !!on; apply(); }, voice(on){ want.voice = !!on; apply(); }, get type(){ try { return navigator.audioSession ? navigator.audioSession.type : null; } catch(e) { return null; } }}; })();
 
