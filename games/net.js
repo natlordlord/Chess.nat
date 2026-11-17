@@ -186,7 +186,10 @@ PG.online = {};
 /* ---------- the iPhone's audio session (Safari 16.4+, navigator.audioSession): by default sound from a web page counts as
    "ambient" and the silent switch mutes it. A game with music says "playback" (plays like a music app, also on silent),
    the voice chat "play-and-record" (like a call). Back to "auto" when nothing of it runs. Other phones: nothing happens. ---------- */
-PG.audio = (() => { let want = {}; const set = t => { try { const a = navigator.audioSession; if (a && a.type !== t) a.type = t; } catch(e) {} };
+PG.audio = (() => { let want = {}; const set = t => { try { const a = navigator.audioSession; if (a && a.type !== t){ a.type = t;
+      /* the iPhone switches the sound hardware (call vs. music, another sample rate): a player made before keeps the old rate and
+         crackles, so the app's sound-effects player starts fresh with the next sound */
+      if (typeof Sound !== "undefined" && Sound.ac){ const old = Sound.ac; Sound.ac = null; try { old.close(); } catch(e) {} } } } catch(e) {} };
   const apply = () => set(want.voice ? "play-and-record" : want.music ? "playback" : "auto");
   return {music(on){ want.music = !!on; apply(); }, voice(on){ want.voice = !!on; apply(); }, get type(){ try { return navigator.audioSession ? navigator.audioSession.type : null; } catch(e) { return null; } }}; })();
 
@@ -216,7 +219,7 @@ const PVoice = (() => {
     if (on || starting) return starting; if (!navigator.mediaDevices || !window.RTCPeerConnection) return false;
     /* the microphone is asked for once: the stream stays with the app (muted) between lobby and rounds, so the phone doesn't ask again every game */
     PG.audio.voice(true);
-    starting = (async () => { try { clearTimeout(keepT); if (keep && keep.getAudioTracks().some(t => t.readyState === "live")) stream = keep; else { stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true}, video: false}); keep = stream; } }
+    starting = (async () => { try { clearTimeout(keepT); if (keep && keep.getAudioTracks().some(t => t.readyState === "live")) stream = keep; else { stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1}, video: false}); keep = stream; } }
       catch(e) { starting = null; PVoice.denied = true; PG.audio.voice(false); log("deny", {e: String(e && e.name || e).slice(0, 30)}); return false; }
       await iceServers(); log("start", {turn: ICE !== STUN ? 1 : 0});
       on = true; PVoice.denied = false; applyMic(); watch(me(), stream); send("*", {hi: 1}); lastHi = Date.now();
@@ -233,7 +236,7 @@ const PVoice = (() => {
   let fixing = false;
   async function fix(){ if (!on || fixing) return; PG.audio.voice(true); Object.values(pcs).forEach(x => { if (x.au && (x.au.paused || x.blocked)) x.au.play().then(() => { x.blocked = 0; }).catch(() => {}); });
     const t = stream && stream.getAudioTracks()[0]; if (t && t.readyState === "live") return; fixing = true;
-    try { const ns = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true}, video: false}), nt = ns.getAudioTracks()[0];
+    try { const ns = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1}, video: false}), nt = ns.getAudioTracks()[0];
       if (!on){ ns.getTracks().forEach(x => x.stop()); return; }
       if (stream) stream.getTracks().forEach(x => { try { x.stop(); } catch(e) {} }); stream = keep = ns; applyMic(); watch(me(), ns);
       Object.values(pcs).forEach(x => x.pc.getSenders().forEach(sd => { if (!sd.track || sd.track.kind === "audio") sd.replaceTrack(nt).catch(() => {}); })); log("revive", {was: t ? t.readyState : "none"}); }
@@ -257,12 +260,29 @@ const PVoice = (() => {
       if (s === "failed"){ log("fail", {ms: Date.now() - x.t, up: x.up ? 1 : 0}); close(id); if (offerer(id)) offer(id); else send(id, {hi: 1}); } };
     return x;
   }
+  /* the voice codec (Opus) as the other phone should send it: the settings in the description we send are our wishes for their
+     encoder. No pauses in silence (usedtx=0: the comfort noise came and went as a hiss), lost packets made up from the next one
+     (useinbandfec=1: no crackle when a packet is late), 40 kbit/s mono: clear speech */
+  const tune = sdp => String(sdp).replace(/a=fmtp:(\d+) ([^\r\n]*)/g, (m, pt, p) => { if (!new RegExp("a=rtpmap:" + pt + " opus/", "i").test(sdp)) return m;
+    const kv = {}; p.split(";").forEach(x => { const [k, v] = x.split("="); if (k && k.trim()) kv[k.trim()] = v; });
+    Object.assign(kv, {usedtx: "0", useinbandfec: "1", maxaveragebitrate: "40000", stereo: "0", "sprop-stereo": "0"});
+    return "a=fmtp:" + pt + " " + Object.entries(kv).map(([k, v]) => v == null ? k : k + "=" + v).join(";"); });
   /* the offerer starts a fresh connection and sends its offer */
   function offer(id){ const x = peer(id), pc = x.pc;
-    x.q = x.q.then(async () => { try { await pc.setLocalDescription(await pc.createOffer()); if (pcs[id] === x) send(id, {s: x.sid, desc: {type: "offer", sdp: pc.localDescription.sdp}}); } catch(e) { console.warn("voice", e); } }); }
-  /* who is talking right now: a little level meter per voice */
-  function watch(id, st){ try { const ac = Sound.ac; if (!ac) return; const src = ac.createMediaStreamSource(st), a = ac.createAnalyser(); a.fftSize = 256; src.connect(a); an[id] = a; } catch(e) {} }
-  function levels(){ const buf = new Uint8Array(128); Object.entries(an).forEach(([id, a]) => { a.getByteTimeDomainData(buf); let m = 0; for (let i = 0; i < buf.length; i++) m = Math.max(m, Math.abs(buf[i] - 128)); level[id] = m > 10; }); }
+    x.q = x.q.then(async () => { try { await pc.setLocalDescription(await pc.createOffer()); if (pcs[id] === x) send(id, {s: x.sid, desc: {type: "offer", sdp: tune(pc.localDescription.sdp)}}); } catch(e) { console.warn("voice", e); } }); }
+  /* who is talking right now. Before, every voice (and your own microphone) also went through an audio graph for a level meter;
+     on the iPhone that made the voices crackle. Now the connection itself says how loud each voice is (the RTP level of the
+     last packets), and your own level comes from what your phone sends */
+  function watch(){}
+  const nowMs = () => Date.now();
+  let lvBusy = false;
+  function levels(){
+    Object.entries(pcs).forEach(([id, x]) => { try { const r = x.pc.getReceivers().find(q => q.track && q.track.kind === "audio"), S = r && r.getSynchronizationSources ? r.getSynchronizationSources() : [];
+      const s2 = S[0]; const fresh = s2 && (Math.abs(nowMs() - s2.timestamp) < 700 || Math.abs(performance.now() - s2.timestamp) < 700 || Math.abs(performance.timeOrigin + performance.now() - s2.timestamp) < 700);
+      level[id] = !!(fresh && s2.audioLevel > .03); } catch(e) { level[id] = false; } });
+    /* my own level: from the sending side's statistics, at most every 360 ms */
+    const x = Object.values(pcs).find(q => q.pc.connectionState === "connected"); if (!x || lvBusy || !mic || mute){ if (!mic || mute) level[me()] = false; return; }
+    lvBusy = true; x.pc.getStats().then(r => { let a = null; r.forEach(v => { if (v.type === "media-source" && v.kind === "audio" && v.audioLevel != null) a = v.audioLevel; }); level[me()] = a != null && a > .04; }).catch(() => {}).finally(() => { setTimeout(() => { lvBusy = false; }, 180); }); }
   const heard = {};
   async function onMsg(m){
     if (m && m.id && m.id !== me() && m.d){ if (m.d.hi) heard[m.id] = Date.now(); else if (m.d.bye) delete heard[m.id]; }
@@ -281,14 +301,14 @@ const PVoice = (() => {
     try {
       if (d.desc){ if (d.desc.type === "answer" && pc.signalingState !== "have-local-offer") return;
         await pc.setRemoteDescription(d.desc);
-        if (d.desc.type === "offer"){ await pc.setLocalDescription(await pc.createAnswer()); if (pcs[id] === x) send(id, {s: x.sid, r: x.rs, desc: {type: "answer", sdp: pc.localDescription.sdp}}); }
+        if (d.desc.type === "offer"){ await pc.setLocalDescription(await pc.createAnswer()); if (pcs[id] === x) send(id, {s: x.sid, r: x.rs, desc: {type: "answer", sdp: tune(pc.localDescription.sdp)}}); }
         const P = x.pend; x.pend = []; for (const c of P){ try { await pc.addIceCandidate(c); } catch(e) {} } }
       else if (d.cand){ if (!pc.remoteDescription) x.pend.push(d.cand); else { try { await pc.addIceCandidate(d.cand); } catch(e) {} } }
     } catch(e) { console.warn("voice", e); }
   }
   return {start, stop, onMsg, via(f){ tx = f || null; }, get viaSet(){ return !!tx; }, others: () => Object.keys(heard).filter(id => Date.now() - heard[id] < 10000), get on(){ return on; }, get starting(){ return !!starting; }, denied: false,
     setMic(v){ mic = !!v; applyMic(); }, get mic(){ return mic; }, toggleMute(){ mute = !mute; applyMic(); return mute; }, get muted(){ return mute; },
-    talking: id => !!level[id], peers: () => Object.keys(pcs).filter(id => pcs[id].pc.connectionState === "connected"), get _pcs(){ return pcs; }};
+    talking: id => !!level[id], _tune: tune, peers: () => Object.keys(pcs).filter(id => pcs[id].pc.connectionState === "connected"), get _pcs(){ return pcs; }};
 })();
 
 /* ---------- safe rendering of a view: plain text, *bold*, line breaks; never HTML from another phone ---------- */

@@ -761,7 +761,9 @@
     const bingoHTML = (card, live2) => `<div class="sg-bingo">${card.map((x, i) => `<button class="sg-bc ${x.m ? "m" : ""}" ${live2 && !x.m ? `data-bc="${i}"` : "disabled"}><span>${md(x.a)}</span>${x.m ? "<i>✓</i>" : ""}</button>`).join("")}</div>`;
     PG.custom.song = {
       stop(){ SA.stop(); Sing.stop(); clearInterval(V.tk); V.k = null; },
-      draw(body, v, m, act){ Sing.start();
+      /* the music no longer waits for whoever sings along (Nathan: no delay in the voice chat, the music plays the same moment
+         on every phone and never changes speed – that changing speed crackled) */
+      draw(body, v, m, act){
         if (v.snd && v.snd.k !== V.snd){ V.snd = v.snd.k; try { (SND[v.snd.n] || (() => {}))(); } catch(e) {} }
         const fresh = V.k !== v.k || !body.querySelector(".sg-on"), need = () => { const b = body.querySelector('[data-x="hear"]'); if (b) b.hidden = false; };
         /* times: taken once per question from what the host said; a new plan (more listening) replaces them */
