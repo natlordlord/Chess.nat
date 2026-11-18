@@ -94,7 +94,8 @@ const keyWords = q => words(q).filter(w => (w.length >= 3 || /^\d\d/.test(w)) &&
 function about(title, q){ const need = keyWords(q), have = words(title);
   /* a long title is somebody's theme list ("Onyx Storm | Fourth Wing, Iron Flame - The musical"), not the category */
   if (have.length > words(q).length + 4) return false;
-  return !need.length || need.some(k => have.some(w => /^\d/.test(k) ? w === k : w.startsWith(k))); }
+  /* the word itself or with an ending ("Musicals", "Asozialer"), not a longer word that only starts the same ("Assia") */
+  return !need.length || need.some(k => have.some(w => /^\d/.test(k) ? w === k : w.startsWith(k) && /^(|s|e|n|er|en|es)$/.test(w.slice(k.length)))); }
 
 /* the category's playlists: searched once, then their songs (fresh preview links every time) */
 const PLIDS = new Map();
