@@ -1291,6 +1291,41 @@ const PARTS = {
     await clean([a, b], "Song raten online"); await a.context().close(); await b.context().close();
   },
 
+  /* ---------- promotions: a new tier for the first time, everyone hears it and can congratulate (Nathan, Nov 2026) ---------- */
+  async aufstieg(browser){
+    const a = await L.open(browser, "tester"), b = await L.open(browser, "mila"); await sleep(1500);
+    /* Nat Tester stands just under Silver (1316) and solves a hard rated puzzle */
+    await a.evaluate(() => { S.puzzle.r = 1306; S.puzzle.peak = 1306; S.puzzle.n = Math.max(S.puzzle.n || 0, 150); save(); App.go("puzzles"); });
+    await a.waitForSelector("#bw .board .pc, #bw .board [class*=pc]", {timeout: 15000}).catch(() => {}); await sleep(1500);
+    await a.evaluate(() => { const V = Views.puzzles; V.settled = false; V.review = false; if (V.R && V.R.p) V.R.p.r = 2300; V.settle(true); });
+    await a.waitForSelector("#rkok", {timeout: 5000}).catch(() => {}); await sleep(400);
+    const ov = await txt(a, ".card-over");
+    ok(/Silber|Silver/.test(ov) && /Alle bekommen eine Nachricht|Everyone gets a message/.test(ov), "Puzzle-Aufstieg Bronze → Silber: die Karte sagt, dass alle Bescheid bekommen", ov); await a.shot("aufstieg-eigen");
+    await sleep(800);
+    const pr = await a.evaluate(() => Promo.load().then(f => f.map(x => x.kind + ":" + x.from_tier + ">" + x.tier)));
+    ok(pr.length === 1 && pr[0] === "puzzle:bronze>silver", "der Server kennt den Aufstieg (einmal)", JSON.stringify(pr));
+    /* the same tier again (after a dip) is no news */
+    await a.evaluate(() => { const V = Views.puzzles; S.puzzle.r = 1300; V.settled = false; if (V.R && V.R.p) V.R.p.r = 2300; V.settle(true); }); await sleep(900);
+    ok((await a.evaluate(() => Promo.load().then(f => f.length))) === 1, "nach einem Absacker wieder Silber: kein zweites Mal");
+    /* Mila: the big card with "Congratulate", live or at the next look */
+    await b.waitForSelector(".promo-card", {timeout: 4000}).catch(() => {}); if (!(await has(b, ".promo-card"))){ await b.evaluate(() => Promo.check(true)); await b.waitForSelector(".promo-card", {timeout: 5000}).catch(() => {}); }
+    const card = await txt(b, ".promo-card");
+    ok(/Nat Tester/.test(card) && /ist jetzt Silber|is now Silver/.test(card) && /Bronze → Silber|Bronze → Silver/.test(card), "Mila sieht die Aufstiegs-Karte: „Nat Tester ist jetzt Silber“", card);
+    ok(await has(b, ".promo-card [data-cheer]"), "… mit „Gratulieren“"); await sleep(600); await b.shot("aufstieg-karte");
+    await b.tap(".promo-card [data-cheer]"); await sleep(900);
+    ok(/Gratuliert|Congratulated/.test(await txt(b, ".promo-card")), "Gratulieren: die Karte zeigt, dass Mila gratuliert hat", await txt(b, ".promo-card"));
+    await sleep(1600); ok(!(await has(b, ".promo-card")), "die Karte geht danach von selbst zu");
+    await b.evaluate(() => Promo.check(true)); await sleep(800); ok(!(await has(b, ".promo-card")), "… und kommt nicht wieder");
+    /* Nat Tester hears about it */
+    await a.waitForSelector(".ntf", {timeout: 4000}).catch(() => {}); if (!/gratuliert|congratulates/i.test(await txt(a, ".ntf"))){ await a.evaluate(() => Promo.check(true)); await sleep(900); }
+    /* other messages (trophies) may be in front of it: they come one after the other */
+    let n = ""; for (let i = 0; i < 30 && !/gratuliert dir|congratulates you/i.test(n); i++){ await sleep(500); n = await a.evaluate(() => [...document.querySelectorAll(".ntf")].map(e => e.innerText).join(" | ")); }
+    ok(/Mila/.test(n) && /gratuliert dir|congratulates you/i.test(n), "Nat Tester bekommt „Mila gratuliert dir“", n);
+    await a.evaluate(() => { document.querySelectorAll(".ntf,.card-over,.lvup").forEach(e => e.remove()); return Promo.open(Promo.feed[0].id); }); await a.waitForSelector(".promo-card", {timeout: 4000}).catch(() => {}); await sleep(500);
+    const own = await txt(a, ".promo-card");
+    ok(/Du bist jetzt Silber|You're now Silver/.test(own) && /Glückwünsche von|Congratulated by/.test(own) && /Mila/.test(own), "ein Tipp auf die Nachricht: die eigene Karte mit allen, die gratuliert haben", own); await a.shot("aufstieg-gratuliert");
+    await clean([a, b], "Aufstieg");
+  },
   async feedback(browser){
     const page = await L.open(browser, "tester"); await page.evaluate(() => openSheet()); await sleep(400); await page.locator('#sheet [data-s="__feedback"]').tap(); await sleep(600);
     /* ideas come first: a long wish is kept whole */

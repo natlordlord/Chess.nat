@@ -1407,6 +1407,18 @@ button.mestage{border:0;padding:0;cursor:pointer;position:relative;font:inherit;
 @media (min-width:901px){ .xpchip{top:18px;right:22px} }
 .lvup{position:fixed;inset:0;z-index:210;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 50% 40%,rgba(111,191,71,.28),rgba(0,0,0,.7) 70%);animation:dsin .25s}
 .lvup.out{animation:dsout .26s forwards}
+.promo-card .pr-burst{background:conic-gradient(from 0deg,var(--t1),#ffd34a,var(--t2),#fff4c2,var(--t1))}
+.pr-em{position:relative;display:flex;justify-content:center;margin:-74px auto 2px;filter:drop-shadow(0 8px 20px rgba(0,0,0,.45));animation:lvpop .6s cubic-bezier(.2,1.6,.4,1)}
+.pr-k{display:block;font:800 11px var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--t1);margin:4px 0 8px}
+.pr-who{display:flex;align-items:center;justify-content:center;gap:10px}.pr-who h3{margin:0;font:900 22px/1.2 var(--display)}
+.pr-t{color:var(--t1)}.pr-me{flex:none}
+.pr-from{margin:8px 0 12px;color:var(--muted);font-weight:700}.pr-from b{color:var(--text)}
+.pr-cheers{display:flex;flex-direction:column;align-items:center;gap:6px;margin:0 0 12px;font-size:13.5px;color:var(--muted)}.pr-cheers b{color:var(--text)}
+.pr-faces{display:flex;justify-content:center}.pr-f{margin-left:-8px;border-radius:50%;box-shadow:0 0 0 2px var(--panel)}.pr-f:first-child{margin-left:0}
+.pr-btns .btn.wide{width:100%;margin-top:8px}
+.pr-go{animation:prglow 1.6s ease-in-out infinite}@keyframes prglow{0%,100%{box-shadow:0 0 0 0 rgba(143,209,106,0)}50%{box-shadow:0 0 0 6px rgba(143,209,106,.28)}}
+.pr-pop{animation:prpop .5s cubic-bezier(.2,1.6,.4,1)}@keyframes prpop{0%{transform:scale(1)}40%{transform:scale(1.05)}100%{transform:scale(1)}}
+.pr-told{margin:-4px 0 12px;font-size:13.5px}
 .lvup-in{position:relative;width:min(380px,100%);padding:26px 20px 18px;border-radius:22px;background:var(--panel);border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.5);text-align:center}
 .lvup-burst{position:absolute;left:50%;top:-38px;width:150px;height:150px;margin-left:-75px;border-radius:50%;background:conic-gradient(from 0deg,#a8e06a,#ffd34a,#9fe8ff,#ff9be0,#a8e06a);filter:blur(18px);opacity:.55;animation:lvspin 6s linear infinite}
 @keyframes lvspin{to{transform:rotate(360deg)}}
@@ -2919,7 +2931,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1794959441";
+const CHESSNAT_BUILD = "1794966095";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -4156,7 +4168,7 @@ Views.puzzles = {
     const fm = pzForm(), run = !boostOn ? 1 : Math.max(S.puzzle.streak >= 7 ? 4 : S.puzzle.streak >= 4 ? 3 : S.puzzle.streak >= 2 ? 2 : 1, fm >= 9 ? 4 : fm >= 8 ? 3 : fm >= 7 ? 2 : 1);
     let d = eloDelta(old, p.r, ok ? 1 : 0, pzN()); if (ok && d > 0){ const plain = Math.max(1, Math.round(d * speed)); d = Math.max(1, Math.round(d * speed * run)); if (run > 1 && old + d > PZ_BOOST_MAX) d = Math.max(plain, PZ_BOOST_MAX - old); }
     this.speed = ok ? {ms, f: speed} : null;
-    const before = rankOf(old);
+    const before = rankOf(old), peak0 = Math.max(S.puzzle.peak || 0, old);
     S.puzzle.cur = null;
     S.puzzle.r = old >= 400 ? Math.max(400, old + d) : Math.max(0, old + d); S.puzzle.n++; /* once placed, the rating never drops below 400 */ if (ok){ S.puzzle.w++; S.puzzle.streak++; S.puzzle.best = Math.max(S.puzzle.best, S.puzzle.streak); } else S.puzzle.streak = 0;
     S.puzzle.peak = Math.max(S.puzzle.peak || 0, S.puzzle.r);
@@ -4168,10 +4180,13 @@ Views.puzzles = {
     logPuzzle("rated", R, ok, d);
     save();
     const after = rankOf(S.puzzle.r);
-    if (after.label !== before.label){ setTimeout(() => this.rankUp(before, after, S.puzzle.r > old), 900); }
+    /* a tier reached for the first time (not just back after a dip) is news for everyone: they can congratulate */
+    const promo = after.idx > before.idx && after.idx > rankOf(peak0).idx && typeof Promo !== "undefined" && typeof Social !== "undefined" && !!Social.me;
+    if (promo) Promo.report("puzzle", after, before, S.puzzle.r);
+    if (after.label !== before.label){ setTimeout(() => this.rankUp(before, after, S.puzzle.r > old, promo), 900); }
     $("#botbar").innerHTML = youBar(); renderRail();
   },
-  rankUp(b, a, up){ const o = this.board.overlay(`<div class="card-over"><div style="display:flex;justify-content:center;margin-bottom:8px">${emblem(a, 84)}</div><h3>${up ? "Promoted!" : "Demoted"}</h3><p>${esc(b.label)} → <b>${esc(a.label)}</b></p><button class="btn go wide" id="rkok">Keep going</button></div>`); if (up) Sound.play("Victory", .7); $("#rkok", o).onclick = () => this.board.overlay(null); },
+  rankUp(b, a, up, promo){ const o = this.board.overlay(`<div class="card-over"><div style="display:flex;justify-content:center;margin-bottom:8px">${emblem(a, 84)}</div><h3>${up ? "Promoted!" : "Demoted"}</h3><p>${esc(b.label)} → <b>${esc(a.label)}</b></p>${promo ? `<p class="muted pr-told">Everyone gets a message and can congratulate you 🎉</p>` : ""}<button class="btn go wide" id="rkok">Keep going</button></div>`); if (up) Sound.play("Victory", .7); $("#rkok", o).onclick = () => this.board.overlay(null); },
   /* a repeat from the review plan: no rating change, it just moves along the plan */
   settleReview(ok){
     const R = this.R, p = R.p;
@@ -11529,6 +11544,8 @@ Views.friend = {
   async rankedReport(res, why, show){
     const m = this.ranked, sb = onlineSb(); if (!m || !sb || m.reported) return; m.reported = true; const s = this.st, mine = m.white === onlineMe() ? "w" : "b";
     const put = x => { if (!x || x.status !== "done" || !s || this.st !== s) return false; const before = mine === "w" ? x.rw_before : x.rb_before, after = mine === "w" ? x.rw_after : x.rb_after;
+      if (typeof Promo !== "undefined" && before != null && after != null && !s.promoDone){ s.promoDone = true; const o = onlineRating(x.cat), pk = Math.max((o && o.peak) || 0, before), a = rankOf(after);
+        if (a.idx > rankOf(before).idx && a.idx > rankOf(pk).idx) Promo.report(x.cat, a, rankOf(before), after); }
       s.rating = {cat: x.cat, before, after, delta: after - before, provisional: false, online: true}; onlineLoadMe(); this.endExtras(); this.render(); return true; };
     let {data, error} = await sb.rpc("ranked_report", {mid: m.id, res, why: why || null}); if (error || !show) return;
     if (put(data)) return;
@@ -13931,6 +13948,89 @@ const Social = (() => {
     get me(){ return me; }, get player(){ return player; }, get data(){ return D; }, sb};
 })();
 
+/* ===== Promotions (Nathan, Nov 2026): reaching a new rank tier for the first time (puzzles Bronze → Silver, an online
+   rating Iron → Bronze …) is news for everyone. The server checks it and sends everyone a push; in the app a big card
+   pops up with "Congratulate". The one promoted gets a message for every congratulation and sees who sent one. ===== */
+const PROMO_KIND = {puzzle: "Puzzles", bullet: "Bullet", blitz: "Blitz", rapid: "Rapid"};
+const Promo = (() => {
+  const SEEN = "chessnat-promo-seen", GOT = "chessnat-promo-got";
+  let feed = [], ch = null, started = false, last = 0, loading = null;
+  const sb = () => typeof Social !== "undefined" ? Social.sb : null, me = () => typeof Social !== "undefined" ? Social.me : null;
+  const ls = (k, d) => { try { return JSON.parse(localStorage.getItem(k) || "null") || d; } catch(e) { return d; } };
+  const put = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} };
+  const tier = k => TIERS.find(t => t.k === k) || TIERS[0];
+  const nameOf = (id, n) => (id !== me() && S.nick && S.nick[id]) || n || "Player";
+  const faceOf = (id, n, av, size) => { try { return Social.face({id, name: n, avatar: av || {}}, size); } catch(e) { return ""; } };
+  /* a tier reached for the first time: the server checks it and tells everyone */
+  async function report(kind, after, before, rating){
+    if (!sb() || !me() || !after || !before || after.idx <= before.idx || after.idx < 1) return null;
+    try { const {data, error} = await sb().rpc("promo_add", {p_kind: kind, p_tier: after.tier.k, p_from: before.tier.k, p_rating: Math.round(rating)}); return error ? null : data; } catch(e) { return null; } }
+  function load(){ if (!sb() || !me()) return Promise.resolve(feed); if (loading) return loading;
+    loading = (async () => { try { const {data, error} = await sb().rpc("promo_feed"); if (!error && Array.isArray(data)) feed = data; } catch(e) {} last = Date.now(); loading = null; return feed; })();
+    return loading; }
+  const fresh = p => Date.now() - Date.parse(p.created_at) < 7 * 864e5;
+  /* someone else's promotion not yet answered pops up (once each); congratulations for mine come as a message */
+  async function check(force){
+    if (!me() || (!force && Date.now() - last < 45000)) return; await load();
+    const seen = ls(SEEN, []), p = feed.find(x => x.uid !== me() && !x.mine && !seen.includes(x.id) && fresh(x));
+    if (p && !document.querySelector(".lvup")) show(p);
+    const got = ls(GOT, {}); let ch2 = false;
+    feed.filter(x => x.uid === me() && x.cheers > (got[x.id] || 0)).forEach(x => { thanks(x, x.cheers - (got[x.id] || 0)); got[x.id] = x.cheers; ch2 = true; });
+    if (ch2) put(GOT, got);
+  }
+  function thanks(p, n){ const by = (p.by || [])[(p.by || []).length - 1] || {}, t = tier(p.tier);
+    Notify.show({key: "promo-th" + p.id, accent: t.c1, icon: by.uid ? faceOf(by.uid, by.name, by.avatar, 44) : "🎉", label: "Congratulations",
+      title: n === 1 && by.uid ? `${esc(nameOf(by.uid, by.name))} congratulates you` : `${n} congratulations for you`, text: `${t.name} · ${PROMO_KIND[p.kind] || p.kind}`,
+      ms: 6000, sound: () => { try { Sound.heart(); } catch(e) {} }, onTap: () => show(p)}); }
+  function cheersHTML(p){ const by = p.by || [], mine = p.uid === me();
+    if (!by.length) return `<span>${mine ? "No congratulations yet. Everyone got a message." : "Be the first to congratulate!"}</span>`;
+    return `<div class="pr-faces">${by.slice(-7).map(b => `<span class="pr-f">${faceOf(b.uid, b.name, b.avatar, 34)}</span>`).join("")}</div>
+      <div><span>Congratulated by</span> <b data-notr>${esc(by.map(b => b.uid === me() ? (I18N.lang === "de" ? "dir" : "you") : nameOf(b.uid, b.name)).join(", "))}</b></div>`; }
+  function show(p, tries = 0){
+    if (Focus.later("promo", () => show(p))) return;
+    /* another big card (level up) is open: right after it */
+    if (document.querySelector(".lvup:not(.promo-card)")){ if (tries < 80) setTimeout(() => show(p, tries + 1), 1500); return; }
+    const seen = ls(SEEN, []); if (!seen.includes(p.id)){ seen.push(p.id); put(SEEN, seen.slice(-200)); }
+    document.querySelectorAll(".promo-card").forEach(x => x.remove());
+    const mine = p.uid === me(), t = tier(p.tier), rk = rankOf(Math.max(p.rating || 0, t.lo)), nm = nameOf(p.uid, p.name);
+    const el = document.createElement("div"); el.className = "lvup promo-card"; el.style.setProperty("--t1", t.c1); el.style.setProperty("--t2", t.c2);
+    const btns = () => mine ? `<button class="btn go big wide" data-ok>Nice!</button>`
+      : p.mine ? `<button class="btn big wide" disabled>🎉 Congratulated</button><button class="btn ghost wide" data-ok>Close</button>`
+      : `<button class="btn go big wide pr-go" data-cheer>🎉 Congratulate</button><button class="btn ghost wide" data-ok>Later</button>`;
+    el.innerHTML = `<div class="lvup-in"><div class="lvup-burst pr-burst"></div><div class="pr-em">${emblem(rk, 104)}</div>
+      <small class="pr-k">Promotion · ${esc(PROMO_KIND[p.kind] || p.kind)}</small>
+      <div class="pr-who">${mine ? "" : `<span class="pr-me">${faceOf(p.uid, p.name, p.avatar, 46)}</span>`}<h3>${mine ? `<span>You're now</span>` : `<b data-notr>${esc(nm)}</b> <span>is now</span>`} <b class="pr-t">${t.name}</b> 🎉</h3></div>
+      <p class="pr-from">${p.from_tier ? `<span>${tier(p.from_tier).name}</span> → ` : ""}<b>${t.name}</b> · <span>Rating</span> ${p.rating || t.lo}</p>
+      <div class="pr-cheers">${cheersHTML(p)}</div><div class="pr-btns">${btns()}</div></div>`;
+    document.body.appendChild(el);
+    try { Sound.levelUp ? Sound.levelUp() : Sound.play("Victory", .6); } catch(e) {} if (typeof confettiBurst === "function") confettiBurst();
+    const close = () => { el.classList.add("out"); setTimeout(() => { el.remove(); if (typeof lvNext === "function") lvNext(); }, 260); };
+    const wire = () => { el.querySelectorAll("[data-ok]").forEach(b => b.onclick = close);
+      const go = el.querySelector("[data-cheer]"); if (go) go.onclick = async () => { go.disabled = true; const n = await cheer(p);
+        if (n == null){ go.disabled = false; toast("Didn't work. Try again.", 3000); return; }
+        try { Sound.heart(); Haptic.go([20, 40, 20]); } catch(e) {}
+        el.querySelector(".pr-cheers").innerHTML = cheersHTML(p); el.querySelector(".pr-btns").innerHTML = btns(); wire();
+        el.querySelector(".lvup-in").classList.add("pr-pop"); setTimeout(close, 1800); }; };
+    wire();
+  }
+  async function cheer(p){ if (!sb() || !me()) return null;
+    try { const {data, error} = await sb().rpc("promo_cheer", {p_id: p.id}); if (error || data == null) return null;
+      p.mine = true; p.cheers = data; p.by = (p.by || []).filter(b => b.uid !== me()).concat({uid: me(), name: S.name, avatar: myAvatar()}); return data; } catch(e) { return null; } }
+  /* live: a new promotion pops up at once, a congratulation reaches the one promoted at once */
+  function listen(){ if (ch || !sb() || !me()) return;
+    try { ch = sb().channel("promo-" + me())
+      .on("postgres_changes", {event: "INSERT", schema: "public", table: "chess_promos"}, ({new: r}) => { if (r && r.user_id !== me()) setTimeout(() => check(true), 800); })
+      .on("postgres_changes", {event: "INSERT", schema: "public", table: "chess_promo_cheers", filter: "owner=eq." + me()}, () => setTimeout(() => check(true), 600))
+      .subscribe(); } catch(e) {} }
+  function start(){ if (started) return; started = true; let n = 0;
+    const go = () => { if (!me()){ if (++n < 20) setTimeout(go, 3000); return; } listen(); check(true); }; setTimeout(go, 5000);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden){ if (ch && ch.state !== "joined"){ try { sb().removeChannel(ch); } catch(e) {} ch = null; listen(); } check(); } });
+    setInterval(() => { if (!document.hidden) check(); }, 3 * 60000); }
+  /* a tap on a push: that promotion's card (mine: who congratulated) */
+  async function open(id){ for (let i = 0; i < 10 && !me(); i++) await new Promise(r => setTimeout(r, 1000)); await load(); const p = feed.find(x => x.id === +id); if (p) show(p); }
+  return {report, check, open, start, show, load, get feed(){ return feed; }};
+})();
+
 /* ---------- the Friends page ---------- */
 Views.friends = {
   async mount(main, arg){ this.main = main; this.q = ""; if (arg && arg.tab) this.tab = arg.tab; App.route = "friends"; if (Social.player && Social.player.handle) this.draw(); else this.main.innerHTML = `<div class="page"><h1 class="h-title">Friends</h1><p class="dim">Loading…</p></div>`;
@@ -14536,14 +14636,14 @@ const Push = {
 };
 /* a tap on a notification opens the right screen */
 if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message", e => { const u = e.data && e.data.nav; if (!u) return; try { const h = new URL(u, location.origin).hash.slice(1); routeHash(h); } catch(x) {} });
-function routeHash(h){ if (!h) return; if (h.startsWith("g-") && Views.friend){ if (App.route !== "friend") App.go("friend", {join: h.slice(2)}); return; } if (h.startsWith("chat-")) App.go("chat", {id: h.slice(5)}); else if (Views[h]) App.go(h); }
+function routeHash(h){ if (!h) return; if (h.startsWith("promo-") && typeof Promo !== "undefined"){ Promo.open(h.slice(6)); return; } if (h.startsWith("g-") && Views.friend){ if (App.route !== "friend") App.go("friend", {join: h.slice(2)}); return; } if (h.startsWith("chat-")) App.go("chat", {id: h.slice(5)}); else if (Views[h]) App.go(h); }
 window.addEventListener("hashchange", () => { const h = location.hash.slice(1); if (h.startsWith("chat-") && App.route !== "chat") routeHash(h); });
 setTimeout(() => Push.auto(), 1500);
 /* back from the phone's settings with notifications allowed: subscribe right away and say so */
 document.addEventListener("visibilitychange", () => { if (document.hidden || !Push.supported()) return; const was = Push._perm; Push._perm = Notification.permission;
   if (was && was !== "granted" && Notification.permission === "granted"){ Push.ensure().then(() => { toast("Notifications on 🔔"); document.querySelectorAll(".dsheet").forEach(x => x.remove()); if (App.route === "me" && Views.me.push) Views.me.push(); }); } });
 if (typeof Notification !== "undefined") Push._perm = Notification.permission;
-if (window.ChessSite && window.ChessSite.ready) setTimeout(async () => { await window.ChessSite.sessionReady; if (!window.ChessSite.getSession()) return; Chat.start(); Push.ensure(); const h = location.hash.slice(1); if (h.startsWith("chat-")) routeHash(h); }, 1800);
+if (window.ChessSite && window.ChessSite.ready) setTimeout(async () => { await window.ChessSite.sessionReady; if (!window.ChessSite.getSession()) return; Chat.start(); Push.ensure(); if (typeof Promo !== "undefined") Promo.start(); const h = location.hash.slice(1); if (h.startsWith("chat-") || h.startsWith("promo-")) routeHash(h); }, 1800);
 
 /* ===== News from Chess.nat: a big full-screen announcement with a confetti explosion, once a day until newer news
    replaces it. It only goes away with OK. With a voice message, OK unlocks once you've heard it to the end
