@@ -52,6 +52,8 @@ tipp_leagues|key|key:text:!: ; name:text:!: ; grp:text:!: ; series:text:!: ; ima
 tipp_groups|id|id:uuid:!:@uuid ; code:text:!:@code ; name:text:!: ; owner:uuid:!: ; comps:_text:!:{} ; created_at:timestamptz:!:@now
 tipp_members|group_id,user_id|group_id:uuid:!: ; user_id:uuid:!: ; joined_at:timestamptz:!:@now
 tipp_picks|id|id:int8:!:@identity ; user_id:uuid:?: ; bot:text:?: ; event_id:text:!: ; sh:int4:?: ; sa:int4:?: ; w:text:?: ; created_at:timestamptz:!:@now ; updated_at:timestamptz:!:@now
+chess_promos|id|id:int8:!:@identity ; user_id:uuid:!: ; kind:text:!: ; tier:text:!: ; from_tier:text:?: ; rating:int4:?: ; created_at:timestamptz:!:@now
+chess_promo_cheers|promo_id,user_id|promo_id:int8:!: ; user_id:uuid:!: ; owner:uuid:!: ; created_at:timestamptz:!:@now
 tipp_tips|id|id:int8:!:@identity ; user_id:uuid:?: ; bot:text:?: ; event_id:text:!: ; market:text:!: ; pick:text:!: ; label:text:?: ; stake:int4:!: ; odds:numeric:!: ; status:text:!:'open' ; payout:int4:!:0 ; claimed:bool:!:false ; created_at:timestamptz:!:@now ; settled_at:timestamptz:?:
 `;
 
@@ -67,6 +69,7 @@ const RPCS = {
   nudge_turn: ["target", "code"], push_config: [], ranked_leave: [], ranked_lobby: [], ranked_me: [], ranked_queue: ["tc", "hint?"],
   ranked_report: ["mid", "res", "why?"], ranked_top: ["c", "n?"], shop_can: ["l"], shop_owns: ["l"],
   song_add: ["p_won", "p_heard", "p_right", "p_pts", "p_ms", "p_genres"], song_board: [],
+  promo_add: ["p_kind", "p_tier", "p_from", "p_rating"], promo_feed: [], promo_cheer: ["p_id"],
   tipp_admin_event: ["p"], tipp_admin_nudge: ["p_event", "p_title", "p_body"], tipp_board: [], tipp_board_group: ["p_group"], tipp_claim: [],
   tipp_event_picks: ["p_event"], tipp_event_tips: ["p_event"], tipp_final: ["p_event"], tipp_group_save: ["p_id", "p_name", "p_comps"], tipp_groups_mine: [],
   tipp_join: ["p_code"], tipp_leave: ["p_id"], tipp_lines: ["p_event", "p_final"], tipp_live: ["p_event", "p_title"], tipp_notify: ["p_event", "p_title", "p_body"],
@@ -77,7 +80,7 @@ const RPCS = {
 };
 
 /* Tables in the supabase_realtime publication: only these send live changes. */
-const REALTIME = ["chess_friends", "chess_duels", "chess_gifts", "chess_invites", "chess_messages", "kcal_meals", "shop_items", "shop_asks", "shop_answers", "home_tasks", "home_thanks"];
+const REALTIME = ["chess_friends", "chess_duels", "chess_gifts", "chess_invites", "chess_messages", "kcal_meals", "shop_items", "shop_asks", "shop_answers", "home_tasks", "home_thanks", "chess_promos", "chess_promo_cheers"];
 
 /* Foreign keys that matter for behaviour (the rest point at auth.users). [table, column, target table, target column, on delete] */
 const FKS = [

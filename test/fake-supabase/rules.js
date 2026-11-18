@@ -63,6 +63,7 @@ module.exports = db => {
   /* Row level security. select/delete: USING; insert: WITH CHECK; update: {using, check}; "all" covers every command.
      A command without a policy is not allowed at all, exactly like in Postgres. Every policy is for signed-in users. */
   const POLICIES = {
+    chess_promos: {select: (r, u) => !!u}, chess_promo_cheers: {select: (r, u) => !!u},
     kv: own("user_id"), chess_push: own("user_id"), kcal_body: own("user_id"), kcal_weights: own("user_id"),
     chess_players: {select: T, insert: (r, u) => r.id === u, update: {using: (r, u) => r.id === u, check: (r, u) => r.id === u}},
     home_groups: {select: (r, u) => r.owner === u || homeCan(u, r.id), insert: (r, u) => r.owner === u, update: {using: (r, u) => r.owner === u, check: (r, u) => r.owner === u}, delete: (r, u) => r.owner === u},
@@ -138,6 +139,7 @@ module.exports = db => {
   const evPts = (e, sh, sa, w, final = true) => e.state === "canc" || (final && e.state !== "post") || e.state === "pre" ? null
     : tippPts(e.sport, sh, sa, w, e.meta && e.meta.reg ? Number(e.meta.reg[0]) : e.score_h, e.meta && e.meta.reg ? Number(e.meta.reg[1]) : e.score_a, e.state === "post" ? (e.meta && e.meta.winner) || null : null);
   const player = id => R.chess_players.find(p => p.id === id);
+  const PT = ["iron", "bronze", "silver", "gold", "platinum", "emerald", "diamond", "master", "grandmaster", "challenger"], PLO = [400, 1010, 1316, 1517, 1713, 1900, 2153, 2404, 2672, 2782];
 
   /* the functions behind /rest/v1/rpc. Anything in the real database that the app doesn't call answers with a plain default. */
   /* the household functions of supabase/schema_home.sql, in the same order of thought. The real database starts the asking in an
@@ -220,6 +222,18 @@ module.exports = db => {
       S.ms_sum += ms.reduce((a, b) => a + b, 0); S.ms_n += ms.length; if (ms.length) S.best_ms = Math.min(S.best_ms == null ? 1e9 : S.best_ms, ...ms);
       Object.entries(p_genres || {}).forEach(([k, v]) => { const c = S.genres[k] || [0, 0]; S.genres[k] = [c[0] + (+v[0] || 0), c[1] + (+v[1] || 0)]; }); return null; },
     song_board: () => Object.entries(R.__song || {}).map(([uid, S]) => { const pl = player(uid); return {uid, name: pl ? pl.name : "?", avatar: pl ? pl.avatar : null, games: S.games, won: S.won, heard: S.heard, right_n: S.right_n, pts: S.pts, avg_ms: S.ms_n ? Math.round(S.ms_sum / S.ms_n) : null, best_ms: S.best_ms, genres: S.genres}; }).sort((a, b) => b.pts - a.pts),
+    /* promotions (like supabase/promos.sql): a new tier once, everyone sees it and can congratulate */
+    promo_add(u, {p_kind, p_tier, p_from, p_rating}){ const i = PT.indexOf(p_tier);
+      if (!u || i < 1 || !["puzzle", "bullet", "blitz", "rapid"].includes(p_kind) || !(p_rating >= PLO[i])) return null;
+      if (R.chess_promos.some(x => x.user_id === u && x.kind === p_kind && PT.indexOf(x.tier) >= i)) return null;
+      const f = PT.indexOf(p_from), r = {id: db.nextId("chess_promos"), user_id: u, kind: p_kind, tier: p_tier, from_tier: f >= 0 && f < i ? p_from : null, rating: p_rating, created_at: db.now()};
+      R.chess_promos.push(r); db.emit("chess_promos", "INSERT", r); return r.id; },
+    promo_feed: u => !u ? [] : R.chess_promos.slice().reverse().map(p => { const pl = player(p.user_id), cs = R.chess_promo_cheers.filter(c => c.promo_id === p.id);
+      return {id: p.id, uid: p.user_id, name: pl ? pl.name : "?", avatar: pl ? pl.avatar : null, kind: p.kind, tier: p.tier, from_tier: p.from_tier, rating: p.rating, created_at: p.created_at,
+        cheers: cs.length, mine: cs.some(c => c.user_id === u), by: cs.map(c => { const q = player(c.user_id); return {uid: c.user_id, name: q ? q.name : "?", avatar: q ? q.avatar : null}; })}; }),
+    promo_cheer(u, {p_id}){ const p = R.chess_promos.find(x => x.id === +p_id); if (!u || !p || p.user_id === u) return null;
+      if (!R.chess_promo_cheers.some(c => c.promo_id === p.id && c.user_id === u)){ const c = {promo_id: p.id, user_id: u, owner: p.user_id, created_at: db.now()}; R.chess_promo_cheers.push(c); db.emit("chess_promo_cheers", "INSERT", c); }
+      return R.chess_promo_cheers.filter(c => c.promo_id === p.id).length; },
     tipp_board: () => [], tipp_board_group: () => [], tipp_groups_mine: () => [], tipp_event_tips: () => [], tipp_lines: () => [],
     ranked_me: u => R.chess_ratings.filter(r => r.user_id === u).map(r => ({cat: r.cat, r: Math.round(r.r), rd: Math.round(r.rd), games: r.games, w: r.w, d: r.d, l: r.l, peak: r.peak})),
     ranked_lobby: () => ({}), ranked_top: () => [], ranked_leave: () => null, ranked_queue: () => ({status: "waiting"}), ranked_report: () => ({status: "ok"}),
