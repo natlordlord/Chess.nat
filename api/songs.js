@@ -50,6 +50,7 @@ const PLQ = {
   onehit: ["One Hit Wonders"],
   ballad: ["Kuschelrock", "Love Songs", "Power Ballads"],
   ndw: ["Neue Deutsche Welle", "NDW Hits"],
+  assi: ["Assi Rap", "Asi Rap", "Asozial Rap"],
   anime: ["Anime Openings", "Anime Hits"],
   games: ["Video Game Songs", "Gaming Hits"]
 };
@@ -87,7 +88,7 @@ async function deezer(q){
    ("Musical Hits" found a Brazilian church playlist, "Músicas …", and its songs came up in Musicals). So the list's title has to
    carry one of the search's own words (not "hits", "best" and the like); "80s"/"80er"/"80's" all count as 80. And it must be
    short: a long title is a fan's theme list that only mentions the word. */
-const PLAIN = new Set("hits hit best of the top songs song classics classic greatest all time die de der das and und today s todays".split(" "));
+const PLAIN = new Set("hits hit best of the top songs song classics classic greatest all time die de der das and und today s todays rap".split(" "));
 const words = t => N(t).replace(/\b(\d+)(?:er|s)\b/g, "$1").split(" ").filter(Boolean);
 const keyWords = q => words(q).filter(w => (w.length >= 3 || /^\d\d/.test(w)) && !PLAIN.has(w)).map(w => /^\d/.test(w) ? w : w.replace(/s$/, ""));
 function about(title, q){ const need = keyWords(q), have = words(title);
