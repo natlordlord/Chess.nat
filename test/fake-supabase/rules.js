@@ -64,6 +64,7 @@ module.exports = db => {
      A command without a policy is not allowed at all, exactly like in Postgres. Every policy is for signed-in users. */
   const POLICIES = {
     chess_promos: {select: (r, u) => !!u}, chess_promo_cheers: {select: (r, u) => !!u},
+    kcal_portions: {select: (r, u) => r.user_id === u || r.shared, insert: (r, u) => r.user_id === u, update: (r, u) => r.user_id === u, delete: (r, u) => r.user_id === u},
     kv: own("user_id"), chess_push: own("user_id"), kcal_body: own("user_id"), kcal_weights: own("user_id"),
     chess_players: {select: T, insert: (r, u) => r.id === u, update: {using: (r, u) => r.id === u, check: (r, u) => r.id === u}},
     home_groups: {select: (r, u) => r.owner === u || homeCan(u, r.id), insert: (r, u) => r.owner === u, update: {using: (r, u) => r.owner === u, check: (r, u) => r.owner === u}, delete: (r, u) => r.owner === u},
@@ -129,6 +130,8 @@ module.exports = db => {
     kcal_recipes: (op, n) => { if (n){ const p = R.chess_players.find(x => x.id === n.user_id); n.author = (p && p.name) || "A friend"; } },
     /* private.kcal_own_stamp: who photographed it comes from the players table */
     kcal_own_products: (op, n) => { if (n){ const p = R.chess_players.find(x => x.id === n.user_id); n.author = (p && p.name) || "A friend"; } },
+    /* private.kcal_por_stamp: who set the portion; a barcode's portion counts for everybody */
+    kcal_portions: (op, n) => { if (n){ const p = R.chess_players.find(x => x.id === n.user_id); n.author = (p && p.name) || "A friend"; n.shared = /^c:/.test(n.key); } },
     kcal_profile: (op, n, o) => { if (op === "INSERT" || (op === "UPDATE" && n.goal !== o.goal)) kcalRecalc(n.user_id); }
   };
 

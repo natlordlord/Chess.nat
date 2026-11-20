@@ -13,27 +13,29 @@
   /* the gas: on its own a round is longer (the gas comes after 18 s, closed after 95 s); a meeting fight is short and starts closer together */
   const gasPlan = (arena, n) => arena ? {a: 18000, b: 95000, r0: Math.min(2000, Math.max(1350, 1150 + 95 * n)), r1: 190, fl: FIGHT} : {a: 14000, b: 50000, r0: Math.min(1250, 760 + 50 * n), r1: 150, fl: 60000};
   let GZ = gasPlan(true, 6);
+  /* the fighters carry the names of their Brawl Stars counterparts (Wolfsuii's wish); the line under the name says the weapon */
   const CLS = {
-    shot: {c: "#E9573F", en: "Shotgun", de: "Schrotflinte", sen: "Close · 5 pellets", sde: "Nah · 5 Kugeln", hp: 240, sp: 1, rl: 1350, cd: 380, rg: 330, n: 5, spr: .12, v: 1050, dmg: 12, r: 7, sc: 130,
+    shot: {c: "#E9573F", en: "Shelly", de: "Shelly", sen: "Shotgun · close · 5 pellets", sde: "Schrotflinte · nah · 5 Kugeln", hp: 240, sp: 1, rl: 1350, cd: 380, rg: 330, n: 5, spr: .12, v: 1050, dmg: 12, r: 7, sc: 130,
       su: {en: "Big bang", de: "Großer Knall", n: 9, spr: .085, v: 1150, dmg: 14, rg: 380, kb: 90}},
-    bomb: {c: "#F2A33A", en: "Bomber", de: "Bomber", sen: "Throws over walls", sde: "Wirft über Wände", hp: 200, sp: 1, rl: 1650, cd: 480, rg: 440, lob: 680, dmg: 50, splash: 66, sc: 110,
+    bomb: {c: "#F2A33A", en: "Dynamike", de: "Dynamike", sen: "Bombs · throws over walls", sde: "Bomben · wirft über Wände", hp: 200, sp: 1, rl: 1650, cd: 480, rg: 440, lob: 680, dmg: 50, splash: 70, sc: 110,
       su: {en: "Mega bomb", de: "Megabombe", dmg: 56, splash: 120, kb: 80, rg: 470}},
-    snipe: {c: "#4FA3FF", en: "Sniper", de: "Scharfschütze", sen: "Hold to charge · hits hard", sde: "Halten = aufladen · trifft hart", hp: 162, sp: .95, rl: 1900, cd: 450, rg: 820, n: 1, v: 1500, dmg: 18, chg: 66, r: 6, sc: 120,
+    snipe: {c: "#4FA3FF", en: "Piper", de: "Piper", sen: "Sniper · hold to charge · hits hard", sde: "Scharfschütze · halten = aufladen", hp: 172, sp: .95, rl: 1900, cd: 450, rg: 820, n: 1, v: 1500, dmg: 20, chg: 66, r: 6, sc: 120,
       su: {en: "Piercer", de: "Durchschuss", v: 2400, rg: 1000, dmg: 78, r: 10}},
-    punch: {c: "#B65CE0", en: "Boxer", de: "Boxer", sen: "Punches · very close", sde: "Schlägt · ganz nah", hp: 280, sp: 1.1, rl: 1350, cd: 430, rg: 100, cone: .62, dmg: 17, jabs: 3, sc: 120, aura: {r: 210, rate: .06},
+    punch: {c: "#B65CE0", en: "El Primo", de: "El Primo", sen: "Boxer · punches up close", sde: "Boxer · schlägt ganz nah", hp: 300, sp: 1.1, rl: 1350, cd: 430, rg: 100, cone: .62, dmg: 17, jabs: 3, sc: 120, aura: {r: 210, rate: .06},
       su: {en: "Body slam", de: "Sprungschlag", at: 1, rg: 340, dmg: 43, splash: 115, kb: 95, dur: 520}},
-    gun: {c: "#2FB39A", en: "Revolver", de: "Revolver", sen: "6 shots in a row · far", sde: "6 Schüsse am Stück · weit", hp: 200, sp: 1, rl: 1600, cd: 480, rg: 640, n: 6, gap: 65, v: 1350, dmg: 12, r: 6, sc: 140,
+    gun: {c: "#2FB39A", en: "Colt", de: "Colt", sen: "Revolver · 6 shots in a row · far", sde: "Revolver · 6 Schüsse am Stück · weit", hp: 200, sp: 1, rl: 1600, cd: 480, rg: 640, n: 6, gap: 65, v: 1350, dmg: 12, r: 6, sc: 140,
       su: {en: "Bullet storm", de: "Kugelhagel", n: 12, gap: 55, v: 1500, rg: 760, dmg: 15}},
-    rang: {c: "#7FB84A", en: "Boomerang", de: "Bumerang", sen: "Through crates & enemies · back again", sde: "Durch Kisten & Gegner · und zurück", hp: 225, sp: 1.02, rl: 1400, cd: 450, rg: 490, v: 900, dmg: 28, r: 15, sc: 120,
+    rang: {c: "#7FB84A", en: "Carl", de: "Carl", sen: "Boomerang · through everything · back again", sde: "Bumerang · durch Kisten & Gegner · zurück", hp: 225, sp: 1.02, rl: 1400, cd: 450, rg: 490, v: 900, dmg: 30, r: 15, sc: 120,
       su: {en: "Triple", de: "Dreifach", n: 3, spr: .32, dmg: 31, rg: 540}},
     /* the light beam (Nathan's wish, a support like Glowy in Brawl Stars): the beam sticks to the first one in its way and holds as long
        as they stay in reach, hurts and slows an enemy and gives the beamer part of it back as health, or heals a teammate. Out of reach
        or behind a wall it flickers for a second: back in reach in time and it holds again, otherwise it is gone and you have to hit anew. Super: a blinding flash, whoever stands in it takes a hit (no more fear, Finnel's wish: nothing from League) */
-    beam: {c: "#33C6D6", en: "Light beam", de: "Lichtstrahl", sen: "Holds on · drains life", sde: "Hält fest · saugt Leben", hp: 205, sp: 1, rl: 1500, cd: 420, rg: 430, r: 10, dmg: 9, every: 250, grace: 1000, heal: .5, slow: .75, sc: 120,
-      su: {en: "Blinding light", de: "Blendlicht", rg: 380, cone: .62, dmg: 70}},
-    /* the hammer (Wolf's wish): raises it for a moment, then smashes a wide arc in front, everyone in it gets hit.
-       Super: an earthquake all around, pushes everyone away. Like the boxer it charges its super while an enemy is close (aura) */
-    hammer: {c: "#D9628F", en: "Hammer", de: "Hammer", sen: "Smashes a wide arc · hits all in it", sde: "Schlägt im Bogen · trifft alle darin", hp: 315, sp: .95, rl: 1700, cd: 650, rg: 165, cone: .85, wind: 260, dmg: 43, sc: 130, aura: {r: 230, rate: .07},
+    beam: {c: "#33C6D6", en: "Glowy", de: "Glowy", sen: "Light beam · holds on · drains life", sde: "Lichtstrahl · hält fest · saugt Leben", hp: 205, sp: 1, rl: 1500, cd: 420, rg: 360, r: 10, dmg: 9, every: 250, grace: 1000, heal: .4, slow: .75, sc: 120,
+      su: {en: "Blinding light", de: "Blendlicht", rg: 330, cone: .62, dmg: 70}},
+    /* the hammer (Wolf's wish): raises it for a moment, then smashes the ground, everyone in the round circle around him gets hit
+       (Wolfsuii: the whole circle, not just in front). Super: an earthquake in a bigger circle, pushes everyone away. Like the boxer
+       it charges its super while an enemy is close (aura): that ring is the same circle the blow hits */
+    hammer: {c: "#D9628F", en: "Frank", de: "Frank", sen: "Hammer · hits everyone in the circle", sde: "Hammer · trifft alle im Kreis", hp: 315, sp: .95, rl: 1700, cd: 650, rg: 175, ring: 1, wind: 260, dmg: 43, sc: 130, aura: {r: 201, rate: .075},
       su: {en: "Earthquake", de: "Erdbeben", ring: 1, rg: 270, dmg: 56, kb: 120}},
     zap: {off: 1, c: "#E0B321", en: "Lightning", de: "Blitz", sen: "Jumps to 3 enemies", sde: "Springt auf 3 Gegner", hp: 180, sp: 1, rl: 1500, cd: 450, rg: 440, dmg: 30, jump: 210, chain: [30, 22, 16], sc: 115,
       su: {en: "Thunderstorm", de: "Gewitter", at: 1, rg: 520, splash: 140, dmg: 20, hits: 5, every: 420}}};
@@ -54,7 +56,7 @@
   const rngOf = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
   const isBot = id => /^bot/.test(id) || !!(((PNet.P && PNet.P.G && PNet.P.G.s && PNet.P.G.s.bots) || []).find(b => b.id === id));
 
-  /* ---------------- the fighters' pictures: one white weapon on a coloured tile, drawn as SVG (cards, buttons) and as bitmaps (the arena) ---------------- */
+  /* ---------------- the fighters' pictures: the weapon in colour on a coloured tile (white for the small buttons), drawn as SVG (cards, buttons) and as bitmaps (the arena) ---------------- */
   const OUT = 'stroke="#1d1b18" stroke-width="3.5" stroke-linejoin="round" paint-order="stroke"';
   const GLY = {
     shot: `<g transform="rotate(-24 32 32)" fill="#fff" ${OUT}><path d="M2 30L17 26l2 11-14 5z"/><rect x="16" y="25" width="19" height="11" rx="2"/><rect x="32" y="25" width="29" height="6" rx="2"/><rect x="36" y="32" width="17" height="6" rx="3"/><path d="M21 35h7l-3 11h-7z"/></g>`,
@@ -68,16 +70,42 @@
   /* the hammer: a heavy head on a wrapped handle; on the card it leans, in the hand the handle points where you aim */
   const HAMMER = `<g fill="#fff" ${OUT}><rect x="3" y="28" width="40" height="8" rx="3"/><rect x="38" y="11" width="21" height="42" rx="5"/></g><path d="M44 17v30M53 17v30M10 28v8M16 28v8" fill="none" stroke="#1d1b18" stroke-opacity=".28" stroke-width="3" stroke-linecap="round"/>`;
   GLY.hammer = `<g transform="rotate(-38 32 32)">${HAMMER}</g>`;
-  /* in the hand the sniper holds a rifle, not the crosshair */
-  const HAND = {hammer: HAMMER, snipe: `<g transform="rotate(-8 32 32)" fill="#fff" ${OUT}><path d="M2 35l12-5 3 8-12 4z"/><rect x="13" y="29" width="16" height="8" rx="2"/><rect x="26" y="30" width="36" height="4" rx="2"/><rect x="16" y="21" width="17" height="6" rx="3"/><path d="M19 36h6l-2 9h-6z"/></g>`};
+  /* the weapons in colour (Wolfsuii: nicer weapons): metal, wood and leather with a light edge on top and a shadow below,
+     a dark outline like the figures. Drawn pointing right (the glove up, the bomb upright); the hand turns them where you aim */
+  const OL = 'stroke="#1d1b18" stroke-width="3" stroke-linejoin="round" paint-order="stroke"';
+  const ART = {
+    shot: `<g ${OL}><path d="M3 33l14-6 3 12-14 6z" fill="#A9652F"/><path d="M20 37h8l-3 11h-8z" fill="#8A4F24"/><rect x="16" y="25" width="19" height="13" rx="2" fill="#5B6375"/>
+      <rect x="32" y="24" width="29" height="6" rx="2" fill="#7A8396"/><rect x="32" y="30" width="27" height="5" rx="2" fill="#4B5263"/><rect x="36" y="34" width="16" height="7" rx="3" fill="#C27A3E"/></g>
+      <g fill="none" stroke-linecap="round"><path d="M35 26.5h23M19 28h12" stroke="#C9D0DC" stroke-width="1.6"/><path d="M40 35.5v4M44 35.5v4M48 35.5v4" stroke="#7E4A1F" stroke-width="1.5"/><path d="M6 34l10-4" stroke="#D49155" stroke-width="1.6"/></g>
+      <path d="M24 38q2 5 6 3" fill="none" stroke="#E8B64A" stroke-width="2.2" stroke-linecap="round"/>`,
+    bomb: `<path d="M30 19c-1-8 6-13 14-11" fill="none" stroke="#1d1b18" stroke-width="7.5" stroke-linecap="round"/><path d="M30 19c-1-8 6-13 14-11" fill="none" stroke="#D8B27A" stroke-width="3.6" stroke-linecap="round" stroke-dasharray="3 1.6"/><g ${OL}><rect x="21" y="17" width="15" height="9" rx="2" fill="#8C95A6"/><circle cx="28" cy="41" r="18" fill="#2E3340"/></g>
+      <path d="M21 19.5h13" stroke="#C9D0DC" stroke-width="1.6" stroke-linecap="round"/><path d="M15 39a13 13 0 0 1 9-11" fill="none" stroke="#6A7385" stroke-width="4" stroke-linecap="round"/><circle cx="20" cy="45" r="2" fill="#6A7385"/>
+      <path d="M44 8m-7 0l4.3-1.8L44 1l2.7 5.2L51 8l-4.3 1.8L44 15l-2.7-5.2z" fill="#FFD15C" ${OL}/><circle cx="44" cy="8" r="2.4" fill="#fff"/>`,
+    snipe: `<g ${OL}><path d="M2 36l13-6 4 9-13 5z" fill="#9A5B2B"/><path d="M18 36h6l-2 9h-6z" fill="#7A4520"/><rect x="14" y="29" width="17" height="9" rx="2" fill="#4B5263"/><rect x="29" y="30" width="29" height="4.5" rx="2" fill="#5E677A"/>
+      <rect x="55" y="28.5" width="7" height="7.5" rx="1.5" fill="#3A404E"/><rect x="16" y="19" width="18" height="7" rx="3.5" fill="#2E3340"/><rect x="20" y="25" width="3" height="5" fill="#2E3340"/><rect x="27" y="25" width="3" height="5" fill="#2E3340"/></g>
+      <circle cx="33" cy="22.5" r="2.3" fill="#7FD0FF"/><path d="M18 21h11M31 31.5h22" stroke="#C9D0DC" stroke-width="1.4" stroke-linecap="round"/><path d="M5 37l9-4" stroke="#C98A4E" stroke-width="1.5" stroke-linecap="round"/>`,
+    punch: `<g ${OL}><rect x="17" y="45" width="28" height="14" rx="3" fill="#F4EFE6"/><path d="M11 30c0-12 9-19 20-19h8c11 0 18 8 18 19v5c0 8-6 13-14 13H27c-9 0-16-6-16-14z" fill="#E2463B"/></g>
+      <path d="M17 51h28" stroke="#E2463B" stroke-width="3"/><path d="M18 34c7 3 14 2 19-4" fill="none" stroke="#9E2820" stroke-width="3" stroke-linecap="round"/><path d="M20 19c4-3 9-4 14-3" fill="none" stroke="#FF8A78" stroke-width="3.2" stroke-linecap="round"/>`,
+    gun: `<g ${OL}><path d="M12 33h12l-4 22H7z" fill="#8A4F28"/><path d="M11 18h21v15h-7l-3 4H11z" fill="#9AA3B4"/><rect x="29" y="21" width="31" height="8" rx="2" fill="#B9C1CE"/><rect x="21" y="23" width="17" height="13" rx="4" fill="#7A8396"/><path d="M8 13h7v7H8z" fill="#6A7385"/></g>
+      <path d="M31 23h26" stroke="#EEF2F7" stroke-width="1.6" stroke-linecap="round"/><g fill="#3A404E"><circle cx="26" cy="27" r="1.6"/><circle cx="32" cy="27" r="1.6"/><circle cx="26" cy="32" r="1.6"/><circle cx="32" cy="32" r="1.6"/></g><path d="M12 38l-3 14" stroke="#B87A45" stroke-width="1.6" stroke-linecap="round"/><path d="M20 37q1 5 5 3" fill="none" stroke="#E8B64A" stroke-width="2" stroke-linecap="round"/>`,
+    rang: `<g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 18Q19 42 32 48Q45 42 56 18" stroke="#1d1b18" stroke-width="16"/><path d="M8 18Q19 42 32 48Q45 42 56 18" stroke="#C98A4E" stroke-width="10"/>
+      <path d="M10 18.5Q20 40 32 45.5" stroke="#E4AE72" stroke-width="2.4"/><path d="M15 29l5-2M44 27l5 2" stroke="#4FA34A" stroke-width="4"/><path d="M29 47l3-1 3 1" stroke="#fff" stroke-width="2.4"/></g>`,
+    beam: `<g ${OL}><rect x="3" y="29" width="30" height="7" rx="3" fill="#3B3F4C"/><rect x="9" y="28" width="4" height="9" rx="1" fill="#E8B64A"/><rect x="24" y="28" width="4" height="9" rx="1" fill="#E8B64A"/>
+      <path d="M31 25l8 3v9l-8 3z" fill="#E8B64A"/><circle cx="47" cy="32.5" r="11" fill="#5FE6F2"/></g>
+      <circle cx="47" cy="32.5" r="6" fill="#E9FDFF"/><circle cx="44" cy="29" r="2.2" fill="#fff"/><path d="M5 30.5h26" stroke="#6A7082" stroke-width="1.5" stroke-linecap="round"/>
+      <g stroke="#B9F6FF" stroke-width="2.6" stroke-linecap="round"><path d="M60 32.5h3M47 17v-3M47 48v3M56.5 23l2-2M56.5 42l2 2"/></g>`,
+    hammer: `<g ${OL}><rect x="3" y="28" width="38" height="8" rx="3" fill="#A9652F"/><rect x="36" y="9" width="23" height="46" rx="5" fill="#7A8496"/><rect x="33" y="17" width="29" height="7" rx="2" fill="#545C6B"/><rect x="33" y="40" width="29" height="7" rx="2" fill="#545C6B"/>
+      <rect x="7" y="27" width="11" height="10" rx="2" fill="#5A3A22"/></g><path d="M40 12h15M40 27v10" stroke="#C3CAD6" stroke-width="2" stroke-linecap="round"/><path d="M10 28v8M14 28v8" stroke="#3A2414" stroke-width="1.5"/><path d="M20 30h17" stroke="#D49155" stroke-width="1.5" stroke-linecap="round"/>`};
+  /* how each one lies on its card */
+  const ART_ON = {shot: "rotate(-24 32 32)", snipe: "rotate(-24 32 32)", gun: "rotate(-14 32 32)", beam: "rotate(-30 32 32)", hammer: "rotate(-38 32 32)"};
   const shade = (hx, f) => { const n = parseInt(hx.slice(1), 16), m = v => Math.round(f < 0 ? v * (1 + f) : v + (255 - v) * f); return `rgb(${m(n >> 16)},${m(n >> 8 & 255)},${m(n & 255)})`; };
   let BID = 0;
   function badge(k, su){ const c = CLS[k]; if (!c) return ""; const col = su ? "#E9A92B" : c.c, id = "arg" + (++BID);
-    return `<svg viewBox="0 0 64 64" aria-hidden="true"><defs><radialGradient id="${id}" cx="30%" cy="22%" r="90%"><stop offset="0" stop-color="${shade(col, .38)}"/><stop offset=".6" stop-color="${col}"/><stop offset="1" stop-color="${shade(col, -.38)}"/></radialGradient></defs><rect x="1" y="1" width="62" height="62" rx="17" fill="url(#${id})"/><path d="M8 18c0-6 4-10 10-10h28c6 0 10 4 10 10v2C40 14 24 14 8 22z" fill="#fff" opacity=".2"/><g transform="translate(9 9) scale(.72)">${GLY[k]}</g></svg>`; }
+    return `<svg viewBox="0 0 64 64" aria-hidden="true"><defs><radialGradient id="${id}" cx="30%" cy="22%" r="90%"><stop offset="0" stop-color="${shade(col, .38)}"/><stop offset=".6" stop-color="${col}"/><stop offset="1" stop-color="${shade(col, -.38)}"/></radialGradient></defs><rect x="1" y="1" width="62" height="62" rx="17" fill="url(#${id})"/><path d="M8 18c0-6 4-10 10-10h28c6 0 10 4 10 10v2C40 14 24 14 8 22z" fill="#fff" opacity=".2"/>${ART[k] ? `<g transform="translate(7 7) scale(.78)"><g transform="${ART_ON[k] || ""}">${ART[k]}</g></g>` : `<g transform="translate(9 9) scale(.72)">${GLY[k]}</g>`}</svg>`; }
   const glyph = k => GLY[k] ? `<svg viewBox="0 0 64 64" aria-hidden="true">${GLY[k]}</svg>` : "";
   const IMG = {};
   const svgImg = (key, svg) => { let im = IMG[key]; if (!im){ im = IMG[key] = new Image(); im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg.replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" ')); } return im.complete && im.naturalWidth ? im : null; };
-  const wpnImg = k => svgImg("w" + k, `<svg viewBox="0 0 64 64">${HAND[k] || GLY[k]}</svg>`), badImg = k => svgImg("b" + k, badge(k));
+  const wpnImg = k => svgImg("w" + k, `<svg viewBox="0 0 64 64">${ART[k] || GLY[k]}</svg>`), badImg = k => svgImg("b" + k, badge(k));
 
   /* ---------------- the maps: 44 × 44 tiles, mirrored four times like a Showdown map. Grass, walls, ponds, bushes, crates ---------------- */
   const LAYS = [
@@ -583,7 +611,7 @@
      between you and the spot ahead, it aims at where they are now */
   function leadTime(k, su, d){ const cl = CLS[k], s2 = su ? Object.assign({}, cl, cl.su) : cl;
     if (cl.lob) return cl.lob / 1000 * (.6 + .4 * Math.min(1, d / s2.rg)); if (su && cl.su.at) return (cl.su.dur || 500) / 1000; if (s2.ring) return 0;
-    if (k === "hammer") return cl.wind / 1000 * .8; if (k === "zap" || k === "punch" || k === "beam") return 0;
+    if (k === "zap" || k === "punch" || k === "beam") return 0;
     const sp = s2.v || cl.v; return (sp ? d / sp : 0) + (k === "gun" ? (s2.n - 1) / 2 * s2.gap / 1000 : 0); }
   function autoAim(su){ const cl = CLS[C.cls], s2 = su ? cl.su : cl, at = !!(cl.lob || (su && cl.su.at)), rg = (s2.rg || cl.rg) * 1.12 + (melee(C.cls) && !su ? BODY : 0);
     if (su && s2.ring) return {a: C.me.a || 0, len: 0};
@@ -680,12 +708,12 @@
   function landed(J, by, t){ const su = CLS.punch.su, p = {x: J.x1, y: J.y1}; C.fx.push({k: "slam", x: p.x, y: p.y, t, d: 700}); snd("slam", p); C.shake = Math.max(C.shake, C.me && Math.hypot(p.x - C.me.x, p.y - C.me.y) < 450 ? 14 : 3);
     cratesIn(p.x, p.y, su.splash).forEach(i => { crateFx(i); if (J.au) hitCrate(i, 60, J.k + "c" + i, by); });
     if (J.au) hitCone(p, 0, su.splash, 0, by, true).forEach(id => { const q = pos(id), dd = Math.hypot(q.x - p.x, q.y - p.y) || 1; hitOut(id, su.dmg, J.k + ":" + id, by, {kx: (q.x - p.x) / dd * su.kb, ky: (q.y - p.y) / dd * su.kb}); }); }
-  /* the hammer comes down: everyone in the arc in front (walls block), the earthquake everyone around, pushed away */
-  function hamHit(h, t){ const by = h.by, q = pos(by); if (!q || !alive(by)) return; const cl = CLS.hammer, s2 = h.su ? cl.su : cl, a = h.a;
-    if (!h.su){ const ix = q.x + Math.cos(a) * cl.rg * .55, iy = q.y + Math.sin(a) * cl.rg * .55; C.fx.push({k: "smash", x: ix, y: iy, a, t, d: 650}); snd("ham", q); if (C.me && Math.hypot(q.x - C.me.x, q.y - C.me.y) < 400) C.shake = Math.max(C.shake, by === me() ? 7 : 4); }
+  /* the hammer comes down: everyone in the round circle around him (walls block), the earthquake everyone in its bigger circle, pushed away */
+  function hamHit(h, t){ const by = h.by, q = pos(by); if (!q || !alive(by)) return; const cl = CLS.hammer, s2 = h.su ? cl.su : cl;
+    if (!h.su){ C.fx.push({k: "smash", x: q.x, y: q.y, a: h.a, t, d: 620}); snd("ham", q); if (C.me && Math.hypot(q.x - C.me.x, q.y - C.me.y) < 400) C.shake = Math.max(C.shake, by === me() ? 7 : 4); }
     else if (C.me && Math.hypot(q.x - C.me.x, q.y - C.me.y) < 600) C.shake = Math.max(C.shake, 16);
-    cratesIn(q.x, q.y, s2.rg, h.su ? null : a, h.su ? null : cl.cone).forEach(i => { crateFx(i); if (h.au) hitCrate(i, s2.dmg, h.k + "c" + i, by); });
-    if (h.au) hitCone(q, a, s2.rg, h.su ? 0 : cl.cone, by).forEach(id => { const p = pos(id), dd = Math.hypot(p.x - q.x, p.y - q.y) || 1, kb = h.su ? s2.kb : 34; hitOut(id, s2.dmg, h.k + ":" + id, by, {kx: (p.x - q.x) / dd * kb, ky: (p.y - q.y) / dd * kb}); }); }
+    cratesIn(q.x, q.y, s2.rg).forEach(i => { crateFx(i); if (h.au) hitCrate(i, s2.dmg, h.k + "c" + i, by); });
+    if (h.au) hitCone(q, 0, s2.rg, 0, by).forEach(id => { const p = pos(id), dd = Math.hypot(p.x - q.x, p.y - q.y) || 1, kb = h.su ? s2.kb : 34; hitOut(id, s2.dmg, h.k + ":" + id, by, {kx: (p.x - q.x) / dd * kb, ky: (p.y - q.y) / dd * kb}); }); }
   /* one punch of the three: a short cone right in front */
   function jab(j, t){ const by = j.by, q = pos(by); if (!q || !alive(by)) return; const cl = CLS.punch; C.lunge[by] = t; C.fx.push({k: "jab", x: q.x, y: q.y, a: j.a, t, i: j.i, d: 220}); snd("punch", q);
     cratesIn(q.x, q.y, cl.rg, j.a, cl.cone).forEach(i => { crateFx(i); if (j.au) hitCrate(i, cl.dmg, j.k + "c" + i, by); });
@@ -1072,14 +1100,31 @@
   const CNF = "900 12px Figtree, system-ui, sans-serif";
   /* where a ray along "an" stops: a wall always, a crate unless the shot goes through crates */
   const rayTo = (a, an, rg, thruCr) => { if (!thruCr) return rayEnd(a, an, rg); const dx = Math.cos(an), dy = Math.sin(an); for (let s = 16; s < rg; s += 12){ const x = a.x + dx * s, y = a.y + dy * s, c = cell(x, y); if (c < 0 || MP.g[c] === 1) return {x, y}; } return {x: a.x + dx * rg, y: a.y + dy * rg}; };
+  /* where the hammer hits the ground (Wolfsuii): a shock ring races out to the edge of its round circle, the ground cracks all over
+     the circle (a crack stops at a wall), and the cracks close again quickly. The earthquake: three rings and a bigger star of cracks */
+  function hamGround(c, f, t){ const k = (t - f.t) / (f.d || 700); if (k < 0 || k >= 1) return; const qk = f.k === "quake", Rr = (qk ? CLS.hammer.su.rg : CLS.hammer.rg) + BODY, R = rngOf(Math.floor(f.t)), cx = f.x, cy = f.y + (qk ? 10 : 8);
+    if (qk){ for (let r = 0; r < 3; r++){ const kk = k * 1.6 - r * .22; if (kk <= 0 || kk >= 1) continue; c.strokeStyle = r ? `rgba(255,209,92,${.6 * (1 - kk)})` : `rgba(255,255,255,${.9 * (1 - kk)})`; c.lineWidth = (r ? 5 : 9) * (1 - kk) + 2; c.beginPath(); c.arc(cx, cy, Rr * kk, 0, 7); c.stroke(); } }
+    else if (k < .3){ const kk = k / .3; c.strokeStyle = `rgba(255,255,255,${.85 * (1 - kk)})`; c.lineWidth = 7 * (1 - kk) + 2; c.beginPath(); c.arc(cx, cy, 16 + (Rr - 16) * Math.min(1, kk * 1.15), 0, 7); c.stroke(); c.fillStyle = `rgba(255,225,235,${.22 * (1 - kk)})`; c.fill(); }
+    /* the cracks: out in a flash, a moment still, then they fade */
+    const grow = Math.min(1, k / (qk ? .25 : .14)), al = k < .45 ? 1 : Math.max(0, 1 - (k - .45) / .55); if (al <= 0) return;
+    const L = [], n = qk ? 12 : 9;
+    for (let i = 0; i < n; i++){ let an = i * Math.PI * 2 / n + R() * .5, x = cx, y = cy; const len = Rr * (.72 + R() * .26), pts = [[x, y]]; let stop = 0;
+      for (let j = 0; j < 4; j++){ an += (R() - .5) * .7; const st = len / 4 * grow, nx = x + Math.cos(an) * st, ny = y + Math.sin(an) * st, br = j === 1 && R() < .7, ba = an + (R() < .5 ? -1 : 1) * (.5 + R() * .4);
+        if (stop || bodySolid(nx, ny - 8)){ stop = 1; continue; } x = nx; y = ny; pts.push([x, y]);
+        if (br){ const bl = len * .28 * grow, bx = x + Math.cos(ba) * bl, by = y + Math.sin(ba) * bl; if (!bodySolid(bx, by - 8)) L.push([[x, y], [bx, by]]); } }
+      L.push(pts); }
+    c.save(); c.lineCap = "round"; c.lineJoin = "round";
+    for (const [w0, col, dy] of [[6, `rgba(255,240,210,${.3 * al})`, 1.5], [4.2, `rgba(45,30,18,${.85 * al})`, 0]])
+      L.forEach(pts => { for (let j = 1; j < pts.length; j++){ c.strokeStyle = col; c.lineWidth = Math.max(1.2, w0 - (j - 1) * (pts.length > 2 ? .9 : 1.6) - (pts.length > 2 ? 0 : 1.4)); c.beginPath(); c.moveTo(pts[j - 1][0], pts[j - 1][1] + dy); c.lineTo(pts[j][0], pts[j][1] + dy); c.stroke(); } });
+    c.fillStyle = `rgba(45,30,18,${.6 * al})`; c.beginPath(); c.arc(cx, cy, qk ? 16 : 13, 0, 7); c.fill(); c.restore(); }
   function aimDraw(c, aimP, su, t){
     const cl = CLS[C.cls], s2 = su ? Object.assign({}, cl, cl.su) : cl, a = C.me.a, o = {x: C.me.x, y: C.me.y + 8}, rgb = su ? "255,209,92" : "255,255,255", thru = C.cls === "rang";
     const col = al => `rgba(${rgb},${al})`, run = (t / 900) % 1;
     c.save(); c.lineJoin = "round"; c.lineCap = "round";
-    /* a super all around you (the earthquake): its whole reach as a ring on the ground */
-    if (su && cl.su.ring){ const r = cl.su.rg, g = c.createRadialGradient(o.x, o.y, 10, o.x, o.y, r); g.addColorStop(0, col(.05)); g.addColorStop(.75, col(.16)); g.addColorStop(1, col(.34));
-      c.fillStyle = g; c.beginPath(); c.ellipse(o.x, o.y, r, r * .62, 0, 0, 7); c.fill(); c.strokeStyle = col(.85); c.lineWidth = 3.5; c.stroke();
-      const pk = (t / 700) % 1; c.strokeStyle = col(.5 * (1 - pk)); c.lineWidth = 2.5; c.beginPath(); c.ellipse(o.x, o.y, r * (.3 + pk * .7), r * .62 * (.3 + pk * .7), 0, 0, 7); c.stroke(); }
+    /* a blow all around you (the hammer, its earthquake): its whole reach as a round ring on the ground. Whoever stands in it gets hit */
+    if (s2.ring){ const r = s2.rg + BODY, g = c.createRadialGradient(o.x, o.y, 10, o.x, o.y, r); g.addColorStop(0, col(.05)); g.addColorStop(.75, col(.16)); g.addColorStop(1, col(.34));
+      c.fillStyle = g; c.beginPath(); c.arc(o.x, o.y, r, 0, 7); c.fill(); c.strokeStyle = col(.85); c.lineWidth = 3.5; c.stroke();
+      const pk = (t / 700) % 1; c.strokeStyle = col(.5 * (1 - pk)); c.lineWidth = 2.5; c.beginPath(); c.arc(o.x, o.y, r * (.3 + pk * .7), 0, 7); c.stroke(); }
     else if (cl.lob || (su && cl.su.at)){
       const dd = throwDist(cl, su, Math.hypot(aimP.dx, aimP.dy)), lx = o.x + Math.cos(a) * dd, ly = o.y + Math.sin(a) * dd, sp2 = s2.splash || 60, jmp = C.cls === "punch", hh = (jmp ? 190 : 130) + dd * .12;
       /* the arc: dots that grow out from the hand and fade in, running gently towards the landing */
@@ -1087,8 +1132,8 @@
         c.fillStyle = col(.18 + .5 * Math.sin(k * Math.PI * .5 + .3)); c.beginPath(); c.arc(x, y, 3.5 + k * 3, 0, 7); c.fill(); }
       /* the landing: soft fill, bright rim, a second ring pulsing out */
       const g = c.createRadialGradient(lx, ly, 2, lx, ly, sp2); g.addColorStop(0, col(.08)); g.addColorStop(.7, col(.2)); g.addColorStop(1, col(.38));
-      c.fillStyle = g; c.beginPath(); c.ellipse(lx, ly, sp2, sp2 * .62, 0, 0, 7); c.fill(); c.strokeStyle = col(.85); c.lineWidth = 3.5; c.stroke();
-      const pk = (t / 700) % 1; c.strokeStyle = col(.5 * (1 - pk)); c.lineWidth = 2.5; c.beginPath(); c.ellipse(lx, ly, sp2 * (.35 + pk * .65), sp2 * .62 * (.35 + pk * .65), 0, 0, 7); c.stroke();
+      c.fillStyle = g; c.beginPath(); c.arc(lx, ly, sp2, 0, 7); c.fill(); c.strokeStyle = col(.85); c.lineWidth = 3.5; c.stroke();
+      const pk = (t / 700) % 1; c.strokeStyle = col(.5 * (1 - pk)); c.lineWidth = 2.5; c.beginPath(); c.arc(lx, ly, sp2 * (.35 + pk * .65), 0, 7); c.stroke();
       c.strokeStyle = col(.7); c.lineWidth = 3; c.beginPath(); c.moveTo(lx - 9, ly); c.lineTo(lx + 9, ly); c.moveTo(lx, ly - 6); c.lineTo(lx, ly + 6); c.stroke(); }
     else if (s2.cone || (s2.spr && (s2.n || 1) > 1)){
       /* a fan: built from rays so walls cut it, filled with a fade from the brawler outwards */
@@ -1163,9 +1208,11 @@
     /* aiming, like in Brawl Stars: a soft shape on the ground that fades out towards its end, bright edges, little arrows running out,
        stopped by walls (the boomerang's goes through crates); throws and the jump get a dotted arc and a pulsing landing ring */
     const aimP = C.supP && C.supP.man ? C.supP : C.aimP && C.aimP.man ? C.aimP : null;
+    /* the hammer's blows on the ground: cracks and shock rings lie under everyone */
+    C.fx.forEach(f => { if (f.k === "smash" || f.k === "quake") hamGround(c, f, t); });
     /* the charge radius of the boxer and the hammer: a dashed ring on the ground, gold and turning while an enemy is inside */
     if (fighting() && CLS[C.cls].aura && C.sup < 1){ const au = CLS[C.cls].aura, on = C.auraOn; c.save(); c.strokeStyle = on ? `rgba(255,209,92,${.55 + .25 * Math.sin(t / 120)})` : "rgba(255,255,255,.2)"; c.lineWidth = on ? 4 : 2.5; c.setLineDash([14, 12]); c.lineDashOffset = on ? -t / 25 : 0;
-      c.beginPath(); c.ellipse(C.me.x, C.me.y + 10, au.r, au.r * .62, 0, 0, 7); c.stroke(); if (on){ c.fillStyle = "rgba(255,209,92,.07)"; c.fill(); } c.restore(); }
+      c.beginPath(); c.arc(C.me.x, C.me.y + 8, au.r, 0, 7); c.stroke(); if (on){ c.fillStyle = "rgba(255,209,92,.07)"; c.fill(); } c.restore(); }
     if (fighting() && aimP) aimDraw(c, aimP, aimP === C.supP, t);
     if (C.autoLine && t - C.autoLine.t < 200 && C.me){ c.strokeStyle = "rgba(255,255,255,.5)"; c.lineWidth = 3; c.setLineDash([8, 8]); c.beginPath(); c.moveTo(C.me.x, C.me.y - 30); c.lineTo(C.autoLine.x, C.autoLine.y - 30); c.stroke(); c.setLineDash([]); }
     /* people: those on open ground first, then the bushes, then those you can see inside a bush (see-through) */
@@ -1193,7 +1240,7 @@
     /* bombs, bullets, boomerangs */
     C.proj.forEach(p => { const y = p.y - 34;
       if (p.lob){ const k = Math.min(1, (t - p.t) / p.dur), hgt = Math.sin(k * Math.PI) * (120 + Math.hypot(p.x1 - p.x0, p.y1 - p.y0) * .25), rr2 = p.su ? CLS.bomb.su.splash : CLS.bomb.splash;
-        c.strokeStyle = `rgba(255,90,60,${.35 + k * .4})`; c.lineWidth = 3; c.setLineDash([8, 7]); c.beginPath(); c.ellipse(p.x1, p.y1, rr2, rr2 * .62, 0, 0, 7); c.stroke(); c.setLineDash([]);
+        c.strokeStyle = `rgba(255,90,60,${.35 + k * .4})`; c.lineWidth = 3; c.setLineDash([8, 7]); c.beginPath(); c.arc(p.x1, p.y1, rr2, 0, 7); c.stroke(); c.setLineDash([]);
         c.fillStyle = "rgba(0,0,0,.3)"; c.beginPath(); c.ellipse(p.x, p.y, 12, 5, 0, 0, 7); c.fill(); bombAt(c, p.x, p.y - 30 - hgt, p.su ? 1.5 : 1.05, t); return; }
       if (p.c === "snipe"){ const k = (p.ch || 0) / 100; c.strokeStyle = p.su ? "#FFD15C" : k > .6 ? "#A9D6FF" : "#fff"; c.lineWidth = p.su ? 9 : 4 + k * 5; c.lineCap = "round"; c.beginPath(); c.moveTo(p.x - p.vx * .03, y - p.vy * .03); c.lineTo(p.x, y); c.stroke(); }
       else if (p.c === "gun"){ c.strokeStyle = p.su ? "#FFB347" : "#FFE08A"; c.lineWidth = 6; c.lineCap = "round"; c.beginPath(); c.moveTo(p.x - p.vx * .018, y - p.vy * .018); c.lineTo(p.x, y); c.stroke(); }
@@ -1223,24 +1270,13 @@
       else if (f.k === "zap"){ c.globalAlpha = Math.max(0, 1 - k); jag(c, f.pts, 10, "rgba(255,226,120,.5)", 10, sd); jag(c, f.pts, 10, "#fff", 3.2, sd); c.globalAlpha = 1; }
       else if (f.k === "bolt"){ c.globalAlpha = Math.max(0, 1 - k); const pts = [[f.x + 40, f.y - 470], [f.x - 10, f.y - 240], [f.x, f.y - 6]]; jag(c, pts, 16, "rgba(255,226,120,.5)", 12, sd); jag(c, pts, 16, "#fff", 4, sd);
         c.fillStyle = `rgba(255,240,170,${.6 * (1 - k)})`; c.beginPath(); c.ellipse(f.x, f.y, 40 + k * 30, (40 + k * 30) * .45, 0, 0, 7); c.fill(); c.globalAlpha = 1; }
-      else if (f.k === "slam"){ const R2 = CLS.punch.su.splash; c.strokeStyle = `rgba(255,255,255,${.85 * (1 - k)})`; c.lineWidth = 10 * (1 - k) + 2; c.beginPath(); c.ellipse(f.x, f.y + 8, R2 * (.3 + k * .9), R2 * (.3 + k * .9) * .45, 0, 0, 7); c.stroke();
-        c.fillStyle = `rgba(205,185,150,${.45 * (1 - k)})`; for (let i = 0; i < 8; i++){ const an = i * .785, r = R2 * (.4 + k * .7); c.beginPath(); c.arc(f.x + Math.cos(an) * r, f.y + 8 + Math.sin(an) * r * .45, 12 + k * 14, 0, 7); c.fill(); } }
-      /* the hammer's blow: a bright swipe over the arc it hits, cracks in the ground and a puff of dust where it lands */
-      else if (f.k === "smash"){ const cl = CLS.hammer, ox = f.x - Math.cos(f.a) * cl.rg * .55, oy = f.y - Math.sin(f.a) * cl.rg * .55, R = rngOf(Math.floor(f.t));
-        if (k < .35){ const kk = k / .35; c.save(); c.globalAlpha = .55 * (1 - kk); const g = c.createRadialGradient(ox, oy, 20, ox, oy, cl.rg + 10); g.addColorStop(0, "rgba(255,255,255,0)"); g.addColorStop(.6, "rgba(255,225,235,.65)"); g.addColorStop(1, "rgba(255,255,255,0)");
-          c.fillStyle = g; c.beginPath(); c.moveTo(ox, oy + 8); c.ellipse(ox, oy + 8, cl.rg + 10, (cl.rg + 10) * .62, 0, f.a - cl.cone, f.a + cl.cone); c.closePath(); c.fill(); c.restore(); }
-        c.save(); c.globalAlpha = Math.max(0, 1 - k * 1.1); c.lineCap = "round"; c.lineJoin = "round"; const cr = [];
-        for (let i = 0; i < 4; i++){ const an = f.a + (i - 1.5) * .9 + (R() - .5) * .5, L = 18 + R() * 16, mx = (R() - .5) * 7; cr.push([f.x + Math.cos(an) * L * .5 - Math.sin(an) * mx, f.y + 8 + Math.sin(an) * L * .3 + Math.cos(an) * mx * .6, f.x + Math.cos(an) * L, f.y + 8 + Math.sin(an) * L * .6]); }
-        for (const [w, col, dy] of [[5, "rgba(255,240,210,.35)", 1.5], [3.5, "rgba(50,34,20,.8)", 0]]){ c.strokeStyle = col; c.lineWidth = w; c.beginPath(); cr.forEach(q => { c.moveTo(f.x, f.y + 8 + dy); c.lineTo(q[0], q[1] + dy); c.lineTo(q[2], q[3] + dy); }); c.stroke(); }
-        c.fillStyle = "rgba(50,34,20,.55)"; c.beginPath(); c.ellipse(f.x, f.y + 8, 9, 4, 0, 0, 7); c.fill(); c.restore();
-        c.fillStyle = `rgba(215,195,160,${.5 * (1 - k)})`; for (let i = 0; i < 7; i++){ const an = i * .9 + f.t, r = 10 + k * 46; c.beginPath(); c.arc(f.x + Math.cos(an) * r, f.y + 4 + Math.sin(an) * r * .45 - k * 10, 9 + k * 12, 0, 7); c.fill(); }
-        if (k < .25){ c.strokeStyle = `rgba(255,255,255,${.9 * (1 - k / .25)})`; c.lineWidth = 5; c.beginPath(); c.ellipse(f.x, f.y + 8, 18 + k * 160, (18 + k * 160) * .45, 0, 0, 7); c.stroke(); } }
-      /* the earthquake: rings racing out to its full reach, the ground cracking in a star around the hammer, stones jumping */
-      else if (f.k === "quake"){ const R2 = CLS.hammer.su.rg, R = rngOf(Math.floor(f.t)), s = (t - f.t) / 1000;
-        for (let r = 0; r < 3; r++){ const kk = k * 1.6 - r * .22; if (kk <= 0 || kk >= 1) continue; c.strokeStyle = r ? `rgba(255,209,92,${.6 * (1 - kk)})` : `rgba(255,255,255,${.9 * (1 - kk)})`; c.lineWidth = (r ? 5 : 9) * (1 - kk) + 2; c.beginPath(); c.ellipse(f.x, f.y + 10, R2 * kk, R2 * kk * .62, 0, 0, 7); c.stroke(); }
-        c.save(); c.globalAlpha = Math.max(0, 1 - k); c.strokeStyle = "rgba(55,35,20,.8)"; c.lineWidth = 4; c.lineCap = "round"; c.lineJoin = "round"; const grow = Math.min(1, k * 4);
-        for (let i = 0; i < 7; i++){ let an = i * .9 + R() * .4, x = f.x, y = f.y + 10; c.beginPath(); c.moveTo(x, y); for (let j = 0; j < 3; j++){ an += (R() - .5) * .8; const L = R2 * .13 * grow; x += Math.cos(an) * L; y += Math.sin(an) * L * .62; c.lineTo(x, y); } c.stroke(); } c.restore();
-        for (let i = 0; i < 14; i++){ const an = R() * Math.PI * 2, rr = R() * R2 * .9, vz = 180 + R() * 220, pz = Math.max(0, vz * s - 900 * s * s), px = f.x + Math.cos(an) * rr, py = f.y + 10 + Math.sin(an) * rr * .62 - pz; if (pz <= 0 && s > .1) continue;
+      else if (f.k === "slam"){ const R2 = CLS.punch.su.splash; c.strokeStyle = `rgba(255,255,255,${.85 * (1 - k)})`; c.lineWidth = 10 * (1 - k) + 2; c.beginPath(); c.arc(f.x, f.y + 8, R2 * (.3 + k * .9), 0, 7); c.stroke();
+        c.fillStyle = `rgba(205,185,150,${.45 * (1 - k)})`; for (let i = 0; i < 8; i++){ const an = i * .785, r = R2 * (.4 + k * .7); c.beginPath(); c.arc(f.x + Math.cos(an) * r, f.y + 8 + Math.sin(an) * r, 12 + k * 14, 0, 7); c.fill(); } }
+      /* the hammer's blow: dust where it lands (the cracks and the shock ring lie on the ground, under everyone: hamGround) */
+      else if (f.k === "smash"){ const cx = f.x, cy = f.y + 8; c.fillStyle = `rgba(215,195,160,${.5 * (1 - k)})`; for (let i = 0; i < 8; i++){ const an = i * .785 + f.t, r = 14 + k * 60; c.beginPath(); c.arc(cx + Math.cos(an) * r, cy - 4 + Math.sin(an) * r - k * 10, 9 + k * 12, 0, 7); c.fill(); } }
+      /* the earthquake: stones jumping (its rings and cracks are on the ground: hamGround) */
+      else if (f.k === "quake"){ const R2 = CLS.hammer.su.rg + BODY, R = rngOf(Math.floor(f.t) + 7), s = (t - f.t) / 1000;
+        for (let i = 0; i < 14; i++){ const an = R() * Math.PI * 2, rr = R() * R2 * .9, vz = 180 + R() * 220, pz = Math.max(0, vz * s - 900 * s * s), px = f.x + Math.cos(an) * rr, py = f.y + 10 + Math.sin(an) * rr - pz; if (pz <= 0 && s > .1) continue;
           c.fillStyle = i % 2 ? "#8A7A68" : "#B8A58C"; c.beginPath(); c.arc(px, py, 4 + (i % 3) * 2, 0, 7); c.fill(); } }
       else if (f.k === "land"){ if (k < .5){ const kk = k / .5; c.strokeStyle = `rgba(255,255,255,${.8 * (1 - kk)})`; c.lineWidth = 6; c.beginPath(); c.ellipse(f.x, f.y + 10, 30 + kk * 70, (30 + kk * 70) * .4, 0, 0, 7); c.stroke(); } }
       else if (f.k === "ko"){ c.globalAlpha = Math.max(0, 1 - k); emoAt(c, "💀", f.x, f.y - 92 - k * 40, 44 + k * 30); c.globalAlpha = 1; } });
@@ -1263,7 +1299,7 @@
       if (p || cr){ const gl = (Math.sin(t / 60) + 1) / 2, rr2 = 20 + gl * 8, g = c.createRadialGradient(x1, y1, 2, x1, y1, rr2); g.addColorStop(0, "rgba(255,255,255,.9)"); g.addColorStop(.5, `rgba(${rgb},.5)`); g.addColorStop(1, `rgba(${rgb},0)`); c.fillStyle = g; c.beginPath(); c.arc(x1, y1, rr2, 0, 7); c.fill(); }
       c.restore(); });
     C.storms.forEach(s => { const su = CLS.zap.su, age = t - s.t0, k = Math.min(1, age / 250), out = Math.max(0, 1 - (age - su.hits * su.every) / 400); c.save(); c.globalAlpha = k * out;
-      c.strokeStyle = "rgba(255,226,120,.75)"; c.lineWidth = 4; c.setLineDash([12, 10]); c.lineDashOffset = -t / 30; c.beginPath(); c.ellipse(s.x, s.y, su.splash, su.splash * .62, 0, 0, 7); c.stroke(); c.setLineDash([]); c.fillStyle = "rgba(255,226,120,.08)"; c.fill();
+      c.strokeStyle = "rgba(255,226,120,.75)"; c.lineWidth = 4; c.setLineDash([12, 10]); c.lineDashOffset = -t / 30; c.beginPath(); c.arc(s.x, s.y, su.splash, 0, 7); c.stroke(); c.setLineDash([]); c.fillStyle = "rgba(255,226,120,.08)"; c.fill();
       c.fillStyle = "rgba(42,44,60,.8)"; for (let i = 0; i < 6; i++){ const an = i * 1.05 + t / 1200; c.beginPath(); c.arc(s.x + Math.cos(an) * 62, s.y - 175 + Math.sin(an) * 18, 46, 0, 7); c.fill(); } c.restore(); });
     C.pops.forEach(p => { const k = (t - p.t) / 900; c.globalAlpha = Math.max(0, 1 - k); c.font = `900 ${p.ko ? 36 : p.mine || p.cube ? 26 : 22}px Figtree,system-ui,sans-serif`; c.textAlign = "center"; c.lineWidth = 4; c.strokeStyle = "rgba(0,0,0,.6)"; c.strokeText(p.txt, p.x, p.y - k * 40); c.fillStyle = p.cube ? "#A6F06A" : p.heal ? "#7CF29A" : p.me ? "#ff6a55" : p.mine ? "#FFD15C" : "#fff"; c.fillText(p.txt, p.cube ? p.x - 12 : p.x, p.y - k * 40); if (p.cube) cube3d(c, p.x + 16, p.y - k * 40 - 10, 9, .7 + k * 2); c.globalAlpha = 1; });
     c.setTransform(1, 0, 0, 1, 0, 0);
@@ -1343,6 +1379,7 @@
   window.__arClear = (p, q) => clear(p, q);
   window.__arBotS = id => { const b = HB.bots[id], mg = hostMg(), A = mg && mg.ar; return b && A ? {hp: Math.round(A.hp[id]), fear: !!(b.fear && b.fear.until > now()), slow: slowOf(id), x: Math.round(b.x), y: Math.round(b.y), kb: b.kb && b.kb.until > now() - 400 ? [Math.round(b.kb.vx), Math.round(b.kb.vy)] : null, fv: b.fear && b.fear.until > now() ? [b.fear.vx, b.fear.vy] : null} : null; };
   window.__arBeams = () => C.beams.filter(b => !b.dead).map(b => ({by: b.by, tg: b.tg, n: b.n, heal: b.heal}));
+  window.__arFx = () => C.fx.map(f => ({k: f.k, x: Math.round(f.x || 0), y: Math.round(f.y || 0), d: f.d || 0}));
   /* test helpers: the nearest crate, a free spot next to it, the map */
   window.__arCrate = () => { if (!C.me || !MP) return null; let best = null; MP.cr.forEach((cr, i) => { if (!MP.ca[cr.c]) return; const d = Math.hypot(cr.x - C.me.x, cr.y - C.me.y); if (!best || d < best.d) best = {i, x: cr.x, y: cr.y, d}; }); return best; };
   window.__arFree = (x, y) => nearFree(x, y);
