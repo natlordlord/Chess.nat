@@ -397,6 +397,34 @@ const PARTS = {
         const o2 = await L.table("kcal_own_products"); ok(o2.length === 1 && (o2[0].pic || "").startsWith("data:image/jpeg") && o2[0].user_id === ID.tester && await b2.evaluate(() => { const r = [...document.querySelectorAll("#kcsr .kc-sres")].find(x => /Skyr Vanille/.test(x.innerText)); return !!r && !!r.querySelector("img") && !document.querySelector("#kcpic"); }), "Bild nachgetragen von jemand anderem: gespeichert, das Produkt gehört weiter dem Fotografen", JSON.stringify(o2.map(o => [o.user_id === ID.tester, (o.pic || "").length]))); }
       await closeSheets(b2);
       await clean(b2, "Foto-Produkt für alle"); await b2.context().close(); }
+    /* "Fehler korrigieren" (Wolfsuii): wrong numbers → photo of the nutrition table, for everybody; wrong portion → for everybody (barcode) */
+    await closeSheets(page); if (await has(page, ".kc-scanov, .kc-ov-full")) await page.evaluate(() => document.querySelectorAll(".kc-ov-full [data-x], .kc-ov-full .kc-x").forEach(b => b.click()));
+    await page.evaluate(() => localStorage.removeItem("chessnat-off-4000000000079"));
+    await page.tap("#main [data-kc-scan]"); await page.waitForSelector("#kccode", {timeout: 6000}).catch(() => {}); await page.fill("#kccode", "4000000000079"); await page.locator("#kcman button").tap(); await page.waitForSelector("#kcadd", {timeout: 6000}).catch(() => {});
+    if (ok(await has(page, ".dsheet [data-fix]"), "gescanntes Produkt: roter Knopf „Fehler korrigieren“")){
+      await page.tap(".dsheet [data-fix]"); await sleep(500); const top2 = () => page.evaluate(() => { const l = [...document.querySelectorAll(".dsheet")]; return l.length ? l[l.length - 1].innerText.replace(/\s+/g, " ") : ""; });
+      ok(/Nährwerte sind falsch/.test(await top2()) && /Portion stimmt nicht/.test(await top2()), "zur Wahl: Nährwerte falsch (Foto) oder Portion falsch", (await top2()).slice(0, 200)); await page.shot("kcal-fehler");
+      const png3 = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mP8z8BQz0AEYBxVSF+FABJADveWkH6oAAAAAElFTkSuQmCC", "base64");
+      const [f4] = await Promise.all([page.waitForEvent("filechooser", {timeout: 6000}), page.tap('.dsheet [data-fx="val"]')]); await f4.setFiles({name: "tabelle.png", mimeType: "image/png", buffer: png3});
+      await page.waitForSelector("#kclok", {timeout: 8000}).catch(() => {}); await sleep(800);
+      ok(/Nutella/.test(await page.inputValue("#kcln")) && /für alle korrigieren/.test(await top2()), "Korrektur: Name bleibt, „Stimmt – für alle korrigieren“", await page.inputValue("#kcln"));
+      await page.tap("#kclok"); await page.waitForSelector("#kcadd", {timeout: 6000}).catch(() => {}); await sleep(800);
+      const fx = (await L.table("kcal_own_products", "code=eq.4000000000079"))[0];
+      ok(fx && fx.fix === true && Number(fx.k) === 76 && fx.user_id === ID.tester, "Korrektur gespeichert (fix, 76 kcal, ohne zweites Foto)", JSON.stringify(fx && [fx.fix, fx.k, fx.name]));
+      ok(/76 kcal/.test(await top2()) && /korrigiert von dir/.test(await top2()), "Produkt zeigt gleich die korrigierten Werte, mit Herkunft", (await top2()).slice(0, 260));
+      /* the portion */
+      await page.tap(".dsheet [data-fix]"); await sleep(500); await page.tap('.dsheet [data-fx="por"]'); await sleep(600);
+      ok(/Gilt für alle/.test(await top2()), "Portion eines Barcode-Produkts gilt für alle", (await top2()).slice(0, 200));
+      await page.fill("#kfg", "20"); await page.tap("#kfok"); await page.waitForSelector("#kcadd", {timeout: 6000}).catch(() => {}); await sleep(700);
+      const po = (await L.table("kcal_portions"))[0]; ok(po && po.key === "c:4000000000079" && Number(po.g) === 20 && po.shared === true, "Portion gespeichert (20 g, für alle)", JSON.stringify(po));
+      ok(/à 20 g/.test(await top2()), "das Produkt rechnet gleich mit der neuen Portion", (await top2()).slice(0, 260));
+      await closeSheets(page); if (await has(page, ".kc-scanov, .kc-ov-full")) await page.evaluate(() => document.querySelectorAll(".kc-ov-full [data-x], .kc-ov-full .kc-x").forEach(b => b.click()));
+      /* somebody else scans it */
+      const b3 = await L.open(browser, "mila"); await b3.evaluate(() => localStorage.removeItem("chessnat-off-4000000000079"));
+      await b3.tap("#main [data-kc-scan]"); await b3.waitForSelector("#kccode", {timeout: 6000}).catch(() => {}); await b3.fill("#kccode", "4000000000079"); await b3.locator("#kcman button").tap(); await b3.waitForSelector("#kcadd", {timeout: 6000}).catch(() => {});
+      const t3 = await txt(b3, ".dsheet"); ok(/76 kcal/.test(t3) && /korrigiert von Nat Tester/.test(t3) && /à 20 g/.test(t3) && /angepasst von Nat Tester/.test(t3), "eine andere Person bekommt die korrigierten Werte und die Portion, mit Namen", t3.slice(0, 300));
+      await b3.shot("kcal-korrigiert"); await closeSheets(b3); await clean(b3, "Fehler korrigieren (andere)"); await b3.context().close(); }
+    await clean(page, "Fehler korrigieren");
     await closeSheets(page); if (await has(page, ".kc-scanov, .kc-ov-full")) await page.evaluate(() => document.querySelectorAll(".kc-ov-full [data-x], .kc-ov-full .kc-x").forEach(b => b.click()));
     await clean(page, "Etikett");
 
@@ -527,6 +555,16 @@ const PARTS = {
     await page.tap('#main [data-tab="stats"]'); await sleep(400); await page.tap("#kcwnow"); await sleep(500); await page.fill("#kwkg", "78,6");
     const poop = page.locator(".dsheet [data-p], .dsheet [data-pd]").first(); if (await poop.count()) await poop.tap(); await page.tap("#kwsave"); await sleep(900);
     const w = (await L.table("kcal_weights", "user_id=eq." + ID.tester + "&order=created_at.desc&limit=1"))[0]; ok(w && w.kg === 78.6, "Wiegen speichert 78,6 kg", JSON.stringify(w)); await closeSheets(page);
+    /* before and after the toilet (Adri): weigh, go, the home reminds you, weigh again, see the grams */
+    await page.tap("#kcwnow"); await sleep(500); await page.tap("#kwpoop"); await sleep(700); await page.fill("#kpkg", "78,6"); await page.tap("#kpgo"); await sleep(600);
+    await page.tap('#main [data-tab="today"]'); await sleep(500);
+    ok(/Nachher wiegen/.test(await txt(page, "#kcpoop")), "Vorher gewogen: auf der Startseite steht „Nachher wiegen“", await txt(page, "#kcpoop"));
+    await page.tap("#kcpoopgo"); await sleep(600); ok(/Vorher: 78,6 kg/.test(await txt(page, ".dsheet")), "Nachher-Blatt zeigt das Vorher-Gewicht", await txt(page, ".dsheet"));
+    await page.fill("#kpkg", "78,1"); await page.tap("#kpgo"); await sleep(1000);
+    const pr = await txt(page, ".dsheet"); ok(/−500 g/.test(pr) && /Respekt/.test(pr) && /Rekord/.test(pr), "Ergebnis: −500 g, „Respekt“, neuer Rekord", pr); await page.shot("kcal-klo-waage");
+    const w2 = (await L.table("kcal_weights", "user_id=eq." + ID.tester + "&order=created_at.desc&limit=1"))[0];
+    ok(w2 && w2.kg === 78.1 && w2.pooped === true && w2.poop_g === 500, "gespeichert: 78,1 kg nach dem Klo, 500 g", JSON.stringify(w2));
+    await closeSheets(page); await sleep(400); ok(!(await txt(page, "#kcpoop")).trim(), "danach ist die Erinnerung weg");
     await clean(page, "Flamme und Wiegen");
     /* cooking */
     await page.tap('#main [data-tab="today"]'); await sleep(500); await page.tap("#kccook"); await sleep(500); await page.fill("#kch", "Hähnchen, Reis, Paprika"); await page.tap("#kcgo"); await page.waitForFunction(() => /Hähnchen-Reis/.test(document.querySelector("#kcout").innerText), null, {timeout: 6000}).catch(() => {});
@@ -662,9 +700,14 @@ const PARTS = {
     await a.waitForSelector('.ar-card[data-arc="beam"]', {timeout: 8000}).catch(() => {}); await sleep(400); await a.shot("natstars-auswahl");
     const cards = await a.$$eval(".ar-card", x => x.map(c => c.dataset.arc + ":" + c.getBoundingClientRect().width));
     ok(cards.length === 8 && cards.some(c => c.startsWith("beam")) && cards.some(c => c.startsWith("hammer")), "Auswahl: 8 Kämpfer, mit Lichtstrahl und neu dem Hammer", JSON.stringify(cards));
-    ok(/Hammer/.test(await txt(a, '.ar-card[data-arc="hammer"]')) && /Erdbeben/.test(await txt(a, '.ar-card[data-arc="hammer"]')), "Hammer-Karte: Name, „Schlägt im Bogen“, Super „Erdbeben“", await txt(a, '.ar-card[data-arc="hammer"]'));
-    ok(/Lichtstrahl/.test(await txt(a, '.ar-card[data-arc="beam"]')) && /Blendlicht/.test(await txt(a, '.ar-card[data-arc="beam"]')), "Lichtstrahl-Karte: Name, „Haftet · saugt Leben“, Super „Blendlicht“", await txt(a, '.ar-card[data-arc="beam"]'));
+    /* read the cards in one go and pick at once (the pick time runs) */
+    const cd = await a.$$eval(".ar-card", x => Object.fromEntries(x.map(c => [c.dataset.arc, {t: c.innerText.replace(/\s+/g, " "), b: (c.querySelector("b") || {}).textContent, s: (c.querySelector("small") || {}).textContent, svg: (c.querySelector(".ar-pic svg") || {}).innerHTML || ""}])));
     await a.tap('.ar-card[data-arc="beam"]');
+    ok(cd.hammer.b === "Frank" && /Hammer · trifft alle im Kreis/.test(cd.hammer.s) && /Erdbeben/.test(cd.hammer.t), "Hammer-Karte: heißt Frank, „Hammer · trifft alle im Kreis“, Super „Erdbeben“", JSON.stringify(cd.hammer).slice(0, 200));
+    ok(cd.beam.b === "Glowy" && /Lichtstrahl/.test(cd.beam.s) && /Blendlicht/.test(cd.beam.t), "Lichtstrahl-Karte: heißt Glowy, „Lichtstrahl · hält fest …“, Super „Blendlicht“", JSON.stringify(cd.beam).slice(0, 200));
+    const names = Object.values(cd).map(c => c.b);
+    ok(["Shelly", "Dynamike", "Piper", "El Primo", "Colt", "Carl", "Glowy", "Frank"].every(n => names.includes(n)), "alle Kämpfer heißen wie in Brawl Stars", JSON.stringify(names));
+    ok(Object.values(cd).length === 8 && Object.values(cd).every(c => /#A9652F|#2E3340|#E2463B|#B9C1CE|#C98A4E|#5FE6F2|#7A8496|#9A5B2B/i.test(c.svg)), "Karten zeigen die Waffen in Farbe (Holz, Metall, Leder)");
     for (let i = 0; i < 60 && (await a.evaluate(() => __ar().ph)) !== "fight"; i++) await sleep(250);
     await sleep(1800); await a.evaluate(() => __arFreeze(true));
     const me = await a.evaluate(() => { const r = __ar(), id = Object.keys(r.cls).find(x => r.cls[x] === "beam" && !/^bot/.test(x)) || Object.keys(r.cls).find(x => !/^bot/.test(x)); return {id, cls: r.cls[id], x: r.me.x, y: r.me.y, bot: Object.keys(r.cls).find(x => /^bot/.test(x) || x !== id)}; });
@@ -697,7 +740,8 @@ const PARTS = {
     const b2 = await a.evaluate(id => __arBotS(id), me.bot);
     ok(!b2.fear && b1c.hp - b2.hp >= 60, "Blendlicht: Treffer (" + (b1c.hp - b2.hp) + "), keine Furcht mehr – niemand rennt weg", JSON.stringify(b2));
     await a.evaluate(() => __arFreeze(false)); await sleep(1200);
-    /* the hammer: a wind-up, then a blow on everyone in the arc; the earthquake all around; its super charges while an enemy is close */
+    /* the hammer: a wind-up, then a blow on everyone in the round circle around him (also behind him); the earthquake all around;
+       its super charges while an enemy is close */
     await a.evaluate(() => { __arFreeze(true); __arCls("hammer"); __arSup(0); }); const m2 = await a.evaluate(() => __ar().me);
     /* a fresh bot for the rest (the first one has taken a lot by now) */
     me.bot = await a.evaluate(([id, old]) => { const r = __ar(); return Object.keys(r.cls).filter(x => x !== id && x !== old && !r.out.includes(x)).sort((p, q) => r.hp[q] - r.hp[p])[0]; }, [me.id, me.bot]);
@@ -705,8 +749,10 @@ const PARTS = {
     if (ok(!!near, "freie Stelle direkt vor dem Hammer", JSON.stringify(m2))){
       await a.evaluate(([id, s]) => { __arNoCubes(); __arPark(id); __arBot(id, s.x, s.y); }, [me.bot, near]); await sleep(1200); const h0 = (await a.evaluate(id => __arBotS(id), me.bot)).hp, s0 = await a.evaluate(() => __ar().sup);
       ok(s0 > .05, "Lade-Radius: steht ein Gegner nah, lädt sich das Super von selbst (" + Math.round(s0 * 100) + " % nach gut 1 s)", String(s0));
-      await a.evaluate(([m, s]) => __arFire(Math.atan2(s.y - m.y, s.x - m.x)), [m2, near]); await sleep(130); const h1 = (await a.evaluate(id => __arBotS(id), me.bot)).hp; await sleep(350); await a.shot("natstars-hammer"); const h2 = (await a.evaluate(id => __arBotS(id), me.bot)).hp;
-      ok(h1 === h0 && h0 - h2 >= 38 && h0 - h2 <= 48, "Hammer: erst ausholen (nach 0,13 s noch kein Treffer), dann " + (h0 - h2) + " Schaden im Bogen", JSON.stringify([h0, h1, h2]));
+      await a.evaluate(([m, s]) => __arFire(Math.atan2(m.y - s.y, m.x - s.x)), [m2, near]); await sleep(130); const h1 = (await a.evaluate(id => __arBotS(id), me.bot)).hp; await sleep(350); await a.shot("natstars-hammer"); const h2 = (await a.evaluate(id => __arBotS(id), me.bot)).hp;
+      ok(h1 === h0 && h0 - h2 >= 38 && h0 - h2 <= 48, "Hammer: erst ausholen (nach 0,13 s noch kein Treffer), dann " + (h0 - h2) + " Schaden – auch hinter ihm, im ganzen Kreis", JSON.stringify([h0, h1, h2]));
+      const fxS = await a.evaluate(() => __arFx().filter(f => f.k === "smash"));
+      ok(fxS.length >= 1 && fxS.every(f => Math.hypot(f.x - m2.x, f.y - m2.y) < 40 && f.d <= 700), "Hammer: Risse im Kreis um ihn herum, nach 0,7 s wieder weg", JSON.stringify(fxS));
       const q0 = await a.evaluate(id => __arBotS(id), me.bot); await a.evaluate(() => __arSup(1)); await a.evaluate(() => __arFire(null, true)); await sleep(260); const q1 = await a.evaluate(id => __arBotS(id), me.bot); await a.shot("natstars-erdbeben"); const away = q1.kb ? q1.kb[0] * (q0.x - m2.x) + q1.kb[1] * (q0.y - m2.y) : -1;
       ok(q0.hp - q1.hp >= 50 && away > 0, "Erdbeben: " + (q0.hp - q1.hp) + " Schaden rundherum, der Gegner wird weggestoßen", JSON.stringify([m2, q0, q1]));
       await a.evaluate(([id, m]) => __arBot(id, m.x + 2000, m.y + 2000), [me.bot, m2]); await a.evaluate(() => __arSup(0)); await sleep(1000); ok(await a.evaluate(() => __ar().sup) === 0, "ohne Gegner im Radius lädt sich nichts", String(await a.evaluate(() => __ar().sup))); }

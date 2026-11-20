@@ -133,9 +133,10 @@
       const r = await c.from("kcal_body").upsert(row).select().maybeSingle(); if (r.error) throw r.error; this.body = r.data || row; this.cache(); return this.body;
     },
     /* a weigh-in: fasted when nothing is logged today yet; the first fasted one sets the time to compare with */
-    async addWeight(kg, pooped){
+    async addWeight(kg, pooped, poopG){
       const c = sb(), id = meId(); if (!c || !id) throw new Error("Bitte anmelden"); const at = new Date(), fasted = !this.dayMeals(today()).length;
-      const r = await c.from("kcal_weights").insert({user_id: id, ts: at.toISOString(), day: today(), kg, fasted, pooped: pooped == null ? null : !!pooped}).select().single(); if (r.error) throw r.error;
+      const row = {user_id: id, ts: at.toISOString(), day: today(), kg, fasted, pooped: pooped == null ? null : !!pooped}; if (poopG != null) row.poop_g = Math.max(0, Math.min(3000, Math.round(poopG)));
+      const r = await c.from("kcal_weights").insert(row).select().single(); if (r.error) throw r.error;
       this.weights.unshift(r.data); const patch = {weight: kg}; if (this.body && this.body.weigh_min == null && fasted) patch.weigh_min = at.getHours() * 60 + at.getMinutes();
       await this.saveBody(patch);
       /* the needs follow the weight (unless the targets were set by hand) */
@@ -302,14 +303,54 @@
       const sh = detailSheet(`<div class="kc-form kc-weigh" data-notr><div class="kc-celf">⚖️</div><h3>Zeit fürs Wiegen</h3><p class="muted">Nüchtern, ${b.weigh_min != null ? `ungefähr wie beim ersten Mal (${pad(Math.floor(b.weigh_min / 60))}:${pad(b.weigh_min % 60)} Uhr)` : "am besten morgens"}. So kannst du die Werte vergleichen.</p>
         <div class="kc-gram"><label><input id="kwkg" inputmode="decimal" value="${last ? nf(last.kg, 1) : b.weight ? nf(b.weight, 1) : ""}"> kg</label></div>
         <p class="kc-pt">Warst du heute schon auf der Toilette?</p><div class="kc-seg"><button class="btn" data-p="1">Ja</button><button class="btn" data-p="0">Noch nicht</button></div>
-        <div class="kc-row2"><button class="btn go" id="kwsave">Speichern</button><button class="btn" id="kwlater">Später</button></div></div>`);
+        <div class="kc-row2"><button class="btn go" id="kwsave">Speichern</button><button class="btn" id="kwlater">Später</button></div>
+        <button class="btn kc-poopb" id="kwpoop">💩 Vor und nach dem Klo wiegen</button></div>`);
       const el = sh.el, inp = el.querySelector("#kwkg"); field(inp);
+      el.querySelector("#kwpoop").onclick = () => { sh.close(); setTimeout(() => Poop.open(), 280); };
       el.querySelectorAll("[data-p]").forEach(x => x.onclick = () => { poop = x.dataset.p === "1"; el.querySelectorAll("[data-p]").forEach(y => y.classList.toggle("go", y === x)); haptic(8); });
       el.querySelector("#kwlater").onclick = () => { try { localStorage.setItem("chessnat-kc-wlater", String(Date.now())); } catch(e) {} sh.close(); };
       el.querySelector("#kwsave").onclick = async () => { const kg = num(inp.value); if (!(kg >= 30 && kg <= 300)) return say("Gewicht in kg, z. B. 75,4"); if (poop == null) return say("Kurz noch: schon auf Toilette gewesen?");
         try { const prev = K.weights[0]; await K.addWeight(Math.round(kg * 10) / 10, poop); sh.close(); haptic(15); const d = prev ? Math.round((kg - prev.kg) * 10) / 10 : 0;
           say(`⚖️ ${nf(kg, 1)} kg gespeichert${prev ? ` (${d > 0 ? "+" : d < 0 ? "−" : "±"}${nf(Math.abs(d), 1)} kg)` : ""}`); } catch(e) { say("Ging nicht: " + (e.message || e)); } };
       return sh; }
+  };
+  /* ---------- before and after the toilet (Adri's idea): weigh, go, weigh again and see how much is gone. The "before" waits
+     on this phone for up to 3 hours (the home shows a reminder meanwhile); the "after" is saved as a normal weigh-in (been to
+     the toilet), with the grams. Biggest one so far = your record ---------- */
+  const PK = "chessnat-kc-poop";
+  const Poop = {
+    pend(){ try { const p = JSON.parse(localStorage.getItem(PK) || "null"); return p && Date.now() - p.at < 3 * 3600e3 && p.uid === meId() ? p : null; } catch(e) { return null; } },
+    drop(){ try { localStorage.removeItem(PK); } catch(e) {} },
+    rank: g => g >= 900 ? ["🏆", "Legendär"] : g >= 600 ? ["👑", "Königlich"] : g >= 350 ? ["💪", "Respekt"] : g >= 150 ? ["👍", "Solide Arbeit"] : g > 0 ? ["🤏", "Mini-Häufchen"] : ["🤷", "Da kam nichts"],
+    best: () => Math.max(0, ...K.weights.map(w => +w.poop_g || 0)),
+    open(){ const p = Poop.pend(); return p ? Poop.after(p) : Poop.before(); },
+    before(){ const last = K.weights[0], b = K.body || {};
+      const sh = detailSheet(`<div class="kc-form kc-weigh kc-poop" data-notr><div class="kc-celf">💩</div><h3>Vorher wiegen</h3><p class="muted">Stell dich vor dem Klo auf die Waage. Danach wiegst du dich nochmal und siehst, wie viel weg ist.</p>
+        <div class="kc-gram"><label><input id="kpkg" inputmode="decimal" value="${last ? nf(last.kg, 1) : b.weight ? nf(b.weight, 1) : ""}"> kg</label></div>
+        <button class="btn go big" id="kpgo">Gewogen. Ab aufs Klo 🚽</button></div>`);
+      const el = sh.el, inp = el.querySelector("#kpkg"); field(inp);
+      el.querySelector("#kpgo").onclick = () => { const kg = num(inp.value); if (!(kg >= 30 && kg <= 300)) return say("Gewicht in kg, z. B. 75,4");
+        try { localStorage.setItem(PK, JSON.stringify({kg, at: Date.now(), uid: meId()})); } catch(e) {} sh.close(); haptic(12); say("🚽 Bis gleich! Danach nochmal wiegen."); Poop.paint(); };
+      return sh; },
+    after(p){ const mins = Math.max(1, Math.round((Date.now() - p.at) / 60000));
+      const sh = detailSheet(`<div class="kc-form kc-weigh kc-poop" data-notr><div class="kc-celf">⚖️</div><h3>Nachher wiegen</h3><p class="muted">Vorher: <b>${nf(p.kg, 1)} kg</b> (vor ${mins < 60 ? mins + " Min." : Math.round(mins / 60) + " Std."})</p>
+        <div class="kc-gram"><label><input id="kpkg" inputmode="decimal" value="${nf(p.kg, 1)}"> kg</label></div>
+        <button class="btn go big" id="kpgo">💩 Ergebnis zeigen</button><button class="btn sm kc-poopx" id="kpx">Nochmal von vorn</button></div>`);
+      const el = sh.el, inp = el.querySelector("#kpkg"); field(inp); setTimeout(() => { try { inp.select(); } catch(e) {} }, 350);
+      el.querySelector("#kpx").onclick = () => { Poop.drop(); sh.close(); Poop.paint(); setTimeout(() => Poop.before(), 280); };
+      el.querySelector("#kpgo").onclick = async () => { const kg = num(inp.value); if (!(kg >= 30 && kg <= 300)) return say("Gewicht in kg, z. B. 75,4");
+        const g = Math.max(0, Math.round((p.kg - kg) * 1000)), rec = Poop.best(), btn = el.querySelector("#kpgo"); btn.disabled = true;
+        try { await K.addWeight(Math.round(kg * 10) / 10, true, g); } catch(e) { btn.disabled = false; return say("Ging nicht: " + (e.message || e)); }
+        Poop.drop(); Poop.paint(); const [e, t] = Poop.rank(g), best = g > 0 && g > rec;
+        el.querySelector(".kc-poop").innerHTML = `<div class="kc-poopres"><div class="kc-poope">${g > 0 ? "💩" : "🤷"}</div><b class="kc-poopg">${g > 0 ? "−" + fmt(g) + " g" : "±0 g"}</b>
+          <span class="kc-poopr">${e} ${t}</span>${best ? `<span class="kc-pooprec">🏆 Neuer Rekord!${rec ? ` Vorher ${fmt(rec)} g` : ""}</span>` : rec ? `<small class="muted">Dein Rekord: ${fmt(rec)} g</small>` : ""}
+          <small class="muted">Gespeichert: ${nf(kg, 1)} kg</small></div>`;
+        haptic(best ? [20, 40, 20, 40, 60] : [15, 30, 15]); if (best) confetti(false); };
+      return sh; },
+    /* while a "before" waits: a reminder on the calorie home */
+    paint(){ const box = document.getElementById("kcpoop"); if (!box) return; const p = Poop.pend();
+      box.innerHTML = p ? `<button class="kc-poopbar" id="kcpoopgo"><span>💩</span><b>Nachher wiegen</b><small>Vorher ${nf(p.kg, 1)} kg</small></button>` : "";
+      const b = box.querySelector("#kcpoopgo"); if (b) b.onclick = () => Poop.open(); }
   };
   /* ---------- the flame and the streak freezes ("Streak on Ice"): one for every full week, or bought; two at most ---------- */
   const ICE_PRICE = 500;
@@ -421,7 +462,8 @@
     inp.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); inp.blur(); } }); }
 
   /* ---------- a product (Open Food Facts) and how much of it: grams, or portions (½ slice, 2 slices …) ---------- */
-  const prodOf = (code, p) => { const n = p.nutriments || {}, per = k => Number(n[k + "_100g"] != null ? n[k + "_100g"] : n[k]) || 0, k100 = per("energy-kcal") || (per("energy") ? per("energy") / 4.184 : 0);
+  const prodOf = (code, p) => Fix.applyP(prodOf0(code, p));
+  const prodOf0 = (code, p) => { const n = p.nutriments || {}, per = k => Number(n[k + "_100g"] != null ? n[k + "_100g"] : n[k]) || 0, k100 = per("energy-kcal") || (per("energy") ? per("energy") / 4.184 : 0);
     return {code, name: p.product_name_de || p.product_name || p.generic_name || "Produkt " + code, brand: (Array.isArray(p.brands) ? p.brands[0] || "" : String(p.brands || "").split(",")[0]).trim(), img: p.image_front_small_url || null,
       k: k100, c: per("carbohydrates"), pr: per("proteins"), f: per("fat"), serving: Math.round(Number(p.serving_quantity) || 0), pack: Math.round(Number(p.product_quantity) || 0), ss: String(p.serving_size || "").slice(0, 60),
       /* for the health score: fibre, sugar, saturated fat and salt per 100 g, and the Nutri-Score letter, when the product has them */
@@ -478,7 +520,9 @@
   const PIECE = [[/(^|[^a-zäöüß])eier?\b|eier\b|\beggs?\b/i, 60, "Ei", "Eier", /likör|nudel|spätzle|teigwar|pasta|noodle|salat|waffel|kuchen/i], [/brötchen|semmel|schrippe|\bweck(le|erl)?\b|baguettebrötchen/i, 60, "Brötchen", "Brötchen"],
     [/croissant/i, 60, "Croissant", "Croissants"], [/brezel|\bbreze\b/i, 80, "Brezel", "Brezeln", /stange|sticks?|chips|mini/i], [/banane/i, 120, "Banane", "Bananen", /chips|saft|shake|milch|brot/i], [/apfel|äpfel/i, 150, "Apfel", "Äpfel", /saft|mus|essig|schorle|chips|kuchen|strudel|ringe/i],
     [/\bkiwi/i, 75, "Kiwi", "Kiwis", /saft/i], [/mandarine|clementine/i, 60, "Stück", "Stück", /saft|dose/i], [/toast|sandwich/i, 25, "Scheibe", "Scheiben"], [/(voll|roggen|dinkel|bauern|misch|sauerteig|körner|schwarz)brot\b|\bbrot\b/i, 45, "Scheibe", "Scheiben", /brötchen|chips|aufstrich|krümel|panier/i]];
-  function unitOf(P){ if (!P) return null; const s0 = Number(P.serving) || 0;
+  function unitOf(P){ const U = unitOf0(P), po = P && Fix.porOf(P); if (!po) return U;
+    return {g: +po.g, one: U ? U.one : "Portion", many: U ? U.many : "Portionen", by: po.user_id === meId() ? "" : po.author || "jemandem"}; }
+  function unitOf0(P){ if (!P) return null; const s0 = Number(P.serving) || 0;
     const m = /^\s*(\d+(?:[.,]\d+)?|½|¼)?\s*([A-Za-zÄÖÜäöüß.]+)[^(\d]*\(?\s*(\d+(?:[.,]\d+)?)\s*(g|ml)\b/i.exec(String(P.ss || ""));
     if (m){ const w = UW.find(u => u[0].test(m[2])), n = m[1] ? num(m[1]) : 1, g = num(m[3]); if (w && n > 0 && g > 0) return {g: Math.round(g / n * 10) / 10, one: w[1], many: w[2]}; }
     const t = String(P.name || "");
@@ -488,10 +532,10 @@
   const amtText = (P, g) => { const c = cntTxt(unitOf(P), g); return (c ? c + " · " : "") + nf(g, g < 10 ? 1 : 0) + " g"; };
   /* a part of a meal made from a product keeps the values per 100 g, so its amount can be changed later */
   const itemOf = (P, g) => { const f = g / 100, stn = P.ck && P.cfood ? P.cfood.st[P.ck === "cooked" ? 1 : 0] : ""; return {name: P.name + (P.brand && !P.tab ? " (" + P.brand + ")" : ""), amount: amtText(P, g) + (stn && !new RegExp(stn + "$").test(P.name) ? " " + stn : ""), kcal: Math.round(P.k * f), carbs: r1(P.c * f), protein: r1(P.pr * f), fat: r1(P.f * f), code: P.code || null, g, h: hOf(P, f),
-    per: {n: P.name, b: P.brand || "", k: P.k, c: P.c, pr: P.pr, f: P.f, s: P.serving || 0, pk: P.pack || 0, img: P.img || null, ss: P.ss || "", fi: P.fi || 0, su: P.su || 0, sf: P.sf || 0, sa: P.sa || 0, ns: P.ns || "", hd: P.hd ? 1 : 0, ...(P.ck ? {ck: P.ck, cf: P.cfood.cf} : {}), ...(P.tab ? {tab: P.tab, q: P.q} : {})}}; };
+    per: {n: P.name, b: P.brand || "", k: P.k, c: P.c, pr: P.pr, f: P.f, s: P.serving || 0, pk: P.pack || 0, img: P.img || null, ss: P.ss || "", fi: P.fi || 0, su: P.su || 0, sf: P.sf || 0, sa: P.sa || 0, ns: P.ns || "", hd: P.hd ? 1 : 0, ...(P.fixBy ? {fx: P.fixBy} : {}), ...(P.ck ? {ck: P.ck, cf: P.cfood.cf} : {}), ...(P.tab ? {tab: P.tab, q: P.q} : {})}}; };
   const perP = it => ({code: it.code || null, name: it.per.n, brand: it.per.b, img: it.per.img, k: it.per.k, c: it.per.c, pr: it.per.pr, f: it.per.f, serving: it.per.s, pack: it.per.pk, ss: it.per.ss || "", fi: it.per.fi || 0, su: it.per.su || 0, sf: it.per.sf || 0, sa: it.per.sa || 0, ns: it.per.ns || "", hd: it.per.hd ? 1 : 0});
   function amountSheet(P, opt = {}){
-    P = cookInit(P);
+    P = cookInit(Fix.applyP(P));
     const U = unitOf(P), s = U ? U.g : 0, chips = [30, 50, 100, 150, 200, 250].map(v => [v, v + " g"]); if (P.pack && P.pack <= 3000 && P.pack !== s) chips.push([P.pack, "Packung"]);
     let g = opt.g || s || 100;
     const sh = detailSheet(`<div class="kc-prod" data-notr><div class="kc-ph">${P.img ? `<img src="${h(P.img)}" alt="">` : P.own ? `<button class="kc-addpic" id="kcpic" aria-label="Foto der Vorderseite hinzufügen">📷<small>Foto</small></button>` : `<span>📦</span>`}<div><div class="kc-mt">${h(P.name)}</div><div class="muted">${h(P.brand || "")}</div></div>${opt.pin ? pinHTML(opt.pin) : ""}</div>
@@ -500,8 +544,9 @@
         <div class="kc-chips">${[[.25, "¼"], [.5, "½"], [1, "1"], [2, "2"], [3, "3"], [4, "4"], [5, "5"]].filter(x => !(U.one === "Ei" && x[0] < .5)).map(([v, l]) => `<button class="chip" data-n="${v}">${l}</button>`).join("")}</div></div>` : ""}
       <div class="kc-amt"><span class="kc-al">Gramm</span><div class="kc-gram"><button class="btn" data-d="-1">−</button><label><input id="kcg" inputmode="decimal" autocomplete="off" enterkeyhint="done"> g</label><button class="btn" data-d="1">+</button></div>
         <div class="kc-chips">${chips.map(([v, l]) => `<button class="chip" data-g="${v}">${l}</button>`).join("")}</div></div>
-      <div class="kc-mk" id="kcpk"></div><button class="btn go big" id="kcadd">${h(opt.btn || "Eintragen")}</button></div>`);
+      <div class="kc-mk" id="kcpk"></div><button class="btn go big" id="kcadd">${h(opt.btn || "Eintragen")}</button>${Fix.note(P)}${Fix.btn(P)}</div>`);
     const el = sh.el, gi = el.querySelector("#kcg"), ni = el.querySelector("#kcn");
+    Fix.wire(el, P, P2 => { sh.close(); setTimeout(() => amountSheet(P2, opt), 260); });
     /* a photographed pack that has no picture yet: one tap on the camera adds the front of the pack, for everybody */
     const ap = el.querySelector("#kcpic"); if (ap) ap.onclick = () => Label.addPic(P, pic => { const im = document.createElement("img"); im.src = pic; im.alt = ""; ap.replaceWith(im); });
     const show = from => { const f = g / 100; if (from !== "g") gi.value = nf(g, g < 10 ? 1 : 0); if (ni && from !== "n") ni.value = nf(g / s, 2);
@@ -523,11 +568,12 @@
     return sh;
   }
   /* a product picked from the scan or the search becomes a new meal */
-  const addProduct = (P, src) => amountSheet(P, {done: async it => { const m = await K.add({source: src || "barcode", code: it.code, grams: Math.round(it.g), title: P.name.slice(0, 80), emoji: "📦", kcal: it.kcal, carbs: it.carbs, protein: it.protein, fat: it.fat, items: [it], note: P.tab ? tabSrc(P.tab) : "Nährwerte von Open Food Facts"});
+  const addProduct = (P, src) => amountSheet(P, {done: async it => { const m = await K.add({source: src || "barcode", code: it.code, grams: Math.round(it.g), title: P.name.slice(0, 80), emoji: "📦", kcal: it.kcal, carbs: it.carbs, protein: it.protein, fat: it.fat, items: [it], note: P.fixBy ? "Nährwerte korrigiert (Foto der Packung)" : P.tab ? tabSrc(P.tab) : "Nährwerte von Open Food Facts"});
     haptic(15); say(`📦 ${brief(m)} eingetragen`); }});
 
   /* a product from Open Food Facts by its barcode (kept on the phone once seen) */
   async function offGet(code, ms){
+    await Promise.race([Fix.load(), new Promise(r => setTimeout(r, 1200))]);
     let p = null; try { p = JSON.parse(localStorage.getItem("chessnat-off-" + code) || "null"); } catch(e) {}
     const bare = !!(p && p.own && !p.image_front_small_url);   /* a photographed pack without a picture: somebody may have added one since */
     if (p && !bare) return p;
@@ -549,7 +595,8 @@
   const Label = {
     COLS: "user_id,author,code,name,brand,unit,k,c,p,f,fi,su,sf,sa,pic,status,created_at",
     /* one entry per barcode: mine, else one the operator has checked, else the oldest */
-    best(rows){ const by = {}; rows.filter(x => x.status !== "bad").forEach(x => { const a = by[x.code], rank = y => y.user_id === meId() ? 0 : y.status === "ok" ? 1 : 2; if (!a || rank(x) < rank(a) || (rank(x) === rank(a) && x.pic && !a.pic)) by[x.code] = x; }); return Object.values(by); },
+    best(rows){ const by = {}; rows.filter(x => x.status !== "bad").forEach(x => { const a = by[x.code], rank = y => y.user_id === meId() ? 0 : y.status === "ok" ? 1 : y.fix ? 2 : 3;
+      if (!a || rank(x) < rank(a) || (rank(x) === rank(a) && (x.fix && a.fix ? String(x.created_at) > String(a.created_at) : x.pic && !a.pic))) by[x.code] = x; }); return Object.values(by); },
     /* photographed products whose name fits what was typed, as products for the search */
     async find(q){ const c = sb(); q = String(q || "").replace(/[%_\\,()]/g, " ").trim(); if (!c || !meId() || q.length < 2) return [];
       try { const r = await c.from("kcal_own_products").select(this.COLS).ilike("name", "%" + q + "%").order("created_at").limit(24); if (r.error) return [];
@@ -573,36 +620,84 @@
           fin({img: c.toDataURL("image/jpeg", .82), thumb: t.toDataURL("image/jpeg", .6), pic: s.toDataURL("image/jpeg", .72)}); };
         im.onerror = () => { URL.revokeObjectURL(u); fin(null); }; im.src = u; };
       i.addEventListener("cancel", () => fin(null)); i.click(); }); },
-    async start(code, cb){
-      const shot = await this.shoot(); if (!shot) return;
+    async start(code, cb, opt = {}){
+      const shot = await this.shoot(); if (!shot) return; const fx = opt.fix || null;
       const wait = detailSheet(`<div class="kc-form kc-lab" data-notr><img class="kc-labi" src="${shot.thumb}" alt=""><h3>Lese die Nährwerte …</h3><p class="muted">Einen Moment.</p></div>`);
       let L = null, err = ""; try { const j = await api({mode: "label", img: shot.img}); if (j.ok) L = j.label; else err = j.error || ""; } catch(e) { err = e.message || String(e); }
       wait.close();
       if (!L){ const sh = detailSheet(`<div class="kc-form kc-lab" data-notr><img class="kc-labi" src="${shot.thumb}" alt=""><h3>Das hat nicht geklappt</h3><p class="muted">${h(err || "Die Nährwerte waren nicht zu lesen.")}</p><button class="btn go big" id="kclagain">Nochmal fotografieren</button></div>`);
-        sh.el.querySelector("#kclagain").onclick = () => { sh.close(); this.start(code, cb); }; return; }
+        sh.el.querySelector("#kclagain").onclick = () => { sh.close(); this.start(code, cb, opt); }; return; }
       const none = L.none || [], row = (a, v, u, key) => none.includes(key) ? "" : `<div class="kc-labr"><span>${a}</span><b>${String(v).replace(".", ",")} ${u}</b></div>`;
-      const sh = detailSheet(`<div class="kc-form kc-lab" data-notr><h3>Stimmt das mit der Packung?</h3><p class="muted">Abgelesen pro 100 ${L.unit}. Vergleich die Zahlen kurz mit dem Foto. Danach noch ein Foto von der Vorderseite, dann finden alle das Produkt per Barcode und in der Suche.</p>
+      const sh = detailSheet(`<div class="kc-form kc-lab" data-notr><h3>Stimmt das mit der Packung?</h3><p class="muted">Abgelesen pro 100 ${L.unit}. Vergleich die Zahlen kurz mit dem Foto. ${fx ? "Dann gelten sie für alle, die dieses Produkt eintragen." : "Danach noch ein Foto von der Vorderseite, dann finden alle das Produkt per Barcode und in der Suche."}</p>
         <img class="kc-labi" src="${shot.thumb}" alt="">
         <div class="kc-labt">${row("Energie", L.k, "kcal")}${row("Fett", L.f, "g")}${row("davon gesättigt", L.sf, "g", "sf")}${row("Kohlenhydrate", L.c, "g")}${row("davon Zucker", L.su, "g", "su")}${row("Ballaststoffe", L.fi, "g", "fi")}${row("Eiweiß", L.p, "g")}${row("Salz", L.sa, "g", "sa")}</div>
         ${L.odd ? `<p class="kc-labw">Energie und Nährwerte passen nicht ganz zusammen. Schau genau hin oder fotografier nochmal.</p>` : ""}
-        <label class="kc-labn">Wie heißt das Produkt?<input id="kcln" maxlength="80" autocomplete="off" enterkeyhint="done" placeholder="z. B. Skyr Vanille (Lidl)" value="${h([L.brand, L.name].filter(Boolean).join(" ").slice(0, 80))}"></label>
-        <button class="btn go big" id="kclok">Stimmt – jetzt die Vorderseite fotografieren</button><button class="btn ghost" id="kclnop" hidden>Ohne Bild speichern</button><button class="btn ghost" id="kclagain">Nochmal fotografieren</button></div>`);
+        <label class="kc-labn">Wie heißt das Produkt?<input id="kcln" maxlength="80" autocomplete="off" enterkeyhint="done" placeholder="z. B. Skyr Vanille (Lidl)" value="${h((fx ? fx.name : [L.brand, L.name].filter(Boolean).join(" ")).slice(0, 80))}"></label>
+        <button class="btn go big" id="kclok">${fx ? "Stimmt – für alle korrigieren" : "Stimmt – jetzt die Vorderseite fotografieren"}</button><button class="btn ghost" id="kclnop" hidden>Ohne Bild speichern</button><button class="btn ghost" id="kclagain">Nochmal fotografieren</button></div>`);
       const el = sh.el, ni = el.querySelector("#kcln");
-      el.querySelector("#kclagain").onclick = () => { sh.close(); this.start(code, cb); };
+      el.querySelector("#kclagain").onclick = () => { sh.close(); this.start(code, cb, opt); };
       /* "Stimmt" opens the camera once more, for the front of the pack: that is the picture everybody sees in the search.
          The camera has to open inside the tap, so nothing is awaited before it. */
       const b = el.querySelector("#kclok"), nop = el.querySelector("#kclnop");
       const keep = async front => { const name = ni.value.trim(); if (b.disabled) return; b.disabled = nop.disabled = true;
-        const o = {code: String(code), name: name.slice(0, 80), brand: "", unit: L.unit, k: L.k, c: L.c, p: L.p, f: L.f, fi: L.fi, su: L.su, sf: L.sf, sa: L.sa}; if (front) o.pic = front.pic;
+        const o = {code: String(code), name: name.slice(0, 80), brand: "", unit: L.unit, k: L.k, c: L.c, p: L.p, f: L.f, fi: L.fi, su: L.su, sf: L.sf, sa: L.sa}; if (front) o.pic = front.pic; if (fx) o.fix = true;
         try { const r = await sb().from("kcal_own_products").upsert(Object.assign({user_id: meId(), img: shot.thumb, status: "new"}, o), {onConflict: "user_id,code"}); if (r.error) throw r.error;
+          /* a correction: from now on these numbers, here and for everybody; the product keeps its name and picture */
+          if (fx){ Fix.rows[String(code)] = Object.assign({user_id: meId(), author: "", status: "new", fix: true, created_at: new Date().toISOString()}, o); sh.close(); haptic([12, 25, 12]);
+            say("✅ Danke! Korrigiert, für alle."); if (cb) cb(Fix.applyP(Object.assign({}, fx, {name: o.name}))); return; }
           const p = this.asOff(o); try { localStorage.setItem("chessnat-off-" + code, JSON.stringify(p)); } catch(e) {}
           sh.close(); haptic([12, 25, 12]); const P = prodOf(String(code), p); if (cb) cb(P); else addProduct(P, "barcode"); }
         catch(e) { b.disabled = nop.disabled = false; say("Ging nicht: " + (e.message || e)); } };
       const named = () => { if (ni.value.trim().length >= 2) return true; say("Gib dem Produkt kurz einen Namen."); ni.focus(); return false; };
-      b.onclick = async () => { if (b.disabled || !named()) return; const front = await this.shoot();
+      b.onclick = async () => { if (b.disabled || !named()) return; if (fx) return keep(null); const front = await this.shoot();
         if (!front){ nop.hidden = false; say("Noch ein Foto von der Vorderseite, dann ist es gespeichert."); return; } keep(front); };
       nop.onclick = () => { if (named()) keep(null); };
     }
+  };
+  /* ---------- "Fehler korrigieren" (Wolfsuii's wish): a red button wherever a product is tracked (scan, search).
+     Wrong numbers (e.g. 0 kcal at Open Food Facts): photograph the nutrition table, the printed numbers are read off and confirmed,
+     exactly like a pack nobody knows (nothing estimated); then they count for everybody, marked "korrigiert von …".
+     The table foods come from checked sources and stay as they are. Wrong portion ("1 Brötchen = 60 g", it weighs 70 g): the grams
+     of one piece; for a barcode product for everybody, for a food without barcode only for you (rolls are different everywhere).
+     Only offered once the database has the place for it (ready). ---------- */
+  const Fix = {
+    rows: {}, por: {}, at: 0, ready: false, loading: null,
+    load(force){ const c = sb(); if (!c || !meId()) return Promise.resolve(); if (this.loading) return this.loading; if (!force && Date.now() - this.at < 120000) return Promise.resolve();
+      this.loading = (async () => { try { const [a, b] = await Promise.all([c.from("kcal_own_products").select(Label.COLS + ",fix").eq("fix", true).order("created_at").limit(1000), c.from("kcal_portions").select("*").limit(3000)]);
+        if (!a.error){ const m = {}; Label.best(a.data || []).forEach(x => { m[String(x.code)] = x; }); this.rows = m; }
+        if (!b.error){ const m = {}; (b.data || []).forEach(x => { const o = m[x.key]; if (!o || x.user_id === meId() || (o.user_id !== meId() && String(x.created_at) > String(o.created_at))) m[x.key] = x; }); this.por = m; }
+        this.ready = !a.error && !b.error; this.at = Date.now(); } catch(e) {} this.loading = null; })();
+      return this.loading; },
+    /* corrected numbers for a product with a barcode (never for one of the table's foods) */
+    applyP(P){ if (!P || !P.code || P.tab) return P; const x = Fix.rows[String(P.code)]; if (!x || x.status === "bad") return P;
+      return Object.assign({}, P, {k: +x.k, c: +x.c, pr: +x.p, f: +x.f, fi: +x.fi || 0, su: +x.su || 0, sf: +x.sf || 0, sa: +x.sa || 0, hd: 1, ns: "", fixBy: x.user_id === meId() ? "dir" : x.author || "jemandem"}); },
+    key: P => P.code ? "c:" + P.code : P.tab ? "t:" + P.tab + (P.ck || "") : "n:" + Fz.c(P.name + " " + (P.brand || "")).slice(0, 120),
+    porOf(P){ if (!P || !P.name) return null; return Fix.por[Fix.key(P)] || null; },
+    /* where the numbers come from, when somebody corrected them */
+    note(P){ const U = unitOf(P); return [P.fixBy ? `✏️ Nährwerte korrigiert von ${h(P.fixBy)} (Foto der Nährwerttabelle)` : "", U && U.by ? `✏️ ${h(U.one)} = ${nf(U.g, 0)} g, angepasst von ${h(U.by)}` : ""].filter(Boolean).map(t => `<p class="kc-fixed">${t}</p>`).join(""); },
+    btn: P => Fix.ready && P && P.name ? `<button class="kc-fixb" data-fix>⚠️ Fehler korrigieren</button>` : "",
+    wire(el, P, after){ const b = el.querySelector("[data-fix]"); if (b) b.onclick = () => { haptic(8); Fix.sheet(P, after); }; },
+    sheet(P, after){ const U = unitOf(P), can = !!(P.code && !P.tab);
+      const sh = detailSheet(`<div class="kc-form kc-fix" data-notr><h3>Was stimmt nicht?</h3><p class="muted">${h(P.name)}${P.brand ? " · " + h(P.brand) : ""}</p>
+        ${can ? `<button class="kc-fixo" data-fx="val"><span>📷</span><b>Nährwerte sind falsch<small>Foto der Nährwerttabelle. Die gedruckten Zahlen gelten dann für alle.</small></b></button>`
+          : `<p class="muted kc-fixn">Die Nährwerte kommen aus der festen Tabelle (geprüfte Quelle) und bleiben so.</p>`}
+        <button class="kc-fixo" data-fx="por"><span>⚖️</span><b>Portion stimmt nicht<small>${U ? `Gerade: 1 ${h(U.one)} = ${nf(U.g, 0)} g` : "z. B. 1 Brötchen wiegt 70 g statt 60 g"}</small></b></button></div>`);
+      const v = sh.el.querySelector('[data-fx="val"]'); if (v) v.onclick = () => { sh.close(); Label.start(P.code, after, {fix: P}); };
+      sh.el.querySelector('[data-fx="por"]').onclick = () => { sh.close(); setTimeout(() => Fix.porSheet(P, after), 260); };
+      return sh; },
+    porSheet(P, after){ const U = unitOf(P), one = U ? U.one : "Portion", shared = !!P.code;
+      const sh = detailSheet(`<div class="kc-form kc-fix" data-notr><h3>Wie viel wiegt 1 ${h(one)}?</h3><p class="muted">${h(P.name)}</p>
+        <div class="kc-gram"><label><input id="kfg" inputmode="decimal" value="${U ? nf(U.g, 0) : ""}"> g</label></div>
+        <p class="muted kc-fixn">${shared ? "Gilt für alle, die dieses Produkt eintragen." : "Gilt nur für dich, weil " + h(one === "Portion" ? "Portionen" : U.many) + " überall anders groß sind."}</p>
+        <button class="btn go big" id="kfok">Speichern</button></div>`);
+      const inp = sh.el.querySelector("#kfg"); field(inp);
+      sh.el.querySelector("#kfok").onclick = async () => { const g = num(inp.value); if (!(g > 0 && g <= 2000)) return say("Gramm für 1 " + one + ", z. B. 70"); const b = sh.el.querySelector("#kfok"); b.disabled = true;
+        const key = Fix.key(P);
+        try { const r = await sb().from("kcal_portions").upsert({key, user_id: meId(), g: Math.round(g * 10) / 10}, {onConflict: "key,user_id"}); if (r.error) throw r.error;
+          Fix.por[key] = {key, user_id: meId(), g: Math.round(g * 10) / 10, shared, author: "", created_at: new Date().toISOString()}; sh.close(); haptic([12, 25, 12]);
+          say(`✅ 1 ${one} = ${nf(g, 0)} g${shared ? ", für alle" : ""}`); if (after) after(P); }
+        catch(e) { b.disabled = false; say("Ging nicht: " + (e.message || e)); } };
+      return sh; }
   };
   /* ---------- search: type a name (Open Food Facts via /api/food), pick the product, say how much ---------- */
   const RK = "chessnat-kcal-recent";
@@ -727,7 +822,7 @@
           + sec(mine.length || local.length || sem.length || recs.length ? "Produkte" : "", off, mine.length + local.length + sem.length) + (S.note ? `<p class="muted kc-sh">${S.note}</p>` : "")
           + sec("Am ehesten", near, mine.length + local.length + sem.length + off.length);
         out.querySelectorAll("[data-i]").forEach(b => b.onclick = () => pick(list[+b.dataset.i], b)); out.querySelectorAll("[data-rc]").forEach(b => b.onclick = () => { const R = recs[+b.dataset.rc]; if (!R) return; haptic(10); close(); entrySheet(Recipes.asMeal(R), {focus: true}); }); };
-      const kl = Known.load();
+      const kl = Known.load(); Fix.load();
       /* nothing typed: what was picked lately, then what you eat most */
       const empty = () => { const my = seq, r = recents(), often = Known.eaten().filter(x => x.n >= 2).slice(0, 6).map(Known.mark);
         S = {mine: [], local: r.concat(often), sem: [], recs: [], off: [], near: [], ph: r.length ? "Zuletzt" : "Oft gegessen", note: r.length || often.length ? "" : "Tipp den Namen ein, z. B. Eier, Toast, Nutella."}; render();
@@ -744,7 +839,7 @@
         Label.find(v).then(own => { if (my !== seq || !own.length) return; S.local = tab.concat(own, S.local.slice(tab.length)); render(); }).catch(() => {}).finally(done);
         /* Open Food Facts */
         (async () => { try { const r = await fetch("/api/food?q=" + encodeURIComponent(v)), j = await r.json().catch(() => ({})); if (my !== seq) return;
-            if (!r.ok || !Array.isArray(j.items)) throw new Error(j.error || "Suche gerade nicht erreichbar"); S.off = j.items; render(); }
+            if (!r.ok || !Array.isArray(j.items)) throw new Error(j.error || "Suche gerade nicht erreichbar"); S.off = j.items.map(x => Fix.applyP(x)); render(); }
           catch(e) { if (my === seq && !S.mine.length && !S.local.length) S.note = "⚠️ " + h(e.message || "Keine Verbindung"); }
           finally { done(); } })();
         /* by meaning: things you know that fit, even when no word is the same */
@@ -760,7 +855,7 @@
         if (b.classList.contains("open")){ b.classList.remove("open"); const nx = b.nextElementSibling; if (nx && nx.classList.contains("kc-sadd")) nx.remove(); return; }
         busy = 1; b.classList.add("load");
         if (P.code && !P.serving && !P.ss && !unitOf(P)){ const full = await Promise.race([offGet(P.code, 3000), new Promise(r => setTimeout(r, 3200))]); if (full){ const F = prodOf(P.code, full); P = Object.assign({}, P, {serving: F.serving || P.serving, pack: F.pack || P.pack, img: P.img || F.img, ss: F.ss || P.ss || ""}); } }
-        busy = 0; b.classList.remove("load"); if (closed) return;
+        busy = 0; b.classList.remove("load"); if (closed) return; P = Fix.applyP(P);
         if (opt.pick){ close(); opt.pick(P); return; }
         out.querySelectorAll(".kc-sres.open").forEach(x => { x.classList.remove("open"); const nx = x.nextElementSibling; if (nx && nx.classList.contains("kc-sadd")) nx.remove(); });
         try { q.blur(); } catch(e) {} b.classList.add("open");
@@ -772,8 +867,9 @@
         const pn = document.createElement("div"); pn.className = "kc-sadd";
         pn.innerHTML = `${cookHTML(P)}<div class="kc-chips">${chips.map(([v, l]) => `<button class="chip" data-g="${v}">${l}</button>`).join("")}</div>
           <div class="kc-srow"><div class="kc-gram"><button class="btn" data-d="-1">−</button><label><input inputmode="decimal" autocomplete="off" enterkeyhint="done"> g</label><button class="btn" data-d="1">+</button></div></div>
-          <div class="kc-sk" id="kcsk"></div><button class="btn go big" data-add>Hinzufügen</button>${P.own && !P.img ? `<button class="btn ghost" id="kcpic">📷 Foto der Vorderseite hinzufügen</button>` : ""}`;
+          <div class="kc-sk" id="kcsk"></div><button class="btn go big" data-add>Hinzufügen</button>${P.own && !P.img ? `<button class="btn ghost" id="kcpic">📷 Foto der Vorderseite hinzufügen</button>` : ""}${Fix.note(P)}${Fix.btn(P)}`;
         b.after(pn); const gi = pn.querySelector("input");
+        Fix.wire(pn, P, P2 => { pickG = g; b.classList.remove("open"); pn.remove(); pick(Object.assign({}, P2, {base: P.base}), b); });
         const pb = pn.querySelector("#kcpic"); if (pb) pb.onclick = () => Label.addPic(P, pic => { pb.remove(); const ph = b.querySelector(".kc-sph"); if (ph){ const im = document.createElement("img"); im.src = pic; im.alt = ""; ph.replaceWith(im); } });
         const show = from2 => { const f = g / 100, c = cntTxt(U, g); if (from2 !== "g") gi.value = nf(g, g < 10 ? 1 : 0); pn.querySelector("#kcsk").innerHTML = (c ? `<em>${c}</em>` : "") + vline(P2o(P, f));
           pn.querySelectorAll("[data-g]").forEach(c => c.classList.toggle("on", Math.abs(+c.dataset.g - g) < .05)); };
@@ -786,7 +882,7 @@
           const st = g >= 50 ? 10 : 5; setG(up ? Math.floor(g / st + 1e-6) * st + st : g <= st ? Math.max(1, g - 1) : Math.ceil(g / st - 1e-6) * st - st); });
         cookWire(pn, P, P2 => { pickG = g; b.classList.remove("open"); pn.remove(); pick(P2, b); });
         pn.querySelector("[data-add]").onclick = async e2 => { const ab = e2.currentTarget; if (ab.disabled) return; if (P.cfood && !P.ck){ say("Erst wählen: " + P.cfood.st[1] + " oder " + P.cfood.st[0] + " gewogen?"); const c = pn.querySelector(".kc-ck"); if (c){ c.classList.remove("shake"); void c.offsetWidth; c.classList.add("shake"); } return; } ab.disabled = true; recent(P.base || P); const it = itemOf(P, g);
-          try { const m = await K.add({source: "search", code: it.code, grams: Math.round(g), title: P.name.slice(0, 80), emoji: "📦", kcal: it.kcal, carbs: it.carbs, protein: it.protein, fat: it.fat, items: [it], note: P.tab ? tabSrc(P.tab) : P.own ? "Nährwerte vom Foto der Packung" : "Nährwerte von Open Food Facts"});
+          try { const m = await K.add({source: "search", code: it.code, grams: Math.round(g), title: P.name.slice(0, 80), emoji: "📦", kcal: it.kcal, carbs: it.carbs, protein: it.protein, fat: it.fat, items: [it], note: P.fixBy ? "Nährwerte korrigiert (Foto der Packung)" : P.tab ? tabSrc(P.tab) : P.own ? "Nährwerte vom Foto der Packung" : "Nährwerte von Open Food Facts"});
             haptic(15); close(); say(`✓ ${P.name.slice(0, 30)} · ${brief(m)}`); } catch(err) { ab.disabled = false; say("Ging nicht: " + (err.message || err)); } };
         requestAnimationFrame(() => { try { pn.scrollIntoView({block: "nearest", behavior: "smooth"}); } catch(e) {} }); };
       if (q.value.trim().length >= 2) go(); else empty();
@@ -870,6 +966,7 @@
      the pack, db = the checked database, est = the AI's estimate */
   const srcOf = (i, m) => { if (!i) return {k: "est", t: "KI-Schätzung", l: "Von der KI geschätzt, nicht aus einer Datenbank."};
     const id = i.ref || (i.per && i.per.tab), F = id && TAB.byId[id], code = i.code || (m && partsOf(m).length === 1 && m.code);
+    if (i.per && i.per.fx) return {k: "own", t: "Korrigiert · Foto der Packung von " + i.per.fx, l: "Die Zahlen bei Open Food Facts waren falsch. Korrigiert: von der Nährwerttabelle der Packung abgelesen, die " + i.per.fx + " fotografiert hat."};
     if (code){ let own = 0, by = ""; try { const c = JSON.parse(localStorage.getItem("chessnat-off-" + code) || "null") || {}; own = c.own; by = c.by || ""; } catch(e) {}
       return own && by ? {k: "own", t: "Foto der Packung · von " + by, l: "Von der Nährwerttabelle der Packung abgelesen, die " + by + " fotografiert hat. Nicht nachgeprüft."}
         : own ? {k: "own", t: "Dein Foto der Packung", l: "Von der Nährwerttabelle der Packung abgelesen, die du fotografiert hast."} : {k: "off", t: "Packung · Open Food Facts", l: "Genau dieses Produkt (Barcode " + code + ") aus Open Food Facts."}; }
@@ -1969,10 +2066,10 @@
         <div class="kc-btns two"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 32)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 32)}<span>Barcode</span></button></div>
         <div class="kc-srow"><button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Lebensmittel suchen …</span></button><button class="kc-phb" data-kc-photo aria-label="Foto vom Essen">📷<small>Foto</small></button></div>
         <div class="kc-btns two"><button class="kc-tile shop" id="kcshop">${svg(IC.list, 24)}<span><b>Einkaufsliste</b><small>mit Freunden</small></span></button><button class="kc-tile cook" id="kccook">${svg(IC.chef, 24)}<span><b>Kochen</b><small>Was hast du da?</small></span></button><button class="kc-tile ai" id="kcai"><span class="hs-ti">🤖</span><span><b>Frag Nat</b><small>KI-Coach</small></span></button><button class="kc-tile haus" id="kchaus" data-notr><span class="hs-ti">🏠</span><span><b>Haushalt</b><small id="hsnext">Müllplan &amp; Aufgaben</small></span></button></div>
-        <div id="kcaitip" data-notr></div>${setupCard()}</div>
+        <div id="kcpoop" data-notr></div><div id="kcaitip" data-notr></div>${setupCard()}</div>
         <div class="kc-lh"><span>Heute</span>${heads()}</div>${this.dayBlock(t)}
         <button class="kc-link" id="kcmanual">${svg(IC.plus, 15)} Selbst eintragen</button>
-        ${(q => q ? `<div class="unit kc-sum kc-sugg">${q}</div>` : "")(quickHTML())}`; el.querySelector("#kcshop").onclick = () => Shop.open(); el.querySelector("#kccook").onclick = () => Cook.open(); el.querySelector("#kcai").onclick = () => Ai.open(); Ai.tip(el.querySelector("#kcaitip")); el.querySelector("#kchaus").onclick = () => Haus.open(); Haus.paint();
+        ${(q => q ? `<div class="unit kc-sum kc-sugg">${q}</div>` : "")(quickHTML())}`; el.querySelector("#kcshop").onclick = () => Shop.open(); el.querySelector("#kccook").onclick = () => Cook.open(); el.querySelector("#kcai").onclick = () => Ai.open(); Ai.tip(el.querySelector("#kcaitip")); Poop.paint(); el.querySelector("#kchaus").onclick = () => Haus.open(); Haus.paint();
       wireDay(el); animSum(el); el.querySelector("#kcmanual").onclick = () => manual();
       this.wireMeals(el);
     },
@@ -2227,6 +2324,17 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-bform{display:flex;flex-direction:column;gap:10px}.kc-bform label{display:flex;align-items:center;gap:10px;background:#211F1C;border-radius:16px;padding:6px 14px;border:2px solid rgba(255,255,255,.08)}.kc-bform label:focus-within{border-color:var(--go)}
 .kc-bform span{flex:1;font:800 16px var(--body);color:rgba(255,255,255,.7)}.kc-bform input{width:110px;text-align:right;border:0;background:none;color:#fff;font:900 26px var(--display);padding:8px 0;outline:none}.kc-bform em{font-style:normal;font:800 15px var(--body);color:rgba(255,255,255,.55);width:44px}
 .kc-res{display:flex;flex-direction:column;gap:12px;text-align:center}.kc-resk b{display:block;font:900 64px/1 var(--display);color:#9BE25A}.kc-resk span{font:800 16px var(--body);color:rgba(255,255,255,.6)}.kc-res p{margin:0;font-size:13.5px}
+.kc-fixb{align-self:center;margin:6px auto 0;display:block;background:none;border:0;color:#E5654B;font:800 13px var(--body);padding:8px 12px;cursor:pointer}
+.kc-fixed{margin:6px 0 0;font:700 12px var(--body);color:var(--muted);text-align:center}
+.kc-fixo{display:flex;align-items:center;gap:12px;width:100%;padding:14px;border-radius:16px;border:1.5px solid var(--line);background:var(--panel2,rgba(255,255,255,.04));color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.kc-fixo>span{font-size:28px}.kc-fixo b{display:flex;flex-direction:column;gap:3px;font-size:16px}.kc-fixo small{font-weight:600;color:var(--muted);font-size:12.5px;line-height:1.35}
+.kc-fixn{font-size:12.5px;text-align:center}
+.kc-poopb{margin-top:2px;font-size:14px}.kc-poopx{align-self:center;margin-top:2px}
+.kc-poopres{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}.kc-poope{font-size:84px;line-height:1;animation:kcPoop .9s cubic-bezier(.2,1.6,.4,1)}
+@keyframes kcPoop{0%{transform:translateY(-60px) scale(.4);opacity:0}60%{transform:translateY(6px) scale(1.12,.88);opacity:1}100%{transform:none}}
+.kc-poopg{font:900 40px var(--display);letter-spacing:-.02em}.kc-poopr{font:800 16px var(--body)}.kc-pooprec{font:800 14px var(--body);color:#E9B23A}
+.kc-poopbar{display:flex;align-items:center;gap:10px;width:100%;margin:10px 0 0;padding:10px 14px;border-radius:14px;border:1.5px solid rgba(201,138,74,.55);background:rgba(201,138,74,.12);color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.kc-poopbar span{font-size:24px}.kc-poopbar b{flex:1}.kc-poopbar small{color:var(--muted);font-weight:700}
 .kc-weigh{text-align:center;align-items:stretch}.kc-weigh h3{margin:0}.kc-weigh .kc-gram label{justify-content:center}.kc-seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .kc-icebox{text-align:center}.kc-icebox h3{margin:0;font:900 24px var(--display)}.kc-ices{display:flex;justify-content:center;gap:14px;font-size:44px}.kc-ices span{filter:grayscale(1) opacity(.3)}.kc-ices span.on{filter:none}.kc-icet{margin:0;font-size:14px;line-height:1.4}
 .kc-tgt>div{display:flex;flex-direction:column;gap:2px;background:var(--panel-2);border-radius:14px;padding:10px 12px;margin:6px 0}.kc-tgt b{font:900 20px var(--display)}.kc-tgt span{font:800 13px var(--body)}.kc-tgt small{color:var(--muted);font:700 12px var(--body)}

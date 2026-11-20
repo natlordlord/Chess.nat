@@ -16,7 +16,7 @@ home_thanks|task_id,user_id|task_id:uuid:!: ; user_id:uuid:!:@uid ; created_at:t
 chess_fairplay|id|id:uuid:!:@uuid ; user_id:uuid:!: ; quote:text:!: ; status:text:!:open ; created_at:timestamptz:!:@now ; sorry_at:timestamptz:?: ; shame:bool:!:false
 chess_ideas|id|id:uuid:!:@uuid ; user_id:uuid:!:@uid ; name:text:?: ; title:text:!: ; body:text:?: ; status:text:!:open ; created_at:timestamptz:!:@now
 chess_idea_votes|idea_id,user_id|idea_id:uuid:!: ; user_id:uuid:!:@uid ; created_at:timestamptz:!:@now
-kcal_own_products|id|id:uuid:!:@uuid ; user_id:uuid:!:@uid ; author:text:?: ; code:text:!: ; name:text:!: ; brand:text:!: ; unit:text:!:g ; k:numeric:!: ; c:numeric:!: ; p:numeric:!: ; f:numeric:!: ; fi:numeric:!:0 ; su:numeric:!:0 ; sf:numeric:!:0 ; sa:numeric:!:0 ; img:text:?: ; pic:text:?: ; status:text:!:new ; created_at:timestamptz:!:@now
+kcal_own_products|id|id:uuid:!:@uuid ; user_id:uuid:!:@uid ; author:text:?: ; code:text:!: ; name:text:!: ; brand:text:!: ; unit:text:!:g ; k:numeric:!: ; c:numeric:!: ; p:numeric:!: ; f:numeric:!: ; fi:numeric:!:0 ; su:numeric:!:0 ; sf:numeric:!:0 ; sa:numeric:!:0 ; img:text:?: ; pic:text:?: ; status:text:!:new ; fix:bool:!:false ; created_at:timestamptz:!:@now
 home_log|id|id:int8:!:@identity ; group_id:uuid:!: ; task_id:uuid:?: ; title:text:!: ; emoji:text:?: ; user_id:uuid:!: ; what:text:!: ; at:timestamptz:!:@now
 chess_now|user_id|user_id:uuid:!:@uid ; what:jsonb:!: ; updated_at:timestamptz:!:@now
 chess_friends|a,b|a:uuid:!: ; b:uuid:!: ; requested_by:uuid:!: ; status:text:!:'pending' ; created_at:timestamptz:!:@now
@@ -37,7 +37,7 @@ kcal_invites|from_id,to_id|from_id:uuid:!:@uid ; to_id:uuid:!: ; created_at:time
 kcal_meals|id|id:uuid:!:@uuid ; user_id:uuid:!:@uid ; day:date:!: ; ts:timestamptz:!:@now ; title:text:!: ; emoji:text:?: ; source:text:?: ; kcal:int4:!:0 ; carbs:numeric:!:0 ; protein:numeric:!:0 ; fat:numeric:!:0 ; grams:int4:?: ; code:text:?: ; said:text:?: ; items:jsonb:?: ; note:text:?: ; created_at:timestamptz:!:@now
 kcal_profile|user_id|user_id:uuid:!:@uid ; enabled:bool:!:false ; goal:int4:!:2500 ; share:bool:!:true ; remind:bool:!:true ; flame:int4:!:0 ; flame_day:date:?: ; best:int4:!:0 ; last_remind_at:timestamptz:?: ; last_remind_kind:text:?: ; updated_at:timestamptz:!:@now ; protein:int2:?: ; carbs:int2:?: ; fat:int2:?: ; ice:int2:!:0 ; fpush:bool:!:true ; show:_text:?: ; pins:jsonb:!:[]
 kcal_recipes|id|id:uuid:!:@uuid ; user_id:uuid:!:@uid ; author:text:?: ; name:text:!: ; emoji:text:!:🍽️ ; items:jsonb:!: ; grams:numeric:!: ; kcal:int4:!: ; carbs:numeric:!:0 ; protein:numeric:!:0 ; fat:numeric:!:0 ; created_at:timestamptz:!:@now
-kcal_weights|id|id:uuid:!:@uuid ; user_id:uuid:!: ; ts:timestamptz:!:@now ; day:date:!: ; kg:numeric:!: ; fasted:bool:?: ; pooped:bool:?: ; created_at:timestamptz:!:@now
+kcal_weights|id|id:uuid:!:@uuid ; user_id:uuid:!: ; ts:timestamptz:!:@now ; day:date:!: ; kg:numeric:!: ; fasted:bool:?: ; pooped:bool:?: ; poop_g:int2:?: ; created_at:timestamptz:!:@now
 kv|user_id,path|user_id:uuid:!: ; path:text:!: ; data:jsonb:!: ; updated_at:timestamptz:!:@now
 shop_answers|ask_id,user_id|ask_id:uuid:!: ; user_id:uuid:!:@uid ; answer:text:!: ; amount:text:?: ; created_at:timestamptz:!:@now
 shop_asks|id|id:uuid:!:@uuid ; list_id:uuid:!: ; item_id:uuid:?: ; kind:text:!: ; from_id:uuid:!:@uid ; created_at:timestamptz:!:@now
@@ -52,6 +52,7 @@ tipp_leagues|key|key:text:!: ; name:text:!: ; grp:text:!: ; series:text:!: ; ima
 tipp_groups|id|id:uuid:!:@uuid ; code:text:!:@code ; name:text:!: ; owner:uuid:!: ; comps:_text:!:{} ; created_at:timestamptz:!:@now
 tipp_members|group_id,user_id|group_id:uuid:!: ; user_id:uuid:!: ; joined_at:timestamptz:!:@now
 tipp_picks|id|id:int8:!:@identity ; user_id:uuid:?: ; bot:text:?: ; event_id:text:!: ; sh:int4:?: ; sa:int4:?: ; w:text:?: ; created_at:timestamptz:!:@now ; updated_at:timestamptz:!:@now
+kcal_portions|key,user_id|key:text:!: ; user_id:uuid:!:@uid ; g:numeric:!: ; shared:bool:!:false ; author:text:?: ; created_at:timestamptz:!:@now
 chess_promos|id|id:int8:!:@identity ; user_id:uuid:!: ; kind:text:!: ; tier:text:!: ; from_tier:text:?: ; rating:int4:?: ; created_at:timestamptz:!:@now
 chess_promo_cheers|promo_id,user_id|promo_id:int8:!: ; user_id:uuid:!: ; owner:uuid:!: ; created_at:timestamptz:!:@now
 tipp_tips|id|id:int8:!:@identity ; user_id:uuid:?: ; bot:text:?: ; event_id:text:!: ; market:text:!: ; pick:text:!: ; label:text:?: ; stake:int4:!: ; odds:numeric:!: ; status:text:!:'open' ; payout:int4:!:0 ; claimed:bool:!:false ; created_at:timestamptz:!:@now ; settled_at:timestamptz:?:
