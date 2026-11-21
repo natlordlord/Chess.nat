@@ -330,6 +330,13 @@ const PARTS = {
     const nb = (await meals("tester")).length, sb0 = (await sums(page)).kcal;
     ok(/Brötchen/.test(await txt(page, ".dsheet")) && /674 kcal/.test(await txt(page, ".dsheet")), "Sprechen: Gesagtes wird ausgerechnet und gezeigt (674 kcal, drei Positionen)", (await txt(page, ".dsheet")).slice(0, 160));
     ok((await meals("tester")).length === nb && /Noch nicht eingetragen/.test(await txt(page, ".dsheet")), "noch nichts gespeichert: erst „Passt“ trägt es ein (vorher geht auch keine Nachricht an Freunde)");
+    /* "Passt" and "Verwerfen" are in sight at once, without scrolling down, also on a small phone where the card is longer than the screen (Wunsch von Wolfsuii) */
+    { const seen = () => page.evaluate(() => { const c = document.querySelector(".dsheet .dcard"), v = x => { const b = document.querySelector(".dsheet " + x), r = b && b.getBoundingClientRect(); return !!r && r.height > 20 && r.top >= 0 && r.bottom <= innerHeight && document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) === b; };
+        return {top: c.scrollTop, long: c.scrollHeight > c.clientHeight + 40, ok: v("[data-commit]") && v("[data-kc-del]"), close: !!document.querySelector(".dsheet .dfoot [data-dclose]")}; });
+      let v = await seen(); ok(v.top === 0 && v.ok && !v.close, "Entwurf: „Passt“ und „Verwerfen“ sind sofort zu sehen, ohne zu scrollen", JSON.stringify(v));
+      await page.setViewportSize({width: 390, height: 520}); await sleep(400); v = await seen(); await page.shot("kcal-passt-sofort");
+      ok(v.top === 0 && v.long && v.ok, "kleines Handy, Karte länger als der Bildschirm: „Passt“ und „Verwerfen“ bleiben unten stehen", JSON.stringify(v));
+      await page.setViewportSize({width: 390, height: 844}); await sleep(300); }
     /* closed without "Passt": nothing is entered, and it says so */
     await page.locator(".dsheet .dx").first().tap(); await sleep(2400);
     ok((await meals("tester")).length === nb && /Nicht eingetragen/.test(await toast(page)), "ohne „Passt“ geschlossen: nichts eingetragen, mit Hinweis", await toast(page));

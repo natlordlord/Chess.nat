@@ -1006,6 +1006,9 @@
       ${m.said ? `<p class="muted kc-said">„${h(m.said)}“</p>` : ""}${m.note ? `<p class="muted kc-said">${h(m.note)}</p>` : ""}
       ${own ? `<div class="kc-portion"><span class="muted">Alles mal nehmen</span><div>${[[.5, "½"], [.75, "¾"], [1.25, "1¼"], [1.5, "1½"], [2, "2×"], [3, "3×"]].map(([f, l]) => `<button type="button" class="kc-fx" data-f="${f}">${l}</button>`).join("")}</div><small class="kc-fxh" id="kcfxh" hidden></small></div>
       <div class="kc-row2">${m.draft ? `<button class="btn go" data-commit>Passt</button><button class="btn" data-kc-del>Verwerfen</button>` : `<button class="btn go" data-dclose>Passt</button><button class="btn" data-kc-del>Löschen</button>`}</div>${m.draft ? `<p class="muted kc-drn">Noch nicht eingetragen. Erst „Passt“ speichert es.</p>` : ""}` : ""}</div>`);
+    /* "Passt" and "Löschen" (a draft: "Verwerfen") stand at the bottom edge of the card from the start, where only "Schließen" used to be:
+       no scrolling down to the end of a long meal to enter it (Wunsch von Wolfsuii). The × at the top still closes without doing anything */
+    if (own){ const ft = sh.el.querySelector(".dfoot"), r2 = sh.el.querySelector(".kc-row2"); if (ft && r2){ ft.classList.add("kc-msf"); ft.replaceChildren(r2); } }
     /* a draft is entered by "Passt": first let a field that is still being typed in finish, then save what the draft is now */
     /* "Alles mal 2": tapping only shows what it would be. "Passt" keeps it; ×, "Schließen" or swiping away leaves the meal as it was */
     let pendF = 0, paintAll = null; const scaled = () => partsOf(m).map(i => scalePart(i, pendF));
@@ -2419,7 +2422,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-fx:active{transform:translateY(2px) scale(.97)}.kc-fx.on{background:var(--go);color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.25),0 3px 0 rgba(0,0,0,.3)}
 /* the "Alles mal" row is small and on one line; "Passt" is the big button (Wunsch von Wolfsuii) */
 .kc-ms .kc-portion>div{grid-template-columns:repeat(6,1fr);gap:6px}.kc-ms .kc-portion>.muted{font-size:12.5px}
-.kc-ms .kc-row2{margin-top:10px}.kc-ms .kc-row2 .btn.go{flex:2.2;min-height:58px;font-size:20px;border-radius:18px;box-shadow:0 4px 0 rgba(0,0,0,.28),0 0 0 3px rgba(127,184,74,.25)}
+.kc-ms .kc-row2{margin-top:10px}.kc-msf .kc-row2{margin:0}.kc-ms .kc-row2 .btn.go,.kc-msf .kc-row2 .btn.go{flex:2.2;min-height:58px;font-size:20px;border-radius:18px;box-shadow:0 4px 0 rgba(0,0,0,.28),0 0 0 3px rgba(127,184,74,.25)}
 .kc-fxh{font:800 12.5px var(--body);color:#E8C56A;text-align:center}.kc-row2 .btn.go.pulse{animation:kcFxP 1.4s ease-in-out infinite}@keyframes kcFxP{0%,100%{filter:brightness(1)}50%{filter:brightness(1.18)}}.kc-portion>div,.kc-chips{display:flex;flex-wrap:wrap;gap:6px}.kc-chips .chip.on{background:var(--go);border-color:var(--go);color:#fff}
 .kc-per{margin:0}.kc-gram{display:flex;align-items:center;gap:8px}.kc-gram .btn{width:52px;flex:none;font-size:22px}.kc-gram label{flex:1;min-width:0;display:flex;align-items:center;gap:6px;font:800 18px var(--body)}.kc-gram input{flex:1;min-width:0;width:100%;box-sizing:border-box;text-align:center;font:900 24px var(--display);padding:8px;border-radius:12px;border:2px solid var(--line);background:var(--panel-2);color:var(--fg)}
 .kc-form label{display:flex;flex-direction:column;gap:4px;font:700 13px var(--body);color:var(--muted)}.kc-form input{font:700 17px var(--body);padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg)}
