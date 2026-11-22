@@ -210,7 +210,7 @@
     el.innerHTML = `<div class="kc-hd"><button class="kc-ttl" data-kc-go>Kalorien heute</button>${flameChip(n, lit, myIce())}<button class="kc-ov" data-kc-go>${svg(IC.chart, 16)} Übersicht</button></div>
       ${sumHTML(t, true)}
       <div class="kc-btns two"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 32)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 32)}<span>Barcode</span></button></div>
-      <div class="kc-srow"><button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Lebensmittel suchen …</span></button><button class="kc-phb" data-kc-photo aria-label="Foto vom Essen">📷<small>Foto</small></button></div>
+      <div class="kc-srow"><button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Suchen oder schreiben …</span></button><button class="kc-phb" data-kc-photo aria-label="Foto vom Essen">📷<small>Foto</small></button></div>
       ${setupCard()}${quickHTML()}${tip}`;
     wireDay(el); animSum(el);
     if (K.loaded){ Weigh.check(); Wrap.check(); }
@@ -782,8 +782,8 @@
     open(opt = {}, from){
       if (!meId()) return say("Bitte erst anmelden");
       const ov = document.createElement("div"); ov.className = "kc-sov"; ov.setAttribute("data-notr", "");
-      ov.innerHTML = `<div class="kc-sovt"><div class="kc-sq">${svg(IC.search, 18)}<input id="kcq" type="search" enterkeyhint="search" placeholder="${h(opt.title || "Lebensmittel suchen …")}" autocomplete="off" autocorrect="off" value="${h(opt.q || "")}"></div><button class="kc-sx" id="kcsx">Abbrechen</button></div>
-        <div class="kc-sovb" id="kcsovb"><div class="kc-sr" id="kcsr"></div><button class="btn ghost kc-man-b" id="kcsm">${svg(IC.plus, 16)} Selbst eintragen</button></div>`;
+      ov.innerHTML = `<div class="kc-sovt"><div class="kc-sq">${svg(IC.search, 18)}<input id="kcq" type="search" enterkeyhint="search" placeholder="${h(opt.title || "Suchen oder schreiben, was du hattest")}" autocomplete="off" autocorrect="off" value="${h(opt.q || "")}"></div><button class="kc-sx" id="kcsx">Abbrechen</button></div>
+        <div class="kc-sovb" id="kcsovb"><div class="kc-sr" id="kcsr"></div><button class="kc-calc" id="kccalc" hidden><span class="kc-sph">✨</span><span class="kc-sn"><span>Einfach ausrechnen lassen</span><small id="kccalct"></small></span><b>➤</b></button><button class="btn ghost kc-man-b" id="kcsm">${svg(IC.plus, 16)} Selbst eintragen</button></div>`;
       document.body.appendChild(ov); document.documentElement.classList.add("kc-sopen");
       const q = ov.querySelector("#kcq"), out = ov.querySelector("#kcsr"), body = ov.querySelector("#kcsovb"); let seq = 0, tmr = 0, list = [], busy = 0, closed = false;
       /* the keyboard opens in the same tap (iPhone only allows that), then the field glides from where the bar was to the top */
@@ -805,6 +805,12 @@
       /* nothing typed yet: a tap on the dark area closes it again */
       ov.addEventListener("click", e => { if (q.value.trim() || e.target.closest("button,input,.kc-sovt,.kc-sadd")) return; close(); });
       ov.querySelector("#kcsm").onclick = () => { close(); (opt.manual || manual)(q.value.trim()); };
+      /* just write what you ate (Idee von Adri): the typed text itself is one more row, a tap lets the AI work it out like a spoken sentence.
+         A whole sentence ("2 Brötchen mit Nutella") puts the row on top, a single word leaves the search results first */
+      const calc = ov.querySelector("#kccalc"), calcShow = () => { const v = q.value.trim(), on = !opt.pick && v.length >= 3; calc.hidden = !on; if (!on) return;
+        calc.querySelector("#kccalct").textContent = "„" + v + "“";
+        const top = /\d/.test(v) || v.split(/\s+/).length >= 3; if (top ? calc.nextElementSibling !== out : calc.previousElementSibling !== out) top ? out.before(calc) : out.after(calc); };
+      calc.onclick = () => { const v = q.value.trim(); if (v.length < 3) return; haptic(10); close(); Voice2.text(v); };
       const per = P => { const S = shows(), o = P2o(P), k0 = S[0]; return `<b>${k0 === "kcal" ? fmt(o.kcal) : f1(o[k0])}<small>${k0 === "kcal" ? "kcal" : "g " + NUT[k0].s}</small>${S.slice(1).map(k => `<small class="${NUT[k].c}">${one1(o, k)}</small>`).join("")}</b>`; };
       const row = (P, i) => { const U = unitOf(P), ut = U && U.one !== "Portion" ? `1 ${U.one} ≈ ${nf(U.g, 0)} g` : P.serving ? `Portion ${P.serving} g` : "", sub = [P.seen, P.brand, ut].filter(Boolean).join(" · ");
         return `<button class="kc-sres" data-i="${i}">${P.img ? `<img src="${h(P.img)}" alt="" loading="lazy">` : `<span class="kc-sph">📦</span>`}<span class="kc-sn">${h(P.name)}<small>${P.seen ? `<em>${h(P.seen)}</em>${sub.length > P.seen.length ? " · " : ""}${h(sub.slice(P.seen.length + 3))}` : h(sub)}</small></span>${per(P)}</button>`; };
@@ -847,7 +853,7 @@
             hits.sort((a2, b2) => (b2.s + boost(b2)) - (a2.s + boost(a2)));
             S.sem = hits.map(semP).filter(Boolean).slice(0, 5); if (!opt.pick) S.recs = S.recs.concat(hits.filter(c => c.kind === "rec").map(c => c.o)); render(); }
           catch(e) {} finally { done(); } })(); };
-      q.oninput = () => { clearTimeout(tmr); tmr = setTimeout(go, 320); };
+      q.oninput = () => { calcShow(); clearTimeout(tmr); tmr = setTimeout(go, 320); }; calcShow();
       q.onkeydown = e => { if (e.key === "Enter"){ e.preventDefault(); clearTimeout(tmr); go(); q.blur(); } };
       /* tapped a product: how much, right under it (the portion size comes from the product itself) */
       let pickG = 0;
@@ -1235,7 +1241,7 @@
     /* a photo of the plate (Idee von Adri): the camera opens at once; what is said or typed before counts on top */
     async function photo(home){ const keep = home ? "" : mode === "typing" ? (ov.querySelector("#kctext").value || "").trim() : heard; stop(); const shot = await Label.shoot();
       if (!shot){ if (home) close(); else if (ov) set(keep ? "paused" : "idle", ""); return; } if (!ov) ui(); analyze(keep, shot); }
-    return {open, close, photo: () => { if (!meId()) return say("Bitte erst anmelden"); if (ov) close(); heard = base = ""; bars.length = 0; ui(); set("idle", ""); return photo(true); }};
+    return {open, close, text: v => { if (!meId()) return say("Bitte erst anmelden"); if (ov) close(); heard = base = ""; bars.length = 0; ui(); return analyze(String(v || "").trim().slice(0, 1500)); }, photo: () => { if (!meId()) return say("Bitte erst anmelden"); if (ov) close(); heard = base = ""; bars.length = 0; ui(); set("idle", ""); return photo(true); }};
   })();
 
   /* ---------- barcode: fast, any angle ---------- */
@@ -2067,7 +2073,7 @@
       const t = today(), g = K.goal(), eaten = K.dayKcal(t), lit = eaten >= g, miss = g - eaten, i = !lit ? idea(miss) : null;
       el.innerHTML = `<div id="hsslot" data-notr></div><div class="unit kc-sum">${sumHTML(t, false)}
         <div class="kc-btns two"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 32)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 32)}<span>Barcode</span></button></div>
-        <div class="kc-srow"><button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Lebensmittel suchen …</span></button><button class="kc-phb" data-kc-photo aria-label="Foto vom Essen">📷<small>Foto</small></button></div>
+        <div class="kc-srow"><button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Suchen oder schreiben …</span></button><button class="kc-phb" data-kc-photo aria-label="Foto vom Essen">📷<small>Foto</small></button></div>
         <div class="kc-btns two"><button class="kc-tile shop" id="kcshop">${svg(IC.list, 24)}<span><b>Einkaufsliste</b><small>mit Freunden</small></span></button><button class="kc-tile cook" id="kccook">${svg(IC.chef, 24)}<span><b>Kochen</b><small>Was hast du da?</small></span></button><button class="kc-tile ai" id="kcai"><span class="hs-ti">🤖</span><span><b>Frag Nat</b><small>KI-Coach</small></span></button><button class="kc-tile haus" id="kchaus" data-notr><span class="hs-ti">🏠</span><span><b>Haushalt</b><small id="hsnext">Müllplan &amp; Aufgaben</small></span></button></div>
         <div id="kcpoop" data-notr></div><div id="kcaitip" data-notr></div>${setupCard()}</div>
         <div class="kc-lh"><span>Heute</span>${heads()}</div>${this.dayBlock(t)}
@@ -2346,7 +2352,8 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-srch{display:flex;flex-direction:column;gap:10px}.kc-srch h3{margin:0}
 .kc-sq{display:flex;align-items:center;gap:8px;padding:0 12px;border-radius:14px;border:2px solid var(--line);background:var(--panel-2);color:var(--muted)}.kc-sq:focus-within{border-color:var(--go)}
 .kc-sq input{flex:1;min-width:0;border:0;background:none;color:var(--fg);font:800 17px var(--body);padding:12px 0;outline:none;-webkit-appearance:none}
-.kc-sr{display:flex;flex-direction:column;gap:6px;min-height:140px;transition:opacity .15s}.kc-sr.busy{opacity:.5}
+.kc-sr{display:flex;flex-direction:column;gap:6px;min-height:140px;transition:opacity .15s}
+.kc-calc{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;border:1px dashed rgba(255,255,255,.22);background:transparent;color:var(--fg);text-align:left;cursor:pointer;width:100%;flex:none;-webkit-tap-highlight-color:transparent}.kc-calc[hidden]{display:none}.kc-calc:active{transform:scale(.98)}.kc-calc .kc-sph{background:var(--panel-2)}.kc-calc .kc-sn{flex:1;min-width:0;font-weight:700}.kc-calc .kc-sn>span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.kc-calc small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 12px var(--body);color:var(--muted)}.kc-calc b{color:var(--muted)}.kc-sr.busy{opacity:.5}
 .kc-sres{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;border:0;background:var(--panel-2);color:var(--fg);text-align:left;cursor:pointer;width:100%;-webkit-tap-highlight-color:transparent}.kc-sres:active{transform:scale(.98)}.kc-sres.load{opacity:.55}
 .kc-est{text-decoration:none;color:#FF9A88;font-weight:800}
 .kc-items small.kc-src{font:800 11px var(--body);color:#8FC98A;letter-spacing:.01em}.kc-items small.kc-src.bls{color:#7FD6D0}.kc-items small.kc-src.own{color:#E8C56A}.kc-items small.kc-src.est{color:#FF9A88}

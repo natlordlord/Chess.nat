@@ -1031,7 +1031,7 @@ const PARTS = {
     /* taking it from there works like any product: its own portion, its own values */
     const n0 = (await L.table("kcal_meals", "user_id=eq." + ID.tester)).length;
     await page.tap('#kcsr .kc-sres:has-text("Buntes Frucht-Trio")'); await sleep(500); await page.tap(".kc-sov [data-add]"); await sleep(1100);
-    const m = (await L.table("kcal_meals", "user_id=eq." + ID.tester + "&order=ts.desc&limit=1"))[0] || {};
+    const m = (await L.table("kcal_meals", "user_id=eq." + ID.tester + "&order=created_at.desc&limit=1"))[0] || {};
     ok((await L.table("kcal_meals", "user_id=eq." + ID.tester)).length === n0 + 1 && m.code === code && m.kcal === 120 && m.source === "search", "angetippt und hinzugefügt: 125 g Frucht-Trio = 120 kcal, mit Barcode", JSON.stringify([m.title, m.kcal, m.code, m.source]));
     await clean(page, "Suche mit Tippfehler");
     t = await search("trio frucht", "Schon gegessen"); ok(/Schon gegessen[\s\S]*Buntes Frucht-Trio/.test(t), "andere Reihenfolge („trio frucht“) findet es auch", t.slice(0, 120)); await shut();
@@ -1050,6 +1050,22 @@ const PARTS = {
     /* the model is down: the forgiving search still works */
     process.env.FAKE_AI_DOWN = "1"; t = await search("Fruchtrio", "Schon gegessen"); delete process.env.FAKE_AI_DOWN;
     ok(/Schon gegessen[\s\S]*Buntes Frucht-Trio/.test(t), "ohne KI findet die Suche Bekanntes trotzdem", t.slice(0, 120)); await shut();
+    /* just write it into the search field (Idee von Adri): the typed text is a row of its own, a tap lets the AI work it out.
+       A single word leaves the results first, a whole sentence puts the row on top */
+    { const where = () => page.evaluate(() => { const c = document.querySelector("#kccalc"), o = document.querySelector("#kcsr"); return !c || c.hidden ? "weg" : c.nextElementSibling === o ? "oben" : c.previousElementSibling === o ? "unten" : "?"; });
+      await page.tap("#main [data-kc-find]"); await sleep(500); ok(await where() === "weg", "leeres Suchfeld: keine „ausrechnen“-Zeile", await where());
+      await page.keyboard.type("eier", {delay: 15}); await sleep(700); ok(await where() === "unten" && /ausrechnen lassen\s*„eier“/.test(await txt(page, "#kccalc")), "ein Wort getippt: Treffer zuerst, „Einfach ausrechnen lassen“ steht darunter", await where() + " " + await txt(page, "#kccalc"));
+      await shut(); await page.tap("#main [data-kc-find]"); await sleep(500);
+      /* the time that was said (Feedback von Adri): "gestern Abend 21 Uhr" lands yesterday at 21:00, not 24 hours back */
+      await page.keyboard.type("gestern abend um 21 uhr ein nutellabrot", {delay: 10}); await sleep(600); await page.shot("suche-einfach-schreiben");
+      ok(await where() === "oben", "ganzer Satz getippt: „Einfach ausrechnen lassen“ steht ganz oben", await where());
+      const n0 = (await meals("tester")).length; await page.tap("#kccalc"); await page.waitForSelector(".dsheet [data-commit]", {timeout: 8000}).catch(() => {});
+      await sleep(400); ok(!(await has(page, ".kc-sov")) && /Nutella/.test(await txt(page, ".dsheet")) && /228 kcal/.test(await txt(page, ".dsheet")), "Antippen rechnet den getippten Satz aus (ohne Sprechen, ohne extra Knopf)", (await txt(page, ".dsheet")).slice(0, 140));
+      await page.tap(".dsheet [data-commit]"); await sleep(1300); const m = (await meals("tester", "&limit=1"))[0] || {};
+      const B = d => new Intl.DateTimeFormat("en-CA", {timeZone: "Europe/Berlin", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23"}).format(d).replace(",", "");
+      const want = B(new Date(Date.now() - 864e5)).slice(0, 10) + " 21:0", got = B(new Date(m.ts || 0));
+      ok((await meals("tester")).length === n0 + 1 && m.source === "voice" && /nutellabrot/.test(m.said || ""), "eingetragen mit dem getippten Satz", JSON.stringify([m.title, m.source, m.said]));
+      ok(got.startsWith(want), "„gestern Abend um 21 Uhr“ steht bei gestern 21:00 Uhr (nicht bei gestern um die jetzige Uhrzeit)", got + " statt " + want + "x"); }
     await clean(page, "Suche nach Bedeutung"); await page.context().close();
   },
 

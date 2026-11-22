@@ -138,6 +138,8 @@ function ai(req){
   const fr = ((/FRÜHER: (.*)/.exec(user) || [])[1] || "").split("; ").map(x => x.replace(/^\d+ = /, ""));
   if (kind === "meal" && /haferflocken/i.test(said)){ const u = fr.findIndex(x => /haferflocken/i.test(x));
     return {title: "Haferflocken mit Milch", emoji: "🥣", items: [Object.assign(it("Haferflocken", "60 g", 220, 36, 8, 4), {grams: 60, usual: u}), Object.assign(it("Milch", "200 ml", 128, 9.6, 6.6, 7), {grams: 200, usual: -1})], kcal: 348, carbs: 45.6, protein: 14.6, fat: 11, minutesAgo: 0, note: ""}; }
+  /* a day and a clock time were said: the stand-in "AI" only names them, the server counts the minutes */
+  if (kind === "meal" && /gestern abend (?:um )?21 uhr/i.test(said)) return {title: "Nutellabrot", emoji: "🍞", items: [it("Brot", "1 Scheibe (50 g)", 120, 23, 4, 1), it("Nutella", "20 g", 108, 11.5, 1.3, 6.2)], kcal: 228, carbs: 34.5, protein: 5.3, fat: 7.2, minutesAgo: 1440, daysAgo: 1, clock: "21:00", note: ""};
   /* a photo of the plate: the stand-in "AI" sees a plate of spaghetti bolognese */
   if (kind === "meal" && photo) return {title: "Spaghetti Bolognese", emoji: "🍝", items: [Object.assign(it("Spaghetti Bolognese", "1 Teller (400 g)", 560, 70, 24, 18), {grams: 400, usual: -1})], kcal: 560, carbs: 70, protein: 24, fat: 18, minutesAgo: 0, note: "Menge vom Foto geschätzt."};
   if (kind === "week") return {headline: "Solide Woche", mood: "ok", summary: "Du hast dein Kalorienziel an 4 von 7 Tagen erreicht.", good: ["Genug Protein"], better: ["Mehr Gemüse"], focus: "Jeden Tag frühstücken."};
