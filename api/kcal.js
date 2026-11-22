@@ -13,7 +13,7 @@ const THINK = Number(process.env.KCAL_THINK || 0);
 const num = {type: "number"};
 const SCHEMA = {
   type: "object", additionalProperties: false,
-  required: ["title", "emoji", "items", "kcal", "carbs", "protein", "fat", "minutesAgo", "note"],
+  required: ["title", "emoji", "items", "kcal", "carbs", "protein", "fat", "minutesAgo", "daysAgo", "clock", "note"],
   properties: {
     title: {type: "string", description: "Kurzer Name der Mahlzeit, max. 4 Wörter"},
     emoji: {type: "string", description: "Ein passendes Essens-Emoji"},
@@ -31,7 +31,9 @@ const SCHEMA = {
         fiber: {type: "number", description: "Ballaststoffe in g"}, sugar: {type: "number", description: "Zucker in g"}, satfat: {type: "number", description: "gesättigte Fettsäuren in g"},
         quality: {type: "integer", description: "Wie gesund ist diese Zutat, 1 bis 5: 5 = Gemüse, Obst, Hülsenfrüchte, Vollkorn, Nüsse, Fisch, mageres Eiweiß (vitamin- und nährstoffreich, wenig verarbeitet); 3 = neutral (Weißbrot, Nudeln, Käse, Wurst in Maßen); 1 = Süßigkeiten, Limo, Frittiertes, Alkohol, stark Verarbeitetes"}}}},
     kcal: num, carbs: num, protein: num, fat: num,
-    minutesAgo: {type: "number", description: "Wie viele Minuten her gegessen wurde, falls genannt (z. B. 'vor einer Stunde' = 60), sonst 0"},
+    minutesAgo: {type: "number", description: "Nur bei einer Angabe wie 'vor einer Stunde' (= 60) oder 'vor 20 Minuten': wie viele Minuten das her ist. Sonst 0. Bei einem genannten Tag oder einer Uhrzeit NICHT selbst rechnen, sondern daysAgo und clock füllen"},
+    daysAgo: {type: "integer", description: "An welchem Tag gegessen wurde: 0 = heute oder nicht genannt, 1 = gestern, 2 = vorgestern, bei einem genannten Wochentag die Tage bis dorthin zurück"},
+    clock: {type: "string", description: "Uhrzeit des Essens als HH:MM (24 Stunden), wenn eine genannt ist ('21 Uhr' = '21:00', 'halb acht abends' = '19:30'). Ist nur eine Tageszeit genannt: morgens/Frühstück '08:00', mittags '12:30', nachmittags '15:30', abends '19:00', nachts '23:00'. Sonst leer"},
     note: {type: "string", description: "Ein kurzer Satz, was geschätzt wurde. Leer, wenn nichts Wichtiges."}
   }
 };
@@ -47,6 +49,7 @@ PRODUKT (wichtig): Nennt der Nutzer zu einer Zutat eine Marke, einen Händler od
 Zustand: Nudeln, Reis, Couscous, Bulgur, Quinoa, Linsen, Kichererbsen und Bohnen werden gekocht schwerer, Fleisch wird gebraten leichter. Sagt der Nutzer „gekocht“, „gebraten“, „auf dem Teller“ oder nichts dazu, ist grams das fertige Gewicht: state = "cooked". Sagt er „trocken“, „roh“, „ungekocht“ oder nennt er das Gewicht aus der Packung, ist state = "dry". Rechne das Gewicht nie selbst um.
 DATENBANK: Zusätzlich gibt es eine geprüfte Datenbank mit festen Werten pro 100 g. Ihre Namen stehen unter BEKANNT. Ist eine Zutat, die nicht in der TABELLE steht, genau eines dieser Lebensmittel (auch anders geschrieben, in der Mehrzahl oder mit Marke), setze food exakt auf diesen Namen und grams auf das echte Gewicht: die App nimmt dann die geprüften Werte. Passt keiner wirklich, bleibt food leer; erfinde keine Namen und nimm nichts nur Ähnliches.
 FRÜHER: Darunter stehen Produkte, die dieser Nutzer früher gescannt oder ausgesucht hat, mit Nummer. Ist eine Zutat genau eines davon (z. B. „Schokomüsli“ und früher „Kölln Schoko Müsli“; „Nougat Bits“ und früher „Nougat Bits (Kellogg's)“), setze usual auf diese Nummer: die App nimmt dann die Werte dieses Produkts. Nur bei wirklich demselben Lebensmittel, nicht bei bloß Ähnlichem (Vollmilch ist nicht Hafermilch). Sonst usual = -1. Sagt der Nutzer ausdrücklich eine andere Marke, ist es nicht dasselbe.
+ZEIT: Oben steht, wann jetzt ist. Sagt der Nutzer, wann er gegessen hat („gestern Abend um 21 Uhr“, „heute Mittag“, „am Montag“), trag den Tag in daysAgo und die Uhrzeit in clock ein und rechne die Minuten nicht selbst aus. Nur bei „vor 20 Minuten“ oder „vor zwei Stunden“ nimm minutesAgo. Ohne Zeitangabe: daysAgo 0, clock leer, minutesAgo 0.
 FOTO: Kommt ein Foto mit, zeigt es das Essen. Erkenne darauf jede Zutat und schätze ihr Gewicht aus Teller, Besteck, Glas oder Packung. Was dazu gesagt wurde, geht vor (Menge, Marke, was nicht zu sehen ist). Ist auf dem Foto nichts Essbares, gib leere items zurück und sag es in note.
 Antworte nur mit JSON nach diesem Schema: ${JSON.stringify(SCHEMA)}`;
 
@@ -102,6 +105,19 @@ async function userOf(req){
   if (!r || !r.ok) return null;
   const u = await r.json().catch(() => null);
   return u && u.id ? u : null;
+}
+/* when it was eaten (Feedback von Adri: "gestern Abend 21 Uhr" landete bei gestern 13:33): the AI only names the day and the
+   clock time it heard, the minutes are counted here. A clock time without a day that is still hours ahead today means yesterday. */
+function agoOf(est, now){
+  const MAX = 7 * 24 * 60, cap = v => Math.max(0, Math.min(MAX, Math.round(v)));
+  const d = Math.max(0, Math.min(7, Math.round(Number(est.daysAgo) || 0))), m = /^\s*(\d{1,2})[:.](\d{2})\s*$/.exec(String(est.clock || ""));
+  const rel = Math.max(0, Number(est.minutesAgo) || 0);
+  if (!m || +m[1] > 23 || +m[2] > 59) return cap(d ? d * 1440 : rel);
+  const P = {}; new Intl.DateTimeFormat("en-GB", {timeZone: "Europe/Berlin", hour: "2-digit", minute: "2-digit", hourCycle: "h23"}).formatToParts(now || new Date()).forEach(x => { P[x.type] = x.value; });
+  let ago = (+P.hour * 60 + +P.minute) - (+m[1] * 60 + +m[2]) + d * 1440;
+  /* a little ahead of now ("heute Morgen" said at 7:00, counted as 8:00) is now; clearly ahead ("um 21 Uhr" said at noon) was yesterday */
+  if (ago < 0) ago = !d && ago < -180 ? ago + 1440 : 0;
+  return cap(ago);
 }
 function berlinNow(){
   return new Intl.DateTimeFormat("de-DE", {timeZone: "Europe/Berlin", weekday: "long", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"}).format(new Date());
@@ -375,7 +391,7 @@ module.exports = async (req, res) => {
     console.log("kcal ai failed", e.status, e.model, String(e.message).slice(0, 300));
     return res.status(502).json({error: e.status === 429 ? "Gerade zu viele Anfragen. Gleich nochmal versuchen." : "Die KI hat gerade nicht geantwortet. Nochmal versuchen."});
   }
-  const ago = Math.max(0, Math.min(24 * 60, Number(est.minutesAgo) || 0));
+  const ago = agoOf(est);
   await liveTable(req);
   const items = (Array.isArray(est.items) ? est.items : []).slice(0, 30).map(i => {
     const it = {name: String(i.name || "").slice(0, 80), amount: String(i.amount || "").slice(0, 60), kcal: Math.round(Number(i.kcal) || 0), carbs: r1(i.carbs), protein: r1(i.protein), fat: r1(i.fat),
@@ -393,3 +409,4 @@ module.exports = async (req, res) => {
   };
   return res.status(200).json({meal});
 };
+module.exports.agoOf = agoOf;
