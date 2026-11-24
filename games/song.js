@@ -132,9 +132,10 @@
   const yearOf = r => +String((r && r.releaseDate) || "").slice(0, 4) || 0;
 
   /* ---------- the wrong answers (for both kinds of song lists below): the same artist's other songs first (both: two of them),
-     then songs of the same language and genre; never a song that is still to come, and a title once shown as wrong never comes
-     later as the song ---------- */
-  const optsOf = P => (s2, what, n) => { const right = valOf(what, s2), seen = new Set([N(right)]), out = [];
+     then songs of the same language and genre; never a song that is still to come, never a song that was already played in this
+     game (everyone would know it is wrong; only if a tiny playlist has nothing else left), and a title once shown as wrong never
+     comes later as the song ---------- */
+  const optsOf = P => (s2, what, n) => { const right = valOf(what, s2), seen = new Set([N(right)]), out = [], pT = P.played || new Set(), late = [];
     const add = (v, t) => { const k = N(v); if (!k || seen.has(k) || out.length >= n - 1) return; seen.add(k); out.push([v, t]); };
     const coming = P.songs, cT = new Set(coming.map(x => N(bare(x.title)))), cA = new Set(coming.map(x => N(x.artist))), cI = new Set(coming.map(x => x.id));
     const near = (a, b) => (b.lang === s2.lang) - (a.lang === s2.lang) || (b.g === s2.g) - (a.g === s2.g);
@@ -144,13 +145,14 @@
       PG.shuffle(A).forEach(a => add(a)); }
     else { const same = PG.shuffle((s2.alts || []).filter(t => !cT.has(N(t)))).map(t => ({title: t, artist: s2.artist}));
       const other = PG.shuffle(P.bank.filter(x => !cI.has(x.id) && !cT.has(N(x.title)) && N(x.title) !== N(bare(s2.title)) && N(x.artist) !== N(s2.artist))).sort(near);
-      (what === "both" ? same.slice(0, 2).concat(other, same.slice(2)) : same.concat(other)).forEach(x => add(valOf(what, x), x.title)); }
+      (what === "both" ? same.slice(0, 2).concat(other, same.slice(2)) : same.concat(other)).forEach(x => pT.has(N(bare(x.title))) ? late.push(x) : add(valOf(what, x), x.title));
+      if (out.length < 2) late.forEach(x => { if (out.length < 2) add(valOf(what, x), x.title); }); }
     if (out.length < 2) return null;
     out.forEach(([, t]) => { if (t) P.shown.add(N(bare(t))); });
     return PG.shuffle([right].concat(out.map(x => x[0]))); };
   const SEEN = "song:seen";
   const used0 = () => new Set((PG.st[SEEN] || []).slice(-600));
-  const markUsed = (P, s2) => { P.used.add(s2.id); PG.st[SEEN] = [...new Set([...(PG.st[SEEN] || []), s2.id])].slice(-600); PG.persist(); };
+  const markUsed = (P, s2) => { P.used.add(s2.id); (P.played || (P.played = new Set())).add(N(bare(s2.title))); PG.st[SEEN] = [...new Set([...(PG.st[SEEN] || []), s2.id])].slice(-600); PG.persist(); };
 
   /* ---------- the songs everybody knows: radio classics (what SWR3 played in the 80s, what Radio Arabella plays from the 2000s and
      2010s), per genre "Title|Artist". Most songs of a round come from here; the rest from the artists' other songs, the deeper
@@ -560,7 +562,9 @@
     const GLAB = g => g === "pl" ? T("playlist", "Playlist") : G[g] ? G[g][0] + " " + T(G[g][2], G[g][1]) : "";
 
     /* songs from several wishes: they take turns; each wish keeps its own wrong answers (same genre, same language) */
-    const Mix = {make(src){ const M = {src, i: 0, seen: new Set()}, pools = () => [...new Set(src.map(x => x.P))];
+    const Mix = {make(src){ const M = {src, i: 0, seen: new Set()}, pools = () => [...new Set(src.map(x => x.P))], played = new Set();
+      /* one list of played songs for all wishes: a song from one wish is no wrong answer for another */
+      pools().forEach(P => { P.played = played; });
       M.songs = () => pools().flatMap(P => P.songs);
       M.fill = n => Promise.all(pools().map(P => P.fill(Math.max(3, Math.ceil(n / src.length) + 1))));
       M.next = () => { for (let k = 0; k < src.length; k++){ const x = src[(M.i + k) % src.length]; let s2 = null; while (!s2 && x.P.songs.length){ const c = x.P.next(); if (c && !M.seen.has(c.id)) s2 = c; }
