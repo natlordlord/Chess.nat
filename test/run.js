@@ -1140,12 +1140,15 @@ const PARTS = {
     ok(/✗/.test(await txt(page, "#main")) && /\b0\b/.test(await txt(page, ".pg-name")), "„Weiß nicht“: 0 Punkte, die Lösung steht da"); await page.tap("#sgnx"); await sleep(600);
     ok(/Ergebnis/i.test(await txt(page, "#main")) && /\b2\b/.test(await txt(page, ".pg-name")), "nach 3 Songs: Ergebnis 2 Punkte mit Liste der Songs", (await txt(page, "#main")).slice(0, 160)); await page.shot("song-ergebnis");
     /* the wrong answers: never a song that is still to come, never shown first and played later; the song's language */
-    const fair = await page.evaluate(async () => { const {Pool, langOf} = PG._song, P = Pool.make({genre: "own", own: "Queen, Nena, a-ha"}); P.used.clear(); await P.fill(6); const bad = [], shown = new Set(), n = P.songs.length;
+    const fair = await page.evaluate(async () => { const {Pool, langOf} = PG._song, P = Pool.make({genre: "own", own: "Queen, Nena, a-ha"}); P.used.clear(); await P.fill(6); const bad = [], shown = new Set(), n = P.songs.length, was = [], pos = [0, 0, 0, 0];
       for (let i = 0; i < n; i++){ const s = P.next(); if (!s) break; const N = x => x.toLowerCase().replace(/\s*\(.*\)$/, "");
         if (shown.has(N(s.title))) bad.push("schon als falsch gezeigt: " + s.title);
-        const o = P.opts(s, "title", 4) || []; o.forEach(x => { if (P.songs.some(c => N(c.title) === N(x))) bad.push("kommt noch: " + x); if (N(x) !== N(s.title)) shown.add(N(x)); }); }
-      return {n, bad, de: [langOf("Ich will nur, dass du weißt"), langOf("Bierkönig", "party"), langOf("Take On Me"), langOf("Don't Stop Me Now")]}; });
-    ok(fair.n >= 4 && !fair.bad.length, "falsche Antworten: nie ein Song, der noch kommt, und kein Song kommt, der schon als falsch dastand", JSON.stringify(fair));
+        const o = P.opts(s, "title", 4) || []; o.forEach(x => { if (P.songs.some(c => N(c.title) === N(x))) bad.push("kommt noch: " + x); if (was.includes(N(x))) bad.push("war schon dran: " + x); if (N(x) !== N(s.title)) shown.add(N(x)); });
+        for (let k = 0; k < 400; k++){ const o2 = P.opts(s, "title", 4) || []; if (o2.some(x => was.includes(N(x)))) bad.push("war schon dran: " + s.title); const at = o2.findIndex(x => N(x) === N(s.title)); if (at >= 0) pos[at]++; }
+        was.push(N(s.title)); }
+      return {n, bad: [...new Set(bad)], pos, de: [langOf("Ich will nur, dass du weißt"), langOf("Bierkönig", "party"), langOf("Take On Me"), langOf("Don't Stop Me Now")]}; });
+    ok(fair.n >= 4 && !fair.bad.length, "falsche Antworten: nie ein Song, der noch kommt, nie einer, der schon dran war, und kein Song kommt, der schon als falsch dastand", JSON.stringify(fair));
+    { const sum = fair.pos.reduce((a, b) => a + b, 0); ok(sum > 800 && fair.pos.every(c => c > sum * .19 && c < sum * .31), "die richtige Antwort steht an jeder der 4 Stellen etwa gleich oft (zufällig)", JSON.stringify(fair.pos)); }
     ok(fair.de.join() === "de,de,en,en", "Sprache erkannt (deutsch / englisch), damit die falschen Titel zur Sprache passen", JSON.stringify(fair.de));
     /* how well known: Mainstream are mostly the radio hits everyone knows, Groupie mostly an artist's deep cuts */
     /* (the shares are random; here once only radio hits, once only deep cuts, to see where each comes from) */
