@@ -801,8 +801,10 @@ const PARTS = {
   /* ---------- Tippspiel ---------- */
   async tipp(browser){
     const page = await L.open(browser, "tester"); await page.tap('#tabbar [data-t="tipp"]'); await sleep(1500);
-    const t = await txt(page, "#main"); ok(/Bayern/.test(t) && /Leipzig/.test(t) && /6 offen/.test(t), "Tippspiel zeigt die offenen Spiele (6 offen, mit Deutschland in der Nations League und dem NBA-Spiel aus der Bibliothek)", t.slice(0, 200)); await page.shot("tipp");
+    const t = await txt(page, "#main"); ok(/Bayern/.test(t) && /Leipzig/.test(t) && /8 offen/.test(t), "Tippspiel zeigt die offenen Spiele (8 offen, mit Deutschland in der Nations League, dem NBA-Spiel aus der Bibliothek, zwei UFC-Kämpfen und dem Boxkampf)", t.slice(0, 200)); await page.shot("tipp");
     ok(/Makhachev/.test(t), "UFC-Titelkampf ist tippbar gelistet", t.slice(0, 300));
+    ok(/Pyfer/.test(t) && /Middleweight/.test(t) && !/TBA/.test(t), "UFC: auch ein Kampf ohne Titel ist tippbar, einer ohne feststehende Kämpfer nicht", t.slice(0, 600));
+    ok(/Agit Kabayel/.test(t) && /WBC-WM Schwergewicht/.test(t) && /Remis/.test(await txt(page, '#main [data-ev="man:box"]')), "Boxen: der Kampf ohne Ergebnis-Lieferant ist tippbar gelistet, mit Remis", t.slice(0, 600));
     await clean(page, "Tippspiel öffnen");
     /* only the result: plus and minus, saved at once */
     const plus = page.locator('#main [data-d="1"]'); await plus.nth(0).tap(); await sleep(250); await plus.nth(0).tap(); await sleep(250); await plus.nth(1).tap(); await sleep(1500);
@@ -810,6 +812,8 @@ const PARTS = {
     ok(pick && pick.sh != null && pick.sa != null, "Ergebnis mit + tippen wird sofort gespeichert", JSON.stringify(pick));
     if (pick) ok(new RegExp("Bayern . " + pick.sh + " . Dortmund . " + pick.sa).test((await txt(page, "#main")).replace(/[−+]/g, ".")), "die Seite zeigt denselben Tipp wie die Datenbank (" + pick.sh + ":" + pick.sa + ")", (await txt(page, "#main")).slice(120, 260));
     await page.tap('#main [data-ev="t-ufc"] [data-w="a"]'); await sleep(1200); const ufc = (await L.table("tipp_picks", "event_id=eq.t-ufc&user_id=eq." + ID.tester))[0]; ok(ufc && ufc.w === "a", "UFC: Sieger tippen gespeichert", JSON.stringify(ufc));
+    await page.tap('#main [data-ev="t-ufc2"] [data-w="b"]'); await sleep(1200); const ufc2 = (await L.table("tipp_picks", "event_id=eq.t-ufc2&user_id=eq." + ID.tester))[0]; ok(ufc2 && ufc2.w === "b", "UFC: Sieger eines Kampfs ohne Titel gespeichert", JSON.stringify(ufc2));
+    await page.tap('#main [data-ev="man:box"] [data-w="a"]'); await sleep(1200); const box = (await L.table("tipp_picks", "event_id=eq.man:box&user_id=eq." + ID.tester))[0]; ok(box && box.w === "a", "Boxen: Sieger tippen gespeichert", JSON.stringify(box));
     ok(/Worlds · Finale/i.test(await txt(page, "#main")) && /Bilibili Gaming/.test(await txt(page, "#main")), "League of Legends: das Worlds-Finale ist tippbar gelistet, mit vollem Teamnamen");
     await page.tap('#main [data-ev="t-lol"] [data-w="b"]'); await sleep(1200); const lol = (await L.table("tipp_picks", "event_id=eq.t-lol&user_id=eq." + ID.tester))[0]; ok(lol && lol.w === "b", "LoL: Sieger tippen gespeichert", JSON.stringify(lol)); await page.shot("tipp-lol");
     /* the library: a followed league's game (NBA) with Polymarket's chances; a league nobody follows stays out; a draw where the market has one */
@@ -828,7 +832,23 @@ const PARTS = {
     await page.tap('#main [data-tab="res"]'); await sleep(1000); const r = await txt(page, "#main"); ok(/Leverkusen/.test(r) && /Freiburg/.test(r), "Ergebnisse: laufendes und beendetes Spiel", r.slice(0, 250)); await page.shot("tipp-ergebnisse");
     ok(/Knicks/.test(r) && /112:104/.test(r), "Ergebnisse: beendetes Bibliotheks-Spiel mit Endstand", r.slice(0, 400));
     await page.tap('#main [data-tab="table"]'); await sleep(1000); const tb = await txt(page, "#main"); ok(/Nat Tester|Du/.test(tb) && /Mila/.test(tb), "Rangliste zeigt dich und Mila", tb.slice(0, 250)); await page.shot("tipp-rangliste");
-    await clean(page, "Tippen"); await page.context().close();
+    /* a fight nobody delivers the result for: the admin taps the winner (asked twice), everyone has their points */
+    await page.tap('#main [data-tab="res"]'); await sleep(900); let rr = await txt(page, '#main [data-det="man:box0"]');
+    ok(/Ergebnis folgt/.test(rr) && /Sieger eintragen/.test(rr), "Boxkampf vorbei: „Ergebnis folgt“, der Admin sieht „Sieger eintragen“", rr);
+    await page.tap('#main [data-det="man:box0"]'); await sleep(900); ok(/Wer hat gewonnen\?/.test(await txt(page, ".dsheet")) && await has(page, '.dsheet [data-res="d"]'), "Admin: Sieger, Remis oder Abgesagt zur Auswahl", (await txt(page, ".dsheet")).slice(0, 200)); await page.shot("tipp-sieger-eintragen");
+    await page.tap('.dsheet [data-res="a"]'); await sleep(400); ok((await L.table("tipp_events", "id=eq.man:box0"))[0].state === "pre" && /sicher\?/.test(await txt(page, '.dsheet [data-res="a"]')), "erster Tipp fragt nach, gespeichert ist noch nichts");
+    await page.tap('.dsheet [data-res="a"]'); await sleep(1800); const b0 = (await L.table("tipp_events", "id=eq.man:box0"))[0];
+    ok(b0.state === "post" && b0.meta.winner === "a" && b0.settled === true, "zweiter Tipp speichert den Sieger", JSON.stringify([b0.state, b0.meta]));
+    rr = await txt(page, '#main [data-det="man:box0"]'); ok(/🏆\s*Bivol/.test(rr) && /\+3/.test(rr), "Ergebnisse: Bivol als Sieger, dein Tipp bringt +3", rr); await page.shot("tipp-boxen-ergebnis");
+    /* Mila is no admin: she sees the result, but can't enter one */
+    const pm2 = await L.open(browser, "mila"); const deny = await pm2.evaluate(async () => { const r = await ChessSite.sb.rpc("tipp_result", {p_event: "man:box", p_w: "b"}); return r.error ? r.error.message : "ok"; });
+    ok(/forbidden/.test(deny), "wer kein Admin ist, kann kein Ergebnis eintragen", deny); await pm2.context().close();
+    /* the UFC is a choice: switched off in the library, its fights are gone (except the ones I tipped) */
+    await page.tap('#main [data-tab="tip"]'); await sleep(700); ok(await has(page, '#main [data-f="ufc"]'), "UFC: Chip, weil ich der UFC folge");
+    await page.tap('#main [data-lib]'); await sleep(900); sh = await txt(page, ".dsheet"); ok(await page.locator('.dsheet [data-k="mma-ufc"].on').count() === 1 && !(await has(page, '.dsheet [data-k="ufc"]')), "Ligen: UFC ist ein Schalter (an), kein „immer dabei“ mehr", sh.slice(0, 300));
+    await page.tap('.dsheet [data-k="mma-ufc"]'); await sleep(1200); ok(!(await L.table("tipp_follows", "user_id=eq." + ID.tester + "&league=eq.mma-ufc")).length, "UFC abgewählt: gespeichert");
+    await closeSheets(page); await sleep(1500); ok(!(await has(page, '#main [data-f="ufc"]')), "UFC abgewählt: der Chip ist weg");
+    await clean(page, "Tippen", /forbidden/); await page.context().close();
   },
 
   /* ---------- Frag Nat: the AI coach in the calorie tracker (Idee von Finnel) ---------- */

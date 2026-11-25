@@ -75,7 +75,7 @@ const RPCS = {
   tipp_event_picks: ["p_event"], tipp_event_tips: ["p_event"], tipp_final: ["p_event"], tipp_group_save: ["p_id", "p_name", "p_comps"], tipp_groups_mine: [],
   tipp_join: ["p_code"], tipp_leave: ["p_id"], tipp_lines: ["p_event", "p_final"], tipp_live: ["p_event", "p_title"], tipp_notify: ["p_event", "p_title", "p_body"],
   tipp_pick: ["p_event", "p_h?", "p_a?", "p_w?"], tipp_place: ["p_event", "p_market", "p_pick", "p_stake", "p_score?"], tipp_remind: ["p_event", "p_title", "p_body"],
-  tipp_settle: ["p_event", "p_res"], tipp_table: [], tipp_alert: ["p_title", "p_body"], tipp_is_w: ["p_sport"],
+  tipp_settle: ["p_event", "p_res"], tipp_result: ["p_event", "p_w"], tipp_table: [], tipp_alert: ["p_title", "p_body"], tipp_is_w: ["p_sport"],
   home_can: ["g"], home_owns: ["g"], home_answer: ["p_task", "p_yes"], home_done: ["p_task"],
   home_tick: [] /* not callable in the real database (there a trigger and a cron job do this); the tests use it to let time pass */
 };
