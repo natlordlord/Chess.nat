@@ -33,6 +33,9 @@ const ask = (q, ms) => get(U1(q), ms || 6000).then(j => j && Array.isArray(j.hit
 let oldLine = Promise.resolve();
 const askOld = (q, ms) => { const run = async () => { let j = null; for (let n = 0; n < 2 && !j; n++){ if (n) await new Promise(r => setTimeout(r, 1000)); j = await get(U2(q), ms || 5000); if (j || !/^HTTP (503|429)/.test(WHY[U2(q)] || "")) break; } return j && Array.isArray(j.products) ? j.products : null; };
   const p = oldLine.then(run, run); oldLine = p.catch(() => {}); return p; };
+/* the new search often answers without the nutrition values (since November 2026 for most products): they are then read from the
+   product itself, by its barcode, like after scanning */
+const byCode = (code, ms) => get("https://world.openfoodfacts.org/api/v2/product/" + encodeURIComponent(code) + ".json?fields=" + FIELDS, ms || 4000).then(j => j && j.product ? j.product : null);
 /* shops and filler words: nobody has "Lidl" in the product's name, so they must not keep a product out */
 const SHOP = /^(lidl|aldi|rewe|edeka|penny|netto|kaufland|norma|dm|rossmann|globus|real|spar|hofer|billa|migros|coop|tegut|famila|marktkauf|nahkauf)$/;
 const FILL = /^(mit|und|von|vom|der|die|das|aus|the|bio|oder|ohne|muss|marke|eigenmarke)$/;
@@ -48,8 +51,8 @@ module.exports = async (req, res) => {
     /* what has to be found: the words that describe the product (not the shop, not "mit") */
     const core = words.filter(w => !SHOP.test(w) && !FILL.test(w)), must = core.length ? core : words, shops = words.filter(w => SHOP.test(w));
     const qc = core.length && core.length < words.length ? qs.split(/\s+/).filter(w => { const n = norm(w).replace(/[^a-z0-9]/g, ""); return !SHOP.test(n) && !FILL.test(n); }).join(" ") : qs;
-    const pool = [], byCode = new Set(), stat = {};
-    const add = (tag, L) => { stat[tag] = L ? L.length : null; for (const p of L || []){ const c = String(p.code || ""); if (c && byCode.has(c)) continue; if (c) byCode.add(c); pool.push(p); } };
+    const pool = [], codes = new Set(), stat = {};
+    const add = (tag, L) => { stat[tag] = L ? L.length : null; for (const p of L || []){ const c = String(p.code || ""); if (c && codes.has(c)) continue; if (c) codes.add(c); pool.push(p); } };
     const item = p => {
       const n = p.nutriments || {}, k = Number(n["energy-kcal_100g"]) || (Number(n["energy_100g"]) ? Number(n["energy_100g"]) / 4.184 : 0);
       const brand = (Array.isArray(p.brands) ? p.brands[0] : String(p.brands || "").split(",")[0]) || "";
@@ -63,9 +66,15 @@ module.exports = async (req, res) => {
     const usable = () => { const seen = new Set(); return pool.map(item).filter(x => { const key = (x.name + "|" + x.brand + "|" + x.k).toLowerCase(); if (!x.name || !(x.k > 0) || x.k > 950 || seen.has(key)) return false; seen.add(key); return true; }); };
     const fits = (w, t, tc) => t.includes(w) || tc.includes(w) || (w.length >= 5 && near(w, tc) <= okErr(w.length));
     const full = () => usable().filter(x => { const t = norm(x.name + " " + x.brand), tc = t.replace(/[^a-z0-9]+/g, ""); return must.every(w => fits(w, t, tc)); }).length;
+    /* the best fitting products that came without values get them from their own page (at most 8 at a time) */
+    const kcalOf = p => { const n = p.nutriments || {}; return Number(n["energy-kcal_100g"]) || Number(n["energy_100g"]) || 0; }, tried = new Set();
+    const fill = async () => { const L = pool.map(p => { const x = item(p), t = norm(x.name + " " + x.brand), tc = t.replace(/[^a-z0-9]+/g, ""); return [p, x.name && p.code && !kcalOf(p) && !tried.has(p.code) ? must.filter(w => fits(w, t, tc)).length : 0]; }).filter(a => a[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 8);
+      stat.nachgelesen = (stat.nachgelesen || 0) + L.length;
+      await Promise.all(L.map(async ([p]) => { tried.add(p.code); const d = await byCode(p.code); if (d && kcalOf(d)) Object.assign(p, {nutriments: d.nutriments}, ...["serving_quantity", "serving_size", "product_quantity", "image_front_small_url", "countries_tags", "stores", "nutriscore_grade"].map(f => p[f] == null && d[f] != null ? {[f]: d[f]} : {})); })); };
     const long = must.slice().sort((a, b) => b.length - a.length).slice(0, 2), wide = must.length >= 2;
     const [A, B] = await Promise.all([ask(qs), askOld(qc)]); add("neu", A); add("alt", B);
     if (!A && !B) return res.status(502).json({error: "Die Suche ist gerade nicht erreichbar."});
+    await fill();
     /* too little that has all the words ("Schoko Croissant" is written "Schokocroissant", "Croissant mit Schokolade" …): ask again
        without the shop, written together, and for the most telling words alone; the list below puts what fits best on top */
     if (full() < 5 && must.length){
@@ -75,6 +84,7 @@ module.exports = async (req, res) => {
       /* nothing at all: once more with the longer words allowed a typo or two ("nutela" → Nutella), if the search takes that */
       if (!pool.length && must.some(w => w.length >= 5)) more.push(["tippfehler", ask(must.map(w => w.length >= 5 ? w + "~" + okErr(w.length) : w).join(" "), 4500)]);
       const R = await Promise.all(more.map(m => m[1])); more.forEach((m, i) => add(m[0], R[i]));
+      await fill();
     }
     const items = usable();
     /* only what has a word of the search in its name or brand; the most words first (a shop that was typed counts when the product is
