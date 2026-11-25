@@ -1046,6 +1046,14 @@ const PARTS = {
       await page.waitForFunction(w => { const o = document.querySelector("#kcsr"); return o && !o.classList.contains("busy") && new RegExp(w).test(o.innerText); }, want, {timeout: 7000}).catch(() => {}); await sleep(250); return txt(page, "#kcsr"); };
     const shut = async () => { if (await has(page, "#kcsx")){ await page.tap("#kcsx"); await sleep(400); } };
     const e0 = global.__embeds || 0;
+    /* products that the new search of Open Food Facts does not find the way they were typed (Wolf, Idee 85872525: "Lidl Croissant Schoko Nougat") */
+    { const food = async q => (await (await fetch(L.BASE + "/api/food?debug=1&q=" + encodeURIComponent(q))).json());
+      let j = await food("Lidl Croissant Schoko Nougat"), f = (j.items || [])[0] || {};
+      ok(/Schoko-Nougat/.test(f.name || "") && f.brand === "Lidl" && f.k === 428 && f.serving === 80, "„Lidl Croissant Schoko Nougat“: das Lidl-Croissant steht ganz oben (aus der zweiten Suche, „Lidl“ muss nicht im Namen stehen)", JSON.stringify(j).slice(0, 300));
+      ok((j.items || []).some(x => x.name === "Schokocroissant"), "… darunter weitere Croissants, die nur einen Teil der Wörter haben", JSON.stringify((j.items || []).map(x => x.name)));
+      j = await food("Schoko Croissant"); ok((j.items || []).length >= 2 && /Schokocroissant|Schoko-Nougat/.test(j.items[0].name) && j.items.every(x => x.name !== "Mini croissants" || x !== j.items[0]), "„Schoko Croissant“ findet „Schokocroissant“ (zusammengeschrieben) und das Lidl-Croissant statt nichts", JSON.stringify((j.items || []).map(x => x.name)));
+      j = await food("Croissant"); ok((j.items || []).length >= 2 && j.items[0].name !== "Mini croissants", "„Croissant“: Produkte aus Deutschland stehen vor dem amerikanischen", JSON.stringify((j.items || []).map(x => x.name)));
+      j = await (await fetch(L.BASE + "/api/food?q=Bananen")).json(); ok((j.items || []).some(x => x.name === "Bananen") && !("asked" in j), "die Suche findet weiter, was sie vorher fand (Bananen)", JSON.stringify(j).slice(0, 200)); }
     let t = await search("Fruchtrio", "Schon gegessen"); await page.shot("suche-fruchtrio");
     ok(/^Schon gegessen/.test(t) && /Buntes Frucht-Trio/.test(t) && /2× gegessen/.test(t), "„Fruchtrio“ (falsch geschrieben) findet das „Buntes Frucht-Trio“ ganz oben unter „Schon gegessen“ (2× gegessen)", t.slice(0, 160));
     /* taking it from there works like any product: its own portion, its own values */
