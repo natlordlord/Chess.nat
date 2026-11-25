@@ -195,6 +195,19 @@ global.fetch = async (url, init = {}) => {
   if (/search\.openfoodfacts\.org/.test(url) && /categories_tags/.test(new URL(url).searchParams.get("q") || "")){ const q = new URL(url).searchParams.get("q");
     if (!global.__offCats || !/en:green-pestos/.test(q)) return json({hits: []});
     return json({hits: Array.from({length: 30}, (_, i) => ({code: "p" + i, nutriments: i === 7 ? {"energy-kcal_100g": 131, carbohydrates_100g: 20, proteins_100g: 5, fat_100g: 3} : {"energy-kcal_100g": 467 + (i % 11), carbohydrates_100g: 6 + (i % 4), proteins_100g: 5 + (i % 3) * .8, fat_100g: 46 + (i % 3) * .3, fiber_100g: 2, sugars_100g: 3.2, "saturated-fat_100g": 6.4}}))}); }
+  /* the classic search of the Open Food Facts website (api/food.js asks it next to the new one). It knows a croissant from Lidl that the
+     new search does not; like the real one it only answers when every word asked is in the product. The new search below gets asked
+     strictly for the croissant words too, the way the real one behaves ("Schoko Croissant" finds nothing there). */
+  /* a product by its barcode, asked by api/food.js for a hit of the new search that came without nutrition values (that is what the
+     real one does for most products since November 2026) */
+  if (/world\.openfoodfacts\.org\/api\/v2\/product\/4000000009984/.test(url)){ global.__offCode = (global.__offCode || 0) + 1; return json({status: 1, product: {code: "4000000009984", product_name: "Schoko-Croissant", brands: "Goldähren", serving_quantity: 90, serving_size: "90 g", countries_tags: ["en:germany"], nutriments: {"energy-kcal_100g": 433, carbohydrates_100g: 46, proteins_100g: 7.4, fat_100g: 24}}}); }
+  if (/de\.openfoodfacts\.org\/cgi\/search\.pl/.test(url)){ global.__offOld = (global.__offOld || []).concat(new URL(url).searchParams.get("search_terms"));
+    const ws = new URL(url).searchParams.get("search_terms").toLowerCase().split(/\s+/).filter(Boolean), P = [{code: "4056489000013", product_name: "Croissant mit Schoko-Nougat-Füllung", brands: "Lidl", stores: "Lidl", countries_tags: ["en:germany"], serving_size: "1 Stück (80 g)", serving_quantity: 80, nutriments: {"energy-kcal_100g": 428, carbohydrates_100g: 45, proteins_100g: 7.1, fat_100g: 24, sugars_100g: 17, "saturated-fat_100g": 12, salt_100g: .8}}];
+    return json({count: 1, products: P.filter(p => ws.every(w => (p.product_name + " " + p.brands).toLowerCase().includes(w)))}); }
+  if (/search\.openfoodfacts\.org/.test(url) && /croissant|nougat/i.test(new URL(url).searchParams.get("q") || "")){ const q = new URL(url).searchParams.get("q").toLowerCase();
+    const P = [{code: "0048121101015", product_name: "Mini croissants", brands: "", countries_tags: ["en:united-states"], nutriments: {"energy-kcal_100g": 375, carbohydrates_100g: 37.5, proteins_100g: 6.3, fat_100g: 20.8}}, {code: "4000000009991", product_name: "Schokocroissant", brands: "Backstube", countries_tags: ["en:germany"], nutriments: {"energy-kcal_100g": 410, carbohydrates_100g: 44, proteins_100g: 7, fat_100g: 22}}, {code: "4000000009984", product_name: "Schoko-Croissant", brands: "Goldähren", countries_tags: ["en:germany"]}];
+    const de = /countries_tags:"en:germany"/.test(q), ws = q.replace(/ countries_tags:"[^"]+"/, "").split(/\s+/).filter(Boolean);
+    return json({hits: P.filter(p => (!de || p.countries_tags.includes("en:germany")) && ws.every(w => p.product_name.toLowerCase().includes(w.replace(/~\d$/, ""))))}); }
   if (/search\.openfoodfacts\.org/.test(url)){ const q = new URL(url).searchParams.get("q").toLowerCase(); return json({hits: FOODS.filter(f => q.split(/\s+/).some(w => w.length > 1 && (f[1] + " " + f[2]).toLowerCase().includes(w.slice(0, 4)))).map(offHit)}); }
   return realFetch(url, init);
 };

@@ -219,16 +219,19 @@ const pnorm = t => String(t || "").toLowerCase().normalize("NFD").replace(/[\u03
 async function offProduct(name){
   const FILL = /^(alla|allo|von|vom|mit|und|der|die|das|the|des|del|della|aus|bio|marke|eigenmarke)$/;
   const words = pnorm(name).split(/[^a-z0-9]+/).filter(w => w.length >= 3 && !FILL.test(w)); if (!words.length) return null;
-  const url = "https://search.openfoodfacts.org/search?" + new URLSearchParams({q: name, page_size: "30", langs: "de,en", fields: "code,product_name,product_name_de,generic_name,brands,stores,nutriments,countries_tags"});
-  const r = await fetch(url, Object.assign({headers: {"User-Agent": "ChessNat/1.0 (chess-nat.vercel.app)"}}, soon(5000))); if (!r.ok) return null; const j = await r.json();
-  const L = (j.hits || []).map((p, ix) => { const n = p.nutriments || {}, brand = (Array.isArray(p.brands) ? p.brands[0] : String(p.brands || "").split(",")[0]) || "";
+  const F = "code,product_name,product_name_de,generic_name,brands,stores,nutriments,countries_tags", H = {headers: {"User-Agent": "ChessNat/1.0 (chess-nat.vercel.app)"}};
+  const pick = hits => (hits || []).map((p, ix) => { const n = p.nutriments || {}, brand = (Array.isArray(p.brands) ? p.brands[0] : String(p.brands || "").split(",")[0]) || "";
     return {ix, code: String(p.code || ""), name: String(p.product_name_de || p.product_name || p.generic_name || "").trim().slice(0, 80), brand: String(brand).trim().slice(0, 40),
       k: Number(n["energy-kcal_100g"]) || (Number(n["energy_100g"]) ? Number(n["energy_100g"]) / 4.184 : 0), c: Number(n.carbohydrates_100g), p: Number(n.proteins_100g), f: Number(n.fat_100g),
       fi: Number(n.fiber_100g) || 0, su: Number(n.sugars_100g) || 0, sf: Number(n["saturated-fat_100g"]) || 0, sa: Number(n.salt_100g) || 0,
       st: Array.isArray(p.stores) ? p.stores.join(" ") : String(p.stores || ""),
       de: Array.isArray(p.countries_tags) && (p.countries_tags.includes("en:germany") || p.countries_tags.includes("en:austria")) ? 1 : 0}; })
-    .filter(x => x.name && x.k > 0 && x.k <= 950 && [x.c, x.p, x.f].every(v => isFinite(v) && v >= 0 && v <= 100)).filter(x => { const t = pnorm(x.name + " " + x.brand + " " + x.st); return words.every(w => t.includes(w)); });
-  L.sort((a, b) => b.de - a.de || a.ix - b.ix); return L[0] || null;
+    .filter(x => x.name && x.k > 0 && x.k <= 950 && [x.c, x.p, x.f].every(v => isFinite(v) && v >= 0 && v <= 100)).filter(x => { const t = pnorm(x.name + " " + x.brand + " " + x.st); return words.every(w => t.includes(w)); }).sort((a, b) => b.de - a.de || a.ix - b.ix)[0] || null;
+  const r = await fetch("https://search.openfoodfacts.org/search?" + new URLSearchParams({q: name, page_size: "30", langs: "de,en", fields: F}), Object.assign({}, H, soon(5000))).catch(() => null), j = r && r.ok ? await r.json().catch(() => null) : null;
+  const P = pick(j && j.hits); if (P) return P;
+  /* the new search of Open Food Facts does not know every product: the classic one (the German website's own search) knows more */
+  const r2 = await fetch("https://de.openfoodfacts.org/cgi/search.pl?" + new URLSearchParams({search_terms: words.join(" "), search_simple: "1", action: "process", json: "1", page_size: "30", fields: F}), Object.assign({}, H, soon(4000))).catch(() => null), j2 = r2 && r2.ok ? await r2.json().catch(() => null) : null;
+  return pick(j2 && j2.products);
 }
 async function fromProducts(items, raw){
   const miss = [];

@@ -4,6 +4,9 @@
   ],
   "cleanUrls": true,
   "functions": {
+    "api/food.js": {
+      "maxDuration": 30
+    },
     "api/foods.js": {
       "maxDuration": 60
     },
