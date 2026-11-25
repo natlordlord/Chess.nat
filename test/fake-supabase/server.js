@@ -203,7 +203,8 @@ global.fetch = async (url, init = {}) => {
     return json({count: 1, products: P.filter(p => ws.every(w => (p.product_name + " " + p.brands).toLowerCase().includes(w)))}); }
   if (/search\.openfoodfacts\.org/.test(url) && /croissant|nougat/i.test(new URL(url).searchParams.get("q") || "")){ const q = new URL(url).searchParams.get("q").toLowerCase();
     const P = [{code: "0048121101015", product_name: "Mini croissants", brands: "", countries_tags: ["en:united-states"], nutriments: {"energy-kcal_100g": 375, carbohydrates_100g: 37.5, proteins_100g: 6.3, fat_100g: 20.8}}, {code: "4000000009991", product_name: "Schokocroissant", brands: "Backstube", countries_tags: ["en:germany"], nutriments: {"energy-kcal_100g": 410, carbohydrates_100g: 44, proteins_100g: 7, fat_100g: 22}}];
-    return json({hits: P.filter(p => q.split(/\s+/).every(w => p.product_name.toLowerCase().includes(w.replace(/~\d$/, ""))))}); }
+    const de = /countries_tags:"en:germany"/.test(q), ws = q.replace(/ countries_tags:"[^"]+"/, "").split(/\s+/).filter(Boolean);
+    return json({hits: P.filter(p => (!de || p.countries_tags.includes("en:germany")) && ws.every(w => p.product_name.toLowerCase().includes(w.replace(/~\d$/, ""))))}); }
   if (/search\.openfoodfacts\.org/.test(url)){ const q = new URL(url).searchParams.get("q").toLowerCase(); return json({hits: FOODS.filter(f => q.split(/\s+/).some(w => w.length > 1 && (f[1] + " " + f[2]).toLowerCase().includes(w.slice(0, 4)))).map(offHit)}); }
   return realFetch(url, init);
 };

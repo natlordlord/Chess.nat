@@ -23,12 +23,17 @@ async function get(url, ms){
   catch(e) { WHY[url] = e && e.name === "AbortError" ? "zu langsam (" + ms + " ms)" : String((e && e.message) || e); return null; } finally { clearTimeout(to); }
 }
 /* Open Food Facts has two searches. The new one (search.openfoodfacts.org) is fast, but only finds a product when every word typed
-   is in it exactly like that, and it does not know every product. The classic one (the search of the website itself, here the German
+   is in it exactly like that (asked twice: plain, and only products sold in Germany with the most scanned first). The classic one (the search of the website itself, here the German
    site, so products sold in Germany) finds a lot more for German names. Both are asked and their answers put together. */
-const U1 = q => "https://search.openfoodfacts.org/search?" + new URLSearchParams({q, page_size: "40", langs: "de,en", fields: FIELDS});
+const U1 = (q, de) => "https://search.openfoodfacts.org/search?" + new URLSearchParams(Object.assign({q: de ? q + ' countries_tags:"en:germany"' : q, page_size: "40", langs: "de,en", fields: FIELDS}, de ? {sort_by: "-unique_scans_n"} : {}));
 const U2 = q => "https://de.openfoodfacts.org/cgi/search.pl?" + new URLSearchParams({search_terms: q, search_simple: "1", action: "process", json: "1", page_size: "40", fields: FIELDS});
 const ask = (q, ms) => get(U1(q), ms || 6000).then(j => j && Array.isArray(j.hits) ? j.hits : null);
-const askOld = (q, ms) => get(U2(q), ms || 8000).then(j => j && Array.isArray(j.products) ? j.products : null);
+/* the same, but only products sold in Germany, the most scanned first: for one word alone the plain search brings products from anywhere */
+const askDE = (q, ms) => get(U1(q, 1), ms || 6000).then(j => j && Array.isArray(j.hits) ? j.hits : null);
+/* the classic search turns a second question away while it is busy with the first (HTTP 503): one at a time, and once more after a moment */
+let oldLine = Promise.resolve();
+const askOld = (q, ms) => { const run = async () => { let j = await get(U2(q), ms || 8000); if (!j && /503|429/.test(WHY[U2(q)] || "")){ await new Promise(r => setTimeout(r, 700)); j = await get(U2(q), ms || 8000); } return j && Array.isArray(j.products) ? j.products : null; };
+  const p = oldLine.then(run, run); oldLine = p.catch(() => {}); return p; };
 /* shops and filler words: nobody has "Lidl" in the product's name, so they must not keep a product out */
 const SHOP = /^(lidl|aldi|rewe|edeka|penny|netto|kaufland|norma|dm|rossmann|globus|real|spar|hofer|billa|migros|coop|tegut|famila|marktkauf|nahkauf)$/;
 const FILL = /^(mit|und|von|vom|der|die|das|aus|the|bio|oder|ohne|muss|marke|eigenmarke)$/;
@@ -49,17 +54,15 @@ module.exports = async (req, res) => {
     const text = p => norm([p.product_name_de, p.product_name, p.generic_name, Array.isArray(p.brands) ? p.brands.join(" ") : p.brands, Array.isArray(p.stores) ? p.stores.join(" ") : p.stores].filter(Boolean).join(" "));
     const fits = (w, t, tc) => t.includes(w) || tc.includes(w) || (w.length >= 5 && near(w, tc) <= okErr(w.length));
     const full = () => pool.filter(p => { const t = text(p), tc = t.replace(/[^a-z0-9]+/g, ""); return must.every(w => fits(w, t, tc)); }).length;
-    /* several words: the classic search is asked for the most telling word alone right away (it is the slow one, and it only
-       finds a product that has every word asked: "Croissant Schoko Nougat" finds nothing, "Croissant" finds the one that is meant) */
     const long = must.slice().sort((a, b) => b.length - a.length).slice(0, 2), wide = must.length >= 2;
-    const [A, B, C] = await Promise.all([ask(qs), askOld(qc), wide ? askOld(long[0]) : null]); add("neu", A); add("alt", B); if (wide) add("alt-wort-" + long[0], C);
-    if (!A && !B && !C) return res.status(502).json({error: "Die Suche ist gerade nicht erreichbar."});
+    const [A, D, B] = await Promise.all([ask(qs), askDE(qc), askOld(qc)]); add("de", D); add("neu", A); add("alt", B);
+    if (!A && !B && !D) return res.status(502).json({error: "Die Suche ist gerade nicht erreichbar."});
     /* too little that has all the words ("Schoko Croissant" is written "Schokocroissant", "Croissant mit Schokolade" …): ask again
-       without the shop, written together, and for the other telling word alone; the list below puts what fits best on top */
+       without the shop, written together, and for the most telling words alone; the list below puts what fits best on top */
     if (full() < 5 && must.length){
       const more = [];
       if (qc !== qs) more.push(["neu-ohne-laden", ask(qc, 4500)]);
-      if (wide){ more.push(["zusammen", ask(must.join(""), 4500)]); for (const w of long) more.push(["wort-" + w, ask(w, 4500)]); more.push(["alt-wort-" + long[1], askOld(long[1], 7000)]); }
+      if (wide){ more.push(["zusammen", askDE(must.join(""), 4500)]); for (const w of long) more.push(["de-wort-" + w, askDE(w, 4500)]); more.push(["alt-wort-" + long[0], askOld(long[0], 7000)]); }
       /* nothing at all: once more with the longer words allowed a typo or two ("nutela" → Nutella), if the search takes that */
       if (!pool.length && must.some(w => w.length >= 5)) more.push(["tippfehler", ask(must.map(w => w.length >= 5 ? w + "~" + okErr(w.length) : w).join(" "), 4500)]);
       const R = await Promise.all(more.map(m => m[1])); more.forEach((m, i) => add(m[0], R[i]));
