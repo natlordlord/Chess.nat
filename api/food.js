@@ -18,7 +18,7 @@ const MEM = new Map(), WHY = {};
 async function get(url, ms){
   const m = MEM.get(url); if (m && Date.now() - m.at < 6e5) return m.j; if (Object.keys(WHY).length > 50) for (const k in WHY) delete WHY[k];
   const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), ms);
-  try { const r = await fetch(url, {headers: {"User-Agent": "ChessNat/1.0 (chess-nat.vercel.app)"}, signal: ctl.signal}); if (!r.ok){ WHY[url] = "HTTP " + r.status; return null; }
+  try { const r = await fetch(url, {headers: {"User-Agent": "ChessNat/1.0 (chess-nat.vercel.app)"}, signal: ctl.signal}); if (!r.ok){ WHY[url] = "HTTP " + r.status + " " + (await r.text().catch(() => "")).replace(/\s+/g, " ").slice(0, 300); return null; } delete WHY[url];
     const j = await r.json(); if (MEM.size > 300) MEM.clear(); MEM.set(url, {at: Date.now(), j}); return j; }
   catch(e) { WHY[url] = e && e.name === "AbortError" ? "zu langsam (" + ms + " ms)" : String((e && e.message) || e); return null; } finally { clearTimeout(to); }
 }
@@ -32,7 +32,7 @@ const ask = (q, ms) => get(U1(q), ms || 6000).then(j => j && Array.isArray(j.hit
 const askDE = (q, ms) => get(U1(q, 1), ms || 6000).then(j => j && Array.isArray(j.hits) ? j.hits : null);
 /* the classic search turns a second question away while it is busy with the first (HTTP 503): one at a time, and once more after a moment */
 let oldLine = Promise.resolve();
-const askOld = (q, ms) => { const run = async () => { let j = await get(U2(q), ms || 8000); if (!j && /503|429/.test(WHY[U2(q)] || "")){ await new Promise(r => setTimeout(r, 700)); j = await get(U2(q), ms || 8000); } return j && Array.isArray(j.products) ? j.products : null; };
+const askOld = (q, ms) => { const run = async () => { let j = null; for (let n = 0; n < 3 && !j; n++){ if (n) await new Promise(r => setTimeout(r, 1200)); j = await get(U2(q), ms || 8000); if (j || !/^HTTP (503|429)/.test(WHY[U2(q)] || "")) break; } return j && Array.isArray(j.products) ? j.products : null; };
   const p = oldLine.then(run, run); oldLine = p.catch(() => {}); return p; };
 /* shops and filler words: nobody has "Lidl" in the product's name, so they must not keep a product out */
 const SHOP = /^(lidl|aldi|rewe|edeka|penny|netto|kaufland|norma|dm|rossmann|globus|real|spar|hofer|billa|migros|coop|tegut|famila|marktkauf|nahkauf)$/;
