@@ -50,9 +50,19 @@ module.exports = async (req, res) => {
     const qc = core.length && core.length < words.length ? qs.split(/\s+/).filter(w => { const n = norm(w).replace(/[^a-z0-9]/g, ""); return !SHOP.test(n) && !FILL.test(n); }).join(" ") : qs;
     const pool = [], byCode = new Set(), stat = {};
     const add = (tag, L) => { stat[tag] = L ? L.length : null; for (const p of L || []){ const c = String(p.code || ""); if (c && byCode.has(c)) continue; if (c) byCode.add(c); pool.push(p); } };
-    const text = p => norm([p.product_name_de, p.product_name, p.generic_name, Array.isArray(p.brands) ? p.brands.join(" ") : p.brands, Array.isArray(p.stores) ? p.stores.join(" ") : p.stores].filter(Boolean).join(" "));
+    const item = p => {
+      const n = p.nutriments || {}, k = Number(n["energy-kcal_100g"]) || (Number(n["energy_100g"]) ? Number(n["energy_100g"]) / 4.184 : 0);
+      const brand = (Array.isArray(p.brands) ? p.brands[0] : String(p.brands || "").split(",")[0]) || "";
+      return {st: norm(Array.isArray(p.stores) ? p.stores.join(" ") : p.stores || ""), code: String(p.code || ""), name: String(p.product_name_de || p.product_name || p.generic_name || "").trim().slice(0, 90), brand: String(brand).trim().slice(0, 40),
+        k: Math.round(k), c: r1(n.carbohydrates_100g), pr: r1(n.proteins_100g), f: r1(n.fat_100g),
+        serving: Math.round(Number(p.serving_quantity) || 0), ss: String(p.serving_size || "").slice(0, 60), pack: Math.round(Number(p.product_quantity) || 0), img: p.image_front_small_url || null,
+        fi: r1(n.fiber_100g), su: r1(n.sugars_100g), sf: r1(n["saturated-fat_100g"]), sa: Math.round((Number(n.salt_100g) || 0) * 100) / 100, ns: /^[a-e]$/.test(String(p.nutriscore_grade || "").toLowerCase()) ? String(p.nutriscore_grade).toLowerCase() : "", hd: "sugars_100g" in n || "fiber_100g" in n || "saturated-fat_100g" in n ? 1 : 0,
+        de: Array.isArray(p.countries_tags) && (p.countries_tags.includes("en:germany") || p.countries_tags.includes("en:austria")) ? 1 : 0};
+    };
+    /* only what can be shown counts: a product with a name and calories, each once */
+    const usable = () => { const seen = new Set(); return pool.map(item).filter(x => { const key = (x.name + "|" + x.brand + "|" + x.k).toLowerCase(); if (!x.name || !(x.k > 0) || x.k > 950 || seen.has(key)) return false; seen.add(key); return true; }); };
     const fits = (w, t, tc) => t.includes(w) || tc.includes(w) || (w.length >= 5 && near(w, tc) <= okErr(w.length));
-    const full = () => pool.filter(p => { const t = text(p), tc = t.replace(/[^a-z0-9]+/g, ""); return must.every(w => fits(w, t, tc)); }).length;
+    const full = () => usable().filter(x => { const t = norm(x.name + " " + x.brand), tc = t.replace(/[^a-z0-9]+/g, ""); return must.every(w => fits(w, t, tc)); }).length;
     const long = must.slice().sort((a, b) => b.length - a.length).slice(0, 2), wide = must.length >= 2;
     const [A, B] = await Promise.all([ask(qs), askOld(qc)]); add("neu", A); add("alt", B);
     if (!A && !B) return res.status(502).json({error: "Die Suche ist gerade nicht erreichbar."});
@@ -66,17 +76,7 @@ module.exports = async (req, res) => {
       if (!pool.length && must.some(w => w.length >= 5)) more.push(["tippfehler", ask(must.map(w => w.length >= 5 ? w + "~" + okErr(w.length) : w).join(" "), 4500)]);
       const R = await Promise.all(more.map(m => m[1])); more.forEach((m, i) => add(m[0], R[i]));
     }
-    const j = {hits: pool};
-    const seen = new Set();
-    const items = (j.hits || []).map(p => {
-      const n = p.nutriments || {}, k = Number(n["energy-kcal_100g"]) || (Number(n["energy_100g"]) ? Number(n["energy_100g"]) / 4.184 : 0);
-      const brand = (Array.isArray(p.brands) ? p.brands[0] : String(p.brands || "").split(",")[0]) || "";
-      return {st: norm(Array.isArray(p.stores) ? p.stores.join(" ") : p.stores || ""), code: String(p.code || ""), name: String(p.product_name_de || p.product_name || p.generic_name || "").trim().slice(0, 90), brand: String(brand).trim().slice(0, 40),
-        k: Math.round(k), c: r1(n.carbohydrates_100g), pr: r1(n.proteins_100g), f: r1(n.fat_100g),
-        serving: Math.round(Number(p.serving_quantity) || 0), ss: String(p.serving_size || "").slice(0, 60), pack: Math.round(Number(p.product_quantity) || 0), img: p.image_front_small_url || null,
-        fi: r1(n.fiber_100g), su: r1(n.sugars_100g), sf: r1(n["saturated-fat_100g"]), sa: Math.round((Number(n.salt_100g) || 0) * 100) / 100, ns: /^[a-e]$/.test(String(p.nutriscore_grade || "").toLowerCase()) ? String(p.nutriscore_grade).toLowerCase() : "", hd: "sugars_100g" in n || "fiber_100g" in n || "saturated-fat_100g" in n ? 1 : 0,
-        de: Array.isArray(p.countries_tags) && (p.countries_tags.includes("en:germany") || p.countries_tags.includes("en:austria")) ? 1 : 0};
-    }).filter(x => { const key = (x.name + "|" + x.brand + "|" + x.k).toLowerCase(); if (!x.name || !(x.k > 0) || x.k > 950 || seen.has(key)) return false; seen.add(key); return true; });
+    const items = usable();
     /* only what has a word of the search in its name or brand; the most words first (a shop that was typed counts when the product is
        sold there), then products sold in Germany, then the search's own order */
     /* a word counts when it is in there, also with a typo (and with or without spaces and hyphens: "fruchtrio" fits "Frucht-Trio") */
