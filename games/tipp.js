@@ -1,11 +1,13 @@
 /* ===== Chess.nat Tippspiel: tip the result, nothing else.
-   Football (Deutschland, Bayern, Bundesliga, Champions League, DFB-Pokal, Nations League A) and the UFC title fights.
+   Football (Deutschland, Bayern, Bundesliga, Champions League, DFB-Pokal, Nations League A) for everyone; the UFC (every fight
+   of a card) only for those who switch it on in the library; big fights no source lists (boxing) with the result entered by an admin.
    The Nations League tab (groups, what has to happen, bracket) is games/nations.js.
    One tip per game, changeable until kick-off and saved on the server the moment you change it (tipp_pick).
    Points like Kicktipp: exact score 4 · right goal difference 3 · right winner or draw 2 · UFC, LoL, library: right winner 3.
    Fixtures and live scores come from the edge function "tipp" (ESPN, every minute) and "tipp-lol" (LoL Esports); Nat-KI tips along.
    The library (📚 Ligen): every league Polymarket lists, followed one by one (tipp_follows); their games come from the edge function
-   "tipp-pm" with odds, live score and result. Every game has a source for its result, none is entered by hand without one. ===== */
+   "tipp-pm" with odds, live score and result. Every game has a source for its result: ESPN, LoL Esports, Polymarket, or "hand"
+   (meta.src.kind): an admin taps the winner under Ergebnisse after the fight (tipp_result) and is reminded to (supabase/tipp_hand.sql). ===== */
 (() => {
   const de = () => typeof I18N === "undefined" || I18N.lang === "de";
   const T = (en, dg) => de() ? dg : en;
@@ -13,17 +15,22 @@
   const meId = () => (typeof Social !== "undefined" && Social.me) || (window.ChessSite && ChessSite.storedUid ? ChessSite.storedUid() : null);
   const h = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
   const bay = n => /bayern/i.test(n || "");
-  const COMP = {"nt": ["🇩🇪", T("Germany", "Deutschland")], "ger.1": ["⚽", "Bundesliga"], "uefa.champions": ["⭐", "Champions League"], "ger.dfb_pokal": ["🏆", "DFB-Pokal"], "ufc": ["🥊", T("UFC title fight", "UFC-Titelkampf")], "lol": ["🎮", "League of Legends"], "uefa.nations": ["🌍", "Nations League"]};
+  const COMP = {"nt": ["🇩🇪", T("Germany", "Deutschland")], "ger.1": ["⚽", "Bundesliga"], "uefa.champions": ["⭐", "Champions League"], "ger.dfb_pokal": ["🏆", "DFB-Pokal"], "ufc": ["🥊", "UFC"], "box": ["🥊", T("Boxing", "Boxen")], "lol": ["🎮", "League of Legends"], "uefa.nations": ["🌍", "Nations League"]};
   /* the library's groups (tipp_leagues.grp) */
   const GRP = {fb: ["⚽", "Football", "Fußball"], bk: ["🏀", "Basketball", "Basketball"], es: ["🎮", "Esports", "Esports"], tn: ["🎾", "Tennis", "Tennis"], mma: ["🥊", "Combat sports", "Kampfsport"],
     ih: ["🏒", "Ice hockey", "Eishockey"], af: ["🏈", "American football", "American Football"], hb: ["🤾", "Handball", "Handball"], vb: ["🏐", "Volleyball", "Volleyball"], da: ["🎯", "Darts", "Darts"],
     bb: ["⚾", "Baseball", "Baseball"], tt: ["🏓", "Table tennis", "Tischtennis"], ch: ["♟️", "Chess", "Schach"], ru: ["🏉", "Rugby & Footy", "Rugby & Footy"], cr: ["🏏", "Cricket", "Cricket"], x: ["🏅", "More", "Weitere"]};
   const GORDER = Object.keys(GRP);
+  /* in the Tippspiel from ESPN, but only for those who follow it in the library: league key -> the comp of its games */
+  const OPT = {"mma-ufc": "ufc"}, OPTC = Object.fromEntries(Object.entries(OPT).map(([k, c]) => [c, k])), fkey = k => OPT[k] || "pm:" + k;
+  /* the result is entered by an admin (no source lists the game) */
+  const isHand = e => !!(e && e.meta && e.meta.src && e.meta.src.kind === "hand");
+  const tba = n => !n || /\bTBA\b|^\?$/i.test(n);
   const isPM = e => /^pm:/.test((e && e.comp) || "");
   const lg = e => (Tipp.leagues || {})[String(e.comp || "").slice(3)] || null;
   const comp = e => isPM(e) ? [(GRP[(lg(e) || {}).grp] || GRP.x)[0], (lg(e) || {}).name || e.name || ""] : COMP[e.comp] || ["⚽", ""];
   const fold = s => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  const FILTERS = [["all", T("All", "Alle")], ["nt", "🇩🇪 " + T("Germany", "Deutschland")], ["uefa.nations", "🌍 Nations League"], ["bay", "⭐ Bayern"], ["ger.1", "Bundesliga"], ["uefa.champions", "Champions League"], ["ger.dfb_pokal", "DFB-Pokal"], ["ufc", "🥊 UFC"], ["lol", "🎮 LoL"]];
+  const FILTERS = [["all", T("All", "Alle")], ["nt", "🇩🇪 " + T("Germany", "Deutschland")], ["uefa.nations", "🌍 Nations League"], ["bay", "⭐ Bayern"], ["ger.1", "Bundesliga"], ["uefa.champions", "Champions League"], ["ger.dfb_pokal", "DFB-Pokal"], ["lol", "🎮 LoL"]];
   /* short club names, so a row never wraps ("Bayern" instead of "FC Bayern München") */
   const SN = {"FC Bayern München": "Bayern", "FC Bayern": "Bayern", "Bayern München": "Bayern", "Borussia Dortmund": "Dortmund", "Borussia Mönchengladbach": "Gladbach", "Bayer 04 Leverkusen": "Leverkusen", "Bayer Leverkusen": "Leverkusen", "RB Leipzig": "Leipzig", "Eintracht Frankfurt": "Frankfurt", "VfB Stuttgart": "Stuttgart", "SC Freiburg": "Freiburg", "TSG Hoffenheim": "Hoffenheim", "TSG 1899 Hoffenheim": "Hoffenheim", "1. FC Union Berlin": "Union Berlin", "Union Berlin": "Union Berlin", "SV Werder Bremen": "Bremen", "Werder Bremen": "Bremen", "VfL Wolfsburg": "Wolfsburg", "1. FSV Mainz 05": "Mainz", "Mainz 05": "Mainz", "FC Augsburg": "Augsburg", "1. FC Heidenheim 1846": "Heidenheim", "1. FC Heidenheim": "Heidenheim", "FC St. Pauli": "St. Pauli", "1. FC Köln": "Köln", "Hamburger SV": "HSV", "VfL Bochum": "Bochum", "Holstein Kiel": "Kiel", "SC Paderborn 07": "Paderborn", "SV Elversberg": "Elversberg", "Real Madrid": "Real Madrid", "FC Barcelona": "Barcelona", "Paris Saint-Germain": "Paris SG", "Manchester City": "Man City", "Manchester United": "Man United", "Atlético Madrid": "Atlético", "Atletico Madrid": "Atlético", "Inter Mailand": "Inter", "Internazionale": "Inter", "Tottenham Hotspur": "Tottenham", "Newcastle United": "Newcastle", "Bosnien-Herzegowina": "Bosnien"};
   const sn = n => { n = String(n || ""); if (SN[n]) return SN[n]; if (n.length <= 14) return n; const x = n.replace(/^(1\. )?(FC|SC|SV|VfB|VfL|TSG|RB|FSV|SpVgg|SSV|AFC|CF) /, "").replace(/ (FC|CF|SC|\d{2,4})$/, "").trim(); return x || n; };
@@ -38,8 +45,8 @@
   const haptic = p => { try { if (typeof Haptic !== "undefined") Haptic.go(p); else if (navigator.vibrate) navigator.vibrate(p); } catch(e) {} };
   const tap = () => { try { Sound.tap(); } catch(e) {} };
 
-  /* what is tipped at all: football, and the UFC title fights (five rounds on a numbered card) */
-  const tippable = e => e && e.state !== "canc" && (e.sport === "fb" || e.sport === "lol" || e.sport === "pm" || (e.sport === "mma" && e.meta && e.meta.title));
+  /* what is tipped at all: football, LoL, the library, hand-entered fights, and every UFC fight whose two fighters are known */
+  const tippable = e => e && e.state !== "canc" && (e.sport === "fb" || e.sport === "lol" || e.sport === "pm" || (e.sport === "mma" && !tba(e.home) && !tba(e.away)));
   /* tipped by winner (3 points) instead of a score: UFC title fights and the big League of Legends series */
   /* a Nations League game (Germany's are "nt", the others "uefa.nations") */
   const isNL = e => e.comp === "uefa.nations" || /^espn:uefa\.nations:/.test(e.id || "");
@@ -59,11 +66,11 @@
 
   const Tipp = {
     ev: [], picks: {}, table: [], tab: "tip", loaded: false, loadT: 0, who: null, err: false,
-    sel: (() => { try { const v = JSON.parse(localStorage.getItem("chessnat-tipp-sel") || "[]"); return new Set(v.filter(k => FILTERS.some(f => f[0] === k) || /^pm:/.test(k))); } catch(e) { return new Set(); } })(),
+    sel: (() => { try { const v = JSON.parse(localStorage.getItem("chessnat-tipp-sel") || "[]"); return new Set(v.filter(k => FILTERS.some(f => f[0] === k) || /^pm:/.test(k) || OPTC[k])); } catch(e) { return new Set(); } })(),
     saveSel(){ try { localStorage.setItem("chessnat-tipp-sel", JSON.stringify([...this.sel])); } catch(e) {} },
     /* games from three weeks back to 40 days ahead, and my tips */
     /* the library: the leagues I follow (with their names), and all leagues once the library is opened */
-    leagues: {}, follows: new Set(),
+    leagues: {}, follows: new Set(), admin: false,
     async loadFollows(){ const c = sb(), me = meId(); if (!c || !me) return; try {
       const {data, error} = await c.from("tipp_follows").select("league,tipp_leagues(key,name,grp,image)").eq("user_id", me); if (error) return;
       this.follows = new Set((data || []).map(r => r.league)); (data || []).forEach(r => { if (r.tipp_leagues) this.leagues[r.league] = Object.assign({}, this.leagues[r.league] || {}, r.tipp_leagues); }); } catch(e) {} },
@@ -77,7 +84,8 @@
       const COLS = "id,sport,comp,name,home,away,home_logo,away_logo,start_at,state,clock,score_h,score_a,meta,fav";
       const [e, p] = await Promise.all([
         c.from("tipp_events").select(COLS).gte("start_at", from).lte("start_at", to).not("comp", "like", "pm:%").order("start_at"),
-        me ? c.from("tipp_picks").select("event_id,sh,sa,w,updated_at").eq("user_id", me) : Promise.resolve({data: []}), this.loadFollows()]);
+        me ? c.from("tipp_picks").select("event_id,sh,sa,w,updated_at").eq("user_id", me) : Promise.resolve({data: []}), this.loadFollows(),
+        me ? c.from("tipp_admins").select("user_id").eq("user_id", me).then(r => { this.admin = !!(r.data && r.data.length); }, () => {}) : Promise.resolve()]);
       if (e.error) throw e.error;
       let ev = e.data || []; const P = {}; (p.data || []).forEach(r => P[r.event_id] = {sh: r.sh, sa: r.sa, w: r.w});
       const fl = [...this.follows].map(k => `"pm:${k}"`), mine = Object.keys(P).filter(id => /^pm:/.test(id) && !ev.some(x => x.id === id));
@@ -88,6 +96,8 @@
       const base = ev.filter(x => !isPM(x)), same = (a, b) => Math.abs(Date.parse(a.start_at) - Date.parse(b.start_at)) < 3 * 3600e3
         && [a.home, a.away].every(n => { const w = fold(n).split(/[^a-z0-9]+/).filter(x => x.length > 2)[0]; return w && fold(b.home + " " + b.away).includes(w); });
       ev = ev.filter(x => !isPM(x) || !base.some(b => same(x, b)));
+      /* the UFC only if I follow it (or tipped that fight) */
+      ev = ev.filter(x => !OPTC[x.comp] || this.follows.has(OPTC[x.comp]) || P[x.id]);
       this.ev = ev.filter(tippable).sort((a, b) => Date.parse(a.start_at) - Date.parse(b.start_at));
       Object.assign(P, this.pending || {}); this.picks = P;
       this.who = me; this.loaded = true; this.loadT = Date.now(); this.err = false;
@@ -104,7 +114,7 @@
       if (on){ this.follows.add(k); const {error} = await c.from("tipp_follows").insert({user_id: me, league: k}); if (error && !/duplicate|23505/.test(error.message + error.code)){ this.follows.delete(k); throw error; }
         let n = 0; try { const r = await c.functions.invoke("tipp-pm", {body: {league: k}}); n = (r && r.data && r.data.n) || 0; } catch(e) {}
         return n; }
-      this.follows.delete(k); this.sel.delete("pm:" + k); this.saveSel();
+      this.follows.delete(k); this.sel.delete(fkey(k)); this.saveSel();
       const {error} = await c.from("tipp_follows").delete().eq("user_id", me).eq("league", k); if (error){ this.follows.add(k); throw error; } return 0;
     },
     /* the old Natcoin bets are gone: their open stakes come back once */
@@ -123,6 +133,8 @@
     mine(id){ return this.picks[id] || null; },
     /* save right away; the newest change wins, a slow answer for an older one is ignored */
     pending: {}, seq: {},
+    /* an admin enters the result of a hand-entered game: "a", "b", "d" (draw) or "x" (called off) */
+    async result(e, w){ const c = sb(); if (!c || !meId()) throw new Error("not signed in"); const {error} = await c.rpc("tipp_result", {p_event: e.id, p_w: w}); if (error) throw error; },
     async save(e, p){
       const c = sb(); if (!c || !meId()) throw new Error("not signed in");
       const n = (this.seq[e.id] || 0) + 1; this.seq[e.id] = n; this.pending[e.id] = p; this.picks[e.id] = p;
@@ -172,7 +184,7 @@
     /* the filters: the fixed ones, then one per league I follow, then the library */
     chips(){ const el = this.main && this.main.querySelector("#tpchips"); if (!el) return;
       /* "All", the leagues I follow, the library (in sight without scrolling), then the fixed ones */
-      const mine = [...Tipp.follows].filter(k => Tipp.leagues[k]).map(k => ["pm:" + k, `${(GRP[Tipp.leagues[k].grp] || GRP.x)[0]} ${h(Tipp.leagues[k].name)}`]);
+      const mine = [...Tipp.follows].filter(k => Tipp.leagues[k]).map(k => [fkey(k), `${(GRP[Tipp.leagues[k].grp] || GRP.x)[0]} ${h(Tipp.leagues[k].name)}`]);
       const chip = ([k, l]) => `<button class="chip ${(k === "all" ? !Tipp.sel.size : Tipp.sel.has(k)) ? "on" : ""}" data-f="${h(k)}">${l}</button>`;
       const html = chip(FILTERS[0]) + mine.map(chip).join("") + `<button class="chip tp-libc" data-lib>📚 ${T("Leagues", "Ligen")} <b>＋</b></button>` + FILTERS.slice(1).map(chip).join("");
       if (el._h === html) return; el._h = html; el.innerHTML = html;
@@ -205,9 +217,10 @@
       return out;
     },
     cardHTML(e){
-      const p = Tipp.mine(e.id), c = comp(e), fav = !isPM(e) && (e.comp === "nt" || bay(e.home) || bay(e.away) || isW(e));
+      const p = Tipp.mine(e.id), c = comp(e), fav = !isPM(e) && (e.comp === "nt" || bay(e.home) || bay(e.away) || (e.sport === "mma" ? e.fav : isW(e)));
+      const m = e.meta || {}, fight = m.title ? T("Title fight", "Titelkampf") : m.order === 1 ? T("Main event", "Hauptkampf") : m.cls || "UFC", own = e.sport === "lol" || (e.sport === "pm" && !isPM(e));
       const grp = isNL(e) && e.meta && e.meta.grp ? ` · ${String(e.meta.grp).replace(/^Group /i, T("Group ", "Gruppe "))}` : isPM(e) && e.meta && e.meta.sub ? ` · ${e.meta.sub}` : "";
-      const top = `<div class="tq-top"><span>${hm(e.start_at)} · ${c[0]} ${h(e.sport === "mma" ? T("Title fight", "Titelkampf") : e.sport === "lol" ? (e.name || c[1]) : c[1])}${h(grp)}</span><span class="tq-ok" data-ok>${p ? "✓ " + T("Saved", "Gespeichert") : ""}</span></div>`;
+      const top = `<div class="tq-top"><span>${hm(e.start_at)} · ${c[0]} ${h(e.sport === "mma" ? fight : own ? (e.name || c[1]) : c[1])}${h(grp)}</span><span class="tq-ok" data-ok>${p ? "✓ " + T("Saved", "Gespeichert") : ""}</span></div>`;
       /* under each side: the record (UFC, LoL), or Polymarket's chance for it (library) */
       const pr = e.meta && Array.isArray(e.meta.p) ? e.meta.p : null, dr = !!(e.meta && e.meta.draw), pc = i => pr && pr[i] != null ? Math.round(pr[i] * 100) + " %" : "";
       const small = s => e.meta && e.meta.rec ? h((e.meta.rec[s === "a" ? 0 : 1]) || "") : pc(s === "a" ? 0 : dr ? 2 : 1);
@@ -232,8 +245,10 @@
       const mid = isW(e) ? `<span class="tr-n">${win === "a" ? "🏆 " : ""}${h(wn(e, e.home))}</span><b class="tr-s sm">${(e.sport === "lol" || e.sport === "pm") && e.score_h != null ? e.score_h + ":" + e.score_a : win === "d" ? "🤝" : "vs"}</b><span class="tr-n r">${h(wn(e, e.away))}${win === "b" ? " 🏆" : ""}</span>`
         : `<span class="tr-n">${h(sn(e.home))}</span><b class="tr-s">${sc}</b><span class="tr-n r">${h(sn(e.away))}</span>`;
       const mine = p ? `${T("Your tip", "Dein Tipp")} <b>${h(tipText(e, p))}</b>` : `<span class="dim">${T("No tip", "Kein Tipp")}</span>`;
-      return `<button class="tr ${lv ? "live" : ""} ${full(e, pt) ? "hit" : ""}" data-det="${h(e.id)}"><div class="tr-top"><span>${lv ? `<i class="tp-dot"></i>${h(e.clock || "Live")}` : hm(e.start_at)} · ${comp(e)[0]}${isPM(e) ? " " + h(comp(e)[1]) : ""}</span></div>
-        <div class="tr-m">${mid}</div><div class="tr-f"><span>${mine}</span>${ptsBadge(pt, lv && !isW(e), full(e, pt))}</div></button>`;
+      /* a hand-entered fight that is over: the admin sees where to enter the winner, everyone else that the result follows */
+      const wait = lv && isHand(e), ask = wait && Tipp.admin;
+      return `<button class="tr ${lv ? "live" : ""} ${full(e, pt) ? "hit" : ""}" data-det="${h(e.id)}"><div class="tr-top"><span>${lv ? `<i class="tp-dot"></i>${h(wait ? T("Result follows", "Ergebnis folgt") : e.clock || "Live")}` : hm(e.start_at)} · ${comp(e)[0]}${isPM(e) || isHand(e) ? " " + h(comp(e)[1]) : ""}</span></div>
+        <div class="tr-m">${mid}</div><div class="tr-f"><span>${mine}</span>${ask ? `<span class="tr-ask">👉 ${T("Enter the winner", "Sieger eintragen")}</span>` : ptsBadge(pt, lv && !isW(e), full(e, pt))}</div></button>`;
     },
     /* ---------- Rangliste ---------- */
     tableHTML(){
@@ -286,17 +301,26 @@
       const sc = isW(e) ? (e.meta && e.meta.winner ? (e.meta.winner === "d" ? `🤝 ${DRAW()}` : `🏆 ${h(e.meta.winner === "a" ? e.home : e.away)}`) + ((e.sport === "lol" || e.sport === "pm") && e.score_h != null && !lv ? ` · ${e.score_h}:${e.score_a}` : "") : "vs") : `${reg ? reg[0] : e.score_h ?? "–"}:${reg ? reg[1] : e.score_a ?? "–"}`;
       const list = rows.length ? rows.map(r => `<div class="tp-ot ${r.uid && r.uid === meId() ? "me" : ""}"><b>${r.bot === "ki" ? "🤖 Nat-KI" : h(r.name)}</b><span class="tp-otip">${h(isW(e) ? tipText(e, r) : `${r.sh}:${r.sa}`)}</span>${ptsBadge(r.pts, lv && !isW(e), full(e, r.pts))}</div>`).join("")
         : `<div class="tp-empty" style="padding:16px">${T("Nobody tipped this one.", "Hier hat keiner getippt.")}</div>`;
-      detailSheet(`<div class="tp-det"><div class="tq-top"><span>${h(comp(e).join(" "))}${isPM(e) && e.meta && e.meta.sub ? " · " + h(e.meta.sub) : ""}</span><span>${lv ? h(e.clock || "Live") : dayName(e.start_at) + " · " + hm(e.start_at)}</span></div>
+      /* the admin enters (or corrects) the winner of a hand-entered fight once it has started */
+      const cur = e.state === "post" && e.meta ? e.meta.winner : e.state === "canc" ? "x" : null, rb = (w, l) => `<button class="btn ${cur === w ? "go" : "ghost"} sm" data-res="${w}">${l}</button>`;
+      const adm = Tipp.admin && isHand(e) && Date.parse(e.start_at) <= Date.now() ? `<div class="tp-adm"><b>${cur ? T("Change the result", "Ergebnis ändern") : T("Who won?", "Wer hat gewonnen?")}</b><div class="tp-admb">${rb("a", "🏆 " + h(e.home))}${e.meta && e.meta.draw ? rb("d", "🤝 " + DRAW()) : ""}${rb("b", "🏆 " + h(e.away))}${rb("x", T("Called off", "Abgesagt"))}</div><small>${T("Everyone gets their points and a message right away.", "Alle bekommen sofort ihre Punkte und eine Nachricht.")}</small></div>` : "";
+      const sh = detailSheet(`<div class="tp-det"><div class="tq-top"><span>${h(comp(e).join(" "))}${isPM(e) && e.meta && e.meta.sub ? " · " + h(e.meta.sub) : ""}</span><span>${lv ? h(isHand(e) ? T("Result follows", "Ergebnis folgt") : e.clock || "Live") : dayName(e.start_at) + " · " + hm(e.start_at)}</span></div>
         <div class="tr-m big"><span class="tr-n">${h(isW(e) ? e.home : sn(e.home))}</span><b class="tr-s ${isW(e) ? "sm" : ""}">${sc}</b><span class="tr-n r">${h(isW(e) ? e.away : sn(e.away))}</span></div>
-        <div class="tp-others">${list}</div></div>`);
+        ${adm}<div class="tp-others">${list}</div></div>`);
+      if (adm && sh && sh.el) sh.el.querySelectorAll("[data-res]").forEach(b => b.onclick = async () => { if (b.disabled) return; tap();
+        /* the first tap asks, the second one saves: a wrong winner would send everyone the wrong message */
+        if (!b._sure){ sh.el.querySelectorAll("[data-res]").forEach(x => { x._sure = false; if (x._l) x.innerHTML = x._l; }); b._l = b.innerHTML; b._sure = true; b.innerHTML = b._l + " – " + T("sure?", "sicher?"); return; }
+        sh.el.querySelectorAll("[data-res]").forEach(x => x.disabled = true);
+        try { await Tipp.result(e, b.dataset.res); haptic([10, 40, 10]); toast("✓ " + T("Result saved", "Ergebnis gespeichert"), 2400); try { sh.close(); } catch(er) {} await this.refresh(); this.loadTable(); }
+        catch(er){ sh.el.querySelectorAll("[data-res]").forEach(x => x.disabled = false); toast(/forbidden/.test(String(er && er.message)) ? T("Only an admin can do that.", "Das darf nur ein Admin.") : T("Couldn't save. Check your connection.", "Konnte nicht speichern. Verbindung prüfen."), 3000); } });
     },
     /* ---------- the library: every league Polymarket lists, followed with one tap ---------- */
     library(){
       if (!meId()){ toast(T("Sign in to follow leagues.", "Zum Folgen bitte anmelden.")); return; }
-      const sh = detailSheet(`<div class="tl"><h2 class="tl-h">📚 ${T("Leagues", "Ligen")}</h2><p class="tl-sub">${T("Follow a league and its games show up here to tip. Odds, live scores and results come from Polymarket on their own.", "Folge einer Liga, ihre Spiele erscheinen hier zum Tippen. Chancen, Live-Stand und Ergebnis kommen automatisch von Polymarket.")}</p>
+      const lsh = detailSheet(`<div class="tl"><h2 class="tl-h">📚 ${T("Leagues", "Ligen")}</h2><p class="tl-sub">${T("Follow a league and its games show up here to tip. Odds, live scores and results come from Polymarket on their own.", "Folge einer Liga, ihre Spiele erscheinen hier zum Tippen. Chancen, Live-Stand und Ergebnis kommen automatisch von Polymarket.")}</p>
         <input class="tl-q" id="tlq" type="search" enterkeyhint="search" autocomplete="off" autocorrect="off" placeholder="${T("Search: NBA, Premier League, LoL …", "Suchen: NBA, Premier League, LoL …")}"><div class="tl-list" id="tll"><div class="tp-empty">${T("Loading…", "Lädt…")}</div></div></div>`,
         () => { if (this.dirty && App.route === "tipp"){ this.dirty = false; this.chips(); Tipp.load().then(() => { if (App.route === "tipp") this.render(true); }, () => {}); } });
-      const q = sh.el.querySelector("#tlq"), list = sh.el.querySelector("#tll");
+      const q = lsh.el.querySelector("#tlq"), list = lsh.el.querySelector("#tll");
       /* the keyboard comes up at once: searching is what you came for */
       try { q.focus(); } catch(e) {}
       const gl = L => GRP[L.grp] || GRP.x;
@@ -304,7 +328,8 @@
       const byRank = (a, b) => (a.rank ?? 100) - (b.rank ?? 100) || String(a.name).localeCompare(String(b.name));
       const draw = () => {
         if (!Tipp.allL) return;
-        const all = Object.values(Tipp.leagues).filter(L => L && L.key && L.grp), t = fold(q.value.trim());
+        /* Polymarket's own UFC entry stays out: the UFC comes from ESPN and is switched on with its own row ("mma-ufc") */
+        const all = Object.values(Tipp.leagues).filter(L => L && L.key && L.grp && !(L.builtin && Object.values(OPT).includes(L.key))), t = fold(q.value.trim());
         let html = "";
         if (t){ const hit = all.filter(L => fold(L.name + " " + L.key + " " + gl(L).slice(1).join(" ")).includes(t)).sort(byRank);
           html = hit.length ? hit.slice(0, 80).map(row).join("") : `<div class="tp-empty">${T("Nothing found.", "Nichts gefunden.")}</div>`; }
@@ -335,7 +360,7 @@
     const now = Date.now(), me = meId(); if (!me || Tipp.who !== me) return "";
     const live = Tipp.ev.filter(e => (e.state === "in" || (e.state === "pre" && Date.parse(e.start_at) <= now)) && Tipp.mine(e.id)).slice(0, 2);
     const fresh = Tipp.ev.filter(e => e.state === "post" && Tipp.mine(e.id) && now - Date.parse(e.start_at) < 20 * 3600e3).slice(-1);
-    const next = Tipp.ev.filter(e => open(e) && !isPM(e) && Date.parse(e.start_at) > now + 60e3 && Date.parse(e.start_at) < now + 4 * 864e5 && (e.fav || e.comp === "nt" || bay(e.home) || bay(e.away) || isW(e)) && !Tipp.mine(e.id))
+    const next = Tipp.ev.filter(e => open(e) && !isPM(e) && Date.parse(e.start_at) > now + 60e3 && Date.parse(e.start_at) < now + 4 * 864e5 && (e.fav || e.comp === "nt" || bay(e.home) || bay(e.away) || (isW(e) && e.sport !== "mma")) && !Tipp.mine(e.id))
       .slice(0, Math.max(0, 3 - live.length - fresh.length));
     if (!live.length && !next.length && !fresh.length) return "";
     const nm = e => isW(e) ? `${ico(e)} ${h(wn(e, e.home))} – ${h(wn(e, e.away))}` : `${e.comp === "nt" ? "🇩🇪 " : bay(e.home) || bay(e.away) ? "⭐ " : ""}${h(sn(e.home))} – ${h(sn(e.away))}`;
@@ -412,6 +437,9 @@
 .tp-others{margin:6px 0 4px}.tp-ot{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;background:var(--panel-2);margin-top:5px}.tp-ot.me{outline:2px solid color-mix(in srgb,var(--go) 70%,transparent)}
 .tp-ot b{flex:1;min-width:0;font:800 14px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-otip{font:900 17px var(--display);min-width:44px;text-align:right}
 .tp-det .tq-top{margin-top:4px}
+.tr-ask{font:800 13px var(--body);color:var(--go-hi,var(--go));white-space:nowrap}
+.tp-adm{margin:12px 0 4px;padding:12px;border-radius:14px;background:color-mix(in srgb,var(--go) 10%,var(--panel));border:1px solid color-mix(in srgb,var(--go) 45%,var(--line))}.tp-adm>b{display:block;font:800 15px var(--body);margin-bottom:8px}.tp-adm small{display:block;margin-top:8px;color:var(--muted);font:600 12px var(--body)}
+.tp-admb{display:flex;flex-wrap:wrap;gap:6px}.tp-admb .btn{flex:1 1 auto;min-height:44px}
 .th-home{padding:12px 14px!important;display:flex;flex-direction:column;gap:6px}.th-home[hidden]{display:none}.th-home .th-h{font:900 13px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .th-row{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:14px;border:0;background:var(--panel-2);color:var(--fg);text-align:left;cursor:pointer;font:inherit}.th-row:active{transform:scale(.98)}
 .th-t{flex:none;font:800 12px/1.25 var(--body);color:var(--muted);min-width:44px;text-align:center}.th-row.live .th-t{color:#e5484d}

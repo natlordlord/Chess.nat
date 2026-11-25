@@ -88,7 +88,7 @@ module.exports = db => {
       update: {using: (r, u) => r.from_id === u || r.to_id === u, check: (r, u) => r.from_id === u || r.to_id === u}},
     chess_messages: {select: (r, u) => r.from_id === u || r.to_id === u, insert: (r, u) => r.from_id === u && r.to_id !== r.from_id && friends(r.from_id, r.to_id),
       update: {using: (r, u) => r.to_id === u, check: (r, u) => r.to_id === u}},
-    chess_news: {select: T}, chess_ratings: {select: T}, chess_matches: {select: T}, tipp_events: {select: T}, tipp_leagues: {select: T},
+    chess_news: {select: T}, chess_ratings: {select: T}, chess_matches: {select: T}, tipp_events: {select: T}, tipp_leagues: {select: T}, tipp_admins: {select: T},
     tipp_follows: {select: (r, u) => r.user_id === u, insert: (r, u) => r.user_id === u && !R.tipp_leagues.some(l => l.key === r.league && l.builtin), delete: (r, u) => r.user_id === u}, nl_state: {select: T}, tipp_tips: {select: T}, tipp_admins: {select: T},
     chess_events: {insert: (r, u) => r.user_id === u && size(r.meta) < 2000},
     chess_queue: {select: (r, u) => r.user_id === u}, chess_fixes: {select: (r, u) => r.user_id === u},
@@ -195,18 +195,27 @@ module.exports = db => {
       if (!u) raise("not signed in"); const ev = R.tipp_events.find(e => e.id === p_event); if (!ev) raise("no such event");
       if (ev.state !== "pre" || Date.parse(ev.start_at) <= Date.now()) raise("closed");
       if (ev.sport === "fb"){ if (p_h == null || p_a == null || p_h < 0 || p_h > 20 || p_a < 0 || p_a > 20) raise("bad score"); p_w = null; }
-      else if (ev.sport === "lol" || ev.sport === "pm" || (ev.sport === "mma" && ev.meta && String(ev.meta.title) === "true")){ if (!(["a", "b"].includes(p_w) || (p_w === "d" && ev.meta && String(ev.meta.draw) === "true"))) raise("bad pick"); p_h = p_a = null; }
+      else if (ev.sport === "lol" || ev.sport === "pm" || (ev.sport === "mma" && !/\bTBA\b/i.test(ev.home + " " + ev.away))){ if (!(["a", "b"].includes(p_w) || (p_w === "d" && ev.meta && String(ev.meta.draw) === "true"))) raise("bad pick"); p_h = p_a = null; }
       else raise("not tippable");
       let r = R.tipp_picks.find(p => p.user_id === u && p.event_id === p_event);
       if (r) Object.assign(r, {sh: p_h, sa: p_a, w: p_w, updated_at: db.now()});
       else { r = {id: db.nextId("tipp_picks"), user_id: u, bot: null, event_id: p_event, sh: p_h, sa: p_a, w: p_w, created_at: db.now(), updated_at: db.now()}; R.tipp_picks.push(r); }
       return {event_id: r.event_id, sh: r.sh, sa: r.sa, w: r.w, updated_at: r.updated_at};
     },
+    /* supabase/tipp_hand.sql: an admin enters the result of a game whose source is "hand" */
+    tipp_result(u, {p_event, p_w}){
+      if (!u || !R.tipp_admins.some(a => a.user_id === u)) raise("forbidden"); const ev = R.tipp_events.find(e => e.id === p_event); if (!ev) raise("no such event");
+      if (!(ev.meta && ev.meta.src && ev.meta.src.kind === "hand")) raise("not by hand");
+      if (p_w === "x") Object.assign(ev, {state: "canc", settled: true, clock: "abgesagt", meta: Object.assign({}, ev.meta, {winner: null}), updated_at: db.now()});
+      else { if (Date.parse(ev.start_at) > Date.now()) raise("not started"); if (!(["a", "b"].includes(p_w) || (p_w === "d" && ev.meta && String(ev.meta.draw) === "true"))) raise("bad result");
+        Object.assign(ev, {state: "post", settled: true, clock: "Ende", meta: Object.assign({}, ev.meta, {winner: p_w, by: u, pp: true}), updated_at: db.now()}); }
+      return {id: ev.id, state: ev.state, winner: ev.meta.winner};
+    },
     tipp_table(){
       const g = new Map();
       R.tipp_picks.forEach(p => { const e = R.tipp_events.find(x => x.id === p.event_id); if (!e) return; const k = (p.user_id || "") + "|" + (p.bot || ""), pl = player(p.user_id), pts = evPts(e, p.sh, p.sa, p.w);
         const o = g.get(k) || {uid: p.user_id, bot: p.bot, name: pl ? pl.name : p.bot === "ki" ? "Nat-KI" : "?", avatar: pl ? pl.avatar : null, pts: 0, exact: 0, n: 0, open: 0}; g.set(k, o);
-        if (pts != null){ o.pts += pts; o.n++; if ((e.sport === "fb" && pts === 4) || ((e.sport === "mma" || e.sport === "lol") && pts === 3)) o.exact++; } else if (e.state !== "canc") o.open++; });
+        if (pts != null){ o.pts += pts; o.n++; if ((e.sport === "fb" && pts === 4) || ((e.sport === "mma" || e.sport === "lol" || e.sport === "pm") && pts === 3)) o.exact++; } else if (e.state !== "canc") o.open++; });
       return [...g.values()].sort((a, b) => b.pts - a.pts || b.exact - a.exact || a.n - b.n);
     },
     tipp_event_picks(u, {p_event}){
