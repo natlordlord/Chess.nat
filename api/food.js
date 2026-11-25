@@ -82,7 +82,8 @@ module.exports = async (req, res) => {
     /* a word counts when it is in there, also with a typo (and with or without spaces and hyphens: "fruchtrio" fits "Frucht-Trio") */
     const hits = x => { const t = norm(x.name + " " + x.brand), tc = t.replace(/[^a-z0-9]+/g, ""); const n = must.filter(w => fits(w, t, tc)).length; return n ? n + shops.filter(w => (t + " " + x.st).includes(w)).length * .5 : 0; };
     const out = items.map((x, i) => [x, i, words.length ? hits(x) : 1]).filter(a => a[2] > 0).sort((a, b) => b[2] - a[2] || b[0].de - a[0].de || a[1] - b[1]).map(([x]) => { delete x.de; delete x.st; return x; }).slice(0, 20);
-    if (req.query && req.query.debug){ res.setHeader("Cache-Control", "no-store"); return res.status(200).json({asked: stat, why: Object.fromEntries(Object.entries(WHY).map(([u, w]) => [decodeURIComponent(u.replace(/^https:\/\/([a-z]+)\.[^?]+\?(?:q|search_terms)=([^&]*).*$/, "$1: $2")), w])), items: out}); }
+    if (req.query && req.query.debug){ res.setHeader("Cache-Control", "no-store"); const all = pool.map(item), bad = pool.filter((p, i) => !all[i].name || !(all[i].k > 0));
+      return res.status(200).json({asked: stat, dropped: {ohneName: all.filter(x => !x.name).length, ohneKcal: all.filter(x => x.name && !(x.k > 0)).length, beispiel: bad.slice(0, 2)}, why: Object.fromEntries(Object.entries(WHY).map(([u, w]) => [decodeURIComponent(u.replace(/^https:\/\/([a-z]+)\.[^?]+\?(?:q|search_terms)=([^&]*).*$/, "$1: $2")), w])), items: out}); }
     res.setHeader("Cache-Control", "public, s-maxage=86400, stale-while-revalidate=604800");
     return res.status(200).json({items: out});
   } catch(e) {
