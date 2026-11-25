@@ -55,7 +55,9 @@ module.exports = async (req, res) => {
     const add = (tag, L) => { stat[tag] = L ? L.length : null; for (const p of L || []){ const c = String(p.code || ""); if (c && codes.has(c)) continue; if (c) codes.add(c); pool.push(p); } };
     const item = p => {
       const n = p.nutriments || {}, k = Number(n["energy-kcal_100g"]) || (Number(n["energy_100g"]) ? Number(n["energy_100g"]) / 4.184 : 0);
-      const brand = (Array.isArray(p.brands) ? p.brands[0] : String(p.brands || "").split(",")[0]) || "";
+      /* the new search gives the brand as a tag ("xx:rewe-beste-wahl"): shown as a name ("Rewe Beste Wahl") */
+      let brand = String((Array.isArray(p.brands) ? p.brands[0] : String(p.brands || "").split(",")[0]) || "").trim().replace(/^[a-z]{2}:/, "");
+      if (/^[a-z0-9-]+$/.test(brand)) brand = brand.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
       return {st: norm(Array.isArray(p.stores) ? p.stores.join(" ") : p.stores || ""), code: String(p.code || ""), name: String(p.product_name_de || p.product_name || p.generic_name || "").trim().slice(0, 90), brand: String(brand).trim().slice(0, 40),
         k: Math.round(k), c: r1(n.carbohydrates_100g), pr: r1(n.proteins_100g), f: r1(n.fat_100g),
         serving: Math.round(Number(p.serving_quantity) || 0), ss: String(p.serving_size || "").slice(0, 60), pack: Math.round(Number(p.product_quantity) || 0), img: p.image_front_small_url || null,
@@ -66,9 +68,9 @@ module.exports = async (req, res) => {
     const usable = () => { const seen = new Set(); return pool.map(item).filter(x => { const key = (x.name + "|" + x.brand + "|" + x.k).toLowerCase(); if (!x.name || !(x.k > 0) || x.k > 950 || seen.has(key)) return false; seen.add(key); return true; }); };
     const fits = (w, t, tc) => t.includes(w) || tc.includes(w) || (w.length >= 5 && near(w, tc) <= okErr(w.length));
     const full = () => usable().filter(x => { const t = norm(x.name + " " + x.brand), tc = t.replace(/[^a-z0-9]+/g, ""); return must.every(w => fits(w, t, tc)); }).length;
-    /* the best fitting products that came without values get them from their own page (at most 8 at a time) */
+    /* the best fitting products that came without values get them from their own page (at most 12 at a time) */
     const kcalOf = p => { const n = p.nutriments || {}; return Number(n["energy-kcal_100g"]) || Number(n["energy_100g"]) || 0; }, tried = new Set();
-    const fill = async () => { const L = pool.map(p => { const x = item(p), t = norm(x.name + " " + x.brand), tc = t.replace(/[^a-z0-9]+/g, ""); return [p, x.name && p.code && !kcalOf(p) && !tried.has(p.code) ? must.filter(w => fits(w, t, tc)).length : 0]; }).filter(a => a[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    const fill = async () => { const L = pool.map(p => { const x = item(p), t = norm(x.name + " " + x.brand), tc = t.replace(/[^a-z0-9]+/g, ""); return [p, x.name && p.code && !kcalOf(p) && !tried.has(p.code) ? must.filter(w => fits(w, t, tc)).length : 0]; }).filter(a => a[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 12);
       stat.nachgelesen = (stat.nachgelesen || 0) + L.length;
       await Promise.all(L.map(async ([p]) => { tried.add(p.code); const d = await byCode(p.code); if (d && kcalOf(d)) Object.assign(p, {nutriments: d.nutriments}, ...["serving_quantity", "serving_size", "product_quantity", "image_front_small_url", "countries_tags", "stores", "nutriscore_grade"].map(f => p[f] == null && d[f] != null ? {[f]: d[f]} : {})); })); };
     const long = must.slice().sort((a, b) => b.length - a.length).slice(0, 2), wide = must.length >= 2;
@@ -80,7 +82,9 @@ module.exports = async (req, res) => {
     if (full() < 5 && must.length){
       const more = [];
       if (qc !== qs) more.push(["neu-ohne-laden", ask(qc, 4500)]);
-      if (wide){ more.push(["zusammen", ask(must.join(""), 4500)]); for (const w of long) more.push(["wort-" + w, ask(w, 4500)]); more.push(["alt-wort-" + long[0], askOld(long[0])]); }
+      if (wide){ more.push(["zusammen", ask(must.join(""), 4500)]); for (const w of long) more.push(["wort-" + w, ask(w, 4500)]);
+        /* three words and more: also two at a time ("Croissant Schoko", "Croissant Nougat", "Schoko Nougat") */
+        if (must.length >= 3){ const t = must.slice().sort((a, b) => b.length - a.length).slice(0, 3); for (const [a, b] of [[t[0], t[1]], [t[0], t[2]], [t[1], t[2]]]) more.push(["paar-" + a + "-" + b, ask(a + " " + b, 4500)]); } more.push(["alt-wort-" + long[0], askOld(long[0])]); }
       /* nothing at all: once more with the longer words allowed a typo or two ("nutela" → Nutella), if the search takes that */
       if (!pool.length && must.some(w => w.length >= 5)) more.push(["tippfehler", ask(must.map(w => w.length >= 5 ? w + "~" + okErr(w.length) : w).join(" "), 4500)]);
       const R = await Promise.all(more.map(m => m[1])); more.forEach((m, i) => add(m[0], R[i]));
