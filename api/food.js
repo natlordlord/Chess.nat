@@ -12,15 +12,23 @@ function near(w, t){ const n = w.length; let p2 = null, p = Array.from({length: 
     if (c[n] < best) best = c[n]; p2 = p; p = c; }
   return best; }
 const okErr = len => len >= 8 ? 2 : len >= 5 ? 1 : 0;
+/* answers are remembered for a while by the running function: while somebody types "croissant s", "croissant sch" … the same
+   questions come again and again, and the classic search only allows a few questions a minute */
+const MEM = new Map(), WHY = {};
 async function get(url, ms){
+  const m = MEM.get(url); if (m && Date.now() - m.at < 6e5) return m.j; if (Object.keys(WHY).length > 50) for (const k in WHY) delete WHY[k];
   const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), ms);
-  try { const r = await fetch(url, {headers: {"User-Agent": "ChessNat/1.0 (chess-nat.vercel.app)"}, signal: ctl.signal}); return r.ok ? await r.json() : null; } catch(e) { return null; } finally { clearTimeout(to); }
+  try { const r = await fetch(url, {headers: {"User-Agent": "ChessNat/1.0 (chess-nat.vercel.app)"}, signal: ctl.signal}); if (!r.ok){ WHY[url] = "HTTP " + r.status; return null; }
+    const j = await r.json(); if (MEM.size > 300) MEM.clear(); MEM.set(url, {at: Date.now(), j}); return j; }
+  catch(e) { WHY[url] = e && e.name === "AbortError" ? "zu langsam (" + ms + " ms)" : String((e && e.message) || e); return null; } finally { clearTimeout(to); }
 }
 /* Open Food Facts has two searches. The new one (search.openfoodfacts.org) is fast, but only finds a product when every word typed
    is in it exactly like that, and it does not know every product. The classic one (the search of the website itself, here the German
    site, so products sold in Germany) finds a lot more for German names. Both are asked and their answers put together. */
-const ask = (q, ms) => get("https://search.openfoodfacts.org/search?" + new URLSearchParams({q, page_size: "40", langs: "de,en", fields: FIELDS}), ms || 6000).then(j => j && Array.isArray(j.hits) ? j.hits : null);
-const askOld = (q, ms) => get("https://de.openfoodfacts.org/cgi/search.pl?" + new URLSearchParams({search_terms: q, search_simple: "1", action: "process", json: "1", page_size: "40", fields: FIELDS}), ms || 6000).then(j => j && Array.isArray(j.products) ? j.products : null);
+const U1 = q => "https://search.openfoodfacts.org/search?" + new URLSearchParams({q, page_size: "40", langs: "de,en", fields: FIELDS});
+const U2 = q => "https://de.openfoodfacts.org/cgi/search.pl?" + new URLSearchParams({search_terms: q, search_simple: "1", action: "process", json: "1", page_size: "40", fields: FIELDS});
+const ask = (q, ms) => get(U1(q), ms || 6000).then(j => j && Array.isArray(j.hits) ? j.hits : null);
+const askOld = (q, ms) => get(U2(q), ms || 8000).then(j => j && Array.isArray(j.products) ? j.products : null);
 /* shops and filler words: nobody has "Lidl" in the product's name, so they must not keep a product out */
 const SHOP = /^(lidl|aldi|rewe|edeka|penny|netto|kaufland|norma|dm|rossmann|globus|real|spar|hofer|billa|migros|coop|tegut|famila|marktkauf|nahkauf)$/;
 const FILL = /^(mit|und|von|vom|der|die|das|aus|the|bio|oder|ohne|muss|marke|eigenmarke)$/;
@@ -41,14 +49,17 @@ module.exports = async (req, res) => {
     const text = p => norm([p.product_name_de, p.product_name, p.generic_name, Array.isArray(p.brands) ? p.brands.join(" ") : p.brands, Array.isArray(p.stores) ? p.stores.join(" ") : p.stores].filter(Boolean).join(" "));
     const fits = (w, t, tc) => t.includes(w) || tc.includes(w) || (w.length >= 5 && near(w, tc) <= okErr(w.length));
     const full = () => pool.filter(p => { const t = text(p), tc = t.replace(/[^a-z0-9]+/g, ""); return must.every(w => fits(w, t, tc)); }).length;
-    const [A, B] = await Promise.all([ask(qs), askOld(qc)]); add("neu", A); add("alt", B);
-    if (!A && !B) return res.status(502).json({error: "Die Suche ist gerade nicht erreichbar."});
+    /* several words: the classic search is asked for the most telling word alone right away (it is the slow one, and it only
+       finds a product that has every word asked: "Croissant Schoko Nougat" finds nothing, "Croissant" finds the one that is meant) */
+    const long = must.slice().sort((a, b) => b.length - a.length).slice(0, 2), wide = must.length >= 2;
+    const [A, B, C] = await Promise.all([ask(qs), askOld(qc), wide ? askOld(long[0]) : null]); add("neu", A); add("alt", B); if (wide) add("alt-wort-" + long[0], C);
+    if (!A && !B && !C) return res.status(502).json({error: "Die Suche ist gerade nicht erreichbar."});
     /* too little that has all the words ("Schoko Croissant" is written "Schokocroissant", "Croissant mit Schokolade" …): ask again
-       without the shop, written together, and for the most telling words alone; the list below puts what fits best on top */
+       without the shop, written together, and for the other telling word alone; the list below puts what fits best on top */
     if (full() < 5 && must.length){
-      const long = must.slice().sort((a, b) => b.length - a.length).slice(0, 2), more = [];
+      const more = [];
       if (qc !== qs) more.push(["neu-ohne-laden", ask(qc, 4500)]);
-      if (must.length >= 2){ more.push(["zusammen", ask(must.join(""), 4500)]); for (const w of long) more.push(["wort-" + w, ask(w, 4500)]); more.push(["alt-wort-" + long[0], askOld(long[0], 4500)]); }
+      if (wide){ more.push(["zusammen", ask(must.join(""), 4500)]); for (const w of long) more.push(["wort-" + w, ask(w, 4500)]); more.push(["alt-wort-" + long[1], askOld(long[1], 7000)]); }
       /* nothing at all: once more with the longer words allowed a typo or two ("nutela" → Nutella), if the search takes that */
       if (!pool.length && must.some(w => w.length >= 5)) more.push(["tippfehler", ask(must.map(w => w.length >= 5 ? w + "~" + okErr(w.length) : w).join(" "), 4500)]);
       const R = await Promise.all(more.map(m => m[1])); more.forEach((m, i) => add(m[0], R[i]));
@@ -69,7 +80,7 @@ module.exports = async (req, res) => {
     /* a word counts when it is in there, also with a typo (and with or without spaces and hyphens: "fruchtrio" fits "Frucht-Trio") */
     const hits = x => { const t = norm(x.name + " " + x.brand), tc = t.replace(/[^a-z0-9]+/g, ""); const n = must.filter(w => fits(w, t, tc)).length; return n ? n + shops.filter(w => (t + " " + x.st).includes(w)).length * .5 : 0; };
     const out = items.map((x, i) => [x, i, words.length ? hits(x) : 1]).filter(a => a[2] > 0).sort((a, b) => b[2] - a[2] || b[0].de - a[0].de || a[1] - b[1]).map(([x]) => { delete x.de; delete x.st; return x; }).slice(0, 20);
-    if (req.query && req.query.debug){ res.setHeader("Cache-Control", "no-store"); return res.status(200).json({asked: stat, items: out}); }
+    if (req.query && req.query.debug){ res.setHeader("Cache-Control", "no-store"); return res.status(200).json({asked: stat, why: Object.fromEntries(Object.entries(WHY).map(([u, w]) => [decodeURIComponent(u.replace(/^https:\/\/([a-z]+)\.[^?]+\?(?:q|search_terms)=([^&]*).*$/, "$1: $2")), w])), items: out}); }
     res.setHeader("Cache-Control", "public, s-maxage=86400, stale-while-revalidate=604800");
     return res.status(200).json({items: out});
   } catch(e) {
