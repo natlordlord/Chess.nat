@@ -98,6 +98,8 @@
       ev = ev.filter(x => !isPM(x) || !base.some(b => same(x, b)));
       /* the UFC only if I follow it (or tipped that fight) */
       ev = ev.filter(x => !OPTC[x.comp] || this.follows.has(OPTC[x.comp]) || P[x.id]);
+      /* a filter left over from when the UFC was in for everyone would show an empty list */
+      Object.keys(OPTC).forEach(k => { if (!this.follows.has(OPTC[k]) && this.sel.delete(k)) this.saveSel(); });
       this.ev = ev.filter(tippable).sort((a, b) => Date.parse(a.start_at) - Date.parse(b.start_at));
       Object.assign(P, this.pending || {}); this.picks = P;
       this.who = me; this.loaded = true; this.loadT = Date.now(); this.err = false;
