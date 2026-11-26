@@ -32,6 +32,7 @@ chess_ratings|user_id,cat|user_id:uuid:!: ; cat:text:!: ; r:float8:!:1200 ; rd:f
 kcal_body|user_id|user_id:uuid:!: ; aim:text:?: ; sex:text:?: ; born:int2:?: ; height:int2:?: ; weight:numeric:?: ; activity:numeric:?: ; custom:bool:!:false ; weigh_min:int2:?: ; setup_at:timestamptz:?: ; updated_at:timestamptz:!:@now
 kcal_claps|from_id,to_id,day|from_id:uuid:!:@uid ; to_id:uuid:!: ; day:date:!: ; created_at:timestamptz:!:@now
 kcal_foods|key|key:text:!: ; name:text:!: ; k:numeric:!: ; c:numeric:!: ; p:numeric:!: ; f:numeric:!: ; fi:numeric:!:0 ; su:numeric:!:0 ; sf:numeric:!:0 ; q:int2:!:3 ; source:text:!: ; created_at:timestamptz:!:@now
+kcal_gaps|key|key:text:!: ; name:text:!: ; product:text:?: ; uses:int4:!:1 ; status:text:!:'open' ; food:text:?: ; note:text:?: ; created_at:timestamptz:!:@now ; last_at:timestamptz:!:@now
 kcal_ice|user_id,day|user_id:uuid:!: ; day:date:!:
 kcal_invites|from_id,to_id|from_id:uuid:!:@uid ; to_id:uuid:!: ; created_at:timestamptz:!:@now
 kcal_meals|id|id:uuid:!:@uuid ; user_id:uuid:!:@uid ; day:date:!: ; ts:timestamptz:!:@now ; title:text:!: ; emoji:text:?: ; source:text:?: ; kcal:int4:!:0 ; carbs:numeric:!:0 ; protein:numeric:!:0 ; fat:numeric:!:0 ; grams:int4:?: ; code:text:?: ; said:text:?: ; items:jsonb:?: ; note:text:?: ; created_at:timestamptz:!:@now
@@ -65,7 +66,7 @@ const PENDING = `
 
 /* Functions callable through /rest/v1/rpc, with their argument names ("?" = has a default). */
 const RPCS = {
-  chess_gift_send: ["targets", "gift"], events_summary: ["days?"], kcal_buy_ice: [], fairplay_sorry: ["fid"], fairplay_report: ["src", "rid", "shame?"], kcal_foods_lookup: ["names"], kcal_can_see: ["owner"], kcal_invite: ["target"], kcal_own_pic: ["p_code", "p_pic"],
+  chess_gift_send: ["targets", "gift"], events_summary: ["days?"], kcal_buy_ice: [], fairplay_sorry: ["fid"], fairplay_report: ["src", "rid", "shame?"], kcal_foods_lookup: ["names"], kcal_gap_note: ["items"], kcal_gaps_resolved: ["keys"], kcal_can_see: ["owner"], kcal_invite: ["target"], kcal_own_pic: ["p_code", "p_pic"],
   news_broadcast: ["nid"], news_delete: ["nid"], news_is_admin: [], news_post: ["t", "b", "a?"], news_post_v: ["t", "b", "a?", "v?"], news_reshow: ["nid"],
   nudge_turn: ["target", "code"], push_config: [], ranked_leave: [], ranked_lobby: [], ranked_me: [], ranked_queue: ["tc", "hint?"],
   ranked_report: ["mid", "res", "why?"], ranked_top: ["c", "n?"], shop_can: ["l"], shop_owns: ["l"],

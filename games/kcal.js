@@ -78,6 +78,7 @@
         this.prof = p.data || null; this.meals = m.data || []; this.invites = inv.data || [];
         if (bd && !bd.error) this.body = bd.data || null; if (w && !w.error && w.data) this.weights = w.data; if (ice && !ice.error && ice.data) this.ice = ice.data.map(x => x.day);
         this.loaded = true; this.loadT = Date.now(); this.cache();
+        setTimeout(() => { try { gapFix(); } catch(e) {} }, 1500);
       })().finally(() => { this.loading = null; });
       return this.loading;
     },
@@ -967,6 +968,34 @@
   /* an ingredient with checked values: from the fixed table (ref / per.tab), the checked database (food) or a real product (barcode).
      Only such ingredients may go into a recipe for everyone; what the AI merely estimated may not */
   const isChecked = i => !!(i && (i.ref || i.food || i.code || (i.per && i.per.tab)));
+  /* an estimated part that is noted in the list of gaps (api/kcal.js, noteGaps): {k: key, g: grams then, e: estimated kcal then} */
+  const gapOf = i => i && i.gap && i.gap.k && !isChecked(i) && !i.per ? i.gap : null;
+  /* Filling the gaps (Idee von Natlordlord): once the real values of a noted food are in the checked database, every own entry that
+     still has it as an estimate is recalculated with them. The grams are the ones estimated then, moved along with every change of
+     the amount since (the kcal moved by the same share). A past day that reached its goal is never pushed below it: the flame stays.
+     A gap that will not be filled just loses its "wird geprüft". Asked at most every half hour, and only if something is waiting. */
+  let gapAt = 0, gapBusy = false;
+  async function gapFix(){
+    const c = sb(); if (!c || !meId() || gapBusy || Date.now() - gapAt < 30 * 60e3) return;
+    const waits = m => !m.draft && Array.isArray(m.items) && m.items.some(i => gapOf(i));
+    const keys = [...new Set(K.meals.filter(waits).flatMap(m => m.items.map(i => gapOf(i) && i.gap.k).filter(Boolean)))].slice(0, 40); if (!keys.length) return;
+    gapBusy = true; gapAt = Date.now();
+    try { const r = await c.rpc("kcal_gaps_resolved", {keys}); if (r.error || !Array.isArray(r.data)) return;
+      const R = {}; keys.forEach((k, n) => { if (r.data[n]) R[k] = r.data[n]; }); if (!Object.keys(R).length) return;
+      const sum = (ps, k) => ps.reduce((s, i) => s + (Number(i[k]) || 0), 0); let fixed = 0;
+      for (const m of K.meals.filter(waits)){ let n = 0;
+        const bare = i => { const o = Object.assign({}, i); delete o.gap; return o; };
+        const ps = m.items.map(i => { const G = gapOf(i), F = G && R[G.k]; if (!F) return i; const o = bare(i); if (F.skip || !(Number(F.k) >= 0)) return o;
+          /* the rounded kcal give the grams only roughly: if the amount's own text names (nearly) the same weight, that one is exact */
+          const a = amtOf(i), ag = a ? a.v * (a.u === "kg" || a.u === "l" ? 1000 : 1) : 0, rg = G.e > 0 ? G.g * (Number(i.kcal) || 0) / G.e : G.g, g = ag > 0 && Math.abs(ag - rg) <= Math.max(1, rg * .03) ? ag : Math.round(rg * 10) / 10, f = g / 100; if (!(g > 0 && g <= 5000)) return o; n++;
+          return Object.assign(o, {kcal: Math.round(F.k * f), carbs: r1(F.c * f), protein: r1(F.p * f), fat: r1(F.f * f), h: {fi: r1(F.fi * f), su: r1(F.su * f), sf: r1(F.sf * f), q: Number(F.q) || (i.h && i.h.q) || 3}, food: String(F.key), chk: 1}); });
+        if (ps.every((p, ix) => p === m.items[ix])) continue;
+        const d = Math.round(sum(ps, "kcal")) - Math.round(sum(m.items, "kcal")), day = K.dayKcal(m.day), keep = n && m.day < today() && day >= K.goal() && day + d < K.goal();
+        const out = keep ? m.items.map(i => gapOf(i) && R[i.gap.k] ? bare(i) : i) : ps;
+        try { await K.update(m.id, keep || !n ? {items: out} : {items: out, kcal: Math.round(sum(out, "kcal")), carbs: r1(sum(out, "carbs")), protein: r1(sum(out, "protein")), fat: r1(sum(out, "fat"))}); if (!keep) fixed += n; } catch(e) {} }
+      if (fixed) say(`✓ ${fixed === 1 ? "Ein geschätzter Eintrag hat" : fixed + " geschätzte Einträge haben"} jetzt die geprüften Werte`, 3600);
+    } catch(e) {} finally { gapBusy = false; }
+  }
   /* where the numbers of an ingredient come from, said in a few words: nobody should have to wonder whether a value is made up.
      k = kind (for the colour): bls = official table, off = a real product or the mean of real products, own = your photo of
      the pack, db = the checked database, est = the AI's estimate */
@@ -979,7 +1008,9 @@
     if (F && F.src && F.src.bls) return {k: "bls", t: "Bundeslebensmittelschlüssel", l: "Amtlicher Wert aus dem Bundeslebensmittelschlüssel 4.0 (Max Rubner-Institut): " + F.src.name + "."};
     if (F && F.src) return {k: "off", t: "Open Food Facts · Mittel aus " + F.src.n + " Produkten", l: "Mittelwert aus " + F.src.n + " echten Produkten bei Open Food Facts."};
     if (F) return {k: "off", t: "Nährwert-Tabelle", l: "Fester Wert aus der Nährwert-Tabelle der App."};
-    if (i.food) return {k: "db", t: "Geprüfte Datenbank", l: "Geprüfter Wert aus der gemeinsamen Datenbank."};
+    if (i.food) return {k: "db", t: "Geprüfte Datenbank" + (i.chk ? " · berichtigt" : ""), l: i.chk ? "Erst geschätzt, dann nachgeprüft: Jetzt stehen hier die geprüften Werte aus der gemeinsamen Datenbank." : "Geprüfter Wert aus der gemeinsamen Datenbank."};
+    /* not known anywhere yet: entered with the estimate and noted as a gap; once the real values are in, this entry corrects itself (gapFix) */
+    if (gapOf(i)) return {k: "est", t: "KI-Schätzung · wird geprüft", l: "Das kennt noch keine unserer Datenbanken, darum erst mal geschätzt. Es ist vorgemerkt: Sobald die echten Werte nachgetragen sind, wird dieser Eintrag von selbst berichtigt. Wenn du es sofort genau willst, tausch es gegen das echte Produkt."};
     return {k: "est", t: "KI-Schätzung", l: "Von der KI geschätzt, nicht aus einer Datenbank. Tausch es gegen das echte Produkt, wenn du es genau willst."}; };
   const srcTag = (i, m) => { const o = srcOf(i, m); return (i && i.last ? `<small class="kc-src last">↺ Wie letztes Mal</small>` : "") + `<small class="kc-src ${o.k}">${h(o.t)}</small>`; };
   function recipeSheet(m){ const ps = partsOf(m), T = sumOf(ps), g = totG(ps), bad = ps.filter(i => !isChecked(i)); let sent = false;
@@ -1080,7 +1111,8 @@
         else if (bare && !a){ w.amount = t + " g"; pa.value = w.amount; read(); } else read();
         before = Object.assign({}, w); });
       /* numbers typed by hand become the new base; while a weight is being typed, the numbers already follow, digit by digit */
-      ins.forEach(i => i.addEventListener("change", () => { const v = num(i.value); before[i.dataset.k] = isFinite(v) && v >= 0 ? v : 0; }));
+      /* (numbers of one's own are final: the part no longer waits for the checked values) */
+      ins.forEach(i => i.addEventListener("change", () => { const v = num(i.value); before[i.dataset.k] = isFinite(v) && v >= 0 ? v : 0; delete before.gap; delete w.gap; }));
       pa.addEventListener("input", () => { const a = amtOf(before), t = pa.value.trim(), bare = /^\d+(?:[.,]\d+)?$/.test(t), b2 = bare ? {v: num(t), u: a ? a.u : "g"} : amtOf({amount: t}); if (!(a && b2 && b2.v > 0 && b2.u === a.u)) return;
         const o = regram(before, b2.v); ins.forEach(i => { const k = i.dataset.k, nv = nf(o[k] || 0, k === "kcal" ? 0 : 1); if (i.value !== nv){ i.value = nv; i.classList.remove("kc-up", "kc-dn"); void i.offsetWidth; i.classList.add(b2.v > a.v ? "kc-up" : "kc-dn"); } }); }); }
     el.querySelectorAll("[data-f]").forEach(b => b.onclick = () => { read(); Object.assign(w, scalePart(w, +b.dataset.f)); fill(); haptic(8); el.querySelectorAll("[data-f]").forEach(x => x.classList.toggle("on", x === b)); });

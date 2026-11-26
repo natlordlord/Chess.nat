@@ -20,7 +20,23 @@ const T = require("./lib"), assert = require("assert");
     for (let n = 0; n < 4; n++){ const b = await say(n % 2 ? "tester" : "mila", (n < 2 ? "100" : "250") + " g Mascarpone mit 200 g Trauben"), M = b.items.find(i => /Mascarpone/.test(i.name)), W = b.items.find(i => /traube/i.test(i.name));
       assert.equal(M.food, "mascarpone", "checked food used"); assert.equal(M.kcal, n < 2 ? 400 : 1000); assert.equal(M.fat, n < 2 ? 41 : 102.5); assert.ok(!W.food, "grapes are not checked: estimate only"); }
     assert.equal((await T.table("kcal_foods")).length, 1, "still only what the owner entered");
-    const nn = await say("mila", "250 g gekochte Nudeln"); assert.equal(nn.items[0].kcal, 390); const br = await say("mila", "zwei Brötchen mit Nutella"); assert.equal(br.kcal, 674);
+    const nn = await say("mila", "250 g gekochte Nudeln"); assert.equal(nn.items[0].kcal, 376); const br = await say("mila", "zwei Brötchen mit Nutella"); assert.equal(br.kcal, 674);
+    /* the gaps: what could only be estimated was noted by name (never by person), and nobody but the operator can read or change the list */
+    let G = await T.table("kcal_gaps"); const gk = G.map(g => g.key).sort().join(",");
+    assert.ok(/mascarpone/.test(gk) && /weintraube/.test(gk), "estimated foods are noted: " + gk); assert.ok(G.every(g => !("user_id" in g)), "no person in the list");
+    assert.equal(G.find(g => g.key === "mascarpone").status, "done", "the owner's entry filled that gap"); assert.ok(a.items[0].gap && a.items[0].gap.k === "mascarpone" && a.items[0].gap.g === 250 && a.items[0].gap.e === a.items[0].kcal, "the first meal waits: " + JSON.stringify(a.items[0]));
+    const rd = await fetch(T.BASE + "/rest/v1/kcal_gaps?select=*", {headers: hd}), rj = await rd.json().catch(() => []); assert.ok(rd.status >= 400 || !rj.length, "players cannot read the list");
+    const wr = await fetch(T.BASE + "/rest/v1/kcal_gaps", {method: "POST", headers: hd, body: JSON.stringify({key: "x y", name: "X Y"})}); assert.ok(wr.status >= 400, "players cannot write into it: " + wr.status);
+    const rpc = async (fn, body) => (await fetch(T.BASE + "/rest/v1/rpc/" + fn, {method: "POST", headers: hd, body: JSON.stringify(body)})).json();
+    let R = await rpc("kcal_gaps_resolved", {keys: ["mascarpone", "weintraube", "gibt es nicht"]}); assert.equal(R[0].key, "mascarpone"); assert.equal(R[0].k, 400); assert.equal(R[1], null); assert.equal(R[2], null);
+    /* a gap filled under a better name: "Weintraube" becomes the checked food "Weintrauben"; from then on the estimate is replaced at once */
+    assert.ok(!(await T.stage("POST", "kcal_foods", "", {key: "weintrauben", name: "Weintrauben", k: 70, c: 16, p: .7, f: .3, fi: 1, su: 16, sf: 0, q: 5, source: "Test"})).code);
+    await T.stage("PATCH", "kcal_gaps", "key=eq.weintraube", {status: "done", food: "weintrauben"});
+    const g2 = await say("tester", "300 g Trauben"), W2 = g2.items[0]; assert.equal(W2.food, "weintrauben"); assert.equal(W2.kcal, 210); assert.ok(!W2.gap, "nothing waits any more");
+    /* a gap that will not be filled: the estimate stays and nothing says "wird geprüft" */
+    await T.stage("PATCH", "kcal_gaps", "key=eq.weintraube", {status: "skipped", food: null});
+    const g3 = await say("tester", "300 g Trauben"); assert.ok(!g3.items[0].gap && !g3.items[0].food, "skipped: plain estimate"); R = await rpc("kcal_gaps_resolved", {keys: ["weintraube"]}); assert.deepEqual(R[0], {skip: true});
+    assert.equal((await T.table("kcal_foods")).length, 2, "the AI still stores no food and no number");
     console.log("OK");
   } catch(e) { fail = e; console.error(e); }
   await stop(); process.exit(fail ? 1 : 0);

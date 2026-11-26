@@ -30,6 +30,7 @@ tut, was ein Spieler tun würde, und prüft das Ergebnis auf der Seite **und** i
 geklappt hat, samt jedem Fehler, den Seite oder Datenbank unterwegs gemeldet haben. Bilder landen in `test/out/`.
 
 Teile (`quelle` läuft zuletzt, es stellt die Nährwert-Tabelle auf die Open-Food-Facts-Werte der Attrappe um): `login` · `kcal` (Suche, Mengen, Sprechen, Barcode) · `nudeln` (feste Nährwerte, trocken/gekocht) ·
+`luecke` (unbekanntes Lebensmittel: geschätzt eintragen, vormerken, später von selbst berichtigt) ·
 `suche` (Tippfehler, andere Schreibweise, Suche nach Bedeutung, Schon gegessen) · `kcal2` (Reiter, Einstellungen, Wiegen, Kochen, Wochen-Rückblick) · `shop` (Einkaufsliste mit zwei Handys) ·
 `chat` (Chat mit zwei Handys, Nat Stars, Freunde) · `freunde` (Reihenfolge der Freunde: ungelesen, zuletzt geschrieben oder gespielt) · `tipp` · `song` (Song raten: Genre, eigene Künstler, Eintippen mit Tippfehler, 4 zur Auswahl, zwei Spieler) · `songon` (Song raten online mit zwei Handys: Lobby, Sprachchat, derselbe Song, Modi, Jahr) · `feedback` · `seiten` (jede Seite, Handy und PC) · `start` (kein Flackern) · `quelle` (Tabellenwerte aus Open Food Facts)
 

@@ -199,9 +199,9 @@ function fromTable(it, i){
     ref: F.id, st: F.cf ? (cooked ? "cooked" : "dry") : undefined});
 }
 /* The checked food database (Supabase table kcal_foods, supabase/kcal_foods.sql): the second source next to the fixed table.
-   It holds only checked values per 100 g from an official source and is read-only for the app: nothing the AI says is ever
-   stored. The AI gets the names in it and only says which one a food is; the numbers then come from the row. A food that is in
-   neither source keeps the AI's estimate, for this one meal only. The calls run as the signed-in person. */
+   It holds only checked values per 100 g from an official source and is read-only for the app: no number the AI says is ever
+   stored there. The AI gets the names in it and only says which one a food is; the numbers then come from the row. A food that is in
+   neither source keeps the AI's estimate for now and is noted as a gap (noteGaps below). The calls run as the signed-in person. */
 const sbHead = req => ({apikey: SUPABASE_ANON, Authorization: String(req.headers.authorization || ""), "Content-Type": "application/json"});
 const soon = ms => (typeof AbortSignal !== "undefined" && AbortSignal.timeout ? {signal: AbortSignal.timeout(ms)} : {});
 let KNOWN = {at: 0, names: []};
@@ -260,6 +260,24 @@ async function fromChecked(req, items, raw){
     todo.forEach((t, n) => { const F = rows[n]; if (!F || !(Number(F.k) >= 0)) return; const f = t.g / 100, it = items[t.ix];
       Object.assign(it, {kcal: Math.round(F.k * f), carbs: r1(F.c * f), protein: r1(F.p * f), fat: r1(F.f * f), h: {fi: r1(F.fi * f), su: r1(F.su * f), sf: r1(F.sf * f), q: Number(F.q) || it.h.q}, food: String(F.key)}); });
   } catch(e) { console.log("kcal foods: not reachable", String(e && e.message).slice(0, 120)); }
+}
+/* The gaps (Idee von Natlordlord, supabase/kcal_gaps.sql): a food that none of the sources knows is still entered, with the AI's
+   estimate for now, and its name is noted in the list of gaps (the name only, never who ate it). The operator's next run looks the real
+   values up and enters the food into the checked database; the phone of everyone who has it as an estimate then corrects its own entry.
+   The part carries gap = {k: key in the list, g: grams, e: the estimated kcal for these grams} so that it can be recalculated later even
+   after the amount was changed. A gap that is filled already answers with the checked food: then the real values are used at once. */
+async function noteGaps(req, items, raw){
+  const clean = v => { v = String(v || "").trim(); return /^(none|null|keine?|-)?$/i.test(v) || v.length > 80 ? "" : v; }, todo = [];
+  items.forEach((it, ix) => { const i = raw[ix] || {}, g = Number(i.grams), product = clean(i.product), name = (product || String(it.name || "")).replace(/\s+/g, " ").trim();
+    if (it.ref || it.code || it.food || it.u != null || !(g > 0 && g <= 5000) || !(it.kcal > 0) || name.length < 2) return; todo.push({ix, g, name, product}); });
+  if (!todo.length) return;
+  try { const r = await fetch(SUPABASE_URL + "/rest/v1/rpc/kcal_gap_note", Object.assign({method: "POST", headers: sbHead(req), body: JSON.stringify({items: todo.map(t => ({name: t.name, product: t.product}))})}, soon(3000)));
+    if (!r.ok){ console.log("kcal gaps: note failed", r.status, (await r.text().catch(() => "")).slice(0, 200)); return; }
+    const rows = await r.json(); if (!Array.isArray(rows)) return;
+    todo.forEach((t, n) => { const G = rows[n], it = items[t.ix]; if (!G || !G.key) return; const F = G.food;
+      if (F && Number(F.k) >= 0){ const f = t.g / 100; Object.assign(it, {kcal: Math.round(F.k * f), carbs: r1(F.c * f), protein: r1(F.p * f), fat: r1(F.f * f), h: {fi: r1(F.fi * f), su: r1(F.su * f), sf: r1(F.sf * f), q: Number(F.q) || it.h.q}, food: String(F.key)}); }
+      else it.gap = {k: String(G.key), g: Math.round(t.g * 10) / 10, e: it.kcal}; });
+  } catch(e) { console.log("kcal gaps: not reachable", String(e && e.message).slice(0, 120)); }
 }
 /* "Frag Nat" (Idee von Finnel): a coach to talk to about one's own eating. The phone sends what the tracker knows about this
    person (goals, body, weight, the days, the last week's meals) with every question; the answer only talks, nothing is
@@ -403,6 +421,7 @@ module.exports = async (req, res) => {
     return fromTable(it, i); });
   const pmiss = await fromProducts(items, (Array.isArray(est.items) ? est.items : []).slice(0, 30)).catch(() => []);
   await fromChecked(req, items, (Array.isArray(est.items) ? est.items : []).slice(0, 30));
+  await noteGaps(req, items, (Array.isArray(est.items) ? est.items : []).slice(0, 30));
   const sum = k => items.reduce((s, i) => s + (Number(i[k]) || 0), 0);
   const meal = {
     title: String(est.title || "Mahlzeit").slice(0, 60), emoji: String(est.emoji || "🍽️").slice(0, 8), items,
