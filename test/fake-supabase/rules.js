@@ -56,6 +56,8 @@ module.exports = db => {
   const shopOwns = (uid, l) => R.shop_lists.some(s => s.id === l && s.owner === uid);
   const shopCan = (uid, l) => shopOwns(uid, l) || R.shop_members.some(m => m.list_id === l && m.user_id === uid);
   const isAdmin = uid => db.admins.includes(uid);
+  /* public.kcal_food_key */
+  const foodKey = t => String(t || "").replace(/\(.*?\)/g, " ").toLowerCase().replace(/[äöüßéèêàáâíóúñç]/g, ch => "aouseeeaaaiounc"["äöüßéèêàáâíóúñç".indexOf(ch)]).replace(/[^a-z0-9]+/g, " ").trim().slice(0, 60);
   const own = col => ({all: (r, u) => r[col] === u});
   const T = () => true;
   const homeOwns = (u, g) => R.home_groups.some(x => x.id === g && x.owner === u), homeCan = (u, g) => homeOwns(u, g) || R.home_members.some(m => m.group_id === g && m.user_id === u);
@@ -98,6 +100,8 @@ module.exports = db => {
     kcal_invites: {select: (r, u) => r.from_id === u || r.to_id === u, delete: (r, u) => r.from_id === u || r.to_id === u},
     kcal_ice: {select: (r, u) => kcalCanSee(u, r.user_id)},
     kcal_foods: {select: (r, u) => !!u},
+    /* the list of gaps: nobody but the operator reads or writes it; players reach it only through the two functions below */
+    kcal_gaps: {},
     kcal_recipes: {select: (r, u) => !!u, insert: (r, u) => r.user_id === u, update: {using: (r, u) => r.user_id === u, check: (r, u) => r.user_id === u}, delete: (r, u) => r.user_id === u},
     kcal_claps: {select: (r, u) => r.from_id === u || r.to_id === u, insert: (r, u) => r.from_id === u},
     tipp_picks: {select: (r, u) => r.user_id === u || R.tipp_events.some(e => e.id === r.event_id && (e.state !== "pre" || Date.parse(e.start_at) <= Date.now()))},
@@ -126,6 +130,8 @@ module.exports = db => {
   /* AFTER triggers: (op, new row, old row) */
   const TRIGGERS = {
     kcal_meals: (op, n, o) => kcalRecalc((n || o).user_id),
+    /* private.kcal_gap_food: a food that arrives in the checked database fills the gap of the same name */
+    kcal_foods: (op, n) => { if (op === "INSERT" && n) R.kcal_gaps.forEach(g => { if (g.key === n.key && g.status === "open"){ g.status = "done"; g.food = n.key; } }); },
     /* private.kcal_recipe_stamp: who published it comes from the players table, never from the phone */
     kcal_recipes: (op, n) => { if (n){ const p = R.chess_players.find(x => x.id === n.user_id); n.author = (p && p.name) || "A friend"; } },
     /* private.kcal_own_stamp: who photographed it comes from the players table */
@@ -175,8 +181,18 @@ module.exports = db => {
     news_is_admin: u => isAdmin(u), push_config: () => ({}), events_summary: () => [],
     /* public.kcal_foods_lookup: reads the checked foods by name, never writes */
     kcal_foods_lookup(u, {names}){ if (!u) raise("Bitte anmelden"); if (!Array.isArray(names) || names.length > 40) return [];
-      const key = t => String(t || "").replace(/\(.*?\)/g, " ").toLowerCase().replace(/[äöüßéèêàáâíóúñç]/g, ch => "aouseeeaaaiounc"["äöüßéèêàáâíóúñç".indexOf(ch)]).replace(/[^a-z0-9]+/g, " ").trim().slice(0, 60);
+      const key = foodKey;
       return names.map(n => R.kcal_foods.find(x => x.key === key(n)) || null); },
+    /* public.kcal_gap_note: what could only be estimated is noted by name (never by person); a gap that is filled already answers with the checked food */
+    kcal_gap_note(u, {items}){ if (!u) raise("Bitte anmelden"); if (!Array.isArray(items) || items.length > 30) return [];
+      return items.map(e => { const nm = String((e && e.name) || "").replace(/\s+/g, " ").trim().slice(0, 80), k = foodKey(nm); if (nm.length < 2 || k.length < 2) return null;
+        const F = R.kcal_foods.find(x => x.key === k); if (F) return {key: k, food: F};
+        const G = R.kcal_gaps.find(x => x.key === k);
+        if (G){ G.uses++; G.last_at = db.now(); if (G.status === "skipped") return null; return {key: k, food: (G.status === "done" && R.kcal_foods.find(x => x.key === G.food)) || null}; }
+        R.kcal_gaps.push({key: k, name: nm, product: String((e && e.product) || "").trim().slice(0, 80) || null, uses: 1, status: "open", food: null, note: null, created_at: db.now(), last_at: db.now()}); return {key: k, food: null}; }); },
+    /* public.kcal_gaps_resolved: per key null (still open), {skip: true} or the checked food. Reads only */
+    kcal_gaps_resolved(u, {keys}){ if (!u || !Array.isArray(keys) || keys.length > 40) return [];
+      return keys.map(k => { const G = R.kcal_gaps.find(x => x.key === k); return !G ? null : G.status === "skipped" ? {skip: true} : G.status === "done" ? R.kcal_foods.find(x => x.key === G.food) || null : null; }); },
     /* public.fairplay_report: operator only; deletes the idea/feedback and opens a case for its author (unless one is open) */
     fairplay_report(u, {src, rid, shame}){ if (!isAdmin(u)) raise("not allowed"); const T = src === "idea" ? "chess_ideas" : src === "feedback" ? "chess_feedback" : null; if (!T) raise("unknown source");
       const r = R[T].find(x => x.id === rid); if (!r) raise("not found"); if (r.user_id === u) raise("own entry");

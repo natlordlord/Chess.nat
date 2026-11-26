@@ -520,6 +520,54 @@ const PARTS = {
   },
 
   /* ---------- Kalorien: Reiter, Einstellungen, Ziel, Wiegen, Kochen, Wochen-Rückblick, Flamme ---------- */
+  /* ---------- Kalorien: Lücken. Was keine Datenbank kennt, wird geschätzt eingetragen, vorgemerkt und später von selbst berichtigt ---------- */
+  async luecke(browser){
+    const hear = () => { class SR { start(){ SR.cur = this; } stop(){ setTimeout(() => this.onend && this.onend(), 20); } abort(){ this.stop(); } }
+      window.SpeechRecognition = window.webkitSpeechRecognition = SR; window.__hear = t => { const r = SR.cur; if (r && r.onresult) r.onresult({resultIndex: 0, results: Object.assign([Object.assign([{transcript: t, confidence: .9}], {isFinal: true})], {length: 1})}); }; };
+    let a = await L.open(browser, "tester", {before: hear});
+    const speak = async text => { await a.tap("#main [data-kc-say]"); await sleep(700); await a.evaluate(t => window.__hear(t), text); await sleep(400);
+      if (await a.locator("#kcmic").isVisible().catch(() => false)){ await a.tap("#kcmic"); await sleep(300); } if (await a.locator("#kcvdone").isVisible().catch(() => false)) await a.tap("#kcvdone");
+      await a.waitForSelector(".dsheet [data-commit]", {timeout: 8000}); };
+    const n0 = (await meals("tester")).length;
+    await speak("250 g Mascarpone");
+    ok(/KI-Schätzung · wird geprüft/.test(await txt(a, ".dsheet")), "Unbekanntes Lebensmittel: trotzdem eintragbar, steht als „KI-Schätzung · wird geprüft“ da", (await txt(a, ".dsheet")).slice(0, 200));
+    await a.tap(".dsheet [data-commit]"); for (let i = 0; i < 30 && (await meals("tester")).length === n0; i++) await sleep(200);
+    let m = (await meals("tester", "&limit=1"))[0], it = m && m.items && m.items[0];
+    ok(it && it.gap && it.gap.k === "mascarpone" && it.gap.g === 250 && it.gap.e === it.kcal && !it.food, "der Eintrag merkt sich, dass er nur geschätzt ist (Gramm und Schätzung)", JSON.stringify(it));
+    let G = await L.table("kcal_gaps");
+    ok(G.length === 1 && G[0].key === "mascarpone" && G[0].status === "open" && G[0].uses === 1 && !("user_id" in G[0]), "die Lücke ist vorgemerkt: nur der Name, nicht wer es gegessen hat", JSON.stringify(G));
+    /* the amount is changed before the real values arrive: half of it */
+    await closeSheets(a); if (await has(a, `#main [data-meal="${m.id}"]`)){ await a.tap(`#main [data-meal="${m.id}"]`); await sleep(600); }
+    const edited = await has(a, ".dsheet [data-g]");
+    if (edited){ await a.fill('.dsheet [data-g="0"]', "125"); await a.locator('.dsheet [data-g="0"]').blur(); await sleep(900); await closeSheets(a); }
+    else { const half = Object.assign({}, it, {amount: "125 g", kcal: Math.round(it.kcal / 2), carbs: it.carbs / 2, protein: it.protein / 2, fat: it.fat / 2}); await L.stage("PATCH", "kcal_meals", "id=eq." + m.id, {items: [half], kcal: half.kcal}); }
+    m = (await meals("tester", "&limit=1"))[0]; const est = m.kcal;
+    ok(m.items[0].gap && Math.abs(m.kcal - it.kcal / 2) <= 1, "Menge halbiert: die Schätzung rechnet mit, der Eintrag wartet weiter", JSON.stringify(m.items[0]));
+    /* a meal of a day long ago that reached the goal only through an estimate: the flame of that day must not break */
+    const goal = ((await L.table("kcal_profile", "user_id=eq." + ID.tester))[0] || {}).goal || 2500, old = new Date(Date.now() - 60 * 864e5).toISOString();
+    const om = await L.stage("POST", "kcal_meals", "", {user_id: ID.tester, day: old.slice(0, 10), ts: old, title: "Mascarpone-Berg", emoji: "🍨", source: "voice", kcal: goal + 300, carbs: 1, protein: 1, fat: 1, items: [{name: "Mascarpone", amount: "100 g", kcal: goal + 300, carbs: 1, protein: 1, fat: 1, h: {fi: 0, su: 0, sf: 0, q: 2}, gap: {k: "mascarpone", g: 100, e: goal + 300}}]});
+    const omId = (Array.isArray(om) ? om[0] : om).id;
+    /* still open: opening the app changes nothing */
+    await a.context().close(); a = await L.open(browser, "tester", {before: hear}); await sleep(3500);
+    ok((await meals("tester", "&id=eq." + m.id))[0].kcal === est, "solange nichts nachgetragen ist, bleibt die Schätzung stehen");
+    /* the operator's run enters the real values: 400 kcal per 100 g */
+    const ins = await L.stage("POST", "kcal_foods", "", {key: "mascarpone", name: "Mascarpone", k: 400, c: 3, p: 4.5, f: 41, fi: 0, su: 3, sf: 27, q: 2, source: "Test"}); ok(!ins.code, "der Betreiber trägt die echten Werte nach", JSON.stringify(ins));
+    G = await L.table("kcal_gaps"); ok(G[0].status === "done" && G[0].food === "mascarpone", "die Lücke gilt damit als gefüllt", JSON.stringify(G));
+    await a.context().close(); a = await L.open(browser, "tester", {before: hear});
+    for (let i = 0; i < 40 && (await meals("tester", "&id=eq." + m.id))[0].kcal === est; i++) await sleep(250);
+    const tt = await toast(a); m = (await meals("tester", "&id=eq." + m.id))[0]; it = m.items[0];
+    ok(m.kcal === 500 && it.kcal === 500 && it.fat === 51.3 && it.food === "mascarpone" && !it.gap, "beim nächsten Öffnen berichtigt sich der Eintrag von selbst: 125 g × 400 kcal = 500 kcal", JSON.stringify(m.items));
+    ok(/geprüften Werte/.test(tt), "und sagt es kurz", tt);
+    const o2 = (await meals("tester", "&id=eq." + omId))[0];
+    ok(o2.kcal === goal + 300 && o2.items[0].kcal === goal + 300 && !o2.items[0].gap && !o2.items[0].food, "ein alter Tag, der sein Ziel nur mit der Schätzung erreicht hat, bleibt wie er war (die Flamme bricht nicht)", JSON.stringify(o2.items));
+    /* said again: now the checked values are used at once, nothing waits */
+    const n1 = (await meals("tester")).length; await speak("100 g Mascarpone"); const sheet = await txt(a, ".dsheet");
+    ok(/Geprüfte Datenbank/.test(sheet) && !/wird geprüft/.test(sheet) && /400 kcal/.test(sheet), "beim nächsten Mal gilt sofort der geprüfte Wert (100 g = 400 kcal)", sheet.slice(0, 200));
+    await a.tap(".dsheet [data-commit]"); for (let i = 0; i < 30 && (await meals("tester")).length === n1; i++) await sleep(200);
+    await closeSheets(a); await clean(a, "Lücken");
+    await a.context().close();
+  },
+
   async kcal2(browser){
     const page = await L.open(browser, "tester");
     for (const [tab, re, name] of [["history", /Ø kcal|Rekord/, "Verlauf"], ["stats", /Ø Kalorien|Gewicht/, "Analyse"], ["friends", /Mila/, "Freunde"]]){
