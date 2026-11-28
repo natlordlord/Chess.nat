@@ -1240,10 +1240,11 @@
       }
     }
     /* a photo of the plate (Idee von Adri): the camera button opens the camera at once (Wunsch von Nat), the gallery button
-       its own picker for a picture taken earlier; what is said or typed before counts on top */
+       its own picker for a picture taken earlier; what is said or typed before counts on top. From the home screen nothing
+       else shows first (no "Tippen zum Sprechen" behind the camera): the screen opens only once a picture is there */
     async function photo(home, gallery){ const keep = home ? "" : mode === "typing" ? (ov.querySelector("#kctext").value || "").trim() : heard; stop(); const shot = await Label.shoot(!!gallery);
       if (!shot){ if (home) close(); else if (ov) set(keep ? "paused" : "idle", ""); return; } if (!ov) ui(); analyze(keep, shot); }
-    return {open, close, text: v => { if (!meId()) return say("Bitte erst anmelden"); if (ov) close(); heard = base = ""; bars.length = 0; ui(); return analyze(String(v || "").trim().slice(0, 1500)); }, photo: gallery => { if (!meId()) return say("Bitte erst anmelden"); if (ov) close(); heard = base = ""; bars.length = 0; ui(); set("idle", ""); return photo(true, gallery); }};
+    return {open, close, text: v => { if (!meId()) return say("Bitte erst anmelden"); if (ov) close(); heard = base = ""; bars.length = 0; ui(); return analyze(String(v || "").trim().slice(0, 1500)); }, photo: gallery => { if (!meId()) return say("Bitte erst anmelden"); if (ov) close(); heard = base = ""; bars.length = 0; return photo(true, gallery); }};
   })();
 
   /* ---------- barcode: fast, any angle ---------- */
