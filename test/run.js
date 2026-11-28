@@ -511,7 +511,7 @@ const PARTS = {
     /* a photo of the plate (Idee von Adri): the camera opens, the AI sees the food, "Passt" enters it */
     { const n0 = (await meals("tester")).length, png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", "base64");
       const fc = a.waitForEvent("filechooser", {timeout: 5000}).catch(() => null); await a.tap("#main [data-kc-photo]"); const ch = await fc;
-      ok(!!ch, "Foto-Knopf öffnet sofort die Kamera"); if (ch) await ch.setFiles({name: "teller.png", mimeType: "image/png", buffer: png});
+      ok(!!ch, "Foto-Knopf öffnet sofort die Kamera"); ok(!!ch && await a.evaluate(() => { const i = document.getElementById("kclabf"); return !!i && !i.hasAttribute("capture"); }), "Foto vom Essen: Kamera oder Galerie (Idee von Adri), das Handy fragt"); if (ch) await ch.setFiles({name: "teller.png", mimeType: "image/png", buffer: png});
       await a.waitForSelector(".dsheet [data-commit]", {timeout: 8000}).catch(() => {}); const st = await txt(a, ".dsheet"); await a.shot("kcal-foto-essen");
       ok(/Spaghetti Bolognese/.test(st) && /560/.test(st), "Foto vom Teller: die KI erkennt Spaghetti Bolognese, 560 kcal, erst „Passt“ speichert", st.slice(0, 160));
       if (await has(a, ".dsheet [data-commit]")) await a.tap(".dsheet [data-commit]"); for (let i = 0; i < 30 && (await meals("tester")).length === n0; i++) await sleep(200);
@@ -1187,8 +1187,23 @@ const PARTS = {
     ok(lv.main.length >= 2 && lv.main.some(x => /^hit:(Take On Me|99 Luftballons|Radio Ga Ga|Another One Bites the Dust|Under Pressure|Irgendwie)/.test(x)), "Radio-Hits: kommen aus der Liste der Songs, die jeder kennt (80er: " + lv.main.join(", ") + ")", JSON.stringify(lv.main));
     ok(lv.fan.length >= 1 && lv.fan.every(x => x.startsWith("fan:")), "Groupie mit nur Queen: Album-Songs für Kenner (" + lv.fan.join(", ") + ")", JSON.stringify(lv.fan));
     ok(shares.main[0] >= .8 && shares.main[2] > 0 && shares.mid[0] < shares.main[0] && shares.fan[2] >= .5, "Mainstream vor allem Hits (mit ein paar Kenner-Songs), Medium gemischt, Groupie vor allem Kenner-Songs", JSON.stringify(shares));
+    /* Jahrgang (Nathan): the songs someone grew up with: the hits of their childhood and teens, and songs everybody heard later (YouTube memes) */
+    const jg = await page.evaluate(async () => { const {jgList, jgWin, Pool, LVL} = PG._song, L01 = jgList(2001), keep = JSON.stringify(LVL); LVL.main = [1, 0, 0];
+      const J0 = window.SONG_JG, n75 = jgList(1975).length;
+      /* the test catalog knows only a few songs: a small list, with one song from before (Bohemian Rhapsody, 1975) that must not come */
+      window.SONG_JG = {y: {1975: "Bohemian Rhapsody|Queen", 1980: "Another One Bites the Dust|Queen", 1983: "99 Luftballons|Nena", 1984: "Radio Ga Ga|Queen", 1985: "Take On Me|a-ha"}, late: ""};
+      const P = Pool.make({genre: "jg", jg: 1975, lvl: "main"}); P.used.clear(); await P.fill(4); Object.assign(LVL, JSON.parse(keep)); window.SONG_JG = J0;
+      return {n: L01.length, win: jgWin(2001), sand: L01.some(x => x.t === "Sandstorm"), old: L01.filter(x => +x.y < 2005 && !["Sandstorm", "Never Gonna Give You Up", "All Star", "Africa", "What Is Love", "Dragostea Din Tei", "Ievan Polkka", "Caramelldansen", "Seven Nation Army", "Kernkraft 400", "Freed from Desire", "Cotton Eye Joe", "Mambo No. 5 (A Little Bit of...)", "Narcotic", "Running Up That Hill (A Deal with God)", "Dreams", "Rasputin", "Mr. Blue Sky", "Hooked on a Feeling", "Blue (Da Ba Dee)", "Barbie Girl", "Pokémon Theme", "Can We Fix It?", "The Ketchup Song (Aserejé)", "Cha Cha Slide", "Teletubbies Say \"Eh-Oh!\"", "Hakuna Matata", "Macarena", "Lemon Tree", "Smells Like Teen Spirit", "Axel F", "Schnappi, das kleine Krokodil", "Ich bin dein Gummibär", "Gummy Bear Song"].includes(x.t)).map(x => x.t),
+        n75, songs: P.songs.map(x => x.title + " " + x.year + " " + x.g) }; });
+    ok(jg.n >= 250 && jg.win[0] === 2005 && jg.win[1] === 2022 && jg.sand && !jg.old.length, "Jahrgang 2001: " + jg.n + " Songs aus 2005–2022, dazu Sandstorm & Co. (YouTube), nichts, was davor nur damals lief", JSON.stringify(jg).slice(0, 300));
+    ok(jg.n75 >= 200 && jg.songs.length >= 2 && jg.songs.every(x => / jg$/.test(x) && /19(79|8\d|9[0-6])/.test(x) && !/Bohemian/.test(x)), "Jahrgang 1975: die Songs kommen aus 1979–1996, mit ihrem Jahr (" + jg.songs.join(", ") + ")", JSON.stringify(jg.songs));
     /* four to pick from, guessing the artist, longer and longer; two players take turns */
-    await page.tap("#sgset"); await sleep(500); await page.tap('[data-gn="y80"]'); await page.tap('#sgw [data-v="artist"]'); await page.tap('#sga [data-v="pick"]'); await page.tap('#sgc [data-v="up"]'); await sleep(200);
+    await page.tap("#sgset"); await sleep(500);
+    await page.tap('[data-gn="jg"]'); await sleep(300);
+    ok(await page.isVisible("#sgjg"), "Jahrgang gewählt: das Geburtsjahr lässt sich einstellen");
+    await page.selectOption("#sgjg", "1975"); await sleep(200); await page.shot("song-jahrgang");
+    ok(/Jahrgang 1975/.test(await txt(page, '[data-gn="jg"]')) && await page.evaluate(() => PG.opt("song", {}).jg === 1975), "Jahrgang 1975 steht auf der Kachel und bleibt gespeichert", await txt(page, '[data-gn="jg"]'));
+    await page.tap('[data-gn="y80"]'); await page.tap('#sgw [data-v="artist"]'); await page.tap('#sga [data-v="pick"]'); await page.tap('#sgc [data-v="up"]'); await sleep(200);
     await page.locator("#sgp input").fill("Anna"); await page.locator("#sgp input").press("Enter"); await sleep(200); await page.locator("#sgp input").fill("Ben"); await page.locator("#sgp input").press("Enter"); await sleep(200);
     await page.tap("#sggo"); await page.waitForSelector("#sgplay", {timeout: 8000}).catch(() => {}); await sleep(300);
     ok(/Anna/.test(await txt(page, "#main")), "zwei Spieler: „Gib das Handy an Anna“", (await txt(page, "#main")).slice(0, 80));
@@ -1283,6 +1298,7 @@ const PARTS = {
     /* Party: first everyone wishes; you the 80s, Mila her playlist */
     await a.tap("#lgo"); await a.waitForSelector("[data-wg]", {timeout: 8000}).catch(() => {}); await b.waitForSelector("[data-wg]", {timeout: 8000}).catch(() => {}); await b.shot("songon-wunsch");
     ok(/Dein Musikwunsch/i.test(await txt(b, "#main")) && await has(b, '[data-wg="pl"]') && await has(b, '[data-wg="kpop"]') && await has(b, '[data-wg="own"]'), "vor dem ersten Song: jeder wünscht sich ein Genre oder seine Playlist", (await txt(b, "#main")).slice(0, 200));
+    await b.tap('[data-wg="jg"]'); await sleep(300); ok(await b.isVisible("[data-wjg] select"), "Wunsch „Jahrgang“: das eigene Geburtsjahr lässt sich wählen"); await b.shot("songon-jahrgang");
     await a.tap('[data-wg="y80"]'); await sleep(400); ok(/1 von 2 haben gewählt/.test(await txt(b, "#main")), "Mila sieht: 1 von 2 haben gewählt", (await txt(b, "#main")).slice(-120));
     await b.tap('[data-wg="pl"]');
     await b.waitForSelector(".sg-cd.on", {timeout: 12000}).catch(() => {}); const cd = await txt(b, ".sg-cd"); await b.shot("songon-countdown");

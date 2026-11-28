@@ -54,6 +54,10 @@ const PLQ = {
   anime: ["Anime Openings", "Anime Hits"],
   games: ["Video Game Songs", "Gaming Hits"]
 };
+/* Jahrgang (Nathan, Nov 2026): "jg2001" → the year charts of the years someone born then grew up in (age 5 to 20, the teens most) */
+function jgQ(key){ const m = /^jg(\d{4})$/.exec(key || ""); if (!m) return null; const b = +m[1], now = new Date().getFullYear(); if (b < 1940 || b > now) return null;
+  const ys = []; [13, 16, 10, 18, 8, 20, 6].forEach(a => { const y = b + a; if (y >= 1955 && y <= now && !ys.includes(y)) ys.push(y); });
+  if (!ys.length) ys.push(now); return ys.slice(0, 6).map(y => "Hits " + y); }
 /* not the real song: karaoke, tributes, covers, lullabies, sing-alongs */
 const JUNK_T = /karaoke|instrumental|made famous|originally performed|in the style of|tribute|cover version|8[ -]bit|lullaby|music box|piano version|backing track|sped up|slowed|nightcore|workout mix|medley/i;
 const JUNK_A = /karaoke|tribute|cover band|covers\b|lullab|hit crew|countdown singers|starlite|sing-?along|kidz bop|piano dreamers|8-bit|ameritz|zoom karaoke|top hits group|party hit kings/i;
@@ -100,9 +104,18 @@ function about(title, q){ const need = keyWords(q), have = words(title);
 /* the category's playlists: searched once, then their songs (fresh preview links every time) */
 const PLIDS = new Map();
 async function playlists(key){
-  const qs = PLQ[key] || PLQ.mix, out = [], seen = new Set(), lists = [];
+  const jq = jgQ(key), qs = jq || PLQ[key] || PLQ.mix, out = [], seen = new Set(), lists = [];
   const add = L => (L || []).map(dz).filter(real).forEach(x => { const k = N(x.trackName) + "|" + N(x.artistName); if (seen.has(k)) return; seen.add(k); out.push(x); });
   const ids = [];
+  /* Jahrgang: one list per year, all years asked at once, the best known 120 songs of each */
+  if (jq){ const found = await Promise.all(qs.map(async q => { let L = PLIDS.get(q); if (L) return L;
+      const r = await get("https://api.deezer.com/search/playlist?" + new URLSearchParams({q, limit: "10"}));
+      L = r.j && Array.isArray(r.j.data) ? r.j.data.filter(p => p.nb_tracks >= 25 && p.nb_tracks <= 600 && about(p.title, q)).slice(0, 1).map(p => ({id: p.id, title: clip(p.title, 80), n: p.nb_tracks})) : [];
+      if (L.length) PLIDS.set(q, L); return L; }));
+    found.flat().forEach(p => { if (!ids.includes(p.id)){ ids.push(p.id); lists.push(p); } });
+    const got = await Promise.all(ids.slice(0, 6).map(id => get(`https://api.deezer.com/playlist/${id}/tracks?limit=120`, 6000)));
+    got.forEach(r => { if (r.j) add(r.j.data); });
+    const res = out.sort((a, b) => (b.rank || 0) - (a.rank || 0)).slice(0, 600); res.lists = lists.slice(0, 6); return res; }
   for (const q of qs){
     if (q === "@chart"){ const r = await get("https://api.deezer.com/chart/0/tracks?limit=100"); if (r.j) add(r.j.data); continue; }
     let L = PLIDS.get(q);
@@ -120,7 +133,7 @@ module.exports = async (req, res) => {
   const q = req.query || {}, send = (code, body, age) => { res.setHeader("content-type", "application/json; charset=utf-8");
     res.setHeader("cache-control", age ? `public, max-age=60, s-maxage=${age}, stale-while-revalidate=${Math.round(age / 4)}` : "no-store"); res.statusCode = code; res.end(JSON.stringify(body)); };
   try {
-    if (q.pl){ const key = String(q.pl).toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 16); const results = await playlists(PLQ[key] ? key : "mix");
+    if (q.pl){ const key = String(q.pl).toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 16); const results = await playlists(PLQ[key] || jgQ(key) ? key : "mix");
       return send(200, {resultCount: results.length, lists: results.lists, results, src: "dz"}, results.length ? 240 : 0); }
     if (!q.term || String(q.term).trim().length < 2) return send(400, {error: "term"});
     let results = q.src === "dz" ? null : await apple(q), src = "it";
@@ -131,4 +144,4 @@ module.exports = async (req, res) => {
     return send(200, {resultCount: results.length, results, src}, results.length ? (src === "it" ? 86400 : 240) : 600);
   } catch(e) { return send(500, {error: String(e && e.message || e), results: []}); }
 };
-module.exports._t = {PLQ, dz, real, playlists, apple, deezer, about, keyWords};
+module.exports._t = {jgQ, PLQ, dz, real, playlists, apple, deezer, about, keyWords};

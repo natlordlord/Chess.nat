@@ -609,8 +609,9 @@
         P.img = shot.pic; try { const c = JSON.parse(localStorage.getItem("chessnat-off-" + P.code) || "null"); if (c && c.own){ c.image_front_small_url = shot.pic; localStorage.setItem("chessnat-off-" + P.code, JSON.stringify(c)); } } catch(e) {}
         if (done) done(shot.pic); haptic(15); say("📷 Danke! Das Bild sehen jetzt alle."); }
       catch(e) { say("Ging nicht: " + (e.message || e)); } },
-    /* the camera opens at once (one tap); the picture is made small enough to send */
-    shoot(){ return new Promise(ok => { const i = document.createElement("input"); i.type = "file"; i.accept = "image/*"; i.setAttribute("capture", "environment"); i.style.cssText = "position:fixed;left:-99px;top:0;width:1px;height:1px;opacity:0"; i.id = "kclabf";
+    /* the camera opens at once (one tap); the picture is made small enough to send. For a photo of the meal (Idee von Adri) the
+       phone asks first: take a photo or pick one from the gallery (no capture attribute) */
+    shoot(gallery){ return new Promise(ok => { const i = document.createElement("input"); i.type = "file"; i.accept = "image/*"; if (!gallery) i.setAttribute("capture", "environment"); i.style.cssText = "position:fixed;left:-99px;top:0;width:1px;height:1px;opacity:0"; i.id = "kclabf";
       document.body.appendChild(i); let done = false; const fin = v => { if (done) return; done = true; i.remove(); ok(v); };
       i.onchange = () => { const f = i.files && i.files[0]; if (!f) return fin(null); const u = URL.createObjectURL(f), im = new Image();
         im.onload = () => { const m = 1500 / Math.max(im.naturalWidth, im.naturalHeight, 1500), c = document.createElement("canvas"); c.width = Math.round(im.naturalWidth * m); c.height = Math.round(im.naturalHeight * m);
@@ -1239,7 +1240,7 @@
       }
     }
     /* a photo of the plate (Idee von Adri): the camera opens at once; what is said or typed before counts on top */
-    async function photo(home){ const keep = home ? "" : mode === "typing" ? (ov.querySelector("#kctext").value || "").trim() : heard; stop(); const shot = await Label.shoot();
+    async function photo(home){ const keep = home ? "" : mode === "typing" ? (ov.querySelector("#kctext").value || "").trim() : heard; stop(); const shot = await Label.shoot(true);
       if (!shot){ if (home) close(); else if (ov) set(keep ? "paused" : "idle", ""); return; } if (!ov) ui(); analyze(keep, shot); }
     return {open, close, text: v => { if (!meId()) return say("Bitte erst anmelden"); if (ov) close(); heard = base = ""; bars.length = 0; ui(); return analyze(String(v || "").trim().slice(0, 1500)); }, photo: () => { if (!meId()) return say("Bitte erst anmelden"); if (ov) close(); heard = base = ""; bars.length = 0; ui(); set("idle", ""); return photo(true); }};
   })();

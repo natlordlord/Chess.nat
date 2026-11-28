@@ -9,6 +9,7 @@
   /* genres: an emoji, the name, artists to draw from, and (for the decades) which years count */
   const G = {
     mix:   ["🎲", "Mix", "Mix", null],
+    jg:    ["🎂", "Jahrgang", "Birth year", null],
     charts:["🔥", "Hits von heute", "Today's hits", "Apache 207;Ayliva;Shirin David;Sabrina Carpenter;Billie Eilish;Dua Lipa;The Weeknd;Taylor Swift;Ed Sheeran;Miley Cyrus;Benson Boone;Teddy Swims;Chappell Roan;Hozier;Kendrick Lamar;Lady Gaga;Bruno Mars;Tate McRae;Linkin Park;Ski Aggu", [2021, 2026]],
     assi:  ["🍺", "Assi Rap", "Assi rap", "Die Atzen;Frauenarzt;Manny Marc;SXTN;K.I.Z;Trailerpark;257ers;Finch;Money Boy;Katja Krasavice;Ikkimel;Sido;Bushido;Fler;Massiv;Farid Bang;Gzuz;Haftbefehl;MC Bomber;King Orgasmus One;Mehnersmoos;Hayiti"],
     drap:  ["🎤", "Deutschrap", "German rap", "Apache 207;Capital Bra;RAF Camora;Bonez MC;Sido;Kool Savas;Cro;Shindy;Luciano;Ufo361;Haftbefehl;Shirin David;Kontra K;Bushido;Samra;Nimo;Badmómzjay;Pashanim;Ski Aggu;Kollegah"],
@@ -53,7 +54,7 @@
     drap: ["German rap expert", "Deutschrap-Kenner"], dpop: ["German pop fan", "Deutschpop-Fan"], rap: ["Hip-hop head", "Hip-Hop-Head"], rock: ["Rock legend", "Rock-Legende"], party: ["Schlager king", "Schlager-König"], dance: ["Rave radar", "Rave-Radar"], rnb: ["Soul expert", "Soul-Kenner"],
     latin: ["Reggaeton radar", "Reggaeton-Radar"], kpop: ["K-pop stan", "K-Pop-Stan"], indie: ["Indie insider", "Indie-Kenner"], metal: ["Headbanger", "Headbanger"], film: ["Movie buff", "Kino-Kenner"], xmas: ["Christmas elf", "Weihnachtself"], disney: ["Disney pro", "Disney-Profi"],
     musical: ["Musical expert", "Musical-Experte"], series: ["Series junkie", "Serienjunkie"], kids: ["Childhood hero", "Kindheitsheld"], esc: ["ESC expert", "ESC-Experte"], apres: ["Après-ski pro", "Après-Ski-Profi"], boy: ["Boy band fan", "Boyband-Fan"], summer: ["Summer hit collector", "Sommerhit-Sammler"],
-    tiktok: ["TikTok radar", "TikTok-Radar"], onehit: ["One-hit hunter", "One-Hit-Jäger"], ballad: ["Ballad heart", "Balladen-Herz"], ndw: ["NDW veteran", "NDW-Veteran"], assi: ["Assi king", "Assi-König"], pl: ["Playlist pro", "Playlist-Profi"], mix: ["All-rounder", "Allrounder"]};
+    tiktok: ["TikTok radar", "TikTok-Radar"], onehit: ["One-hit hunter", "One-Hit-Jäger"], ballad: ["Ballad heart", "Balladen-Herz"], ndw: ["NDW veteran", "NDW-Veteran"], assi: ["Assi king", "Assi-König"], pl: ["Playlist pro", "Playlist-Profi"], jg: ["Nostalgia pro", "Nostalgie-Profi"], mix: ["All-rounder", "Allrounder"]};
   const Rank = {
     rows: null, at: 0,
     sb(){ return typeof Social !== "undefined" && Social.sb && Social.me ? Social.sb : null; },
@@ -192,6 +193,20 @@
     metal: "Enter Sandman|Metallica;Nothing Else Matters|Metallica;Master of Puppets|Metallica;Du hast|Rammstein;Sonne|Rammstein;Engel|Rammstein;Duality|Slipknot;Chop Suey!|System of a Down;Toxicity|System of a Down;The Trooper|Iron Maiden;Run to the Hills|Iron Maiden;Numb|Linkin Park;American Idiot|Green Day;Basket Case|Green Day;The Kids Aren't Alright|The Offspring;Self Esteem|The Offspring;All the Small Things|blink-182;Fat Lip|Sum 41;Can You Feel My Heart|Bring Me the Horizon;Hail to the King|Avenged Sevenfold;Down with the Sickness|Disturbed;Freak on a Leash|Korn;Break Stuff|Limp Bizkit;Killing in the Name|Rage Against the Machine;Paranoid|Black Sabbath;Ace of Spades|Motörhead;Painkiller|Judas Priest;Holy Diver|Dio;Bring Me to Life|Evanescence;Smells Like Teen Spirit|Nirvana"};
   const hitList = g => { const one = k => String(HITS[k] || "").split(";").map(x => { const [t, a] = x.split("|"); return t && a ? {t: t.trim(), a: a.trim(), g: k} : null; }).filter(Boolean);
     return g === "mix" ? Object.keys(HITS).filter(k => !["xmas", "kids", "assi"].includes(k)).flatMap(one) : g === "pop" || g === "charts" ? ["y00", "y10", "y20", "tiktok"].flatMap(one) : one(g); };
+  /* ---------- Jahrgang (Nathan): the songs someone born in that year grew up with, about age 4 to 21, the teens most (games/song_jg.js:
+     the hits of each year, and the songs everybody heard later than they came out, like Sandstorm on YouTube or Running Up That Hill
+     after Stranger Things) ---------- */
+  const JG0 = 1950, jgNow = () => new Date().getFullYear(), jgOf = v => { const y = Math.round(+v) || 2000; return Math.max(JG0, Math.min(jgNow() - 4, y)); };
+  const jgWin = b => [b + 4, Math.min(jgNow(), b + 21)];
+  const jgList = b => { const J = window.SONG_JG || {}, [lo, hi] = jgWin(b), out = [], seen = new Set();
+    const push = (t, a, y, at) => { const k = N(bare(t)) + "|" + N(art1(a)); if (!t || !a || seen.has(k) || at < lo || at > hi) return; seen.add(k);
+      /* the teens count most: those songs come first more often */
+      const age = at - b; out.push({t, a, g: "jg", y: String(y), w: Math.random() * (age >= 10 && age <= 18 ? 1.7 : age < 8 ? .8 : 1)}); };
+    Object.entries(J.y || {}).forEach(([y, L]) => String(L).split(";").forEach(x => { const [t, a] = x.split("|"); push(t, a, +y, +y); }));
+    String(J.late || "").split(";").forEach(x => { const [t, a, y, at] = x.split("|"); push(t, a, +y, +at); });
+    return out.sort((p, q) => q.w - p.w); };
+  const jgLab = b => "🎂 " + T("Born", "Jahrgang") + " " + jgOf(b);
+  const jgSel = (cur, attr) => `<select ${attr} class="sg-jgs" aria-label="${T("Birth year", "Jahrgang")}">${Array.from({length: jgNow() - 4 - JG0 + 1}, (_, i) => jgNow() - 4 - i).map(y => `<option value="${y}" ${y === jgOf(cur) ? "selected" : ""}>${y}</option>`).join("")}</select>`;
   /* how hard: how many songs come from the radio hits, from the artists' better known songs, and from the deep cuts only fans know */
   const LVL = {main: [.82, .14, .04], mid: [.55, .3, .15], fan: [.15, .35, .5]};
   const LVLS = [["main", ["🌟 Mainstream", "🌟 Mainstream"], ["Radio hits everyone knows", "Radio-Hits, die jeder kennt"]], ["mid", ["🎧 Medium", "🎧 Medium"], ["Hits and some lesser known songs", "Hits und ein paar weniger bekannte"]], ["fan", ["🤘 Groupie", "🤘 Groupie"], ["Deep cuts for real fans", "Album-Songs für echte Fans"]]];
@@ -206,13 +221,13 @@
      last 600. The year is the earliest release of that title (a remaster from 2011 doesn't make "Bohemian Rhapsody" a 2011 song) ---------- */
   const Pool = {
     make(o){ const P = {o, songs: [], bank: [], shown: new Set(), busy: 0, tried: new Set(), used: used0(), fails: 0, titles: new Set()}, mix = LVL[o.lvl] || LVL.main;
-      P.cur = o.genre === "own" ? [] : PG.shuffle(hitList(o.genre));
+      P.cur = o.genre === "own" ? [] : o.genre === "jg" ? jgList(jgOf(o.jg)) : PG.shuffle(hitList(o.genre));
       /* the radio hits are the wrong answers too: songs people know */
       P.bank = P.cur.map(x => ({id: "h:" + N(x.t) + "|" + N(x.a), title: bare(x.t), artist: art1(x.a), lang: langOf(bare(x.t), x.g), g: x.g}));
       const add = (r, y, g, tier, alts) => { const title = String(r.trackName).slice(0, 90), k = N(bare(title)); if (P.used.has(String(r.trackId)) || P.titles.has(k) || P.shown.has(k) || P.songs.some(x => x.id === String(r.trackId))) return false;
         P.titles.add(k); P.songs.push({id: String(r.trackId), title, artist: String(r.artistName).slice(0, 60), url: r.previewUrl, art: OKURL.test(r.artworkUrl100 || "") ? r.artworkUrl100 : null, year: String(y || yearOf(r) || ""), g, lang: langOf(bare(title), g), alts: alts || [], tier}); return true; };
       /* a radio hit: the next one of the list that Apple has */
-      P.hit = async () => { for (let k = 0; k < 3 && P.cur.length; k++){ const x = P.cur.shift(); if (P.shown.has(N(bare(x.t))) || P.titles.has(N(bare(x.t)))) continue; const f = await findSong(x.t, x.a); if (!f){ P.fails++; return; } if (f.r && add(f.r, f.y, G[x.g] ? x.g : o.genre, "hit")) return; } };
+      P.hit = async () => { for (let k = 0; k < 3 && P.cur.length; k++){ const x = P.cur.shift(); if (P.shown.has(N(bare(x.t))) || P.titles.has(N(bare(x.t)))) continue; const f = await findSong(x.t, x.a); if (!f){ P.fails++; return; } if (f.r && add(f.r, x.y || f.y, G[x.g] ? x.g : o.genre, "hit")) return; } };
       /* an artist's songs, by how well known they are (Apple lists the best known first) */
       P.art = async tier => { const all = artistsOf(o); if (!all.length) return; let A = all.filter(a => !P.tried.has(a)); if (!A.length){ P.tried.clear(); A = all; }
         const term = PG.pick(A); P.tried.add(term);
@@ -234,7 +249,7 @@
         if (P.bank.length > 700) P.bank.splice(0, P.bank.length - 700); };
       /* the category's big playlists (api/songs?pl=…): hundreds of songs with their previews in one answer, the best known first.
          The top third are hits, the middle the better known songs, the rest for fans */
-      const plKey = o.genre === "own" ? null : o.genre;
+      const plKey = o.genre === "own" ? null : o.genre === "jg" ? "jg" + jgOf(o.jg) : o.genre;
       P.plLoad = async () => { if (!plKey || (P.plDead && Date.now() - P.plDead < 60000)) return []; if (P.plL && Date.now() - P.plT < 150000) return P.plL; if (P.plWait) return P.plWait;
         P.plWait = songApi({pl: plKey}).then(d => { P.plT = Date.now(); P.plWait = null; const seen = {};
           P.plL = ((d && d.results) || []).filter(r => r.previewUrl && OKURL.test(r.previewUrl) && r.trackName && r.artistName && !/karaoke|instrumental/i.test(r.trackName)).filter(r => { const k = N(bare(r.trackName)) + "|" + N(art1(r.artistName)); if (seen[k]) return false; seen[k] = 1; return true; });
@@ -364,7 +379,7 @@
     return {start(){ if (st.it) return; st.it = setInterval(step, 100); st.mt = setInterval(measure, 2000); measure(); },
       stop(){ clearInterval(st.it); clearInterval(st.mt); st.it = st.mt = 0; st.lead = null; SA.lag(0); SA.lagStep(); },
       get lead(){ return st.lead; }, L, step, test(o){ Object.assign(X, o || {}); }}; })();
-  PG.songSA = SA; PG._song = {Pool, PlPool, langOf, LVL, Sing, Rank, secs, G, HITS};   /* for the tests and for looking into it on a phone */
+  PG.songSA = SA; PG._song = {Pool, PlPool, langOf, LVL, Sing, Rank, secs, G, HITS, jgList, jgWin};   /* for the tests and for looking into it on a phone */
   /* the first tap in the song game wakes the player (not the voice chat buttons: the microphone comes first there) */
   document.addEventListener("pointerdown", e => { if (typeof App === "undefined" || !(App.route === "lobby" || App.route === "party") || (e.target && e.target.closest && e.target.closest("#lvoice,#lvx"))) return;
     const P = typeof PNet !== "undefined" && PNet.P, song = App.route === "party" ? PG.st.last === "song" : !!(P && (P.game === "song" || (P.msg && P.msg.game === "song"))); if (song) SA.unlock(); }, true);
@@ -422,7 +437,7 @@
   PG.ART.song = ["🎵", "#B65CE0"];
   PG.add({id: "song", icon: "music", name: ["Song Quiz", "Song raten"], tag: ["New", "Neu"], sub: ["Hear a clip, name the song.", "Kurz reinhören, Song erraten."], meta: ["1+ players · pick a genre", "1+ Spieler · Genre wählen"],
     mount(ctx){
-      const o = PG.opt("song", {genre: "mix", what: "title", answer: "type", clip: 10, rounds: 5, own: "", lvl: "main"});
+      const o = PG.opt("song", {genre: "mix", what: "title", answer: "type", clip: 10, rounds: 5, own: "", lvl: "main", jg: 2000});
       PG.onLeave(() => SA.stop());
       /* quick start: a ready-made set of rules, one tap */
       const PRE = {party: {what: "title", answer: "pick", clip: 10}, profi: {what: "both", answer: "type", clip: 10}, intro: {what: "title", answer: "pick", clip: "up"}};
@@ -435,6 +450,7 @@
             <button class="pg-pk" data-pre="intro"><span class="e">⏱️</span><b>${T("Longer and longer", "Immer länger")}</b><small>${T("1 s, then 2, 3, 5, 10", "1 s, dann 2, 3, 5, 10")}</small></button></div></div>
           <div class="unit"><h3>${T("Genre", "Genre")}</h3><div class="grid2" style="margin-top:8px" id="sgg"></div>
             <div id="sgow" ${o.genre === "own" ? "" : "hidden"} style="margin-top:10px"><input type="text" id="sgown" maxlength="400" placeholder="${T("Artists, separated by commas", "Künstler, mit Komma getrennt")}" value="${h(o.own)}" autocomplete="off" enterkeyhint="done" style="width:100%"><p class="pg-sub">${T("e.g. Cro, Queen, Shakira", "z. B. Cro, Queen, Shakira")}</p></div>
+            <div id="sgjgw" ${o.genre === "jg" ? "" : "hidden"} style="margin-top:10px"><label class="pg-sub" style="display:flex;align-items:center;gap:10px;margin:0">${T("Born in", "Geboren")} ${jgSel(o.jg, 'id="sgjg"')}</label><p class="pg-sub">${T("The songs you grew up with: the hits of your childhood and teens, YouTube, TikTok and kids' TV.", "Die Songs, mit denen du groß geworden bist: Hits aus Kindheit und Jugend, YouTube, TikTok und Kinderfernsehen.")}</p></div>
             <div id="sgpl" class="sg-plbox"></div></div>
           <div class="unit"><h3>${T("How well known", "Wie bekannt")}</h3><div class="pg-pkg" id="sgl"></div></div>
           <div class="unit"><h3>${T("What do you guess?", "Was wird geraten?")}</h3><div id="sgw"></div>
@@ -445,10 +461,11 @@
           <div class="unit" id="sgp"></div>${Rank.box(10)}`;
         Rank.mount(ctx.body.querySelector(".sg-rkbox"), 10);
         const gen = () => { const L = Object.entries(G).concat(myPl() ? [["pl", ["🎧", "Meine Playlist", "My playlist"]]] : []); if (o.genre === "pl" && !myPl()) o.genre = "mix";
-          $("#sgg").innerHTML = L.map(([k, g]) => `<button class="btn ${o.genre === k ? "go" : ""}" data-gn="${k}" style="justify-content:flex-start;gap:10px"><span style="font-size:22px">${g[0]}</span>${h(T(g[2], g[1]))}</button>`).join("");
-          $$("[data-gn]", ctx.body).forEach(b => b.onclick = () => { o.genre = b.dataset.gn; PG.persist(); gen(); const ow = $("#sgow"); ow.hidden = o.genre !== "own"; if (!ow.hidden){ const i = $("#sgown"); try { i.focus({preventScroll: true}); } catch(e) {} } }); };
+          $("#sgg").innerHTML = L.map(([k, g]) => `<button class="btn ${o.genre === k ? "go" : ""}" data-gn="${k}" style="justify-content:flex-start;gap:10px"><span style="font-size:22px">${g[0]}</span>${h(T(g[2], g[1]))}${k === "jg" && o.genre === "jg" ? " " + jgOf(o.jg) : ""}</button>`).join("");
+          $$("[data-gn]", ctx.body).forEach(b => b.onclick = () => { o.genre = b.dataset.gn; PG.persist(); gen(); $("#sgjgw").hidden = o.genre !== "jg"; const ow = $("#sgow"); ow.hidden = o.genre !== "own"; if (!ow.hidden){ const i = $("#sgown"); try { i.focus({preventScroll: true}); } catch(e) {} } }); };
         gen(); plBox($("#sgpl"), () => { if (myPl()) o.genre = "pl"; PG.persist(); gen(); });
         $("#sgown").oninput = e => { o.own = e.target.value.slice(0, 400); PG.persist(); };
+        $("#sgjg").onchange = e => { o.jg = jgOf(e.target.value); PG.persist(); gen(); };
         /* the keyboard comes up from below: the field glides to the middle first, so it stays in sight */
         $("#sgown").addEventListener("focus", e => setTimeout(() => { try { e.target.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion:reduce)").matches ? "auto" : "smooth", block: "center"}); } catch(x) {} }, 60));
         const ch = (id, items, k) => { const d = () => PG.choices($(id), items, o[k], v => { o[k] = v; PG.persist(); d(); }); d(); };
@@ -593,8 +610,9 @@
       ids.forEach(id => { const w = W[id]; if (!w) return;
         if (w.g === "pl" && pls.includes(id)) src.push({P: PlPool.make(fair(W[id].tr)), who: [id], lab: "🎧 " + (w.nm || T("playlist", "Playlist"))});
         else if (w.g === "own" && list(w.own).length) src.push({P: Pool.make({genre: "own", own: w.own, lvl: c.lvl}), who: [id], lab: "✍️ " + list(w.own).slice(0, 3).join(", ")});
+        else if (w.g === "jg"){ const b = jgOf(w.jg), k = "jg:" + b; if (!byG[k]) byG[k] = {P: Pool.make({genre: "jg", jg: b, lvl: c.lvl}), who: [], lab: jgLab(b)}; byG[k].who.push(id); src.push(byG[k]); }
         else if (G[w.g] && w.g !== "own"){ if (!byG[w.g]) byG[w.g] = {P: Pool.make({genre: w.g, lvl: c.lvl}), who: [], lab: GLAB(w.g)}; byG[w.g].who.push(id); src.push(byG[w.g]); } });
-      if (!src.length) src.push({P: c.genre === "own" && list(c.own).length ? Pool.make({genre: "own", own: c.own, lvl: c.lvl}) : Pool.make({genre: G[c.genre] && c.genre !== "own" ? c.genre : "mix", lvl: c.lvl})});
+      if (!src.length) src.push({P: c.genre === "own" && list(c.own).length ? Pool.make({genre: "own", own: c.own, lvl: c.lvl}) : Pool.make({genre: G[c.genre] && c.genre !== "own" ? c.genre : "mix", lvl: c.lvl, jg: c.jg})});
       return Mix.make(src); }
     const opool = Gm => { if (!OP || OP.gid !== Gm.gid){ OP = buildPools(Gm); OP.gid = Gm.gid; (Gm.s.used || []).forEach(id => OP.seen.add(id)); } return OP; };
 
@@ -615,11 +633,13 @@
       /* in the lobby, for everyone: your Spotify playlist; for the host with own rules: save them as a mode */
       lobbyHTML(m, isH){ const o = Object.assign({}, PNet.defaults("song"), m.opts || {});
         return (isH && o.genre === "own" && cfgOf(o).what !== "whose" ? `<div class="unit" id="sgown2" style="width:100%;text-align:left;margin:0"><h3>✍️ ${T("Your own artists", "Eigene Künstler")}</h3><form class="sg-plf" autocomplete="off"><input type="text" maxlength="200" value="${h(o.own || "")}" placeholder="${T("e.g. Michael Jackson, Queen", "z. B. Michael Jackson, Queen")}" enterkeyhint="done"><button class="btn go sm" type="submit">OK</button></form><p class="pg-sub sg-plm">${o.own ? h(list(o.own).join(" · ")) : T("Separated by commas.", "Mit Komma getrennt.")}</p></div>` : "")
+          + (o.genre === "jg" && cfgOf(o).what !== "whose" ? `<div class="unit" id="sgjg2" style="width:100%;text-align:left;margin:0"><h3>${jgLab(o.jg)}</h3>${isH ? `<label class="pg-sub" style="display:flex;align-items:center;gap:10px">${T("Born in", "Geboren")} ${jgSel(o.jg, "")}</label>` : ""}<p class="pg-sub sg-plm">${T("The songs of the childhood and teens of everyone born then.", "Die Songs aus Kindheit und Jugend aller, die dann geboren sind.")}</p></div>` : "")
           + `<div class="unit sg-plbox" id="sgpl" style="width:100%;text-align:left;margin:0"></div>` + (isH && (o.pkg === "custom" || /^c:/.test(o.pkg)) ? `<div class="unit" id="sgsv" style="width:100%;text-align:left;margin:0"></div>` : "") + Rank.box(10); },
       lobbyBind(body, m, isH){ const box = body.querySelector("#sgpl"); if (box) plBox(box); Rank.mount(body.querySelector(".sg-rkbox"), 10);
+        const js = body.querySelector("#sgjg2 select"); if (js) js.onchange = () => PNet.setOpt("jg", jgOf(js.value));
         const ow = body.querySelector("#sgown2"); if (ow) ow.querySelector("form").onsubmit = e => { e.preventDefault(); const v = ow.querySelector("input").value.trim().slice(0, 200); try { document.activeElement.blur(); } catch(x) {} PNet.setOpt("own", v); };
         const sv = body.querySelector("#sgsv"); if (!sv) return;
-        const o = Object.assign({}, PNet.defaults("song"), m.opts || {}), keep = ["what", "ans", "clip", "mode", "rounds", "genre", "lvl", "own"];
+        const o = Object.assign({}, PNet.defaults("song"), m.opts || {}), keep = ["what", "ans", "clip", "mode", "rounds", "genre", "lvl", "own", "jg"];
         if (o.pkg === "custom"){ sv.innerHTML = `<h3>💾 ${T("Save as a game mode", "Als Spielmodus speichern")}</h3><p class="pg-sub" style="margin:4px 0 0">${T("Next time it's one tap.", "Nächstes Mal ist es ein Tipp.")}</p><form class="sg-plf" autocomplete="off"><input type="text" maxlength="24" placeholder="${T("Name, e.g. Friday night", "Name, z. B. Freitagabend")}" enterkeyhint="done"><button class="btn go sm" type="submit">${T("Save", "Speichern")}</button></form>`;
           sv.querySelector("form").onsubmit = e => { e.preventDefault(); const name = sv.querySelector("input").value.trim().slice(0, 24); if (!name) return;
             PG.st.songCustoms = [{name, o: Object.fromEntries(keep.map(k => [k, o[k]]))}].concat(saved().filter(x => x.name !== name)).slice(0, 8); PG.persist(); toast(T("Saved", "Gespeichert") + " ⭐"); PNet.setOpt("pkg", "c:" + name); }; }
@@ -674,8 +694,9 @@
           /* the same wishes again: no second round of asking */
           if (Gm.s.phase === "wish" && Object.keys(keep.wish || {}).length){ Gm.s.wish = keep.wish; this.ready(Gm, api); } return; }
         if (a.a === "wish" && s.phase === "wish" && players(Gm).includes(id)){ const g = String(a.g || ""), own = String(a.own || "").slice(0, 200); if (!(g === "any" || g === "pl" || (G[g] && g !== "own") || (g === "own" && list(own).length))) return;
+          const jg = g === "jg" ? jgOf(a.jg) : 0;
           const tr = g === "pl" && Array.isArray(a.tr) ? a.tr.slice(0, 150).map(x => [String((x || [])[0] || "").slice(0, 120), String((x || [])[1] || "").slice(0, 120)]).filter(x => x[0] && x[1]) : null;
-          s.wish[id] = {g: g === "pl" && !(tr && tr.length) ? "any" : g, tr, nm: String(a.nm || "").slice(0, 60), own: g === "own" ? own : ""}; if (players(Gm).every(x => s.wish[x])) this.ready(Gm, api); return; }
+          s.wish[id] = {g: g === "pl" && !(tr && tr.length) ? "any" : g, tr, nm: String(a.nm || "").slice(0, 60), own: g === "own" ? own : "", jg}; if (players(Gm).every(x => s.wish[x])) this.ready(Gm, api); return; }
         if (a.a === "wishgo" && id === Gm.host && s.phase === "wish"){ this.ready(Gm, api); return; }
         if (a.a === "next" && id === Gm.host && s.phase === "rev"){ this.next(Gm, api); return; }
         if (a.a === "nx" && s.phase === "rev"){ s.rdy[id] = 1; if (players(Gm).every(x => s.rdy[x])) this.next(Gm, api); return; }
@@ -779,18 +800,21 @@
         const hostBar = v.host ? `<button class="btn ghost sm" data-x="lobby" style="margin-top:12px;opacity:.75">${T("End round · back to the lobby", "Runde beenden · zurück zur Lobby")}</button>` : "";
         if (v.ph === "wish"){
           /* before the first song: everyone wishes for a genre or their playlist */
-          const tiles = () => { const pl = myPl(), L = v.whose ? [] : Object.entries(G).filter(([k]) => k !== "own").map(([k, g]) => [k, g[0], T(g[2], g[1])]);
+          const tiles = () => { const pl = myPl(), L = v.whose ? [] : Object.entries(G).filter(([k]) => k !== "own").map(([k, g]) => [k, g[0], T(g[2], g[1]) + (k === "jg" && V.jg ? ` <small>${V.jg}</small>` : "")]);
             return (pl ? [["pl", "🎧", T("My playlist", "Meine Playlist") + ` <small>${md(pl.name || "")}</small>`]] : []).concat(L).concat(v.whose ? [] : [["own", "✍️", T("Artists of my own", "Eigene Künstler") + (V.own ? ` <small>${md(V.own)}</small>` : "")]]).concat([["any", v.whose ? "🙈" : "🎲", v.whose ? T("I only guess", "Ich rate nur mit") : T("Don't mind", "Egal")]])
               .map(([k, e, l]) => `<button class="btn sg-wt ${V.wish === k || (!V.wish && v.mine === k) ? "go" : ""}" data-wg="${k}"><span style="font-size:20px">${e}</span><span style="text-align:left">${l}</span></button>`).join(""); };
-          const send = g => { const pl = myPl(); V.wish = g; act(Object.assign({a: "wish", g}, g === "pl" && pl ? {tr: pl.tracks.slice(0, 150).map(x => [x.t, x.a]), nm: pl.name || ""} : {}, g === "own" ? {own: V.own} : {})); PG.vib(12); };
+          const send = g => { const pl = myPl(); V.wish = g; act(Object.assign({a: "wish", g}, g === "pl" && pl ? {tr: pl.tracks.slice(0, 150).map(x => [x.t, x.a]), nm: pl.name || ""} : {}, g === "own" ? {own: V.own} : {}, g === "jg" ? {jg: V.jg} : {})); PG.vib(12); };
+          /* Jahrgang: which year you were born, then the songs you grew up with */
+          const jgForm = () => { const f = body.querySelector("[data-wjg]"); f.hidden = false; const sel = f.querySelector("select"); sel.value = String(jgOf(V.jg || PG.st.songJg || 2000)); try { f.scrollIntoView({behavior: "smooth", block: "center"}); } catch(e) {}
+            f.onsubmit = e => { e.preventDefault(); V.jg = jgOf(sel.value); PG.st.songJg = V.jg; PG.persist(); f.hidden = true; send("jg"); body.querySelector(".sg-wg").innerHTML = tiles(); bind(); }; };
           /* own artists: a field opens (e.g. only Michael Jackson, with "Groupie" for his deep cuts) */
           const ownForm = () => { const f = body.querySelector("[data-wown]"); f.hidden = false; const i = f.querySelector("input"); i.value = V.own || PG.st.songOwn || ""; try { i.focus(); } catch(e) {}
             f.onsubmit = e => { e.preventDefault(); const val = i.value.trim().slice(0, 200); if (!list(val).length) return; V.own = val; PG.st.songOwn = val; PG.persist(); try { i.blur(); } catch(x) {} f.hidden = true; send("own"); body.querySelector(".sg-wg").innerHTML = tiles(); bind(); }; };
-          const bind = () => body.querySelectorAll("[data-wg]").forEach(b => b.onclick = () => { if (b.dataset.wg === "own") return ownForm(); send(b.dataset.wg); body.querySelector(".sg-wg").innerHTML = tiles(); bind(); });
-          if (fresh){ V.wish = null; V.own = "";
+          const bind = () => body.querySelectorAll("[data-wg]").forEach(b => b.onclick = () => { if (b.dataset.wg === "own") return ownForm(); if (b.dataset.wg === "jg") return jgForm(); send(b.dataset.wg); body.querySelector(".sg-wg").innerHTML = tiles(); bind(); });
+          if (fresh){ V.wish = null; V.own = ""; V.jg = 0;
             body.innerHTML = `<div class="pg-stage sg-on sg-wish"><div class="pg-who">${v.whose ? "🕵️ " + T("Whose song?", "Wessen Song?") : "🎁 " + T("Your music wish", "Dein Musikwunsch")}</div>
               <p class="pg-say" style="margin:0">${v.whose ? T("Share your Spotify playlist: the songs come from your playlists, everyone guesses whose they are.", "Teil deine Spotify-Playlist: Die Songs kommen aus euren Playlists, alle raten, von wem sie sind.") : T("What do you know best? Everyone wishes for something, the songs take turns between all wishes.", "Was kannst du am besten? Jeder wünscht sich etwas, die Songs kommen abwechselnd aus allen Wünschen.")}</p>
-              <div class="grid2 sg-wg">${tiles()}</div><form class="sg-plf" data-wown hidden autocomplete="off"><input type="text" maxlength="200" placeholder="${T("e.g. Michael Jackson, Queen", "z. B. Michael Jackson, Queen")}" enterkeyhint="done"><button class="btn go sm" type="submit">OK</button></form><div class="unit sg-plbox" data-plb style="width:100%;text-align:left;margin:0"></div>
+              <div class="grid2 sg-wg">${tiles()}</div><form class="sg-plf" data-wown hidden autocomplete="off"><input type="text" maxlength="200" placeholder="${T("e.g. Michael Jackson, Queen", "z. B. Michael Jackson, Queen")}" enterkeyhint="done"><button class="btn go sm" type="submit">OK</button></form><form class="sg-plf" data-wjg hidden autocomplete="off"><label class="pg-sub" style="display:flex;align-items:center;gap:10px;margin:0;flex:1">${T("Born in", "Geboren")} ${jgSel(PG.st.songJg || 2000, "")}</label><button class="btn go sm" type="submit">OK</button></form><div class="unit sg-plbox" data-plb style="width:100%;text-align:left;margin:0"></div>
               <p class="pg-hint" data-st></p>${v.host ? `<button class="btn ghost sm" data-x="wishgo">${T("Start without the others", "Ohne die anderen starten")}</button>` : ""}${hostBar}</div>`;
             bind(); plBox(body.querySelector("[data-plb]"), () => { body.querySelector(".sg-wg").innerHTML = tiles(); bind(); if (myPl() && (v.whose || !V.wish)) { send("pl"); body.querySelector(".sg-wg").innerHTML = tiles(); bind(); } });
             if (v.whose && myPl() && !v.mine) send("pl"); }
@@ -905,7 +929,7 @@
 .sg-wl{margin:0;text-align:center;font:800 13.5px var(--body);color:var(--muted)}
 .sg-wish .sg-wg{width:100%;gap:8px}.sg-wt{justify-content:flex-start;gap:9px;min-height:50px;text-align:left}.sg-wt small{display:block;color:var(--muted);font:700 11.5px var(--body)}
 .sg-plbox h3{margin:0}.sg-plc{display:flex;align-items:center;gap:10px;margin-top:8px;background:var(--panel-2);border-radius:14px;padding:8px 10px}.sg-pli{font-size:24px}.sg-plc .sg-sx{flex:1}
-.sg-plf{display:flex;gap:8px;margin-top:8px}.sg-plf input{flex:1;min-width:0;font-size:16px;padding:10px 12px}.sg-plm{margin:6px 0 0}
+.sg-plf{display:flex;gap:8px;margin-top:8px}.sg-plf input{flex:1;min-width:0;font-size:16px;padding:10px 12px}.sg-plm{margin:6px 0 0}.sg-jgs{font:700 17px var(--body);padding:9px 12px;border-radius:12px;border:2px solid var(--line);background:var(--card,#2A2825);color:var(--fg);min-width:110px}
 .sg-own{display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center;padding:14px}.sg-own b{font:900 19px var(--display)}.sg-own small{color:var(--muted);font:700 13px/1.35 var(--body)}
 .sg-tl{display:flex;flex-direction:column;gap:5px;width:100%}.sg-card{display:flex;align-items:center;gap:12px;background:var(--panel-2);border-radius:12px;padding:7px 12px;text-align:left}.sg-card b{font:900 20px var(--display);min-width:52px}
 .sg-card span{display:flex;flex-direction:column;font:700 13.5px var(--body);min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.sg-card small{color:var(--muted);font:700 12px var(--body)}.sg-card.nw{box-shadow:inset 0 0 0 2px var(--go-hi);background:color-mix(in srgb,var(--go) 22%,var(--panel-2))}
