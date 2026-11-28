@@ -31,6 +31,7 @@ const PLQ = {
   party: ["Schlager Party", "Schlager Hits", "Ballermann Hits"],
   dance: ["Dance Hits", "EDM Hits"],
   rnb: ["R&B Classics", "Soul Classics"],
+  groove: ["Funk Classics", "Neo Soul", "Disco Classics", "Soul Classics"],
   latin: ["Reggaeton Hits", "Latin Hits"],
   kpop: ["K-Pop Hits", "K-Pop"],
   indie: ["Indie Hits", "Indie Classics"],

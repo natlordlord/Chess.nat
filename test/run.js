@@ -1239,6 +1239,7 @@ const PARTS = {
     const cats = await page.evaluate(() => Object.keys(PG._song.G));
     ok(["disney", "musical", "series", "kids", "esc", "apres", "boy", "summer", "tiktok", "onehit", "ballad", "ndw"].every(k => cats.includes(k)), "neue Kategorien: Disney, Musicals, Serien, Kinderlieder, Eurovision, Après-Ski, Boybands, Sommerhits, TikTok, One-Hit-Wonder, Balladen, NDW", cats.join(" "));
     const nh = await page.evaluate(() => Object.fromEntries(Object.entries(PG._song.HITS).map(([k, v]) => [k, v.split(";").length])));
+    ok(cats.includes("groove") && nh.groove >= 250, "Kategorie Smooth Groove mit Hunderten Songs (" + nh.groove + ")");
     ok(Object.values(nh).every(n => n >= 20) && Object.values(nh).reduce((a, b) => a + b, 0) >= 1150, "jede Kategorie mit Hit-Liste hat mindestens 20 bekannte Songs, zusammen " + Object.values(nh).reduce((a, b) => a + b, 0), JSON.stringify(nh));
     /* Disney: the radio hits aren't in this test's catalog, so the songs come from the category's playlists (api/songs?pl=disney) */
     const r = await page.evaluate(async () => { const P = PG._song.Pool.make({genre: "disney", lvl: "main"}); P.used.clear(); await P.fill(3); return P.songs.map(s => ({t: s.title, u: s.url, g: s.g})); });
