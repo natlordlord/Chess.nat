@@ -511,7 +511,11 @@ const PARTS = {
     /* a photo of the plate (Idee von Adri): the camera opens, the AI sees the food, "Passt" enters it */
     { const n0 = (await meals("tester")).length, png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", "base64");
       const fc = a.waitForEvent("filechooser", {timeout: 5000}).catch(() => null); await a.tap("#main [data-kc-photo]"); const ch = await fc;
-      ok(!!ch, "Foto-Knopf öffnet sofort die Kamera"); ok(!!ch && await a.evaluate(() => { const i = document.getElementById("kclabf"); return !!i && !i.hasAttribute("capture"); }), "Foto vom Essen: Kamera oder Galerie (Idee von Adri), das Handy fragt"); if (ch) await ch.setFiles({name: "teller.png", mimeType: "image/png", buffer: png});
+      ok(!!ch && await a.evaluate(() => { const i = document.getElementById("kclabf"); return !!i && i.getAttribute("capture") === "environment"; }), "Foto-Knopf öffnet sofort die Kamera (Wunsch von Nat)"); if (ch) await ch.setFiles([]);
+      await sleep(400); await closeSheets(a); await a.evaluate(() => { const o = document.querySelector(".kc-voice [data-x]"); if (o) o.click(); }); await sleep(300);
+      ok(await has(a, "#main [data-kc-gal]"), "neben dem Foto-Knopf steht ein eigener Knopf „Galerie“");
+      const fg = a.waitForEvent("filechooser", {timeout: 5000}).catch(() => null); await a.tap("#main [data-kc-gal]"); const ch2 = await fg;
+      ok(!!ch2 && await a.evaluate(() => { const i = document.getElementById("kclabf"); return !!i && !i.hasAttribute("capture"); }), "Galerie-Knopf: Bild aus der Galerie (Idee von Adri), ohne Kamera"); if (ch2) await ch2.setFiles({name: "teller.png", mimeType: "image/png", buffer: png});
       await a.waitForSelector(".dsheet [data-commit]", {timeout: 8000}).catch(() => {}); const st = await txt(a, ".dsheet"); await a.shot("kcal-foto-essen");
       ok(/Spaghetti Bolognese/.test(st) && /560/.test(st), "Foto vom Teller: die KI erkennt Spaghetti Bolognese, 560 kcal, erst „Passt“ speichert", st.slice(0, 160));
       if (await has(a, ".dsheet [data-commit]")) await a.tap(".dsheet [data-commit]"); for (let i = 0; i < 30 && (await meals("tester")).length === n0; i++) await sleep(200);

@@ -210,7 +210,7 @@
     el.innerHTML = `<div class="kc-hd"><button class="kc-ttl" data-kc-go>Kalorien heute</button>${flameChip(n, lit, myIce())}<button class="kc-ov" data-kc-go>${svg(IC.chart, 16)} Übersicht</button></div>
       ${sumHTML(t, true)}
       <div class="kc-btns two"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 32)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 32)}<span>Barcode</span></button></div>
-      <div class="kc-srow"><button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Suchen oder schreiben …</span></button><button class="kc-phb" data-kc-photo aria-label="Foto vom Essen">📷<small>Foto</small></button></div>
+      <div class="kc-srow"><button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Suchen oder schreiben …</span></button><button class="kc-phb" data-kc-photo aria-label="Foto vom Essen">📷<small>Foto</small></button><button class="kc-phb" data-kc-gal aria-label="Bild vom Essen aus der Galerie">🖼️<small>Galerie</small></button></div>
       ${setupCard()}${quickHTML()}${tip}`;
     wireDay(el); animSum(el);
     if (K.loaded){ Weigh.check(); Wrap.check(); }
@@ -444,7 +444,7 @@
   function wireDay(el){
     el.querySelectorAll("[data-kc-go]").forEach(b => b.onclick = () => App.go("kcal"));
     const w = (s2, f) => el.querySelectorAll(s2).forEach(b => b.onclick = f);
-    w("[data-kc-say]", () => Voice2.open()); w("[data-kc-photo]", () => Voice2.photo()); w("[data-kc-scan]", () => KCScan.open()); w("[data-kc-find]", e => Search.open({}, e.currentTarget)); w("[data-kc-fl]", () => iceSheet()); w("[data-kc-setup]", () => Setup.open());
+    w("[data-kc-say]", () => Voice2.open()); w("[data-kc-photo]", () => Voice2.photo()); w("[data-kc-gal]", () => Voice2.photo(true)); w("[data-kc-scan]", () => KCScan.open()); w("[data-kc-find]", e => Search.open({}, e.currentTarget)); w("[data-kc-fl]", () => iceSheet()); w("[data-kc-setup]", () => Setup.open());
     el.querySelectorAll("[data-qadd]").forEach(b => b.onclick = e => { e.stopPropagation(); quickAdd(QL[+b.dataset.qadd], b); });
     el.querySelectorAll("[data-qi]").forEach(r => { r.onclick = () => { const q = QL[+r.dataset.qi]; if (q){ haptic(8); entrySheet(q.m); } }; r.onkeydown = e => { if (e.key === "Enter") r.onclick(); }; });
   }
@@ -609,8 +609,8 @@
         P.img = shot.pic; try { const c = JSON.parse(localStorage.getItem("chessnat-off-" + P.code) || "null"); if (c && c.own){ c.image_front_small_url = shot.pic; localStorage.setItem("chessnat-off-" + P.code, JSON.stringify(c)); } } catch(e) {}
         if (done) done(shot.pic); haptic(15); say("📷 Danke! Das Bild sehen jetzt alle."); }
       catch(e) { say("Ging nicht: " + (e.message || e)); } },
-    /* the camera opens at once (one tap); the picture is made small enough to send. For a photo of the meal (Idee von Adri) the
-       phone asks first: take a photo or pick one from the gallery (no capture attribute) */
+    /* the camera opens at once (one tap); the picture is made small enough to send. gallery = a picture from the gallery
+       (no capture attribute, the phone shows its picker) */
     shoot(gallery){ return new Promise(ok => { const i = document.createElement("input"); i.type = "file"; i.accept = "image/*"; if (!gallery) i.setAttribute("capture", "environment"); i.style.cssText = "position:fixed;left:-99px;top:0;width:1px;height:1px;opacity:0"; i.id = "kclabf";
       document.body.appendChild(i); let done = false; const fin = v => { if (done) return; done = true; i.remove(); ok(v); };
       i.onchange = () => { const f = i.files && i.files[0]; if (!f) return fin(null); const u = URL.createObjectURL(f), im = new Image();
@@ -1143,13 +1143,13 @@
           <button class="kc-mic" id="kcmic" aria-label="Aufnahme"><i class="kc-ring"></i><span class="kc-mi">${svg(IC.mic, 54)}</span><span class="kc-ms2"></span></button><div class="kc-vh muted" id="kcvh"></div>
           <button class="btn go big kc-vdone" id="kcvdone" hidden>Fertig, rechnen</button>
           <form class="kc-type" id="kctype" hidden><textarea id="kctext" rows="3" placeholder="Was hast du gegessen?"></textarea><button class="btn go big">Rechnen</button></form></div>
-        <div class="kc-vbot"><button class="btn ghost" id="kckb">${svg(IC.kb, 18)} Tippen</button><button class="btn ghost" id="kcph">📷 Foto vom Essen</button></div>`;
+        <div class="kc-vbot"><button class="btn ghost" id="kckb">${svg(IC.kb, 18)} Tippen</button><button class="btn ghost" id="kcph">📷 Foto vom Essen</button><button class="btn ghost" id="kcgal">🖼️ Galerie</button></div>`;
       document.body.appendChild(ov);
       ov.querySelector("[data-x]").onclick = close;
       ov.querySelector("#kcmic").onclick = () => { if (mode === "listening") finish(); else if (mode === "idle" || mode === "paused") listen(mode === "paused"); };
       ov.querySelector("#kcvdone").onclick = () => { if (heard) analyze(heard); };
       ov.querySelector("#kckb").onclick = () => typeMode();
-      ov.querySelector("#kcph").onclick = () => photo();
+      ov.querySelector("#kcph").onclick = () => photo(); ov.querySelector("#kcgal").onclick = () => photo(false, true);
       ov.querySelector("#kctype").onsubmit = e => { e.preventDefault(); const v = ov.querySelector("#kctext").value.trim(); if (!v) return say("Schreib kurz, was du gegessen hast"); ov.querySelector("#kctext").blur(); analyze(v); };
       draw();
     }
@@ -1239,10 +1239,11 @@
         set("typing", "⚠️ " + (e.message || "Keine Verbindung. Nochmal versuchen?")); ov.querySelector("#kctext").value = text || "";
       }
     }
-    /* a photo of the plate (Idee von Adri): the camera opens at once; what is said or typed before counts on top */
-    async function photo(home){ const keep = home ? "" : mode === "typing" ? (ov.querySelector("#kctext").value || "").trim() : heard; stop(); const shot = await Label.shoot(true);
+    /* a photo of the plate (Idee von Adri): the camera button opens the camera at once (Wunsch von Nat), the gallery button
+       its own picker for a picture taken earlier; what is said or typed before counts on top */
+    async function photo(home, gallery){ const keep = home ? "" : mode === "typing" ? (ov.querySelector("#kctext").value || "").trim() : heard; stop(); const shot = await Label.shoot(!!gallery);
       if (!shot){ if (home) close(); else if (ov) set(keep ? "paused" : "idle", ""); return; } if (!ov) ui(); analyze(keep, shot); }
-    return {open, close, text: v => { if (!meId()) return say("Bitte erst anmelden"); if (ov) close(); heard = base = ""; bars.length = 0; ui(); return analyze(String(v || "").trim().slice(0, 1500)); }, photo: () => { if (!meId()) return say("Bitte erst anmelden"); if (ov) close(); heard = base = ""; bars.length = 0; ui(); set("idle", ""); return photo(true); }};
+    return {open, close, text: v => { if (!meId()) return say("Bitte erst anmelden"); if (ov) close(); heard = base = ""; bars.length = 0; ui(); return analyze(String(v || "").trim().slice(0, 1500)); }, photo: gallery => { if (!meId()) return say("Bitte erst anmelden"); if (ov) close(); heard = base = ""; bars.length = 0; ui(); set("idle", ""); return photo(true, gallery); }};
   })();
 
   /* ---------- barcode: fast, any angle ---------- */
@@ -2074,7 +2075,7 @@
       const t = today(), g = K.goal(), eaten = K.dayKcal(t), lit = eaten >= g, miss = g - eaten, i = !lit ? idea(miss) : null;
       el.innerHTML = `<div id="hsslot" data-notr></div><div class="unit kc-sum">${sumHTML(t, false)}
         <div class="kc-btns two"><button class="kc-big kc-say" data-kc-say>${svg(IC.mic, 32)}<span>Sprechen</span></button><button class="kc-big kc-scan" data-kc-scan>${svg(IC.code, 32)}<span>Barcode</span></button></div>
-        <div class="kc-srow"><button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Suchen oder schreiben …</span></button><button class="kc-phb" data-kc-photo aria-label="Foto vom Essen">📷<small>Foto</small></button></div>
+        <div class="kc-srow"><button class="kc-sbar" data-kc-find>${svg(IC.search, 18)}<span>Suchen oder schreiben …</span></button><button class="kc-phb" data-kc-photo aria-label="Foto vom Essen">📷<small>Foto</small></button><button class="kc-phb" data-kc-gal aria-label="Bild vom Essen aus der Galerie">🖼️<small>Galerie</small></button></div>
         <div class="kc-btns two"><button class="kc-tile shop" id="kcshop">${svg(IC.list, 24)}<span><b>Einkaufsliste</b><small>mit Freunden</small></span></button><button class="kc-tile cook" id="kccook">${svg(IC.chef, 24)}<span><b>Kochen</b><small>Was hast du da?</small></span></button><button class="kc-tile ai" id="kcai"><span class="hs-ti">🤖</span><span><b>Frag Nat</b><small>KI-Coach</small></span></button><button class="kc-tile haus" id="kchaus" data-notr><span class="hs-ti">🏠</span><span><b>Haushalt</b><small id="hsnext">Müllplan &amp; Aufgaben</small></span></button></div>
         <div id="kcpoop" data-notr></div><div id="kcaitip" data-notr></div>${setupCard()}</div>
         <div class="kc-lh"><span>Heute</span>${heads()}</div>${this.dayBlock(t)}
@@ -2260,7 +2261,7 @@ html.kc-sopen,html.kc-sopen body{overflow:hidden}
 .kc-mac{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.kc-mc{background:var(--panel-2);border-radius:14px;padding:8px 10px;display:flex;flex-direction:column;gap:3px;min-width:0}
 .kc-mc span{font:800 11.5px var(--body);color:var(--muted);letter-spacing:.02em}.kc-mc b{font:900 17px var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kc-mc b small{font:800 11.5px var(--body);color:var(--muted)}
 .kc-mc i{display:block;height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}.kc-mc u{display:block;height:100%;border-radius:3px;background:var(--go);transition:width .4s}.kc-mc.ok{background:rgba(127,178,74,.2)}.kc-mc.ok u{background:linear-gradient(90deg,#7FB24A,#9BE25A)}.kc-mc.ok b{color:#9BE25A}
-.kc-srow{display:flex;gap:8px;align-items:stretch}.kc-srow .kc-sbar{flex:1;min-width:0}
+.kc-srow{display:flex;gap:8px;align-items:stretch}.kc-srow .kc-sbar{flex:1;min-width:0;padding:13px 10px;gap:7px;font-size:15px}.kc-srow .kc-sbar span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kc-srow .kc-phb{width:54px}
 .kc-phb{flex:none;width:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border-radius:16px;border:2px solid var(--line);background:var(--panel-2);color:var(--fg);font-size:22px;line-height:1;cursor:pointer;-webkit-tap-highlight-color:transparent}.kc-phb small{font:800 11px var(--body);color:var(--muted)}.kc-phb:active{border-color:var(--go)}
 .kc-vph{width:min(62vw,240px);aspect-ratio:1;object-fit:cover;border-radius:22px;margin:0 auto 14px;display:block;box-shadow:0 8px 30px rgba(0,0,0,.4)}.kc-vph[hidden]{display:none}.kc-voice.photo .kc-wave,.kc-voice.photo .kc-mic{display:none}
 .kc-src.last{background:rgba(127,184,74,.18);color:var(--go-hi,var(--go))}
