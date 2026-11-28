@@ -26,6 +26,7 @@ chess_matches|id|id:uuid:!:@uuid ; tc:text:!: ; cat:text:!: ; white:uuid:!: ; bl
 chess_messages|id|id:int8:!:@identity ; from_id:uuid:!:@uid ; to_id:uuid:!: ; body:text:!: ; created_at:timestamptz:!:@now ; read_at:timestamptz:?:
 chess_news|id|id:int8:!:@identity ; title:text:!: ; body:text:!: ; created_at:timestamptz:!:@now ; pushed_at:timestamptz:?: ; pushed_count:int4:?: ; audio_url:text:?: ; rev:int4:!:0 ; sort_at:timestamptz:!:@now ; video_url:text:?:
 chess_players|id|id:uuid:!: ; name:text:!: ; name_lc:text:?:@generated ; rating:int4:?: ; last_seen:timestamptz:!:@now ; created_at:timestamptz:!:@now ; avatar:jsonb:?: ; trophies:int4:!:0 ; handle:text:?: ; ratings:jsonb:?: ; flame:int4:!:0 ; flame_day:date:?: ; handle_changes:int4:!:0 ; active_at:timestamptz:?: ; referred_by:uuid:?:
+chess_notify|user_id|user_id:uuid:!:@uid ; prefs:jsonb:!:{} ; updated_at:timestamptz:!:@now
 chess_push|endpoint|endpoint:text:!: ; user_id:uuid:!:@uid ; p256dh:text:!: ; auth:text:!: ; tz:int4:!:0 ; hour:int4:!:18 ; prefs:jsonb:!:{"hearts": true, "remind": true, "friends": true, "invites": true, "messages": true} ; created_at:timestamptz:!:@now ; last_remind:date:?:
 chess_queue|user_id|user_id:uuid:!: ; tc:text:!: ; cat:text:!: ; r:float8:!: ; joined_at:timestamptz:!:@now ; seen_at:timestamptz:!:@now ; match_id:uuid:?:
 chess_ratings|user_id,cat|user_id:uuid:!: ; cat:text:!: ; r:float8:!:1200 ; rd:float8:!:350 ; games:int4:!:0 ; w:int4:!:0 ; d:int4:!:0 ; l:int4:!:0 ; peak:int4:!:0 ; updated_at:timestamptz:!:@now

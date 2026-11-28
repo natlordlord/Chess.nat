@@ -1117,6 +1117,12 @@ select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);bo
 /* notifications */
 .pushcard svg{color:var(--go);flex:none}
 .pprefs{display:flex;flex-direction:column;gap:8px;margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+.nt-g{margin-top:12px}.nt-h{font:800 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.nt-row{align-items:flex-start}.nt-row input{margin-top:3px;flex:none}.nt-row span{display:flex;flex-direction:column;gap:1px}.nt-row small{color:var(--muted);font-size:12.5px;font-weight:500}
+.nt-row.lock{display:flex;gap:10px;padding:8px 0;opacity:.6;cursor:default}.nt-row.dep{margin-left:28px}.nt-row.off,.nt-sub.off{opacity:.45}
+.nt-sub{margin:4px 0 0 28px}.nt-sh{font-size:13px;color:var(--muted);margin-bottom:6px}.nt-chips{display:flex;flex-wrap:wrap;gap:6px}
+.nt-off{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-top:8px;padding:10px 12px;border-radius:12px;background:var(--panel-2);font-size:13.5px}
+.nt-sheet h3{margin-top:0}
 .ptog{display:flex;align-items:center;gap:10px;font-weight:700;font-size:14px}
 .ptog input{width:18px;height:18px;accent-color:var(--go)}
 .ptog select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:4px 8px;font:inherit}
@@ -2931,7 +2937,7 @@ h1.h-title{letter-spacing:-.02em}
 <script src="config.js"></script>
 <script src="platform.js"></script>
 <script>
-const CHESSNAT_BUILD = "1795877224";
+const CHESSNAT_BUILD = "1795879087";
 /* ===== Languages: English is built in; German comes as a dictionary (data/i18n_de.json).
    Every text the app shows is translated the moment it lands on the page: exact sentences by lookup,
    sentences with names or numbers in them by pattern ("{0} won" → "{0} hat gewonnen").
@@ -12151,6 +12157,7 @@ Views.settings = {
     main.innerHTML = `<div class="page" style="max-width:640px"><h1 class="h-title">Settings</h1>
       <div class="unit lang-unit" style="margin-top:12px" data-notr><h3>Language · Sprache</h3><div class="row" style="margin-top:8px">${[["en", "English"], ["de", "Deutsch"]].map(([k, t]) => `<button class="btn sm ${I18N.lang === k ? "go" : ""}" data-lang="${k}">${t}</button>`).join("")}</div></div>
       <div class="unit"><h3>Profile</h3><label class="muted" style="display:block;margin-top:8px">Display name <input type="text" id="nm" value="${esc(S.name && S.name !== "You" ? S.name : "")}" placeholder="Your name" maxlength="24" style="margin-left:8px"></label></div>
+      <div class="unit" id="notifSet"></div>
       <div class="unit" id="kcalSet"></div>
       <div class="unit"><h3>Board</h3>${chk("coords", "Show coordinates")}${chk("legal", "Show legal moves")}${chk("openings", "Show opening names (bot games, analysis, review)")}${chk("anim", "Animate pieces")}
         <div class="row" style="margin-top:6px">${["green","brown","blue","slate"].map(b => `<button class="btn sm ${st.board === b ? "go" : ""}" data-b="${b}">${b[0].toUpperCase() + b.slice(1)}</button>`).join("")}</div></div>
@@ -12164,6 +12171,7 @@ Views.settings = {
     $$("[data-s]", main).forEach(c => c.onchange = () => { st[c.dataset.s] = c.checked; save(); if (c.dataset.s === "sound" && c.checked) Sound.play("Move"); if (c.dataset.s === "haptics" && c.checked) Haptic.go([20, 40, 20]); });
     $$("[data-b]", main).forEach(b => b.onclick = () => { st.board = b.dataset.b; document.body.dataset.board = st.board; save(); this.mount(main); });
     { const ks = $("#kcalSet"); if (typeof window.kcalSettings === "function") window.kcalSettings(ks); else ks.hidden = true; }
+    if (typeof PushPrefs !== "undefined") PushPrefs.render($("#notifSet"));
     $("#nm").onchange = e => { S.name = e.target.value.trim().slice(0, 24) || "You"; save(); renderRail(); };
     $$("[data-vr]", main).forEach(b => b.onclick = () => { st.voiceRate = +b.dataset.vr; save(); this.mount(main); Voice.say("Hi! I'm your chess coach. Let's get you to sixteen hundred."); });
     $("#tv").onclick = () => Voice.say("Hi! I'm your chess coach. Let's get you to sixteen hundred.");
@@ -14626,14 +14634,82 @@ const Push = {
   /* the profile shows only whether it's on */
   card(){
     const on = this.supported() && Notification.permission === "granted", blocked = this.supported() && Notification.permission === "denied", ios = this.isIOS() && !this.standalone();
-    return `<div class="unit pushcard"><div class="row" style="gap:10px;flex-wrap:nowrap">${icon("bell", 26)}<div class="grow"><h3 style="margin:0">Notifications</h3><p class="muted" style="margin:2px 0 0;font-size:13px">${on ? "On ✓" : blocked ? "Blocked. Allow notifications for Chess.nat in your phone or browser settings." : ios ? "Add Chess.nat to your Home Screen (Share → Add to Home Screen) and open it from there." : "Off"}</p></div>${!on && !blocked && !ios ? `<button class="btn go" id="pOn">Turn on</button>` : ""}${blocked ? `<button class="btn sm" id="pFix">How to fix</button>` : ""}</div></div>`;
+    return `<div class="unit pushcard"><div class="row" style="gap:10px;flex-wrap:nowrap">${icon("bell", 26)}<div class="grow"><h3 style="margin:0">Notifications</h3><p class="muted" style="margin:2px 0 0;font-size:13px">${on ? "On ✓" : blocked ? "Blocked. Allow notifications for Chess.nat in your phone or browser settings." : ios ? "Add Chess.nat to your Home Screen (Share → Add to Home Screen) and open it from there." : "Off"}</p></div>${!on && !blocked && !ios ? `<button class="btn go" id="pOn">Turn on</button>` : ""}${blocked ? `<button class="btn sm" id="pFix">How to fix</button>` : ""}${on ? `<button class="btn sm" id="pPick">Choose</button>` : ""}</div></div>`;
   },
   wire(el, redraw){
     const on = el.querySelector("#pOn");
     const fx = el.querySelector("#pFix"); if (fx) fx.onclick = () => this.explain({error: "denied"});
+    const pk = el.querySelector("#pPick"); if (pk) pk.onclick = () => PushPrefs.open();
     this.prep(); if (on) on.onclick = () => { this.turnOn().then(r => { if (r.ok) toast("Notifications on 🔔"); else this.explain(r); redraw(); }); };
   }
 };
+/* ---------- which notifications you get (Wunsch von Nat): one list to tick, for all your devices.
+   Some can't be switched off: invitations, news from Chess.nat and answers to your feedback. The server asks the same list
+   (public.chess_notify, private.push) before it sends; the flame reminder is kept on every device (chess_push.prefs.remind),
+   the two calorie ones in kcal_profile (fpush, remind). A key that isn't there counts as on. ---------- */
+const PushPrefs = {
+  de(){ return typeof I18N === "undefined" || I18N.lang === "de"; },
+  uid(){ const s = window.ChessSite && ChessSite.getSession && ChessSite.getSession(); return s && s.user ? s.user.id : null; },
+  rows(){ const d = this.de(), L = (de, en) => d ? de : en;
+    return [
+      {h: L("Immer an", "Always on"), lock: true, items: [
+        ["", L("Einladungen", "Invitations"), L("Spiele, Tipprunden, Kalorien-Tracker und wenn du am Zug bist", "Games, betting groups, calorie tracker and when it's your move")],
+        ["", L("Neues von Chess.nat", "News from Chess.nat"), L("Updates und Ankündigungen", "Updates and announcements")],
+        ["", L("Antworten auf dein Feedback", "Answers to your feedback"), L("Wenn deine Idee gebaut wird oder live ist", "When your idea is being built or is live")]]},
+      {h: L("Freunde", "Friends"), items: [
+        ["messages", L("Chat-Nachrichten", "Chat messages"), ""],
+        ["friends", L("Freundschaften und Aufstiege", "Friends and promotions"), L("Anfragen, neue Ränge, Glückwünsche, Käfig", "Requests, new ranks, congratulations, cage")],
+        ["hearts", L("Herzen und Geschenke", "Hearts and gifts"), ""],
+        ["remind", L("Erinnerung an deine Flamme", "Flame reminder"), L("Einmal am Tag, wenn sie auszugehen droht", "Once a day when it's about to go out")]]},
+      {h: L("Kalorien", "Calories"), items: [
+        ["kcal", L("Kalorien-Tracker", "Calorie tracker"), L("Ziel geschafft, Flamme, Streak on Ice", "Goal reached, flame, streak on ice")],
+        ["k:fpush", L("Wenn Freunde essen", "When friends eat"), L("… oder ihr Ziel schaffen", "… or reach their goal"), "kcal"],
+        ["k:remind", L("Erinnerungen zum Essen", "Meal reminders"), L("Mit Essensvorschlag", "With a meal idea"), "kcal"]]},
+      {h: L("Tippspiel", "Betting game"), items: [
+        ["tipp", L("Deine Tipps", "Your bets"), L("Anpfiff, Tore, Ergebnis, wenn dich jemand überholt", "Kick-off, goals, result, when someone overtakes you")]],
+        sub: L("Erinnerung, bevor ein Spiel losgeht", "Reminder before a match starts"), subs: [
+        ["tipp.bl", "Bundesliga"], ["tipp.pokal", "DFB-Pokal"], ["tipp.cl", "Champions League"], ["tipp.nt", L("Nationalmannschaft", "National team")],
+        ["tipp.fight", L("UFC, Boxen, Kampfsport", "UFC, boxing, fighting")], ["tipp.hb", "Handball"], ["tipp.chess", L("Schach", "Chess")], ["tipp.lol", "League of Legends"], ["tipp.other", L("Sonstiges", "Other")]]},
+      {h: L("Haushalt", "Household"), items: [
+        ["home", L("Haushalt", "Household"), L("Wer dran ist, was noch offen ist, Danke", "Whose turn it is, what's still open, thanks")]]}];
+  },
+  P: {}, K: null,
+  async load(){ const sb = Social.sb, id = this.uid(); if (!sb || !id) return;
+    const [a, b] = await Promise.all([sb.from("chess_notify").select("prefs").eq("user_id", id).maybeSingle(), sb.from("kcal_profile").select("enabled,fpush,remind").eq("user_id", id).maybeSingle()]);
+    this.P = (a.data && a.data.prefs) || {}; this.K = b.data || null;
+    if (typeof Push !== "undefined" && Push.prefs().remind === false) this.P.remind = false; },
+  on(k){ if (k.startsWith("k:")) return !!this.K && this.K[k.slice(2)] !== false; return this.P[k] !== false; },
+  async set(k, v){ const sb = Social.sb, id = this.uid(); if (!sb || !id) throw new Error(this.de() ? "Bitte anmelden" : "Please sign in");
+    if (k.startsWith("k:")){ const c = k.slice(2), r = await sb.from("kcal_profile").update({[c]: v, updated_at: new Date().toISOString()}).eq("user_id", id); if (r.error) throw r.error; this.K[c] = v; return; }
+    const was = this.P[k]; this.P[k] = v;
+    const r = await sb.from("chess_notify").upsert({user_id: id, prefs: this.P, updated_at: new Date().toISOString()}); if (r.error){ this.P[k] = was; throw r.error; }
+    /* the flame reminder is sent per device: every device of mine gets the new choice */
+    if (k === "remind"){ const P = Push.prefs(); P.remind = v; save();
+      const d = await sb.from("chess_push").select("endpoint,prefs").eq("user_id", id);
+      for (const row of d.data || []) await sb.from("chess_push").update({prefs: Object.assign({}, row.prefs || {}, {remind: v})}).eq("endpoint", row.endpoint); } },
+  html(){ const d = this.de(), on = typeof Push !== "undefined" && Push.supported() && Notification.permission === "granted";
+    const box = (k, t, sm, dep) => { const dis = dep && !this.on(dep);
+      return `<label class="chk nt-row${dep ? " dep" : ""}${dis ? " off" : ""}"><input type="checkbox" data-nt="${k}" ${this.on(k) ? "checked" : ""} ${dis ? "disabled" : ""}><span><b>${t}</b>${sm ? `<small>${sm}</small>` : ""}</span></label>`; };
+    return `${on ? "" : `<div class="nt-off"><span>${d ? "Auf diesem Gerät sind Benachrichtigungen aus." : "Notifications are off on this device."}</span><button class="btn sm go" data-nt-on>${d ? "Einschalten" : "Turn on"}</button></div>`}
+      ${this.rows().map(g => `<div class="nt-g"><div class="nt-h">${g.h}${g.lock ? " 🔒" : ""}</div>
+        ${g.items.map(([k, t, sm, dep]) => g.lock ? `<div class="chk nt-row lock"><input type="checkbox" checked disabled><span><b>${t}</b><small>${sm}</small></span></div>`
+          : k.startsWith("k:") && !(this.K && this.K.enabled) ? "" : box(k, t, sm, dep)).join("")}
+        ${g.subs ? `<div class="nt-sub${this.on("tipp") ? "" : " off"}"><div class="nt-sh">${g.sub}</div><div class="nt-chips">${g.subs.map(([k, t]) => `<button class="chip ${this.on(k) ? "on" : ""}" data-ntc="${k}" ${this.on("tipp") ? "" : "disabled"}>${t}</button>`).join("")}</div></div>` : ""}</div>`).join("")}
+      <p class="muted" style="font-size:12.5px;margin:8px 0 0">${d ? "Gilt für alle deine Geräte. Einladungen und Neues von Chess.nat kommen immer." : "Applies to all your devices. Invitations and news from Chess.nat always come through."}</p>`; },
+  async render(el){ if (!el) return; el.setAttribute("data-notr", ""); const d = this.de();
+    const head = `<h3>${d ? "Benachrichtigungen" : "Notifications"}</h3>`;
+    if (!this.uid() || typeof Social === "undefined" || !Social.sb){ el.innerHTML = head + `<p class="muted">${d ? "Zum Einstellen bitte anmelden." : "Sign in to choose."}</p>`; return; }
+    try { await this.load(); } catch(e) {}
+    const draw = () => { if (!el.isConnected) return; el.innerHTML = head + this.html();
+      el.querySelectorAll("[data-nt]").forEach(c => c.onchange = async () => { const k = c.dataset.nt, v = c.checked;
+        try { await this.set(k, v); Haptic.go(10); draw(); } catch(e){ c.checked = !v; toast((d ? "Ging nicht: " : "Didn't work: ") + (e.message || e)); } });
+      el.querySelectorAll("[data-ntc]").forEach(b => b.onclick = async () => { const k = b.dataset.ntc, v = !this.on(k);
+        try { await this.set(k, v); Haptic.go(10); draw(); } catch(e){ toast((d ? "Ging nicht: " : "Didn't work: ") + (e.message || e)); } });
+      const pb = el.querySelector("[data-nt-on]"); if (pb){ Push.prep(); pb.onclick = () => Push.turnOn().then(r => { if (r.ok) toast(d ? "Benachrichtigungen an 🔔" : "Notifications on 🔔"); else Push.explain(r); draw(); }); } };
+    draw(); },
+  open(){ detailSheet(`<div class="nt-sheet" id="ntsheet"></div>`); this.render(document.getElementById("ntsheet")); }
+};
+
 /* a tap on a notification opens the right screen */
 if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message", e => { const u = e.data && e.data.nav; if (!u) return; try { const h = new URL(u, location.origin).hash.slice(1); routeHash(h); } catch(x) {} });
 function routeHash(h){ if (!h) return; if (h.startsWith("promo-") && typeof Promo !== "undefined"){ Promo.open(h.slice(6)); return; } if (h.startsWith("g-") && Views.friend){ if (App.route !== "friend") App.go("friend", {join: h.slice(2)}); return; } if (h.startsWith("chat-")) App.go("chat", {id: h.slice(5)}); else if (Views[h]) App.go(h); }

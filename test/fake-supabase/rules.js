@@ -65,7 +65,7 @@ module.exports = db => {
   const POLICIES = {
     chess_promos: {select: (r, u) => !!u}, chess_promo_cheers: {select: (r, u) => !!u},
     kcal_portions: {select: (r, u) => r.user_id === u || r.shared, insert: (r, u) => r.user_id === u, update: (r, u) => r.user_id === u, delete: (r, u) => r.user_id === u},
-    kv: own("user_id"), chess_push: own("user_id"), kcal_body: own("user_id"), kcal_weights: own("user_id"),
+    kv: own("user_id"), chess_push: own("user_id"), chess_notify: own("user_id"), kcal_body: own("user_id"), kcal_weights: own("user_id"),
     chess_players: {select: T, insert: (r, u) => r.id === u, update: {using: (r, u) => r.id === u, check: (r, u) => r.id === u}},
     home_groups: {select: (r, u) => r.owner === u || homeCan(u, r.id), insert: (r, u) => r.owner === u, update: {using: (r, u) => r.owner === u, check: (r, u) => r.owner === u}, delete: (r, u) => r.owner === u},
     home_members: {select: (r, u) => homeCan(u, r.group_id), insert: (r, u) => homeOwns(u, r.group_id), delete: (r, u) => homeOwns(u, r.group_id) || r.user_id === u},

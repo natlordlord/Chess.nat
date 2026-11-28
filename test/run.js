@@ -1511,6 +1511,27 @@ const PARTS = {
   },
 
   /* ---------- jede Seite einmal öffnen, am Handy und am PC ---------- */
+  /* ---------- Benachrichtigungen einstellen (Wunsch von Nat): ankreuzen, gilt für alle Geräte, Pflicht-Arten nicht abschaltbar ---------- */
+  async benachrichtigung(browser){
+    const page = await L.open(browser, "tester", {route: "#settings"}); await sleep(1200);
+    await page.waitForSelector("#notifSet [data-nt]", {timeout: 8000}).catch(() => {});
+    const t = await txt(page, "#notifSet"); await page.shot("benachrichtigungen");
+    ok(/Chat|Chat messages/.test(t) && /Bundesliga/.test(t) && /Haushalt|Household/.test(t), "Einstellungen: Liste der Benachrichtigungen mit Chat, Bundesliga, Haushalt", t.slice(0, 300));
+    ok(await page.evaluate(() => { const l = [...document.querySelectorAll("#notifSet .nt-row.lock input")]; return l.length === 3 && l.every(i => i.disabled && i.checked); }), "Einladungen, Neues und Feedback-Antworten sind an und nicht abschaltbar");
+    await page.locator('#notifSet [data-nt="messages"]').click(); await sleep(800);
+    let n = await L.table("chess_notify"); ok(n.length === 1 && n[0].user_id === ID.tester && n[0].prefs.messages === false, "Chat-Nachrichten aus: für die Person gespeichert", JSON.stringify(n));
+    await page.locator('#notifSet [data-ntc="tipp.bl"]').click(); await sleep(800);
+    n = await L.table("chess_notify"); ok(n[0].prefs["tipp.bl"] === false && n[0].prefs.messages === false, "Bundesliga-Erinnerung aus, Chat bleibt aus", JSON.stringify(n[0].prefs));
+    ok(!(await has(page, '#notifSet [data-ntc="tipp.bl"].on')) && await has(page, '#notifSet [data-ntc="tipp.cl"].on'), "Bundesliga ist abgewählt, Champions League bleibt an");
+    await page.locator('#notifSet [data-nt="tipp"]').click(); await sleep(800);
+    ok(await page.evaluate(() => [...document.querySelectorAll("#notifSet [data-ntc]")].every(b => b.disabled)), "Tippspiel ganz aus: die Sportarten sind ausgegraut");
+    await page.locator('#notifSet [data-nt="k:fpush"]').click(); await sleep(800);
+    const kp = (await L.table("kcal_profile", "user_id=eq." + ID.tester))[0] || {}; ok(kp.fpush === false, "„Wenn Freunde essen“ aus: im Kalorien-Profil gespeichert", JSON.stringify([kp.fpush]));
+    await page.reload(); await sleep(1500); await page.waitForSelector("#notifSet [data-nt]", {timeout: 8000}).catch(() => {});
+    ok(await page.evaluate(() => { const q = s => document.querySelector(s); return !q('#notifSet [data-nt="messages"]').checked && !q('#notifSet [data-nt="tipp"]').checked && !q('#notifSet [data-nt="k:fpush"]').checked && q('#notifSet [data-nt="hearts"]').checked; }), "nach dem Neuladen steht alles noch so da");
+    await clean(page, "Benachrichtigungen"); await page.context().close();
+  },
+
   async seiten(browser){
     for (const desktop of [false, true]){
       const page = await L.open(browser, "tester", {desktop}), routes = await page.evaluate(() => Object.keys(Views)), broken = [];
